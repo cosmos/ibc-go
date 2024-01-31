@@ -60,8 +60,9 @@ func (k Keeper) GetRouter() *types.Router {
 
 // CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	var clientState localhost.ClientState
-	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
+	localhostModule := localhost.NewLightClientModule(k.cdc, k.storeKey)
+	k.router.AddRoute(exported.Localhost, localhostModule)
+	return localhostModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
 }
 
 // UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.

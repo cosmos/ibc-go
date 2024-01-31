@@ -2,25 +2,28 @@ package localhost
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost/internal/keeper"
 )
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 type LightClientModule struct {
-	keeper        keeper.Keeper
+	cdc           codec.BinaryCodec
+	key           storetypes.StoreKey
 	storeProvider exported.ClientStoreProvider
 }
 
-func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string) LightClientModule {
-	return LightClientModule{
-		keeper: keeper.NewKeeper(cdc, authority),
+func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *LightClientModule {
+	return &LightClientModule{
+		cdc: cdc,
+		key: key,
 	}
 }
 
@@ -42,18 +45,13 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
 
-	var clientState ClientState
-	if err := lcm.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
-		return err
+	clientState := ClientState{
+		LatestHeight: clienttypes.GetSelfHeight(ctx),
 	}
 
-	if err := clientState.Validate(); err != nil {
-		return err
-	}
-
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-
-	return clientState.Initialize(ctx, lcm.keeper.Codec(), clientStore, nil)
+	clientStore := lcm.storeProvider.ClientStore(ctx, exported.LocalhostClientID)
+	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(lcm.cdc, &clientState))
+	return nil
 }
 
 func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
@@ -67,7 +65,7 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	cdc := lcm.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -111,7 +109,7 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType))
 	}
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	cdc := lcm.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -141,7 +139,7 @@ func (lcm LightClientModule) VerifyMembership(
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	cdc := lcm.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -170,7 +168,7 @@ func (lcm LightClientModule) VerifyNonMembership(
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	cdc := lcm.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
