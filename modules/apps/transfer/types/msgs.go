@@ -73,25 +73,8 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
 
-	if len(msg.Tokens) == 0 && msg.Token.IsNil() {
+	if len(msg.Tokens) == 0 && !isValidToken(msg.Token) {
 		return errorsmod.Wrap(ErrInvalidAmount, "either token or token array must be filled")
-	}
-
-	tokensToValidate := msg.Tokens
-	if !msg.Token.IsNil() {
-		tokensToValidate = []sdk.Coin{msg.Token}
-	}
-
-	for _, token := range tokensToValidate {
-		if !token.IsValid() {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.String())
-		}
-		if !token.IsPositive() {
-			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, token.String())
-		}
-		if err := ValidateIBCDenom(token.Denom); err != nil {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.Denom)
-		}
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
@@ -108,5 +91,50 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 
+	for _, token := range msg.GetTokens() {
+		if !token.IsValid() {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.String())
+		}
+		if !token.IsPositive() {
+			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, token.String())
+		}
+		if err := ValidateIBCDenom(token.Denom); err != nil {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.Denom)
+		}
+	}
+
 	return nil
+}
+
+// GetTokens returns the tokens which will be transferred.
+func (msg MsgTransfer) GetTokens() []sdk.Coin {
+	tokensToValidate := msg.Tokens
+	if isValidToken(msg.Token) {
+		tokensToValidate = []sdk.Coin{msg.Token}
+	}
+	return tokensToValidate
+}
+
+// isValidToken returns true if the token provided is valid,
+// and should be used to transfer tokens.
+// this function is used in case the user constructs a sdk.Coin literal
+// instead of using the construction function.
+func isValidToken(coin sdk.Coin) bool {
+	if coin.IsNil() {
+		return false
+	}
+
+	if strings.TrimSpace(coin.Denom) == "" {
+		return false
+	}
+
+	if coin.Amount.IsZero() {
+		return false
+	}
+
+	if coin.Amount.IsNegative() {
+		return false
+	}
+
+	return true
 }

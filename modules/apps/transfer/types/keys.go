@@ -48,6 +48,13 @@ var (
 	PortKey = []byte{0x01}
 	// DenomTraceKey defines the key to store the denomination trace info in store
 	DenomTraceKey = []byte{0x02}
+	// SupportedVersions defines all versions that are supported by the module
+	SupportedVersions = []string{CurrentVersion, Version1}
+)
+
+const (
+	// EscrowAddressVersion should remain as ics20-1 to avoid the address changing.
+	EscrowAddressVersion = "ics20-1"
 )
 
 // GetEscrowAddress returns the escrow address for the specified channel.
@@ -59,7 +66,7 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	contents := fmt.Sprintf("%s/%s", portID, channelID)
 
 	// ADR 028 AddressHash construction
-	preImage := []byte(CurrentVersion)
+	preImage := []byte(EscrowAddressVersion)
 	preImage = append(preImage, 0)
 	preImage = append(preImage, contents...)
 	hash := sha256.Sum256(preImage)
