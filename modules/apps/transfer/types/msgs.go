@@ -77,6 +77,10 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidAmount, "either token or token array must be filled")
 	}
 
+	if len(msg.Tokens) != 0 && isValidToken(msg.Token) {
+		return errorsmod.Wrap(ErrInvalidAmount, "cannot fill both token and token array")
+	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
