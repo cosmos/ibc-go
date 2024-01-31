@@ -24,7 +24,7 @@ type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
 	VerifyChannelState(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
@@ -33,7 +33,7 @@ type ConnectionKeeper interface {
 	) error
 	VerifyPacketCommitment(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
@@ -43,7 +43,7 @@ type ConnectionKeeper interface {
 	) error
 	VerifyPacketAcknowledgement(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
@@ -53,7 +53,7 @@ type ConnectionKeeper interface {
 	) error
 	VerifyPacketReceiptAbsence(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
@@ -62,7 +62,7 @@ type ConnectionKeeper interface {
 	) error
 	VerifyNextSequenceRecv(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
@@ -71,7 +71,7 @@ type ConnectionKeeper interface {
 	) error
 	VerifyChannelUpgrade(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
@@ -80,7 +80,7 @@ type ConnectionKeeper interface {
 	) error
 	VerifyChannelUpgradeError(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,

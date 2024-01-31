@@ -109,7 +109,7 @@ func (k Keeper) SendPacket(
 func (k Keeper) RecvPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
@@ -167,11 +167,8 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
@@ -340,7 +337,7 @@ func (k Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	emitWriteAcknowledgementEvent(ctx, packet, channel, bz)
+	emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
 
 	return nil
 }
@@ -354,7 +351,7 @@ func (k Keeper) WriteAcknowledgement(
 func (k Keeper) AcknowledgePacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 	acknowledgement []byte,
 	proof []byte,
 	proofHeight exported.Height,
@@ -400,11 +397,8 @@ func (k Keeper) AcknowledgePacket(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
