@@ -57,6 +57,7 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), true},
 		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoin, sender, receiver, timeoutHeight, 0, ""), true},
 		{"multidenom", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, sender, receiver, timeoutHeight, 0, "", coin, ibcCoin), true},
+		{"multidenom non nil", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{Denom: "", Amount: sdkmath.NewInt(0)}, sender, receiver, timeoutHeight, 0, "", coin, ibcCoin), true},
 		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoin, sender, receiver, timeoutHeight, 0, ""), false},
 		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
 		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},

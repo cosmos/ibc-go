@@ -125,7 +125,7 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if !slices.Contains([]string{types.CurrentVersion, types.Version1}, counterpartyVersion) {
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, counterpartyVersion)
 	}
 
@@ -145,7 +145,7 @@ func (im IBCModule) OnChanOpenAck(
 	_ string,
 	counterpartyVersion string,
 ) error {
-	if !slices.Contains([]string{types.CurrentVersion, types.Version1}, counterpartyVersion) {
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
 		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, counterpartyVersion)
 	}
 

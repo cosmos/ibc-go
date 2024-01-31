@@ -26,13 +26,9 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	var tokens []sdk.Coin
-
-	if msg.Token.IsNil() {
-		tokens = msg.Tokens
-	} else {
-		tokens = []sdk.Coin{msg.Token}
-	}
+	// tokens will always be an array, but may contain a single element
+	// if the ics20-1 token field is populated, and the ics20-2 array is empty.
+	tokens := msg.GetTokens()
 
 	for _, token := range tokens {
 		if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
