@@ -139,6 +139,7 @@ func (lcm LightClientModule) VerifyMembership(
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	ibcStore := ctx.KVStore(lcm.key)
 	cdc := lcm.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -146,7 +147,7 @@ func (lcm LightClientModule) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.VerifyMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
 func (lcm LightClientModule) VerifyNonMembership(
@@ -168,6 +169,7 @@ func (lcm LightClientModule) VerifyNonMembership(
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	ibcStore := ctx.KVStore(lcm.key)
 	cdc := lcm.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -175,7 +177,7 @@ func (lcm LightClientModule) VerifyNonMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyNonMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	return clientState.VerifyNonMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
