@@ -16,11 +16,11 @@ const (
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	var (
-		channel               *channeltypes.Channel
-		path                  *ibctesting.Path
-		chanCap               *capabilitytypes.Capability
-		metadata              icatypes.Metadata
-		expectedVersionReturn string
+		channel         *channeltypes.Channel
+		path            *ibctesting.Path
+		chanCap         *capabilitytypes.Capability
+		metadata        icatypes.Metadata
+		expectedVersion string
 	)
 
 	testCases := []struct {
@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			"success: empty channel version returns default metadata JSON string",
 			func() {
 				channel.Version = ""
-				expectedVersionReturn = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID)
+				expectedVersion = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID)
 			},
 			nil,
 		},
@@ -183,14 +183,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			connectiontypes.ErrConnectionNotFound,
 		},
 		{
-			"connection not found with default empty channel version",
-			func() {
-				channel.ConnectionHops = []string{"connection-10"}
-				channel.Version = ""
-			},
-			connectiontypes.ErrConnectionNotFound,
-		},
-		{
 			"invalid controller connection ID",
 			func() {
 				metadata.ControllerConnectionId = "invalid-connnection-id"
@@ -287,7 +279,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
-			expectedVersionReturn = string(versionBytes)
+			expectedVersion = string(versionBytes)
 
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
@@ -310,7 +302,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expectedVersionReturn, version)
+				suite.Require().Equal(expectedVersion, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
@@ -668,7 +660,8 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			suite.Require().NoError(err)
 
 			order = channeltypes.ORDERED
-			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
+			metadata.HostConnectionId = path.EndpointB.ConnectionID
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 
