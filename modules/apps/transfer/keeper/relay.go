@@ -104,7 +104,6 @@ func (k Keeper) sendTransfer(
 		// NOTE: SendTransfer simply sends the denomination as it exists on its own
 		// chain inside the packet data. The receiving chain will perform denom
 		// prefixing as necessary.
-
 		if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
 			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 
