@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -22,11 +24,7 @@ func NewMigrator(keeper Keeper) Migrator {
 
 // MigrateParams migrates the transfer module's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
-	params := m.keeper.GetParams(ctx)
-
-	m.keeper.SetParams(ctx, params)
-	m.keeper.Logger(ctx).Info("successfully migrated transfer app self-manage params")
-	return nil
+	return errorsmod.Wrap(types.ErrInvalidVersion, "must migrate to ibc-go v8.x first")
 }
 
 // MigrateTraces migrates the DenomTraces to the correct format, accounting for slashes in the BaseDenom.

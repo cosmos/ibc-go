@@ -55,10 +55,7 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 // MigrateParams migrates the controller submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	if m.keeper != nil {
-		params := m.keeper.GetParams(ctx)
-
-		m.keeper.SetParams(ctx, params)
-		m.keeper.Logger(ctx).Info("successfully migrated ica/controller submodule to self-manage params")
+		return errorsmod.Wrap(icatypes.ErrInvalidVersion, "must migrate to ibc-go v8.x first")
 	}
 	return nil
 }

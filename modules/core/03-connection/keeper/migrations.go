@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	connectionv7 "github.com/cosmos/ibc-go/v8/modules/core/03-connection/migrations/v7"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -27,12 +30,5 @@ func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 // This migration takes the parameters that are currently stored and managed by x/params
 // and stores them directly in the ibc module's state.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
-	params := m.keeper.GetParams(ctx)
-	if err := params.Validate(); err != nil {
-		return err
-	}
-
-	m.keeper.SetParams(ctx, params)
-	m.keeper.Logger(ctx).Info("successfully migrated connection to self-manage params")
-	return nil
+	return errorsmod.Wrap(ibcerrors.ErrInvalidVersion, "must migrate to ibc-go v8.x first")
 }

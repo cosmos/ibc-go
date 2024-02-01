@@ -1,9 +1,11 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -18,8 +20,5 @@ func NewMigrator(keeper Keeper) Migrator {
 
 // MigrateParams migrates params to the default channel params.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
-	params := channeltypes.DefaultParams()
-	m.keeper.SetParams(ctx, params)
-	m.keeper.Logger(ctx).Info("successfully migrated ibc channel params")
-	return nil
+	return errorsmod.Wrap(ibcerrors.ErrInvalidVersion, "must migrate to ibc-go v8.x first")
 }
