@@ -15,8 +15,10 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	gov1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -127,7 +129,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 				Memo: "e2e",
 			}
 
-			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
 			resp := s.BroadcastMessages(
 				ctx,
@@ -150,6 +152,42 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 			s.Require().Equal(expected, balance.Int64())
+		})
+
+		t.Run("execute proposal for MsgSubmitProposal", func(t *testing.T) {
+			testProposal := &gov1beta1.TextProposal{
+				Title:       "IBC Gov Proposal",
+				Description: "tokens for all!",
+			}
+
+			protoAny, err := codectypes.NewAnyWithValue(testProposal)
+			s.Require().NoError(err)
+
+			msg := &gov1beta1.MsgSubmitProposal{
+				Content:        protoAny,
+				InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
+				Proposer:       hostAccount,
+			}
+
+			cdc := testsuite.Codec()
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msg}, icatypes.EncodingProtobuf)
+			s.Require().NoError(err)
+
+			packetData := icatypes.InterchainAccountPacketData{
+				Type: icatypes.EXECUTE_TX,
+				Data: bz,
+				Memo: "e2e",
+			}
+
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			s.ExecuteAndPassGovV1Proposal(ctx, msgSendTx, chainA, controllerAccount)
+		})
+
+		t.Run("verify proposal executed", func(t *testing.T) {
+			proposal, err := s.QueryProposalV1Beta1(ctx, chainB, 1)
+			s.Require().NoError(err)
+
+			s.Require().Equal(proposal.Content.TypeUrl, "/cosmos.gov.v1beta1.TextProposal")
 		})
 	})
 }
