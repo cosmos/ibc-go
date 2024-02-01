@@ -195,10 +195,10 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		})
 
 		t.Run("verify proposal executed", func(t *testing.T) {
-			proposal, err := s.QueryProposalV1Beta1(ctx, chainB, 1)
+			proposal, err := s.QueryProposalV1(ctx, chainB, 1)
 			s.Require().NoError(err)
 
-			s.Require().Equal(proposal.Content.TypeUrl, "/cosmos.gov.v1beta1.TextProposal")
+			s.Require().Equal("e2e", proposal.Title)
 		})
 	})
 }
