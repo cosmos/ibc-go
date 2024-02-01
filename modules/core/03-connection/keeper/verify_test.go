@@ -232,9 +232,8 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 			heightDiff = 5
 		}, false},
 		{"verification failed - changed channel state", func() {
-			channel := path.EndpointA.GetChannel()
-			channel.State = channeltypes.TRYOPEN
-			path.EndpointA.SetChannel(channel)
+			err := path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.TRYOPEN })
+			suite.Require().NoError(err)
 		}, false},
 		{"client status is not active - client is expired", func() {
 			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)

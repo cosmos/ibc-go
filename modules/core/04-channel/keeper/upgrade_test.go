@@ -223,23 +223,22 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"fails due to mismatch in upgrade sequences: chainB is on incremented sequence without an upgrade indicating it has already processed upgrade at this sequence.",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.UpgradeSequence = 1
 				errorReceipt := types.NewUpgradeError(1, types.ErrInvalidUpgrade)
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
-				path.EndpointB.SetChannel(channel)
+
+				err := path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 1 })
+				suite.Require().NoError(err)
 			},
 			types.NewUpgradeError(1, types.ErrInvalidUpgradeSequence),
 		},
 		{
 			"fails due to mismatch in upgrade sequences, crossing hello with the TRY chain having a higher sequence",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.UpgradeSequence = 4
-				path.EndpointB.SetChannel(channel)
+				err := path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 4 })
+				suite.Require().NoError(err)
 
 				// upgrade sequence is 5 after this call
-				err := path.EndpointB.ChanUpgradeInit()
+				err = path.EndpointB.ChanUpgradeInit()
 				suite.Require().NoError(err)
 			},
 			types.NewUpgradeError(4, types.ErrInvalidUpgradeSequence),

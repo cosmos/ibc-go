@@ -503,9 +503,8 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 		{
 			name: "failure: cannot decode version string from channel",
 			malleate: func() {
-				channel := path.EndpointB.GetChannel()
-				channel.Version = "invalid-metadata-string"
-				path.EndpointB.SetChannel(channel)
+				err := path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = "invalid-metadata-string" })
+				suite.Require().NoError(err)
 			},
 			expError: icatypes.ErrUnknownDataType,
 		},

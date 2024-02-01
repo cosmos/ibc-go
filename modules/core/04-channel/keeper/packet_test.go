@@ -120,9 +120,8 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			channel := path.EndpointA.GetChannel()
-			channel.ConnectionHops[0] = "invalid-connection"
-			path.EndpointA.SetChannel(channel)
+			err := path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops[0] = "invalid-connection" })
+			suite.Require().NoError(err)
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
@@ -221,9 +220,8 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				path.Setup()
 				sourceChannel = path.EndpointA.ChannelID
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
+				err := path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
+				suite.Require().NoError(err)
 			},
 			false,
 		},

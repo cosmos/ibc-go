@@ -321,9 +321,9 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				err := path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
+				suite.Require().NoError(err)
+
 				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
 					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainA.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
 				})
@@ -363,9 +363,8 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				err = path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
+				suite.Require().NoError(err)
 			},
 			func(packetCommitment []byte, err error) {
 				suite.Require().NoError(err)
@@ -389,9 +388,9 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				err = path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
+				suite.Require().NoError(err)
+
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
 					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
@@ -439,9 +438,9 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				err = path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
+				suite.Require().NoError(err)
+
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
 					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainA.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
