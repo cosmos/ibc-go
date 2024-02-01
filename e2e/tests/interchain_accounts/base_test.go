@@ -166,7 +166,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 
 			msg, err := govv1.NewMsgSubmitProposal(
 				[]sdk.Msg{testProposal},
-				sdk.NewCoins(sdk.NewCoin(chainB.Config().Denom, sdkmath.NewInt(100_000))),
+				sdk.NewCoins(sdk.NewCoin(chainB.Config().Denom, sdkmath.NewInt(1_000_000))),
 				hostAccount, "e2e", "e2e", "e2e", false,
 			)
 			s.Require().NoError(err)
