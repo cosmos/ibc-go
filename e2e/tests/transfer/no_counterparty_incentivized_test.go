@@ -19,22 +19,20 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
-func TestIncentivized2TransferTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(Incentivized2TransferTestSuite))
+func TestNoCounterPartyIncentivizedTransferTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(NoCounterPartyIncentivizedTransferTestSuite))
 }
 
-type Incentivized2TransferTestSuite struct {
+type NoCounterPartyIncentivizedTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *Incentivized2TransferTestSuite) SetupSuite() {
-	ctx := context.TODO()
+func (s *NoCounterPartyIncentivizedTransferTestSuite) SetupSuite() {
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
-	_, _ = s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
 }
 
-func (s *Incentivized2TransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress() {
+func (s *NoCounterPartyIncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress() {
 	t := s.T()
 	t.Parallel()
 	ctx := context.TODO()
@@ -50,9 +48,6 @@ func (s *Incentivized2TransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCo
 	)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	t.Run("relayer wallets recovered", func(t *testing.T) {
-		_ = s.RecoverRelayerWallets(ctx, relayer)
-	})
 
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainAWallet.FormattedAddress(), // destination address

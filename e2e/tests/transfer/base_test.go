@@ -163,7 +163,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 // that the tokens on the sending chain are unescrowed.
 func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
-	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
