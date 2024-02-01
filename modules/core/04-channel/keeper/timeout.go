@@ -263,7 +263,7 @@ func (k Keeper) TimeoutOnClose(
 		return errorsmod.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
-	counterpartyHops := []string{connectionEnd.Counterparty.GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	counterparty := types.NewCounterparty(packet.GetSourcePort(), packet.GetSourceChannel())
 	expectedChannel := types.Channel{
