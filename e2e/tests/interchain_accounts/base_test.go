@@ -160,7 +160,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 			s.Require().NotNil(govModuleAddress)
 
 			testProposal := &controllertypes.MsgUpdateParams{
-				Signer: controllerAddress,
+				Signer: govModuleAddress.String(),
 				Params: controllertypes.NewParams(false),
 			}
 
