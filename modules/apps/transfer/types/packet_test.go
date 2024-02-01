@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -133,4 +134,28 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 		customData := tc.packetData.GetCustomPacketData("src_callback")
 		suite.Require().Equal(tc.expCustomData, customData)
 	}
+}
+
+func (suite *TypesTestSuite) TestFungibleTokenPacketDataOmitEmpty() {
+	// check that omitempty is present for the memo field
+	packetData := types.FungibleTokenPacketData{
+		Denom:    denom,
+		Amount:   amount,
+		Sender:   sender,
+		Receiver: receiver,
+		// Default value for non-specified memo field is empty string
+	}
+
+	bz, err := json.Marshal(packetData)
+	suite.Require().NoError(err)
+
+	// check that the memo field is not present in the marshalled bytes
+	suite.Require().NotContains(string(bz), "memo")
+
+	packetData.Memo = "abc"
+	bz, err = json.Marshal(packetData)
+	suite.Require().NoError(err)
+
+	// check that the memo field is present in the marshalled bytes
+	suite.Require().Contains(string(bz), "memo")
 }
