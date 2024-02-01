@@ -23,7 +23,7 @@ func NewMigrator(keeper Keeper) Migrator {
 }
 
 // MigrateParams migrates the transfer module's parameters from the x/params to self store.
-func (m Migrator) MigrateParams(ctx sdk.Context) error {
+func (Migrator) MigrateParams(ctx sdk.Context) error {
 	return errorsmod.Wrap(types.ErrInvalidVersion, "must migrate to ibc-go v8.x first")
 }
 

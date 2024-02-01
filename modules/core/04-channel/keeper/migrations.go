@@ -19,6 +19,6 @@ func NewMigrator(keeper Keeper) Migrator {
 }
 
 // MigrateParams migrates params to the default channel params.
-func (m Migrator) MigrateParams(ctx sdk.Context) error {
+func (Migrator) MigrateParams(ctx sdk.Context) error {
 	return errorsmod.Wrap(ibcerrors.ErrInvalidVersion, "must migrate to ibc-go v8.x first")
 }

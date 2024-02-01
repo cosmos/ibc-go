@@ -38,6 +38,6 @@ func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 // MigrateParams migrates from consensus version 4 to 5.
 // This migration takes the parameters that are currently stored and managed by x/params
 // and stores them directly in the ibc module's state.
-func (m Migrator) MigrateParams(ctx sdk.Context) error {
+func (Migrator) MigrateParams(ctx sdk.Context) error {
 	return errorsmod.Wrap(ibcerrors.ErrInvalidVersion, "must migrate to ibc-go v8.x first")
 }
