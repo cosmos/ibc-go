@@ -120,9 +120,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			delayPeriod = uint64(time.Hour.Nanoseconds())
 
 			// set delay period on counterparty to non-zero value
-			conn := path.EndpointA.GetConnection()
-			conn.DelayPeriod = delayPeriod
-			suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, conn)
+			path.EndpointA.UpdateConnection(func(connection *types.ConnectionEnd) { connection.DelayPeriod = delayPeriod })
 
 			// commit in order for proof to return correct value
 			suite.coordinator.CommitBlock(suite.chainA)
@@ -341,12 +339,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			suite.Require().NoError(err)
 
 			// modify connB to set counterparty connection identifier to wrong identifier
-			connection, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID)
-			suite.Require().True(found)
-
-			connection.Counterparty.ConnectionId = "badconnectionid"
-
-			suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.Counterparty.ConnectionId = "badconnectionid" })
 
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)

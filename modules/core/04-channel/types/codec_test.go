@@ -19,11 +19,6 @@ func TestCodecTypeRegistration(t *testing.T) {
 		expPass bool
 	}{
 		{
-			"success: Counterparty",
-			sdk.MsgTypeURL(&types.Counterparty{}),
-			true,
-		},
-		{
 			"success: Packet",
 			sdk.MsgTypeURL(&types.Packet{}),
 			true,

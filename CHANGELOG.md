@@ -48,6 +48,42 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+## [v8.1.0](https://github.com/cosmos/ibc-go/releases/tag/v8.1.0) - 2024-01-31
+
+### Dependencies
+
+* [\#5663](https://github.com/cosmos/ibc-go/pull/5663) Bump Cosmos SDK to v0.50.3 and CometBFT to v0.38.2.
+
+### State Machine Breaking
+
+* (apps/27-interchain-accounts) [\#5442](https://github.com/cosmos/ibc-go/pull/5442) Increase the maximum allowed length for the memo field of `InterchainAccountPacketData`.
+
+### Improvements
+
+* (core/02-client) [\#5429](https://github.com/cosmos/ibc-go/pull/5429) Add wildcard `"*"` to allow all clients in `AllowedClients` param.
+* (core) [\#5541](https://github.com/cosmos/ibc-go/pull/5541) Enable emission of events on erroneous IBC application callbacks by appending a prefix to all event type and attribute keys.
+
+### Features
+
+* (core/04-channel) [\#1613](https://github.com/cosmos/ibc-go/pull/1613) Channel upgradability.
+* (apps/transfer) [\#5280](https://github.com/cosmos/ibc-go/pull/5280) Add list of allowed packet data keys to `Allocation` of `TransferAuthorization`.
+* (apps/27-interchain-accounts) [\#5633](https://github.com/cosmos/ibc-go/pull/5633) Allow setting new and upgrading existing ICA (ordered) channels to use unordered ordering.
+
+### Bug Fixes
+
+* (apps/27-interchain-accounts) [\#5343](https://github.com/cosmos/ibc-go/pull/5343) Add check if controller is enabled in `sendTx` before sending packet to host.
+* (apps/29-fee) [\#5441](https://github.com/cosmos/ibc-go/pull/5441) Allow setting the relayer address as payee.
+
+## [v8.0.1](https://github.com/cosmos/ibc-go/releases/tag/v8.0.1) - 2024-01-31
+
+### Dependencies
+
+* [\#5718](https://github.com/cosmos/ibc-go/pull/5718) Update Cosmos SDK to v0.50.3 and CometBFT to v0.38.2.
+
+### Improvements
+
+* (core) [\#5541](https://github.com/cosmos/ibc-go/pull/5541) Enable emission of events on erroneous IBC application callbacks by appending a prefix to all event type and attribute keys.
+
 ## [v8.0.0](https://github.com/cosmos/ibc-go/releases/tag/v8.0.0) - 2023-11-10
 
 ### Dependencies
@@ -141,6 +177,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/transfer, apps/29-fee) [\#4570](https://github.com/cosmos/ibc-go/pull/4570) Remove `GetSignBytes` from 29-fee and transfer msgs.
 * [\#3630](https://github.com/cosmos/ibc-go/pull/3630) Add annotation to Msg service.
 
+## [v7.3.2](https://github.com/cosmos/ibc-go/releases/tag/v7.3.2) - 2024-01-31
+
+### Dependencies
+
+* [\#5717](https://github.com/cosmos/ibc-go/pull/5717) Update Cosmos SDK to v0.47.8 and CometBFT to v0.37.4.
+
+### Improvements
+
+* (core) [\#5541](https://github.com/cosmos/ibc-go/pull/5541) Enable emission of events on erroneous IBC application callbacks by appending a prefix to all event type and attribute keys.
+
+### Bug Fixes
+
+* (apps/27-interchain-accounts) [\#4944](https://github.com/cosmos/ibc-go/pull/4944) Add missing proto interface registration.
+
 ## [v7.3.1](https://github.com/cosmos/ibc-go/releases/tag/v7.3.1) - 2023-10-20
 
 ### Dependencies
@@ -177,6 +227,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (04-channel) [\#4476](https://github.com/cosmos/ibc-go/pull/4476) Use UTC time in log messages for packet timeout error.
 * (testing) [\#4483](https://github.com/cosmos/ibc-go/pull/4483) Use the correct revision height when querying trusted validator set.
+
+## [v7.2.3](https://github.com/cosmos/ibc-go/releases/tag/v7.2.3) - 2024-01-31
+
+### Dependencies
+
+* [\#5716](https://github.com/cosmos/ibc-go/pull/5716) Update Cosmos SDK to v0.47.8 and CometBFT to v0.37.4.
+
+### Improvements
+
+* (core) [\#5541](https://github.com/cosmos/ibc-go/pull/5541) Enable emission of events on erroneous IBC application callbacks by appending a prefix to all event type and attribute keys.
 
 ## [v7.2.2](https://github.com/cosmos/ibc-go/releases/tag/v7.2.2) - 2023-10-20
 
