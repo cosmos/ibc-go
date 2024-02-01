@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -182,7 +183,7 @@ func (im IBCModule) OnRecvPacket(
 
 	var data types.FungibleTokenPacketData
 	var ackErr error
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
 		ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
 		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
@@ -238,7 +239,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 	var data types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
@@ -286,7 +287,7 @@ func (im IBCModule) OnTimeoutPacket(
 	relayer sdk.AccAddress,
 ) error {
 	var data types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 	// refund tokens
@@ -352,7 +353,7 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	var packetData types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {
+	if err := json.Unmarshal(bz, &packetData); err != nil {
 		return nil, err
 	}
 
