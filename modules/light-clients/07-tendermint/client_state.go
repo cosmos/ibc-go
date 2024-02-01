@@ -15,6 +15,7 @@ import (
 	"github.com/cometbft/cometbft/light"
 	cmttypes "github.com/cometbft/cometbft/types"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -85,9 +86,9 @@ func (cs ClientState) Status(
 	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
-) exported.Status {
+) api.Status {
 	if !cs.FrozenHeight.IsZero() {
-		return exported.Frozen
+		return api.Frozen
 	}
 
 	// get latest consensus state from clientStore to check for expiry
@@ -95,14 +96,14 @@ func (cs ClientState) Status(
 	if !found {
 		// if the client state does not have an associated consensus state for its latest height
 		// then it must be expired
-		return exported.Expired
+		return api.Expired
 	}
 
 	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
 		return exported.Expired
 	}
 
-	return exported.Active
+	return api.Active
 }
 
 // IsExpired returns whether or not the client has passed the trusting period since the last

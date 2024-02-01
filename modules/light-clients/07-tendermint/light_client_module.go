@@ -6,16 +6,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint/internal/keeper"
 )
 
-var _ exported.LightClientModule = (*LightClientModule)(nil)
+var _ api.LightClientModule = (*LightClientModule)(nil)
 
 type LightClientModule struct {
 	keeper        keeper.Keeper
-	storeProvider exported.ClientStoreProvider
+	storeProvider api.ClientStoreProvider
 }
 
 func NewLightClientModule(cdc codec.BinaryCodec, authority string) LightClientModule {
@@ -24,13 +25,13 @@ func NewLightClientModule(cdc codec.BinaryCodec, authority string) LightClientMo
 	}
 }
 
-func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	lcm.storeProvider = storeProvider
+func (l *LightClientModule) RegisterStoreProvider(storeProvider api.ClientStoreProvider) {
+	l.storeProvider = storeProvider
 }
 
 // Initialize checks that the initial consensus state is an 07-tendermint consensus state and
 // sets the client state, consensus state and associated metadata in the provided client store.
-func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
+func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		return err
@@ -41,7 +42,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 	}
 
 	var clientState ClientState
-	if err := lcm.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
+	if err := l.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
 		return err
 	}
 
@@ -50,7 +51,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 	}
 
 	var consensusState ConsensusState
-	if err := lcm.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
+	if err := l.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
 		return err
 	}
 
@@ -58,12 +59,12 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 		return err
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
-	return clientState.Initialize(ctx, lcm.keeper.Codec(), clientStore, &consensusState)
+	return clientState.Initialize(ctx, l.keeper.Codec(), clientStore, &consensusState)
 }
 
-func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) error {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		return err
@@ -73,18 +74,18 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyClientMessage(ctx, cdc, clientStore, clientMsg)
+	return clientState.VerifyClientMessage(ctx, cdc, clientStore, clientMsg.(exported.ClientMessage))
 }
 
-func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) bool {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		panic(err)
@@ -94,18 +95,18 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType))
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	return clientState.CheckForMisbehaviour(ctx, cdc, clientStore, clientMsg)
+	return clientState.CheckForMisbehaviour(ctx, cdc, clientStore, clientMsg.(exported.ClientMessage))
 }
 
-func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		panic(err)
@@ -115,18 +116,18 @@ func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID
 		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType))
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	clientState.UpdateStateOnMisbehaviour(ctx, cdc, clientStore, clientMsg)
+	clientState.UpdateStateOnMisbehaviour(ctx, cdc, clientStore, clientMsg.(exported.ClientMessage))
 }
 
-func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) []api.Height {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		panic(err)
@@ -135,25 +136,25 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 	if clientType != exported.Tendermint {
 		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType))
 	}
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
+	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg.(exported.ClientMessage))
 }
 
-func (lcm LightClientModule) VerifyMembership(
+func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height,
+	height api.Height,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path,
+	path api.Path,
 	value []byte,
 ) error {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
@@ -165,25 +166,25 @@ func (lcm LightClientModule) VerifyMembership(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.VerifyMembership(ctx, clientStore, cdc, height.(exported.Height), delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
-func (lcm LightClientModule) VerifyNonMembership(
+func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height, // TODO: change to concrete type
+	height api.Height, // TODO: change to concrete type
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path, // TODO: change to conrete type
+	path api.Path, // TODO: change to conrete type
 ) error {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
@@ -194,42 +195,43 @@ func (lcm LightClientModule) VerifyNonMembership(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyNonMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	return clientState.VerifyNonMembership(ctx, clientStore, cdc, height.(exported.Height), delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
-func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+func (l LightClientModule) Status(ctx sdk.Context, clientID string) api.Status {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
-		return exported.Unknown
+		return api.Unknown
 	}
 
 	if clientType != exported.Tendermint {
-		return exported.Unknown
+		return api.Unknown
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
-		return exported.Unknown
+		return api.Unknown
 	}
 
 	return clientState.Status(ctx, clientStore, cdc)
+
 }
 
-func (lcm LightClientModule) TimestampAtHeight(
+func (l LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height,
+	height api.Height,
 ) (uint64, error) {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
@@ -240,8 +242,8 @@ func (lcm LightClientModule) TimestampAtHeight(
 		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -251,7 +253,7 @@ func (lcm LightClientModule) TimestampAtHeight(
 	return clientState.GetTimestampAtHeight(ctx, clientStore, cdc, height)
 }
 
-func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		return err
@@ -261,15 +263,15 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	substituteClientStore := lcm.storeProvider.ClientStore(ctx, substituteClientID)
+	substituteClientStore := l.storeProvider.ClientStore(ctx, substituteClientID)
 	substituteClient, found := getClientState(substituteClientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
@@ -278,7 +280,7 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
 }
 
-func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
+func (l LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
 	newClient []byte,
@@ -296,7 +298,7 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	}
 
 	var newClientState ClientState
-	if err := lcm.keeper.Codec().Unmarshal(newClient, &newClientState); err != nil {
+	if err := l.keeper.Codec().Unmarshal(newClient, &newClientState); err != nil {
 		return err
 	}
 
@@ -305,15 +307,15 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	}
 
 	var newConsensusState ConsensusState
-	if err := lcm.keeper.Codec().Unmarshal(newConsState, &newConsensusState); err != nil {
+	if err := l.keeper.Codec().Unmarshal(newConsState, &newConsensusState); err != nil {
 		return err
 	}
 	if err := newConsensusState.ValidateBasic(); err != nil {
 		return err
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {

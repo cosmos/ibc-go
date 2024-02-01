@@ -6,16 +6,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-var _ exported.LightClientModule = (*LightClientModule)(nil)
+var _ api.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface?
 type LightClientModule struct {
 	cdc           codec.BinaryCodec
-	storeProvider exported.ClientStoreProvider
+	storeProvider api.ClientStoreProvider
 }
 
 // NewLightClientModule creates and returns a new 06-solomachine LightClientModule.
@@ -25,7 +26,7 @@ func NewLightClientModule(cdc codec.BinaryCodec) LightClientModule {
 	}
 }
 
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
+func (l *LightClientModule) RegisterStoreProvider(storeProvider api.ClientStoreProvider) {
 	l.storeProvider = storeProvider
 }
 
@@ -62,7 +63,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 // It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
-func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) error {
 	if err := validateClientID(clientID); err != nil {
 		return err
 	}
@@ -78,7 +79,7 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 
 // Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
 // has already been verified.
-func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) bool {
 	if err := validateClientID(clientID); err != nil {
 		panic(err)
 	}
@@ -93,7 +94,7 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 }
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
-func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) {
 	if err := validateClientID(clientID); err != nil {
 		panic(err)
 	}
@@ -109,7 +110,7 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
-func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) []api.Height {
 	if err := validateClientID(clientID); err != nil {
 		panic(err)
 	}
@@ -128,11 +129,11 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height, // TODO: change to concrete type
+	height api.Height, // TODO: change to concrete type
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path, // TODO: change to conrete type
+	path api.Path, // TODO: change to conrete type
 	value []byte,
 ) error {
 	if err := validateClientID(clientID); err != nil {
@@ -153,11 +154,11 @@ func (l LightClientModule) VerifyMembership(
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height, // TODO: change to concrete type
+	height api.Height, // TODO: change to concrete type
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path, // TODO: change to conrete type
+	path api.Path, // TODO: change to conrete type
 ) error {
 	if err := validateClientID(clientID); err != nil {
 		return err
@@ -173,22 +174,22 @@ func (l LightClientModule) VerifyNonMembership(
 }
 
 // Status must return the status of the client. Only Active clients are allowed to process packets.
-func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+func (l LightClientModule) Status(ctx sdk.Context, clientID string) api.Status {
 	if err := validateClientID(clientID); err != nil {
-		return exported.Unknown // TODO: or panic
+		return api.Unknown // TODO: or panic
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
-		return exported.Unknown
+		return api.Unknown
 	}
 
 	return clientState.Status(ctx, clientStore, l.cdc)
 }
 
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
-func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
+func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height api.Height) (uint64, error) {
 	if err := validateClientID(clientID); err != nil {
 		return 0, err
 	}

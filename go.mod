@@ -21,6 +21,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.50.3
 	github.com/cosmos/gogoproto v1.4.11
+	github.com/cosmos/ibc-go/api v0.0.0-00010101000000-000000000000
 	github.com/cosmos/ibc-go/modules/capability v1.0.0
 	github.com/cosmos/ics23/go v0.10.0
 	github.com/golang/protobuf v1.5.3
@@ -195,3 +196,5 @@ require (
 )
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+
+replace github.com/cosmos/ibc-go/api => ./api

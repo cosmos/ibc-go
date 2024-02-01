@@ -7,17 +7,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-var _ exported.LightClientModule = (*LightClientModule)(nil)
+var _ api.LightClientModule = (*LightClientModule)(nil)
 
 type LightClientModule struct {
 	cdc           codec.BinaryCodec
 	key           storetypes.StoreKey
-	storeProvider exported.ClientStoreProvider
+	storeProvider api.ClientStoreProvider
 }
 
 func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *LightClientModule {
@@ -27,11 +28,11 @@ func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *Light
 	}
 }
 
-func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	lcm.storeProvider = storeProvider
+func (l *LightClientModule) RegisterStoreProvider(storeProvider api.ClientStoreProvider) {
+	l.storeProvider = storeProvider
 }
 
-func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
+func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		return err
@@ -49,12 +50,12 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 		LatestHeight: clienttypes.GetSelfHeight(ctx),
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, exported.LocalhostClientID)
-	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(lcm.cdc, &clientState))
+	clientStore := l.storeProvider.ClientStore(ctx, exported.LocalhostClientID)
+	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(l.cdc, &clientState))
 	return nil
 }
 
-func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) error {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		return err
@@ -64,8 +65,8 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.cdc
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -75,7 +76,7 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 	return clientState.VerifyClientMessage(ctx, cdc, clientStore, clientMsg)
 }
 
-func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) bool {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		panic(err)
@@ -88,7 +89,7 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 	return false
 }
 
-func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		panic(err)
@@ -99,7 +100,7 @@ func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID
 	}
 }
 
-func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg api.ClientMessage) []api.Height {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		panic(err)
@@ -108,8 +109,8 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 	if clientType != exported.Localhost {
 		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType))
 	}
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.cdc
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -119,14 +120,14 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
 }
 
-func (lcm LightClientModule) VerifyMembership(
+func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height,
+	height api.Height,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path,
+	path api.Path,
 	value []byte,
 ) error {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
@@ -138,9 +139,9 @@ func (lcm LightClientModule) VerifyMembership(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	ibcStore := ctx.KVStore(lcm.key)
-	cdc := lcm.cdc
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	ibcStore := ctx.KVStore(l.key)
+	cdc := l.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -150,14 +151,14 @@ func (lcm LightClientModule) VerifyMembership(
 	return clientState.VerifyMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
-func (lcm LightClientModule) VerifyNonMembership(
+func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height, // TODO: change to concrete type
+	height api.Height, // TODO: change to concrete type
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path, // TODO: change to conrete type
+	path api.Path, // TODO: change to conrete type
 ) error {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
@@ -168,9 +169,9 @@ func (lcm LightClientModule) VerifyNonMembership(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	ibcStore := ctx.KVStore(lcm.key)
-	cdc := lcm.cdc
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	ibcStore := ctx.KVStore(l.key)
+	cdc := l.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -181,14 +182,14 @@ func (lcm LightClientModule) VerifyNonMembership(
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
-func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
-	return exported.Active
+func (l LightClientModule) Status(ctx sdk.Context, clientID string) api.Status {
+	return api.Active
 }
 
-func (lcm LightClientModule) TimestampAtHeight(
+func (l LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height,
+	height api.Height,
 ) (uint64, error) {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
@@ -202,11 +203,11 @@ func (lcm LightClientModule) TimestampAtHeight(
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
-func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
 }
 
-func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
+func (l LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
 	newClient []byte,
