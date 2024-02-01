@@ -19,20 +19,18 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		msg            string
 		malleate       func()
 		expectedParams transfertypes.Params
+		expectedError  error
 	}{
 		{
-			"success: default params",
-			func() {
-				params := transfertypes.DefaultParams()
-				subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
-				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
-			},
-			transfertypes.DefaultParams(),
+			msg:           "error: must migrate to ibc-go v8.x first",
+			malleate:      func() {},
+			expectedError: transfertypes.ErrInvalidVersion,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
+
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -40,10 +38,15 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 
 			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
-			suite.Require().NoError(err)
 
-			params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedParams, params)
+			if tc.expectedError != nil {
+				suite.Require().ErrorIs(err, tc.expectedError)
+			} else {
+				suite.Require().NoError(err)
+
+				params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.expectedParams, params)
+			}
 		})
 	}
 }

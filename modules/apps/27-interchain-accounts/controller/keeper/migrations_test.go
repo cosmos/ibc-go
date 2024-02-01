@@ -82,15 +82,12 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		msg            string
 		malleate       func()
 		expectedParams icacontrollertypes.Params
+		expectedError  error
 	}{
 		{
-			"success: default params",
-			func() {
-				params := icacontrollertypes.DefaultParams()
-				subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
-				subspace.SetParamSet(suite.chainA.GetContext(), &params)                           // set params
-			},
-			icacontrollertypes.DefaultParams(),
+			msg:           "error: must migrate to ibc-go v8.x first",
+			malleate:      func() {},
+			expectedError: icatypes.ErrInvalidVersion,
 		},
 	}
 
@@ -104,10 +101,14 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 
 			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
-			suite.Require().NoError(err)
 
-			params := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedParams, params)
+			if tc.expectedError != nil {
+				suite.Require().ErrorIs(err, tc.expectedError)
+			} else {
+				suite.Require().NoError(err)
+				params := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.expectedParams, params)
+			}
 		})
 	}
 }

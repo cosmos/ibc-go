@@ -5,6 +5,7 @@ import (
 
 	icahostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 )
 
 func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
@@ -12,15 +13,12 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		msg            string
 		malleate       func()
 		expectedParams icahosttypes.Params
+		expectedError  error
 	}{
 		{
-			"success: default params",
-			func() {
-				params := icahosttypes.DefaultParams()
-				subspace := suite.chainA.GetSimApp().GetSubspace(icahosttypes.SubModuleName) // get subspace
-				subspace.SetParamSet(suite.chainA.GetContext(), &params)                     // set params
-			},
-			icahosttypes.DefaultParams(),
+			msg:           "error: must migrate to ibc-go v8.x first",
+			malleate:      func() {},
+			expectedError: icatypes.ErrInvalidVersion,
 		},
 	}
 
@@ -34,10 +32,15 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 
 			migrator := icahostkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAHostKeeper)
 			err := migrator.MigrateParams(suite.chainA.GetContext())
-			suite.Require().NoError(err)
 
-			params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedParams, params)
+			if tc.expectedError != nil {
+				suite.Require().ErrorIs(err, tc.expectedError)
+			} else {
+				suite.Require().NoError(err)
+
+				params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.expectedParams, params)
+			}
 		})
 	}
 }
