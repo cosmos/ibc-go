@@ -182,7 +182,16 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 			}
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
-			s.ExecuteAndPassGovV1Proposal(ctx, msgSendTx, chainA, controllerAccount)
+			resp := s.BroadcastMessages(
+				ctx,
+				chainA,
+				controllerAccount,
+				msgSendTx,
+			)
+
+			s.AssertTxSuccess(resp)
+
+			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 
 		t.Run("verify proposal executed", func(t *testing.T) {
