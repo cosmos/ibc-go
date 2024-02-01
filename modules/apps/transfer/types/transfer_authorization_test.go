@@ -38,7 +38,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"success: with spend limit updated",
 			func() {
-				msgTransfer.Tokens = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))}
+				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -49,7 +49,30 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
 				suite.Require().True(ok)
 
-				isEqual := updatedAuthz.Allocations[0].SpendLimit.Equal(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))))
+				isEqual := updatedAuthz.Allocations[0].SpendLimit.Equal(sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))})
+				suite.Require().True(isEqual)
+			},
+		},
+		{
+			"success: with multi denom token transfer and spend limit updated",
+			func() {
+				msgTransfer.Tokens = sdk.NewCoins(
+					sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50)),
+					sdk.NewCoin("test-denom", sdkmath.NewInt(100)),
+				)
+				transferAuthz.Allocations[0].SpendLimit = sdk.Coins{ibctesting.TestCoin, sdk.NewCoin("test-denom", types.UnboundedSpendLimit())}
+				msgTransfer.Token = sdk.Coin{}
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().False(res.Delete)
+
+				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
+				suite.Require().True(ok)
+
+				isEqual := updatedAuthz.Allocations[0].SpendLimit.Equal(sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50)), sdk.NewCoin("test-denom", types.UnboundedSpendLimit())})
 				suite.Require().True(isEqual)
 			},
 		},
@@ -93,7 +116,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"success: with unlimited spend limit of max uint256",
 			func() {
-				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit()))
+				transferAuthz.Allocations[0].SpendLimit = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit())}
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -180,7 +203,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					)...,
 				)
 
-				msgTransfer.Tokens = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))}
+				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -211,7 +234,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"requested transfer amount is more than the spend limit",
 			func() {
-				msgTransfer.Tokens = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000))}
+				msgTransfer.Token = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000))
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)
@@ -251,7 +274,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			msgTransfer = types.MsgTransfer{
 				SourcePort:    path.EndpointA.ChannelConfig.PortID,
 				SourceChannel: path.EndpointA.ChannelID,
-				Tokens:        sdk.Coins{ibctesting.TestCoin},
+				Token:         ibctesting.TestCoin,
 				Sender:        suite.chainA.SenderAccount.GetAddress().String(),
 				Receiver:      ibctesting.TestAccAddress,
 				TimeoutHeight: suite.chainB.GetTimeoutHeight(),
