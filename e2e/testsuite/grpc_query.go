@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -104,13 +103,6 @@ func (s *E2ETestSuite) InitGRPCClients(chain ibc.Chain) {
 		ConsensusServiceClient:   cmtservice.NewServiceClient(grpcConn),
 		UpgradeQueryClient:       upgradetypes.NewQueryClient(grpcConn),
 	}
-}
-
-// Header defines an interface which is implemented by both the sdk block header and the cometbft Block Header.
-// this interfaces allows us to use the same function to fetch the block header for both chains.
-type Header interface {
-	GetTime() time.Time
-	GetLastCommitHash() []byte
 }
 
 // QueryClientState queries the client state on the given chain for the provided clientID.
@@ -351,7 +343,7 @@ func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, pro
 }
 
 // GetBlockHeaderByHeight fetches the block header at a given height.
-func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Chain, height uint64) (Header, error) {
+func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Chain, height uint64) (*cmtservice.Header, error) {
 	consensusService := s.GetChainGRCPClients(chain).ConsensusServiceClient
 	res, err := consensusService.GetBlockByHeight(ctx, &cmtservice.GetBlockByHeightRequest{
 		Height: int64(height),
@@ -360,13 +352,7 @@ func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Cha
 		return nil, err
 	}
 
-	// Clean up when v4 is not supported, see: https://github.com/cosmos/ibc-go/issues/3540
-	// versions newer than 0.46 SDK use the SdkBlock field while versions older
-	// than 0.46 SDK, which do not have the SdkBlock field, use the Block field.
-	if res.SdkBlock != nil {
-		return &res.SdkBlock.Header, nil
-	}
-	return &res.Block.Header, nil // needed for v4 (uses SDK v0.45)
+	return &res.SdkBlock.Header, nil
 }
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators

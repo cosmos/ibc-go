@@ -64,13 +64,13 @@ jobs:
       - name: Build image
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
-          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9]/-/g')"
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
           docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
           docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
       - name: Display image details
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
-          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9]/-/g')"
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
           docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
   transfer-chain-a:
@@ -243,3 +243,39 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "genesis-chain-a"
+  
+  transfer-channel-upgrade-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-channel-upgrade-chain-a"
+  
+  transfer-channel-upgrade-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-channel-upgrade-chain-b"
+
+  ica-channel-upgrade-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-channel-upgrade-chain-a"
+
+  ica-channel-upgrade-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-channel-upgrade-chain-b"

@@ -896,6 +896,15 @@ func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 	return upgrade
 }
 
+// UpdateConnection updates the connection associated with the given endpoint. It accepts a
+// closure which takes a connection allowing the caller to modify the connection fields.
+func (endpoint *Endpoint) UpdateConnection(updater func(connection *connectiontypes.ConnectionEnd)) {
+	connection := endpoint.GetConnection()
+	updater(&connection)
+
+	endpoint.SetConnection(connection)
+}
+
 func (endpoint *Endpoint) PopulateClientHeader(header *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
 	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
 	if trustedHeight.IsZero() {
