@@ -31,13 +31,7 @@ var (
 	TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
 
 	// TestVersion defines a reusable interchainaccounts version string for testing purposes
-	TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
-		Version:                icatypes.Version,
-		ControllerConnectionId: ibctesting.FirstConnectionID,
-		HostConnectionId:       ibctesting.FirstConnectionID,
-		Encoding:               icatypes.EncodingProtobuf,
-		TxType:                 icatypes.TxTypeSDKMultiMsg,
-	}))
+	TestVersion = icatypes.NewDefaultMetadataStringWithHostConnectionId(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 )
 
 type InterchainAccountsTestSuite struct {
