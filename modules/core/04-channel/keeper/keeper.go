@@ -457,27 +457,27 @@ func (k Keeper) GetChannelClientState(ctx sdk.Context, portID, channelID string)
 }
 
 // GetConnection wraps the connection keeper's GetConnection function.
-func (k Keeper) GetConnection(ctx sdk.Context, connectionID string) (exported.ConnectionI, error) {
+func (k Keeper) GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, error) {
 	connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
 	if !found {
-		return nil, errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "connection-id: %s", connectionID)
+		return connectiontypes.ConnectionEnd{}, errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "connection-id: %s", connectionID)
 	}
 
 	return connection, nil
 }
 
 // GetChannelConnection returns the connection ID and state associated with the given port and channel identifier.
-func (k Keeper) GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error) {
+func (k Keeper) GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, connectiontypes.ConnectionEnd, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return "", nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id: %s", portID, channelID)
+		return "", connectiontypes.ConnectionEnd{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id: %s", portID, channelID)
 	}
 
 	connectionID := channel.ConnectionHops[0]
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
 	if !found {
-		return "", nil, errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "connection-id: %s", connectionID)
+		return "", connectiontypes.ConnectionEnd{}, errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "connection-id: %s", connectionID)
 	}
 
 	return connectionID, connection, nil
@@ -514,6 +514,12 @@ func (k Keeper) setUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string
 	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
 }
 
+// hasUpgrade returns true if a proposed upgrade exists in store
+func (k Keeper) hasUpgrade(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ChannelUpgradeKey(portID, channelID))
+}
+
 // GetUpgrade returns the proposed upgrade for the provided port and channel identifiers.
 func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -539,6 +545,12 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 func (k Keeper) deleteUpgrade(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.ChannelUpgradeKey(portID, channelID))
+}
+
+// hasCounterpartyUpgrade returns true if a counterparty upgrade exists in store
+func (k Keeper) hasCounterpartyUpgrade(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ChannelCounterpartyUpgradeKey(portID, channelID))
 }
 
 // GetCounterpartyUpgrade gets the counterparty upgrade from the store.

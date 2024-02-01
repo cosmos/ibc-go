@@ -677,7 +677,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			req = &types.QueryUpgradedClientStateRequest{}
 
