@@ -9,6 +9,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
@@ -168,7 +170,12 @@ func (t *Token) GetFullDenomPath() string {
 
 // GetBytes is a helper for serialising
 func (ftpdv2 FungibleTokenPacketDataV2) GetBytes() []byte {
-	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpdv2))
+	bz, err := json.Marshal(&ftpdv2)
+	if err != nil {
+		panic(errors.New("cannot marshal FungibleTokenPacketDataV2 into bytes"))
+	}
+
+	return bz
 }
 
 // GetCustomPacketData interprets the memo field of the packet data as a JSON object
