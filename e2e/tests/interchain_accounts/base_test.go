@@ -15,10 +15,10 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	gov1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -155,19 +155,21 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		})
 
 		t.Run("execute proposal for MsgSubmitProposal", func(t *testing.T) {
-			testProposal := &gov1beta1.TextProposal{
-				Title:       "IBC Gov Proposal",
-				Description: "tokens for all!",
-			}
-
-			protoAny, err := codectypes.NewAnyWithValue(testProposal)
+			govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 			s.Require().NoError(err)
+			s.Require().NotNil(govModuleAddress)
 
-			msg := &gov1beta1.MsgSubmitProposal{
-				Content:        protoAny,
-				InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
-				Proposer:       hostAccount,
+			testProposal := &controllertypes.MsgUpdateParams{
+				Signer: controllerAddress,
+				Params: controllertypes.NewParams(false),
 			}
+
+			msg, err := govv1.NewMsgSubmitProposal(
+				[]sdk.Msg{testProposal},
+				sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
+				hostAccount, "e2e", "e2e", "e2e", false,
+			)
+			s.Require().NoError(err)
 
 			cdc := testsuite.Codec()
 			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msg}, icatypes.EncodingProtobuf)
