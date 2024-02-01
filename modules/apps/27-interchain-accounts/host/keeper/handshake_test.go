@@ -314,7 +314,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
-			expectedMetadataReturn := metadata
+			expectedMetadata := metadata
 
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
@@ -347,8 +347,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), interchainAccAddr)
 				suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
 
-				expectedMetadataReturn.Address = storedAddr
-				expectedVersionBytes, err := icatypes.ModuleCdc.MarshalJSON(&expectedMetadataReturn)
+				expectedMetadata.Address = storedAddr
+				expectedVersionBytes, err := icatypes.ModuleCdc.MarshalJSON(&expectedMetadata)
 				suite.Require().NoError(err)
 
 				suite.Require().Equal(string(expectedVersionBytes), version)
@@ -592,7 +592,8 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			suite.Require().NoError(err)
 
 			order = channeltypes.ORDERED
-			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
+			metadata.HostConnectionId = path.EndpointB.ConnectionID
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 

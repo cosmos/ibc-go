@@ -39,7 +39,7 @@ func (k Keeper) OnChanOpenTry(
 		return "", err
 	}
 
-	// override the HostConnectionId metadata
+	// set here the HostConnectionId because the controller did not set it
 	metadata.HostConnectionId = connectionHops[0]
 
 	if err = icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {

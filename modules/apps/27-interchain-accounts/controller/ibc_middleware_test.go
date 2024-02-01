@@ -828,8 +828,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
-			metadata := icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
-			version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+			version = icatypes.NewDefaultMetadataStringWithHostConnectionId(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 
 			tc.malleate() // malleate mutates test data
 
