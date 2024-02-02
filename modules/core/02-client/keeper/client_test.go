@@ -6,6 +6,8 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -258,7 +260,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 
@@ -470,7 +472,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	for _, tc := range testCases {
 		tc := tc
 		path = ibctesting.NewPath(suite.chainA, suite.chainB)
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 
 		clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 		revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
@@ -503,7 +505,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	header, err := suite.chainA.ConstructUpdateTMClientHeader(suite.chainB, path.EndpointA.ClientID)
 	suite.Require().NoError(err)
@@ -630,12 +632,12 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			suite.SetupTest() // reset
 
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(subjectPath)
+			subjectPath.SetupClients()
 			subject = subjectPath.EndpointA.ClientID
 			subjectClientState = suite.chainA.GetClientState(subject)
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(substitutePath)
+			substitutePath.SetupClients()
 			substitute = substitutePath.EndpointA.ClientID
 
 			// update substitute twice
@@ -652,16 +654,29 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 
 			tc.malleate()
 
-			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.RecoverClient(suite.chainA.GetContext(), subject, substitute)
+			ctx := suite.chainA.GetContext()
+			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.RecoverClient(ctx, subject, substitute)
 
 			expPass := tc.expErr == nil
 			if expPass {
 				suite.Require().NoError(err)
 
+				expectedEvents := sdk.Events{
+					sdk.NewEvent(
+						clienttypes.EventTypeRecoverClient,
+						sdk.NewAttribute(clienttypes.AttributeKeySubjectClientID, subjectPath.EndpointA.ClientID),
+						sdk.NewAttribute(clienttypes.AttributeKeyClientType, subjectPath.EndpointA.GetClientState().ClientType()),
+					),
+				}.ToABCIEvents()
+
+				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+
 				// Assert that client status is now Active
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 				tmClientState := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
 				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
+
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)

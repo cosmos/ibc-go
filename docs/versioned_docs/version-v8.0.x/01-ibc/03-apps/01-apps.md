@@ -413,7 +413,7 @@ message Acknowledgement {
 
 After a module writes an acknowledgement, a relayer can relay back the acknowledgement to the sender module. The sender module can
 then process the acknowledgement using the `OnAcknowledgementPacket` callback. The contents of the
-acknowledgement is entirely upto the modules on the channel (just like the packet data); however, it
+acknowledgement is entirely up to the modules on the channel (just like the packet data); however, it
 may often contain information on whether the packet was successfully processed along
 with some additional data that could be useful for remediation if the packet processing failed.
 
