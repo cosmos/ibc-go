@@ -6,14 +6,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	errorsmod "cosmossdk.io/errors"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	cmttypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -142,7 +139,8 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, err = endpoint.PopulateClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, clienttypes.ZeroHeight())
+		trustedHeight := endpoint.GetClientState().GetLatestHeight().(clienttypes.Height)
+		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -903,36 +901,4 @@ func (endpoint *Endpoint) UpdateConnection(updater func(connection *connectionty
 	updater(&connection)
 
 	endpoint.SetConnection(connection)
-}
-
-func (endpoint *Endpoint) PopulateClientHeader(header *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
-	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
-	if trustedHeight.IsZero() {
-		trustedHeight = endpoint.GetClientState().GetLatestHeight().(clienttypes.Height)
-	}
-
-	var (
-		cmtTrustedVals *cmttypes.ValidatorSet
-		ok             bool
-	)
-
-	counterparty := endpoint.Counterparty.Chain
-	// Once we get TrustedHeight from client, we must query the validators from the counterparty chain
-	// If the LatestHeight == LastHeader.Height, then TrustedValidators are current validators
-	// If LatestHeight < LastHeader.Height, we can query the historical validator set from HistoricalInfo
-	cmtTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-	if !ok {
-		return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
-	}
-
-	trustedVals, err := cmtTrustedVals.ToProto()
-	if err != nil {
-		return nil, err
-	}
-
-	header.TrustedHeight = trustedHeight
-	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
-	header.TrustedValidators = trustedVals
-
-	return header, nil
 }

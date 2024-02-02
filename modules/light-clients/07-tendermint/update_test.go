@@ -285,7 +285,8 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
-			header, err = path.EndpointA.PopulateClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, clienttypes.ZeroHeight())
+			trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+			header, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -364,7 +365,8 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 
 				// use the same header which just updated the client
-				clientMessage, err = path.EndpointA.PopulateClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, clienttypes.ZeroHeight())
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 
 				tmHeader, ok := clientMessage.(*ibctm.Header)
@@ -406,7 +408,8 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 
 				// ensure counterparty state is committed
 				suite.coordinator.CommitBlock(suite.chainB)
-				clientMessage, err = path.EndpointA.PopulateClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, clienttypes.ZeroHeight())
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 			},
 			func() {
@@ -448,7 +451,8 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 
 				// use the same header which just updated the client
-				clientMessage, err = path.EndpointA.PopulateClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, clienttypes.ZeroHeight())
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 			},
 			func() {
@@ -484,7 +488,8 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
-			clientMessage, err = path.EndpointA.PopulateClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, clienttypes.ZeroHeight())
+			trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+			clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -717,7 +722,8 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		{
 			"valid fork misbehaviour returns true",
 			func() {
-				header1, err := path.EndpointA.PopulateClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, clienttypes.ZeroHeight())
+				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				header1, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 
 				// commit block and update client
@@ -725,7 +731,8 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				header2, err := path.EndpointA.PopulateClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, clienttypes.ZeroHeight())
+				trustedHeight = path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				header2, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 
 				// assign the same height, each header will have a different commit hash
@@ -766,7 +773,8 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
-			clientMessage, err = path.EndpointA.PopulateClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, clienttypes.ZeroHeight())
+			trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+			clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
 			tc.malleate()

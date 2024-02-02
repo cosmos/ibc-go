@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 	// Must create header creation functions since suite.header gets recreated on each test case
 	createFutureUpdateFn := func(trustedHeight clienttypes.Height) *ibctm.Header {
-		header, err := path.EndpointA.PopulateClientHeader(path.EndpointB.Chain.LatestCommittedHeader, trustedHeight)
+		header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointB.Chain.LatestCommittedHeader, trustedHeight)
 		suite.Require().NoError(err)
 		return header
 	}
@@ -507,7 +507,8 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	header, err := path.EndpointA.PopulateClientHeader(suite.chainB.LatestCommittedHeader, clienttypes.ZeroHeight())
+	trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	suite.Require().NoError(err)
 
 	msg, err := clienttypes.NewMsgUpdateClient(
