@@ -53,7 +53,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	s.Require().NotNil(govModuleAddress)
 
 	t.Run("execute proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
-		version := icatypes.NewDefaultMetadataStringWithHostConnectionId(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+		version := icatypes.NewDefaultMetadataStringWithHostConnectionID(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version, channeltypes.ORDERED)
 
 		s.ExecuteAndPassGovV1Proposal(ctx, msgRegisterAccount, chainA, controllerAccount)

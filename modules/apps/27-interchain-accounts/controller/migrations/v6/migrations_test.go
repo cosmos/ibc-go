@@ -28,7 +28,7 @@ type MigrationsTestSuite struct {
 }
 
 func (suite *MigrationsTestSuite) SetupTest() {
-	version := icatypes.NewDefaultMetadataStringWithHostConnectionId(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+	version := icatypes.NewDefaultMetadataStringWithHostConnectionID(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 

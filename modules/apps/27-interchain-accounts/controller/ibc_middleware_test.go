@@ -31,7 +31,7 @@ var (
 	TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
 
 	// TestVersion defines a reusable interchainaccounts version string for testing purposes
-	TestVersion = icatypes.NewDefaultMetadataStringWithHostConnectionId(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+	TestVersion = icatypes.NewDefaultMetadataStringWithHostConnectionID(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 )
 
 type InterchainAccountsTestSuite struct {
@@ -822,7 +822,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
-			version = icatypes.NewDefaultMetadataStringWithHostConnectionId(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			version = icatypes.NewDefaultMetadataStringWithHostConnectionID(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 
 			tc.malleate() // malleate mutates test data
 
