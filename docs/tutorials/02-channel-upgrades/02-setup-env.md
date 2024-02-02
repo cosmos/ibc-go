@@ -42,7 +42,7 @@ Download the simd binary from the [v8.1.0 release](https://github.com/cosmos/ibc
 
 :::warning
 
-There is no release of Hermes availabe yet that supports channel upgradability. This tutorial assumes that it will be released in v1.9.0, but the final version might be different. The tutorial will be updated with the release is out.
+There is no release of Hermes availabe yet that supports channel upgradability. This tutorial assumes that it will be released in v1.9.0, but the final version might be different. The tutorial has been written using a custom build from the WiP branch adding channel upgradability support. The tutorial will be updated when the official release is out.
 
 :::
 
