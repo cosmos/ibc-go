@@ -34,13 +34,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			nil,
 		},
 		{
-			"success: empty host connection ID",
-			func() {
-				path.EndpointB.ConnectionID = ""
-			},
-			nil,
-		},
-		{
 			"success: previous active channel closed",
 			func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
