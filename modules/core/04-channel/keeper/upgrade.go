@@ -98,15 +98,13 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
-		)
+	if connection.State != connectiontypes.OPEN {
+		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
 	// construct expected counterparty channel from information in state
 	// only the counterpartyUpgradeSequence is provided by the relayer
-	counterpartyConnectionHops := []string{connection.GetCounterparty().GetConnectionID()}
+	counterpartyConnectionHops := []string{connection.Counterparty.ConnectionId}
 	counterpartyChannel := types.Channel{
 		State:           types.OPEN,
 		Ordering:        channel.Ordering,
@@ -276,11 +274,11 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
+	if connection.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
-	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connection.Counterparty.ConnectionId}
 	counterpartyChannel := types.Channel{
 		State:           types.FLUSHING,
 		Ordering:        channel.Ordering,
@@ -412,11 +410,11 @@ func (k Keeper) ChanUpgradeConfirm(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
+	if connection.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
-	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connection.Counterparty.ConnectionId}
 	counterpartyChannel := types.Channel{
 		State:           counterpartyChannelState,
 		Ordering:        channel.Ordering,
@@ -507,8 +505,8 @@ func (k Keeper) ChanUpgradeOpen(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
+	if connection.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
 	var counterpartyChannel types.Channel
@@ -524,8 +522,8 @@ func (k Keeper) ChanUpgradeOpen(
 			return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, upgrade.Fields.ConnectionHops[0])
 		}
 
-		if upgradeConnection.GetState() != int32(connectiontypes.OPEN) {
-			return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(upgradeConnection.GetState()).String())
+		if upgradeConnection.State != connectiontypes.OPEN {
+			return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", upgradeConnection.State)
 		}
 
 		// The counterparty upgrade sequence must be greater than or equal to
@@ -539,7 +537,7 @@ func (k Keeper) ChanUpgradeOpen(
 		counterpartyChannel = types.Channel{
 			State:           types.OPEN,
 			Ordering:        upgrade.Fields.Ordering,
-			ConnectionHops:  []string{upgradeConnection.GetCounterparty().GetConnectionID()},
+			ConnectionHops:  []string{upgradeConnection.Counterparty.ConnectionId},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         upgrade.Fields.Version,
 			UpgradeSequence: counterpartyUpgradeSequence,
@@ -549,7 +547,7 @@ func (k Keeper) ChanUpgradeOpen(
 		counterpartyChannel = types.Channel{
 			State:           types.FLUSHCOMPLETE,
 			Ordering:        channel.Ordering,
-			ConnectionHops:  []string{connection.GetCounterparty().GetConnectionID()},
+			ConnectionHops:  []string{connection.Counterparty.ConnectionId},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         channel.Version,
 			UpgradeSequence: channel.UpgradeSequence,
@@ -675,11 +673,8 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
-		)
+	if connection.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
 	if err := k.connectionKeeper.VerifyChannelUpgradeError(
@@ -746,11 +741,8 @@ func (k Keeper) ChanUpgradeTimeout(
 		)
 	}
 
-	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
-		)
+	if connection.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
 	proofTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connection, proofHeight)
@@ -777,7 +769,7 @@ func (k Keeper) ChanUpgradeTimeout(
 				upgrade.Fields.ConnectionHops[0],
 			)
 		}
-		counterpartyHops := []string{upgradeConnection.GetCounterparty().GetConnectionID()}
+		counterpartyHops := []string{upgradeConnection.Counterparty.ConnectionId}
 
 		upgradeAlreadyComplete := upgrade.Fields.Version == counterpartyChannel.Version && upgrade.Fields.Ordering == counterpartyChannel.Ordering && upgrade.Fields.ConnectionHops[0] == counterpartyHops[0]
 		if upgradeAlreadyComplete {
@@ -853,8 +845,8 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
+	if connection.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
 	channel.State = types.FLUSHING
@@ -896,16 +888,16 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, upgradeFields.ConnectionHops[0])
 	}
 
-	if connection.GetState() != int32(connectiontypes.OPEN) {
+	if connection.State != connectiontypes.OPEN {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connection.State)
 	}
 
 	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
-	if counterpartyUpgradeFields.ConnectionHops[0] != connection.GetCounterparty().GetConnectionID() {
+	if counterpartyUpgradeFields.ConnectionHops[0] != connection.Counterparty.ConnectionId {
 		return errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgradeFields.ConnectionHops[0], connection.GetCounterparty().GetConnectionID())
+			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgradeFields.ConnectionHops[0], connection.Counterparty.ConnectionId)
 	}
 
 	return nil
@@ -930,14 +922,11 @@ func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types
 		return errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: %s", connectionID)
 	}
 
-	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
-		)
+	if connection.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
-	getVersions := connection.GetVersions()
+	getVersions := connection.Versions
 	if len(getVersions) != 1 {
 		return errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,

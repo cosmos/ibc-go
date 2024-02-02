@@ -9,11 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -21,12 +20,12 @@ import (
 // stored on the target machine
 func (k Keeper) VerifyClientState(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
 	clientState exported.ClientState,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	targetClient, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -36,8 +35,8 @@ func (k Keeper) VerifyClientState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.GetCounterparty().GetClientID()))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.Counterparty.ClientId))
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -62,13 +61,13 @@ func (k Keeper) VerifyClientState(
 // specified client stored on the target machine.
 func (k Keeper) VerifyClientConsensusState(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	height exported.Height,
 	consensusHeight exported.Height,
 	proof []byte,
 	consensusState exported.ConsensusState,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -78,8 +77,8 @@ func (k Keeper) VerifyClientConsensusState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.GetCounterparty().GetClientID(), consensusHeight))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.Counterparty.ClientId, consensusHeight))
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -104,13 +103,13 @@ func (k Keeper) VerifyClientConsensusState(
 // specified connection end stored on the target machine.
 func (k Keeper) VerifyConnectionState(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
 	connectionID string,
-	counterpartyConnection exported.ConnectionI, // opposite connection
+	counterpartyConnection types.ConnectionEnd, // opposite connection
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -121,17 +120,12 @@ func (k Keeper) VerifyConnectionState(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
 
-	connectionEnd, ok := counterpartyConnection.(connectiontypes.ConnectionEnd)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid connection type %T", counterpartyConnection)
-	}
-
-	bz, err := k.cdc.Marshal(&connectionEnd)
+	bz, err := k.cdc.Marshal(&counterpartyConnection)
 	if err != nil {
 		return err
 	}
@@ -151,14 +145,14 @@ func (k Keeper) VerifyConnectionState(
 // channel end, under the specified port, stored on the target machine.
 func (k Keeper) VerifyChannelState(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
 	portID,
 	channelID string,
 	channel channeltypes.Channel,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -169,7 +163,7 @@ func (k Keeper) VerifyChannelState(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -194,7 +188,7 @@ func (k Keeper) VerifyChannelState(
 // the specified port, specified channel, and specified sequence.
 func (k Keeper) VerifyPacketCommitment(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
 	portID,
@@ -202,7 +196,7 @@ func (k Keeper) VerifyPacketCommitment(
 	sequence uint64,
 	commitmentBytes []byte,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -213,11 +207,11 @@ func (k Keeper) VerifyPacketCommitment(
 	}
 
 	// get time and block delays
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -237,7 +231,7 @@ func (k Keeper) VerifyPacketCommitment(
 // acknowledgement at the specified port, specified channel, and specified sequence.
 func (k Keeper) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
 	portID,
@@ -245,7 +239,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	sequence uint64,
 	acknowledgement []byte,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -256,11 +250,11 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	}
 
 	// get time and block delays
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -281,14 +275,14 @@ func (k Keeper) VerifyPacketAcknowledgement(
 // specified sequence.
 func (k Keeper) VerifyPacketReceiptAbsence(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
 	portID,
 	channelID string,
 	sequence uint64,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -299,11 +293,11 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	}
 
 	// get time and block delays
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -323,14 +317,14 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 // received of the specified channel at the specified port.
 func (k Keeper) VerifyNextSequenceRecv(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
 	portID,
 	channelID string,
 	nextSequenceRecv uint64,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -341,11 +335,11 @@ func (k Keeper) VerifyNextSequenceRecv(
 	}
 
 	// get time and block delays
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -364,14 +358,14 @@ func (k Keeper) VerifyNextSequenceRecv(
 // VerifyChannelUpgradeError verifies a proof of the provided upgrade error receipt.
 func (k Keeper) VerifyChannelUpgradeError(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
 	portID,
 	channelID string,
 	errorReceipt channeltypes.ErrorReceipt,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -382,7 +376,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -406,14 +400,14 @@ func (k Keeper) VerifyChannelUpgradeError(
 // VerifyChannelUpgrade verifies the proof that a particular proposed upgrade has been stored in the upgrade path.
 func (k Keeper) VerifyChannelUpgrade(
 	ctx sdk.Context,
-	connection exported.ConnectionI,
+	connection types.ConnectionEnd,
 	proofHeight exported.Height,
 	upgradeProof []byte,
 	portID,
 	channelID string,
 	upgrade channeltypes.Upgrade,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -424,7 +418,7 @@ func (k Keeper) VerifyChannelUpgrade(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -447,7 +441,7 @@ func (k Keeper) VerifyChannelUpgrade(
 
 // getBlockDelay calculates the block delay period from the time delay of the connection
 // and the maximum expected time per block.
-func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) uint64 {
+func (k Keeper) getBlockDelay(ctx sdk.Context, connection types.ConnectionEnd) uint64 {
 	// expectedTimePerBlock should never be zero, however if it is then return a 0 block delay for safety
 	// as the expectedTimePerBlock parameter was not set.
 	expectedTimePerBlock := k.GetParams(ctx).MaxExpectedTimePerBlock
@@ -456,7 +450,7 @@ func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) 
 	}
 	// calculate minimum block delay by dividing time delay period
 	// by the expected time per block. Round up the block delay.
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	return uint64(math.Ceil(float64(timeDelay) / float64(expectedTimePerBlock)))
 }
 
