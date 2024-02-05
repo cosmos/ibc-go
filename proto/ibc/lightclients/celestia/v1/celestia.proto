@@ -4,8 +4,6 @@ package ibc.lightclients.celestia.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia;celestia";
 
-import "google/protobuf/timestamp.proto";
-import "ibc/core/commitment/v1/commitment.proto";
 import "ibc/lightclients/tendermint/v1/tendermint.proto";
 import "gogoproto/gogo.proto";
 
@@ -15,16 +13,4 @@ message ClientState {
   option (gogoproto.goproto_getters) = false;
 
   ibc.lightclients.tendermint.v1.ClientState base_client = 1;
-}
-
-// ConsensusState defines the consensus state from Tendermint.
-message ConsensusState {
-  option (gogoproto.goproto_getters) = false;
-
-  // timestamp that corresponds to the block height in which the ConsensusState
-  // was stored.
-  google.protobuf.Timestamp timestamp = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-  // commitment root (i.e data availability root)
-  ibc.core.commitment.v1.MerkleRoot root = 2 [(gogoproto.nullable) = false];
-  bytes next_validators_hash = 3 [(gogoproto.casttype) = "github.com/cometbft/cometbft/libs/bytes.HexBytes"];
 }
