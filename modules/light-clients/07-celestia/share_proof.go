@@ -51,11 +51,11 @@ func (sp shareProof) ToProto() ShareProof {
 	return pbtp
 }
 
-// ShareProofFromProto creates a ShareProof from a proto message.
+// shareProofFromProto creates a ShareProof from a proto message.
 // Expects the proof to be pre-validated.
-func ShareProofFromProto(pb ShareProof) (shareProof, error) {
+func shareProofFromProto(pb ShareProof) (shareProof, error) {
 	return shareProof{
-		RowProof:         RowProofFromProto(pb.RowProof),
+		RowProof:         rowProofFromProto(pb.RowProof),
 		Data:             pb.Data,
 		ShareProofs:      pb.ShareProofs,
 		NamespaceID:      pb.NamespaceId,

@@ -50,7 +50,7 @@ func (rp rowProof) VerifyProof(root []byte) bool {
 	return true
 }
 
-func RowProofFromProto(p *RowProof) rowProof {
+func rowProofFromProto(p *RowProof) rowProof {
 	if p == nil {
 		return rowProof{}
 	}

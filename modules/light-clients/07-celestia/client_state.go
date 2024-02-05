@@ -65,7 +65,7 @@ func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.
 		return err
 	}
 
-	shareProof, err := ShareProofFromProto(shareProofPB)
+	shareProof, err := shareProofFromProto(shareProofPB)
 	if err != nil {
 		return err
 	}
