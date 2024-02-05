@@ -11,6 +11,8 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
+// IDEA: Issue separate capabilities to each module in the stack. When we retrieve the capability in SendPacket
+// and WriteAcknowledgement, we know who it came from. This allows us to put the packet data and ack correctly into the map
 func (k Keeper) SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, sourcePort, sourceChannel string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (uint64, error) {
 
@@ -83,41 +85,23 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relaye
 	}
 
 	var ack exported.Acknowledgement
-	for i, module := range modules {
+	routedAck := types.RoutedPacketAcknowledgement{PacketAck: make(map[string][]byte)}
+	for _, module := range modules {
 		cbs, exists := k.Router.GetRoute(module)
 		if !exists {
 			return channeltypes.NewErrorAcknowledgement(types.ErrInvalidRoute)
 		}
 
-		if i == len(modules)-1 {
-			ack = cbs.OnRecvPacket(ctx, packet, relayer)
-		} else {
-			mw, ok := cbs.(types.Middleware)
-			if !ok {
-				return channeltypes.NewErrorAcknowledgement(types.ErrInvalidRoute)
-			}
-
-			var routedPacketData types.RoutedPacketData
-			if err := k.cdc.UnmarshalJSON(packet.GetData(), &routedPacketData); err != nil {
-				return channeltypes.NewErrorAcknowledgement(types.ErrInvalidPacketData)
-			}
-
-			err := mw.ProcessRecvPacket(ctx, packet, relayer)
-			if err != nil {
-				return channeltypes.NewErrorAcknowledgement(err)
-			}
+		ack = cbs.OnRecvPacket(ctx, packet, relayer)
+		if ack != nil {
+			routedAck.PacketAck[module] = ack.Acknowledgement()
+		}
+		// return first unsuccessful ack
+		if !ack.Success() {
+			return ack
 		}
 	}
-	if ack != nil {
-		var err error
-		err = k.WriteAcknowledgement(ctx, chanCap, packet, ack)
-		if err != nil {
-			return channeltypes.NewErrorAcknowledgement(err)
-		}
-		// ack already written by above call
-		return nil
-	}
-	return nil
+	return routedAck
 }
 
 func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet channeltypes.Packet, ack exported.Acknowledgement) error {
@@ -144,7 +128,7 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 	// since this is routing from the base application to core IBC
 	// the routing must occur in reverse order
 	// base app is skipped since it was the module that sent the original packet data
-	for i := len(routedVersion.Modules) - 2; i >= 0; i-- {
+	for i := len(routedVersion.Modules) - 1; i >= 0; i-- {
 		module := routedVersion.Modules[i]
 		cbs, exists := k.Router.GetRoute(module)
 		if !exists {
@@ -161,4 +145,82 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 	}
 
 	return k.channelKeeper.WriteAcknowledgement(ctx, packet, routedAck)
+}
+
+func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, ack exported.Acknowledgement, relayer sdk.AccAddress) error {
+	application, _, err := k.LookupModuleByChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if err != nil {
+		return err
+	}
+
+	channel, ok := k.channelKeeper.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if !ok {
+		panic("channel not found")
+	}
+
+	var routedVersion types.RoutedVersion
+	routeErr := k.cdc.UnmarshalJSON([]byte(channel.Version), &routedVersion)
+	var modules []string
+	routedAck := types.RoutedPacketAcknowledgement{PacketAck: make(map[string][]byte)}
+	if routeErr != nil {
+		if routedVersion.Modules[len(routedVersion.Modules)-1] != application {
+			return types.ErrInvalidRoute
+		}
+		modules = routedVersion.Modules
+	} else {
+		// Lookup modules by port capability
+		modules = []string{application}
+		routedAck.PacketAck[application] = ack.Acknowledgement()
+	}
+
+	for _, module := range modules {
+		cbs, exists := k.Router.GetRoute(module)
+		if !exists {
+			return types.ErrInvalidRoute
+		}
+
+		err := cbs.OnAcknowledgementPacket(ctx, packet, routedAck.PacketAck[module], relayer)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+	application, _, err := k.LookupModuleByChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if err != nil {
+		return err
+	}
+
+	channel, ok := k.channelKeeper.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if !ok {
+		panic("channel not found")
+	}
+
+	var routedVersion types.RoutedVersion
+	routeErr := k.cdc.UnmarshalJSON([]byte(channel.Version), &routedVersion)
+	var modules []string
+	if routeErr != nil {
+		if routedVersion.Modules[len(routedVersion.Modules)-1] != application {
+			return types.ErrInvalidRoute
+		}
+		modules = routedVersion.Modules
+	} else {
+		// Lookup modules by port capability
+		modules = []string{application}
+	}
+
+	for _, module := range modules {
+		cbs, exists := k.Router.GetRoute(module)
+		if !exists {
+			return types.ErrInvalidRoute
+		}
+
+		err := cbs.OnTimeoutPacket(ctx, packet, relayer)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
