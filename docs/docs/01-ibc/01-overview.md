@@ -108,7 +108,7 @@ For example:
 - Before upgrade `chainID`: `gaiamainnet-3`
 - After upgrade `chainID`: `gaiamainnet-4`
 
-Clients that do not require revisions, such as the solo-machine client, can simply hardcode `0` into the revision number whenever they
+Clients that do not require revisions, such as the 06-solomachine client, can simply hardcode `0` into the revision number whenever they
 need to return an IBC height when implementing IBC interfaces and use the `RevisionHeight` exclusively.
 
 Other client types can implement their own logic to verify the IBC heights that relayers provide in their `Update`, `Misbehavior`, and
