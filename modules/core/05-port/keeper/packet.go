@@ -61,7 +61,7 @@ func (k Keeper) SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capabili
 }
 
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
-	application, chanCap, err := k.LookupModuleByChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	application, _, err := k.LookupModuleByChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
