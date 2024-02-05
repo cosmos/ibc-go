@@ -12,22 +12,22 @@ var _ exported.ClientState = (*ClientState)(nil)
 
 // ClientType implements exported.ClientState.
 func (*ClientState) ClientType() string {
-	panic("unimplemented")
+	return ModuleName
 }
 
 // GetLatestHeight implements exported.ClientState.
-func (*ClientState) GetLatestHeight() exported.Height {
-	panic("unimplemented")
+func (cs *ClientState) GetLatestHeight() exported.Height {
+	return cs.BaseClient.GetLatestHeight()
 }
 
 // GetTimestampAtHeight implements exported.ClientState.
-func (*ClientState) GetTimestampAtHeight(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height) (uint64, error) {
-	panic("unimplemented")
+func (cs *ClientState) GetTimestampAtHeight(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height) (uint64, error) {
+	return cs.BaseClient.GetTimestampAtHeight(ctx, clientStore, cdc, height)
 }
 
 // Status implements exported.ClientState.
-func (*ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec) exported.Status {
-	panic("unimplemented")
+func (cs *ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec) exported.Status {
+	return cs.BaseClient.Status(ctx, clientStore, cdc)
 }
 
 // Initialize implements exported.ClientState.
