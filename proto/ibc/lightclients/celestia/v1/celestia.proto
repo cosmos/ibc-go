@@ -4,8 +4,9 @@ package ibc.lightclients.celestia.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia;celestia";
 
-import "ibc/lightclients/tendermint/v1/tendermint.proto";
+import "tendermint/crypto/proof.proto";
 import "gogoproto/gogo.proto";
+import "ibc/lightclients/tendermint/v1/tendermint.proto";
 
 // ClientState from Tendermint tracks the current validator set, latest height,
 // and a possible frozen height.
@@ -13,4 +14,46 @@ message ClientState {
   option (gogoproto.goproto_getters) = false;
 
   ibc.lightclients.tendermint.v1.ClientState base_client = 1;
+}
+
+// ShareProof is an NMT proof that a set of shares exist in a set of rows and a
+// Merkle proof that those rows exist in a Merkle tree with a given data root.
+message ShareProof {
+  repeated bytes    data              = 1;
+  repeated NMTProof share_proofs      = 2;
+  bytes             namespace_id      = 3;
+  RowProof          row_proof         = 4;
+  uint32            namespace_version = 5;
+}
+
+// RowProof is a Merkle proof that a set of rows exist in a Merkle tree with a
+// given data root.
+message RowProof {
+  repeated bytes                    row_roots = 1;
+  repeated .tendermint.crypto.Proof proofs    = 2;
+  bytes                             root      = 3;
+  uint32                            start_row = 4;
+  uint32                            end_row   = 5;
+}
+
+// NMTProof is a proof of a namespace.ID in an NMT.
+// In case this proof proves the absence of a namespace.ID
+// in a tree it also contains the leaf hashes of the range
+// where that namespace would be.
+message NMTProof {
+  // Start index of this proof.
+  int32 start = 1;
+  // End index of this proof.
+  int32 end = 2;
+  // Nodes that together with the corresponding leaf values can be used to
+  // recompute the root and verify this proof. Nodes should consist of the max
+  // and min namespaces along with the actual hash, resulting in each being 48
+  // bytes each
+  repeated bytes nodes = 3;
+  // leafHash are nil if the namespace is present in the NMT. In case the
+  // namespace to be proved is in the min/max range of the tree but absent, this
+  // will contain the leaf hash necessary to verify the proof of absence. Leaf
+  // hashes should consist of the namespace along with the actual hash,
+  // resulting 40 bytes total.
+  bytes leaf_hash = 4;
 }
