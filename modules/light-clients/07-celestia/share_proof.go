@@ -7,6 +7,7 @@ import (
 	"math"
 
 	"github.com/celestiaorg/nmt"
+
 	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 
@@ -75,7 +76,6 @@ func (sp shareProof) Validate(root []byte) error {
 
 	if len(sp.ShareProofs) != len(sp.RowProof.RowRoots) {
 		return fmt.Errorf("the number of share proofs %d must equal the number of row roots %d", len(sp.ShareProofs), len(sp.RowProof.RowRoots))
-
 	}
 	if len(sp.Data) != int(numberOfSharesInProofs) {
 		return fmt.Errorf("the number of shares %d must equal the number of shares in share proofs %d", len(sp.Data), numberOfSharesInProofs)
