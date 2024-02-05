@@ -6,16 +6,16 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	transferv2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/v2"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -537,7 +537,6 @@ func (suite *TransferTestSuite) TestUpgradeTransferChannel() {
 
 		channelB := path.EndpointB.GetChannel()
 		suite.Require().Equal(types.CurrentVersion, channelB.Version)
-
 	})
 
 	secondCoin := sdk.NewCoin("atom", sdkmath.NewInt(1000))

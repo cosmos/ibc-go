@@ -3,8 +3,6 @@ package ibccallbacks_test
 import (
 	"fmt"
 
-
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
