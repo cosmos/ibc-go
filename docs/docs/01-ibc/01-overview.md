@@ -34,7 +34,7 @@ The requirements to have your module interact over IBC are:
 - Use the default acknowledgment struct provided by core IBC or optionally define a custom acknowledgment struct.
 - Standardize an encoding of the packet data.
 - Implement the `IBCModule` interface.
-- Implement the `UpgradableModule` interface.
+- Implement the `UpgradableModule` interface (optional).
 
 Read on for a detailed explanation of how to write a self-contained IBC application module.
 
