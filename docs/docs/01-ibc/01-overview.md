@@ -108,7 +108,7 @@ For example:
 - Before upgrade `chainID`: `gaiamainnet-3`
 - After upgrade `chainID`: `gaiamainnet-4`
 
-Clients that do not require revisions, such as the 06-solomachine client, can simply hardcode `0` into the revision number whenever they
+Clients that do not require revisions, such as the `06-solomachine` client, can simply hardcode `0` into the revision number whenever they
 need to return an IBC height when implementing IBC interfaces and use the `RevisionHeight` exclusively.
 
 Other client types can implement their own logic to verify the IBC heights that relayers provide in their `Update`, `Misbehavior`, and
@@ -228,7 +228,7 @@ If all handshake steps are successful, the channel is opened on both sides. At e
 associated with the `ChannelEnd` executes its callback. So
 on `ChanOpenInit`, the module on chain A executes its callback `OnChanOpenInit`.
 
-The channel identifier is auto derived in the format: `channel-{N}` where `N`` is the next sequence to be used.
+The channel identifier is auto derived in the format: `channel-{N}` where `N` is the next sequence to be used.
 
 Just as ports came with dynamic capabilities, channel initialization returns a dynamic capability
 that the module **must** claim so that they can pass in a capability to authenticate channel actions
