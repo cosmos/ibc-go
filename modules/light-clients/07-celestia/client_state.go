@@ -46,6 +46,8 @@ func (cs *ClientState) Validate() error {
 }
 
 // VerifyMembership implements exported.ClientState.
+// TODO: Revise and look into delay periods for this.
+// TODO: Validate key path and value against the shareProof extracted from proof bytes.
 func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
 	if cs.BaseClient.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
@@ -54,23 +56,26 @@ func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.
 		)
 	}
 
-	// TODO: revise and look into delay periods for this
 	if err := verifyDelayPeriodPassed(ctx, clientStore, height, delayTimePeriod, delayBlockPeriod); err != nil {
 		return err
 	}
 
-	// var shareProof celestiatypes.ShareProof
-	// if err := cdc.Unmarshal(proof, &shareProof); err != nil {
-	// 	return err
-	// }
+	var shareProofPB ShareProof
+	if err := cdc.Unmarshal(proof, &shareProofPB); err != nil {
+		return err
+	}
 
-	// consensusState, found := ibctm.GetConsensusState(clientStore, cdc, height)
-	// if !found {
-	// 	return errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
-	// }
+	shareProof, err := ShareProofFromProto(shareProofPB)
+	if err != nil {
+		return err
+	}
 
-	// return shareProof.Validate(consensusState.GetRoot())
-	return nil
+	consensusState, found := ibctm.GetConsensusState(clientStore, cdc, height)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
+	}
+
+	return shareProof.Validate(consensusState.GetRoot().GetHash())
 }
 
 // VerifyNonMembership implements exported.ClientState.
