@@ -1,11 +1,13 @@
 package transfer_test
 
 import (
+	"math"
+	"strconv"
+	"testing"
+
 	sdkmath "cosmossdk.io/math"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"math"
-	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -107,7 +109,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper, suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
+			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
 			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
 			)
@@ -591,14 +593,16 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
-		data          []byte
-		expPacketData types.FungibleTokenPacketDataV2
+		data            []byte
+		expPacketData   types.FungibleTokenPacketDataV2
+		expPacketDataV1 types.FungibleTokenPacketData
 	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
+		v1       bool
 	}{
 		{
 			"success: valid packet data with memo",
@@ -613,6 +617,22 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					})
 				data = expPacketData.GetBytes()
 			},
+			true,
+			false,
+		},
+		{
+			"success: valid packet data v1 with memo",
+			func() {
+				expPacketDataV1 = types.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "some memo",
+				}
+				data = expPacketDataV1.GetBytes()
+			},
+			true,
 			true,
 		},
 		{
@@ -629,12 +649,14 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				data = expPacketData.GetBytes()
 			},
 			true,
+			false,
 		},
 		{
 			"failure: invalid packet data",
 			func() {
 				data = []byte("invalid packet data")
 			},
+			false,
 			false,
 		},
 	}
@@ -648,7 +670,11 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expPacketData, packetData)
+				if tc.v1 {
+					suite.Require().Equal(expPacketDataV1.Amount, strconv.FormatUint(packetData.(types.FungibleTokenPacketDataV2).Tokens[0].Amount, 10))
+				} else {
+					suite.Require().Equal(expPacketData, packetData)
+				}
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(packetData)

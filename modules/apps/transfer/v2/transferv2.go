@@ -19,7 +19,7 @@ func ConvertPacketV1ToPacketV2(packetData types.FungibleTokenPacketData) types.F
 
 	// TODO: we should fail here, but some tests fail with this panic. We can re-visit.
 	// if v2Denom == "" {
-	//	panic("base denom cannot be empty")
+	// 	panic("base denom cannot be empty")
 	// }
 
 	return types.FungibleTokenPacketDataV2{
@@ -43,7 +43,7 @@ func ExtractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 	pathSlice := extractPathAndBaseFromFullDenomSlice(splitPath)
 
 	if len(pathSlice) == 0 {
-		return v1DenomTrace.BaseDenom, []string{}
+		return v1DenomTrace.BaseDenom, []string(nil)
 	}
 
 	if len(pathSlice)%2 != 0 {

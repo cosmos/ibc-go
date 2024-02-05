@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"slices"
@@ -14,7 +15,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	transferv2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/v2"
-	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -28,17 +28,15 @@ var (
 	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
 )
 
-// IBCModule implements the ICS26 interface for transfer given the transfer transferKeeper.
+// IBCModule implements the ICS26 interface for transfer given the transferKeeper.
 type IBCModule struct {
 	transferKeeper keeper.Keeper
-	channelKeeper  channelkeeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the transferKeeper
-func NewIBCModule(transferKeeper keeper.Keeper, channelKeeper channelkeeper.Keeper) IBCModule {
+func NewIBCModule(transferKeeper keeper.Keeper) IBCModule {
 	return IBCModule{
 		transferKeeper: transferKeeper,
-		channelKeeper:  channelKeeper,
 	}
 }
 
@@ -181,14 +179,20 @@ func (IBCModule) OnChanCloseConfirm(
 }
 
 func getFungibleTokenPacketDataV2(bz []byte) (types.FungibleTokenPacketDataV2, error) {
-	var data types.FungibleTokenPacketDataV2
-	if err := types.ModuleCdc.UnmarshalJSON(bz, &data); err == nil {
-		return data, nil
-	}
 	var datav1 types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(bz, &datav1); err == nil {
-		return transferv2.ConvertPacketV1ToPacketV2(datav1), nil
+	if err := json.Unmarshal(bz, &datav1); err == nil {
+		if len(datav1.Amount) != 0 {
+			return transferv2.ConvertPacketV1ToPacketV2(datav1), nil
+		}
 	}
+
+	var data types.FungibleTokenPacketDataV2
+	if err := json.Unmarshal(bz, &data); err == nil {
+		if len(data.Tokens) != 0 {
+			return data, nil
+		}
+	}
+
 	return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
 }
 
@@ -385,5 +389,6 @@ func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return ftpd, nil
 }
