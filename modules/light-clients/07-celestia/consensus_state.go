@@ -13,6 +13,11 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
+// TODO: Maybe we cannot redefine consensus state if we are delegate client state calls to base client.
+// See: GetConsensusState() func of 07-tendermint used in many method of ClientState implementaiton. Type assertion performed.
+// Should be possible to reuse tendermint consensus state and these methods should continue to work.
+// Root of 07-tendermint ConsensusState is just the data availability root instead of app hash.
+
 var _ exported.ConsensusState = (*ConsensusState)(nil)
 
 // NewConsensusState creates a new ConsensusState instance.
