@@ -8,8 +8,8 @@ import (
 )
 
 // CheckSubstituteAndUpdateState implements exported.ClientState.
-func (*ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore storetypes.KVStore, substituteClientStore storetypes.KVStore, substituteClient exported.ClientState) error {
-	panic("unimplemented")
+func (cs *ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore storetypes.KVStore, substituteClientStore storetypes.KVStore, substituteClient exported.ClientState) error {
+	return cs.BaseClient.CheckSubstituteAndUpdateState(ctx, cdc, subjectClientStore, subjectClientStore, substituteClient)
 }
 
 // VerifyUpgradeAndUpdateState implements exported.ClientState.

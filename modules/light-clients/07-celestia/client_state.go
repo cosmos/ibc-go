@@ -31,13 +31,13 @@ func (cs *ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, c
 }
 
 // Initialize implements exported.ClientState.
-func (*ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consensusState exported.ConsensusState) error {
-	panic("unimplemented")
+func (cs *ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consensusState exported.ConsensusState) error {
+	return cs.BaseClient.Initialize(ctx, cdc, clientStore, consensusState)
 }
 
 // Validate implements exported.ClientState.
-func (*ClientState) Validate() error {
-	panic("unimplemented")
+func (cs *ClientState) Validate() error {
+	return cs.BaseClient.Validate()
 }
 
 // VerifyMembership implements exported.ClientState.

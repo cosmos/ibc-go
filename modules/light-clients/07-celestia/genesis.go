@@ -6,6 +6,6 @@ import (
 )
 
 // ExportMetadata implements exported.ClientState.
-func (*ClientState) ExportMetadata(clientStore storetypes.KVStore) []exported.GenesisMetadata {
-	panic("unimplemented")
+func (cs *ClientState) ExportMetadata(clientStore storetypes.KVStore) []exported.GenesisMetadata {
+	return cs.BaseClient.ExportMetadata(clientStore)
 }
