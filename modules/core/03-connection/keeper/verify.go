@@ -36,7 +36,7 @@ func (k Keeper) VerifyClientState(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.Counterparty.ClientId))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (k Keeper) VerifyClientConsensusState(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.Counterparty.ClientId, consensusHeight))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (k Keeper) VerifyConnectionState(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (k Keeper) VerifyChannelState(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -211,7 +211,7 @@ func (k Keeper) VerifyPacketCommitment(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -254,7 +254,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -297,7 +297,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -339,7 +339,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -376,7 +376,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -418,7 +418,7 @@ func (k Keeper) VerifyChannelUpgrade(
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.GetPrefix(), merklePath)
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
