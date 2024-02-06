@@ -841,9 +841,9 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 				suite.Require().NoError(err)
 
 				// if the channel closed during an upgrade, there should not be any upgrade information
-				_, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(ctx, path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
+				_, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().False(found)
-				_, found = suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(ctx, path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
+				_, found = suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)
