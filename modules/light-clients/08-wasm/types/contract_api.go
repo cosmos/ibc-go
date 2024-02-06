@@ -28,7 +28,7 @@ type QueryMsg struct {
 type StatusMsg struct{}
 
 // ExportMetadataMsg is a queryMsg sent to the contract to query the exported metadata of the wasm client.
-// DEPRECATED: core IBC will export all metadata.
+// Deprecated: core IBC will export all metadata.
 type ExportMetadataMsg struct{}
 
 // TimestampAtHeightMsg is a queryMsg sent to the contract to query the timestamp at a given height.
@@ -113,7 +113,7 @@ type StatusResult struct {
 }
 
 // ExportMetadataResult is the expected return type of the exportMetadataMsg query. It returns the exported metadata of the wasm client.
-// DEPRECATED: core IBC will export all metadata.
+// Deprecated: core IBC will export all metadata.
 type ExportMetadataResult struct {
 	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
 }

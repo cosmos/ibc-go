@@ -164,7 +164,7 @@ func (k Keeper) IterateMetadata(ctx sdk.Context, storeprefix []byte, cb func(cli
 	for ; iterator.Valid(); iterator.Next() {
 		path := string(iterator.Key())
 		if strings.Contains(path, host.KeyClientState) {
-			// skip non client state keys
+			// skip client state keys
 			continue
 		}
 
