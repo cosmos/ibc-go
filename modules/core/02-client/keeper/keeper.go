@@ -162,14 +162,13 @@ func (k Keeper) iterateMetadata(ctx sdk.Context, cb func(clientID string, key, v
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-		path := string(iterator.Key())
-		if strings.Contains(path, host.KeyClientState) {
+		split := strings.Split(string(iterator.Key()), "/")
+		if len(split) == 3 && split[2] == string(host.KeyClientState) {
 			// skip client state keys
 			continue
 		}
 
-		split := strings.Split(path, "/")
-		if len(split) == 4 && split[2] != string(host.KeyConsensusStatePrefix) {
+		if len(split) == 4 && split[2] == string(host.KeyConsensusStatePrefix) {
 			// skip consensus state keys
 			continue
 		}

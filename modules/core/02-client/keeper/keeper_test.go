@@ -23,6 +23,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
@@ -252,12 +253,26 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this
 }
 
 func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // this is a test, we are okay with copying locks
+	clientA, clientB := "07-tendermint-1", "clientB"
+
+	// create some starting state
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientA, &ibctm.ClientState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientA, types.NewHeight(0, 1), &ibctm.ConsensusState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientA, types.NewHeight(0, 2), &ibctm.ConsensusState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientA, types.NewHeight(0, 3), &ibctm.ConsensusState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientA, types.NewHeight(2, 300), &ibctm.ConsensusState{})
+
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientB, &ibctm.ClientState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientB, types.NewHeight(1, 100), &ibctm.ConsensusState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientB, types.NewHeight(2, 300), &ibctm.ConsensusState{})
+
 	// NOTE: correct ordering of expected value is required
 	// Ordering is typically determined by the lexographic ordering of the height passed into each key.
 	expectedGenMetadata := []types.IdentifiedGenesisMetadata{
 		types.NewIdentifiedGenesisMetadata(
-			"07-tendermint-1",
+			clientA,
 			[]types.GenesisMetadata{
+				types.NewGenesisMetadata([]byte(fmt.Sprintf("%s/%s", host.KeyClientState, "clientMetadata")), []byte("value")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 1)), []byte("foo")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 2)), []byte("bar")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 3)), []byte("baz")),
@@ -265,7 +280,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // thi
 			},
 		),
 		types.NewIdentifiedGenesisMetadata(
-			"clientB",
+			clientB,
 			[]types.GenesisMetadata{
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(1, 100)), []byte("val1")),
 				types.NewGenesisMetadata(ibctm.ProcessedHeightKey(types.NewHeight(2, 300)), []byte(types.NewHeight(1, 100).String())),
@@ -276,7 +291,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // thi
 	}
 
 	genClients := []types.IdentifiedClientState{
-		types.NewIdentifiedClientState("07-tendermint-1", &ibctm.ClientState{}), types.NewIdentifiedClientState("clientB", &ibctm.ClientState{}),
+		types.NewIdentifiedClientState(clientA, &ibctm.ClientState{}), types.NewIdentifiedClientState(clientB, &ibctm.ClientState{}),
 	}
 
 	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetAllClientMetadata(suite.chainA.GetContext(), expectedGenMetadata)
