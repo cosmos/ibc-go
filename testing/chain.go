@@ -626,23 +626,14 @@ func (chain *TestChain) DeleteKey(key []byte) {
 	kvStore.Delete(key)
 }
 
-// IBCClientHeader will construct a valid 07-tendermint Header to update the
-// light client on the source chain. The trustedHeight must be passed in as a non-zero height.
+// IBCClientHeader will construct a 07-tendermint Header to update the light client
+// on the counterparty chain. The trustedHeight must be passed in as a non-zero height.
 func (chain *TestChain) IBCClientHeader(header *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
 	if trustedHeight.IsZero() {
-		// Relayer must query for LatestHeight on client to get a non-zero TrustedHeight
 		return nil, errorsmod.Wrap(ibctm.ErrInvalidHeaderHeight, "trustedHeight must be a non-zero height")
 	}
 
-	var (
-		cmtTrustedVals *cmttypes.ValidatorSet
-		ok             bool
-	)
-
-	// Once we get TrustedHeight from client, we must query the validators from the counterparty chain
-	// If the LatestHeight == LastHeader.Height, then TrustedValidators are current validators
-	// If LatestHeight < LastHeader.Height, we can query the historical validator set from HistoricalInfo
-	cmtTrustedVals, ok = chain.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
+	cmtTrustedVals, ok := chain.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 	if !ok {
 		return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
 	}
