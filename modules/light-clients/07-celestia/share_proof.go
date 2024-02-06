@@ -53,7 +53,11 @@ func (sp shareProof) ToProto() ShareProof {
 
 // shareProofFromProto creates a ShareProof from a proto message.
 // Expects the proof to be pre-validated.
-func shareProofFromProto(pb ShareProof) (shareProof, error) {
+func shareProofFromProto(pb *ShareProof) (shareProof, error) {
+	if pb == nil {
+		return shareProof{}, fmt.Errorf("nil share proof protobuf")
+	}
+
 	return shareProof{
 		RowProof:         rowProofFromProto(pb.RowProof),
 		Data:             pb.Data,

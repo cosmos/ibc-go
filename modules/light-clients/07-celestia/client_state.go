@@ -60,12 +60,12 @@ func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.
 		return err
 	}
 
-	var shareProofPB ShareProof
-	if err := cdc.Unmarshal(proof, &shareProofPB); err != nil {
+	var shareProofProto ShareProof
+	if err := cdc.Unmarshal(proof, &shareProofProto); err != nil {
 		return err
 	}
 
-	shareProof, err := shareProofFromProto(shareProofPB)
+	shareProof, err := shareProofFromProto(&shareProofProto)
 	if err != nil {
 		return err
 	}
