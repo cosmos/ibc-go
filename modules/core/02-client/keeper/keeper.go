@@ -156,7 +156,7 @@ func (k Keeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string,
 
 // iterateMetadata provides an iterator over all stored metadata keys in the client store.
 // For each metadata object, it will perform a callback.
-func (k Keeper) iterateMetadata(ctx sdk.Context, storeprefix []byte, cb func(clientID string, key, value []byte) bool) {
+func (k Keeper) iterateMetadata(ctx sdk.Context, cb func(clientID string, key, value []byte) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
@@ -207,7 +207,7 @@ func (k Keeper) GetAllGenesisClients(ctx sdk.Context) types.IdentifiedClientStat
 // into the client store.
 func (k Keeper) GetAllClientMetadata(ctx sdk.Context, genClients []types.IdentifiedClientState) ([]types.IdentifiedGenesisMetadata, error) {
 	metadataMap := make(map[string][]types.GenesisMetadata)
-	k.iterateMetadata(ctx, nil, func(clientID string, key, value []byte) bool {
+	k.iterateMetadata(ctx, func(clientID string, key, value []byte) bool {
 		metadataMap[clientID] = append(metadataMap[clientID], types.NewGenesisMetadata(key, value))
 		return false
 	})
