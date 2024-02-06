@@ -20,7 +20,7 @@ var (
 	_ ibcwasm.WasmEngine = (*MockWasmEngine)(nil)
 
 	// queryTypes contains all the possible query message types.
-	queryTypes = [...]any{types.StatusMsg{}, types.ExportMetadataMsg{}, types.TimestampAtHeightMsg{}, types.VerifyClientMessageMsg{}, types.CheckForMisbehaviourMsg{}}
+	queryTypes = [...]any{types.StatusMsg{}, types.TimestampAtHeightMsg{}, types.VerifyClientMessageMsg{}, types.CheckForMisbehaviourMsg{}}
 
 	// sudoTypes contains all the possible sudo message types.
 	sudoTypes = [...]any{types.UpdateStateMsg{}, types.UpdateStateOnMisbehaviourMsg{}, types.VerifyUpgradeAndUpdateStateMsg{}, types.VerifyMembershipMsg{}, types.VerifyNonMembershipMsg{}, types.MigrateClientStoreMsg{}}
@@ -227,10 +227,6 @@ func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
 
 	if payload.CheckForMisbehaviour != nil {
 		payloadField = *payload.CheckForMisbehaviour
-	}
-
-	if payload.ExportMetadata != nil {
-		payloadField = *payload.ExportMetadata
 	}
 
 	if payload.TimestampAtHeight != nil {
