@@ -174,34 +174,27 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 // the necessary consensus states from the substitute to the subject client
 // store. The substitute must be Active and the subject must not be Active.
 func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
-	subjectClientState, found := k.GetClientState(ctx, subjectClientID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "subject client with ID %s", subjectClientID)
-	}
-
-	subjectClientStore := k.ClientStore(ctx, subjectClientID)
-
 	if status := k.GetClientStatus(ctx, subjectClientID); status == exported.Active {
 		return errorsmod.Wrapf(types.ErrInvalidRecoveryClient, "cannot recover %s subject client", exported.Active)
 	}
-
-	substituteClientState, found := k.GetClientState(ctx, substituteClientID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "substitute client with ID %s", substituteClientID)
-	}
-
-	if subjectClientState.GetLatestHeight().GTE(substituteClientState.GetLatestHeight()) {
-		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectClientState.GetLatestHeight(), substituteClientState.GetLatestHeight())
-	}
-
-	substituteClientStore := k.ClientStore(ctx, substituteClientID)
 
 	if status := k.GetClientStatus(ctx, substituteClientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not %s, status is %s", exported.Active, status)
 	}
 
-	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {
-		return errorsmod.Wrap(err, "failed to validate substitute client")
+	clientType, _, err := types.ParseClientIdentifier(subjectClientID)
+	if err != nil {
+		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", subjectClientID)
+	}
+
+	// TODO: change after https://github.com/cosmos/ibc-go/pull/5817 is merged
+	lightClientModule, found := k.router.GetRoute(clientType)
+	if !found {
+		return errorsmod.Wrap(types.ErrRouteNotFound, clientType)
+	}
+
+	if err := lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID); err != nil {
+		return err
 	}
 
 	k.Logger(ctx).Info("client recovered", "client-id", subjectClientID)
@@ -210,14 +203,14 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 		[]string{"ibc", "client", "update"},
 		1,
 		[]metrics.Label{
-			telemetry.NewLabel(types.LabelClientType, substituteClientState.ClientType()),
+			telemetry.NewLabel(types.LabelClientType, clientType),
 			telemetry.NewLabel(types.LabelClientID, subjectClientID),
 			telemetry.NewLabel(types.LabelUpdateType, "recovery"),
 		},
 	)
 
 	// emitting events in the keeper for recovering clients
-	emitRecoverClientEvent(ctx, subjectClientID, substituteClientState.ClientType())
+	emitRecoverClientEvent(ctx, subjectClientID, clientType)
 
 	return nil
 }

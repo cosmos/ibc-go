@@ -591,7 +591,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			func() {
 				substitute = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrClientNotActive,
 		},
 		{
 			"subject and substitute have equal latest height",

@@ -110,9 +110,8 @@ type LightClientModule interface {
 		height Height, // TODO: change to concrete type
 	) (uint64, error)
 
-	// CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
+	// RecoverClient must verify that the provided substitute may be used to update the subject client.
 	// The light client must set the updated client and consensus states within the clientStore for the subject client.
-	// DEPRECATED: will be removed as performs internal functionality
 	RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error
 
 	// Upgrade functions
