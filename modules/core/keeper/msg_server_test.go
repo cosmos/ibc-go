@@ -646,8 +646,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 
 			// close counterparty channel
-			err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 		}, true},
 		{"success: UNORDERED", func() {
 			path.Setup()
@@ -664,8 +663,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 			// close counterparty channel
-			err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 		}, true},
 		{"success: UNORDERED timeout out of order packet", func() {
 			// setup uses an UNORDERED channel
@@ -687,8 +685,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 			// close counterparty channel
-			err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 		}, true},
 		{"success: ORDERED timeout out of order packet", func() {
 			path.SetChannelOrdered()
@@ -710,8 +707,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 
 			// close counterparty channel
-			err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 		}, true},
 		{"channel does not exist", func() {
 			// any non-nil value of packet is valid
@@ -725,8 +721,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 			// close counterparty channel
-			err := path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 		}, true},
 		{"ORDERED: channel not closed", func() {
 			path.SetChannelOrdered()
@@ -1123,7 +1118,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 		{
 			"unsynchronized upgrade sequence writes upgrade error receipt",
 			func() {
-				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.UpgradeSequence = 99 }))
+				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.UpgradeSequence = 99 })
 			},
 			func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
@@ -1348,7 +1343,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			"core handler returns error and no upgrade error receipt is written",
 			func() {
 				// force an error by overriding the channel state to an invalid value
-				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED }))
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
@@ -1716,7 +1711,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			"core handler returns error and no upgrade error receipt is written",
 			func() {
 				// force an error by overriding the channel state to an invalid value
-				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED }))
+				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 			},
 			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
@@ -1956,7 +1951,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 		{
 			"core handler fails",
 			func() {
-				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.FLUSHING }))
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.FLUSHING })
 			},
 			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
@@ -2097,10 +2092,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			func() {
 				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
 
-				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
 					channel.State = channeltypes.FLUSHING
 					channel.UpgradeSequence = uint64(3)
-				}))
+				})
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
@@ -2147,10 +2142,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
 				msg.ProofErrorReceipt = []byte("invalid proof")
 
-				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
 					channel.State = channeltypes.FLUSHING
 					channel.UpgradeSequence = uint64(1)
-				}))
+				})
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
@@ -2197,10 +2192,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
 				msg.ProofErrorReceipt = nil
 
-				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
 					channel.State = channeltypes.FLUSHING
 					channel.UpgradeSequence = uint64(1)
-				}))
+				})
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
@@ -2246,10 +2241,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			func() {
 				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
 
-				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
 					channel.State = channeltypes.FLUSHCOMPLETE
 					channel.UpgradeSequence = uint64(2) // When in FLUSHCOMPLETE the sequence of the error receipt and the channel must match
-				}))
+				})
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
@@ -2295,9 +2290,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			func() {
 				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
 
-				suite.Require().NoError(
-					path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.FLUSHCOMPLETE }),
-				)
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.FLUSHCOMPLETE })
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
@@ -2317,10 +2310,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				msg.ProofErrorReceipt = []byte("invalid proof")
 
 				// Force set to STATE_FLUSHCOMPLETE to check that state is not changed.
-				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
 					channel.State = channeltypes.FLUSHCOMPLETE
 					channel.UpgradeSequence = uint64(2) // When in FLUSHCOMPLETE the sequence of the error receipt and the channel must match
-				}))
+				})
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
@@ -2356,8 +2349,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			// cause the upgrade to fail on chain b so an error receipt is written.
 			// if the counterparty (chain A) upgrade sequence is less than the current sequence, (chain B)
 			// an upgrade error will be returned by chain B during ChanUpgradeTry.
-			suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.UpgradeSequence = uint64(1) }))
-			suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.UpgradeSequence = uint64(2) }))
+			path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.UpgradeSequence = uint64(1) })
+			path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.UpgradeSequence = uint64(2) })
 
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 			suite.Require().NoError(path.EndpointB.UpdateClient())

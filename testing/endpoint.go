@@ -776,14 +776,15 @@ func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 
 // UpdateChannel updates the channel associated with the given endpoint. It accepts a
 // closure which takes a channel allowing the caller to modify its fields.
-func (endpoint *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) error {
+func (endpoint *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) {
 	channel := endpoint.GetChannel()
 	updater(&channel)
 	endpoint.SetChannel(channel)
 
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 
-	return endpoint.Counterparty.UpdateClient()
+	err := endpoint.Counterparty.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
 }
 
 // GetClientState retrieves the Client State for this endpoint. The

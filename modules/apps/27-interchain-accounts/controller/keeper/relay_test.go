@@ -98,14 +98,14 @@ func (suite *KeeperTestSuite) TestSendTx() {
 		{
 			"channel in INIT state - optimistic packet sends fail",
 			func() {
-				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.INIT }))
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.INIT })
 			},
 			false,
 		},
 		{
 			"sendPacket fails - channel closed",
 			func() {
-				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED }))
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 			},
 			false,
 		},
