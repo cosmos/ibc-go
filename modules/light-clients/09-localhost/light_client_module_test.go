@@ -17,7 +17,7 @@ import (
 func (suite *LocalhostTestSuite) TestStatus() {
 	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.Localhost)
 	suite.Require().True(found)
-	suite.Require().Equal(exported.Active, lightClientModule.Status(s.chain.GetContext(), exported.LocalhostClientID))
+	suite.Require().Equal(exported.Active, lightClientModule.Status(suite.chain.GetContext(), exported.LocalhostClientID))
 }
 
 func (suite *LocalhostTestSuite) TestVerifyMembership() {
