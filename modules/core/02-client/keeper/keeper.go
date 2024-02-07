@@ -66,7 +66,7 @@ func (k Keeper) GetRouter() *types.Router {
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
 	lightClientModule, found := k.router.GetRoute(exported.LocalhostClientID)
 	if !found {
-		errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
+		return errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
 	}
 
 	return lightClientModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
