@@ -139,7 +139,8 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		trustedHeight := endpoint.GetClientState().GetLatestHeight().(clienttypes.Height)
+		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
