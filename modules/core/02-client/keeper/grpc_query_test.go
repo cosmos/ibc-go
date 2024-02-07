@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc/codes"
@@ -12,9 +13,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestQueryClientState() {
@@ -769,4 +773,105 @@ func (suite *KeeperTestSuite) TestQueryClientParams() {
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
+}
+
+func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
+	var req *types.QueryVerifyMembershipProofRequest
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		// TODO(damian): add success case
+		// {
+		// 	"success",
+		// 	func() {},
+		// 	nil,
+		// },
+		{
+			"req is nil",
+			func() {
+				req = nil
+			},
+			errors.New("empty request"),
+		},
+		{
+			"invalid client ID",
+			func() {
+				req = &types.QueryVerifyMembershipProofRequest{
+					ClientId: "//invalid_id",
+				}
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"empty proof",
+			func() {
+				req = &types.QueryVerifyMembershipProofRequest{
+					ClientId: ibctesting.FirstClientID,
+					Proof:    []byte{},
+				}
+			},
+			errors.New("empty proof"),
+		},
+		{
+			"invalid proof height",
+			func() {
+				req = &types.QueryVerifyMembershipProofRequest{
+					ClientId:    ibctesting.FirstClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.ZeroHeight(),
+				}
+			},
+			errors.New("proof height must be non-zero"),
+		},
+		{
+			"empty merkle path",
+			func() {
+				req = &types.QueryVerifyMembershipProofRequest{
+					ClientId:    ibctesting.FirstClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+				}
+			},
+			errors.New("empty merkle path"),
+		},
+		{
+			"empty value",
+			func() {
+				req = &types.QueryVerifyMembershipProofRequest{
+					ClientId:    ibctesting.FirstClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+				}
+			},
+			errors.New("empty value"),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			tc.malleate()
+
+			ctx := suite.chainA.GetContext()
+			res, err := suite.chainA.QueryServer.VerifyMembershipProof(ctx, req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().ErrorContains(err, tc.expError.Error())
+			}
+		})
+	}
 }
