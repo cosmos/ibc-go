@@ -237,6 +237,6 @@ message QueryVerifyMembershipProofRequest {
 
 // QueryVerifyMembershipProofResponse is the response type for the Query/VerifyMembershipProof RPC method
 message QueryVerifyMembershipProofResponse {
-  // result identicating success or failure of proof verification.
+  // result indicating success or failure of proof verification.
   bool result = 1;
 }

@@ -1063,7 +1063,7 @@ func (m *QueryVerifyMembershipProofRequest) GetBlockDelay() uint64 {
 
 // QueryVerifyMembershipProofResponse is the response type for the Query/VerifyMembershipProof RPC method
 type QueryVerifyMembershipProofResponse struct {
-	// result identicating success or failure of proof verification.
+	// result indicating success or failure of proof verification.
 	Result bool `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"`
 }
 
