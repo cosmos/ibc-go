@@ -64,9 +64,9 @@ func (k Keeper) GetRouter() *types.Router {
 
 // CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	localhostModule, found := k.router.GetRoute(exported.Localhost)
+	localhostModule, found := k.router.GetRoute(exported.LocalhostClientID)
 	if !found {
-		errorsmod.Wrap(types.ErrRouteNotFound, exported.Localhost)
+		errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
 	}
 
 	return localhostModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
@@ -74,9 +74,9 @@ func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
 
 // UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
 func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
-	lightClientModule, found := k.router.GetRoute(exported.Localhost)
+	lightClientModule, found := k.router.GetRoute(exported.LocalhostClientID)
 	if !found {
-		panic(errorsmod.Wrap(types.ErrRouteNotFound, exported.Localhost))
+		panic(errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID))
 	}
 
 	return lightClientModule.UpdateState(ctx, exported.LocalhostClientID, nil)
@@ -438,7 +438,7 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Statu
 		return exported.Unauthorized
 	}
 
-	lightClientModule, found := k.router.GetRoute(clientType)
+	lightClientModule, found := k.router.GetRoute(clientID)
 	if !found {
 		return exported.Unauthorized
 	}
@@ -458,7 +458,7 @@ func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, clientID string, height ex
 		return 0, errorsmod.Wrapf(types.ErrInvalidClientType, "client state type %s is not registered in the allowlist", clientType)
 	}
 
-	lightClientModule, found := k.router.GetRoute(clientType)
+	lightClientModule, found := k.router.GetRoute(clientID)
 	if !found {
 		return 0, errorsmod.Wrap(types.ErrRouteNotFound, clientType)
 	}
