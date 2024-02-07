@@ -128,9 +128,13 @@ func NewDefaultQueryPlugins() *QueryPlugins {
 // AcceptListStargateQuerier allows all queries that are in the provided accept list.
 // This function returns protobuf encoded responses in bytes.
 func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+	defaultAcceptList := []string{
+		"/ibc.core.client.v1.Query/VerifyMembershipProof",
+	}
+
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// A default list of accepted queries can be added here.
-		// accepted = append(defaultAcceptList, accepted...)
+		acceptedQueries = append(defaultAcceptList, acceptedQueries...)
 
 		isAccepted := slices.Contains(acceptedQueries, request.Path)
 		if !isAccepted {
