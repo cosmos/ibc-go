@@ -328,3 +328,54 @@ func (k Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 		UpgradedConsensusState: protoAny,
 	}, nil
 }
+
+// VerifyMembershipProof implements the Query/VerifyMembershipProof gRPC method
+func (k Keeper) VerifyMembershipProof(c context.Context, req *types.QueryVerifyMembershipProofRequest) (*types.QueryVerifyMembershipProofResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if len(req.Proof) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty proof")
+	}
+
+	if req.ProofHeight.IsZero() {
+		return nil, status.Error(codes.InvalidArgument, "proof height must be non-zero")
+	}
+
+	if req.MerklePath.Empty() {
+		return nil, status.Error(codes.InvalidArgument, "empty merkle path")
+	}
+
+	if len(req.Value) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty value")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	// cache the context to ensure clientState.VerifyMembership does not change state
+	cachedCtx, _ := ctx.CacheContext()
+
+	// make sure we charge the higher level context even on panic
+	defer func() {
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
+	}()
+
+	clientState, found := k.GetClientState(cachedCtx, req.ClientId)
+	if !found {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error())
+	}
+
+	if err := clientState.VerifyMembership(ctx, k.ClientStore(cachedCtx, req.ClientId), k.cdc, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
+		return &types.QueryVerifyMembershipProofResponse{
+			Result: false,
+		}, nil
+	}
+
+	return &types.QueryVerifyMembershipProofResponse{
+		Result: true,
+	}, nil
+}

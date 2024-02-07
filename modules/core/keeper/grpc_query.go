@@ -53,6 +53,11 @@ func (k Keeper) UpgradedConsensusState(c context.Context, req *clienttypes.Query
 	return k.ClientKeeper.UpgradedConsensusState(c, req)
 }
 
+// VerifyMembershipProof implements the IBC QueryServer interface.
+func (k Keeper) VerifyMembershipProof(c context.Context, req *clienttypes.QueryVerifyMembershipProofRequest) (*clienttypes.QueryVerifyMembershipProofResponse, error) {
+	return k.ClientKeeper.VerifyMembershipProof(c, req)
+}
+
 // Connection implements the IBC QueryServer interface
 func (k Keeper) Connection(c context.Context, req *connectiontypes.QueryConnectionRequest) (*connectiontypes.QueryConnectionResponse, error) {
 	return k.ConnectionKeeper.Connection(c, req)
