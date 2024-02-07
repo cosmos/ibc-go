@@ -967,7 +967,7 @@ type QueryVerifyMembershipProofRequest struct {
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// the proof to be verified by the client.
 	Proof []byte `protobuf:"bytes,2,opt,name=proof,proto3" json:"proof,omitempty"`
-	// the height at which the proof is verified.
+	// the height of the commitment root at which the proof is verified.
 	ProofHeight Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
 	// the commitment key path.
 	MerklePath types1.MerklePath `protobuf:"bytes,4,opt,name=merkle_path,json=merklePath,proto3" json:"merkle_path"`

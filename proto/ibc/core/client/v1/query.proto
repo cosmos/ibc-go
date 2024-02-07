@@ -223,7 +223,7 @@ message QueryVerifyMembershipProofRequest {
   string client_id = 1;
   // the proof to be verified by the client.
   bytes proof = 2;
-  // the height at which the proof is verified.
+  // the height of the commitment root at which the proof is verified.
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
   // the commitment key path.
   ibc.core.commitment.v1.MerklePath merkle_path = 4 [(gogoproto.nullable) = false];
