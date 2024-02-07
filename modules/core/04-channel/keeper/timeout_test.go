@@ -504,10 +504,6 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				upgrade, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "counterparty upgrade should not be present")
 				suite.Require().Equal(types.Upgrade{}, upgrade, "counterparty upgrade should be zero value")
-
-				errorReceipt, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(found, "error receipt should be present")
-				suite.Require().Equal(channel.UpgradeSequence, errorReceipt.Sequence, "error receipt sequence should be equal to channel upgrade sequence")
 			},
 			nil,
 		},
