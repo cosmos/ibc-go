@@ -776,19 +776,39 @@ func (suite *KeeperTestSuite) TestQueryClientParams() {
 }
 
 func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
-	var req *types.QueryVerifyMembershipProofRequest
+	var (
+		path *ibctesting.Path
+		req  *types.QueryVerifyMembershipProofRequest
+	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expError error
 	}{
-		// TODO(damian): add success case
-		// {
-		// 	"success",
-		// 	func() {},
-		// 	nil,
-		// },
+		{
+			"success",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				bz, err := suite.chainB.Codec.Marshal(&channel)
+				suite.Require().NoError(err)
+
+				channelProof, proofHeight := path.EndpointB.QueryProof(host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+
+				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				req = &types.QueryVerifyMembershipProofRequest{
+					ClientId:    path.EndpointA.ClientID,
+					Proof:       channelProof,
+					ProofHeight: proofHeight,
+					MerklePath:  merklePath,
+					Value:       bz,
+				}
+			},
+			nil,
+		},
 		{
 			"req is nil",
 			func() {
@@ -849,16 +869,28 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			},
 			errors.New("empty value"),
 		},
+		{
+			"client not found",
+			func() {
+				req = &types.QueryVerifyMembershipProofRequest{
+					ClientId:    types.FormatClientIdentifier(exported.Tendermint, 100), // use a sequence which hasn't been created yet
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					Value:       []byte{0x01},
+				}
+			},
+			types.ErrClientNotFound,
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupClients()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.Setup()
 
 			tc.malleate()
 
@@ -868,7 +900,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
+				suite.Require().True(res.GetResult(), "failed to verify membership proof")
 			} else {
 				suite.Require().ErrorContains(err, tc.expError.Error())
 			}
