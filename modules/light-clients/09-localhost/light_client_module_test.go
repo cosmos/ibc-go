@@ -15,7 +15,7 @@ import (
 )
 
 func (suite *LocalhostTestSuite) TestStatus() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.Localhost)
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
 	suite.Require().True(found)
 	suite.Require().Equal(exported.Active, lightClientModule.Status(suite.chain.GetContext(), exported.LocalhostClientID))
 }
@@ -204,7 +204,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 
 			tc.malleate()
 
-			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.Localhost)
+			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
 			suite.Require().True(found)
 
 			err := lightClientModule.VerifyMembership(
@@ -282,7 +282,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 
 			tc.malleate()
 
-			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.Localhost)
+			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
 			suite.Require().True(found)
 
 			err := lightClientModule.VerifyNonMembership(

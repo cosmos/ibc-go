@@ -33,9 +33,9 @@ func (k Keeper) CreateClient(
 
 	clientID := k.GenerateClientIdentifier(ctx, clientType)
 
-	lightClientModule, found := k.router.GetRoute(clientType)
+	lightClientModule, found := k.router.GetRoute(clientID)
 	if !found {
-		return "", errorsmod.Wrap(types.ErrRouteNotFound, clientType)
+		return "", errorsmod.Wrap(types.ErrRouteNotFound, clientID)
 	}
 
 	if err := lightClientModule.Initialize(ctx, clientID, clientState, consensusState); err != nil {
@@ -70,9 +70,9 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", clientID)
 	}
 
-	lightClientModule, found := k.router.GetRoute(clientType)
+	lightClientModule, found := k.router.GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(types.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
 	}
 
 	if err := lightClientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
