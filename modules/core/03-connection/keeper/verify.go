@@ -29,18 +29,13 @@ func (k Keeper) VerifyClientState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.Counterparty.ClientId))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -76,18 +71,13 @@ func (k Keeper) VerifyClientConsensusState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.Counterparty.ClientId, consensusHeight))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -123,18 +113,13 @@ func (k Keeper) VerifyConnectionState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -171,18 +156,13 @@ func (k Keeper) VerifyChannelState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -220,14 +200,9 @@ func (k Keeper) VerifyPacketCommitment(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	// get time and block delays
@@ -235,7 +210,7 @@ func (k Keeper) VerifyPacketCommitment(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -266,14 +241,9 @@ func (k Keeper) VerifyPacketAcknowledgement(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	// get time and block delays
@@ -281,7 +251,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -318,7 +288,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		return err
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
 	}
@@ -358,14 +328,9 @@ func (k Keeper) VerifyNextSequenceRecv(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	// get time and block delays
@@ -373,7 +338,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -404,18 +369,13 @@ func (k Keeper) VerifyChannelUpgradeError(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -451,18 +411,13 @@ func (k Keeper) VerifyChannelUpgrade(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}

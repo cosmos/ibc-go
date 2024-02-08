@@ -44,10 +44,16 @@ func (rtr *Router) HasRoute(module string) bool {
 	return ok
 }
 
-// GetRoute returns a LightClientModule for a given module.
-func (rtr *Router) GetRoute(module string) (exported.LightClientModule, bool) {
-	if !rtr.HasRoute(module) {
+// GetRoute returns the LightClientModule registered for the client type
+// associated with the clientID.
+func (rtr *Router) GetRoute(clientID string) (exported.LightClientModule, bool) {
+	clientType, _, err := ParseClientIdentifier(clientID)
+	if err != nil {
 		return nil, false
 	}
-	return rtr.routes[module], true
+
+	if !rtr.HasRoute(clientType) {
+		return nil, false
+	}
+	return rtr.routes[clientType], true
 }
