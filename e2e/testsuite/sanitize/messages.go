@@ -53,7 +53,9 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 			panic(err)
 		}
 		sanitizedMsgs := Messages(tag, msgs...)
-		msg.SetMsgs(sanitizedMsgs)
+		if err := msg.SetMsgs(sanitizedMsgs); err != nil {
+			panic(err)
+		}
 		return msg
 	case *grouptypes.MsgSubmitProposal:
 		if !groupsv1ProposalTitleAndSummary.IsSupported(tag) {
@@ -66,7 +68,9 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 			panic(err)
 		}
 		sanitizedMsgs := Messages(tag, msgs...)
-		msg.SetMsgs(sanitizedMsgs)
+		if err := msg.SetMsgs(sanitizedMsgs); err != nil {
+			panic(err)
+		}
 		return msg
 	case *icacontrollertypes.MsgRegisterInterchainAccount:
 		if !icaUnorderedChannelFeatureReleases.IsSupported(tag) {
