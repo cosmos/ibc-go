@@ -895,12 +895,16 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
+			prevGas := ctx.GasMeter().GasConsumed()
 			res, err := suite.chainA.QueryServer.VerifyMembershipProof(ctx, req)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().True(res.GetResult(), "failed to verify membership proof")
+
+				gasConsumed := ctx.GasMeter().GasConsumed()
+				suite.Require().NotEqual(prevGas, gasConsumed)
 			} else {
 				suite.Require().ErrorContains(err, tc.expError.Error())
 			}
