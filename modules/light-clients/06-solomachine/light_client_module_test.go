@@ -9,9 +9,8 @@ import (
 )
 
 const (
-	smClientID        = "06-solomachine-100"
-	wasmClientID      = "08-wasm-0"
-	malformedClientID = "malformed-clientid"
+	smClientID   = "06-solomachine-100"
+	wasmClientID = "08-wasm-0"
 )
 
 func (suite *SoloMachineTestSuite) TestRecoverClient() {
@@ -34,7 +33,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 		{
 			"cannot parse malformed subject client ID",
 			func() {
-				subjectClientID = malformedClientID
+				subjectClientID = ibctesting.InvalidID
 			},
 			host.ErrInvalidID,
 		},
@@ -48,7 +47,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 		{
 			"cannot parse malformed substitute client ID",
 			func() {
-				substituteClientID = malformedClientID
+				substituteClientID = ibctesting.InvalidID
 			},
 			host.ErrInvalidID,
 		},

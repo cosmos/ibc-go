@@ -148,10 +148,6 @@ type ClientState interface {
 	// Used to verify upgrades
 	ZeroCustomFields() ClientState
 
-	// CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
-	// The light client must set the updated client and consensus states within the clientStore for the subject client.
-	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore storetypes.KVStore, substituteClient ClientState) error
-
 	// Upgrade functions
 	// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
 	// height committed by the current revision. Clients are responsible for ensuring that the planned last

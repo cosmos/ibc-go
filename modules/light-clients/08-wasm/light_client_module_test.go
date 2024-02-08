@@ -6,12 +6,12 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 const (
-	tmClientID        = "07-tendermint-0"
-	wasmClientID      = "08-wasm-100"
-	malformedClientID = "malformed-clientid"
+	tmClientID   = "07-tendermint-0"
+	wasmClientID = "08-wasm-100"
 )
 
 func (suite *WasmTestSuite) TestRecoverClient() {
@@ -36,7 +36,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 		{
 			"cannot parse malformed subject client ID",
 			func() {
-				subjectClientID = malformedClientID
+				subjectClientID = ibctesting.InvalidID
 			},
 			host.ErrInvalidID,
 		},
@@ -50,7 +50,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 		{
 			"cannot parse malformed substitute client ID",
 			func() {
-				substituteClientID = malformedClientID
+				substituteClientID = ibctesting.InvalidID
 			},
 			host.ErrInvalidID,
 		},

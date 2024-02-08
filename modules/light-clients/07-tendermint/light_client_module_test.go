@@ -9,9 +9,8 @@ import (
 )
 
 const (
-	tmClientID        = "07-tendermint-100"
-	wasmClientID      = "08-wasm-0"
-	malformedClientID = "malformed-clientid"
+	tmClientID   = "07-tendermint-100"
+	wasmClientID = "08-wasm-0"
 )
 
 func (suite *TendermintTestSuite) TestRecoverClient() {
@@ -34,7 +33,7 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 		{
 			"cannot parse malformed subject client ID",
 			func() {
-				subjectClientID = malformedClientID
+				subjectClientID = ibctesting.InvalidID
 			},
 			host.ErrInvalidID,
 		},
@@ -48,7 +47,7 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 		{
 			"cannot parse malformed substitute client ID",
 			func() {
-				substituteClientID = malformedClientID
+				substituteClientID = ibctesting.InvalidID
 			},
 			host.ErrInvalidID,
 		},
