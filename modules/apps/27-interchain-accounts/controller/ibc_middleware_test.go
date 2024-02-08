@@ -564,8 +564,22 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				0,
 			)
 
-			ack := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, nil)
+			ctx := suite.chainA.GetContext()
+			ack := cbs.OnRecvPacket(ctx, packet, nil)
 			suite.Require().Equal(tc.expPass, ack.Success())
+
+			expectedEvents := sdk.Events{
+				sdk.NewEvent(
+					icatypes.EventTypePacket,
+					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+					sdk.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
+					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", false)),
+					sdk.NewAttribute(icatypes.AttributeKeyAckError, "cannot receive packet on controller chain: invalid message sent to channel end"),
+				),
+			}.ToABCIEvents()
+
+			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 		})
 	}
 }

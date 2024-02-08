@@ -22,6 +22,11 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
+const (
+	legacyMessage           = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
+	capitalEfficientMessage = "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
+)
+
 type IncentivizedTransferTestSuite struct {
 	TransferTestSuite
 }
@@ -118,12 +123,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-		escrowTotalFee := testFee.Total()
-		if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-			msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-			escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-		}
+		msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 		t.Run(msg, func(t *testing.T) {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
@@ -237,12 +237,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-		escrowTotalFee := testFee.Total()
-		if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-			msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-			escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-		}
+		msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 		t.Run(msg, func(t *testing.T) {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
@@ -342,12 +337,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 	})
 
-	msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-	escrowTotalFee := testFee.Total()
-	if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-		msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-		escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-	}
+	msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 	t.Run(msg, func(t *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
@@ -470,12 +460,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-		escrowTotalFee := testFee.Total()
-		if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-			msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-			escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-		}
+		msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 		t.Run(msg, func(t *testing.T) {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
@@ -574,12 +559,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		})
 	})
 
-	msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-	escrowTotalFee := testFee.Total()
-	if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-		msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-		escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-	}
+	msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 	t.Run(msg, func(t *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
@@ -759,4 +739,16 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 		expected2 := testvalues.StartingTokenAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected2, actualBalance2)
 	})
+}
+
+// getMessageAndFee returns the message that should be used for t.Run as well as the expected fee based on
+// whether or not capital efficient fee escrow is supported.
+func getMessageAndFee(fee feetypes.Fee, chainVersion string) (string, sdk.Coins) {
+	msg := capitalEfficientMessage
+	escrowTotalFee := fee.Total()
+	if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainVersion) {
+		msg = legacyMessage
+		escrowTotalFee = fee.RecvFee.Add(fee.AckFee...).Add(fee.TimeoutFee...)
+	}
+	return msg, escrowTotalFee
 }
