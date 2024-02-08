@@ -2,9 +2,12 @@ package ibctesting
 
 import (
 	"fmt"
-	testifysuite "github.com/stretchr/testify/suite"
 	"slices"
 	"strconv"
+
+	testifysuite "github.com/stretchr/testify/suite"
+
+	testifysuite "github.com/stretchr/testify/suite"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
