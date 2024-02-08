@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	metrics "github.com/hashicorp/go-metrics"
 
@@ -815,6 +816,12 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
 		if channeltypes.IsUpgradeError(err) {
+
+			// Incase the error is a wrapped upgrade error, we need to extract the inner error else process as normal
+			var upgradeErr *channeltypes.UpgradeError
+			if !errors.As(err, &upgradeErr) {
+				upgradeErr = err.(*channeltypes.UpgradeError)
+			}
 			k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, err.(*channeltypes.UpgradeError))
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
 			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
