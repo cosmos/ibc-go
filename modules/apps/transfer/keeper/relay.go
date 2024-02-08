@@ -313,12 +313,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 // the sender is refunded their tokens using the refundPacketToken function.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData, ack channeltypes.Acknowledgement) error {
 	switch ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Error:
-		return k.refundPacketToken(ctx, packet, data)
-	default:
+	case *channeltypes.Acknowledgement_Result:
 		// the acknowledgement succeeded on the receiving chain so nothing
 		// needs to be executed and no error needs to be returned
 		return nil
+	case *channeltypes.Acknowledgement_Error:
+		return k.refundPacketToken(ctx, packet, data)
+	default:
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 	}
 }
 

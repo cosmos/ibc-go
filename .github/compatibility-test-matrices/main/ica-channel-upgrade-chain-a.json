@@ -4,7 +4,7 @@
   ],
   "chain-b": [
     "main",
-    "release-v8.1.x"
+    "v8.1.0"
   ],
   "entrypoint": [
     "TestInterchainAccountsChannelUpgradesTestSuite"

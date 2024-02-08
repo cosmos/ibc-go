@@ -112,7 +112,7 @@ type LightClientModule interface {
 
 	// CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
 	// The light client must set the updated client and consensus states within the clientStore for the subject client.
-	// DEPRECATED: will be removed as performs internal functionality
+	// Deprecated: will be removed as performs internal functionality
 	RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error
 
 	// Upgrade functions
@@ -122,7 +122,7 @@ type LightClientModule interface {
 	// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
 	// may be cancelled or modified before the last planned height.
 	// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
-	// DEPRECATED: will be removed as performs internal functionality
+	// Deprecated: will be removed as performs internal functionality
 	VerifyUpgradeAndUpdateState(
 		ctx sdk.Context,
 		clientID string,

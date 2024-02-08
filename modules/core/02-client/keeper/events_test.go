@@ -56,7 +56,8 @@ func (suite *KeeperTestSuite) TestMsgUpdateClientEvents() {
 
 	suite.chainB.Coordinator.CommitBlock(suite.chainB)
 
-	header, err := suite.chainA.ConstructUpdateTMClientHeader(suite.chainB, ibctesting.FirstClientID)
+	trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+	header, err := suite.chainB.IBCClientHeader(suite.chainB.LatestCommittedHeader, trustedHeight)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(header)
 

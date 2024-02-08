@@ -174,10 +174,15 @@ func (k Keeper) TimeoutExecuted(
 
 	if channel.Ordering == types.ORDERED {
 		// NOTE: if the channel is ORDERED and a packet is timed out in FLUSHING state then
-		// the upgrade is aborted and the channel is set to CLOSED.
+		// all upgrade information is deleted and the channel is set to CLOSED.
 		if channel.State == types.FLUSHING {
-			// an error receipt is written to state and the channel is restored to OPEN
-			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), errorsmod.Wrap(types.ErrTimeoutElapsed, "packet timeout elapsed on ORDERED channel"))
+			k.deleteUpgradeInfo(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+			k.Logger(ctx).Info(
+				"upgrade info deleted",
+				"port_id", packet.GetSourcePort(),
+				"channel_id", packet.GetSourceChannel(),
+				"upgrade_sequence", channel.UpgradeSequence,
+			)
 		}
 
 		channel.State = types.CLOSED
