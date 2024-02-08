@@ -139,7 +139,8 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		trustedHeight := endpoint.GetClientState().GetLatestHeight().(clienttypes.Height)
+		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -891,4 +892,13 @@ func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 	}
 
 	return upgrade
+}
+
+// UpdateConnection updates the connection associated with the given endpoint. It accepts a
+// closure which takes a connection allowing the caller to modify the connection fields.
+func (endpoint *Endpoint) UpdateConnection(updater func(connection *connectiontypes.ConnectionEnd)) {
+	connection := endpoint.GetConnection()
+	updater(&connection)
+
+	endpoint.SetConnection(connection)
 }

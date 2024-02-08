@@ -26,7 +26,6 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint, mockVM ibcwasm.WasmEngine) (*SimApp, GenesisState) {
@@ -91,7 +90,7 @@ func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM ibcwasm.WasmEngine, 
 func SetupWithSnapshotter(t *testing.T, mockVM ibcwasm.WasmEngine) *SimApp {
 	t.Helper()
 
-	privVal := mock.NewPV()
+	privVal := cmttypes.NewMockPV()
 	pubKey, err := privVal.GetPubKey()
 	require.NoError(t, err)
 

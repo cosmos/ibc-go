@@ -30,9 +30,7 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 	}{
 		{"verification success", func() {}, true},
 		{"client state not found", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state for proof height not found", func() {
 			heightDiff = 5
@@ -57,7 +55,7 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 			heightDiff = 0    // must be explicitly changed
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			tc.malleate()
 
@@ -95,9 +93,7 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 	}{
 		{"verification success", func() {}, true},
 		{"client state not found", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found", func() {
 			heightDiff = 5
@@ -131,7 +127,7 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			suite.SetupTest() // reset
 			heightDiff = 0    // must be explicitly changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			tc.malleate()
 
@@ -169,17 +165,13 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 	}{
 		{"verification success", func() {}, true},
 		{"client state not found - changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
 		}, false},
 		{"verification failed - connection state is different than proof", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.State = types.TRYOPEN
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.State = types.TRYOPEN })
 		}, false},
 		{"client status is not active - client is expired", func() {
 			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -195,7 +187,7 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			connectionKey := host.ConnectionKey(path.EndpointB.ConnectionID)
 			proof, proofHeight := suite.chainB.QueryProof(connectionKey)
@@ -234,9 +226,7 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 	}{
 		{"verification success", func() {}, true},
 		{"client state not found- changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -260,7 +250,7 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proof, proofHeight := suite.chainB.QueryProof(channelKey)
@@ -314,9 +304,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			timePerBlock = 1
 		}, false},
 		{"client state not found- changed client ID", func() {
-			connection := path.EndpointB.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointB.SetConnection(connection)
+			path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -338,7 +326,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -406,9 +394,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			timePerBlock = 1
 		}, false},
 		{"client state not found- changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -431,7 +417,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			ack = ibcmock.MockAcknowledgement // must be explicitly changed
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// send and receive packet
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
@@ -507,9 +493,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			timePerBlock = 1
 		}, false},
 		{"client state not found - changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -536,7 +520,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// send, only receive in malleate if applicable
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
@@ -613,9 +597,7 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			timePerBlock = 1
 		}, false},
 		{"client state not found- changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -637,7 +619,7 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// send and receive packet
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
@@ -709,9 +691,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 		{
 			name: "fails with bad client id",
 			malleate: func() {
-				connection := path.EndpointB.GetConnection()
-				connection.ClientId = ibctesting.InvalidID
-				path.EndpointB.SetConnection(connection)
+				path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 			},
 			expPass: false,
 		},
@@ -740,7 +720,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			upgradeError = channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel)
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
@@ -792,9 +772,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 		{
 			name: "fails with bad client id",
 			malleate: func() {
-				connection := path.EndpointB.GetConnection()
-				connection.ClientId = ibctesting.InvalidID
-				path.EndpointB.SetConnection(connection)
+				path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 			},
 			expPass: false,
 		},
@@ -814,7 +792,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			upgrade = channeltypes.NewUpgrade(
 				channeltypes.NewUpgradeFields(channeltypes.UNORDERED, []string{path.EndpointA.ConnectionID}, "v1.0.0"),

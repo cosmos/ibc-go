@@ -37,7 +37,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 }
 
 // TestAnteTestSuite runs all the tests within this package.
@@ -160,7 +160,8 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, _ = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		trustedHeight := endpoint.GetClientState().GetLatestHeight().(clienttypes.Height)
+		header, _ = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 
 	default:
 	}

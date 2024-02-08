@@ -2,9 +2,9 @@ package ibctesting
 
 import (
 	"fmt"
-	"strconv"
-
 	testifysuite "github.com/stretchr/testify/suite"
+	"slices"
+	"strconv"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
@@ -244,20 +244,14 @@ func shouldProcessEvent(expectedEvent abci.Event, actualEvent abci.Event) bool {
 // containsAttribute returns true if the given key/value pair is contained in the given attributes.
 // NOTE: this ignores the indexed field, which can be set or unset depending on how the events are retrieved.
 func containsAttribute(attrs []abci.EventAttribute, key, value string) bool {
-	for _, attr := range attrs {
-		if attr.Key == key && attr.Value == value {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
+		return attr.Key == key && attr.Value == value
+	})
 }
 
 // containsAttributeKey returns true if the given key is contained in the given attributes.
 func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
-	for _, attr := range attrs {
-		if attr.Key == key {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
+		return attr.Key == key
+	})
 }

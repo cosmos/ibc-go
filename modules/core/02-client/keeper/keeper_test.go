@@ -28,7 +28,6 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
@@ -86,7 +85,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.cdc = app.AppCodec()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx)
 	suite.keeper = &app.IBCKeeper.ClientKeeper
-	suite.privVal = ibctestingmock.NewPV()
+	suite.privVal = cmttypes.NewMockPV()
 	pubKey, err := suite.privVal.GetPubKey()
 	suite.Require().NoError(err)
 
@@ -101,7 +100,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	var validators stakingtypes.Validators
 	for i := 1; i < 11; i++ {
-		privVal := ibctestingmock.NewPV()
+		privVal := cmttypes.NewMockPV()
 		tmPk, err := privVal.GetPubKey()
 		suite.Require().NoError(err)
 		pk, err := cryptocodec.FromCmtPubKeyInterface(tmPk)
@@ -312,7 +311,7 @@ func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is
 // and a consensus state at the update height.
 func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	clientState := path.EndpointA.GetClientState()
 	expConsensusHeight0 := clientState.GetLatestHeight()
@@ -336,7 +335,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 
 	// create second client on chainA
 	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path2)
+	path2.SetupClients()
 	clientState = path2.EndpointA.GetClientState()
 
 	expConsensusHeight2 := clientState.GetLatestHeight()
@@ -378,7 +377,7 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 
 	// create tendermint clients
 	for i, path := range paths {
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 		expTMClientIDs[i] = path.EndpointA.ClientID
 	}
 
@@ -531,7 +530,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			oldPlan.Height = 0 // reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 			upgradedClientState = suite.chainA.GetClientState(path.EndpointA.ClientID).ZeroCustomFields().(*ibctm.ClientState)
 
 			// use height 1000 to distinguish from old plan

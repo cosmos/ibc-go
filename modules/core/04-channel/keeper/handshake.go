@@ -35,7 +35,7 @@ func (k Keeper) ChanOpenInit(
 		return "", nil, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
-	getVersions := connectionEnd.GetVersions()
+	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
 		return "", nil, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
@@ -131,14 +131,11 @@ func (k Keeper) ChanOpenTry(
 		return "", nil, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return "", nil, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return "", nil, errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	getVersions := connectionEnd.GetVersions()
+	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
 		return "", nil, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
@@ -155,7 +152,7 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	// expectedCounterpaty is the counterparty of the counterparty's channel end
 	// (i.e self)
@@ -242,14 +239,11 @@ func (k Keeper) ChanOpenAck(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	// counterparty of the counterparty channel end (i.e self)
 	expectedCounterparty := types.NewCounterparty(portID, channelID)
@@ -321,14 +315,11 @@ func (k Keeper) ChanOpenConfirm(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	counterparty := types.NewCounterparty(portID, channelID)
 	expectedChannel := types.NewChannel(
@@ -405,11 +396,8 @@ func (k Keeper) ChanCloseInit(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", types.CLOSED.String())
@@ -453,14 +441,11 @@ func (k Keeper) ChanCloseConfirm(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	counterparty := types.NewCounterparty(portID, channelID)
 	expectedChannel := types.Channel{
@@ -478,6 +463,17 @@ func (k Keeper) ChanCloseConfirm(
 		expectedChannel,
 	); err != nil {
 		return err
+	}
+
+	// If the channel is closing during an upgrade, then we can delete all upgrade information.
+	if k.hasUpgrade(ctx, portID, channelID) {
+		k.deleteUpgradeInfo(ctx, portID, channelID)
+		k.Logger(ctx).Info(
+			"upgrade info deleted",
+			"port_id", portID,
+			"channel_id", channelID,
+			"upgrade_sequence", channel.UpgradeSequence,
+		)
 	}
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", types.CLOSED.String())
