@@ -497,7 +497,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			expectedAttributes := []sdk.Attribute{
 				sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 				sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-				sdk.NewAttribute(icatypes.AttributeKeySuccess, fmt.Sprintf("%t", ack.Success())),
+				sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 			}
 
 			if tc.expAckSuccess {
@@ -517,7 +517,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			} else {
 				suite.Require().False(ack.Success())
 
-				expectedAttributes = append(expectedAttributes, sdk.NewAttribute(icatypes.AttributeKeyError, tc.eventErrorMsg))
+				expectedAttributes = append(expectedAttributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, tc.eventErrorMsg))
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
 						icatypes.EventTypePacket,

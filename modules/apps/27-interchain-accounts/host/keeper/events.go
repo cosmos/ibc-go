@@ -17,11 +17,11 @@ func EmitAcknowledgementEvent(ctx sdk.Context, packet channeltypes.Packet, ack e
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 		sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-		sdk.NewAttribute(icatypes.AttributeKeySuccess, fmt.Sprintf("%t", ack.Success())),
+		sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}
 
 	if err != nil {
-		attributes = append(attributes, sdk.NewAttribute(icatypes.AttributeKeyError, err.Error()))
+		attributes = append(attributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, err.Error()))
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -39,8 +39,8 @@ func EmitHostDisabledEvent(ctx sdk.Context, packet channeltypes.Packet) {
 			icatypes.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 			sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-			sdk.NewAttribute(icatypes.AttributeKeyError, types.ErrHostSubModuleDisabled.Error()),
-			sdk.NewAttribute(icatypes.AttributeKeySuccess, "false"),
+			sdk.NewAttribute(icatypes.AttributeKeyAckError, types.ErrHostSubModuleDisabled.Error()),
+			sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, "false"),
 		),
 	)
 }

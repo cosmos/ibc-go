@@ -4,8 +4,8 @@ package types
 const (
 	EventTypePacket = "ics27_packet"
 
-	AttributeKeyError               = "error"
+	AttributeKeyAckError            = "error"
 	AttributeKeyHostChannelID       = "host_channel_id"
 	AttributeKeyControllerChannelID = "controller_channel_id"
-	AttributeKeySuccess             = "success"
+	AttributeKeyAckSuccess          = "success"
 )
