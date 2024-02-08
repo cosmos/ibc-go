@@ -819,13 +819,12 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 
 			// Incase the error is a wrapped upgrade error, we need to extract the inner error else process as normal
 			var upgradeErr *channeltypes.UpgradeError
-			if !errors.As(err, &upgradeErr) {
-				upgradeErr = err.(*channeltypes.UpgradeError)
+			if errors.As(err, &upgradeErr) {
+				k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeErr)
+				// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
+				// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
+				return &channeltypes.MsgChannelUpgradeTryResponse{Result: channeltypes.FAILURE}, nil
 			}
-			k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeErr)
-			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
-			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
-			return &channeltypes.MsgChannelUpgradeTryResponse{Result: channeltypes.FAILURE}, nil
 		}
 
 		// NOTE: an error is returned to baseapp and transaction state is not committed.
