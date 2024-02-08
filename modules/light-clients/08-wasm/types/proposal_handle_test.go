@@ -95,7 +95,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			suite.Require().NoError(err)
 
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpointA.ClientID)
-			subjectClientState := endpointA.GetClientState()
+			subjectClientState := endpointA.GetClientState().(*types.ClientState)
 
 			substituteEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err = substituteEndpoint.CreateClient()
