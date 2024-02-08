@@ -103,25 +103,27 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			suite.SetupWasmWithMockVM()
 			expectedClientStateBz = nil
 
-			subjectEndpoint = wasmtesting.NewWasmEndpoint(suite.chainA)
+			subjectEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := subjectEndpoint.CreateClient()
 			suite.Require().NoError(err)
+			subjectClientID = subjectEndpoint.ClientID
 
 			subjectClientState = subjectEndpoint.GetClientState()
-			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectEndpoint.ClientID)
+			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectClientID)
 
-			substituteEndpoint = wasmtesting.NewWasmEndpoint(suite.chainA)
+			substituteEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err = substituteEndpoint.CreateClient()
 			suite.Require().NoError(err)
+			substituteClientID = substituteEndpoint.ClientID
 
 			substituteClientState = substituteEndpoint.GetClientState()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectEndpoint.ClientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
 			suite.Require().True(found)
 
 			tc.malleate()
 
-			err = lightClientModule.RecoverClient(suite.chainA.GetContext(), subjectEndpoint.ClientID, substituteEndpoint.ClientID)
+			err = lightClientModule.RecoverClient(suite.chainA.GetContext(), subjectClientID, substituteClientID)
 
 			expPass := tc.expErr == nil
 			if expPass {

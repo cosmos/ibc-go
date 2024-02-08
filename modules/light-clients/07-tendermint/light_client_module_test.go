@@ -99,6 +99,7 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
 
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			subjectPath.SetupClients()
@@ -108,34 +109,28 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			substitutePath.SetupClients()
 			substituteClientID = substitutePath.EndpointA.ClientID
-
-			// // update substitute twice
-			// err := substitutePath.EndpointA.UpdateClient()
-			// suite.Require().NoError(err)
-			// err = substitutePath.EndpointA.UpdateClient()
-			// suite.Require().NoError(err)
 			substituteClientState = suite.chainA.GetClientState(substituteClientID)
 
 			tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 			suite.Require().True(ok)
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID, tmClientState)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectPath.EndpointA.ClientID, tmClientState)
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
 			suite.Require().True(found)
 
 			tc.malleate()
 
-			err := lightClientModule.RecoverClient(suite.chainA.GetContext(), subjectClientID, substituteClientID)
+			err := lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
 
 			expPass := tc.expErr == nil
 			if expPass {
 				suite.Require().NoError(err)
 
 				// assert that status of subject client is now Active
-				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectClientID)
+				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, subjectClientID)
 				tmClientState := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
-				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
+				suite.Require().Equal(exported.Active, tmClientState.Status(ctx, clientStore, suite.chainA.App.AppCodec()))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
