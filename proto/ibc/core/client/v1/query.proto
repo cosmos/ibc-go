@@ -63,8 +63,8 @@ service Query {
     option (google.api.http).get = "/ibc/core/client/v1/upgraded_consensus_states";
   }
 
-  // VerifyMembershipProof queries an IBC light client for proof verification of a value at a given key path.
-  rpc VerifyMembershipProof(QueryVerifyMembershipProofRequest) returns (QueryVerifyMembershipProofResponse) {
+  // VerifyMembership queries an IBC light client for proof verification of a value at a given key path.
+  rpc VerifyMembership(QueryVerifyMembershipRequest) returns (QueryVerifyMembershipResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http)                   = {
       post: "/ibc/core/client/v1/verify_membership_proof"
@@ -217,8 +217,8 @@ message QueryUpgradedConsensusStateResponse {
   google.protobuf.Any upgraded_consensus_state = 1;
 }
 
-// QueryVerifyMembershipProofRequest is the request type for the Query/VerifyMembershipProof RPC method
-message QueryVerifyMembershipProofRequest {
+// QueryVerifyMembershipRequest is the request type for the Query/VerifyMembership RPC method
+message QueryVerifyMembershipRequest {
   // client unique identifier.
   string client_id = 1;
   // the proof to be verified by the client.
@@ -235,8 +235,8 @@ message QueryVerifyMembershipProofRequest {
   uint64 block_delay = 7;
 }
 
-// QueryVerifyMembershipProofResponse is the response type for the Query/VerifyMembershipProof RPC method
-message QueryVerifyMembershipProofResponse {
-  // result indicating success or failure of proof verification.
-  bool result = 1;
+// QueryVerifyMembershipResponse is the response type for the Query/VerifyMembership RPC method
+message QueryVerifyMembershipResponse {
+  // boolean indicating success or failure of proof verification.
+  bool success = 1;
 }

@@ -6899,21 +6899,21 @@ paths:
   /ibc/core/client/v1/verify_membership_proof:
     post:
       summary: >-
-        VerifyMembershipProof queries an IBC light client for proof verification
-        of a value at a given key path.
-      operationId: VerifyMembershipProof
+        VerifyMembership queries an IBC light client for proof verification of a
+        value at a given key path.
+      operationId: VerifyMembership
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              result:
+              success:
                 type: boolean
-                description: result indicating success or failure of proof verification.
+                description: boolean indicating success or failure of proof verification.
             title: >-
-              QueryVerifyMembershipProofResponse is the response type for the
-              Query/VerifyMembershipProof RPC method
+              QueryVerifyMembershipResponse is the response type for the
+              Query/VerifyMembership RPC method
         default:
           description: An unexpected error response.
           schema:
@@ -7185,8 +7185,8 @@ paths:
                 format: uint64
                 title: optional block delay
             title: >-
-              QueryVerifyMembershipProofRequest is the request type for the
-              Query/VerifyMembershipProof RPC method
+              QueryVerifyMembershipRequest is the request type for the
+              Query/VerifyMembership RPC method
       tags:
         - Query
   /ibc/core/connection/v1/client_connections/{client_id}:
@@ -18212,7 +18212,7 @@ definitions:
     description: |-
       QueryUpgradedConsensusStateResponse is the response type for the
       Query/UpgradedConsensusState RPC method.
-  ibc.core.client.v1.QueryVerifyMembershipProofRequest:
+  ibc.core.client.v1.QueryVerifyMembershipRequest:
     type: object
     properties:
       client_id:
@@ -18284,17 +18284,17 @@ definitions:
         format: uint64
         title: optional block delay
     title: >-
-      QueryVerifyMembershipProofRequest is the request type for the
-      Query/VerifyMembershipProof RPC method
-  ibc.core.client.v1.QueryVerifyMembershipProofResponse:
+      QueryVerifyMembershipRequest is the request type for the
+      Query/VerifyMembership RPC method
+  ibc.core.client.v1.QueryVerifyMembershipResponse:
     type: object
     properties:
-      result:
+      success:
         type: boolean
-        description: result indicating success or failure of proof verification.
+        description: boolean indicating success or failure of proof verification.
     title: >-
-      QueryVerifyMembershipProofResponse is the response type for the
-      Query/VerifyMembershipProof RPC method
+      QueryVerifyMembershipResponse is the response type for the
+      Query/VerifyMembership RPC method
   ibc.core.commitment.v1.MerklePath:
     type: object
     properties:

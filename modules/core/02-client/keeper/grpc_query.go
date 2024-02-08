@@ -329,8 +329,8 @@ func (k Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 	}, nil
 }
 
-// VerifyMembershipProof implements the Query/VerifyMembershipProof gRPC method
-func (k Keeper) VerifyMembershipProof(c context.Context, req *types.QueryVerifyMembershipProofRequest) (*types.QueryVerifyMembershipProofResponse, error) {
+// VerifyMembership implements the Query/VerifyMembership gRPC method
+func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMembershipRequest) (*types.QueryVerifyMembershipResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -370,12 +370,12 @@ func (k Keeper) VerifyMembershipProof(c context.Context, req *types.QueryVerifyM
 	}
 
 	if err := clientState.VerifyMembership(ctx, k.ClientStore(cachedCtx, req.ClientId), k.cdc, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
-		return &types.QueryVerifyMembershipProofResponse{
-			Result: false,
+		return &types.QueryVerifyMembershipResponse{
+			Success: false,
 		}, nil
 	}
 
-	return &types.QueryVerifyMembershipProofResponse{
-		Result: true,
+	return &types.QueryVerifyMembershipResponse{
+		Success: true,
 	}, nil
 }

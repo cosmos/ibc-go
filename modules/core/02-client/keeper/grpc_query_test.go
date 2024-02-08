@@ -778,7 +778,7 @@ func (suite *KeeperTestSuite) TestQueryClientParams() {
 func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 	var (
 		path *ibctesting.Path
-		req  *types.QueryVerifyMembershipProofRequest
+		req  *types.QueryVerifyMembershipRequest
 	)
 
 	testCases := []struct {
@@ -799,7 +799,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
-				req = &types.QueryVerifyMembershipProofRequest{
+				req = &types.QueryVerifyMembershipRequest{
 					ClientId:    path.EndpointA.ClientID,
 					Proof:       channelProof,
 					ProofHeight: proofHeight,
@@ -819,7 +819,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 		{
 			"invalid client ID",
 			func() {
-				req = &types.QueryVerifyMembershipProofRequest{
+				req = &types.QueryVerifyMembershipRequest{
 					ClientId: "//invalid_id",
 				}
 			},
@@ -828,7 +828,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 		{
 			"empty proof",
 			func() {
-				req = &types.QueryVerifyMembershipProofRequest{
+				req = &types.QueryVerifyMembershipRequest{
 					ClientId: ibctesting.FirstClientID,
 					Proof:    []byte{},
 				}
@@ -838,7 +838,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 		{
 			"invalid proof height",
 			func() {
-				req = &types.QueryVerifyMembershipProofRequest{
+				req = &types.QueryVerifyMembershipRequest{
 					ClientId:    ibctesting.FirstClientID,
 					Proof:       []byte{0x01},
 					ProofHeight: types.ZeroHeight(),
@@ -849,7 +849,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 		{
 			"empty merkle path",
 			func() {
-				req = &types.QueryVerifyMembershipProofRequest{
+				req = &types.QueryVerifyMembershipRequest{
 					ClientId:    ibctesting.FirstClientID,
 					Proof:       []byte{0x01},
 					ProofHeight: types.NewHeight(1, 100),
@@ -860,7 +860,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 		{
 			"empty value",
 			func() {
-				req = &types.QueryVerifyMembershipProofRequest{
+				req = &types.QueryVerifyMembershipRequest{
 					ClientId:    ibctesting.FirstClientID,
 					Proof:       []byte{0x01},
 					ProofHeight: types.NewHeight(1, 100),
@@ -872,7 +872,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 		{
 			"client not found",
 			func() {
-				req = &types.QueryVerifyMembershipProofRequest{
+				req = &types.QueryVerifyMembershipRequest{
 					ClientId:    types.FormatClientIdentifier(exported.Tendermint, 100), // use a sequence which hasn't been created yet
 					Proof:       []byte{0x01},
 					ProofHeight: types.NewHeight(1, 100),
@@ -895,18 +895,21 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
-			prevGas := ctx.GasMeter().GasConsumed()
-			res, err := suite.chainA.QueryServer.VerifyMembershipProof(ctx, req)
+			initialGas := ctx.GasMeter().GasConsumed()
+			res, err := suite.chainA.QueryServer.VerifyMembership(ctx, req)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().True(res.GetResult(), "failed to verify membership proof")
+				suite.Require().True(res.Success, "failed to verify membership proof")
 
 				gasConsumed := ctx.GasMeter().GasConsumed()
-				suite.Require().NotEqual(prevGas, gasConsumed)
+				suite.Require().Greater(gasConsumed, initialGas, "gas consumed should be greater than initial gas")
 			} else {
 				suite.Require().ErrorContains(err, tc.expError.Error())
+
+				gasConsumed := ctx.GasMeter().GasConsumed()
+				suite.Require().GreaterOrEqual(gasConsumed, initialGas, "gas consumed should be greater than or equal to initial gas")
 			}
 		})
 	}
