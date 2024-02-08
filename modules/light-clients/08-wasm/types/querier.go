@@ -129,7 +129,7 @@ func NewDefaultQueryPlugins() *QueryPlugins {
 // This function returns protobuf encoded responses in bytes.
 func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	defaultAcceptList := []string{
-		"/ibc.core.client.v1.Query/VerifyMembershipProof",
+		"/ibc.core.client.v1.Query/VerifyMembership",
 	}
 
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
