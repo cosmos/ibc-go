@@ -17,7 +17,7 @@ const (
 func (suite *WasmTestSuite) TestRecoverClient() {
 	var (
 		expectedClientStateBz                     []byte
-		subjectEndpoint, substituteEndpoint       *wasmtesting.WasmEndpoint
+		subjectClientID, substituteClientID       string
 		subjectClientState, substituteClientState exported.ClientState
 	)
 
@@ -36,42 +36,42 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 		{
 			"cannot parse malformed subject client ID",
 			func() {
-				subjectEndpoint.ClientID = malformedClientID
+				subjectClientID = malformedClientID
 			},
 			host.ErrInvalidID,
 		},
 		{
 			"subject client ID does not contain 08-wasm prefix",
 			func() {
-				subjectEndpoint.ClientID = tmClientID
+				subjectClientID = tmClientID
 			},
 			clienttypes.ErrInvalidClientType,
 		},
 		{
 			"cannot parse malformed substitute client ID",
 			func() {
-				substituteEndpoint.ClientID = malformedClientID
+				substituteClientID = malformedClientID
 			},
 			host.ErrInvalidID,
 		},
 		{
 			"substitute client ID does not contain 08-wasm prefix",
 			func() {
-				substituteEndpoint.ClientID = tmClientID
+				substituteClientID = tmClientID
 			},
 			clienttypes.ErrInvalidClientType,
 		},
 		{
 			"cannot find subject client state",
 			func() {
-				subjectEndpoint.ClientID = wasmClientID
+				subjectClientID = wasmClientID
 			},
 			clienttypes.ErrClientNotFound,
 		},
 		{
 			"cannot find substitute client state",
 			func() {
-				substituteEndpoint.ClientID = wasmClientID
+				substituteClientID = wasmClientID
 			},
 			clienttypes.ErrClientNotFound,
 		},
@@ -81,7 +81,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 				wasmClientState, ok := subjectClientState.(*wasmtypes.ClientState)
 				suite.Require().True(ok)
 				wasmClientState.LatestHeight = substituteClientState.GetLatestHeight().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectEndpoint.ClientID, wasmClientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, wasmClientState)
 			},
 			clienttypes.ErrInvalidHeight,
 		},
@@ -91,7 +91,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 				wasmClientState, ok := subjectClientState.(*wasmtypes.ClientState)
 				suite.Require().True(ok)
 				wasmClientState.LatestHeight = substituteClientState.GetLatestHeight().Increment().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectEndpoint.ClientID, wasmClientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, wasmClientState)
 			},
 			clienttypes.ErrInvalidHeight,
 		},

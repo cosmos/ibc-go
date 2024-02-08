@@ -187,10 +187,9 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", subjectClientID)
 	}
 
-	// TODO: change after https://github.com/cosmos/ibc-go/pull/5817 is merged
-	lightClientModule, found := k.router.GetRoute(clientType)
+	lightClientModule, found := k.router.GetRoute(subjectClientID)
 	if !found {
-		return errorsmod.Wrap(types.ErrRouteNotFound, clientType)
+		return errorsmod.Wrap(types.ErrRouteNotFound, subjectClientID)
 	}
 
 	if err := lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID); err != nil {
