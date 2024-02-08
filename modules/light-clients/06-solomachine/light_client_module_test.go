@@ -107,7 +107,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 
 			substituteClientID = suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(ctx, exported.Solomachine)
 			substitute := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, substituteClientID, "testing", 1)
-			substitute.Sequence += 1 // increase sequence so that latest height of substitute is > than subject's latest height
+			substitute.Sequence++ // increase sequence so that latest height of substitute is > than subject's latest height
 			substituteClientState = substitute.ClientState()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, substituteClientID)
