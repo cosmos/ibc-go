@@ -573,8 +573,8 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 					icatypes.EventTypePacket,
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 					sdk.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
-					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", false)),
-					sdk.NewAttribute(icatypes.AttributeKeyAckError, "cannot receive packet on controller chain: invalid message sent to channel end"),
+					sdk.NewAttribute(icatypes.AttributeKeySuccess, fmt.Sprintf("%t", false)),
+					sdk.NewAttribute(icatypes.AttributeKeyError, "cannot receive packet on controller chain: invalid message sent to channel end"),
 				),
 			}.ToABCIEvents()
 

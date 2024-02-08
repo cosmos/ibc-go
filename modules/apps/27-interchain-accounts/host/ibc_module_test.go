@@ -409,7 +409,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			"host submodule disabled", func() {
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
 			}, false,
-			"", // events are not emitted when the host submodule is disabled.
+			types.ErrHostSubModuleDisabled.Error(),
 		},
 		{
 			"success with ICA auth module callback failure", func() {
@@ -497,7 +497,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			expectedAttributes := []sdk.Attribute{
 				sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 				sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-				sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+				sdk.NewAttribute(icatypes.AttributeKeySuccess, fmt.Sprintf("%t", ack.Success())),
 			}
 
 			if tc.expAckSuccess {
@@ -517,19 +517,16 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			} else {
 				suite.Require().False(ack.Success())
 
-				expEventsEmitted := tc.eventErrorMsg != ""
-				if expEventsEmitted {
-					expectedAttributes = append(expectedAttributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, tc.eventErrorMsg))
-					expectedEvents := sdk.Events{
-						sdk.NewEvent(
-							icatypes.EventTypePacket,
-							expectedAttributes...,
-						),
-					}.ToABCIEvents()
+				expectedAttributes = append(expectedAttributes, sdk.NewAttribute(icatypes.AttributeKeyError, tc.eventErrorMsg))
+				expectedEvents := sdk.Events{
+					sdk.NewEvent(
+						icatypes.EventTypePacket,
+						expectedAttributes...,
+					),
+				}.ToABCIEvents()
 
-					expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
-					ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
-				}
+				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 			}
 		})
 	}
