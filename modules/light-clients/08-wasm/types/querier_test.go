@@ -14,6 +14,8 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -118,6 +120,8 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 func (suite *TypesTestSuite) TestStargateQuery() {
 	typeURL := "/ibc.lightclients.wasm.v1.Query/Checksums"
 
+	var endpoint *wasmtesting.WasmEndpoint
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -158,6 +162,81 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			},
 		},
 		{
+			"success: verify membership query",
+			func() {
+				querierPlugin := types.QueryPlugins{
+					Stargate: types.AcceptListStargateQuerier([]string{""}),
+				}
+
+				ibcwasm.SetQueryPlugins(&querierPlugin)
+
+				var (
+					key   = []byte("mock-key")
+					value = []byte("mock-value")
+				)
+
+				store := suite.chainA.GetContext().KVStore(GetSimApp(suite.chainA).GetKey(exported.StoreKey))
+				store.Set(key, value)
+
+				suite.coordinator.CommitBlock(suite.chainA)
+				proof, proofHeight := endpoint.QueryProofAtHeight(key, uint64(suite.chainA.GetContext().BlockHeight()))
+
+				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainA.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					queryRequest := clienttypes.QueryVerifyMembershipRequest{
+						ClientId:    endpoint.ClientID,
+						Proof:       proof,
+						ProofHeight: proofHeight,
+						MerklePath:  merklePath,
+						Value:       value,
+					}
+
+					bz, err := queryRequest.Marshal()
+					suite.Require().NoError(err)
+
+					resp, err := querier.Query(wasmvmtypes.QueryRequest{
+						Stargate: &wasmvmtypes.StargateQuery{
+							Path: "/ibc.core.client.v1.Query/VerifyMembership",
+							Data: bz,
+						},
+					}, math.MaxUint64)
+					suite.Require().NoError(err)
+
+					var respData clienttypes.QueryVerifyMembershipResponse
+					err = respData.Unmarshal(resp)
+					suite.Require().NoError(err)
+
+					suite.Require().True(respData.Success)
+
+					return resp, wasmtesting.DefaultGasUsed, nil
+				})
+
+				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
+					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
+				) (*wasmvmtypes.Response, uint64, error) {
+					var payload types.SudoMsg
+					err := json.Unmarshal(sudoMsg, &payload)
+					suite.Require().NoError(err)
+
+					var merkleProof commitmenttypes.MerkleProof
+					err = suite.chainA.Codec.Unmarshal(payload.VerifyMembership.Proof, &merkleProof)
+					suite.Require().NoError(err)
+
+					root := commitmenttypes.NewMerkleRoot(suite.chainA.App.LastCommitID().Hash)
+					err = merkleProof.VerifyMembership(commitmenttypes.GetSDKSpecs(), root, merklePath, payload.VerifyMembership.Value)
+					suite.Require().NoError(err)
+
+					bz, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+		},
+		{
 			"failure: default querier",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
@@ -184,7 +263,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			endpoint = wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
