@@ -7,8 +7,6 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	testifysuite "github.com/stretchr/testify/suite"
-
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
