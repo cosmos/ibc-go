@@ -75,7 +75,7 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 	return clientState.VerifyClientMessage(ctx, cdc, clientStore, clientMsg)
 }
 
-func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		panic(err)
@@ -88,7 +88,7 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 	return false
 }
 
-func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
 	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		panic(err)
@@ -181,11 +181,11 @@ func (lcm LightClientModule) VerifyNonMembership(
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
-func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	return exported.Active
 }
 
-func (lcm LightClientModule) TimestampAtHeight(
+func (LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
@@ -202,11 +202,11 @@ func (lcm LightClientModule) TimestampAtHeight(
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
-func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+func (LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
 }
 
-func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
+func (LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
 	newClient []byte,

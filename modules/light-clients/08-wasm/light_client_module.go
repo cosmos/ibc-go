@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -15,30 +15,30 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface?
 type LightClientModule struct {
-	keeper        keeper.Keeper
+	keeper        wasmkeeper.Keeper
 	storeProvider exported.ClientStoreProvider
 }
 
 // NewLightClientModule creates and returns a new 08-wasm LightClientModule.
-func NewLightClientModule(keeper keeper.Keeper) LightClientModule {
+func NewLightClientModule(keeper wasmkeeper.Keeper) LightClientModule {
 	return LightClientModule{
 		keeper: keeper,
 	}
 }
 
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	l.storeProvider = storeProvider
+func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
+	lcm.storeProvider = storeProvider
 }
 
 // Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
 // client state, consensus state and any client-specific metadata necessary for correct light client operation in the provided client store.
-func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
+func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	if err := validateClientID(clientID); err != nil {
 		return err
 	}
 
 	var clientState types.ClientState
-	if err := l.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
+	if err := lcm.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
 		return err
 	}
 
@@ -47,7 +47,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 	}
 
 	var consensusState types.ConsensusState
-	if err := l.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
+	if err := lcm.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
 		return err
 	}
 
@@ -55,8 +55,8 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 		return err
 	}
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	cdc := lcm.keeper.Codec()
 
 	return clientState.Initialize(ctx, cdc, clientStore, &consensusState)
 }
@@ -65,31 +65,31 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 // It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
-func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	if err := validateClientID(clientID); err != nil {
 		return err
 	}
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	cdc := lcm.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyClientMessage(ctx, l.keeper.Codec(), clientStore, clientMsg)
+	return clientState.VerifyClientMessage(ctx, lcm.keeper.Codec(), clientStore, clientMsg)
 }
 
 // Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
 // has already been verified.
-func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
 	if err := validateClientID(clientID); err != nil {
 		panic(err)
 	}
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	cdc := lcm.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -100,13 +100,13 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 }
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
-func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
 	if err := validateClientID(clientID); err != nil {
 		panic(err)
 	}
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	cdc := lcm.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -118,13 +118,13 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
-func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	if err := validateClientID(clientID); err != nil {
 		panic(err)
 	}
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	cdc := lcm.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -136,7 +136,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-func (l LightClientModule) VerifyMembership(
+func (lcm LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height, // TODO: change to concrete type
@@ -150,8 +150,8 @@ func (l LightClientModule) VerifyMembership(
 		return err
 	}
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	cdc := lcm.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -163,7 +163,7 @@ func (l LightClientModule) VerifyMembership(
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-func (l LightClientModule) VerifyNonMembership(
+func (lcm LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height, // TODO: change to concrete type
@@ -176,8 +176,8 @@ func (l LightClientModule) VerifyNonMembership(
 		return err
 	}
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	cdc := lcm.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -188,13 +188,13 @@ func (l LightClientModule) VerifyNonMembership(
 }
 
 // Status must return the status of the client. Only Active clients are allowed to process packets.
-func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	if err := validateClientID(clientID); err != nil {
 		return exported.Unknown // TODO: or panic
 	}
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	cdc := lcm.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -205,13 +205,13 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 }
 
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
-func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
+func (lcm LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
 	if err := validateClientID(clientID); err != nil {
 		return 0, err
 	}
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	cdc := lcm.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -274,7 +274,6 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	}
 
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
-
 }
 
 // // Upgrade functions
@@ -285,6 +284,6 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 // // may be cancelled or modified before the last planned height.
 // // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
 // // DEPRECATED: will be removed as performs internal functionality
-func (l LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient []byte, newConsState []byte, upgradeClientProof, upgradeConsensusStateProof []byte) error {
+func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient []byte, newConsState []byte, upgradeClientProof, upgradeConsensusStateProof []byte) error {
 	return nil
 }
