@@ -7,7 +7,6 @@ import (
 
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -263,8 +262,8 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 		return err
 	}
 
-	if clientType != wasmtypes.Wasm {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", wasmtypes.Wasm, clientType)
+	if clientType != types.Wasm {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", types.Wasm, clientType)
 	}
 
 	var (
@@ -276,9 +275,9 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	if err := cdc.UnmarshalInterface(newClient, &newClientState); err != nil {
 		return err
 	}
-	newWasmClientState, ok := newClientState.(*wasmtypes.ClientState)
+	newWasmClientState, ok := newClientState.(*types.ClientState)
 	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected client state type %T, got %T", (*wasmtypes.ClientState)(nil), newClientState)
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected client state type %T, got %T", (*types.ClientState)(nil), newClientState)
 	}
 	if err := newClientState.Validate(); err != nil {
 		return err
@@ -287,16 +286,16 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	if err := cdc.UnmarshalInterface(newConsState, &newConsensusState); err != nil {
 		return err
 	}
-	newWasmConsensusState, ok := newConsensusState.(*wasmtypes.ConsensusState)
+	newWasmConsensusState, ok := newConsensusState.(*types.ConsensusState)
 	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "expected consensus state type %T, got %T", (*wasmtypes.ConsensusState)(nil), newConsensusState)
+		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "expected consensus state type %T, got %T", (*types.ConsensusState)(nil), newConsensusState)
 	}
 	if err := newConsensusState.ValidateBasic(); err != nil {
 		return err
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	clientState, found := wasmtypes.GetClientState(clientStore, cdc)
+	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}

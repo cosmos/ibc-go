@@ -6,9 +6,9 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -26,7 +26,7 @@ const (
 func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 	var (
 		clientID                                              string
-		clientState                                           *wasmtypes.ClientState
+		clientState                                           *types.ClientState
 		upgradedClientState                                   exported.ClientState
 		upgradedConsensusState                                exported.ConsensusState
 		upgradedClientStateBz, upgradedConsensusStateBz       []byte
@@ -139,7 +139,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			clientState = endpoint.GetClientState().(*wasmtypes.ClientState)
+			clientState = endpoint.GetClientState().(*types.ClientState)
 			latestHeight := clientState.GetLatestHeight()
 
 			newLatestHeight := clienttypes.NewHeight(latestHeight.GetRevisionNumber(), latestHeight.GetRevisionHeight()+1)

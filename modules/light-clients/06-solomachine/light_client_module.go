@@ -223,7 +223,7 @@ func (LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClie
 }
 
 // VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
-func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
+func (LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
 	newClient []byte,
