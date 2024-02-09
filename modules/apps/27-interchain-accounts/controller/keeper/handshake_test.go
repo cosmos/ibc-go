@@ -65,11 +65,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
-				suite.Require().NoError(err)
-
-				err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
-				suite.Require().NoError(err)
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 
 				path.EndpointA.ChannelID = ""
 				path.EndpointB.ChannelID = ""
@@ -575,9 +572,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
-				ch := path.EndpointA.GetChannel()
-				ch.Version = invalidVersion
-				path.EndpointA.SetChannel(ch)
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
 			expError: icatypes.ErrUnknownDataType,
 		},
@@ -736,9 +731,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.Version = invalidVersion
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
 			expError: icatypes.ErrUnknownDataType,
 		},
