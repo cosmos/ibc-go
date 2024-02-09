@@ -33,5 +33,5 @@ func (s storeProvider) ClientStore(ctx sdk.Context, clientID string) storetypes.
 
 // ModuleStore returns the 02-client module store
 func (s storeProvider) ModuleStore(ctx sdk.Context, clientType string) storetypes.KVStore {
-	return prefix.NewStore(ctx.KVStore(s.storeKey), host.KeyClientStorePrefix)
+	return prefix.NewStore(ctx.KVStore(s.storeKey), host.PrefixedClientStoreKey([]byte(clientType)))
 }
