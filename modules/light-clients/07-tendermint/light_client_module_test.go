@@ -82,14 +82,14 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			clienttypes.ErrClientNotFound,
 		},
 		{
-			"upgraded client state is not for 07-tendermint",
+			"upgraded client state is not for tendermint client state",
 			func() {
 				upgradedClientStateBz = []byte{}
 			},
 			clienttypes.ErrInvalidClient,
 		},
 		{
-			"upgraded consensus state is not for 07-tendermint",
+			"upgraded consensus state is not tendermint consensus state",
 			func() {
 				upgradedConsensusStateBz = []byte{}
 			},
@@ -150,8 +150,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			upgradedClientState = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
 			upgradedClientStateBz = clienttypes.MustMarshalClientState(cdc, upgradedClientState)
 
-			nextValsHash := sha256.Sum256([]byte("nextValsHash"))
-			upgradedConsensusState := ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("merkle-root")), nextValsHash[:])
+			nextValsHash := sha256.Sum256([]byte("new-nextValsHash"))
+			upgradedConsensusState := ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("new-hash")), nextValsHash[:])
 			upgradedConsensusStateBz = clienttypes.MustMarshalConsensusState(cdc, upgradedConsensusState)
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(clientID)
