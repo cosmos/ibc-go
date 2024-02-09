@@ -222,14 +222,14 @@ func (LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClie
 	return nil
 }
 
-// // Upgrade functions
-// // NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
-// // height committed by the current revision. Clients are responsible for ensuring that the planned last
-// // height of the current revision is somehow encoded in the proof verification process.
-// // This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
-// // may be cancelled or modified before the last planned height.
-// // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
-// // Deprecated: will be removed as performs internal functionality
-func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient []byte, newConsState []byte, upgradeClientProof, upgradeConsensusStateProof []byte) error {
-	return nil
+// VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
+func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
+	ctx sdk.Context,
+	clientID string,
+	newClient []byte,
+	newConsState []byte,
+	upgradeClientProof,
+	upgradeConsensusStateProof []byte,
+) error {
+	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
 }

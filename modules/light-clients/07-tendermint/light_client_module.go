@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint/internal/keeper"
 )
@@ -278,6 +279,13 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
 }
 
+// Upgrade functions
+// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
+// height committed by the current revision. Clients are responsible for ensuring that the planned last
+// height of the current revision is somehow encoded in the proof verification process.
+// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
+// may be cancelled or modified before the last planned height.
+// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
 func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
@@ -295,17 +303,20 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	var newClientState ClientState
-	if err := lcm.keeper.Codec().Unmarshal(newClient, &newClientState); err != nil {
+	var (
+		cdc               = lcm.keeper.Codec()
+		newClientState    ClientState
+		newConsensusState ConsensusState
+	)
+
+	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
 		return err
 	}
-
 	if err := newClientState.Validate(); err != nil {
 		return err
 	}
 
-	var newConsensusState ConsensusState
-	if err := lcm.keeper.Codec().Unmarshal(newConsState, &newConsensusState); err != nil {
+	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
 		return err
 	}
 	if err := newConsensusState.ValidateBasic(); err != nil {
@@ -313,11 +324,15 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
-
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
+
+	// last height of current counterparty chain must be client's latest height
+	lastHeight := clientState.GetLatestHeight()
+	if !newClientState.GetLatestHeight().GT(lastHeight) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.GetLatestHeight(), lastHeight)
 	}
 
 	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)

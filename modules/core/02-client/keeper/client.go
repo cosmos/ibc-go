@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -122,46 +121,41 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 
 // UpgradeClient upgrades the client to a new client state if this new client was committed to
 // by the old client at the specified upgrade height
-func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
-	upgradeClientProof, upgradeConsensusStateProof []byte,
+func (k Keeper) UpgradeClient(
+	ctx sdk.Context,
+	clientID string,
+	upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof []byte,
 ) error {
-	clientState, found := k.GetClientState(ctx, clientID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
-	}
-
-	clientStore := k.ClientStore(ctx, clientID)
-
 	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
-	// last height of current counterparty chain must be client's latest height
-	lastHeight := clientState.GetLatestHeight()
-
-	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s",
-			upgradedClient.GetLatestHeight(), lastHeight)
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
+		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", clientID)
 	}
 
-	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
-		upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof,
-	); err != nil {
+	lightClientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	}
+
+	if err := lightClientModule.VerifyUpgradeAndUpdateState(ctx, clientID, upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof); err != nil {
 		return errorsmod.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
+	// k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "upgrade"},
 		1,
 		[]metrics.Label{
-			telemetry.NewLabel(types.LabelClientType, upgradedClient.ClientType()),
+			telemetry.NewLabel(types.LabelClientType, clientType),
 			telemetry.NewLabel(types.LabelClientID, clientID),
 		},
 	)
 
-	emitUpgradeClientEvent(ctx, clientID, upgradedClient)
+	emitUpgradeClientEvent(ctx, clientID, clientType)
 
 	return nil
 }

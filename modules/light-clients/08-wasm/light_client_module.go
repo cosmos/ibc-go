@@ -7,7 +7,9 @@ import (
 
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -241,14 +243,62 @@ func (LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClie
 	return nil
 }
 
-// // Upgrade functions
-// // NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
-// // height committed by the current revision. Clients are responsible for ensuring that the planned last
-// // height of the current revision is somehow encoded in the proof verification process.
-// // This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
-// // may be cancelled or modified before the last planned height.
-// // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
-// // DEPRECATED: will be removed as performs internal functionality
-func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient []byte, newConsState []byte, upgradeClientProof, upgradeConsensusStateProof []byte) error {
-	return nil
+// Upgrade functions
+// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
+// height committed by the current revision. Clients are responsible for ensuring that the planned last
+// height of the current revision is somehow encoded in the proof verification process.
+// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
+// may be cancelled or modified before the last planned height.
+// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
+func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
+	ctx sdk.Context,
+	clientID string,
+	newClient []byte,
+	newConsState []byte,
+	upgradeClientProof,
+	upgradeConsensusStateProof []byte,
+) error {
+	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
+	if err != nil {
+		return err
+	}
+
+	if clientType != wasmtypes.Wasm {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", wasmtypes.Wasm, clientType)
+	}
+
+	var (
+		cdc               = lcm.keeper.Codec()
+		newClientState    wasmtypes.ClientState
+		newConsensusState wasmtypes.ConsensusState
+	)
+
+	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
+		return err
+	}
+	if err := newClientState.Validate(); err != nil {
+		return err
+	}
+
+	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
+		return err
+	}
+	if err := newConsensusState.ValidateBasic(); err != nil {
+		return err
+	}
+
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	clientState, found := wasmtypes.GetClientState(clientStore, cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
+
+	// last height of current counterparty chain must be client's latest height
+	lastHeight := clientState.GetLatestHeight()
+	if !newClientState.GetLatestHeight().GT(lastHeight) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.GetLatestHeight(), lastHeight)
+	}
+
+	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)
+
 }
