@@ -399,8 +399,8 @@ func (chain *TestChain) GetConsensusState(clientID string, height exported.Heigh
 	return chain.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
 }
 
-// GetTrustedValidators will return the trusted validator set of the chain for the given trusted height. It will return
-// a success boolean depending on if the validator set exists or not at that height.
+// GetTrustedValidators will return the trusted validator set of the chain for the given trusted height. Otherwise
+// it will return an error. 
 func (chain *TestChain) GetTrustedValidators(trustedHeight int64) (*cmttypes.ValidatorSet, error) {
 	// historical information does not store the validator set which committed the header at
 	// height h. During BeginBlock, it stores the last updated validator set. This is equivalent to
