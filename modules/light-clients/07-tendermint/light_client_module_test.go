@@ -15,9 +15,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-const (
-	tmClientID   = "07-tendermint-100"
-	wasmClientID = "08-wasm-0"
+var (
+	tmClientID          = clienttypes.FormatClientIdentifier(exported.Tendermint, 100)
+	solomachineClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 0)
 )
 
 func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
@@ -71,7 +71,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 		{
 			"client type is not 07-tendermint",
 			func() {
-				clientID = wasmClientID
+				clientID = solomachineClientID
 			},
 			clienttypes.ErrInvalidClientType,
 		},
@@ -113,8 +113,9 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 				// change upgraded client state height to be lower than current client state height
 				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 				tmClient := upgradedClientState.(*ibctm.ClientState)
-				tmClient.ChainId = clientState.ChainId
-				tmClient.LatestHeight = clienttypes.NewHeight(1, 1)
+				newLatestheight, ok := clientState.GetLatestHeight().Decrement()
+				suite.Require().True(ok)
+				tmClient.LatestHeight = newLatestheight.(clienttypes.Height)
 				upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), tmClient)
 
 				suite.coordinator.CommitBlock(suite.chainB)
@@ -144,11 +145,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
-			var err error
-			newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
-			suite.Require().NoError(err)
-
-			upgradedClientState = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
+			newUnbondindPeriod := ubdPeriod + trustingPeriod
+			upgradedClientState = ibctm.NewClientState(clientState.ChainId, ibctm.DefaultTrustLevel, trustingPeriod, newUnbondindPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
 			upgradedClientStateBz = clienttypes.MustMarshalClientState(cdc, upgradedClientState)
 
 			nextValsHash := sha256.Sum256([]byte("new-nextValsHash"))
@@ -175,7 +173,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 				clientState := suite.chainA.GetClientState(clientID)
 				suite.Require().NotNil(clientState)
-				// TODO: check client state bytes matches upgraded client state bytes
+				clientStateBz := clienttypes.MustMarshalClientState(cdc, upgradedClientState)
+				suite.Require().Equal(upgradedClientStateBz, clientStateBz)
 
 				consensusState, found := suite.chainA.GetConsensusState(clientID, clientState.GetLatestHeight())
 				suite.Require().True(found)
