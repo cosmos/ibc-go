@@ -624,8 +624,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			// close channel
-			err := path.EndpointA.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 		}, false},
 		{"connection not found", func() {
 			path.Setup()
@@ -710,8 +709,29 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.Setup()
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
+			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
+		}, true},
+		{"success with upgrade info", func() {
+			path.Setup()
+			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
 			err := path.EndpointA.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
+
+			// add mock upgrade info to simulate that the channel is closing during
+			// an upgrade and verify that the upgrade information is deleted
+			upgrade := types.Upgrade{
+				Fields:  types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.UpgradeVersion),
+				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
+			}
+
+			counterpartyUpgrade := types.Upgrade{
+				Fields:  types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.UpgradeVersion),
+				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
+			}
+
+			path.EndpointB.SetChannelUpgrade(upgrade)
+			path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 		}, true},
 		{"channel doesn't exist", func() {
 			// any non-nil values work for connections
@@ -726,8 +746,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.Setup()
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			err := path.EndpointB.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 		}, false},
 		{"connection not found", func() {
 			path.Setup()
@@ -757,8 +776,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.Setup()
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			err := path.EndpointA.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 
 			heightDiff = 3
 		}, false},
@@ -771,8 +789,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.Setup()
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			err := path.EndpointA.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 
 			channelCap = capabilitytypes.NewCapability(3)
 		}, false},
@@ -787,8 +804,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 				err := path.EndpointB.ChanUpgradeInit()
 				suite.Require().NoError(err)
 
-				err = path.EndpointA.SetChannelState(types.CLOSED)
-				suite.Require().NoError(err)
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 
 				channelCap = capabilitytypes.NewCapability(3)
 			},
@@ -809,13 +825,20 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
+			ctx := suite.chainB.GetContext()
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
+				ctx, path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
 				proof, malleateHeight(proofHeight, heightDiff), counterpartyUpgradeSequence,
 			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+
+				// if the channel closed during an upgrade, there should not be any upgrade information
+				_, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().False(found)
+				_, found = suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)
 			}

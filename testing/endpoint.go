@@ -139,7 +139,8 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		trustedHeight := endpoint.GetClientState().GetLatestHeight().(clienttypes.Height)
+		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -760,6 +761,7 @@ func (endpoint *Endpoint) ChanUpgradeCancel() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// Deprecated: usage of this function should be replaced by `UpdateChannelState`
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()
@@ -770,6 +772,19 @@ func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 
 	return endpoint.Counterparty.UpdateClient()
+}
+
+// UpdateChannel updates the channel associated with the given endpoint. It accepts a
+// closure which takes a channel allowing the caller to modify its fields.
+func (endpoint *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) {
+	channel := endpoint.GetChannel()
+	updater(&channel)
+	endpoint.SetChannel(channel)
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	err := endpoint.Counterparty.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
 }
 
 // GetClientState retrieves the Client State for this endpoint. The
