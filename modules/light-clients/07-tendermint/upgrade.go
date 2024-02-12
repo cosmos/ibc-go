@@ -70,7 +70,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	}
 
 	// Verify client proof
-	bz, err := cdc.MarshalInterface(upgradedClient.ZeroCustomFields())
+	bz, err := cdc.MarshalInterface(tmUpgradeClient.ZeroCustomFields())
 	if err != nil {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "could not marshal client state: %v", err)
 	}

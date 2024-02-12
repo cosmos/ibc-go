@@ -439,7 +439,12 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 // ScheduleIBCSoftwareUpgrade schedules an upgrade for the IBC client.
 func (k Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Plan, upgradedClientState exported.ClientState) error {
 	// zero out any custom fields before setting
-	cs := upgradedClientState.ZeroCustomFields()
+	cs, ok := upgradedClientState.(*ibctm.ClientState)
+	if !ok {
+		return errorsmod.Wrapf(types.ErrInvalidClientType, "upgraded client state must be tendermint type, expected: %T, got: %T", &ibctm.ClientState{}, upgradedClientState)
+	}
+
+	cs = cs.ZeroCustomFields()
 	bz, err := types.MarshalClientState(k.cdc, cs)
 	if err != nil {
 		return errorsmod.Wrap(err, "could not marshal UpgradedClientState")

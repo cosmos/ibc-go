@@ -174,8 +174,10 @@ func (cs ClientState) Validate() error {
 }
 
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
-// with all client customizable fields zeroed out
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
+// with all client customizable fields zeroed out. All chain specific fields must
+// remain unchanged. This client state will used to verify chain upgrades when a
+// chain breaks a light client verification parameter such as chainID.
+func (cs ClientState) ZeroCustomFields() *ClientState {
 	// copy over all chain-specified fields
 	// and leave custom fields empty
 	return &ClientState{
