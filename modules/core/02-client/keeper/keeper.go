@@ -394,12 +394,12 @@ func (k Keeper) SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz 
 	return k.upgradeKeeper.SetUpgradedConsensusState(ctx, planHeight, bz)
 }
 
-// IterateClientStates provides an iterator over all stored light client State
-// objects. For each State object, cb will be called. If the cb returns true,
+// IterateClientStates provides an iterator over all stored ibc ClientState
+// objects using the provided store prefix. For each ClientState object, cb will be called. If the cb returns true,
 // the iterator will close and stop.
-func (k Keeper) IterateClientStates(ctx sdk.Context, storeprefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
+func (k Keeper) IterateClientStates(ctx sdk.Context, storePrefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(storeprefix))
+	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(storePrefix))
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
