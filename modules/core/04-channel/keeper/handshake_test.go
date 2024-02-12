@@ -624,8 +624,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			// close channel
-			err := path.EndpointA.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 		}, false},
 		{"connection not found", func() {
 			path.Setup()
@@ -710,8 +709,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.Setup()
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			err := path.EndpointA.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 		}, true},
 		{"success with upgrade info", func() {
 			path.Setup()
@@ -748,8 +746,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.Setup()
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			err := path.EndpointB.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 		}, false},
 		{"connection not found", func() {
 			path.Setup()
@@ -779,8 +776,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.Setup()
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			err := path.EndpointA.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 
 			heightDiff = 3
 		}, false},
@@ -793,8 +789,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.Setup()
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-			err := path.EndpointA.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 
 			channelCap = capabilitytypes.NewCapability(3)
 		}, false},
@@ -809,8 +804,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 				err := path.EndpointB.ChanUpgradeInit()
 				suite.Require().NoError(err)
 
-				err = path.EndpointA.SetChannelState(types.CLOSED)
-				suite.Require().NoError(err)
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 
 				channelCap = capabilitytypes.NewCapability(3)
 			},
