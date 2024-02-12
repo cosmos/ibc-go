@@ -8,9 +8,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-const (
-	tmClientID   = "07-tendermint-100"
-	wasmClientID = "08-wasm-0"
+var (
+	tmClientID          = clienttypes.FormatClientIdentifier(exported.Tendermint, 100)
+	solomachineClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 0)
 )
 
 func (suite *TendermintTestSuite) TestRecoverClient() {
@@ -40,7 +40,7 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 		{
 			"subject client ID does not contain 07-tendermint prefix",
 			func() {
-				subjectClientID = wasmClientID
+				subjectClientID = solomachineClientID
 			},
 			clienttypes.ErrInvalidClientType,
 		},
@@ -54,7 +54,7 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 		{
 			"substitute client ID does not contain 07-tendermint prefix",
 			func() {
-				substituteClientID = wasmClientID
+				substituteClientID = solomachineClientID
 			},
 			clienttypes.ErrInvalidClientType,
 		},
