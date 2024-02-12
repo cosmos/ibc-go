@@ -67,7 +67,7 @@ service Query {
   rpc VerifyMembership(QueryVerifyMembershipRequest) returns (QueryVerifyMembershipResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http)                   = {
-      post: "/ibc/core/client/v1/verify_membership_proof"
+      post: "/ibc/core/client/v1/verify_membership"
       body: "*"
     };
   }
