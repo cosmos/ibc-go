@@ -121,11 +121,11 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 	typeURL := "/ibc.lightclients.wasm.v1.Query/Checksums"
 
 	var (
-		endpoint        *wasmtesting.WasmEndpoint
-		expDiscardState = false
-		proofKey        = []byte("mock-key")
-		testKey         = []byte("test-key")
-		value           = []byte("mock-value")
+		endpoint          *wasmtesting.WasmEndpoint
+		expDiscardedState = false
+		proofKey          = []byte("mock-key")
+		testKey           = []byte("test-key")
+		value             = []byte("mock-value")
 	)
 
 	testCases := []struct {
@@ -170,6 +170,12 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			},
 		},
 		{
+			// The following test sets a mock proof key and value in the ibc store and registers a query callback on the Status msg.
+			// The Status handler will then perform the QueryVerifyMembershipRequest using the wasmvm.Querier.
+			// As the VerifyMembership query rpc will call directly back into the same client, we also register a callback for VerifyMembership.
+			// Here we decode the proof and verify the mock proof key and value are set in the ibc store.
+			// This exercises the full flow through the grpc handler and into the light client for verification, handling encoding and routing.
+			// Furthermore we write a test key and assert that the state changes made by this handler were discarded by the cachedCtx at the grpc handler.
 			"success: verify membership query",
 			func() {
 				querierPlugin := types.QueryPlugins{
@@ -235,7 +241,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					expDiscardState = true
+					expDiscardedState = true
 					store.Set(testKey, value)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
@@ -269,7 +275,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			expDiscardState = false
+			expDiscardedState = false
 			suite.SetupWasmWithMockVM()
 
 			endpoint = wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -282,7 +288,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			clientState := endpoint.GetClientState()
 			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 
-			if expDiscardState {
+			if expDiscardedState {
 				suite.Require().False(clientStore.Has(testKey))
 			} else {
 				suite.Require().True(clientStore.Has(testKey))
