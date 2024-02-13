@@ -29,12 +29,12 @@ import (
 // Keeper represents a type that grants read and write permissions to any client
 // state information
 type Keeper struct {
-	storeKey        storetypes.StoreKey
-	cdc             codec.BinaryCodec
-	clientValidator types.ClientValidator
-	legacySubspace  types.ParamSubspace
-	stakingKeeper   types.StakingKeeper
-	upgradeKeeper   types.UpgradeKeeper
+	storeKey            storetypes.StoreKey
+	cdc                 codec.BinaryCodec
+	legacySubspace      types.ParamSubspace
+	selfClientValidator types.SelfClientValidator
+	stakingKeeper       types.StakingKeeper
+	upgradeKeeper       types.UpgradeKeeper
 }
 
 // NewKeeper creates a new NewKeeper instance
@@ -65,8 +65,8 @@ func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.Clie
 }
 
 // SetSelfClientValidator sets a custom self client validation function.
-func (k *Keeper) SetSelfClientValidator(validateFn types.ClientValidator) {
-	k.clientValidator = validateFn
+func (k *Keeper) SetSelfClientValidator(validateFn types.SelfClientValidator) {
+	k.selfClientValidator = validateFn
 }
 
 // GenerateClientIdentifier returns the next client identifier.
@@ -311,6 +311,26 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 	return consensusState, nil
 }
 
+// ValidateSelfClient validates the client parameters for a client of the running chain.
+// This function is only used to validate the client state the counterparty stores for this chain.
+// NOTE: If the client type is not of type Tendermint then delegate to a custom client validator function.
+// This allows support for non-Tendermint clients, for example 08-wasm clients.
+func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
+	tmClient, ok := clientState.(*ibctm.ClientState)
+	if ok {
+		return k.validateSelfTmClient(ctx, tmClient)
+	}
+
+	if k.selfClientValidator == nil {
+		return errorsmod.Wrapf(types.ErrClientTypeNotSupported, "cannot validate self client of type: %T", clientState)
+	}
+
+	return k.selfClientValidator(ctx, clientState)
+}
+
+// validateSelfTmClient validates the tendermint client parameters for a client of the running chain.
+// This function is only used to validate the client state the counterparty stores for this chain.
+// Client must be in same revision as the executing chain.
 func (k Keeper) validateSelfTmClient(ctx sdk.Context, tmClient *ibctm.ClientState) error {
 	if !tmClient.FrozenHeight.IsZero() {
 		return types.ErrClientFrozen
@@ -370,23 +390,6 @@ func (k Keeper) validateSelfTmClient(ctx sdk.Context, tmClient *ibctm.ClientStat
 	}
 
 	return nil
-}
-
-// ValidateSelfClient validates the client parameters for a client of the running chain
-// This function is only used to validate the client state the counterparty stores for this chain
-// Client must be in same revision as the executing chain
-func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
-	tmClient, ok := clientState.(*ibctm.ClientState)
-	if ok {
-		return k.validateSelfTmClient(ctx, tmClient)
-	}
-
-	if k.clientValidator == nil {
-		return errorsmod.Wrapf(types.ErrInvalidClient, "client must be a Tendermint client, expected: %T, got: %T",
-			&ibctm.ClientState{}, tmClient)
-	}
-
-	return k.clientValidator(ctx, clientState)
 }
 
 // GetUpgradePlan executes the upgrade keeper GetUpgradePlan function.

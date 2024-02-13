@@ -91,11 +91,6 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.Router.Seal()
 }
 
-// SetSelfClientValidator delegates to the IBC client keeper to set the self client validation func.
-func (k Keeper) SetSelfClientValidator(validateFn clienttypes.ClientValidator) {
-	k.ClientKeeper.SetSelfClientValidator(validateFn)
-}
-
 // GetAuthority returns the ibc module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority

@@ -22,8 +22,15 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*ConsensusStateWithHeight)(nil)
 )
 
-// ClientValidator is a type alias for a function which validates self client :D TODO: update me
-type ClientValidator func(ctx sdk.Context, clientState exported.ClientState) error
+// SelfClientValidator is a type alias for a function which validates self client :D TODO: update me
+type SelfClientValidator func(ctx sdk.Context, clientState exported.ClientState) error
+
+// TODO: introduce an interface type to handle host validation funcs. The above SelfClientValidator type alias func will not be
+// enough as we need to handle GetSelfConsensusState
+type SelfClientValidatorI interface {
+	ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error
+	GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error)
+}
 
 // NewIdentifiedClientState creates a new IdentifiedClientState instance
 func NewIdentifiedClientState(clientID string, clientState exported.ClientState) IdentifiedClientState {
