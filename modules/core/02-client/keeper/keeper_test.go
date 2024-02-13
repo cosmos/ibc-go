@@ -29,6 +29,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
@@ -154,107 +155,111 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool // TODO: expError
+		expError error
 	}{
 		{
 			"success",
 			func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			true,
+			nil,
 		},
 		{
 			"success with nil UpgradePath",
 			func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), nil)
 			},
-			true,
+			nil,
 		},
 		{
 			"success with custom self validator: solomachine",
 			func() {
 				clientState = solomachine.NewClientState(1, &solomachine.ConsensusState{})
 
-				// add some mock validation logic
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfClientValidator(func(ctx sdk.Context, clientState exported.ClientState) error {
-					smClientState, ok := clientState.(*solomachine.ClientState)
-					suite.Require().True(ok)
-					suite.Require().Equal(uint64(1), smClientState.Sequence)
+				smSelfClientValidator := &mock.MockClientValidator{
+					ValidateSelfClientFn: func(ctx sdk.Context, clientState exported.ClientState) error {
+						smClientState, ok := clientState.(*solomachine.ClientState)
+						suite.Require().True(ok)
+						suite.Require().Equal(uint64(1), smClientState.Sequence)
 
-					return nil
-				})
+						return nil
+					},
+				}
+
+				// add some mock validation logic
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfClientValidator(smSelfClientValidator)
 			},
-			true,
+			nil,
 		},
 		{
 			"frozen client",
 			func() {
 				clientState = &ibctm.ClientState{ChainId: suite.chainA.ChainID, TrustLevel: ibctm.DefaultTrustLevel, TrustingPeriod: trustingPeriod, UnbondingPeriod: ubdPeriod, MaxClockDrift: maxClockDrift, FrozenHeight: testClientHeight, LatestHeight: testClientHeight, ProofSpecs: commitmenttypes.GetSDKSpecs(), UpgradePath: ibctesting.UpgradePath}
 			},
-			false,
+			types.ErrClientFrozen,
 		},
 		{
 			"incorrect chainID",
 			func() {
 				clientState = ibctm.NewClientState("gaiatestnet", ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			false,
+			types.ErrInvalidClient,
 		},
 		{
 			"invalid client height",
 			func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.GetSelfHeight(suite.chainA.GetContext()).Increment().(types.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			false,
+			types.ErrInvalidClient,
 		},
 		{
 			"invalid client type",
 			func() {
 				clientState = solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time})
 			},
-			false,
+			types.ErrInvalidClient,
 		},
 		{
 			"invalid client revision",
 			func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeightRevision1, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			false,
+			types.ErrInvalidClient,
 		},
 		{
 			"invalid proof specs",
 			func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, nil, ibctesting.UpgradePath)
 			},
-			false,
+			types.ErrInvalidClient,
 		},
 		{
 			"invalid trust level",
 			func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			false,
+			types.ErrInvalidClient,
 		},
 		{
 			"invalid unbonding period",
 			func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+10, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			false,
+			types.ErrInvalidClient,
 		},
 		{
 			"invalid trusting period",
 			func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ubdPeriod+10, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			false,
+			types.ErrInvalidClient,
 		},
 		{
 			"invalid upgrade path",
 			func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), []string{"bad", "upgrade", "path"})
 			},
-			false,
+			types.ErrInvalidClient,
 		},
 	}
 
@@ -267,7 +272,8 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 
 			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.ValidateSelfClient(suite.chainA.GetContext(), clientState)
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err, "expected valid client for case: %s", tc.name)
 			} else {
 				suite.Require().Error(err, "expected invalid client for case: %s", tc.name)
@@ -355,7 +361,8 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // thi
 	})
 }
 
-func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is a test, we are okay with copying locks
+// TODO(chatton): refactor me and make me nice :)
+func (suite *KeeperTestSuite) TestGetConsensusState() {
 	suite.ctx = suite.ctx.WithBlockHeight(10)
 	cases := []struct {
 		name    string
