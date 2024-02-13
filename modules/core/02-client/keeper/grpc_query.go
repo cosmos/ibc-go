@@ -369,7 +369,8 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error())
 	}
 
-	if err := clientState.VerifyMembership(ctx, k.ClientStore(cachedCtx, req.ClientId), k.cdc, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
+	if err := clientState.VerifyMembership(cachedCtx, k.ClientStore(cachedCtx, req.ClientId), k.cdc, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
+		k.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
 		return &types.QueryVerifyMembershipResponse{
 			Success: false,
 		}, nil
