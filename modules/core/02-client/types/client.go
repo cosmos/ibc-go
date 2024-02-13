@@ -11,6 +11,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -20,6 +21,9 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*IdentifiedClientState)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*ConsensusStateWithHeight)(nil)
 )
+
+// ClientValidator is a type alias for a function which validates self client :D TODO: update me
+type ClientValidator func(ctx sdk.Context, clientState exported.ClientState) error
 
 // NewIdentifiedClientState creates a new IdentifiedClientState instance
 func NewIdentifiedClientState(clientID string, clientState exported.ClientState) IdentifiedClientState {
