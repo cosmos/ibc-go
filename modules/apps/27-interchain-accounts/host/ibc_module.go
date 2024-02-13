@@ -78,7 +78,7 @@ func (IBCModule) OnChanOpenAck(
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
-// OnChanOpenAck implements the IBCModule interface
+// OnChanOpenConfirm implements the IBCModule interface
 func (im IBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
@@ -119,6 +119,7 @@ func (im IBCModule) OnRecvPacket(
 	logger := im.keeper.Logger(ctx)
 	if !im.keeper.GetParams(ctx).HostEnabled {
 		logger.Info("host submodule is disabled")
+		keeper.EmitHostDisabledEvent(ctx, packet)
 		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 

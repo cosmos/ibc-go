@@ -400,14 +400,16 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		name          string
 		malleate      func()
 		expAckSuccess bool
+		eventErrorMsg string
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, true, "",
 		},
 		{
 			"host submodule disabled", func() {
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
 			}, false,
+			types.ErrHostSubModuleDisabled.Error(),
 		},
 		{
 			"success with ICA auth module callback failure", func() {
@@ -417,11 +419,13 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 					return channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
 			}, true,
+			"failed OnRecvPacket mock callback",
 		},
 		{
 			"ICA OnRecvPacket fails - cannot unmarshal packet data", func() {
 				packetData = []byte("invalid data")
 			}, false,
+			"cannot unmarshal ICS-27 interchain account packet data: unknown data type",
 		},
 	}
 
@@ -487,12 +491,42 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			ack := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, nil)
+			ctx := suite.chainB.GetContext()
+			ack := cbs.OnRecvPacket(ctx, packet, nil)
+
+			expectedAttributes := []sdk.Attribute{
+				sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+				sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
+				sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+			}
+
 			if tc.expAckSuccess {
 				suite.Require().True(ack.Success())
 				suite.Require().Equal(expectedAck, ack)
+
+				expectedEvents := sdk.Events{
+					sdk.NewEvent(
+						icatypes.EventTypePacket,
+						expectedAttributes...,
+					),
+				}.ToABCIEvents()
+
+				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+
 			} else {
 				suite.Require().False(ack.Success())
+
+				expectedAttributes = append(expectedAttributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, tc.eventErrorMsg))
+				expectedEvents := sdk.Events{
+					sdk.NewEvent(
+						icatypes.EventTypePacket,
+						expectedAttributes...,
+					),
+				}.ToABCIEvents()
+
+				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 			}
 		})
 	}
@@ -808,10 +842,8 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	suite.assertBalance(icaAddr, expBalAfterFirstSend)
 
 	// close the channel
-	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
-	suite.Require().NoError(err)
-	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
-	suite.Require().NoError(err)
+	path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+	path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 
 	// open a new channel on the same port
 	path.EndpointA.ChannelID = ""
