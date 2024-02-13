@@ -102,7 +102,7 @@ func (k Keeper) distributePacketFeeOnAcknowledgement(ctx sdk.Context, refundAddr
 	k.distributeFee(ctx, refundAddr, refundAddr, refundCoins)
 }
 
-// DistributePacketsFeesOnTimeout pays all the timeout fees for a given packetID while refunding the acknowledgement & receive fees to the refund account.
+// DistributePacketFeesOnTimeout pays all the timeout fees for a given packetID while refunding the acknowledgement & receive fees to the refund account.
 func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sdk.AccAddress, packetFees []types.PacketFee, packetID channeltypes.PacketId) {
 	// cache context before trying to distribute fees
 	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
