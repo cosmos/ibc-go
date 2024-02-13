@@ -1024,7 +1024,7 @@ var (
 
 	pattern_Query_UpgradedConsensusState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "client", "v1", "upgraded_consensus_states"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_VerifyMembership_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "client", "v1", "verify_membership_proof"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_VerifyMembership_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "core", "client", "v1", "verify_membership"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

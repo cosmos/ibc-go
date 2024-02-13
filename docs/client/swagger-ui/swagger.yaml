@@ -6896,7 +6896,7 @@ paths:
                         }
       tags:
         - Query
-  /ibc/core/client/v1/verify_membership_proof:
+  /ibc/core/client/v1/verify_membership:
     post:
       summary: >-
         VerifyMembership queries an IBC light client for proof verification of a
