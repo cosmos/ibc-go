@@ -58,11 +58,6 @@ type ClientState interface {
 	// ExportMetadata must export metadata stored within the clientStore for genesis export
 	ExportMetadata(clientStore storetypes.KVStore) []GenesisMetadata
 
-	// ZeroCustomFields zeroes out any client customizable fields in client state
-	// Ledger enforced fields are maintained while all custom fields are zero values
-	// Used to verify upgrades
-	ZeroCustomFields() ClientState
-
 	// GetTimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
 	GetTimestampAtHeight(
 		ctx sdk.Context,

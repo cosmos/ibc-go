@@ -73,12 +73,6 @@ func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ 
 	return exported.Status(result.Status)
 }
 
-// ZeroCustomFields returns a ClientState that is a copy of the current ClientState
-// with all client customizable fields zeroed out
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
-	return &cs
-}
-
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	ctx sdk.Context,
