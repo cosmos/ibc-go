@@ -781,7 +781,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		path              *ibctesting.Path
 		newChainID        string
 		newClientHeight   clienttypes.Height
-		upgradedClient    exported.ClientState
+		upgradedClient    *ibctm.ClientState
 		upgradedConsState exported.ConsensusState
 		lastHeight        exported.Height
 		msg               *clienttypes.MsgUpgradeClient
@@ -889,7 +889,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			suite.Require().NoError(err, "upgrade handler failed on valid case: %s", tc.name)
 			newClient, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().True(ok)
-			newChainSpecifiedClient := newClient.ZeroCustomFields()
+			newChainSpecifiedClient := newClient.(*ibctm.ClientState).ZeroCustomFields()
 			suite.Require().Equal(upgradedClient, newChainSpecifiedClient)
 
 			expectedEvents := sdk.Events{
@@ -2577,8 +2577,8 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				Height: 1000,
 			}
 			// update trusting period
-			clientState := path.EndpointB.GetClientState()
-			clientState.(*ibctm.ClientState).TrustingPeriod += 100
+			clientState := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			clientState.TrustingPeriod += 100
 
 			var err error
 			msg, err = clienttypes.NewMsgIBCSoftwareUpgrade(

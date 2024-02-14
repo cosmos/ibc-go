@@ -4,7 +4,6 @@ package types
 
 import (
 	"fmt"
-	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -116,13 +115,9 @@ func (up *UpgradeProposal) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidUpgradeProposal, "upgraded client state cannot be nil")
 	}
 
-	clientState, err := UnpackClientState(up.UpgradedClientState)
+	_, err := UnpackClientState(up.UpgradedClientState)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to unpack upgraded client state")
-	}
-
-	if !reflect.DeepEqual(clientState, clientState.ZeroCustomFields()) {
-		return errorsmod.Wrap(ErrInvalidUpgradeProposal, "upgraded client state is not zeroed out")
 	}
 
 	return nil
