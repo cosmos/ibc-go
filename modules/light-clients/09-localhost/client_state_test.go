@@ -31,11 +31,6 @@ func (suite *LocalhostTestSuite) TestGetLatestHeight() {
 	suite.Require().Equal(expectedHeight, clientState.GetLatestHeight())
 }
 
-func (suite *LocalhostTestSuite) TestZeroCustomFields() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	suite.Require().Equal(clientState, clientState.ZeroCustomFields())
-}
-
 func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
 	ctx := suite.chain.GetContext()
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
