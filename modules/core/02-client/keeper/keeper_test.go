@@ -176,7 +176,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 			func() {
 				clientState = solomachine.NewClientState(1, &solomachine.ConsensusState{})
 
-				smSelfClientValidator := &mock.MockClientValidator{
+				smSelfClientValidator := &mock.ClientValidator{
 					ValidateSelfClientFn: func(ctx sdk.Context, clientState exported.ClientState) error {
 						smClientState, ok := clientState.(*solomachine.ClientState)
 						suite.Require().True(ok)

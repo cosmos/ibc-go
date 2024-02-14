@@ -7,14 +7,14 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-var _ clienttypes.SelfClientValidator = (*MockClientValidator)(nil)
+var _ clienttypes.SelfClientValidator = (*ClientValidator)(nil)
 
-type MockClientValidator struct {
+type ClientValidator struct {
 	GetSelfConsensusStateFn func(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error)
 	ValidateSelfClientFn    func(ctx sdk.Context, clientState exported.ClientState) error
 }
 
-func (mcv *MockClientValidator) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
+func (mcv *ClientValidator) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
 	if mcv.GetSelfConsensusStateFn == nil {
 		return nil, nil
 	}
@@ -22,7 +22,7 @@ func (mcv *MockClientValidator) GetSelfConsensusState(ctx sdk.Context, height ex
 	return mcv.GetSelfConsensusStateFn(ctx, height)
 }
 
-func (mcv *MockClientValidator) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
+func (mcv *ClientValidator) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
 	if mcv.ValidateSelfClientFn == nil {
 		return nil
 	}
