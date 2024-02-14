@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: sobolevn/misspell-fixer-action@8842a5615f83fed75e8a87015e9300a54d049961
+      - uses: sobolevn/misspell-fixer-action@26173e641ba08255d0c9826b8a873f8b96f76932
       - uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
