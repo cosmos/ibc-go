@@ -1,5 +1,3 @@
-// Deprecated: The legacy v1beta1 gov types maintained in this file are deprecated and will be removed in a future release.
-// Please use MsgIBCSoftwareUpgrade and MsgRecoverClient in favour of the legacy v1beta1 gov proposal types.
 package types
 
 import (
@@ -33,6 +31,9 @@ func init() {
 }
 
 // NewClientUpdateProposal creates a new client update proposal.
+//
+// Deprecated: The legacy v1beta1 gov ClientUpdateProposal is deprecated
+// and will be removed in a future release. Please use MsgRecoverClient instead.
 func NewClientUpdateProposal(title, description, subjectClientID, substituteClientID string) govtypes.Content {
 	return &ClientUpdateProposal{
 		Title:              title,
@@ -75,6 +76,9 @@ func (cup *ClientUpdateProposal) ValidateBasic() error {
 }
 
 // NewUpgradeProposal creates a new IBC breaking upgrade proposal.
+//
+// Deprecated: The legacy v1beta1 gov UpgradeProposal is deprecated
+// and will be removed in a future release. Please use MsgIBCSoftwareUpgrade instead.
 func NewUpgradeProposal(title, description string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (govtypes.Content, error) {
 	clientAny, err := PackClientState(upgradedClientState)
 	if err != nil {
