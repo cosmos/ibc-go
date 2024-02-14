@@ -140,7 +140,7 @@ func (m *MockWasmEngine) StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error
 	return m.StoreCodeFn(code)
 }
 
-// StoreCode implements the WasmEngine interface.
+// StoreCodeUnchecked implements the WasmEngine interface.
 func (m *MockWasmEngine) StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
 	if m.StoreCodeUncheckedFn == nil {
 		panic(errors.New("mock engine is not properly initialized: StoreCodeUncheckedFn is nil"))

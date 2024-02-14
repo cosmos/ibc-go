@@ -95,7 +95,7 @@ type VerifyUpgradeAndUpdateStateMsg struct {
 	ProofUpgradeConsensusState []byte `json:"proof_upgrade_consensus_state"`
 }
 
-// MigrateClientStore is a sudoMsg sent to the contract to verify a given substitute client and update to its state.
+// MigrateClientStoreMsg is a sudoMsg sent to the contract to verify a given substitute client and update to its state.
 type MigrateClientStoreMsg struct{}
 
 // ContractResult is a type constraint that defines the expected results that can be returned by a contract call/query.
