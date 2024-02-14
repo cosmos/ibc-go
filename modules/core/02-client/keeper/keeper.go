@@ -441,7 +441,7 @@ func (k Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Pl
 	// zero out any custom fields before setting
 	cs, ok := upgradedClientState.(*ibctm.ClientState)
 	if !ok {
-		return errorsmod.Wrapf(types.ErrInvalidClientType, "upgraded client state must be tendermint type, expected: %T, got: %T", &ibctm.ClientState{}, upgradedClientState)
+		return errorsmod.Wrapf(types.ErrInvalidClientType, "expected: %T, got: %T", &ibctm.ClientState{}, upgradedClientState)
 	}
 
 	cs = cs.ZeroCustomFields()
