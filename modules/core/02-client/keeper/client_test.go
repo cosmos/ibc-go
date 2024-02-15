@@ -591,27 +591,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			func() {
 				substitute = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
-		},
-		{
-			"subject and substitute have equal latest height",
-			func() {
-				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
-				suite.Require().True(ok)
-				tmClientState.LatestHeight = substituteClientState.GetLatestHeight().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
-			},
-			clienttypes.ErrInvalidHeight,
-		},
-		{
-			"subject height is greater than substitute height",
-			func() {
-				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
-				suite.Require().True(ok)
-				tmClientState.LatestHeight = substituteClientState.GetLatestHeight().Increment().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
-			},
-			clienttypes.ErrInvalidHeight,
+			clienttypes.ErrClientNotActive,
 		},
 		{
 			"substitute is frozen",
@@ -624,7 +604,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			clienttypes.ErrClientNotActive,
 		},
 		{
-			"CheckSubstituteAndUpdateState fails, substitute client trust level doesn't match subject client trust level",
+			"light client module RecoverClient fails, substitute client trust level doesn't match subject client trust level",
 			func() {
 				tmClientState, ok := substituteClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)

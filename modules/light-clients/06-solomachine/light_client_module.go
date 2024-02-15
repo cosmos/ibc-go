@@ -215,11 +215,44 @@ func validateClientID(clientID string) error {
 	return nil
 }
 
-// // CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
-// // The light client must set the updated client and consensus states within the clientStore for the subject client.
-// // Deprecated: will be removed as performs internal functionality
-func (LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
-	return nil
+// RecoverClient must verify that the provided substitute may be used to update the subject client.
+// The light client must set the updated client and consensus states within the clientStore for the subject client.
+func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
+	if err != nil {
+		return err
+	}
+
+	if clientType != exported.Solomachine {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Solomachine, clientType)
+	}
+
+	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
+	if err != nil {
+		return err
+	}
+
+	if substituteClientType != exported.Solomachine {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Solomachine, substituteClientType)
+	}
+
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	clientState, found := getClientState(clientStore, lcm.cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
+
+	substituteClientStore := lcm.storeProvider.ClientStore(ctx, substituteClientID)
+	substituteClient, found := getClientState(substituteClientStore, lcm.cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
+	}
+
+	if clientState.GetLatestHeight().GTE(substituteClient.GetLatestHeight()) {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", clientState.GetLatestHeight(), substituteClient.GetLatestHeight())
+	}
+
+	return clientState.CheckSubstituteAndUpdateState(ctx, lcm.cdc, clientStore, substituteClientStore, substituteClient)
 }
 
 // // Upgrade functions
