@@ -134,7 +134,7 @@ func NewDefaultQueryPlugins() *QueryPlugins {
 // This function returns protobuf encoded responses in bytes.
 func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
-		// A default list of accepted queries can be added here.
+		// append user defined accepted queries to default list defined above.
 		acceptedQueries = append(defaultAcceptList, acceptedQueries...)
 
 		isAccepted := slices.Contains(acceptedQueries, request.Path)
