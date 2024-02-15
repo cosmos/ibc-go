@@ -1,7 +1,6 @@
 package solomachine
 
 import (
-	"errors"
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
@@ -75,11 +74,6 @@ func (cs ClientState) Validate() error {
 	return cs.ConsensusState.ValidateBasic()
 }
 
-// ZeroCustomFields is not implemented for solo machine
-func (ClientState) ZeroCustomFields() exported.ClientState {
-	panic(errors.New("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades"))
-}
-
 // Initialize checks that the initial consensus state is equal to the latest consensus state of the initial client and
 // sets the client state in the provided client store.
 func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
@@ -90,11 +84,6 @@ func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientSto
 
 	setClientState(clientStore, cdc, &cs)
 
-	return nil
-}
-
-// ExportMetadata is a no-op since solomachine does not store any metadata in client store
-func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
 	return nil
 }
 
