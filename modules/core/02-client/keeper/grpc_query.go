@@ -328,3 +328,57 @@ func (k Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 		UpgradedConsensusState: protoAny,
 	}, nil
 }
+
+// VerifyMembership implements the Query/VerifyMembership gRPC method
+// NOTE: Any state changes made within this handler are discarded by leveraging a cached context. Gas is consumed for underlying state access.
+// This gRPC method is intended to be used within the context of the state machine and delegates to light clients to verify proofs.
+func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMembershipRequest) (*types.QueryVerifyMembershipResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if len(req.Proof) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty proof")
+	}
+
+	if req.ProofHeight.IsZero() {
+		return nil, status.Error(codes.InvalidArgument, "proof height must be non-zero")
+	}
+
+	if req.MerklePath.Empty() {
+		return nil, status.Error(codes.InvalidArgument, "empty merkle path")
+	}
+
+	if len(req.Value) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty value")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	// cache the context to ensure clientState.VerifyMembership does not change state
+	cachedCtx, _ := ctx.CacheContext()
+
+	// make sure we charge the higher level context even on panic
+	defer func() {
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
+	}()
+
+	clientState, found := k.GetClientState(cachedCtx, req.ClientId)
+	if !found {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error())
+	}
+
+	if err := clientState.VerifyMembership(cachedCtx, k.ClientStore(cachedCtx, req.ClientId), k.cdc, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
+		k.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
+		return &types.QueryVerifyMembershipResponse{
+			Success: false,
+		}, nil
+	}
+
+	return &types.QueryVerifyMembershipResponse{
+		Success: true,
+	}, nil
+}
