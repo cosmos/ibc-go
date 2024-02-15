@@ -418,11 +418,6 @@ func (suite *LocalhostTestSuite) TestUpdateState() {
 	suite.Require().True(heights[0].EQ(clientState.GetLatestHeight()))
 }
 
-func (suite *LocalhostTestSuite) TestExportMetadata() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	suite.Require().Nil(clientState.ExportMetadata(nil))
-}
-
 func (suite *LocalhostTestSuite) TestCheckSubstituteAndUpdateState() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
 	err := clientState.CheckSubstituteAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil)

@@ -171,11 +171,6 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	return []exported.Height{height}
 }
 
-// ExportMetadata is a no-op for the 09-localhost client.
-func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
-	return nil
-}
-
 // CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by
 // proposals.
 func (ClientState) CheckSubstituteAndUpdateState(_ sdk.Context, _ codec.BinaryCodec, _, _ storetypes.KVStore, _ exported.ClientState) error {

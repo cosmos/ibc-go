@@ -87,11 +87,6 @@ func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientSto
 	return nil
 }
 
-// ExportMetadata is a no-op since solomachine does not store any metadata in client store
-func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
-	return nil
-}
-
 // VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
 func (ClientState) VerifyUpgradeAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
