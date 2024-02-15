@@ -361,28 +361,44 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // thi
 	})
 }
 
-// TODO(chatton): refactor me and make me nice :)
 func (suite *KeeperTestSuite) TestGetConsensusState() {
+	var height types.Height
+
 	suite.ctx = suite.ctx.WithBlockHeight(10)
+
 	cases := []struct {
-		name    string
-		height  types.Height
-		expPass bool
+		name     string
+		malleate func()
+		expError error
 	}{
-		{"zero height", types.ZeroHeight(), false},
-		{"height > latest height", types.NewHeight(0, uint64(suite.ctx.BlockHeight())+1), false},
-		{"latest height - 1", types.NewHeight(0, uint64(suite.ctx.BlockHeight())-1), true},
-		{"latest height", types.GetSelfHeight(suite.ctx), true},
+		{"zero height", func() {
+			height = types.ZeroHeight()
+		}, stakingtypes.ErrNoHistoricalInfo},
+		{"height > latest height", func() {
+			height = types.NewHeight(0, uint64(suite.ctx.BlockHeight())+1)
+		}, stakingtypes.ErrNoHistoricalInfo},
+		{"latest height - 1", func() {
+			height = types.NewHeight(0, uint64(suite.ctx.BlockHeight())-1)
+		}, nil},
+		{"latest height", func() {
+			height = types.GetSelfHeight(suite.ctx)
+		}, nil},
 	}
 
 	for i, tc := range cases {
 		tc := tc
-		cs, err := suite.keeper.GetSelfConsensusState(suite.ctx, tc.height)
-		if tc.expPass {
+		height = types.ZeroHeight()
+
+		tc.malleate()
+
+		cs, err := suite.keeper.GetSelfConsensusState(suite.ctx, height)
+
+		expPass := tc.expError == nil
+		if expPass {
 			suite.Require().NoError(err, "Case %d should have passed: %s", i, tc.name)
 			suite.Require().NotNil(cs, "Case %d should have passed: %s", i, tc.name)
 		} else {
-			suite.Require().Error(err, "Case %d should have failed: %s", i, tc.name)
+			suite.Require().ErrorIs(err, tc.expError, "Case %d should have failed: %s", i, tc.name)
 			suite.Require().Nil(cs, "Case %d should have failed: %s", i, tc.name)
 		}
 	}
