@@ -72,11 +72,6 @@ func (ClientState) Validate() error {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
-// ZeroCustomFields panics!
-func (ClientState) ZeroCustomFields() exported.ClientState {
-	panic(errors.New("legacy solo machine is deprecated"))
-}
-
 // Initialize panics!
 func (ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ConsensusState) error {
 	panic(errors.New("legacy solo machine is deprecated"))
