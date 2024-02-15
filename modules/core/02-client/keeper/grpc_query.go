@@ -330,6 +330,8 @@ func (k Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 }
 
 // VerifyMembership implements the Query/VerifyMembership gRPC method
+// NOTE: Any state changes made within this handler are discarded by leveraging a cached context. Gas is consumed for underlying state access.
+// This gRPC method is intended to be used within the context of the state machine and delegates to light clients to verify proofs.
 func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMembershipRequest) (*types.QueryVerifyMembershipResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
