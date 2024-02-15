@@ -14,18 +14,18 @@ type ClientValidator struct {
 	ValidateSelfClientFn    func(ctx sdk.Context, clientState exported.ClientState) error
 }
 
-func (mcv *ClientValidator) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
-	if mcv.GetSelfConsensusStateFn == nil {
+func (cv *ClientValidator) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
+	if cv.GetSelfConsensusStateFn == nil {
 		return nil, nil
 	}
 
-	return mcv.GetSelfConsensusStateFn(ctx, height)
+	return cv.GetSelfConsensusStateFn(ctx, height)
 }
 
-func (mcv *ClientValidator) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
-	if mcv.ValidateSelfClientFn == nil {
+func (cv *ClientValidator) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
+	if cv.ValidateSelfClientFn == nil {
 		return nil
 	}
 
-	return mcv.ValidateSelfClientFn(ctx, clientState)
+	return cv.ValidateSelfClientFn(ctx, clientState)
 }
