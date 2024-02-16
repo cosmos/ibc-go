@@ -888,7 +888,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		tc.setup()
 
 		ctx := suite.chainA.GetContext()
-		_, err = keeper.Keeper.UpgradeClient(*suite.chainA.App.GetIBCKeeper(), ctx, msg)
+		_, err = suite.chainA.GetSimApp().GetIBCKeeper().UpgradeClient(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err, "upgrade handler failed on valid case: %s", tc.name)
