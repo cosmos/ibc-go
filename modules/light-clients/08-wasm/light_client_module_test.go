@@ -87,7 +87,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 		{
 			"subject and substitute have equal latest height",
 			func() {
-				wasmClientState, ok := subjectClientState.(*wasmtypes.ClientState)
+				wasmClientState, ok := subjectClientState.(*types.ClientState)
 				suite.Require().True(ok)
 				wasmClientState.LatestHeight = substituteClientState.GetLatestHeight().(clienttypes.Height)
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, wasmClientState)
@@ -97,7 +97,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 		{
 			"subject height is greater than substitute height",
 			func() {
-				wasmClientState, ok := subjectClientState.(*wasmtypes.ClientState)
+				wasmClientState, ok := subjectClientState.(*types.ClientState)
 				suite.Require().True(ok)
 				wasmClientState.LatestHeight = substituteClientState.GetLatestHeight().Increment().(clienttypes.Height)
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, wasmClientState)
