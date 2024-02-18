@@ -44,11 +44,6 @@ func (cs ClientState) Validate() error {
 	return nil
 }
 
-// ZeroCustomFields returns the same client state since there are no custom fields in the 09-localhost client state.
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
-	return &cs
-}
-
 // Initialize ensures that initial consensus state for localhost is nil.
 func (ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
 	if consState != nil {
@@ -169,11 +164,6 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 
 	return []exported.Height{height}
-}
-
-// ExportMetadata is a no-op for the 09-localhost client.
-func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
-	return nil
 }
 
 // CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by

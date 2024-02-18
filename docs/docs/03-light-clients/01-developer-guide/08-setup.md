@@ -1,7 +1,7 @@
 ---
 title: Setup
 sidebar_label: Setup
-sidebar_position: 9
+sidebar_position: 8
 slug: /ibc/light-clients/setup
 ---
 

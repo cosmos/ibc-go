@@ -20,7 +20,7 @@ var (
 	_ ibcwasm.WasmEngine = (*MockWasmEngine)(nil)
 
 	// queryTypes contains all the possible query message types.
-	queryTypes = [...]any{types.StatusMsg{}, types.ExportMetadataMsg{}, types.TimestampAtHeightMsg{}, types.VerifyClientMessageMsg{}, types.CheckForMisbehaviourMsg{}}
+	queryTypes = [...]any{types.StatusMsg{}, types.TimestampAtHeightMsg{}, types.VerifyClientMessageMsg{}, types.CheckForMisbehaviourMsg{}}
 
 	// sudoTypes contains all the possible sudo message types.
 	sudoTypes = [...]any{types.UpdateStateMsg{}, types.UpdateStateOnMisbehaviourMsg{}, types.VerifyUpgradeAndUpdateStateMsg{}, types.VerifyMembershipMsg{}, types.VerifyNonMembershipMsg{}, types.MigrateClientStoreMsg{}}
@@ -140,7 +140,7 @@ func (m *MockWasmEngine) StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error
 	return m.StoreCodeFn(code)
 }
 
-// StoreCode implements the WasmEngine interface.
+// StoreCodeUnchecked implements the WasmEngine interface.
 func (m *MockWasmEngine) StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
 	if m.StoreCodeUncheckedFn == nil {
 		panic(errors.New("mock engine is not properly initialized: StoreCodeUncheckedFn is nil"))
@@ -227,10 +227,6 @@ func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
 
 	if payload.CheckForMisbehaviour != nil {
 		payloadField = *payload.CheckForMisbehaviour
-	}
-
-	if payload.ExportMetadata != nil {
-		payloadField = *payload.ExportMetadata
 	}
 
 	if payload.TimestampAtHeight != nil {

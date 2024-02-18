@@ -114,7 +114,6 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 					suite.Require().NotNil(payload.TimestampAtHeight)
 					suite.Require().Nil(payload.CheckForMisbehaviour)
 					suite.Require().Nil(payload.Status)
-					suite.Require().Nil(payload.ExportMetadata)
 					suite.Require().Nil(payload.VerifyClientMessage)
 
 					resp, err := json.Marshal(types.TimestampAtHeightResult{Timestamp: expectedTimestamp})
