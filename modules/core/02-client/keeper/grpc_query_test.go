@@ -776,6 +776,8 @@ func (suite *KeeperTestSuite) TestQueryClientParams() {
 }
 
 func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
+	const wasmClientID = "08-wasm-0"
+
 	var (
 		path *ibctesting.Path
 		req  *types.QueryVerifyMembershipRequest
@@ -870,17 +872,17 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			errors.New("empty value"),
 		},
 		{
-			"client not found",
+			"light client module not found",
 			func() {
 				req = &types.QueryVerifyMembershipRequest{
-					ClientId:    types.FormatClientIdentifier(exported.Tendermint, 100), // use a sequence which hasn't been created yet
+					ClientId:    wasmClientID, // use a client type that is not registered
 					Proof:       []byte{0x01},
 					ProofHeight: types.NewHeight(1, 100),
 					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
 					Value:       []byte{0x01},
 				}
 			},
-			types.ErrClientNotFound,
+			errors.New(wasmClientID),
 		},
 	}
 
