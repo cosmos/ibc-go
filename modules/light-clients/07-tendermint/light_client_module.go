@@ -262,9 +262,18 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
+	if err != nil {
+		return err
+	}
+
+	if substituteClientType != exported.Tendermint {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, substituteClientType)
+	}
+
 	cdc := lcm.keeper.Codec()
 
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
@@ -274,6 +283,10 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	substituteClient, found := getClientState(substituteClientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
+	}
+
+	if clientState.GetLatestHeight().GTE(substituteClient.GetLatestHeight()) {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", clientState.GetLatestHeight(), substituteClient.GetLatestHeight())
 	}
 
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
