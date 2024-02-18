@@ -140,14 +140,6 @@ type ClientState interface {
 	GetLatestHeight() Height
 	Validate() error
 
-	// ExportMetadata must export metadata stored within the clientStore for genesis export
-	ExportMetadata(clientStore storetypes.KVStore) []GenesisMetadata
-
-	// ZeroCustomFields zeroes out any client customizable fields in client state
-	// Ledger enforced fields are maintained while all custom fields are zero values
-	// Used to verify upgrades
-	ZeroCustomFields() ClientState
-
 	// Upgrade functions
 	// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
 	// height committed by the current revision. Clients are responsible for ensuring that the planned last
