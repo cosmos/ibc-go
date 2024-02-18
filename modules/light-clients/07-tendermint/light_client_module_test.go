@@ -166,7 +166,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 				lastHeight := clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()+1))
 
 				// zero custom fields and store in upgrade store
-				zeroedUpgradedClient := upgradedClientState.ZeroCustomFields()
+				zeroedUpgradedClient := upgradedClientState.(*ibctm.ClientState).ZeroCustomFields()
 				zeroedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), zeroedUpgradedClient)
 				err := suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), zeroedUpgradedClientBz)
 				suite.Require().NoError(err)
@@ -228,7 +228,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 				lastHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()+1))
 
 				// zero custom fields and store in upgrade store
-				zeroedUpgradedClient := upgradedClientState.ZeroCustomFields()
+				zeroedUpgradedClient := upgradedClientState.(*ibctm.ClientState).ZeroCustomFields()
 				zeroedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), zeroedUpgradedClient)
 				err := suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), zeroedUpgradedClientBz)
 				suite.Require().NoError(err)
