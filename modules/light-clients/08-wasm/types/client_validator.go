@@ -13,13 +13,13 @@ import (
 
 type WasmTMClientValidator struct {
 	cdc codec.BinaryCodec
-	tm  clientkeeper.TendermintClientValidator
+	tm  *clientkeeper.TendermintClientValidator
 }
 
 var _ clienttypes.SelfClientValidator = (*WasmTMClientValidator)(nil)
 
 // NewWasmTMClientValidator creates and returns a new SelfClientValidator for wasm tendermint consensus.
-func NewWasmTMClientValidator(cdc codec.BinaryCodec, tm clientkeeper.TendermintClientValidator) *WasmTMClientValidator {
+func NewWasmTMClientValidator(cdc codec.BinaryCodec, tm *clientkeeper.TendermintClientValidator) *WasmTMClientValidator {
 	return &WasmTMClientValidator{
 		cdc: cdc,
 		tm:  tm,

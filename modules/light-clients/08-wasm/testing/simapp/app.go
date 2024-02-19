@@ -3,6 +3,7 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
+	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	"io"
 	"os"
 	"path/filepath"
@@ -416,6 +417,10 @@ func NewSimApp(
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
+	tmClientValidator := clientkeeper.NewTendermintClientValidator(app.StakingKeeper)
+	app.IBCKeeper.ClientKeeper.SetSelfClientValidator(wasmtypes.NewWasmTMClientValidator(appCodec, tmClientValidator))
+
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
