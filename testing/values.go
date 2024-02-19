@@ -9,6 +9,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -67,4 +68,6 @@ var (
 	MockRecvCanaryCapabilityName = mock.MockRecvCanaryCapabilityName
 
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
+
+	UnusedHash = tmhash.Sum([]byte{0x00})
 )
