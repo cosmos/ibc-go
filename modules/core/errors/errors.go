@@ -60,4 +60,7 @@ var (
 
 	// ErrNotFound defines an error when requested entity doesn't exist in the state.
 	ErrNotFound = errorsmod.Register(codespace, 16, "not found")
+
+	// ErrClientStatusNotActive defines an error when an operation expects a client to be active
+	ErrClientStatusNotActive = errorsmod.Register(codespace, 17, "client is not active")
 )

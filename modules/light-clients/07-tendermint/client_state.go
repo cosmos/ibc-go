@@ -219,6 +219,10 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
+	if cs.Status(ctx, clientStore, cdc) == exported.Expired {
+		return errorsmod.Wrapf(ibcerrors.ErrClientStatusNotActive, "client status is not active")
+	}
+
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
