@@ -290,11 +290,12 @@ func (k Keeper) HasClientConsensusState(ctx sdk.Context, clientID string, height
 
 // GetLatestClientConsensusState gets the latest ConsensusState stored for a given client
 func (k Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) (exported.ConsensusState, bool) {
-	clientState, ok := k.GetClientState(ctx, clientID)
-	if !ok {
+	lightClientModule, found := k.router.GetRoute(clientID)
+	if !found {
 		return nil, false
 	}
-	return k.GetClientConsensusState(ctx, clientID, clientState.GetLatestHeight())
+
+	return k.GetClientConsensusState(ctx, clientID, lightClientModule.LatestHeight(ctx, clientID))
 }
 
 // GetSelfConsensusState introspects the (self) past historical info at a given height
@@ -473,6 +474,24 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Statu
 	}
 
 	return lightClientModule.Status(ctx, clientID)
+}
+
+func (k Keeper) GetLatestHeight(ctx sdk.Context, clientID string) exported.Height {
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
+		return types.ZeroHeight()
+	}
+
+	if !k.GetParams(ctx).IsAllowedClient(clientType) {
+		return types.ZeroHeight()
+	}
+
+	lightClientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return types.ZeroHeight()
+	}
+
+	return lightClientModule.LatestHeight(ctx, clientID)
 }
 
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.

@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -46,7 +45,7 @@ func (k Keeper) CreateClient(
 		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client (%s) with status %s", clientID, status)
 	}
 
-	// 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
+	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", lightClientModule.LatestHeight(ctx, clientID).String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "create"},
@@ -136,13 +135,14 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
+	// TODO: This code is removed in https://github.com/cosmos/ibc-go/pull/5827
 	// last height of current counterparty chain must be client's latest height
-	lastHeight := clientState.GetLatestHeight()
+	// lastHeight := k.GetLatestHeight(ctx, clientID)
 
-	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s",
-			upgradedClient.GetLatestHeight(), lastHeight)
-	}
+	// if !upgradedClient.GetLatestHeight().GT(lastHeight) {
+	// 	return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s",
+	// 		upgradedClient.GetLatestHeight(), lastHeight)
+	// }
 
 	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
 		upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof,
@@ -150,7 +150,8 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		return errorsmod.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
+	// TODO: do we need this logging?
+	// k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "upgrade"},
@@ -190,6 +191,12 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 	lightClientModule, found := k.router.GetRoute(subjectClientID)
 	if !found {
 		return errorsmod.Wrap(types.ErrRouteNotFound, subjectClientID)
+	}
+
+	subjectLatestHeight := lightClientModule.LatestHeight(ctx, subjectClientID)
+	substituteCLatestHeight := lightClientModule.LatestHeight(ctx, substituteClientID)
+	if subjectLatestHeight.GTE(substituteCLatestHeight) {
+		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectLatestHeight, substituteCLatestHeight)
 	}
 
 	if err := lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID); err != nil {

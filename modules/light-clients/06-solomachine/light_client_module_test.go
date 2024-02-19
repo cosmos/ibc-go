@@ -16,7 +16,7 @@ const (
 func (suite *SoloMachineTestSuite) TestRecoverClient() {
 	var (
 		subjectClientID, substituteClientID       string
-		subjectClientState, substituteClientState exported.ClientState
+		subjectClientState, substituteClientState *solomachine.ClientState
 	)
 
 	testCases := []struct {
@@ -72,26 +72,6 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 			},
 			clienttypes.ErrClientNotFound,
 		},
-		{
-			"subject and substitute have equal latest height",
-			func() {
-				smClientState, ok := subjectClientState.(*solomachine.ClientState)
-				suite.Require().True(ok)
-				smClientState.Sequence = substituteClientState.GetLatestHeight().GetRevisionHeight()
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, smClientState)
-			},
-			clienttypes.ErrInvalidHeight,
-		},
-		{
-			"subject height is greater than substitute height",
-			func() {
-				smClientState, ok := subjectClientState.(*solomachine.ClientState)
-				suite.Require().True(ok)
-				smClientState.Sequence = substituteClientState.GetLatestHeight().GetRevisionHeight() + 1
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, smClientState)
-			},
-			clienttypes.ErrInvalidHeight,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -115,10 +95,8 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 			bz := clienttypes.MustMarshalClientState(cdc, substituteClientState)
 			clientStore.Set(host.ClientStateKey(), bz)
 
-			smClientState, ok := subjectClientState.(*solomachine.ClientState)
-			suite.Require().True(ok)
-			smClientState.IsFrozen = true
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectClientID, smClientState)
+			subjectClientState.IsFrozen = true
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectClientID, subjectClientState)
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
 			suite.Require().True(found)
@@ -136,8 +114,8 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 				bz = clientStore.Get(host.ClientStateKey())
 				smClientState := clienttypes.MustUnmarshalClientState(cdc, bz).(*solomachine.ClientState)
 
-				suite.Require().Equal(substituteClientState.(*solomachine.ClientState).ConsensusState, smClientState.ConsensusState)
-				suite.Require().Equal(substituteClientState.(*solomachine.ClientState).Sequence, smClientState.Sequence)
+				suite.Require().Equal(substituteClientState.ConsensusState, smClientState.ConsensusState)
+				suite.Require().Equal(substituteClientState.Sequence, smClientState.Sequence)
 				suite.Require().Equal(exported.Active, smClientState.Status(ctx, clientStore, cdc))
 			} else {
 				suite.Require().Error(err)

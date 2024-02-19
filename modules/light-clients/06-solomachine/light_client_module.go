@@ -187,6 +187,17 @@ func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.S
 	return clientState.Status(ctx, clientStore, lcm.cdc)
 }
 
+func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+
+	clientState, found := getClientState(clientStore, lcm.cdc)
+	if !found {
+		return clienttypes.ZeroHeight()
+	}
+
+	return clientState.GetLatestHeight()
+}
+
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
 func (lcm LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
 	if err := validateClientID(clientID); err != nil {
@@ -246,10 +257,6 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	substituteClient, found := getClientState(substituteClientStore, lcm.cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
-	}
-
-	if clientState.GetLatestHeight().GTE(substituteClient.GetLatestHeight()) {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", clientState.GetLatestHeight(), substituteClient.GetLatestHeight())
 	}
 
 	return clientState.CheckSubstituteAndUpdateState(ctx, lcm.cdc, clientStore, substituteClientStore, substituteClient)

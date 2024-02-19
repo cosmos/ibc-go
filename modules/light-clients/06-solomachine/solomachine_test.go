@@ -141,8 +141,8 @@ func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 	bz := suite.store.Get(host.ClientStateKey())
 	suite.Require().NotNil(bz)
 
-	var clientState exported.ClientState
-	err := suite.chainA.Codec.UnmarshalInterface(bz, &clientState)
+	var clientState solomachine.ClientState
+	err := suite.chainA.Codec.Unmarshal(bz, &clientState)
 	suite.Require().NoError(err)
 	return clientState.GetLatestHeight().GetRevisionHeight()
 }

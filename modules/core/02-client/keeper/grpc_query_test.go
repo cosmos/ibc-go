@@ -241,7 +241,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientState().GetLatestHeight())
+				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientState().(*ibctm.ClientState).LatestHeight)
 
 				var err error
 				expConsensusState, err = types.PackConsensusState(cs)
@@ -259,7 +259,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				height := path.EndpointA.GetClientState().GetLatestHeight()
+				height := path.EndpointA.GetClientState().(*ibctm.ClientState).LatestHeight
 				cs := path.EndpointA.GetConsensusState(height)
 
 				var err error
@@ -344,7 +344,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				height1 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				height1 := path.EndpointA.GetClientState().(*ibctm.ClientState).LatestHeight
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -355,7 +355,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				height2 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				height2 := path.EndpointA.GetClientState().(*ibctm.ClientState).LatestHeight
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -449,12 +449,12 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().(*ibctm.ClientState).LatestHeight)
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().(*ibctm.ClientState).LatestHeight)
 
 				req = &types.QueryConsensusStateHeightsRequest{
 					ClientId: path.EndpointA.ClientID,

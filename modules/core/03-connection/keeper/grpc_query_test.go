@@ -8,6 +8,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -412,15 +413,15 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupConnections()
 
-				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)
+				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.LatestHeight)
 				suite.Require().NotNil(expConsensusState)
 				expClientID = path.EndpointA.ClientID
 
 				req = &types.QueryConnectionConsensusStateRequest{
 					ConnectionId:   path.EndpointA.ConnectionID,
-					RevisionNumber: clientState.GetLatestHeight().GetRevisionNumber(),
-					RevisionHeight: clientState.GetLatestHeight().GetRevisionHeight(),
+					RevisionNumber: clientState.LatestHeight.GetRevisionNumber(),
+					RevisionHeight: clientState.LatestHeight.GetRevisionHeight(),
 				}
 			},
 			true,

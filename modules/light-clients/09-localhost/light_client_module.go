@@ -185,6 +185,17 @@ func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Statu
 	return exported.Active
 }
 
+func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+
+	clientState, found := getClientState(clientStore, lcm.cdc)
+	if !found {
+		return clienttypes.ZeroHeight()
+	}
+
+	return clientState.LatestHeight
+}
+
 func (LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,

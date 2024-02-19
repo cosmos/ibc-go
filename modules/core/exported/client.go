@@ -103,6 +103,9 @@ type LightClientModule interface {
 	// Status must return the status of the client. Only Active clients are allowed to process packets.
 	Status(ctx sdk.Context, clientID string) Status
 
+	// Status must return the status of the client. Only Active clients are allowed to process packets.
+	LatestHeight(ctx sdk.Context, clientID string) Height
+
 	// TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
 	TimestampAtHeight(
 		ctx sdk.Context,
@@ -137,7 +140,6 @@ type ClientState interface {
 	proto.Message
 
 	ClientType() string
-	GetLatestHeight() Height
 	Validate() error
 
 	// Upgrade functions

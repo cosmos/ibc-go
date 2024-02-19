@@ -340,8 +340,8 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	clientState := path.EndpointA.GetClientState()
-	expConsensusHeight0 := clientState.GetLatestHeight()
+	clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+	expConsensusHeight0 := clientState.LatestHeight
 	consensusState0, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight0)
 	suite.Require().True(ok)
 
@@ -349,8 +349,8 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	clientState = path.EndpointA.GetClientState()
-	expConsensusHeight1 := clientState.GetLatestHeight()
+	clientState = path.EndpointA.GetClientState().(*ibctm.ClientState)
+	expConsensusHeight1 := clientState.LatestHeight
 	suite.Require().True(expConsensusHeight1.GT(expConsensusHeight0))
 	consensusState1, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight1)
 	suite.Require().True(ok)
@@ -363,9 +363,9 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	// create second client on chainA
 	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path2.SetupClients()
-	clientState = path2.EndpointA.GetClientState()
+	clientState = path2.EndpointA.GetClientState().(*ibctm.ClientState)
 
-	expConsensusHeight2 := clientState.GetLatestHeight()
+	expConsensusHeight2 := clientState.LatestHeight
 	consensusState2, ok := suite.chainA.GetConsensusState(path2.EndpointA.ClientID, expConsensusHeight2)
 	suite.Require().True(ok)
 

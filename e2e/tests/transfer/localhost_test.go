@@ -55,7 +55,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("verify begin blocker was executed", func(t *testing.T) {
 		cs, err := s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
 		s.Require().NoError(err)
-		originalHeight := cs.GetLatestHeight()
+		originalHeight := cs.LatestHeight
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
