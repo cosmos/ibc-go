@@ -34,8 +34,11 @@ jobs:
               password: ${{ secrets.GITHUB_TOKEN }}
          - name: Build image
            run: | 
+            version="$(scripts/get-libwasm-version.py --get-version)"
+            checksum="$(scripts/get-libwasm-version.py --get-checksum)"
+             
             # remove all `/` or `+` characters from the docker tag and replace them with a -.
             # this ensures the docker tag is valid.
             docker_tag="$(echo $GIT_TAG | sed 's/[^a-zA-Z0-9\.]/-/g')"
-            make build-docker-wasm tag="${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
+            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" -f modules/light-clients/08-wasm/Dockerfile --build-arg LIBWASM_VERSION=${version} --build-arg LIBWASM_CHECKSUM=${checksum}
             docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
