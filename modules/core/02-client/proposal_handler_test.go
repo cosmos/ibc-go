@@ -42,14 +42,12 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 
 				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
-				tmClientState.AllowUpdateAfterMisbehaviour = true
 				tmClientState.FrozenHeight = tmClientState.LatestHeight
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID, tmClientState)
 
 				// replicate changes to substitute (they must match)
 				tmClientState, ok = substituteClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
-				tmClientState.AllowUpdateAfterMisbehaviour = true
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID, tmClientState)
 
 				content = clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectPath.EndpointA.ClientID, substitutePath.EndpointA.ClientID)
