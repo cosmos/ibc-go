@@ -816,8 +816,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
 		if channeltypes.IsUpgradeError(err) {
-
-			// Incase the error is a wrapped upgrade error, we need to extract the inner error else process as normal
+			// In case the error is a wrapped upgrade error, we need to extract the inner error else process as normal
 			var upgradeErr *channeltypes.UpgradeError
 			if errors.As(err, &upgradeErr) {
 				k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeErr)
