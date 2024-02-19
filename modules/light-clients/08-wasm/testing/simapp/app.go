@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
-
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"
