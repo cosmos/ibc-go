@@ -323,16 +323,8 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 		return err
 	}
 
-	if err := newClientState.Validate(); err != nil {
-		return err
-	}
-
 	var newConsensusState ConsensusState
 	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
-		return err
-	}
-
-	if err := newConsensusState.ValidateBasic(); err != nil {
 		return err
 	}
 
