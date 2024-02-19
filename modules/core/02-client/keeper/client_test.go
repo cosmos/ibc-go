@@ -487,13 +487,13 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 		upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 		upgradedClient = upgradedClient.ZeroCustomFields()
-		upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
+		upgradedClientBz, err = suite.chainA.Codec.Marshal(upgradedClient)
 		suite.Require().NoError(err)
 
 		upgradedConsState = &ibctm.ConsensusState{
 			NextValidatorsHash: []byte("nextValsHash"),
 		}
-		upgradedConsStateBz, err = clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState)
+		upgradedConsStateBz, err = suite.chainA.Codec.Marshal(upgradedConsState)
 		suite.Require().NoError(err)
 
 		tc.setup()
