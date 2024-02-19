@@ -46,7 +46,6 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 					suite.Require().Nil(msg.Status)
 					suite.Require().Nil(msg.CheckForMisbehaviour)
 					suite.Require().Nil(msg.TimestampAtHeight)
-					suite.Require().Nil(msg.ExportMetadata)
 
 					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
 

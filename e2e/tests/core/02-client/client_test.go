@@ -147,7 +147,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 		s.Require().NotEqual(originalChainID, newChainID)
 
-		upgradedClientState := clientState.ZeroCustomFields().(*ibctm.ClientState)
+		upgradedClientState := clientState.(*ibctm.ClientState).ZeroCustomFields()
 		upgradedClientState.ChainId = newChainID
 
 		legacyUpgradeProposal, err := clienttypes.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, upgradetypes.Plan{
