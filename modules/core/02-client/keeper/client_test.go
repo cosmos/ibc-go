@@ -310,7 +310,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 func (suite *KeeperTestSuite) TestUpgradeClient() {
 	var (
 		path                                             *ibctesting.Path
-		upgradedClient                                   exported.ClientState
+		upgradedClient                                   *ibctm.ClientState
 		upgradedConsState                                exported.ConsensusState
 		lastHeight                                       exported.Height
 		upgradedClientProof, upgradedConsensusStateProof []byte
@@ -422,9 +422,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				suite.Require().NoError(err)
 
 				// change upgradedClient client-specified parameters
-				tmClient := upgradedClient.(*ibctm.ClientState)
-				tmClient.ChainId = "wrongchainID"
-				upgradedClient = tmClient
+				upgradedClient.ChainId = "wrongchainID"
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
@@ -451,9 +449,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				suite.Require().NoError(err)
 
 				// change upgradedClient height to be lower than current client state height
-				tmClient := upgradedClient.(*ibctm.ClientState)
-				tmClient.LatestHeight = clienttypes.NewHeight(0, 1)
-				upgradedClient = tmClient
+				upgradedClient.LatestHeight = clienttypes.NewHeight(0, 1)
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
