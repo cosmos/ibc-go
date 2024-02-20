@@ -659,3 +659,162 @@ func (suite *KeeperTestSuite) TestQueryClientParams() {
 	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
 }
+<<<<<<< HEAD
+=======
+
+func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
+	var (
+		path *ibctesting.Path
+		req  *types.QueryVerifyMembershipRequest
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				bz, err := suite.chainB.Codec.Marshal(&channel)
+				suite.Require().NoError(err)
+
+				channelProof, proofHeight := path.EndpointB.QueryProof(host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+
+				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    path.EndpointA.ClientID,
+					Proof:       channelProof,
+					ProofHeight: proofHeight,
+					MerklePath:  merklePath,
+					Value:       bz,
+				}
+			},
+			nil,
+		},
+		{
+			"req is nil",
+			func() {
+				req = nil
+			},
+			errors.New("empty request"),
+		},
+		{
+			"invalid client ID",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: "//invalid_id",
+				}
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"empty proof",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: ibctesting.FirstClientID,
+					Proof:    []byte{},
+				}
+			},
+			errors.New("empty proof"),
+		},
+		{
+			"invalid proof height",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    ibctesting.FirstClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.ZeroHeight(),
+				}
+			},
+			errors.New("proof height must be non-zero"),
+		},
+		{
+			"empty merkle path",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    ibctesting.FirstClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+				}
+			},
+			errors.New("empty merkle path"),
+		},
+		{
+			"empty value",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    ibctesting.FirstClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+				}
+			},
+			errors.New("empty value"),
+		},
+		{
+			"client not found",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    types.FormatClientIdentifier(exported.Tendermint, 100), // use a sequence which hasn't been created yet
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					Value:       []byte{0x01},
+				}
+			},
+			types.ErrClientNotFound,
+		},
+		{
+			"client not active",
+			func() {
+				params := types.NewParams("") // disable all clients
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    path.EndpointA.ClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					Value:       []byte{0x01},
+				}
+			},
+			types.ErrClientNotActive,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			tc.malleate()
+
+			ctx := suite.chainA.GetContext()
+			initialGas := ctx.GasMeter().GasConsumed()
+			res, err := suite.chainA.QueryServer.VerifyMembership(ctx, req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().True(res.Success, "failed to verify membership proof")
+
+				gasConsumed := ctx.GasMeter().GasConsumed()
+				suite.Require().Greater(gasConsumed, initialGas, "gas consumed should be greater than initial gas")
+			} else {
+				suite.Require().ErrorContains(err, tc.expError.Error())
+
+				gasConsumed := ctx.GasMeter().GasConsumed()
+				suite.Require().GreaterOrEqual(gasConsumed, initialGas, "gas consumed should be greater than or equal to initial gas")
+			}
+		})
+	}
+}
+>>>>>>> 94a4597c (chore: add client status check to verify membership rpc (#5870))
