@@ -503,6 +503,28 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				proof = []byte{}
 			}, false,
 		},
+		{
+			name: "client state is frozen",
+			malleate: func() {
+				clientState := testingpath.EndpointA.GetClientState().(*ibctm.ClientState)
+				// Set the FrozenHeight to a non-zero value to indicate the client is frozen (inactive).
+				clientState.FrozenHeight = clienttypes.NewHeight(1, 1)
+				// Update the client state in the testing path to reflect the frozen state.
+				testingpath.EndpointA.SetClientState(clientState)
+			},
+			expPass: false, // Expect this test to fail since the state is not active (frozen).
+		},
+		{
+			name: "client state is expired",
+			malleate: func() {
+				clientState := testingpath.EndpointA.GetClientState().(*ibctm.ClientState)
+				// Advance the LatestHeight to simulate expiration.
+				clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
+				// Update the client state in the testing path to reflect the expired state.
+				testingpath.EndpointA.SetClientState(clientState)
+			},
+			expPass: false, // Expect this test to fail since the client state is expired.
+		},
 	}
 
 	for _, tc := range testCases {

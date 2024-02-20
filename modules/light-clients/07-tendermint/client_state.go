@@ -219,7 +219,7 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	if cs.Status(ctx, clientStore, cdc) == exported.Expired {
+	if cs.Status(ctx, clientStore, cdc) != exported.Active {
 		return errorsmod.Wrapf(ibcerrors.ErrClientStatusNotActive, "client status is not active")
 	}
 
