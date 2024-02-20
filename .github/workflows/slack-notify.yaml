@@ -1,0 +1,17 @@
+# This re-usable workflow file will trigger a Slack notification on the channel configure via the Webhook URL.
+# It currently comments a number of fields, but you can add or remove them as you see fit.
+#
+# To configure a Slack Webhook URL, follow the instructions here: https://api.slack.com/messaging/webhooks
+on:
+  workflow_call:
+
+jobs:
+  slack-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 8398a7/action-slack@v3
+        with:
+          status: 'failure'
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took,pullRequest
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
