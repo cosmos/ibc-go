@@ -137,6 +137,10 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
+	if cs.Status(ctx, clientStore, cdc) != exported.Active {
+		return errorsmod.Wrapf(ibcerrors.ErrClientStatusNotActive, "client status is not active")
+	}
+
 	proofHeight, ok := height.(clienttypes.Height)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
