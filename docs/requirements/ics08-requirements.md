@@ -1,3 +1,4 @@
+<!-- markdown-link-check-disable -->
 # Business requirements
 
 Using IBC as a mean of communicating between chains and ecosystems has proven to be useful within Cosmos. There is then value in extending
@@ -89,7 +90,7 @@ The first use case that this module will enable is the connection between GRANDP
 
 # Non-functional requirements
 
-### 4 - Storage
+## 4 - Storage
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
@@ -120,3 +121,4 @@ The first use case that this module will enable is the connection between GRANDP
 | -- | ----------- | ------------ | ------ | ------- |
 | 6.01 | There shall be a CLI command available to query the bytecode of a light client Wasm contract by checksum. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/grpc_query.go#L23). | `Verified` | v0.1.0 |
 | 7.02 | There shall be a CLI command available to query the checksums for all deployed light client Wasm contracts. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/grpc_query.go#L49). | `Verified` | v0.1.0 |
+<!-- markdown-link-check-enable-->
