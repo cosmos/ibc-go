@@ -37,6 +37,12 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.C
 
 	packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
+	// REPLAY PROTECTION CHECK
+	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if packet.GetSequence() < recvStartSequence {
+		return errorsmod.Wrap(channeltypes.ErrPacketReceived, "packet already processed in previous channel upgrade")
+	}
+
 	// retrieve the forward relayer that was stored in `onRecvPacket`
 	relayer, found := k.GetRelayerAddressForAsyncAck(ctx, packetID)
 	if !found {
