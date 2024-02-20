@@ -59,6 +59,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 }
 
 // ExportGenesis returns the ibc client submodule's exported genesis.
+// NOTE: the export process is not optimized, it will iterate three
+// times over the 02-client sub-store.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	genClients := k.GetAllGenesisClients(ctx)
 	clientsMetadata, err := k.GetAllClientMetadata(ctx, genClients)
