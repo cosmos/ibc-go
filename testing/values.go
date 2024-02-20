@@ -69,6 +69,6 @@ var (
 	MockRecvCanaryCapabilityName = mock.MockRecvCanaryCapabilityName
 
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
-
-	UnusedHash = tmhash.Sum([]byte{0x00})
+	// unusedHash is a placeholder hash used for testing.
+	unusedHash = tmhash.Sum([]byte{0x00})
 )
