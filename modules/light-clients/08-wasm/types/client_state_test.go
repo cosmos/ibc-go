@@ -448,6 +448,32 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			},
 			ibcerrors.ErrInvalidType,
 		},
+		{
+			"client state is frozen",
+			func() {
+				// Simulate the client state being frozen by registering a query callback
+				// that returns a status indicating the client is frozen.
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					resp, err := json.Marshal(types.StatusResult{Status: exported.Frozen.String()})
+					suite.Require().NoError(err)
+					return resp, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			ibcerrors.ErrClientStatusNotActive, // Adjust based on the expected outcome when the client is frozen.
+		},
+		{
+			"client state is expired",
+			func() {
+				// Simulate the client state being expired by registering a query callback
+				// that returns a status indicating the client is expired.
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					resp, err := json.Marshal(types.StatusResult{Status: exported.Expired.String()})
+					suite.Require().NoError(err)
+					return resp, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			ibcerrors.ErrClientStatusNotActive, // This needs to be defined according to your error handling for expired clients.
+		},
 	}
 
 	for _, tc := range testCases {
