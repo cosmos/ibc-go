@@ -26,7 +26,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.5 // indirect
 	cloud.google.com/go/storage v1.35.1 // indirect
-	cosmossdk.io/api v0.7.2 // indirect
+	cosmossdk.io/api v0.7.3 // indirect
 	cosmossdk.io/client/v2 v2.0.0-beta.1 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.11.0 // indirect
@@ -71,7 +71,7 @@ require (
 	github.com/cometbft/cometbft-db v0.9.1 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-db v1.0.0 // indirect
-	github.com/cosmos/cosmos-proto v1.0.0-beta.3 // indirect
+	github.com/cosmos/cosmos-proto v1.0.0-beta.4 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.0.0 // indirect
