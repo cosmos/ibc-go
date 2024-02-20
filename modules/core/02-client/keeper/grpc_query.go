@@ -372,7 +372,7 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 	}
 
 	if clientStatus := k.GetClientStatus(ctx, clientState, req.ClientId); clientStatus != exported.Active {
-		return nil, status.Errorf(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
+		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
 	}
 
 	if err := clientState.VerifyMembership(cachedCtx, k.ClientStore(cachedCtx, req.ClientId), k.cdc, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
