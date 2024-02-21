@@ -131,6 +131,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 	testCases := []struct {
 		name     string
 		malleate func()
+		expError error
 	}{
 		{
 			"success: custom query",
@@ -165,9 +166,13 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 					store.Set(testKey, value)
 
-					return resp, wasmtesting.DefaultGasUsed, nil
+					result, err := json.Marshal(types.TimestampAtHeightResult{})
+					suite.Require().NoError(err)
+
+					return result, wasmtesting.DefaultGasUsed, nil
 				})
 			},
+			nil,
 		},
 		{
 			// The following test sets a mock proof key and value in the ibc store and registers a query callback on the Status msg.
@@ -220,7 +225,10 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 					suite.Require().True(respData.Success)
 
-					return resp, wasmtesting.DefaultGasUsed, nil
+					result, err := json.Marshal(types.TimestampAtHeightResult{})
+					suite.Require().NoError(err)
+
+					return result, wasmtesting.DefaultGasUsed, nil
 				})
 
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
@@ -247,6 +255,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
+			nil,
 		},
 		{
 			"failure: default querier",
@@ -270,6 +279,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 					return nil, wasmtesting.DefaultGasUsed, err
 				})
 			},
+			wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("'%s' path is not allowed from the contract", typeURL)},
 		},
 	}
 
@@ -290,8 +300,15 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
 			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
 			// due to test case: "success: verify membership query"
-			_, err = clientState.GetTimestampAtHeight(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), clienttypes.GetSelfHeight(suite.chainA.GetContext()))
-			suite.Require().NoError(err)
+			_, err = clientState.GetTimestampAtHeight(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), clienttypes.NewHeight(1, 100))
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				// use error contains as wasmvm errors do not implement errors.Is method
+				suite.Require().ErrorContains(err, tc.expError.Error())
+			}
 
 			if expDiscardedState {
 				suite.Require().False(clientStore.Has(testKey))
