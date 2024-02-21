@@ -290,7 +290,8 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
 			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
 			// due to test case: "success: verify membership query"
-			clientState.GetTimestampAtHeight(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), clienttypes.GetSelfHeight(suite.chainA.GetContext()))
+			_, err = clientState.GetTimestampAtHeight(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), clienttypes.GetSelfHeight(suite.chainA.GetContext()))
+			suite.Require().NoError(err)
 
 			if expDiscardedState {
 				suite.Require().False(clientStore.Has(testKey))
