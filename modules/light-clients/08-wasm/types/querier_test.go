@@ -395,12 +395,6 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 				suite.Require().True(clientStore.Has(testKey))
 			}
 
-			if expDiscardedState {
-				suite.Require().False(clientStore.Has(testKey))
-			} else {
-				suite.Require().True(clientStore.Has(testKey))
-			}
-
 			// reset query plugins after each test
 			ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
 		})
