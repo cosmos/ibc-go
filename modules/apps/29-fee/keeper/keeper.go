@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -390,18 +389,4 @@ func (k Keeper) MustUnmarshalFees(bz []byte) types.PacketFees {
 	var fees types.PacketFees
 	k.cdc.MustUnmarshal(bz, &fees)
 	return fees
-}
-
-// GetRecvStartSequence gets a channel's recv start sequence from the store.
-// The recv start sequence will be set to the counterparty's next sequence send
-// upon a successful channel upgrade. It will be used for replay protection of
-// historical packets and as the upper bound for pruning stale packet receives.
-func (k Keeper) GetRecvStartSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.RecvStartSequenceKey(portID, channelID))
-	if len(bz) == 0 {
-		return 0, false
-	}
-
-	return sdk.BigEndianToUint64(bz), true
 }
