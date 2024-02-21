@@ -85,7 +85,7 @@ To receive announcements of new releases or other technical updates, please join
 
 ## Contributing
 
-If you're interested in contributing to ibc-go, please take a look at the [contributing guidelines](./CONTRIBUTING.md). We welcome and appreciate community contributions!
+If you're interested in contributing to ibc-go, please take a look at the contributing guidelines. We welcome and appreciate community contributions!
 
 This project adheres to ibc-go's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
@@ -109,7 +109,7 @@ To report a security vulnerability, see our [bug bounty program](https://hackero
 
 The following audits have been performed on the `ibc-go` source code:
 
-- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/docs/apps/interchain-accounts/audits) by Trail of Bits
+- ICS27 Interchain Accounts by Trail of Bits
 
 ## Quick Navigation
 
