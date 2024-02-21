@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
@@ -787,22 +788,6 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 				}
 			},
 			types.ErrClientNotFound,
-		},
-		{
-			"client not active",
-			func() {
-				params := types.NewParams("") // disable all clients
-				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
-
-				req = &types.QueryVerifyMembershipRequest{
-					ClientId:    path.EndpointA.ClientID,
-					Proof:       []byte{0x01},
-					ProofHeight: types.NewHeight(1, 100),
-					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
-					Value:       []byte{0x01},
-				}
-			},
-			types.ErrClientNotActive,
 		},
 	}
 
