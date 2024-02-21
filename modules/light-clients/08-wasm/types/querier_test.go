@@ -141,7 +141,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 				ibcwasm.SetQueryPlugins(&querierPlugin)
 
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
 					bz, err := queryRequest.Marshal()
 					suite.Require().NoError(err)
@@ -194,7 +194,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainA.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					queryRequest := clienttypes.QueryVerifyMembershipRequest{
 						ClientId:    endpoint.ClientID,
 						Proof:       proof,
@@ -251,7 +251,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 		{
 			"failure: default querier",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
 					bz, err := queryRequest.Marshal()
 					suite.Require().NoError(err)
@@ -286,7 +286,12 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState := endpoint.GetClientState()
-			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+
+			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
+			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
+			// due to test case: "success: verify membership query"
+			_, err = clientState.GetTimestampAtHeight(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), clienttypes.GetSelfHeight(suite.chainA.GetContext()))
+			suite.Require().NoError(err)
 
 			if expDiscardedState {
 				suite.Require().False(clientStore.Has(testKey))
