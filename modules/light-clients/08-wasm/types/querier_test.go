@@ -141,7 +141,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 				ibcwasm.SetQueryPlugins(&querierPlugin)
 
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
 					bz, err := queryRequest.Marshal()
 					suite.Require().NoError(err)
@@ -169,90 +169,89 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 				})
 			},
 		},
-		// TODO(damian): extract this test to remove recursive calls to `Status` within the flow or fix it otherwise.
-		// {
-		// 	// The following test sets a mock proof key and value in the ibc store and registers a query callback on the Status msg.
-		// 	// The Status handler will then perform the QueryVerifyMembershipRequest using the wasmvm.Querier.
-		// 	// As the VerifyMembership query rpc will call directly back into the same client, we also register a callback for VerifyMembership.
-		// 	// Here we decode the proof and verify the mock proof key and value are set in the ibc store.
-		// 	// This exercises the full flow through the grpc handler and into the light client for verification, handling encoding and routing.
-		// 	// Furthermore we write a test key and assert that the state changes made by this handler were discarded by the cachedCtx at the grpc handler.
-		// 	"success: verify membership query",
-		// 	func() {
-		// 		querierPlugin := types.QueryPlugins{
-		// 			Stargate: types.AcceptListStargateQuerier([]string{""}),
-		// 		}
+		{
+			// The following test sets a mock proof key and value in the ibc store and registers a query callback on the Status msg.
+			// The Status handler will then perform the QueryVerifyMembershipRequest using the wasmvm.Querier.
+			// As the VerifyMembership query rpc will call directly back into the same client, we also register a callback for VerifyMembership.
+			// Here we decode the proof and verify the mock proof key and value are set in the ibc store.
+			// This exercises the full flow through the grpc handler and into the light client for verification, handling encoding and routing.
+			// Furthermore we write a test key and assert that the state changes made by this handler were discarded by the cachedCtx at the grpc handler.
+			"success: verify membership query",
+			func() {
+				querierPlugin := types.QueryPlugins{
+					Stargate: types.AcceptListStargateQuerier([]string{""}),
+				}
 
-		// 		ibcwasm.SetQueryPlugins(&querierPlugin)
+				ibcwasm.SetQueryPlugins(&querierPlugin)
 
-		// 		store := suite.chainA.GetContext().KVStore(GetSimApp(suite.chainA).GetKey(exported.StoreKey))
-		// 		store.Set(proofKey, value)
+				store := suite.chainA.GetContext().KVStore(GetSimApp(suite.chainA).GetKey(exported.StoreKey))
+				store.Set(proofKey, value)
 
-		// 		suite.coordinator.CommitBlock(suite.chainA)
-		// 		proof, proofHeight := endpoint.QueryProofAtHeight(proofKey, uint64(suite.chainA.GetContext().BlockHeight()))
+				suite.coordinator.CommitBlock(suite.chainA)
+				proof, proofHeight := endpoint.QueryProofAtHeight(proofKey, uint64(suite.chainA.GetContext().BlockHeight()))
 
-		// 		merklePath := commitmenttypes.NewMerklePath(string(proofKey))
-		// 		merklePath, err := commitmenttypes.ApplyPrefix(suite.chainA.GetPrefix(), merklePath)
-		// 		suite.Require().NoError(err)
+				merklePath := commitmenttypes.NewMerklePath(string(proofKey))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainA.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
-		// 		suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
-		// 			queryRequest := clienttypes.QueryVerifyMembershipRequest{
-		// 				ClientId:    endpoint.ClientID,
-		// 				Proof:       proof,
-		// 				ProofHeight: proofHeight,
-		// 				MerklePath:  merklePath,
-		// 				Value:       value,
-		// 			}
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					queryRequest := clienttypes.QueryVerifyMembershipRequest{
+						ClientId:    endpoint.ClientID,
+						Proof:       proof,
+						ProofHeight: proofHeight,
+						MerklePath:  merklePath,
+						Value:       value,
+					}
 
-		// 			bz, err := queryRequest.Marshal()
-		// 			suite.Require().NoError(err)
+					bz, err := queryRequest.Marshal()
+					suite.Require().NoError(err)
 
-		// 			resp, err := querier.Query(wasmvmtypes.QueryRequest{
-		// 				Stargate: &wasmvmtypes.StargateQuery{
-		// 					Path: "/ibc.core.client.v1.Query/VerifyMembership",
-		// 					Data: bz,
-		// 				},
-		// 			}, math.MaxUint64)
-		// 			suite.Require().NoError(err)
+					resp, err := querier.Query(wasmvmtypes.QueryRequest{
+						Stargate: &wasmvmtypes.StargateQuery{
+							Path: "/ibc.core.client.v1.Query/VerifyMembership",
+							Data: bz,
+						},
+					}, math.MaxUint64)
+					suite.Require().NoError(err)
 
-		// 			var respData clienttypes.QueryVerifyMembershipResponse
-		// 			err = respData.Unmarshal(resp)
-		// 			suite.Require().NoError(err)
+					var respData clienttypes.QueryVerifyMembershipResponse
+					err = respData.Unmarshal(resp)
+					suite.Require().NoError(err)
 
-		// 			suite.Require().True(respData.Success)
+					suite.Require().True(respData.Success)
 
-		// 			return resp, wasmtesting.DefaultGasUsed, nil
-		// 		})
+					return resp, wasmtesting.DefaultGasUsed, nil
+				})
 
-		// 		suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
-		// 			_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-		// 		) (*wasmvmtypes.Response, uint64, error) {
-		// 			var payload types.SudoMsg
-		// 			err := json.Unmarshal(sudoMsg, &payload)
-		// 			suite.Require().NoError(err)
+				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
+					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
+				) (*wasmvmtypes.Response, uint64, error) {
+					var payload types.SudoMsg
+					err := json.Unmarshal(sudoMsg, &payload)
+					suite.Require().NoError(err)
 
-		// 			var merkleProof commitmenttypes.MerkleProof
-		// 			err = suite.chainA.Codec.Unmarshal(payload.VerifyMembership.Proof, &merkleProof)
-		// 			suite.Require().NoError(err)
+					var merkleProof commitmenttypes.MerkleProof
+					err = suite.chainA.Codec.Unmarshal(payload.VerifyMembership.Proof, &merkleProof)
+					suite.Require().NoError(err)
 
-		// 			root := commitmenttypes.NewMerkleRoot(suite.chainA.App.LastCommitID().Hash)
-		// 			err = merkleProof.VerifyMembership(commitmenttypes.GetSDKSpecs(), root, merklePath, payload.VerifyMembership.Value)
-		// 			suite.Require().NoError(err)
+					root := commitmenttypes.NewMerkleRoot(suite.chainA.App.LastCommitID().Hash)
+					err = merkleProof.VerifyMembership(commitmenttypes.GetSDKSpecs(), root, merklePath, payload.VerifyMembership.Value)
+					suite.Require().NoError(err)
 
-		// 			bz, err := json.Marshal(types.EmptyResult{})
-		// 			suite.Require().NoError(err)
+					bz, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
 
-		// 			expDiscardedState = true
-		// 			store.Set(testKey, value)
+					expDiscardedState = true
+					store.Set(testKey, value)
 
-		// 			return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
-		// 		})
-		// 	},
-		// },
+					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+		},
 		{
 			"failure: default querier",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
 					bz, err := queryRequest.Marshal()
 					suite.Require().NoError(err)
@@ -287,7 +286,12 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState := endpoint.GetClientState()
-			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+
+			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
+			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
+			// due to test case: "success: verify membership query"
+			_, err = clientState.GetTimestampAtHeight(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), clienttypes.GetSelfHeight(suite.chainA.GetContext()))
+			suite.Require().NoError(err)
 
 			if expDiscardedState {
 				suite.Require().False(clientStore.Has(testKey))
