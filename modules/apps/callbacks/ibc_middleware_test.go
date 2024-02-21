@@ -567,8 +567,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			callbackFailed,
 			panicAck,
 		},
-<<<<<<< HEAD
-=======
 		{
 			"failure: callback execution fails",
 			func() {
@@ -578,7 +576,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			callbackFailed,
 			successAck,
 		},
->>>>>>> ce3cfc07 (test(callbacks): simplified mock contract keeper's processCallback logic (#4375))
 	}
 
 	for _, tc := range testCases {
