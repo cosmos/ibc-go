@@ -659,8 +659,6 @@ func (suite *KeeperTestSuite) TestQueryClientParams() {
 	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
 }
-<<<<<<< HEAD
-=======
 
 func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 	var (
@@ -817,4 +815,3 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 		})
 	}
 }
->>>>>>> 94a4597c (chore: add client status check to verify membership rpc (#5870))
