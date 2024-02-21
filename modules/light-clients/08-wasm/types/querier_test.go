@@ -154,23 +154,17 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 					suite.Require().Len(respData.Checksums, 1)
 					suite.Require().Equal(expChecksum, respData.Checksums[0])
 
-<<<<<<< HEAD
-					return resp, wasmtesting.DefaultGasUsed, nil
-=======
 					store.Set(testKey, value)
 
 					result, err := json.Marshal(types.TimestampAtHeightResult{})
 					suite.Require().NoError(err)
 
 					return result, wasmtesting.DefaultGasUsed, nil
->>>>>>> 6b118957 (fix: return correct types in wasm tests and add expected err (#5883))
 				})
 			},
 			nil,
 		},
 		{
-<<<<<<< HEAD
-=======
 			// The following test sets a mock proof key and value in the ibc store and registers a query callback on the Status msg.
 			// The Status handler will then perform the QueryVerifyMembershipRequest using the wasmvm.Querier.
 			// As the VerifyMembership query rpc will call directly back into the same client, we also register a callback for VerifyMembership.
@@ -254,7 +248,6 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			nil,
 		},
 		{
->>>>>>> 6b118957 (fix: return correct types in wasm tests and add expected err (#5883))
 			"failure: default querier",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
@@ -290,9 +283,6 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState := endpoint.GetClientState()
-<<<<<<< HEAD
-			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
-=======
 
 			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
 			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
@@ -312,7 +302,6 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			} else {
 				suite.Require().True(clientStore.Has(testKey))
 			}
->>>>>>> 6b118957 (fix: return correct types in wasm tests and add expected err (#5883))
 
 			// reset query plugins after each test
 			ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
