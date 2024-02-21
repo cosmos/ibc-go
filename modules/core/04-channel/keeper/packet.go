@@ -305,6 +305,14 @@ func (k Keeper) WriteAcknowledgement(
 		)
 	}
 
+	// REPLAY PROTECTION: Even after the packet has been processed and acknowledgement is returned,
+	// it won't be possible to replay the acknowledgement processing on the sender side as the packet
+	// commitment won't exist, thus this check is simply to protect unnecessary state from being written into storage.
+	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if packet.GetSequence() < recvStartSequence {
+		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
+	}
+
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
