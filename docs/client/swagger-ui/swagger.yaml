@@ -5887,7 +5887,7 @@ paths:
           format: uint64
         - name: latest_height
           description: >-
-            latest_height overrrides the height field and queries the latest
+            latest_height overrides the height field and queries the latest
             stored
 
             ConsensusState.
@@ -6896,6 +6896,299 @@ paths:
                         }
       tags:
         - Query
+  /ibc/core/client/v1/verify_membership:
+    post:
+      summary: >-
+        VerifyMembership queries an IBC light client for proof verification of a
+        value at a given key path.
+      operationId: VerifyMembership
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                description: boolean indicating success or failure of proof verification.
+            title: >-
+              QueryVerifyMembershipResponse is the response type for the
+              Query/VerifyMembership RPC method
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              client_id:
+                type: string
+                description: client unique identifier.
+              proof:
+                type: string
+                format: byte
+                description: the proof to be verified by the client.
+              proof_height:
+                type: object
+                properties:
+                  revision_number:
+                    type: string
+                    format: uint64
+                    title: the revision that the client is currently on
+                  revision_height:
+                    type: string
+                    format: uint64
+                    title: the height within the given revision
+                description: >-
+                  Normally the RevisionHeight is incremented at each height
+                  while keeping
+
+                  RevisionNumber the same. However some consensus algorithms may
+                  choose to
+
+                  reset the height in certain conditions e.g. hard forks,
+                  state-machine
+
+                  breaking changes In these cases, the RevisionNumber is
+                  incremented so that
+
+                  height continues to be monitonically increasing even as the
+                  RevisionHeight
+
+                  gets reset
+                title: >-
+                  Height is a monotonically increasing data type
+
+                  that can be compared against another Height for the purposes
+                  of updating and
+
+                  freezing clients
+              merkle_path:
+                description: the commitment key path.
+                type: object
+                properties:
+                  key_path:
+                    type: array
+                    items:
+                      type: string
+                title: >-
+                  MerklePath is the path used to verify commitment proofs, which
+                  can be an
+
+                  arbitrary structured object (defined by a commitment type).
+
+                  MerklePath is represented from root-to-leaf
+              value:
+                type: string
+                format: byte
+                description: the value which is proven.
+              time_delay:
+                type: string
+                format: uint64
+                title: optional time delay
+              block_delay:
+                type: string
+                format: uint64
+                title: optional block delay
+            title: >-
+              QueryVerifyMembershipRequest is the request type for the
+              Query/VerifyMembership RPC method
+      tags:
+        - Query
   /ibc/core/connection/v1/client_connections/{client_id}:
     get:
       summary: |-
@@ -7189,7 +7482,7 @@ paths:
                               identifier
                         description: >-
                           Version defines the versioning scheme used to
-                          negotiate the IBC verison in
+                          negotiate the IBC version in
 
                           the connection handshake.
                       title: >-
@@ -7598,7 +7891,7 @@ paths:
                             identifier
                       description: >-
                         Version defines the versioning scheme used to negotiate
-                        the IBC verison in
+                        the IBC version in
 
                         the connection handshake.
                     description: >-
@@ -9042,12 +9335,15 @@ paths:
                         - STATE_TRYOPEN
                         - STATE_OPEN
                         - STATE_CLOSED
+                        - STATE_FLUSHING
+                        - STATE_FLUSHCOMPLETE
                       default: STATE_UNINITIALIZED_UNSPECIFIED
                       description: >-
                         State defines if a channel is in one of the following
                         states:
 
-                        CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+                        CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or
+                        UNINITIALIZED.
 
                          - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                          - STATE_INIT: A channel has just started the opening handshake.
@@ -9056,6 +9352,8 @@ paths:
                         ready to send and receive packets.
                          - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                         packets.
+                         - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+                         - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
                     ordering:
                       title: whether the channel is ordered or unordered
                       type: string
@@ -9102,6 +9400,15 @@ paths:
                     channel_id:
                       type: string
                       title: channel identifier
+                    upgrade_sequence:
+                      type: string
+                      format: uint64
+                      title: >-
+                        upgrade sequence indicates the latest upgrade attempt
+                        performed by this channel
+
+                        the value of 0 indicates the channel has never been
+                        upgraded
                   description: >-
                     IdentifiedChannel defines a channel with additional port and
                     channel
@@ -9445,12 +9752,15 @@ paths:
                       - STATE_TRYOPEN
                       - STATE_OPEN
                       - STATE_CLOSED
+                      - STATE_FLUSHING
+                      - STATE_FLUSHCOMPLETE
                     default: STATE_UNINITIALIZED_UNSPECIFIED
                     description: >-
                       State defines if a channel is in one of the following
                       states:
 
-                      CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+                      CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or
+                      UNINITIALIZED.
 
                        - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                        - STATE_INIT: A channel has just started the opening handshake.
@@ -9459,6 +9769,8 @@ paths:
                       ready to send and receive packets.
                        - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                       packets.
+                       - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+                       - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
                   ordering:
                     title: whether the channel is ordered or unordered
                     type: string
@@ -9498,6 +9810,15 @@ paths:
                     title: >-
                       opaque channel version, which is agreed upon during the
                       handshake
+                  upgrade_sequence:
+                    type: string
+                    format: uint64
+                    title: >-
+                      upgrade sequence indicates the latest upgrade attempt
+                      performed by this channel
+
+                      the value of 0 indicates the channel has never been
+                      upgraded
                 description: >-
                   Channel defines pipeline for exactly-once packet delivery
                   between specific
@@ -10701,7 +11022,7 @@ paths:
 
                   gets reset
             title: |-
-              QuerySequenceResponse is the request type for the
+              QuerySequenceResponse is the response type for the
               Query/QueryNextSequenceReceiveResponse RPC method
         default:
           description: An unexpected error response.
@@ -13252,6 +13573,624 @@ paths:
           format: uint64
       tags:
         - Query
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/upgrade:
+    get:
+      summary: Upgrade returns the upgrade for a given port and channel id.
+      operationId: Upgrade
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              upgrade:
+                type: object
+                properties:
+                  fields:
+                    type: object
+                    properties:
+                      ordering:
+                        type: string
+                        enum:
+                          - ORDER_NONE_UNSPECIFIED
+                          - ORDER_UNORDERED
+                          - ORDER_ORDERED
+                        default: ORDER_NONE_UNSPECIFIED
+                        description: >-
+                          - ORDER_NONE_UNSPECIFIED: zero-value for channel
+                          ordering
+                           - ORDER_UNORDERED: packets can be delivered in any order, which may differ from the order in
+                          which they were sent.
+                           - ORDER_ORDERED: packets are delivered exactly in the order which they were sent
+                        title: Order defines if a channel is ORDERED or UNORDERED
+                      connection_hops:
+                        type: array
+                        items:
+                          type: string
+                      version:
+                        type: string
+                    description: >-
+                      UpgradeFields are the fields in a channel end which may be
+                      changed
+
+                      during a channel upgrade.
+                  timeout:
+                    type: object
+                    properties:
+                      height:
+                        title: >-
+                          block height after which the packet or upgrade times
+                          out
+                        type: object
+                        properties:
+                          revision_number:
+                            type: string
+                            format: uint64
+                            title: the revision that the client is currently on
+                          revision_height:
+                            type: string
+                            format: uint64
+                            title: the height within the given revision
+                        description: >-
+                          Normally the RevisionHeight is incremented at each
+                          height while keeping
+
+                          RevisionNumber the same. However some consensus
+                          algorithms may choose to
+
+                          reset the height in certain conditions e.g. hard
+                          forks, state-machine
+
+                          breaking changes In these cases, the RevisionNumber is
+                          incremented so that
+
+                          height continues to be monitonically increasing even
+                          as the RevisionHeight
+
+                          gets reset
+                      timestamp:
+                        type: string
+                        format: uint64
+                        title: >-
+                          block timestamp (in nanoseconds) after which the
+                          packet or upgrade times out
+                    description: >-
+                      Timeout defines an execution deadline structure for
+                      04-channel handlers.
+
+                      This includes packet lifecycle handlers as well as the
+                      upgrade handshake handlers.
+
+                      A valid Timeout contains either one or both of a timestamp
+                      and block height (sequence).
+                  next_sequence_send:
+                    type: string
+                    format: uint64
+                description: >-
+                  Upgrade is a verifiable type which contains the relevant
+                  information
+
+                  for an attempted upgrade. It provides the proposed changes to
+                  the channel
+
+                  end, the timeout for this upgrade attempt and the next packet
+                  sequence
+
+                  which allows the counterparty to efficiently know the highest
+                  sequence it has received.
+
+                  The next sequence send is used for pruning and upgrading from
+                  unordered to ordered channels.
+              proof:
+                type: string
+                format: byte
+                title: merkle proof of existence
+              proof_height:
+                title: height at which the proof was retrieved
+                type: object
+                properties:
+                  revision_number:
+                    type: string
+                    format: uint64
+                    title: the revision that the client is currently on
+                  revision_height:
+                    type: string
+                    format: uint64
+                    title: the height within the given revision
+                description: >-
+                  Normally the RevisionHeight is incremented at each height
+                  while keeping
+
+                  RevisionNumber the same. However some consensus algorithms may
+                  choose to
+
+                  reset the height in certain conditions e.g. hard forks,
+                  state-machine
+
+                  breaking changes In these cases, the RevisionNumber is
+                  incremented so that
+
+                  height continues to be monitonically increasing even as the
+                  RevisionHeight
+
+                  gets reset
+            title: >-
+              QueryUpgradeResponse is the response type for the
+              QueryUpgradeResponse RPC method
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: channel_id
+          in: path
+          required: true
+          type: string
+        - name: port_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/upgrade_error:
+    get:
+      summary: UpgradeError returns the error receipt if the upgrade handshake failed.
+      operationId: UpgradeError
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              error_receipt:
+                type: object
+                properties:
+                  sequence:
+                    type: string
+                    format: uint64
+                    title: the channel upgrade sequence
+                  message:
+                    type: string
+                    title: the error message detailing the cause of failure
+                description: >-
+                  ErrorReceipt defines a type which encapsulates the upgrade
+                  sequence and error associated with the
+
+                  upgrade handshake failure. When a channel upgrade handshake is
+                  aborted both chains are expected to increment to the
+
+                  next sequence.
+              proof:
+                type: string
+                format: byte
+                title: merkle proof of existence
+              proof_height:
+                title: height at which the proof was retrieved
+                type: object
+                properties:
+                  revision_number:
+                    type: string
+                    format: uint64
+                    title: the revision that the client is currently on
+                  revision_height:
+                    type: string
+                    format: uint64
+                    title: the height within the given revision
+                description: >-
+                  Normally the RevisionHeight is incremented at each height
+                  while keeping
+
+                  RevisionNumber the same. However some consensus algorithms may
+                  choose to
+
+                  reset the height in certain conditions e.g. hard forks,
+                  state-machine
+
+                  breaking changes In these cases, the RevisionNumber is
+                  incremented so that
+
+                  height continues to be monitonically increasing even as the
+                  RevisionHeight
+
+                  gets reset
+            title: >-
+              QueryUpgradeErrorResponse is the response type for the
+              Query/QueryUpgradeError RPC method
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: channel_id
+          in: path
+          required: true
+          type: string
+        - name: port_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /ibc/core/channel/v1/connections/{connection}/channels:
     get:
       summary: |-
@@ -13278,12 +14217,15 @@ paths:
                         - STATE_TRYOPEN
                         - STATE_OPEN
                         - STATE_CLOSED
+                        - STATE_FLUSHING
+                        - STATE_FLUSHCOMPLETE
                       default: STATE_UNINITIALIZED_UNSPECIFIED
                       description: >-
                         State defines if a channel is in one of the following
                         states:
 
-                        CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+                        CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or
+                        UNINITIALIZED.
 
                          - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                          - STATE_INIT: A channel has just started the opening handshake.
@@ -13292,6 +14234,8 @@ paths:
                         ready to send and receive packets.
                          - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                         packets.
+                         - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+                         - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
                     ordering:
                       title: whether the channel is ordered or unordered
                       type: string
@@ -13338,6 +14282,15 @@ paths:
                     channel_id:
                       type: string
                       title: channel identifier
+                    upgrade_sequence:
+                      type: string
+                      format: uint64
+                      title: >-
+                        upgrade sequence indicates the latest upgrade attempt
+                        performed by this channel
+
+                        the value of 0 indicates the channel has never been
+                        upgraded
                   description: >-
                     IdentifiedChannel defines a channel with additional port and
                     channel
@@ -13663,22 +14616,287 @@ paths:
           type: boolean
       tags:
         - Query
-  /ibc/lightclients/wasm/v1/code_hashes:
+  /ibc/core/channel/v1/params:
     get:
-      summary: Get all Wasm code hashes
-      operationId: CodeHashes
+      summary: ChannelParams queries all parameters of the ibc channel submodule.
+      operationId: ChannelParams
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              code_hashes:
+              params:
+                description: params defines the parameters of the module.
+                type: object
+                properties:
+                  upgrade_timeout:
+                    type: object
+                    properties:
+                      height:
+                        title: >-
+                          block height after which the packet or upgrade times
+                          out
+                        type: object
+                        properties:
+                          revision_number:
+                            type: string
+                            format: uint64
+                            title: the revision that the client is currently on
+                          revision_height:
+                            type: string
+                            format: uint64
+                            title: the height within the given revision
+                        description: >-
+                          Normally the RevisionHeight is incremented at each
+                          height while keeping
+
+                          RevisionNumber the same. However some consensus
+                          algorithms may choose to
+
+                          reset the height in certain conditions e.g. hard
+                          forks, state-machine
+
+                          breaking changes In these cases, the RevisionNumber is
+                          incremented so that
+
+                          height continues to be monitonically increasing even
+                          as the RevisionHeight
+
+                          gets reset
+                      timestamp:
+                        type: string
+                        format: uint64
+                        title: >-
+                          block timestamp (in nanoseconds) after which the
+                          packet or upgrade times out
+                    description: >-
+                      Timeout defines an execution deadline structure for
+                      04-channel handlers.
+
+                      This includes packet lifecycle handlers as well as the
+                      upgrade handshake handlers.
+
+                      A valid Timeout contains either one or both of a timestamp
+                      and block height (sequence).
+            description: >-
+              QueryChannelParamsResponse is the response type for the
+              Query/ChannelParams RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      tags:
+        - Query
+  /ibc/lightclients/wasm/v1/checksums:
+    get:
+      summary: Get all Wasm checksums
+      operationId: Checksums
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              checksums:
                 type: array
                 items:
                   type: string
+                description: >-
+                  checksums is a list of the hex encoded checksums of all wasm
+                  codes stored.
               pagination:
-                description: pagination defines an optional pagination for the request.
+                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   next_key:
@@ -13697,8 +14915,8 @@ paths:
 
                       was set, its value is undefined otherwise
             description: >-
-              QueryCodeHashesResponse is the response type for the
-              Query/CodeHashes RPC method.
+              QueryChecksumsResponse is the response type for the
+              Query/Checksums RPC method.
         default:
           description: An unexpected error response.
           schema:
@@ -13780,9 +14998,9 @@ paths:
           type: boolean
       tags:
         - Query
-  /ibc/lightclients/wasm/v1/code_hashes/{code_hash}/code:
+  /ibc/lightclients/wasm/v1/checksums/{checksum}/code:
     get:
-      summary: Get Wasm code for given code hash
+      summary: Get Wasm code for given checksum
       operationId: Code
       responses:
         '200':
@@ -13819,7 +15037,8 @@ paths:
                       type: string
                       format: byte
       parameters:
-        - name: code_hash
+        - name: checksum
+          description: checksum is a hex encoded string of the code stored.
           in: path
           required: true
           type: string
@@ -15234,7 +16453,7 @@ definitions:
         format: uint64
         title: packet sequence
     title: |-
-      PacketId is an identifer for a unique Packet
+      PacketId is an identifier for a unique Packet
       Source chains refer to packets by source port/channel
       Destination chains refer to packets by destination port/channel
   ibc.core.client.v1.ConsensusStateWithHeight:
@@ -16993,6 +18212,100 @@ definitions:
     description: |-
       QueryUpgradedConsensusStateResponse is the response type for the
       Query/UpgradedConsensusState RPC method.
+  ibc.core.client.v1.QueryVerifyMembershipRequest:
+    type: object
+    properties:
+      client_id:
+        type: string
+        description: client unique identifier.
+      proof:
+        type: string
+        format: byte
+        description: the proof to be verified by the client.
+      proof_height:
+        type: object
+        properties:
+          revision_number:
+            type: string
+            format: uint64
+            title: the revision that the client is currently on
+          revision_height:
+            type: string
+            format: uint64
+            title: the height within the given revision
+        description: >-
+          Normally the RevisionHeight is incremented at each height while
+          keeping
+
+          RevisionNumber the same. However some consensus algorithms may choose
+          to
+
+          reset the height in certain conditions e.g. hard forks, state-machine
+
+          breaking changes In these cases, the RevisionNumber is incremented so
+          that
+
+          height continues to be monitonically increasing even as the
+          RevisionHeight
+
+          gets reset
+        title: >-
+          Height is a monotonically increasing data type
+
+          that can be compared against another Height for the purposes of
+          updating and
+
+          freezing clients
+      merkle_path:
+        description: the commitment key path.
+        type: object
+        properties:
+          key_path:
+            type: array
+            items:
+              type: string
+        title: >-
+          MerklePath is the path used to verify commitment proofs, which can be
+          an
+
+          arbitrary structured object (defined by a commitment type).
+
+          MerklePath is represented from root-to-leaf
+      value:
+        type: string
+        format: byte
+        description: the value which is proven.
+      time_delay:
+        type: string
+        format: uint64
+        title: optional time delay
+      block_delay:
+        type: string
+        format: uint64
+        title: optional block delay
+    title: >-
+      QueryVerifyMembershipRequest is the request type for the
+      Query/VerifyMembership RPC method
+  ibc.core.client.v1.QueryVerifyMembershipResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: boolean indicating success or failure of proof verification.
+    title: >-
+      QueryVerifyMembershipResponse is the response type for the
+      Query/VerifyMembership RPC method
+  ibc.core.commitment.v1.MerklePath:
+    type: object
+    properties:
+      key_path:
+        type: array
+        items:
+          type: string
+    title: |-
+      MerklePath is the path used to verify commitment proofs, which can be an
+      arbitrary structured object (defined by a commitment type).
+      MerklePath is represented from root-to-leaf
   ibc.core.commitment.v1.MerklePrefix:
     type: object
     properties:
@@ -17024,7 +18337,7 @@ definitions:
               title: list of features compatible with the specified identifier
           description: >-
             Version defines the versioning scheme used to negotiate the IBC
-            verison in
+            version in
 
             the connection handshake.
         description: >-
@@ -17146,7 +18459,7 @@ definitions:
               title: list of features compatible with the specified identifier
           description: >-
             Version defines the versioning scheme used to negotiate the IBC
-            verison in
+            version in
 
             the connection handshake.
         title: >-
@@ -17731,7 +19044,7 @@ definitions:
                   title: list of features compatible with the specified identifier
               description: >-
                 Version defines the versioning scheme used to negotiate the IBC
-                verison in
+                version in
 
                 the connection handshake.
             description: >-
@@ -17868,7 +19181,7 @@ definitions:
                     title: list of features compatible with the specified identifier
                 description: >-
                   Version defines the versioning scheme used to negotiate the
-                  IBC verison in
+                  IBC version in
 
                   the connection handshake.
               title: >-
@@ -18014,7 +19327,7 @@ definitions:
           type: string
         title: list of features compatible with the specified identifier
     description: |-
-      Version defines the versioning scheme used to negotiate the IBC verison in
+      Version defines the versioning scheme used to negotiate the IBC version in
       the connection handshake.
   ibc.core.channel.v1.Channel:
     type: object
@@ -18028,10 +19341,12 @@ definitions:
           - STATE_TRYOPEN
           - STATE_OPEN
           - STATE_CLOSED
+          - STATE_FLUSHING
+          - STATE_FLUSHCOMPLETE
         default: STATE_UNINITIALIZED_UNSPECIFIED
         description: |-
           State defines if a channel is in one of the following states:
-          CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+          CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or UNINITIALIZED.
 
            - STATE_UNINITIALIZED_UNSPECIFIED: Default State
            - STATE_INIT: A channel has just started the opening handshake.
@@ -18040,6 +19355,8 @@ definitions:
           ready to send and receive packets.
            - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
           packets.
+           - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+           - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
       ordering:
         title: whether the channel is ordered or unordered
         type: string
@@ -18075,6 +19392,14 @@ definitions:
       version:
         type: string
         title: opaque channel version, which is agreed upon during the handshake
+      upgrade_sequence:
+        type: string
+        format: uint64
+        title: >-
+          upgrade sequence indicates the latest upgrade attempt performed by
+          this channel
+
+          the value of 0 indicates the channel has never been upgraded
     description: |-
       Channel defines pipeline for exactly-once packet delivery between specific
       modules on separate blockchains, which has at least one end capable of
@@ -18091,6 +19416,24 @@ definitions:
         type: string
         title: channel end on the counterparty chain
     title: Counterparty defines a channel end counterparty
+  ibc.core.channel.v1.ErrorReceipt:
+    type: object
+    properties:
+      sequence:
+        type: string
+        format: uint64
+        title: the channel upgrade sequence
+      message:
+        type: string
+        title: the error message detailing the cause of failure
+    description: >-
+      ErrorReceipt defines a type which encapsulates the upgrade sequence and
+      error associated with the
+
+      upgrade handshake failure. When a channel upgrade handshake is aborted
+      both chains are expected to increment to the
+
+      next sequence.
   ibc.core.channel.v1.IdentifiedChannel:
     type: object
     properties:
@@ -18103,10 +19446,12 @@ definitions:
           - STATE_TRYOPEN
           - STATE_OPEN
           - STATE_CLOSED
+          - STATE_FLUSHING
+          - STATE_FLUSHCOMPLETE
         default: STATE_UNINITIALIZED_UNSPECIFIED
         description: |-
           State defines if a channel is in one of the following states:
-          CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+          CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or UNINITIALIZED.
 
            - STATE_UNINITIALIZED_UNSPECIFIED: Default State
            - STATE_INIT: A channel has just started the opening handshake.
@@ -18115,6 +19460,8 @@ definitions:
           ready to send and receive packets.
            - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
           packets.
+           - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+           - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
       ordering:
         title: whether the channel is ordered or unordered
         type: string
@@ -18156,6 +19503,14 @@ definitions:
       channel_id:
         type: string
         title: channel identifier
+      upgrade_sequence:
+        type: string
+        format: uint64
+        title: >-
+          upgrade sequence indicates the latest upgrade attempt performed by
+          this channel
+
+          the value of 0 indicates the channel has never been upgraded
     description: |-
       IdentifiedChannel defines a channel with additional port and channel
       identifier fields.
@@ -18194,6 +19549,57 @@ definitions:
       packet commitments, acknowledgements, and receipts.
       Caller is responsible for knowing the context necessary to interpret this
       state as a commitment, acknowledgement, or a receipt.
+  ibc.core.channel.v1.Params:
+    type: object
+    properties:
+      upgrade_timeout:
+        type: object
+        properties:
+          height:
+            title: block height after which the packet or upgrade times out
+            type: object
+            properties:
+              revision_number:
+                type: string
+                format: uint64
+                title: the revision that the client is currently on
+              revision_height:
+                type: string
+                format: uint64
+                title: the height within the given revision
+            description: >-
+              Normally the RevisionHeight is incremented at each height while
+              keeping
+
+              RevisionNumber the same. However some consensus algorithms may
+              choose to
+
+              reset the height in certain conditions e.g. hard forks,
+              state-machine
+
+              breaking changes In these cases, the RevisionNumber is incremented
+              so that
+
+              height continues to be monitonically increasing even as the
+              RevisionHeight
+
+              gets reset
+          timestamp:
+            type: string
+            format: uint64
+            title: >-
+              block timestamp (in nanoseconds) after which the packet or upgrade
+              times out
+        description: >-
+          Timeout defines an execution deadline structure for 04-channel
+          handlers.
+
+          This includes packet lifecycle handlers as well as the upgrade
+          handshake handlers.
+
+          A valid Timeout contains either one or both of a timestamp and block
+          height (sequence).
+    description: Params defines the set of IBC channel parameters.
   ibc.core.channel.v1.QueryChannelClientStateResponse:
     type: object
     properties:
@@ -18619,6 +20025,63 @@ definitions:
     title: |-
       QueryChannelClientStateResponse is the Response type for the
       Query/QueryChannelClientState RPC method
+  ibc.core.channel.v1.QueryChannelParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params defines the parameters of the module.
+        type: object
+        properties:
+          upgrade_timeout:
+            type: object
+            properties:
+              height:
+                title: block height after which the packet or upgrade times out
+                type: object
+                properties:
+                  revision_number:
+                    type: string
+                    format: uint64
+                    title: the revision that the client is currently on
+                  revision_height:
+                    type: string
+                    format: uint64
+                    title: the height within the given revision
+                description: >-
+                  Normally the RevisionHeight is incremented at each height
+                  while keeping
+
+                  RevisionNumber the same. However some consensus algorithms may
+                  choose to
+
+                  reset the height in certain conditions e.g. hard forks,
+                  state-machine
+
+                  breaking changes In these cases, the RevisionNumber is
+                  incremented so that
+
+                  height continues to be monitonically increasing even as the
+                  RevisionHeight
+
+                  gets reset
+              timestamp:
+                type: string
+                format: uint64
+                title: >-
+                  block timestamp (in nanoseconds) after which the packet or
+                  upgrade times out
+            description: >-
+              Timeout defines an execution deadline structure for 04-channel
+              handlers.
+
+              This includes packet lifecycle handlers as well as the upgrade
+              handshake handlers.
+
+              A valid Timeout contains either one or both of a timestamp and
+              block height (sequence).
+    description: >-
+      QueryChannelParamsResponse is the response type for the
+      Query/ChannelParams RPC method.
   ibc.core.channel.v1.QueryChannelResponse:
     type: object
     properties:
@@ -18635,10 +20098,14 @@ definitions:
               - STATE_TRYOPEN
               - STATE_OPEN
               - STATE_CLOSED
+              - STATE_FLUSHING
+              - STATE_FLUSHCOMPLETE
             default: STATE_UNINITIALIZED_UNSPECIFIED
-            description: |-
+            description: >-
               State defines if a channel is in one of the following states:
-              CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+              CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or
+              UNINITIALIZED.
 
                - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                - STATE_INIT: A channel has just started the opening handshake.
@@ -18647,6 +20114,8 @@ definitions:
               ready to send and receive packets.
                - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
               packets.
+               - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+               - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
           ordering:
             title: whether the channel is ordered or unordered
             type: string
@@ -18684,6 +20153,14 @@ definitions:
           version:
             type: string
             title: opaque channel version, which is agreed upon during the handshake
+          upgrade_sequence:
+            type: string
+            format: uint64
+            title: >-
+              upgrade sequence indicates the latest upgrade attempt performed by
+              this channel
+
+              the value of 0 indicates the channel has never been upgraded
         description: >-
           Channel defines pipeline for exactly-once packet delivery between
           specific
@@ -18747,10 +20224,14 @@ definitions:
                 - STATE_TRYOPEN
                 - STATE_OPEN
                 - STATE_CLOSED
+                - STATE_FLUSHING
+                - STATE_FLUSHCOMPLETE
               default: STATE_UNINITIALIZED_UNSPECIFIED
-              description: |-
+              description: >-
                 State defines if a channel is in one of the following states:
-                CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+                CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or
+                UNINITIALIZED.
 
                  - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                  - STATE_INIT: A channel has just started the opening handshake.
@@ -18759,6 +20240,8 @@ definitions:
                 ready to send and receive packets.
                  - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                 packets.
+                 - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+                 - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
             ordering:
               title: whether the channel is ordered or unordered
               type: string
@@ -18804,6 +20287,14 @@ definitions:
             channel_id:
               type: string
               title: channel identifier
+            upgrade_sequence:
+              type: string
+              format: uint64
+              title: >-
+                upgrade sequence indicates the latest upgrade attempt performed
+                by this channel
+
+                the value of 0 indicates the channel has never been upgraded
           description: |-
             IdentifiedChannel defines a channel with additional port and channel
             identifier fields.
@@ -18883,10 +20374,14 @@ definitions:
                 - STATE_TRYOPEN
                 - STATE_OPEN
                 - STATE_CLOSED
+                - STATE_FLUSHING
+                - STATE_FLUSHCOMPLETE
               default: STATE_UNINITIALIZED_UNSPECIFIED
-              description: |-
+              description: >-
                 State defines if a channel is in one of the following states:
-                CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+
+                CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or
+                UNINITIALIZED.
 
                  - STATE_UNINITIALIZED_UNSPECIFIED: Default State
                  - STATE_INIT: A channel has just started the opening handshake.
@@ -18895,6 +20390,8 @@ definitions:
                 ready to send and receive packets.
                  - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
                 packets.
+                 - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+                 - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
             ordering:
               title: whether the channel is ordered or unordered
               type: string
@@ -18940,6 +20437,14 @@ definitions:
             channel_id:
               type: string
               title: channel identifier
+            upgrade_sequence:
+              type: string
+              format: uint64
+              title: >-
+                upgrade sequence indicates the latest upgrade attempt performed
+                by this channel
+
+                the value of 0 indicates the channel has never been upgraded
           description: |-
             IdentifiedChannel defines a channel with additional port and channel
             identifier fields.
@@ -19042,7 +20547,7 @@ definitions:
 
           gets reset
     title: |-
-      QuerySequenceResponse is the request type for the
+      QuerySequenceResponse is the response type for the
       Query/QueryNextSequenceReceiveResponse RPC method
   ibc.core.channel.v1.QueryNextSequenceSendResponse:
     type: object
@@ -19478,6 +20983,191 @@ definitions:
     title: |-
       QueryUnreceivedPacketsResponse is the response type for the
       Query/UnreceivedPacketCommitments RPC method
+  ibc.core.channel.v1.QueryUpgradeErrorResponse:
+    type: object
+    properties:
+      error_receipt:
+        type: object
+        properties:
+          sequence:
+            type: string
+            format: uint64
+            title: the channel upgrade sequence
+          message:
+            type: string
+            title: the error message detailing the cause of failure
+        description: >-
+          ErrorReceipt defines a type which encapsulates the upgrade sequence
+          and error associated with the
+
+          upgrade handshake failure. When a channel upgrade handshake is aborted
+          both chains are expected to increment to the
+
+          next sequence.
+      proof:
+        type: string
+        format: byte
+        title: merkle proof of existence
+      proof_height:
+        title: height at which the proof was retrieved
+        type: object
+        properties:
+          revision_number:
+            type: string
+            format: uint64
+            title: the revision that the client is currently on
+          revision_height:
+            type: string
+            format: uint64
+            title: the height within the given revision
+        description: >-
+          Normally the RevisionHeight is incremented at each height while
+          keeping
+
+          RevisionNumber the same. However some consensus algorithms may choose
+          to
+
+          reset the height in certain conditions e.g. hard forks, state-machine
+
+          breaking changes In these cases, the RevisionNumber is incremented so
+          that
+
+          height continues to be monitonically increasing even as the
+          RevisionHeight
+
+          gets reset
+    title: >-
+      QueryUpgradeErrorResponse is the response type for the
+      Query/QueryUpgradeError RPC method
+  ibc.core.channel.v1.QueryUpgradeResponse:
+    type: object
+    properties:
+      upgrade:
+        type: object
+        properties:
+          fields:
+            type: object
+            properties:
+              ordering:
+                type: string
+                enum:
+                  - ORDER_NONE_UNSPECIFIED
+                  - ORDER_UNORDERED
+                  - ORDER_ORDERED
+                default: ORDER_NONE_UNSPECIFIED
+                description: |-
+                  - ORDER_NONE_UNSPECIFIED: zero-value for channel ordering
+                   - ORDER_UNORDERED: packets can be delivered in any order, which may differ from the order in
+                  which they were sent.
+                   - ORDER_ORDERED: packets are delivered exactly in the order which they were sent
+                title: Order defines if a channel is ORDERED or UNORDERED
+              connection_hops:
+                type: array
+                items:
+                  type: string
+              version:
+                type: string
+            description: |-
+              UpgradeFields are the fields in a channel end which may be changed
+              during a channel upgrade.
+          timeout:
+            type: object
+            properties:
+              height:
+                title: block height after which the packet or upgrade times out
+                type: object
+                properties:
+                  revision_number:
+                    type: string
+                    format: uint64
+                    title: the revision that the client is currently on
+                  revision_height:
+                    type: string
+                    format: uint64
+                    title: the height within the given revision
+                description: >-
+                  Normally the RevisionHeight is incremented at each height
+                  while keeping
+
+                  RevisionNumber the same. However some consensus algorithms may
+                  choose to
+
+                  reset the height in certain conditions e.g. hard forks,
+                  state-machine
+
+                  breaking changes In these cases, the RevisionNumber is
+                  incremented so that
+
+                  height continues to be monitonically increasing even as the
+                  RevisionHeight
+
+                  gets reset
+              timestamp:
+                type: string
+                format: uint64
+                title: >-
+                  block timestamp (in nanoseconds) after which the packet or
+                  upgrade times out
+            description: >-
+              Timeout defines an execution deadline structure for 04-channel
+              handlers.
+
+              This includes packet lifecycle handlers as well as the upgrade
+              handshake handlers.
+
+              A valid Timeout contains either one or both of a timestamp and
+              block height (sequence).
+          next_sequence_send:
+            type: string
+            format: uint64
+        description: >-
+          Upgrade is a verifiable type which contains the relevant information
+
+          for an attempted upgrade. It provides the proposed changes to the
+          channel
+
+          end, the timeout for this upgrade attempt and the next packet sequence
+
+          which allows the counterparty to efficiently know the highest sequence
+          it has received.
+
+          The next sequence send is used for pruning and upgrading from
+          unordered to ordered channels.
+      proof:
+        type: string
+        format: byte
+        title: merkle proof of existence
+      proof_height:
+        title: height at which the proof was retrieved
+        type: object
+        properties:
+          revision_number:
+            type: string
+            format: uint64
+            title: the revision that the client is currently on
+          revision_height:
+            type: string
+            format: uint64
+            title: the height within the given revision
+        description: >-
+          Normally the RevisionHeight is incremented at each height while
+          keeping
+
+          RevisionNumber the same. However some consensus algorithms may choose
+          to
+
+          reset the height in certain conditions e.g. hard forks, state-machine
+
+          breaking changes In these cases, the RevisionNumber is incremented so
+          that
+
+          height continues to be monitonically increasing even as the
+          RevisionHeight
+
+          gets reset
+    title: >-
+      QueryUpgradeResponse is the response type for the QueryUpgradeResponse RPC
+      method
   ibc.core.channel.v1.State:
     type: string
     enum:
@@ -19486,10 +21176,12 @@ definitions:
       - STATE_TRYOPEN
       - STATE_OPEN
       - STATE_CLOSED
+      - STATE_FLUSHING
+      - STATE_FLUSHCOMPLETE
     default: STATE_UNINITIALIZED_UNSPECIFIED
     description: |-
       State defines if a channel is in one of the following states:
-      CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+      CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or UNINITIALIZED.
 
        - STATE_UNINITIALIZED_UNSPECIFIED: Default State
        - STATE_INIT: A channel has just started the opening handshake.
@@ -19498,15 +21190,180 @@ definitions:
       ready to send and receive packets.
        - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
       packets.
-  ibc.lightclients.wasm.v1.QueryCodeHashesResponse:
+       - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+       - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
+  ibc.core.channel.v1.Timeout:
     type: object
     properties:
-      code_hashes:
+      height:
+        title: block height after which the packet or upgrade times out
+        type: object
+        properties:
+          revision_number:
+            type: string
+            format: uint64
+            title: the revision that the client is currently on
+          revision_height:
+            type: string
+            format: uint64
+            title: the height within the given revision
+        description: >-
+          Normally the RevisionHeight is incremented at each height while
+          keeping
+
+          RevisionNumber the same. However some consensus algorithms may choose
+          to
+
+          reset the height in certain conditions e.g. hard forks, state-machine
+
+          breaking changes In these cases, the RevisionNumber is incremented so
+          that
+
+          height continues to be monitonically increasing even as the
+          RevisionHeight
+
+          gets reset
+      timestamp:
+        type: string
+        format: uint64
+        title: >-
+          block timestamp (in nanoseconds) after which the packet or upgrade
+          times out
+    description: >-
+      Timeout defines an execution deadline structure for 04-channel handlers.
+
+      This includes packet lifecycle handlers as well as the upgrade handshake
+      handlers.
+
+      A valid Timeout contains either one or both of a timestamp and block
+      height (sequence).
+  ibc.core.channel.v1.Upgrade:
+    type: object
+    properties:
+      fields:
+        type: object
+        properties:
+          ordering:
+            type: string
+            enum:
+              - ORDER_NONE_UNSPECIFIED
+              - ORDER_UNORDERED
+              - ORDER_ORDERED
+            default: ORDER_NONE_UNSPECIFIED
+            description: |-
+              - ORDER_NONE_UNSPECIFIED: zero-value for channel ordering
+               - ORDER_UNORDERED: packets can be delivered in any order, which may differ from the order in
+              which they were sent.
+               - ORDER_ORDERED: packets are delivered exactly in the order which they were sent
+            title: Order defines if a channel is ORDERED or UNORDERED
+          connection_hops:
+            type: array
+            items:
+              type: string
+          version:
+            type: string
+        description: |-
+          UpgradeFields are the fields in a channel end which may be changed
+          during a channel upgrade.
+      timeout:
+        type: object
+        properties:
+          height:
+            title: block height after which the packet or upgrade times out
+            type: object
+            properties:
+              revision_number:
+                type: string
+                format: uint64
+                title: the revision that the client is currently on
+              revision_height:
+                type: string
+                format: uint64
+                title: the height within the given revision
+            description: >-
+              Normally the RevisionHeight is incremented at each height while
+              keeping
+
+              RevisionNumber the same. However some consensus algorithms may
+              choose to
+
+              reset the height in certain conditions e.g. hard forks,
+              state-machine
+
+              breaking changes In these cases, the RevisionNumber is incremented
+              so that
+
+              height continues to be monitonically increasing even as the
+              RevisionHeight
+
+              gets reset
+          timestamp:
+            type: string
+            format: uint64
+            title: >-
+              block timestamp (in nanoseconds) after which the packet or upgrade
+              times out
+        description: >-
+          Timeout defines an execution deadline structure for 04-channel
+          handlers.
+
+          This includes packet lifecycle handlers as well as the upgrade
+          handshake handlers.
+
+          A valid Timeout contains either one or both of a timestamp and block
+          height (sequence).
+      next_sequence_send:
+        type: string
+        format: uint64
+    description: >-
+      Upgrade is a verifiable type which contains the relevant information
+
+      for an attempted upgrade. It provides the proposed changes to the channel
+
+      end, the timeout for this upgrade attempt and the next packet sequence
+
+      which allows the counterparty to efficiently know the highest sequence it
+      has received.
+
+      The next sequence send is used for pruning and upgrading from unordered to
+      ordered channels.
+  ibc.core.channel.v1.UpgradeFields:
+    type: object
+    properties:
+      ordering:
+        type: string
+        enum:
+          - ORDER_NONE_UNSPECIFIED
+          - ORDER_UNORDERED
+          - ORDER_ORDERED
+        default: ORDER_NONE_UNSPECIFIED
+        description: |-
+          - ORDER_NONE_UNSPECIFIED: zero-value for channel ordering
+           - ORDER_UNORDERED: packets can be delivered in any order, which may differ from the order in
+          which they were sent.
+           - ORDER_ORDERED: packets are delivered exactly in the order which they were sent
+        title: Order defines if a channel is ORDERED or UNORDERED
+      connection_hops:
         type: array
         items:
           type: string
+      version:
+        type: string
+    description: |-
+      UpgradeFields are the fields in a channel end which may be changed
+      during a channel upgrade.
+  ibc.lightclients.wasm.v1.QueryChecksumsResponse:
+    type: object
+    properties:
+      checksums:
+        type: array
+        items:
+          type: string
+        description: >-
+          checksums is a list of the hex encoded checksums of all wasm codes
+          stored.
       pagination:
-        description: pagination defines an optional pagination for the request.
+        description: pagination defines the pagination in the response.
         type: object
         properties:
           next_key:
@@ -19525,7 +21382,7 @@ definitions:
 
               was set, its value is undefined otherwise
     description: >-
-      QueryCodeHashesResponse is the response type for the Query/CodeHashes RPC
+      QueryChecksumsResponse is the response type for the Query/Checksums RPC
       method.
   ibc.lightclients.wasm.v1.QueryCodeResponse:
     type: object
