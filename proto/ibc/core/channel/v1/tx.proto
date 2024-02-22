@@ -9,6 +9,7 @@ import "cosmos/msg/v1/msg.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/channel/v1/channel.proto";
 import "ibc/core/channel/v1/upgrade.proto";
+import "ibc/core/port/v1/port.proto";
 
 // Msg defines the ibc/channel Msg service.
 service Msg {
@@ -208,6 +209,31 @@ message MsgChannelCloseConfirm {
 // type.
 message MsgChannelCloseConfirmResponse {}
 
+// MsgSendPacket is an RPC endpoint that allows users to send multiple packet data to the channel handler.
+// The packet data are then routed to each individual applications for their individual send packet logic execution
+// before the entire packet commitment is stored.
+// NOTE: This is different from the previous flow, which did application logic first before calling into the channel
+// handler
+message MsgSendPacket {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  string                            port_id           = 1;
+  string                            channel_id        = 2;
+  ibc.core.port.v1.RoutedPacketData packet_data       = 3 [(gogoproto.nullable) = false];
+  ibc.core.client.v1.Height         timeout_height    = 4 [(gogoproto.nullable) = false];
+  uint64                            timeout_timestamp = 5;
+}
+
+// MsgSendPacketResponse defines the Msg/SendPacket response type
+message MsgSendPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64             packet_sequence = 1;
+  ResponseResultType result          = 2;
+}
+
 // MsgRecvPacket receives incoming IBC packet
 message MsgRecvPacket {
   option (cosmos.msg.v1.signer) = "signer";
@@ -226,6 +252,21 @@ message MsgRecvPacketResponse {
 
   ResponseResultType result = 1;
 }
+
+// MsgWriteAcknowledgement acknowledges the receipt and processing of a packet
+message MsgWriteAcknowledgement {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  Packet                    packet             = 1 [(gogoproto.nullable) = false];
+  bytes                     acknowledgement   = 2;
+}
+
+// MsgWriteAcknowledgement defines the Msg/Acknowledgement response type.
+message MsgWriteAcknowledgement {}
+
+
 
 // MsgTimeout receives timed-out packet
 message MsgTimeout {

@@ -103,7 +103,6 @@ func (k Keeper) SendPacket(
 // sent on the corresponding channel end on the counterparty chain.
 func (k Keeper) RecvPacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	proof []byte,
 	proofHeight exported.Height,
@@ -130,14 +129,14 @@ func (k Keeper) RecvPacket(
 		}
 	}
 
-	// Authenticate capability to ensure caller has authority to receive packet on this channel
-	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication for capability name %s", capName,
-		)
-	}
+	// // Authenticate capability to ensure caller has authority to receive packet on this channel
+	// capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
+	// if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
+	// 	return errorsmod.Wrapf(
+	// 		types.ErrInvalidChannelCapability,
+	// 		"channel capability failed authentication for capability name %s", capName,
+	// 	)
+	// }
 
 	// packet must come from the channel's counterparty
 	if packet.GetSourcePort() != channel.Counterparty.PortId {

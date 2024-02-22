@@ -81,6 +81,13 @@ type IBCModule interface {
 		channelID string,
 	) error
 
+	OnSendPacket(
+		ctx sdk.Context,
+		portID string,
+		channelID string,
+		packetData []byte,
+	) error
+
 	// OnRecvPacket must return an acknowledgement that implements the Acknowledgement interface.
 	// In the case of an asynchronous acknowledgement, nil should be returned.
 	// If the acknowledgement returned is successful, the state changes on callback are written,

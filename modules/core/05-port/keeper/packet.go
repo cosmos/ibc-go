@@ -3,38 +3,38 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/v8/modules/capability/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // IDEA: Issue separate capabilities to each module in the stack. When we retrieve the capability in SendPacket
 // and WriteAcknowledgement, we know who it came from. This allows us to put the packet data and ack correctly into the map
-func (k Keeper) SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, sourcePort, sourceChannel string,
-	timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (uint64, error) {
+func (k Keeper) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData porttypes.RoutedPacketData) error {
 
-	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
-		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
-	}
+	// if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
+	// 	return errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+	// }
 
 	channel, ok := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !ok {
-		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "channel %s not found", sourceChannel)
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "channel %s not found", sourceChannel)
 	}
 
 	var routedVersion types.RoutedVersion
 	routeErr := k.cdc.UnmarshalJSON([]byte(channel.Version), &routedVersion)
 	if routeErr != nil {
-		// send directly to channel keeper for backwards compatibility
-		return k.channelKeeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+		// TODO: Figure out backwards compatibility
 	}
 
-	// input packet data from base application into the routed packet data map
-	routedPacketData := types.RoutedPacketData{PacketData: make(map[string][]byte)}
-	routedPacketData.PacketData[routedVersion.Modules[len(routedVersion.Modules)-1]] = data
+	// // input packet data from base application into the routed packet data map
+	// routedPacketData := types.RoutedPacketData{PacketData: make(map[string][]byte)}
+	// routedPacketData.PacketData[routedVersion.Modules[len(routedVersion.Modules)-1]] = data
 
 	// send packet data to each module in the route
 	// since this is routing from the base application to core IBC
@@ -44,20 +44,17 @@ func (k Keeper) SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capabili
 		module := routedVersion.Modules[i]
 		cbs, exists := k.Router.GetRoute(module)
 		if !exists {
-			return 0, errorsmod.Wrapf(types.ErrInvalidRoute, "route '%s' does not exist", module)
+			return errorsmod.Wrapf(types.ErrInvalidRoute, "route '%s' does not exist", module)
 		}
-		mw, ok := cbs.(types.Middleware)
 		if ok {
 			var err error
-			routedPacketData, err = mw.ProcessPacket(ctx, sourcePort, sourceChannel, routedPacketData)
+			err = cbs.OnSendPacket(ctx, sourcePort, sourceChannel, packetData.PacketData[module])
 			if err != nil {
-				return 0, err
+				return err
 			}
 		}
 	}
-
-	packetData := k.cdc.MustMarshalJSON(&routedPacketData)
-	return k.channelKeeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData)
+	return nil
 }
 
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {

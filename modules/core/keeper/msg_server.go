@@ -411,6 +411,25 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
 
+// SendPacket defines a rpc handler method for MsgSendPacket
+func (k Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacket) (*channeltypes.MsgSendPacketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := k.PortKeeper.SendPacket(ctx, msg.PortId, msg.ChannelId, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.PacketData)
+	if err != nil {
+		return nil, err
+	}
+
+	bz := k.cdc.MustMarshalJSON(&msg.PacketData)
+
+	sequence, err := k.ChannelKeeper.SendPacket(ctx, msg.PortId, msg.ChannelId, msg.TimeoutHeight, msg.TimeoutTimestamp, bz)
+	if err != nil {
+		return nil, err
+	}
+
+	return &channeltypes.MsgSendPacketResponse{PacketSequence: sequence}, nil
+}
+
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
