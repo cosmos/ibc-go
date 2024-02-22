@@ -3,12 +3,10 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -99,49 +97,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relaye
 		}
 	}
 	return routedAck
-}
-
-func (k Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet channeltypes.Packet, ack exported.Acknowledgement) error {
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())) {
-		return errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", packet.GetDestPort(), packet.GetDestChannel())
-	}
-
-	channel, ok := k.channelKeeper.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
-	if !ok {
-		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "channel %s not found", packet.GetDestChannel())
-	}
-
-	var routedVersion types.RoutedVersion
-	routeErr := k.cdc.UnmarshalJSON([]byte(channel.Version), &routedVersion)
-	if routeErr != nil {
-		// send directly to channel keeper for backwards compatibility
-		return k.channelKeeper.WriteAcknowledgement(ctx, packet, ack)
-	}
-
-	routedAck := types.RoutedPacketAcknowledgement{PacketAck: make(map[string][]byte)}
-	routedAck.PacketAck[routedVersion.Modules[len(routedVersion.Modules)-1]] = ack.Acknowledgement()
-
-	// send packet data to each module in the route
-	// since this is routing from the base application to core IBC
-	// the routing must occur in reverse order
-	// base app is skipped since it was the module that sent the original packet data
-	for i := len(routedVersion.Modules) - 1; i >= 0; i-- {
-		module := routedVersion.Modules[i]
-		cbs, exists := k.Router.GetRoute(module)
-		if !exists {
-			return errorsmod.Wrapf(types.ErrInvalidRoute, "route '%s' does not exist", module)
-		}
-		mw, ok := cbs.(types.Middleware)
-		if ok {
-			var err error
-			routedAck, err = mw.ProcessWriteAck(ctx, packet, routedAck)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return k.channelKeeper.WriteAcknowledgement(ctx, packet, routedAck)
 }
 
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, ack exported.Acknowledgement, relayer sdk.AccAddress) error {

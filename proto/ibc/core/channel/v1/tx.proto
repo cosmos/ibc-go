@@ -259,14 +259,18 @@ message MsgWriteAcknowledgement {
 
   option (gogoproto.goproto_getters) = false;
 
-  Packet                    packet             = 1 [(gogoproto.nullable) = false];
-  bytes                     acknowledgement   = 2;
+  string                                       port_id         = 1;
+  string                                       channel_id      = 2;
+  uint64                                       packet_sequence = 3;
+  ibc.core.port.v1.RoutedPacketAcknowledgement acknowledgement = 4;
 }
 
-// MsgWriteAcknowledgement defines the Msg/Acknowledgement response type.
-message MsgWriteAcknowledgement {}
+// MsgWriteAcknowledgementResponse defines the Msg/Acknowledgement response type.
+message MsgWriteAcknowledgementResponse {
+  option (gogoproto.goproto_getters) = false;
 
-
+  ResponseResultType result = 1;
+}
 
 // MsgTimeout receives timed-out packet
 message MsgTimeout {

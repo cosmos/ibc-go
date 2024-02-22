@@ -280,12 +280,14 @@ func (k Keeper) RecvPacket(
 // previously by RecvPacket.
 func (k Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
-	packet exported.PacketI,
+	portID string,
+	channelID string,
+	sequence uint64,
 	acknowledgement exported.Acknowledgement,
 ) error {
-	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
+		return errorsmod.Wrap(types.ErrChannelNotFound, channelID)
 	}
 
 	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
@@ -295,7 +297,7 @@ func (k Keeper) WriteAcknowledgement(
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
-	if k.HasPacketAcknowledgement(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()) {
+	if k.HasPacketAcknowledgement(ctx, portID, channelID, sequence) {
 		return types.ErrAcknowledgementExists
 	}
 
@@ -310,21 +312,19 @@ func (k Keeper) WriteAcknowledgement(
 
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
-		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
+		ctx, portID, channelID, sequence,
 		types.CommitAcknowledgement(bz),
 	)
 
 	// log that a packet acknowledgement has been written
 	k.Logger(ctx).Info(
 		"acknowledgement written",
-		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
-		"src_port", packet.GetSourcePort(),
-		"src_channel", packet.GetSourceChannel(),
-		"dst_port", packet.GetDestPort(),
-		"dst_channel", packet.GetDestChannel(),
+		"sequence", strconv.FormatUint(sequence, 10),
+		"dst_port", portID,
+		"dst_channel", channelID,
 	)
 
-	emitWriteAcknowledgementEvent(ctx, packet, channel, bz)
+	// emitWriteAcknowledgementEvent(ctx, packet, channel, bz)
 
 	return nil
 }

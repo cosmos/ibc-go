@@ -511,6 +511,18 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }
 
+// WriteAcknowledgement defines a rpc handler method for MsgWriteAcknowledgement.
+func (k Keeper) WriteAcknowledgement(goCtx context.Context, msg *channeltypes.MsgWriteAcknowledgement) (*channeltypes.MsgWriteAcknowledgementResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.PortId, msg.ChannelId, msg.PacketSequence, msg.Acknowledgement)
+	if err != nil {
+		return nil, err
+	}
+
+	return &channeltypes.MsgWriteAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
+}
+
 // Timeout defines a rpc handler method for MsgTimeout.
 func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
