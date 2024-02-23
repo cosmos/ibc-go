@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -339,6 +340,16 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 
 	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	clientType, _, err := types.ParseClientIdentifier(req.ClientId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	denyClients := []string{exported.Localhost, exported.Solomachine}
+	if slices.Contains(denyClients, clientType) {
+		return nil, status.Error(codes.InvalidArgument, errorsmod.Wrapf(types.ErrInvalidClientType, "verify membership is disabled for client types %s", denyClients).Error())
 	}
 
 	if len(req.Proof) == 0 {
