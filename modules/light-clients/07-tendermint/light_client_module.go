@@ -30,6 +30,8 @@ func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.Clien
 
 // Initialize checks that the initial consensus state is an 07-tendermint consensus state and
 // sets the client state, consensus state and associated metadata in the provided client store.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState ClientState
 	if err := lcm.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
@@ -54,6 +56,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 	return clientState.Initialize(ctx, lcm.keeper.Codec(), clientStore, &consensusState)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -66,6 +69,7 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 	return clientState.VerifyClientMessage(ctx, cdc, clientStore, clientMsg)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -78,6 +82,7 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 	return clientState.CheckForMisbehaviour(ctx, cdc, clientStore, clientMsg)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -90,6 +95,7 @@ func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID
 	clientState.UpdateStateOnMisbehaviour(ctx, cdc, clientStore, clientMsg)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -102,6 +108,7 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -123,6 +130,7 @@ func (lcm LightClientModule) VerifyMembership(
 	return clientState.VerifyMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -143,6 +151,7 @@ func (lcm LightClientModule) VerifyNonMembership(
 	return clientState.VerifyNonMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -155,6 +164,7 @@ func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.S
 	return clientState.Status(ctx, clientStore, cdc)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
@@ -171,6 +181,7 @@ func (lcm LightClientModule) TimestampAtHeight(
 	return clientState.GetTimestampAtHeight(ctx, clientStore, cdc, height)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
@@ -202,6 +213,7 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,

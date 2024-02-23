@@ -31,6 +31,7 @@ func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.Clien
 	lcm.storeProvider = storeProvider
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
 func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	if len(consensusStateBz) != 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
@@ -45,6 +46,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 	return nil
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
 func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.cdc
@@ -65,6 +67,7 @@ func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID str
 	// no-op
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
 func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.cdc
@@ -77,6 +80,7 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
 func (lcm LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -99,6 +103,7 @@ func (lcm LightClientModule) VerifyMembership(
 	return clientState.VerifyMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
 func (lcm LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,

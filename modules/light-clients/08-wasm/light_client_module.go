@@ -32,6 +32,8 @@ func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.Clien
 
 // Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
 // client state, consensus state and any client-specific metadata necessary for correct light client operation in the provided client store.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState types.ClientState
 	if err := lcm.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
@@ -61,6 +63,8 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 // It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -75,6 +79,8 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 
 // Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
 // has already been verified.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -88,6 +94,8 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 }
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -102,6 +110,8 @@ func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID
 
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -116,6 +126,8 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -139,6 +151,8 @@ func (lcm LightClientModule) VerifyMembership(
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -160,6 +174,8 @@ func (lcm LightClientModule) VerifyNonMembership(
 }
 
 // Status must return the status of the client. Only Active clients are allowed to process packets.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -173,6 +189,8 @@ func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.S
 }
 
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
@@ -187,6 +205,8 @@ func (lcm LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string,
 
 // RecoverClient must verify that the provided substitute may be used to update the subject client.
 // The light client must set the updated client and consensus states within the clientStore for the subject client.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
@@ -226,6 +246,8 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 // // may be cancelled or modified before the last planned height.
 // // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
 // // DEPRECATED: will be removed as performs internal functionality
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient []byte, newConsState []byte, upgradeClientProof, upgradeConsensusStateProof []byte) error {
 	return nil
 }
