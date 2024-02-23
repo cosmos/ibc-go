@@ -32,15 +32,6 @@ func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.Clien
 }
 
 func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Localhost {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
 	if len(consensusStateBz) != 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
@@ -55,15 +46,6 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 }
 
 func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Localhost {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.cdc
 
@@ -76,38 +58,14 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 }
 
 func (LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		panic(err)
-	}
-
-	if clientType != exported.Localhost {
-		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType))
-	}
-
 	return false
 }
 
 func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		panic(err)
-	}
-
-	if clientType != exported.Localhost {
-		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType))
-	}
+	// no-op
 }
 
 func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		panic(err)
-	}
-
-	if clientType != exported.Localhost {
-		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType))
-	}
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.cdc
 
@@ -129,15 +87,6 @@ func (lcm LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Localhost {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	ibcStore := ctx.KVStore(lcm.key)
 	cdc := lcm.cdc
@@ -159,15 +108,6 @@ func (lcm LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path, // TODO: change to conrete type
 ) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Localhost {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	ibcStore := ctx.KVStore(lcm.key)
 	cdc := lcm.cdc
@@ -190,15 +130,6 @@ func (LightClientModule) TimestampAtHeight(
 	clientID string,
 	height exported.Height,
 ) (uint64, error) {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return 0, err
-	}
-
-	if clientType != exported.Localhost {
-		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
