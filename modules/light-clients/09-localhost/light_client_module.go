@@ -56,7 +56,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, _, con
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
-func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
 
@@ -140,7 +140,7 @@ func (lcm LightClientModule) VerifyNonMembership(
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
-func (LightClientModule) Status(_ sdk.Context, _ string) exported.Status {
+func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	return exported.Active
 }
 
@@ -148,8 +148,8 @@ func (LightClientModule) Status(_ sdk.Context, _ string) exported.Status {
 // cannot provide a timestamp for the provided height.
 func (LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
-	_ string,
-	_ exported.Height,
+	clientID string,
+	height exported.Height,
 ) (uint64, error) {
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
@@ -161,12 +161,12 @@ func (LightClientModule) RecoverClient(_ sdk.Context, _, _ string) error {
 
 // VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded.
 func (LightClientModule) VerifyUpgradeAndUpdateState(
-	_ sdk.Context,
-	_ string,
-	_ []byte,
-	_ []byte,
-	_,
-	_ []byte,
+	ctx sdk.Context,
+	clientID string,
+	newClient []byte,
+	newConsState []byte,
+	upgradeClientProof,
+	upgradeConsensusStateProof []byte,
 ) error {
 	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }
