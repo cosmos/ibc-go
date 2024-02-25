@@ -13,7 +13,7 @@ import (
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
 
-// LightClientModule implements the core IBC api.LightClientModule interface?
+// LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
 	keeper        wasmkeeper.Keeper
 	storeProvider exported.ClientStoreProvider
@@ -26,6 +26,9 @@ func NewLightClientModule(keeper wasmkeeper.Keeper) LightClientModule {
 	}
 }
 
+// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
+// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
+// to IBC light client instances.
 func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
 	lcm.storeProvider = storeProvider
 }
@@ -77,7 +80,7 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 	return clientState.VerifyClientMessage(ctx, lcm.keeper.Codec(), clientStore, clientMsg)
 }
 
-// Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
+// CheckForMisbehaviour checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
 // has already been verified.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
@@ -93,7 +96,7 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 	return clientState.CheckForMisbehaviour(ctx, cdc, clientStore, clientMsg)
 }
 
-// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
+// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
@@ -238,14 +241,8 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
 }
 
-// // Upgrade functions
-// // NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
-// // height committed by the current revision. Clients are responsible for ensuring that the planned last
-// // height of the current revision is somehow encoded in the proof verification process.
-// // This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
-// // may be cancelled or modified before the last planned height.
-// // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
-// // DEPRECATED: will be removed as performs internal functionality
+// VerifyUpgradeAndUpdateState, on a successful verification expects the contract to update
+// the new client state, consensus state, and any other client metadata.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient []byte, newConsState []byte, upgradeClientProof, upgradeConsensusStateProof []byte) error {
