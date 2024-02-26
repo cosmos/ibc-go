@@ -33,7 +33,7 @@ func NewTransferTxCmd() *cobra.Command {
 		Long: strings.TrimSpace(`Transfer a fungible token through IBC. Timeouts can be specified
 as absolute using the "absolute-timeouts" flag. Timeout height can be set by passing in the height string
 in the form {revision}-{height} using the "packet-timeout-height" flag. Note, relative timeout height is not supported. Relative timeout timestamp 
-is added to the value of the system user's local clock time. If no timeout value is set then a default relative timeout value of 10 minutes is used`),
+is added to the value of the system user's local clock time. If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [amount]", version.AppName),
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -88,10 +88,7 @@ is added to the value of the system user's local clock time. If no timeout value
 					return errors.New("relative timeouts using block height is not supported")
 				}
 
-				// use local clock time as reference time if it is later than the
-				// consensus state timestamp of the counterparty chain, otherwise
-				// still use consensus state timestamp as reference.
-				// for localhost clients local clock time is always used.
+				// use local clock time as reference time for calculating timeout timestamp.
 				if timeoutTimestamp != 0 {
 					now := time.Now().UnixNano()
 					if now > 0 {
