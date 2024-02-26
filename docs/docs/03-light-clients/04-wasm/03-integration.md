@@ -146,7 +146,7 @@ import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
 
-  wasmvm "github.com/CosmWasm/wasmvm"
+  wasmvm "github.com/CosmWasm/wasmvm/v2"
   ibcwasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
   ...
 )
@@ -232,7 +232,7 @@ import (
 ...
 wasmConfig := ibcwasmtypes.WasmConfig{
   DataDir:               "ibc_08-wasm_client_data",
-  SupportedCapabilities: "iterator",
+  SupportedCapabilities: []string{"iterator"},
   ContractDebugMode:     false,
 }
 app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithConfig(
