@@ -190,9 +190,8 @@ func (g WasmGasRegister) SetupContractCost(discount bool, msgLen int) storetypes
 	dataCost := storetypes.Gas(msgLen) * g.c.ContractMessageDataCost
 	if discount {
 		return g.c.InstanceCostDiscount + dataCost
-	} else {
-		return g.c.InstanceCost + dataCost
 	}
+	return g.c.InstanceCost + dataCost
 }
 
 // ReplyCosts costs to to handle a message reply.
