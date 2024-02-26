@@ -19,10 +19,10 @@ In the 08-wasm versions compatible with ibc-go v7.3.x and above from the v7 rele
 
 The `WasmEngine` interface has been updated to reflect changes in the function signatures of Wasm VM:
 
-```
+```diff
 type WasmEngine interface {
--	StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error)
-+	StoreCode(code wasmvm.WasmCode, gasLimit uint64) (wasmvmtypes.Checksum, uint64, error)
+- StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error)
++ StoreCode(code wasmvm.WasmCode, gasLimit uint64) (wasmvmtypes.Checksum, uint64, error)
 
   StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error)
 
@@ -37,8 +37,8 @@ type WasmEngine interface {
     gasMeter wasmvm.GasMeter,
     gasLimit uint64,
     deserCost wasmvmtypes.UFraction,
--	) (*wasmvmtypes.Response, uint64, error)
-+	) (*wasmvmtypes.ContractResult, uint64, error)
+- ) (*wasmvmtypes.Response, uint64, error)
++ ) (*wasmvmtypes.ContractResult, uint64, error)
 
   Query(
     checksum wasmvm.Checksum,
@@ -50,8 +50,8 @@ type WasmEngine interface {
     gasMeter wasmvm.GasMeter,
     gasLimit uint64,
     deserCost wasmvmtypes.UFraction,
--	) ([]byte, uint64, error)
-+	) (*wasmvmtypes.QueryResult, uint64, error)
+- ) ([]byte, uint64, error)
++ ) (*wasmvmtypes.QueryResult, uint64, error)
 
   Migrate(
     checksum wasmvm.Checksum,
@@ -63,8 +63,8 @@ type WasmEngine interface {
     gasMeter wasmvm.GasMeter,
     gasLimit uint64,
     deserCost wasmvmtypes.UFraction,
--	) (*wasmvmtypes.Response, uint64, error)
-+	) (*wasmvmtypes.ContractResult, uint64, error)
+- ) (*wasmvmtypes.Response, uint64, error)
++ ) (*wasmvmtypes.ContractResult, uint64, error)
 
   Sudo(
     checksum wasmvm.Checksum,
@@ -76,7 +76,7 @@ type WasmEngine interface {
     gasMeter wasmvm.GasMeter,
     gasLimit uint64,
     deserCost wasmvmtypes.UFraction,
--	) (*wasmvmtypes.Response, uint64, error)
+- ) (*wasmvmtypes.Response, uint64, error)
 + ) (*wasmvmtypes.ContractResult, uint64, error)
 
   GetCode(checksum wasmvm.Checksum) (wasmvm.WasmCode, error)
@@ -97,7 +97,7 @@ The `SupportedCapabilities` field of `WasmConfig` is now of type `[]string`:
 type WasmConfig struct {
   DataDir string
 - SupportedCapabilities string
-+	SupportedCapabilities []string
++ SupportedCapabilities []string
   ContractDebugMode bool
 }
 ```
