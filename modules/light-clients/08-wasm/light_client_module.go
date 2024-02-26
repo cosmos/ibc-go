@@ -277,13 +277,8 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
 }
 
-// Upgrade functions
-// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
-// height committed by the current revision. Clients are responsible for ensuring that the planned last
-// height of the current revision is somehow encoded in the proof verification process.
-// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
-// may be cancelled or modified before the last planned height.
-// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
+// VerifyUpgradeAndUpdateState, on a successful verification expects the contract to update
+// the new client state, consensus state, and any other client metadata.
 func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
@@ -292,38 +287,21 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	upgradeClientProof,
 	upgradeConsensusStateProof []byte,
 ) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != types.Wasm {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", types.Wasm, clientType)
-	}
-
 	var (
 		cdc               = lcm.keeper.Codec()
-		newClientState    exported.ClientState
-		newConsensusState exported.ConsensusState
+		newClientState    types.ClientState
+		newConsensusState types.ConsensusState
 	)
 
-	if err := cdc.UnmarshalInterface(newClient, &newClientState); err != nil {
+	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
 		return err
-	}
-	newWasmClientState, ok := newClientState.(*types.ClientState)
-	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected client state type %T, got %T", (*types.ClientState)(nil), newClientState)
 	}
 	if err := newClientState.Validate(); err != nil {
 		return err
 	}
 
-	if err := cdc.UnmarshalInterface(newConsState, &newConsensusState); err != nil {
+	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
 		return err
-	}
-	newWasmConsensusState, ok := newConsensusState.(*types.ConsensusState)
-	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "expected consensus state type %T, got %T", (*types.ConsensusState)(nil), newConsensusState)
 	}
 	if err := newConsensusState.ValidateBasic(); err != nil {
 		return err
@@ -341,5 +319,5 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.GetLatestHeight(), lastHeight)
 	}
 
-	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, newWasmClientState, newWasmConsensusState, upgradeClientProof, upgradeConsensusStateProof)
+	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)
 }

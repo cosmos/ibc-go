@@ -202,20 +202,6 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			nil,
 		},
 		{
-			"cannot parse malformed client ID",
-			func() {
-				clientID = ibctesting.InvalidID
-			},
-			host.ErrInvalidID,
-		},
-		{
-			"client type is not 08-wasm",
-			func() {
-				clientID = tmClientID
-			},
-			clienttypes.ErrInvalidClientType,
-		},
-		{
 			"cannot find client state",
 			func() {
 				clientID = wasmClientID
@@ -239,13 +225,15 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 		{
 			"upgraded client state height is not greater than current height",
 			func() {
+				var err error
 				latestHeight := clientState.GetLatestHeight()
 				newLatestHeight := clienttypes.NewHeight(latestHeight.GetRevisionNumber(), latestHeight.GetRevisionHeight()-1)
 
 				wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
 				wrappedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wrappedUpgradedClient)
 				upgradedClientState = types.NewClientState(wrappedUpgradedClientBz, clientState.Checksum, newLatestHeight)
-				upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), upgradedClientState)
+				upgradedClientStateBz, err = suite.chainA.Codec.Marshal(upgradedClientState)
+				suite.Require().NoError(err)
 			},
 			ibcerrors.ErrInvalidHeight,
 		},
@@ -255,8 +243,6 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM() // reset suite
-			cdc := suite.chainA.App.AppCodec()
-			ctx := suite.chainA.GetContext()
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -270,12 +256,14 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
 			wrappedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wrappedUpgradedClient)
 			upgradedClientState = types.NewClientState(wrappedUpgradedClientBz, clientState.Checksum, newLatestHeight)
-			upgradedClientStateBz = clienttypes.MustMarshalClientState(cdc, upgradedClientState)
+			upgradedClientStateBz, err = suite.chainA.Codec.Marshal(upgradedClientState)
+			suite.Require().NoError(err)
 
 			wrappedUpgradedConsensus := ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("new-hash")), []byte("new-nextValsHash"))
-			wrappedUpgradedConsensusBz := clienttypes.MustMarshalConsensusState(cdc, wrappedUpgradedConsensus)
+			wrappedUpgradedConsensusBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wrappedUpgradedConsensus)
 			upgradedConsensusState = types.NewConsensusState(wrappedUpgradedConsensusBz)
-			upgradedConsensusStateBz = clienttypes.MustMarshalConsensusState(cdc, upgradedConsensusState)
+			upgradedConsensusStateBz, err = suite.chainA.Codec.Marshal(upgradedConsensusState)
+			suite.Require().NoError(err)
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(clientID)
 			suite.Require().True(found)
@@ -288,7 +276,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			upgradedConsensusStateProof = wasmtesting.MockUpgradedConsensusStateProofBz
 
 			err = lightClientModule.VerifyUpgradeAndUpdateState(
-				ctx,
+				suite.chainA.GetContext(),
 				clientID,
 				upgradedClientStateBz,
 				upgradedConsensusStateBz,

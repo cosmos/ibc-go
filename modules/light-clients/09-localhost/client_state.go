@@ -171,16 +171,3 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 func (ClientState) CheckSubstituteAndUpdateState(_ sdk.Context, _ codec.BinaryCodec, _, _ storetypes.KVStore, _ exported.ClientState) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
 }
-
-// VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded
-func (ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context,
-	_ codec.BinaryCodec,
-	_ storetypes.KVStore,
-	_ exported.ClientState,
-	_ exported.ConsensusState,
-	_,
-	_ []byte,
-) error {
-	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
-}

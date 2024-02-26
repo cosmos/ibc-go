@@ -455,7 +455,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 			tc.setup()
 
-			cs := suite.chainA.GetClientState(path.EndpointA.ClientID)
+			cs := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient

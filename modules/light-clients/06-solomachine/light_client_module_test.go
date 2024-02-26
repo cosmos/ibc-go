@@ -146,3 +146,15 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 		})
 	}
 }
+
+func (suite *SoloMachineTestSuite) TestVerifyUpgradeAndUpdateState() {
+	suite.SetupTest()
+
+	clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
+
+	lightClientModule, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(clientID)
+	suite.Require().True(found)
+
+	err := lightClientModule.VerifyUpgradeAndUpdateState(suite.chainA.GetContext(), clientID, nil, nil, nil, nil)
+	suite.Require().Error(err)
+}

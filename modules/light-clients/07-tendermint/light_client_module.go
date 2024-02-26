@@ -292,13 +292,17 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
 }
 
-// Upgrade functions
-// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
-// height committed by the current revision. Clients are responsible for ensuring that the planned last
-// height of the current revision is somehow encoded in the proof verification process.
-// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
-// may be cancelled or modified before the last planned height.
-// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
+// VerifyUpgradeAndUpdateState checks if the upgraded client has been committed by the current client
+// It will zero out all client-specific fields (e.g. TrustingPeriod) and verify all data
+// in client state that must be the same across all valid Tendermint clients for the new chain.
+// VerifyUpgrade will return an error if:
+// - the upgradedClient is not a Tendermint ClientState
+// - the latest height of the client state does not have the same revision number or has a greater
+// height than the committed client.
+//   - the height of upgraded client is not greater than that of current client
+//   - the latest height of the new client does not match or is greater than the height in committed client
+//   - any Tendermint chain specified parameter in upgraded client such as ChainID, UnbondingPeriod,
+//     and ProofSpecs do not match parameters set by committed client
 func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
@@ -307,15 +311,6 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	upgradeClientProof,
 	upgradeConsensusStateProof []byte,
 ) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Tendermint {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
-	}
-
 	cdc := lcm.keeper.Codec()
 
 	var newClientState ClientState

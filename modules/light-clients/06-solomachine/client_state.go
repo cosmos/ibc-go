@@ -87,14 +87,6 @@ func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientSto
 	return nil
 }
 
-// VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
-func (ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
-	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
-) error {
-	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
-}
-
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyMembership(

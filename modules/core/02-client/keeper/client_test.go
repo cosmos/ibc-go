@@ -320,7 +320,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	var (
 		path                                             *ibctesting.Path
 		upgradedClient                                   *ibctm.ClientState
-		upgradedConsState                                exported.ConsensusState
+		upgradedConsState                                *ibctm.ConsensusState
 		lastHeight                                       exported.Height
 		upgradedClientProof, upgradedConsensusStateProof []byte
 		upgradedClientBz, upgradedConsStateBz            []byte
@@ -476,35 +476,37 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 	for _, tc := range testCases {
 		tc := tc
-		path = ibctesting.NewPath(suite.chainA, suite.chainB)
-		path.SetupClients()
+		suite.Run(tc.name, func() {
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
 
-		clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
-		revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
+			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
-		newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
-		suite.Require().NoError(err)
+			newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
+			suite.Require().NoError(err)
 
-		upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-		upgradedClient = upgradedClient.ZeroCustomFields()
-		upgradedClientBz, err = suite.chainA.Codec.Marshal(upgradedClient)
-		suite.Require().NoError(err)
+			upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+			upgradedClient = upgradedClient.ZeroCustomFields()
+			upgradedClientBz, err = suite.chainA.Codec.Marshal(upgradedClient)
+			suite.Require().NoError(err)
 
-		upgradedConsState = &ibctm.ConsensusState{
-			NextValidatorsHash: []byte("nextValsHash"),
-		}
-		upgradedConsStateBz, err = suite.chainA.Codec.Marshal(upgradedConsState)
-		suite.Require().NoError(err)
+			upgradedConsState = &ibctm.ConsensusState{
+				NextValidatorsHash: []byte("nextValsHash"),
+			}
+			upgradedConsStateBz, err = suite.chainA.Codec.Marshal(upgradedConsState)
+			suite.Require().NoError(err)
 
-		tc.setup()
+			tc.setup()
 
-		err = suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradeClient(suite.chainA.GetContext(), path.EndpointA.ClientID, upgradedClientBz, upgradedConsStateBz, upgradedClientProof, upgradedConsensusStateProof)
+			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradeClient(suite.chainA.GetContext(), path.EndpointA.ClientID, upgradedClientBz, upgradedConsStateBz, upgradedClientProof, upgradedConsensusStateProof)
 
-		if tc.expPass {
-			suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
-		} else {
-			suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
+			} else {
+				suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
+			}
+		})
 	}
 }
 

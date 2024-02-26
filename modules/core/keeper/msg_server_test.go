@@ -903,7 +903,6 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
 			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
-
 		} else {
 			suite.Require().Error(err, "upgrade handler passed on invalid case: %s", tc.name)
 		}
