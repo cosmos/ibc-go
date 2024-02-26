@@ -24,66 +24,66 @@ type WasmEngine interface {
 -	StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error)
 +	StoreCode(code wasmvm.WasmCode, gasLimit uint64) (wasmvmtypes.Checksum, uint64, error)
 
-	StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error)
+  StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error)
 
-	Instantiate(
-		checksum wasmvm.Checksum,
-		env wasmvmtypes.Env,
-		info wasmvmtypes.MessageInfo,
-		initMsg []byte,
-		store wasmvm.KVStore,
-		goapi wasmvm.GoAPI,
-		querier wasmvm.Querier,
-		gasMeter wasmvm.GasMeter,
-		gasLimit uint64,
-		deserCost wasmvmtypes.UFraction,
+  Instantiate(
+    checksum wasmvm.Checksum,
+    env wasmvmtypes.Env,
+    info wasmvmtypes.MessageInfo,
+    initMsg []byte,
+    store wasmvm.KVStore,
+    goapi wasmvm.GoAPI,
+    querier wasmvm.Querier,
+    gasMeter wasmvm.GasMeter,
+    gasLimit uint64,
+    deserCost wasmvmtypes.UFraction,
 -	) (*wasmvmtypes.Response, uint64, error)
 +	) (*wasmvmtypes.ContractResult, uint64, error)
 
-	Query(
-		checksum wasmvm.Checksum,
-		env wasmvmtypes.Env,
-		queryMsg []byte,
-		store wasmvm.KVStore,
-		goapi wasmvm.GoAPI,
-		querier wasmvm.Querier,
-		gasMeter wasmvm.GasMeter,
-		gasLimit uint64,
-		deserCost wasmvmtypes.UFraction,
+  Query(
+    checksum wasmvm.Checksum,
+    env wasmvmtypes.Env,
+    queryMsg []byte,
+    store wasmvm.KVStore,
+    goapi wasmvm.GoAPI,
+    querier wasmvm.Querier,
+    gasMeter wasmvm.GasMeter,
+    gasLimit uint64,
+    deserCost wasmvmtypes.UFraction,
 -	) ([]byte, uint64, error)
 +	) (*wasmvmtypes.QueryResult, uint64, error)
 
-	Migrate(
-		checksum wasmvm.Checksum,
-		env wasmvmtypes.Env,
-		migrateMsg []byte,
-		store wasmvm.KVStore,
-		goapi wasmvm.GoAPI,
-		querier wasmvm.Querier,
-		gasMeter wasmvm.GasMeter,
-		gasLimit uint64,
-		deserCost wasmvmtypes.UFraction,
+  Migrate(
+    checksum wasmvm.Checksum,
+    env wasmvmtypes.Env,
+    migrateMsg []byte,
+    store wasmvm.KVStore,
+    goapi wasmvm.GoAPI,
+    querier wasmvm.Querier,
+    gasMeter wasmvm.GasMeter,
+    gasLimit uint64,
+    deserCost wasmvmtypes.UFraction,
 -	) (*wasmvmtypes.Response, uint64, error)
 +	) (*wasmvmtypes.ContractResult, uint64, error)
 
-	Sudo(
-		checksum wasmvm.Checksum,
-		env wasmvmtypes.Env,
-		sudoMsg []byte,
-		store wasmvm.KVStore,
-		goapi wasmvm.GoAPI,
-		querier wasmvm.Querier,
-		gasMeter wasmvm.GasMeter,
-		gasLimit uint64,
-		deserCost wasmvmtypes.UFraction,
+  Sudo(
+    checksum wasmvm.Checksum,
+    env wasmvmtypes.Env,
+    sudoMsg []byte,
+    store wasmvm.KVStore,
+    goapi wasmvm.GoAPI,
+    querier wasmvm.Querier,
+    gasMeter wasmvm.GasMeter,
+    gasLimit uint64,
+    deserCost wasmvmtypes.UFraction,
 -	) (*wasmvmtypes.Response, uint64, error)
 + ) (*wasmvmtypes.ContractResult, uint64, error)
 
-	GetCode(checksum wasmvm.Checksum) (wasmvm.WasmCode, error)
+  GetCode(checksum wasmvm.Checksum) (wasmvm.WasmCode, error)
 
-	Pin(checksum wasmvm.Checksum) error
+  Pin(checksum wasmvm.Checksum) error
 
-	Unpin(checksum wasmvm.Checksum) error
+  Unpin(checksum wasmvm.Checksum) error
 }
 ```
 
@@ -95,10 +95,10 @@ The `SupportedCapabilities` field of `WasmConfig` is now of type `[]string`:
 
 ```diff
 type WasmConfig struct {
-	DataDir string
+  DataDir string
 - SupportedCapabilities string
 +	SupportedCapabilities []string
-	ContractDebugMode bool
+  ContractDebugMode bool
 }
 ```
 
