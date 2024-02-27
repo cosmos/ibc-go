@@ -30,10 +30,9 @@ func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer [src-port] [src-channel] [receiver] [amount]",
 		Short: "Transfer a fungible token through IBC",
-		Long: strings.TrimSpace(`Transfer a fungible token through IBC. Timeouts can be specified
-as absolute using the "absolute-timeouts" flag. Timeout height can be set by passing in the height string
-in the form {revision}-{height} using the "packet-timeout-height" flag. Note, relative timeout height is not supported. Relative timeout timestamp 
-is added to the value of the system user's local clock time. If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
+		Long: strings.TrimSpace(`Transfer a fungible token through IBC. Timeouts can be specified as absolute using the "absolute-timeouts" flag. 
+Timeout height can be set by passing in the height string in the form {revision}-{height} using the "packet-timeout-height" flag. Note, relative timeout height is not supported. 
+Relative timeout timestamp is added to the value of the user's local system clock time using the "packet-timeout-timestamp" flag. If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [amount]", version.AppName),
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
