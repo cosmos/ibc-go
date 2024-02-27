@@ -28,6 +28,7 @@ var (
 	wasmvmAPI = wasmvm.GoAPI{
 		HumanizeAddress:     humanizeAddress,
 		CanonicalizeAddress: canonicalizeAddress,
+		ValidateAddress:     validateAddress,
 	}
 )
 
@@ -112,15 +113,15 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 	}
 
 	checksum := cs.Checksum
-	resp, err := instantiateContract(ctx, clientStore, checksum, encodedData)
+	res, err := instantiateContract(ctx, clientStore, checksum, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(ErrVMError, err.Error())
 	}
-	if resp.Err != "" {
-		return errorsmod.Wrap(ErrWasmContractCallFailed, resp.Err)
+	if res.Err != "" {
+		return errorsmod.Wrap(ErrWasmContractCallFailed, res.Err)
 	}
 
-	if err = checkResponse(resp); err != nil {
+	if err = checkResponse(res.Ok); err != nil {
 		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
@@ -154,15 +155,19 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientSt
 	}
 
 	checksum := cs.Checksum
-	resp, err := callContract(ctx, clientStore, checksum, encodedData)
+	res, err := callContract(ctx, clientStore, checksum, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrap(ErrVMError, err.Error())
 	}
-	if resp.Err != "" {
-		return result, errorsmod.Wrap(ErrWasmContractCallFailed, resp.Err)
+	if res.Err != "" {
+		return result, errorsmod.Wrap(ErrWasmContractCallFailed, res.Err)
 	}
 
-	if err := json.Unmarshal(resp.Ok.Data, &result); err != nil {
+	if err = checkResponse(res.Ok); err != nil {
+		return result, errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
+	}
+
+	if err := json.Unmarshal(res.Ok.Data, &result); err != nil {
 		return result, errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
 
@@ -183,15 +188,15 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientSt
 // wasmMigrate returns an error if:
 // - the contract migration returns an error
 func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
-	resp, err := migrateContract(ctx, clientID, clientStore, cs.Checksum, payload)
+	res, err := migrateContract(ctx, clientID, clientStore, cs.Checksum, payload)
 	if err != nil {
 		return errorsmod.Wrap(ErrVMError, err.Error())
 	}
-	if resp.Err != "" {
-		return errorsmod.Wrap(ErrWasmContractCallFailed, resp.Err)
+	if res.Err != "" {
+		return errorsmod.Wrap(ErrWasmContractCallFailed, res.Err)
 	}
 
-	if err = checkResponse(resp); err != nil {
+	if err = checkResponse(res.Ok); err != nil {
 		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
@@ -212,15 +217,15 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm query")
 	}
 
-	resp, err := queryContract(ctx, clientStore, cs.Checksum, encodedData)
+	res, err := queryContract(ctx, clientStore, cs.Checksum, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrap(ErrVMError, err.Error())
 	}
-	if resp.Err != "" {
-		return result, errorsmod.Wrap(ErrWasmContractCallFailed, resp.Err)
+	if res.Err != "" {
+		return result, errorsmod.Wrap(ErrWasmContractCallFailed, res.Err)
 	}
 
-	if err := json.Unmarshal(resp.Ok, &result); err != nil {
+	if err := json.Unmarshal(res.Ok, &result); err != nil {
 		return result, errorsmod.Wrapf(ErrWasmInvalidResponseData, "failed to unmarshal result of wasm query: %v", err)
 	}
 
@@ -303,17 +308,21 @@ func canonicalizeAddress(human string) ([]byte, uint64, error) {
 	return nil, 0, errors.New("canonicalAddress not implemented")
 }
 
+func validateAddress(human string) (uint64, error) {
+	return 0, errors.New("validateAddress not implemented")
+}
+
 // checkResponse returns an error if the response from a sudo, instantiate or migrate call
 // to the Wasm VM contains messages, events or attributes.
-func checkResponse(response *wasmvmtypes.ContractResult) error {
+func checkResponse(response *wasmvmtypes.Response) error {
 	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
-	if len(response.Ok.Messages) > 0 {
+	if len(response.Messages) > 0 {
 		return ErrWasmSubMessagesNotAllowed
 	}
-	if len(response.Ok.Events) > 0 {
+	if len(response.Events) > 0 {
 		return ErrWasmEventsNotAllowed
 	}
-	if len(response.Ok.Attributes) > 0 {
+	if len(response.Attributes) > 0 {
 		return ErrWasmAttributesNotAllowed
 	}
 

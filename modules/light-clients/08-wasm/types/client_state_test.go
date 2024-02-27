@@ -288,7 +288,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 			func() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), ibctesting.InvalidID)
 			},
-			types.ErrWasmContractCallFailed,
+			types.ErrVMError,
 		},
 		{
 			"failure: invalid consensus state",
@@ -433,14 +433,14 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			nil,
 		},
 		{
-			"wasm vm returns invalid proof error",
+			"contract returns invalid proof error",
 			func() {
 				proof = wasmtesting.MockInvalidProofBz
 
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.ContractResult, uint64, error) {
-					return nil, wasmtesting.DefaultGasUsed, commitmenttypes.ErrInvalidProof
+					return &wasmvmtypes.ContractResult{Err: commitmenttypes.ErrInvalidProof.Error()}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			types.ErrWasmContractCallFailed,

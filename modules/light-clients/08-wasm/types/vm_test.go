@@ -27,6 +27,7 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 					// Ensure GoAPI is set
 					suite.Require().NotNil(goapi.CanonicalizeAddress)
 					suite.Require().NotNil(goapi.HumanizeAddress)
+					suite.Require().NotNil(goapi.ValidateAddress)
 
 					var payload types.InstantiateMessage
 					err := json.Unmarshal(initMsg, &payload)
@@ -198,6 +199,7 @@ func (suite *TypesTestSuite) TestWasmMigrate() {
 					// Ensure GoAPI is set
 					suite.Require().NotNil(goapi.CanonicalizeAddress)
 					suite.Require().NotNil(goapi.HumanizeAddress)
+					suite.Require().NotNil(goapi.ValidateAddress)
 
 					resp, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -337,6 +339,7 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 					// Ensure GoAPI is set
 					suite.Require().NotNil(goapi.CanonicalizeAddress)
 					suite.Require().NotNil(goapi.HumanizeAddress)
+					suite.Require().NotNil(goapi.ValidateAddress)
 
 					resp, err := json.Marshal(types.StatusResult{Status: exported.Frozen.String()})
 					suite.Require().NoError(err)
@@ -422,6 +425,7 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 					// Ensure GoAPI is set
 					suite.Require().NotNil(goapi.CanonicalizeAddress)
 					suite.Require().NotNil(goapi.HumanizeAddress)
+					suite.Require().NotNil(goapi.ValidateAddress)
 
 					resp, err := json.Marshal(types.UpdateStateResult{})
 					suite.Require().NoError(err)

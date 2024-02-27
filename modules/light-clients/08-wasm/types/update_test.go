@@ -102,7 +102,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			func() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), ibctesting.InvalidID)
 			},
-			errorsmod.Wrap(types.ErrWasmContractCallFailed, errorsmod.Wrap(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a valid clientID: %s", errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", ibctesting.InvalidID)), "failed to retrieve clientID for wasm contract call").Error()),
+			errorsmod.Wrap(types.ErrVMError, errorsmod.Wrap(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a valid clientID: %s", errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", ibctesting.InvalidID)), "failed to retrieve clientID for wasm contract call").Error()),
 			nil,
 		},
 		{
@@ -121,7 +121,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					return nil, 0, wasmtesting.ErrMockVM
 				})
 			},
-			errorsmod.Wrap(types.ErrVMError, wasmtesting.ErrMockContract.Error()),
+			errorsmod.Wrap(types.ErrVMError, wasmtesting.ErrMockVM.Error()),
 			nil,
 		},
 		{

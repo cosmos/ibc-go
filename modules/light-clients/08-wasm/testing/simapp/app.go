@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
@@ -463,7 +465,7 @@ func NewSimApp(
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.
 	wasmConfig := wasmtypes.WasmConfig{
-		DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data"),
+		DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000))),
 		SupportedCapabilities: []string{"iterator"},
 		ContractDebugMode:     false,
 	}
