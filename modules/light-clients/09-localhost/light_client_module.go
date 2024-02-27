@@ -38,7 +38,7 @@ func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.Clien
 
 // Initialize ensures that initial consensus state for localhost is nil.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, _, consensusStateBz []byte) error {
 	if len(consensusStateBz) != 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
@@ -55,7 +55,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, _, con
 
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
@@ -73,7 +73,7 @@ func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID str
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.cdc
@@ -90,7 +90,7 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // The caller must provide the full IBC store.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (lcm LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -117,7 +117,7 @@ func (lcm LightClientModule) VerifyMembership(
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // The caller must provide the full IBC store.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 09-localhost-{n}.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (lcm LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
