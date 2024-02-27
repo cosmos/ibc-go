@@ -39,7 +39,7 @@ func (suite *KeeperTestSuite) TestMsgCreateClientEvents() {
 			clienttypes.EventTypeCreateClient,
 			sdk.NewAttribute(clienttypes.AttributeKeyClientID, ibctesting.FirstClientID),
 			sdk.NewAttribute(clienttypes.AttributeKeyClientType, clientState.ClientType()),
-			//		sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
 		),
 	}.ToABCIEvents()
 

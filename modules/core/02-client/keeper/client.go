@@ -53,7 +53,8 @@ func (k Keeper) CreateClient(
 		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientType)},
 	)
 
-	emitCreateClientEvent(ctx, clientID, clientType)
+	latestHeight := types.ZeroHeight() // TODO: replace with correct height when LatestHeight is added to light client module
+	emitCreateClientEvent(ctx, clientID, clientType, latestHeight)
 
 	return clientID, nil
 }
@@ -155,7 +156,8 @@ func (k Keeper) UpgradeClient(
 		},
 	)
 
-	emitUpgradeClientEvent(ctx, clientID, clientType)
+	latestHeight := types.ZeroHeight() // TODO: replace with correct height when LatestHeight is added to light client module
+	emitUpgradeClientEvent(ctx, clientID, clientType, latestHeight)
 
 	return nil
 }

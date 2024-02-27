@@ -311,16 +311,26 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	upgradeClientProof,
 	upgradeConsensusStateProof []byte,
 ) error {
-	cdc := lcm.keeper.Codec()
+	var (
+		cdc               = lcm.keeper.Codec()
+		newClientState    exported.ClientState
+		newConsensusState exported.ConsensusState
+	)
 
-	var newClientState ClientState
-	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
+	if err := cdc.UnmarshalInterface(newClient, &newClientState); err != nil {
 		return err
 	}
+	newTmClientState, ok := newClientState.(*ClientState)
+	if !ok {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected client state type %T, got %T", (*ClientState)(nil), newClientState)
+	}
 
-	var newConsensusState ConsensusState
-	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
+	if err := cdc.UnmarshalInterface(newConsState, &newConsensusState); err != nil {
 		return err
+	}
+	newTmConsensusState, ok := newConsensusState.(*ConsensusState)
+	if !ok {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "expected consensus state type %T, got %T", (*ConsensusState)(nil), newConsensusState)
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
@@ -335,5 +345,5 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.GetLatestHeight(), lastHeight)
 	}
 
-	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)
+	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, newTmClientState, newTmConsensusState, upgradeClientProof, upgradeConsensusStateProof)
 }

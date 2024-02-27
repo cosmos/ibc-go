@@ -69,10 +69,20 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgradeClient) (*clienttypes.MsgUpgradeClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	upgradedClientState, err := k.cdc.Marshal(msg.ClientState)
+	if err != nil {
+		return nil, err
+	}
+
+	upgradedConsensusState, err := k.cdc.Marshal(msg.ConsensusState)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := k.ClientKeeper.UpgradeClient(
 		ctx, msg.ClientId,
-		msg.ClientState.Value,
-		msg.ConsensusState.Value,
+		upgradedClientState,
+		upgradedConsensusState,
 		msg.ProofUpgradeClient,
 		msg.ProofUpgradeConsensusState,
 	); err != nil {

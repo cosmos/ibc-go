@@ -14,6 +14,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -211,29 +212,27 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 		{
 			"upgraded client state is not wasm client state",
 			func() {
-				upgradedClientStateBz = []byte{}
+				upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.Codec, solomachine.NewClientState(0, &solomachine.ConsensusState{}))
 			},
 			clienttypes.ErrInvalidClient,
 		},
 		{
 			"upgraded consensus state is not wasm consensus sate",
 			func() {
-				upgradedConsensusStateBz = []byte{}
+				upgradedConsensusStateBz = clienttypes.MustMarshalConsensusState(suite.chainA.Codec, &solomachine.ConsensusState{})
 			},
 			clienttypes.ErrInvalidConsensus,
 		},
 		{
 			"upgraded client state height is not greater than current height",
 			func() {
-				var err error
 				latestHeight := clientState.GetLatestHeight()
 				newLatestHeight := clienttypes.NewHeight(latestHeight.GetRevisionNumber(), latestHeight.GetRevisionHeight()-1)
 
 				wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
 				wrappedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wrappedUpgradedClient)
 				upgradedClientState = types.NewClientState(wrappedUpgradedClientBz, clientState.Checksum, newLatestHeight)
-				upgradedClientStateBz, err = suite.chainA.Codec.Marshal(upgradedClientState)
-				suite.Require().NoError(err)
+				upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.Codec, upgradedClientState)
 			},
 			ibcerrors.ErrInvalidHeight,
 		},
@@ -256,14 +255,12 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
 			wrappedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wrappedUpgradedClient)
 			upgradedClientState = types.NewClientState(wrappedUpgradedClientBz, clientState.Checksum, newLatestHeight)
-			upgradedClientStateBz, err = suite.chainA.Codec.Marshal(upgradedClientState)
-			suite.Require().NoError(err)
+			upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.Codec, upgradedClientState)
 
 			wrappedUpgradedConsensus := ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("new-hash")), []byte("new-nextValsHash"))
 			wrappedUpgradedConsensusBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wrappedUpgradedConsensus)
 			upgradedConsensusState = types.NewConsensusState(wrappedUpgradedConsensusBz)
-			upgradedConsensusStateBz, err = suite.chainA.Codec.Marshal(upgradedConsensusState)
-			suite.Require().NoError(err)
+			upgradedConsensusStateBz = clienttypes.MustMarshalConsensusState(suite.chainA.Codec, upgradedConsensusState)
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(clientID)
 			suite.Require().True(found)
