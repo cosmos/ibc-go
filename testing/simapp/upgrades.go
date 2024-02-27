@@ -42,7 +42,7 @@ func (app *SimApp) registerUpgradeHandlers() {
 			app.ModuleManager,
 			app.configurator,
 			app.appCodec,
-			app.IBCKeeper.ClientKeeper,
+			*app.IBCKeeper.ClientKeeper,
 			app.ConsensusParamsKeeper,
 			app.ParamsKeeper,
 		),
@@ -50,7 +50,7 @@ func (app *SimApp) registerUpgradeHandlers() {
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V7_1,
-		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, app.IBCKeeper.ClientKeeper),
+		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, *app.IBCKeeper.ClientKeeper),
 	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(

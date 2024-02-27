@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -215,6 +217,21 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
+		}, false},
+		{"override self client validator", func() {
+			err := path.EndpointA.ConnOpenInit()
+			suite.Require().NoError(err)
+
+			// retrieve client state of chainA to pass as counterpartyClient
+			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
+
+			mockValidator := mock.ClientValidator{
+				ValidateSelfClientFn: func(ctx sdk.Context, clientState exported.ClientState) error {
+					return mock.MockApplicationCallbackError
+				},
+			}
+
+			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetSelfClientValidator(&mockValidator)
 		}, false},
 	}
 

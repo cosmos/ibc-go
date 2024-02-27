@@ -80,7 +80,7 @@ func (k Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) str
 }
 
 // GetClientState gets a particular client from the store
-func (k Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
+func (k *Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ClientStateKey())
 	if len(bz) == 0 {
@@ -92,13 +92,13 @@ func (k Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.Clien
 }
 
 // SetClientState sets a particular Client to the store
-func (k Keeper) SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+func (k *Keeper) SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	store := k.ClientStore(ctx, clientID)
 	store.Set(host.ClientStateKey(), k.MustMarshalClientState(clientState))
 }
 
 // GetClientConsensusState gets the stored consensus state from a client at a given height.
-func (k Keeper) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
+func (k *Keeper) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ConsensusStateKey(height))
 	if len(bz) == 0 {

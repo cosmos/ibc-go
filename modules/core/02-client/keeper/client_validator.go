@@ -1,14 +1,11 @@
 package keeper
 
 import (
-	"reflect"
-
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cometbft/cometbft/light"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"reflect"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
