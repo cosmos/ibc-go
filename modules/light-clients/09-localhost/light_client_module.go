@@ -14,12 +14,14 @@ import (
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
 
+// LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
 	cdc           codec.BinaryCodec
 	key           storetypes.StoreKey
 	storeProvider exported.ClientStoreProvider
 }
 
+// NewLightClientModule creates and returns a new 09-localhost LightClientModule.
 func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *LightClientModule {
 	return &LightClientModule{
 		cdc: cdc,
@@ -27,20 +29,17 @@ func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *Light
 	}
 }
 
+// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
+// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
+// to IBC light client instances.
 func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
 	lcm.storeProvider = storeProvider
 }
 
-func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Localhost {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
+// Initialize ensures that initial consensus state for localhost is nil.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
+func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, _, consensusStateBz []byte) error {
 	if len(consensusStateBz) != 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
@@ -54,60 +53,28 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 	return nil
 }
 
-func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Localhost {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.cdc
-
-	clientState, found := getClientState(clientStore, cdc)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
-	}
-
-	return clientState.VerifyClientMessage(ctx, cdc, clientStore, clientMsg)
+// VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
+func (LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
 
+// CheckForMisbehaviour is unsupported by the 09-localhost client type and performs a no-op, returning false.
 func (LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		panic(err)
-	}
-
-	if clientType != exported.Localhost {
-		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType))
-	}
-
 	return false
 }
 
+// UpdateStateOnMisbehaviour is unsupported by the 09-localhost client type and performs a no-op.
 func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		panic(err)
-	}
-
-	if clientType != exported.Localhost {
-		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType))
-	}
+	// no-op
 }
 
+// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
+// Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		panic(err)
-	}
-
-	if clientType != exported.Localhost {
-		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType))
-	}
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.cdc
 
@@ -119,6 +86,11 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
 }
 
+// VerifyMembership is a generic proof verification method which verifies the existence of a given key and value within the IBC store.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// The caller must provide the full IBC store.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (lcm LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -129,15 +101,6 @@ func (lcm LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Localhost {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	ibcStore := ctx.KVStore(lcm.key)
 	cdc := lcm.cdc
@@ -150,6 +113,11 @@ func (lcm LightClientModule) VerifyMembership(
 	return clientState.VerifyMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
+// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath within the IBC store.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// The caller must provide the full IBC store.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (lcm LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -159,15 +127,6 @@ func (lcm LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path, // TODO: change to conrete type
 ) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Localhost {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	ibcStore := ctx.KVStore(lcm.key)
 	cdc := lcm.cdc
@@ -185,27 +144,22 @@ func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Statu
 	return exported.Active
 }
 
+// TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
+// cannot provide a timestamp for the provided height.
 func (LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
 ) (uint64, error) {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return 0, err
-	}
-
-	if clientType != exported.Localhost {
-		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Localhost, clientType)
-	}
-
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
-func (LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+// RecoverClient returns an error. The localhost cannot be modified by proposals.
+func (LightClientModule) RecoverClient(_ sdk.Context, _, _ string) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
 }
 
+// VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded.
 func (LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
