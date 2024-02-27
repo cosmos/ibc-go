@@ -71,12 +71,24 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			clienttypes.ErrInvalidClient,
 		},
 		{
+			"failure: vm returns error",
+			func() {
+				suite.mockVM.RegisterSudoCallback(
+					types.MigrateClientStoreMsg{},
+					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, _ []byte, _ cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+						return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockVM
+					},
+				)
+			},
+			types.ErrVMError,
+		},
+		{
 			"failure: contract returns error",
 			func() {
 				suite.mockVM.RegisterSudoCallback(
 					types.MigrateClientStoreMsg{},
 					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, _ []byte, _ cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
-						return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockContract
+						return &wasmvmtypes.ContractResult{Err: wasmtesting.ErrMockContract.Error()}, wasmtesting.DefaultGasUsed, nil
 					},
 				)
 			},
