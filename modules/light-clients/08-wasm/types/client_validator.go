@@ -2,14 +2,12 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 type WasmTMClientValidator struct {
@@ -27,14 +25,15 @@ func NewWasmTMClientValidator(cdc codec.BinaryCodec, tm *clientkeeper.Tendermint
 	}
 }
 
-func (w WasmTMClientValidator) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
+func (w *WasmTMClientValidator) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
+	//return w.tm.GetSelfConsensusState(ctx, height)
 	consensusState, err := w.tm.GetSelfConsensusState(ctx, height)
 	if err != nil {
 		return nil, err
 	}
 
 	// encode consensusState to wasm.ConsensusState.Data
-	bz, err := w.cdc.Marshal(consensusState)
+	bz, err := w.cdc.MarshalInterface(consensusState)
 	if err != nil {
 		return nil, err
 	}
@@ -46,15 +45,27 @@ func (w WasmTMClientValidator) GetSelfConsensusState(ctx sdk.Context, height exp
 	return wasmConsensusState, nil
 }
 
-func (w WasmTMClientValidator) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
+func (w *WasmTMClientValidator) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
 	wasmClientState, ok := clientState.(*ClientState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "client must be a wasm client, expected: %T, got: %T", ClientState{}, wasmClientState)
 	}
 
+	if w == nil {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm client validator is nil")
+	}
+
+	if w.cdc == nil {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm client validator cdc is nil")
+	}
+
+	if wasmClientState.Data == nil {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm client state data is nil")
+	}
+
 	// unmarshal the wasmClientState bytes into tendermint client and call self validation
-	var tmClientState *ibctm.ClientState
-	if err := w.cdc.Unmarshal(wasmClientState.Data, tmClientState); err != nil {
+	var tmClientState exported.ClientState
+	if err := w.cdc.UnmarshalInterface(wasmClientState.Data, &tmClientState); err != nil {
 		return err
 	}
 
