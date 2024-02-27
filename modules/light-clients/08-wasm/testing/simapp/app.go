@@ -464,6 +464,11 @@ func NewSimApp(
 	// Function DefaultWasmConfig can also be used to use default values.
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.
+
+	// NOTE: a random string is appended to the data directory to ensure that every test
+	// runs using a different data directory. This is required because wasm VM forbids 2 or more
+	// different VM instances running in the same data directory. In production enviroments, the
+	// appended random string is not needed.
 	wasmConfig := wasmtypes.WasmConfig{
 		DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000))),
 		SupportedCapabilities: []string{"iterator"},
