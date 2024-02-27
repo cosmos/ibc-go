@@ -14,33 +14,31 @@ import (
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
 
+// LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
 	keeper        keeper.Keeper
 	storeProvider exported.ClientStoreProvider
 }
 
+// NewLightClientModule creates and returns a new 08-wasm LightClientModule.
 func NewLightClientModule(cdc codec.BinaryCodec, authority string) LightClientModule {
 	return LightClientModule{
 		keeper: keeper.NewKeeper(cdc, authority),
 	}
 }
 
+// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
+// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
+// to IBC light client instances.
 func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
 	lcm.storeProvider = storeProvider
 }
 
 // Initialize checks that the initial consensus state is an 07-tendermint consensus state and
 // sets the client state, consensus state and associated metadata in the provided client store.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Tendermint {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
-	}
-
 	var clientState ClientState
 	if err := lcm.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
 		return err
@@ -64,16 +62,13 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 	return clientState.Initialize(ctx, lcm.keeper.Codec(), clientStore, &consensusState)
 }
 
+// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
+// It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
+// will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
+// if the ClientMessage fails to verify.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Tendermint {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
@@ -85,16 +80,11 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 	return clientState.VerifyClientMessage(ctx, cdc, clientStore, clientMsg)
 }
 
+// CheckForMisbehaviour checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
+// has already been verified.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		panic(err)
-	}
-
-	if clientType != exported.Tendermint {
-		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType))
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
@@ -106,16 +96,10 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 	return clientState.CheckForMisbehaviour(ctx, cdc, clientStore, clientMsg)
 }
 
+// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		panic(err)
-	}
-
-	if clientType != exported.Tendermint {
-		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType))
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
@@ -127,15 +111,11 @@ func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID
 	clientState.UpdateStateOnMisbehaviour(ctx, cdc, clientStore, clientMsg)
 }
 
+// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
+// Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		panic(err)
-	}
-
-	if clientType != exported.Tendermint {
-		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType))
-	}
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
@@ -147,6 +127,10 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
 }
 
+// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -157,15 +141,6 @@ func (lcm LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Tendermint {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
@@ -177,6 +152,10 @@ func (lcm LightClientModule) VerifyMembership(
 	return clientState.VerifyMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
+// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -186,15 +165,6 @@ func (lcm LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path, // TODO: change to conrete type
 ) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Tendermint {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
@@ -206,16 +176,10 @@ func (lcm LightClientModule) VerifyNonMembership(
 	return clientState.VerifyNonMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
+// Status must return the status of the client. Only Active clients are allowed to process packets.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return exported.Unknown
-	}
-
-	if clientType != exported.Tendermint {
-		return exported.Unknown
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
@@ -227,20 +191,14 @@ func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.S
 	return clientState.Status(ctx, clientStore, cdc)
 }
 
+// TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
 ) (uint64, error) {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return 0, err
-	}
-
-	if clientType != exported.Tendermint {
-		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
-	}
-
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
@@ -252,16 +210,11 @@ func (lcm LightClientModule) TimestampAtHeight(
 	return clientState.GetTimestampAtHeight(ctx, clientStore, cdc, height)
 }
 
+// RecoverClient must verify that the provided substitute may be used to update the subject client.
+// The light client must set the updated client and consensus states within the clientStore for the subject client.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	if clientType != exported.Tendermint {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
-	}
-
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
 		return err
@@ -303,6 +256,8 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 //   - the latest height of the new client does not match or is greater than the height in committed client
 //   - any Tendermint chain specified parameter in upgraded client such as ChainID, UnbondingPeriod,
 //     and ProofSpecs do not match parameters set by committed client
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
