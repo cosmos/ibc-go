@@ -305,9 +305,11 @@ func (k Keeper) WriteAcknowledgement(
 		)
 	}
 
-	// REPLAY PROTECTION: Even after the packet has been processed and acknowledgement is returned,
-	// it won't be possible to replay the acknowledgement processing on the sender side as the packet
-	// commitment won't exist, thus this check is simply to protect unnecessary state from being written into storage.
+	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
+	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
+	// upgrade all packets under the recvStartSequence will have been processed and thus should be
+	// rejected. Any asynchronous acknowledgement writes from packets processed in a previous lifecycle of a channel
+	// will also be rejected.
 	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if packet.GetSequence() < recvStartSequence {
 		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
