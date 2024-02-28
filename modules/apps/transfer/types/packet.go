@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -17,12 +16,6 @@ var (
 	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
 )
-
-// DefaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
-// relative to the current block timestamp of the counterparty chain provided by the client
-// state. The timeout is disabled when set to 0. The default is currently set to a 10 minute
-// timeout.
-var DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(
