@@ -27,7 +27,7 @@ type WasmEngine interface {
 	// This allows restoring previous contract code in genesis and state-sync that may have been initially stored under different configuration constraints.
 	StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error)
 
-	// Instantiate will create a new contract based on the given codeID.
+	// Instantiate will create a new contract based on the given checksum.
 	// We can set the initMsg (contract "genesis") here, and it then receives
 	// an account and address and can be invoked (Execute) many times.
 	//
@@ -64,7 +64,7 @@ type WasmEngine interface {
 	) (*wasmvmtypes.QueryResult, uint64, error)
 
 	// Migrate will migrate an existing contract to a new code binary.
-	// This takes storage of the data from the original contract and the CodeID of the new contract that should
+	// This takes storage of the data from the original contract and the checksum of the new contract that should
 	// replace it. This allows it to run a migration step if needed, or return an error if unable to migrate
 	// the given data.
 	//
