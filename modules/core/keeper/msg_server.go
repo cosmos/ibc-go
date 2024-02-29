@@ -14,6 +14,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
@@ -490,7 +491,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
 	if ack != nil {
-		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
+		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel, msg.Packet.Sequence, ack); err != nil {
 			return nil, err
 		}
 	}
@@ -681,25 +682,25 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	}
 
 	// Lookup module by channel capability
-	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel)
-	if err != nil {
-		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
+	// module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel)
+	// if err != nil {
+	// 	ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+	// 	return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	// }
 
-	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
-	if !ok {
-		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-	}
+	// // Retrieve callbacks from router
+	// cbs, ok := k.Router.GetRoute(module)
+	// if !ok {
+	// 	ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+	// 	return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	// }
 
 	// Perform TAO verification
 	//
 	// If the acknowledgement was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.AcknowledgePacket(cacheCtx, capability, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+	err = k.ChannelKeeper.AcknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -714,11 +715,17 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	}
 
 	// Perform application logic callback
-	err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
+	// err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
+	// if err != nil {
+	// 	ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
+	// 	return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
+	// }
+	var ack types.RoutedPacketAcknowledgement
+	err = k.cdc.UnmarshalJSON(msg.Acknowledgement, &ack)
 	if err != nil {
-		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
-		return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
+		return nil, err
 	}
+	k.PortKeeper.OnAcknowledgementPacket(ctx, msg.Packet, ack, relayer)
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"tx", "msg", "ibc", channeltypes.EventTypeAcknowledgePacket},

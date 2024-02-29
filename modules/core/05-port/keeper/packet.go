@@ -28,6 +28,7 @@ func (k Keeper) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string,
 	routeErr := k.cdc.UnmarshalJSON([]byte(channel.Version), &routedVersion)
 	if routeErr != nil {
 		// TODO: Figure out backwards compatibility
+		return nil
 	}
 
 	// // input packet data from base application into the routed packet data map
@@ -37,14 +38,13 @@ func (k Keeper) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string,
 	// send packet data to each module in the route
 	// since this is routing from the base application to core IBC
 	// the routing must occur in reverse order
-	// base app is skipped since it was the module that sent the original packet data
-	for i := len(routedVersion.Modules) - 2; i >= 0; i-- {
+	for i := len(routedVersion.Modules) - 1; i >= 0; i-- {
 		module := routedVersion.Modules[i]
 		cbs, exists := k.Router.GetRoute(module)
 		if !exists {
 			return errorsmod.Wrapf(types.ErrInvalidRoute, "route '%s' does not exist", module)
 		}
-		if ok {
+		if packetData.PacketData[module] != nil {
 			var err error
 			err = cbs.OnSendPacket(ctx, sourcePort, sourceChannel, packetData.PacketData[module])
 			if err != nil {

@@ -9,11 +9,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -337,7 +335,6 @@ func (k Keeper) WriteAcknowledgement(
 // It will also increment NextSequenceAck in case of ORDERED channels.
 func (k Keeper) AcknowledgePacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	acknowledgement []byte,
 	proof []byte,
@@ -356,13 +353,13 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
-	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication for capability name %s", capName,
-		)
-	}
+	// capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
+	// if !k.scopedKeepser.AuthenticateCapability(ctx, chanCap, capName) {
+	// 	return errorsmod.Wrapf(
+	// 		types.ErrInvalidChannelCapability,
+	// 		"channel capability failed authentication for capability name %s", capName,
+	// 	)
+	// }
 
 	// packet must have been sent to the channel's counterparty
 	if packet.GetDestPort() != channel.Counterparty.PortId {
