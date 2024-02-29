@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -115,7 +116,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 // UpgradeClient upgrades the client to a new client state if this new client was committed to
 // by the old client at the specified upgrade height
 func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
-	proofUpgradeClient, proofUpgradeConsState []byte,
+	upgradeClientProof, upgradeConsensusStateProof []byte,
 ) error {
 	clientState, found := k.GetClientState(ctx, clientID)
 	if !found {
@@ -128,8 +129,16 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
+	// last height of current counterparty chain must be client's latest height
+	lastHeight := clientState.GetLatestHeight()
+
+	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s",
+			upgradedClient.GetLatestHeight(), lastHeight)
+	}
+
 	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
-		upgradedClient, upgradedConsState, proofUpgradeClient, proofUpgradeConsState,
+		upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof,
 	); err != nil {
 		return errorsmod.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
@@ -181,7 +190,7 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 	substituteClientStore := k.ClientStore(ctx, substituteClientID)
 
 	if status := k.GetClientStatus(ctx, substituteClientState, substituteClientID); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not %s, status is %s", status, exported.Active)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not %s, status is %s", exported.Active, status)
 	}
 
 	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {

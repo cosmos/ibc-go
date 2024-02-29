@@ -81,7 +81,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"signature uses new pubkey to sign",
 				func() {
-					// store in temp before assinging to interface type
+					// store in temp before assigning to interface type
 					cs := sm.ClientState()
 					h := sm.CreateHeader(sm.Diversifier)
 
@@ -120,7 +120,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"signature signs over old pubkey",
 				func() {
-					// store in temp before assinging to interface type
+					// store in temp before assigning to interface type
 					cs := sm.ClientState()
 					oldPubKey := sm.PublicKey
 					h := sm.CreateHeader(sm.Diversifier)

@@ -62,12 +62,28 @@ func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	return "", fmt.Errorf("channel identifier event attribute not found")
 }
 
-// ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns the
-// acknowledgement.
+// ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns
+// the first packet found.
+// Returns an error if no packet is found.
 func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
+	packets, err := ParsePacketsFromEvents(events)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+	return packets[0], nil
+}
+
+// ParsePacketsFromEvents parses events emitted from a MsgRecvPacket and returns
+// all the packets found.
+// Returns an error if no packet is found.
+func ParsePacketsFromEvents(events []abci.Event) ([]channeltypes.Packet, error) {
+	ferr := func(err error) ([]channeltypes.Packet, error) {
+		return nil, fmt.Errorf("ibctesting.ParsePacketsFromEvents: %w", err)
+	}
+	var packets []channeltypes.Packet
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeSendPacket {
-			packet := channeltypes.Packet{}
+			var packet channeltypes.Packet
 			for _, attr := range ev.Attributes {
 				switch attr.Key {
 				case channeltypes.AttributeKeyData: //nolint:staticcheck // DEPRECATED
@@ -76,7 +92,7 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 				case channeltypes.AttributeKeySequence:
 					seq, err := strconv.ParseUint(attr.Value, 10, 64)
 					if err != nil {
-						return channeltypes.Packet{}, err
+						return ferr(err)
 					}
 
 					packet.Sequence = seq
@@ -96,7 +112,7 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 				case channeltypes.AttributeKeyTimeoutHeight:
 					height, err := clienttypes.ParseHeight(attr.Value)
 					if err != nil {
-						return channeltypes.Packet{}, err
+						return ferr(err)
 					}
 
 					packet.TimeoutHeight = height
@@ -104,7 +120,7 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 				case channeltypes.AttributeKeyTimeoutTimestamp:
 					timestamp, err := strconv.ParseUint(attr.Value, 10, 64)
 					if err != nil {
-						return channeltypes.Packet{}, err
+						return ferr(err)
 					}
 
 					packet.TimeoutTimestamp = timestamp
@@ -114,10 +130,13 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 				}
 			}
 
-			return packet, nil
+			packets = append(packets, packet)
 		}
 	}
-	return channeltypes.Packet{}, fmt.Errorf("acknowledgement event attribute not found")
+	if len(packets) == 0 {
+		return ferr(fmt.Errorf("acknowledgement event attribute not found"))
+	}
+	return packets, nil
 }
 
 // ParseAckFromEvents parses events emitted from a MsgRecvPacket and returns the
@@ -133,6 +152,19 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 		}
 	}
 	return nil, fmt.Errorf("acknowledgement event attribute not found")
+}
+
+// ParseProposalIDFromEvents parses events emitted from MsgSubmitProposal and returns proposalID
+func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
+	for _, event := range events {
+		for _, attribute := range event.Attributes {
+			if attribute.Key == "proposal_id" {
+				return strconv.ParseUint(attribute.Value, 10, 64)
+			}
+		}
+	}
+
+	return 0, fmt.Errorf("proposalID event attribute not found")
 }
 
 // AssertEventsLegacy asserts that expected events are present in the actual events.
@@ -175,17 +207,12 @@ func AssertEvents(
 
 	for i, expectedEvent := range expected {
 		for _, actualEvent := range actual {
-			// the actual event will have an extra attribute added automatically
-			// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
-			// with the number of attributes in the expected event.
-			if expectedEvent.Type == actualEvent.Type && (len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1) {
-				// multiple events with the same type may be emitted, only mark the expected event as found
-				// if all of the attributes match
+			if shouldProcessEvent(expectedEvent, actualEvent) {
 				attributeMatch := true
 				for _, expectedAttr := range expectedEvent.Attributes {
 					// any expected attributes that are not contained in the actual events will cause this event
 					// not to match
-					attributeMatch = attributeMatch && slices.Contains(actualEvent.Attributes, expectedAttr)
+					attributeMatch = attributeMatch && containsAttribute(actualEvent.Attributes, expectedAttr.Key, expectedAttr.Value)
 				}
 
 				if attributeMatch {
@@ -198,4 +225,34 @@ func AssertEvents(
 	for i, expectedEvent := range expected {
 		suite.Require().True(foundEvents[i], "event: %s was not found in events", expectedEvent.Type)
 	}
+}
+
+// shouldProcessEvent returns true if the given expected event should be processed based on event type.
+func shouldProcessEvent(expectedEvent abci.Event, actualEvent abci.Event) bool {
+	if expectedEvent.Type != actualEvent.Type {
+		return false
+	}
+	// the actual event will have an extra attribute added automatically
+	// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
+	// with the number of attributes in the expected event.
+	if containsAttributeKey(actualEvent.Attributes, "msg_index") {
+		return len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1
+	}
+
+	return len(expectedEvent.Attributes) == len(actualEvent.Attributes)
+}
+
+// containsAttribute returns true if the given key/value pair is contained in the given attributes.
+// NOTE: this ignores the indexed field, which can be set or unset depending on how the events are retrieved.
+func containsAttribute(attrs []abci.EventAttribute, key, value string) bool {
+	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
+		return attr.Key == key && attr.Value == value
+	})
+}
+
+// containsAttributeKey returns true if the given key is contained in the given attributes.
+func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
+	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
+		return attr.Key == key
+	})
 }

@@ -57,7 +57,7 @@ func (suite *TendermintTestSuite) TestStatus() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			clientState = path.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -68,6 +68,71 @@ func (suite *TendermintTestSuite) TestStatus() {
 			suite.Require().Equal(tc.expStatus, status)
 		})
 
+	}
+}
+
+func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
+	var (
+		path   *ibctesting.Path
+		height exported.Height
+	)
+	expectedTimestamp := time.Unix(1, 0)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: consensus state not found for height",
+			func() {
+				clientState := path.EndpointA.GetClientState()
+				height = clientState.GetLatestHeight().Increment()
+			},
+			clienttypes.ErrConsensusStateNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			clientState := path.EndpointA.GetClientState()
+			height = clientState.GetLatestHeight()
+
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+			// grab consensusState from store and update with a predefined timestamp
+			consensusState := path.EndpointA.GetConsensusState(height)
+			tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
+			suite.Require().True(ok)
+
+			tmConsensusState.Timestamp = expectedTimestamp
+			path.EndpointA.SetConsensusState(tmConsensusState, height)
+
+			tc.malleate()
+
+			timestamp, err := clientState.GetTimestampAtHeight(suite.chainA.GetContext(), store, suite.chainA.Codec, height)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				expectedTimestamp := uint64(expectedTimestamp.UnixNano())
+				suite.Require().Equal(expectedTimestamp, timestamp)
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
 	}
 }
 
@@ -213,7 +278,7 @@ func (suite *TendermintTestSuite) TestInitialize() {
 			clientState := ibctm.NewClientState(
 				path.EndpointB.Chain.ChainID,
 				tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-				suite.chainB.LastHeader.GetTrustedHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
+				suite.chainB.LatestCommittedHeader.GetTrustedHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
 			)
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
@@ -222,11 +287,11 @@ func (suite *TendermintTestSuite) TestInitialize() {
 			if tc.expPass {
 				suite.Require().NoError(err, "valid case returned an error")
 				suite.Require().True(store.Has(host.ClientStateKey()))
-				suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
+				suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LatestCommittedHeader.GetTrustedHeight())))
 			} else {
 				suite.Require().Error(err, "invalid case didn't return an error")
 				suite.Require().False(store.Has(host.ClientStateKey()))
-				suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
+				suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LatestCommittedHeader.GetTrustedHeight())))
 			}
 		})
 	}
@@ -447,7 +512,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			suite.SetupTest() // reset
 			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
 			testingpath.SetChannelOrdered()
-			suite.coordinator.Setup(testingpath)
+			testingpath.Setup()
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.
 			delayTimePeriod = 0
@@ -664,7 +729,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			suite.SetupTest() // reset
 			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
 			testingpath.SetChannelOrdered()
-			suite.coordinator.Setup(testingpath)
+			testingpath.Setup()
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.
 			delayTimePeriod = 0

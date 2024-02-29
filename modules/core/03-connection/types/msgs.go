@@ -74,22 +74,13 @@ func (msg MsgConnectionOpenInit) ValidateBasic() error {
 	return msg.Counterparty.ValidateBasic()
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgConnectionOpenInit) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
-}
-
 // NewMsgConnectionOpenTry creates a new MsgConnectionOpenTry instance
 func NewMsgConnectionOpenTry(
 	clientID, counterpartyConnectionID, counterpartyClientID string,
 	counterpartyClient exported.ClientState,
 	counterpartyPrefix commitmenttypes.MerklePrefix,
 	counterpartyVersions []*Version, delayPeriod uint64,
-	proofInit, proofClient, proofConsensus []byte,
+	initProof, clientProof, consensusProof []byte,
 	proofHeight, consensusHeight clienttypes.Height, signer string,
 ) *MsgConnectionOpenTry {
 	counterparty := NewCounterparty(counterpartyClientID, counterpartyConnectionID, counterpartyPrefix)
@@ -100,9 +91,9 @@ func NewMsgConnectionOpenTry(
 		Counterparty:         counterparty,
 		CounterpartyVersions: counterpartyVersions,
 		DelayPeriod:          delayPeriod,
-		ProofInit:            proofInit,
-		ProofClient:          proofClient,
-		ProofConsensus:       proofConsensus,
+		ProofInit:            initProof,
+		ProofClient:          clientProof,
+		ProofConsensus:       consensusProof,
 		ProofHeight:          proofHeight,
 		ConsensusHeight:      consensusHeight,
 		Signer:               signer,
@@ -167,19 +158,10 @@ func (msg MsgConnectionOpenTry) UnpackInterfaces(unpacker codectypes.AnyUnpacker
 	return unpacker.UnpackAny(msg.ClientState, new(exported.ClientState))
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgConnectionOpenTry) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
-}
-
 // NewMsgConnectionOpenAck creates a new MsgConnectionOpenAck instance
 func NewMsgConnectionOpenAck(
 	connectionID, counterpartyConnectionID string, counterpartyClient exported.ClientState,
-	proofTry, proofClient, proofConsensus []byte,
+	tryProof, clientProof, consensusProof []byte,
 	proofHeight, consensusHeight clienttypes.Height,
 	version *Version,
 	signer string,
@@ -189,9 +171,9 @@ func NewMsgConnectionOpenAck(
 		ConnectionId:             connectionID,
 		CounterpartyConnectionId: counterpartyConnectionID,
 		ClientState:              protoAny,
-		ProofTry:                 proofTry,
-		ProofClient:              proofClient,
-		ProofConsensus:           proofConsensus,
+		ProofTry:                 tryProof,
+		ProofClient:              clientProof,
+		ProofConsensus:           consensusProof,
 		ProofHeight:              proofHeight,
 		ConsensusHeight:          consensusHeight,
 		Version:                  version,
@@ -244,23 +226,14 @@ func (msg MsgConnectionOpenAck) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgConnectionOpenAck) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
-}
-
 // NewMsgConnectionOpenConfirm creates a new MsgConnectionOpenConfirm instance
 func NewMsgConnectionOpenConfirm(
-	connectionID string, proofAck []byte, proofHeight clienttypes.Height,
+	connectionID string, ackProof []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgConnectionOpenConfirm {
 	return &MsgConnectionOpenConfirm{
 		ConnectionId: connectionID,
-		ProofAck:     proofAck,
+		ProofAck:     ackProof,
 		ProofHeight:  proofHeight,
 		Signer:       signer,
 	}
@@ -281,30 +254,12 @@ func (msg MsgConnectionOpenConfirm) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgConnectionOpenConfirm) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
-}
-
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
 func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
 		Signer: signer,
 		Params: params,
 	}
-}
-
-// GetSigners returns the expected signers for a MsgUpdateParams message.
-func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
 }
 
 // ValidateBasic performs basic checks on a MsgUpdateParams.

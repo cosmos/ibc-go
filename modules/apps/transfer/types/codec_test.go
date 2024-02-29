@@ -4,7 +4,9 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
@@ -22,4 +24,50 @@ func (suite *TypesTestSuite) TestMustMarshalProtoJSON() {
 	bz = packetData.GetBytes()
 	exists = strings.Contains(string(bz), memo)
 	suite.Require().False(exists)
+}
+
+func (suite *TypesTestSuite) TestCodecTypeRegistration() {
+	testCases := []struct {
+		name    string
+		typeURL string
+		expPass bool
+	}{
+		{
+			"success: MsgTransfer",
+			sdk.MsgTypeURL(&types.MsgTransfer{}),
+			true,
+		},
+		{
+			"success: MsgUpdateParams",
+			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
+			true,
+		},
+		{
+			"success: TransferAuthorization",
+			sdk.MsgTypeURL(&types.TransferAuthorization{}),
+			true,
+		},
+		{
+			"type not registered on codec",
+			"ibc.invalid.MsgTypeURL",
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
+
+			if tc.expPass {
+				suite.Require().NotNil(msg)
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Nil(msg)
+				suite.Require().Error(err)
+			}
+		})
+	}
 }

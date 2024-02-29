@@ -1,12 +1,14 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require("prism-react-renderer/themes/github");
-const darkCodeTheme = require("prism-react-renderer/themes/dracula");
+import { Highlight, themes } from "prism-react-renderer";
+
+const lightCodeTheme = themes.github;
+const darkCodeTheme = themes.dracula;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "IBC-Go Documentation",
+  title: "IBC-Go",
   tagline: "Documentation for IBC-Go",
   favicon: "img/white-cosmos-icon.svg",
 
@@ -47,33 +49,46 @@ const config = {
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
           // Select the latest version
-          lastVersion: "v7.3.x",
+          lastVersion: "v8.0.x",
           // Assign banners to specific versions
           versions: {
             current: {
               path: "main",
               banner: "unreleased",
             },
+            "v8.0.x": {
+              path: "v8",
+              banner: "none",
+            },
             "v7.3.x": {
-              path: "v7.3.x",
+              path: "v7",
               banner: "none",
             },
             "v6.2.x": {
-              path: "v6.2.x",
+              path: "v6",
               banner: "none",
             },
             "v5.3.x": {
-              path: "v5.3.x",
+              path: "v5",
               banner: "none",
             },
-            "v4.4.x": {
-              path: "v4.4.x",
+            "v4.5.x": {
+              path: "v4",
               banner: "none",
             },
           },
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
+        },
+        gtag: {
+          trackingID: "G-HP8ZXWVLJG",
+          anonymizeIP: true,
+        },
+        sitemap: {
+          changefreq: "weekly",
+          priority: 0.5,
+          filename: "sitemap.xml",
         },
       }),
     ],
@@ -82,7 +97,7 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: "img/ibc-go-image.png",
+      image: "img/ibc-go-docs-social-card.png",
       navbar: {
         logo: {
           alt: "IBC Logo",
@@ -103,6 +118,13 @@ const config = {
             docId: "README",
             docsPluginId: "adrs",
             label: "Architecture Decision Records",
+          },
+          {
+            type: "doc",
+            position: "left",
+            docId: "intro",
+            docsPluginId: "tutorials",
+            label: "Tutorials",
           },
           {
             type: "docsVersionDropdown",
@@ -212,10 +234,28 @@ const config = {
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
-        additionalLanguages: ["protobuf", "go-module"],
+        additionalLanguages: ["protobuf", "go-module", "yaml", "toml"],
+        magicComments: [
+          // Remember to extend the default highlight class name as well!
+          {
+            className: 'theme-code-block-highlighted-line',
+            line: 'highlight-next-line',
+            block: {start: 'highlight-start', end: 'highlight-end'},
+          },
+          {
+            className: 'code-block-minus-diff-line',
+            line: 'minus-diff-line',
+            block: {start: 'minus-diff-start', end: 'minus-diff-end'},
+          },
+          {
+            className: 'code-block-plus-diff-line',
+            line: 'plus-diff-line',
+            block: {start: 'plus-diff-start', end: 'plus-diff-end'},
+          },
+        ],
       },
     }),
-  themes: ["@you54f/theme-github-codeblock"],
+  themes: ["docusaurus-theme-github-codeblock"],
   plugins: [
     [
       "@docusaurus/plugin-content-docs",
@@ -223,6 +263,16 @@ const config = {
         id: "adrs",
         path: "architecture",
         routeBasePath: "architecture",
+        sidebarPath: require.resolve("./sidebars.js"),
+        exclude: ["**/*.template.md"],
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "tutorials",
+        path: "tutorials",
+        routeBasePath: "tutorials",
         sidebarPath: require.resolve("./sidebars.js"),
         exclude: ["**/*.template.md"],
       },
@@ -258,6 +308,10 @@ const config = {
           },
         ],
       },
+    ],
+    [
+      "@gracefullight/docusaurus-plugin-microsoft-clarity",
+      { projectId: "idk9udvhuu" },
     ],
     [
       require.resolve("@easyops-cn/docusaurus-search-local"),

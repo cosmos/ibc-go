@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package interchainaccounts
 
 import (
@@ -15,6 +17,7 @@ import (
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -51,7 +54,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -74,14 +77,14 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 				Signer: authority.String(),
 				Params: controllertypes.NewParams(false),
 			}
-			s.ExecuteGovV1Proposal(ctx, &msg, chainA, controllerAccount)
+			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainA, controllerAccount)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(controllertypes.StoreKey, string(controllertypes.KeyControllerEnabled), "false"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal)
 		}
 	})
 
@@ -93,7 +96,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	t.Run("ensure that broadcasting a MsgRegisterInterchainAccount fails", func(t *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxFailure(txResp, controllertypes.ErrControllerSubModuleDisabled)
@@ -106,7 +109,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	_, chainB := s.GetChains()
 	chainBVersion := chainB.Config().Images[0].Version
 
@@ -131,14 +134,14 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 				Signer: authority.String(),
 				Params: hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
 			}
-			s.ExecuteGovV1Proposal(ctx, &msg, chainB, chainBUser)
+			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainB, chainBUser)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(hosttypes.StoreKey, string(hosttypes.KeyHostEnabled), "false"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal)
 		}
 	})
 

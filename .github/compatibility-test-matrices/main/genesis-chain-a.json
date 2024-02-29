@@ -1,0 +1,17 @@
+{
+  "chain-a": [
+    "main"
+  ],
+  "chain-b": [
+    "main"
+  ],
+  "entrypoint": [
+    "TestGenesisTestSuite"
+  ],
+  "test": [
+    "TestIBCGenesis"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

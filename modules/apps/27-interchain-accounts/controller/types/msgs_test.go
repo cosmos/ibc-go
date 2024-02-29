@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -64,6 +65,20 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"owner address is too long",
+			func() {
+				msg.Owner = ibctesting.GenerateString(types.MaximumOwnerLength + 1)
+			},
+			false,
+		},
+		{
+			"order is not valid",
+			func() {
+				msg.Ordering = channeltypes.NONE
+			},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -73,6 +88,7 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 			ibctesting.FirstConnectionID,
 			ibctesting.TestAccAddress,
 			icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID),
+			channeltypes.ORDERED,
 		)
 
 		tc.malleate()
@@ -90,8 +106,11 @@ func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
-	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
-	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
+	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", channeltypes.ORDERED)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, expSigner.Bytes(), signers[0])
 }
 
 func TestMsgSendTxValidateBasic(t *testing.T) {
@@ -118,6 +137,13 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			"owner address is empty",
 			func() {
 				msg.Owner = ""
+			},
+			false,
+		},
+		{
+			"owner address is too long",
+			func() {
+				msg.Owner = ibctesting.GenerateString(types.MaximumOwnerLength + 1)
 			},
 			false,
 		},
@@ -200,7 +226,9 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		100000,
 		packetData,
 	)
-	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
+	signers, _, err := encodingConfig.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, expSigner.Bytes(), signers[0])
 }
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
@@ -245,12 +273,15 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
 		}
+
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
+			require.Error(t, err)
 		}
+
 	}
 }

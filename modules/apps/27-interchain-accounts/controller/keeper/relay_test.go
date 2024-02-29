@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -97,19 +98,21 @@ func (suite *KeeperTestSuite) TestSendTx() {
 		{
 			"channel in INIT state - optimistic packet sends fail",
 			func() {
-				channel, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(found)
-
-				channel.State = channeltypes.INIT
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.INIT })
 			},
 			false,
 		},
 		{
 			"sendPacket fails - channel closed",
 			func() {
-				err := path.EndpointA.SetChannelState(channeltypes.CLOSED)
-				suite.Require().NoError(err)
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+			},
+			false,
+		},
+		{
+			"controller submodule disabled",
+			func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
 			},
 			false,
 		},
@@ -147,7 +150,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 			timeoutTimestamp = ^uint64(0) // default
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -188,7 +191,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)

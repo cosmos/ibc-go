@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -24,18 +23,13 @@ type Keeper struct {
 	types.QueryServer
 
 	storeKey       storetypes.StoreKey
-	legacySubspace paramtypes.Subspace
+	legacySubspace types.ParamSubspace
 	cdc            codec.BinaryCodec
 	clientKeeper   types.ClientKeeper
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace, ck types.ClientKeeper) Keeper {
-	// set KeyTable if it has not already been set
-	if !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
-	}
-
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, ck types.ClientKeeper) Keeper {
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,
@@ -96,14 +90,14 @@ func (k Keeper) SetConnection(ctx sdk.Context, connectionID string, connection t
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the
 // given height.
 func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, connection types.ConnectionEnd, height exported.Height) (uint64, error) {
-	clientState, found := k.clientKeeper.GetClientState(ctx, connection.GetClientID())
+	clientState, found := k.clientKeeper.GetClientState(ctx, connection.ClientId)
 	if !found {
 		return 0, errorsmod.Wrapf(
-			clienttypes.ErrClientNotFound, "clientID (%s)", connection.GetClientID(),
+			clienttypes.ErrClientNotFound, "clientID (%s)", connection.ClientId,
 		)
 	}
 
-	timestamp, err := clientState.GetTimestampAtHeight(ctx, k.clientKeeper.ClientStore(ctx, connection.GetClientID()), k.cdc, height)
+	timestamp, err := clientState.GetTimestampAtHeight(ctx, k.clientKeeper.ClientStore(ctx, connection.ClientId), k.cdc, height)
 	if err != nil {
 		return 0, err
 	}

@@ -2,13 +2,12 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -32,7 +31,7 @@ var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
-// NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance
+// NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(
 	denom string, amount string,
 	sender, receiver string,
@@ -67,9 +66,16 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	return ValidatePrefixedDenom(ftpd.Denom)
 }
 
-// GetBytes is a helper for serialising
+// GetBytes is a helper for serialising the packet to bytes.
+// The memo field of FungibleTokenPacketData is marked with the JSON omitempty tag
+// ensuring that the memo field is not included in the marshalled bytes if one is not specified.
 func (ftpd FungibleTokenPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
+	bz, err := json.Marshal(ftpd)
+	if err != nil {
+		panic(errors.New("cannot marshal FungibleTokenPacketData into bytes"))
+	}
+
+	return bz
 }
 
 // GetPacketSender returns the sender address embedded in the packet data.

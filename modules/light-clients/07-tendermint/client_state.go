@@ -13,7 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cometbft/cometbft/light"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -118,13 +118,13 @@ func (cs ClientState) Validate() error {
 		return errorsmod.Wrap(ErrInvalidChainID, "chain id cannot be empty string")
 	}
 
-	// NOTE: the value of tmtypes.MaxChainIDLen may change in the future.
+	// NOTE: the value of cmttypes.MaxChainIDLen may change in the future.
 	// If this occurs, the code here must account for potential difference
 	// between the tendermint version being run by the counterparty chain
 	// and the tendermint version used by this light client.
 	// https://github.com/cosmos/ibc-go/issues/177
-	if len(cs.ChainId) > tmtypes.MaxChainIDLen {
-		return errorsmod.Wrapf(ErrInvalidChainID, "chainID is too long; got: %d, max: %d", len(cs.ChainId), tmtypes.MaxChainIDLen)
+	if len(cs.ChainId) > cmttypes.MaxChainIDLen {
+		return errorsmod.Wrapf(ErrInvalidChainID, "chainID is too long; got: %d, max: %d", len(cs.ChainId), cmttypes.MaxChainIDLen)
 	}
 
 	if err := light.ValidateTrustLevel(cs.TrustLevel.ToTendermint()); err != nil {
@@ -174,8 +174,10 @@ func (cs ClientState) Validate() error {
 }
 
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
-// with all client customizable fields zeroed out
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
+// with all client customizable fields zeroed out. All chain specific fields must
+// remain unchanged. This client state will be used to verify chain upgrades when a
+// chain breaks a light client verification parameter such as chainID.
+func (cs ClientState) ZeroCustomFields() *ClientState {
 	// copy over all chain-specified fields
 	// and leave custom fields empty
 	return &ClientState{

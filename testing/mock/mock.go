@@ -7,6 +7,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/core/appmodule"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -41,12 +43,23 @@ var (
 	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
 	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
+	UpgradeVersion                  = fmt.Sprintf("%s-v2", Version)
 	// MockApplicationCallbackError should be returned when an application callback should fail. It is possible to
 	// test that this error was returned using ErrorIs.
 	MockApplicationCallbackError error = &applicationCallbackError{}
 )
 
-var _ porttypes.IBCModule = (*IBCModule)(nil)
+var (
+	TestKey   = []byte("test-key")
+	TestValue = []byte("test-value")
+)
+
+var (
+	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
+	_ appmodule.AppModule   = (*AppModule)(nil)
+
+	_ porttypes.IBCModule = (*IBCModule)(nil)
+)
 
 // Expected Interface
 // PortKeeper defines the expected IBC port keeper
@@ -58,10 +71,22 @@ type PortKeeper interface {
 // AppModuleBasic is the mock AppModuleBasic.
 type AppModuleBasic struct{}
 
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModuleBasic) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModuleBasic) IsAppModule() {}
+
 // Name implements AppModuleBasic interface.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec implements AppModuleBasic interface.
 func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
@@ -149,4 +174,11 @@ func (KeyPath) String() string {
 // Empty implements the exported.Path interface
 func (KeyPath) Empty() bool {
 	return false
+}
+
+var _ exported.Height = Height{}
+
+// Height defines a placeholder struct which implements the exported.Height interface
+type Height struct {
+	exported.Height
 }

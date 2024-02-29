@@ -55,14 +55,6 @@ type ClientState interface {
 	// Status must return the status of the client. Only Active clients are allowed to process packets.
 	Status(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec) Status
 
-	// ExportMetadata must export metadata stored within the clientStore for genesis export
-	ExportMetadata(clientStore storetypes.KVStore) []GenesisMetadata
-
-	// ZeroCustomFields zeroes out any client customizable fields in client state
-	// Ledger enforced fields are maintained while all custom fields are zero values
-	// Used to verify upgrades
-	ZeroCustomFields() ClientState
-
 	// GetTimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
 	GetTimestampAtHeight(
 		ctx sdk.Context,
@@ -136,8 +128,8 @@ type ClientState interface {
 		store storetypes.KVStore,
 		newClient ClientState,
 		newConsState ConsensusState,
-		proofUpgradeClient,
-		proofUpgradeConsState []byte,
+		upgradeClientProof,
+		upgradeConsensusStateProof []byte,
 	) error
 }
 
@@ -148,6 +140,9 @@ type ConsensusState interface {
 	ClientType() string // Consensus kind
 
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
+	//
+	// Deprecated: GetTimestamp is not used outside of the light client implementations,
+	// and therefore it doesn't need to be an interface function.
 	GetTimestamp() uint64
 
 	ValidateBasic() error

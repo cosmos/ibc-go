@@ -179,7 +179,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					clientStateBz, err := suite.chainA.Codec.Marshal(clientState)
 					suite.Require().NoError(err)
 
-					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					merklePath, ok := path.(commitmenttypes.MerklePath)
 					suite.Require().True(ok)
 					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
@@ -246,7 +246,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: connection state verification",
 				func() {
-					suite.coordinator.SetupConnections(testingPath)
+					testingPath.SetupConnections()
 
 					connectionEnd, found := suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetConnection(suite.chainA.GetContext(), ibctesting.FirstConnectionID)
 					suite.Require().True(found)
@@ -285,7 +285,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: channel state verification",
 				func() {
-					suite.coordinator.SetupConnections(testingPath)
+					testingPath.SetupConnections()
 					suite.coordinator.CreateMockChannels(testingPath)
 
 					channelEnd, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
@@ -325,7 +325,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: next sequence recv verification",
 				func() {
-					suite.coordinator.SetupConnections(testingPath)
+					testingPath.SetupConnections()
 					suite.coordinator.CreateMockChannels(testingPath)
 
 					nextSeqRecv, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
@@ -474,7 +474,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"malformed proof fails to unmarshal",
 				func() {
-					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
 				false,
@@ -609,14 +609,12 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
 	sm := suite.solomachine
-	merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
-	key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
-	suite.Require().NoError(err)
+	path := []byte("solomachine")
 	signBytesNilData := solomachine.SignBytes{
 		Sequence:    sm.GetHeight().GetRevisionHeight(),
 		Timestamp:   sm.Time,
 		Diversifier: sm.Diversifier,
-		Path:        key,
+		Path:        path,
 		Data:        nil,
 	}
 
@@ -624,7 +622,7 @@ func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
 		Sequence:    sm.GetHeight().GetRevisionHeight(),
 		Timestamp:   sm.Time,
 		Diversifier: sm.Diversifier,
-		Path:        key,
+		Path:        path,
 		Data:        []byte{},
 	}
 
@@ -662,7 +660,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"success: packet receipt absence verification",
 				func() {
-					path = suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
+					path = sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					merklePath, ok := path.(commitmenttypes.MerklePath)
 					suite.Require().True(ok)
 					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
@@ -700,7 +698,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"malformed proof fails to unmarshal",
 				func() {
-					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
 				false,
@@ -838,7 +836,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 	tmPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(tmPath)
+	tmPath.SetupClients()
 	// Single setup for all test cases.
 	suite.SetupTest()
 

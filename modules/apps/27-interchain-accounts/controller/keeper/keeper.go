@@ -12,7 +12,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
@@ -21,6 +20,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -28,7 +28,7 @@ import (
 type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.Codec
-	legacySubspace paramtypes.Subspace
+	legacySubspace icatypes.ParamSubspace
 	ics4Wrapper    porttypes.ICS4Wrapper
 	channelKeeper  icatypes.ChannelKeeper
 	portKeeper     icatypes.PortKeeper
@@ -44,15 +44,10 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
-	cdc codec.Codec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace,
+	cdc codec.Codec, key storetypes.StoreKey, legacySubspace icatypes.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter, authority string,
 ) Keeper {
-	// set KeyTable if it has not already been set
-	if !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
@@ -155,7 +150,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 
-	if found && channel.IsOpen() {
+	if found && channel.State == channeltypes.OPEN {
 		return channelID, true
 	}
 
@@ -170,7 +165,7 @@ func (k Keeper) IsActiveChannelClosed(ctx sdk.Context, connectionID, portID stri
 	}
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	return found && channel.IsClosed()
+	return found && channel.State == channeltypes.CLOSED
 }
 
 // GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated connection and port identifiers
@@ -284,6 +279,16 @@ func (k Keeper) DeleteMiddlewareEnabled(ctx sdk.Context, portID, connectionID st
 // GetAuthority returns the ica/controller submodule's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+// getAppMetadata retrieves the interchain accounts channel metadata from the store associated with the provided portID and channelID
+func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
+	appVersion, found := k.GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
+	}
+
+	return icatypes.MetadataFromVersion(appVersion)
 }
 
 // GetParams returns the current ica/controller submodule parameters.

@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package connection
 
 import (
@@ -88,14 +90,14 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 			s.Require().NotNil(authority)
 
 			msg := connectiontypes.NewMsgUpdateParams(authority.String(), connectiontypes.NewParams(delay))
-			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(connectiontypes.KeyMaxExpectedTimePerBlock), fmt.Sprintf(`"%d"`, delay)),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 
@@ -126,7 +128,8 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 		t.Run("packets are relayed", func(t *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
-			actualBalance, err := chainA.GetBalance(ctx, chainAAddress, chainAIBCToken.IBCDenom())
+			actualBalance, err := s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount

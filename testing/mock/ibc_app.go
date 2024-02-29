@@ -85,6 +85,38 @@ type IBCApp struct {
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error
+
+	OnChanUpgradeInit func(
+		ctx sdk.Context,
+		portID, channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		version string,
+	) (string, error)
+
+	OnChanUpgradeTry func(
+		ctx sdk.Context,
+		portID, channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		counterpartyVersion string,
+	) (string, error)
+
+	OnChanUpgradeAck func(
+		ctx sdk.Context,
+		portID,
+		channelID,
+		counterpartyVersion string,
+	) error
+
+	OnChanUpgradeOpen func(
+		ctx sdk.Context,
+		portID,
+		channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		version string,
+	)
 }
 
 // NewIBCApp returns a IBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.

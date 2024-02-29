@@ -13,4 +13,5 @@ func TestValidateParams(t *testing.T) {
 	require.NoError(t, types.NewParams(false, []string{}).Validate())
 	require.Error(t, types.NewParams(true, []string{""}).Validate())
 	require.Error(t, types.NewParams(true, []string{" "}).Validate())
+	require.Error(t, types.NewParams(true, []string{"*", "/cosmos.bank.v1beta1.MsgSend"}).Validate())
 }

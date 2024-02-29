@@ -1,7 +1,8 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"encoding/json"
+	"errors"
 )
 
 // NewIncentivizedAcknowledgement creates a new instance of IncentivizedAcknowledgement
@@ -23,5 +24,10 @@ func (ack IncentivizedAcknowledgement) Success() bool {
 // Acknowledgement implements the Acknowledgement interface. It returns the
 // acknowledgement serialised using JSON.
 func (ack IncentivizedAcknowledgement) Acknowledgement() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&ack))
+	res, err := json.Marshal(&ack)
+	if err != nil {
+		panic(errors.New("cannot marshal acknowledgement into json"))
+	}
+
+	return res
 }
