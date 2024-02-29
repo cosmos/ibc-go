@@ -9,7 +9,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -60,11 +62,13 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"port id contains non-alpha", types.NewMsgTransfer(invalidPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
 		{"too short channel id", types.NewMsgTransfer(validPort, invalidShortChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
 		{"too long channel id", types.NewMsgTransfer(validPort, invalidLongChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
+		{"too long memo", types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ibctesting.GenerateString(types.MaximumMemoLength+1)), false},
 		{"channel id contains non-alpha", types.NewMsgTransfer(validPort, invalidChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
 		{"invalid denom", types.NewMsgTransfer(validPort, validChannel, invalidDenomCoin, sender, receiver, timeoutHeight, 0, ""), false},
 		{"zero coin", types.NewMsgTransfer(validPort, validChannel, zeroCoin, sender, receiver, timeoutHeight, 0, ""), false},
 		{"missing sender address", types.NewMsgTransfer(validPort, validChannel, coin, emptyAddr, receiver, timeoutHeight, 0, ""), false},
 		{"missing recipient address", types.NewMsgTransfer(validPort, validChannel, coin, sender, "", timeoutHeight, 0, ""), false},
+		{"too long recipient address", types.NewMsgTransfer(validPort, validChannel, coin, sender, ibctesting.GenerateString(types.MaximumReceiverLength+1), timeoutHeight, 0, ""), false},
 		{"empty coin", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, sender, receiver, timeoutHeight, 0, ""), false},
 	}
 
@@ -83,11 +87,12 @@ func TestMsgTransferValidation(t *testing.T) {
 // TestMsgTransferGetSigners tests GetSigners for MsgTransfer
 func TestMsgTransferGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-
 	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr.String(), receiver, timeoutHeight, 0, "")
-	res := msg.GetSigners()
 
-	require.Equal(t, []sdk.AccAddress{addr}, res)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, addr.Bytes(), signers[0])
 }
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
@@ -132,12 +137,14 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
 		}
+
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
+			require.Error(t, err)
 		}
 	}
 }

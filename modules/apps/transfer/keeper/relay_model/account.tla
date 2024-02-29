@@ -18,7 +18,7 @@ Accounts == { NullAccount }
 \* Make an escrow account for the given port and channel
 MakeEscrowAccount(port, channel) == NullAccount
 
-\* Make an account from the accound id
+\* Make an account from the account id
 MakeAccount(accountId) == NullAccount
 
 \* Type constraints for accounts

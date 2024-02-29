@@ -3,7 +3,6 @@ package tendermint
 import (
 	"bytes"
 	"encoding/binary"
-	"strings"
 
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
@@ -23,7 +22,7 @@ stores the consensus state under the key: `consensusStates/{revision_number}-{re
 represented as a string.
 While this works fine for IBC proof verification, it makes efficient iteration difficult since the lexicographic order
 of the consensus state keys do not match the height order of consensus states. This makes consensus state pruning and
-monotonic time enforcement difficult since it is inefficient to find the earliest consensus state or to find the neigboring
+monotonic time enforcement difficult since it is inefficient to find the earliest consensus state or to find the neighboring
 consensus states given a consensus state height.
 Changing the ICS-24 representation will be a major breaking change that requires counterparty chains to accept a new key format.
 Thus to avoid breaking IBC, we can store a lookup from a more efficiently formatted key: `iterationKey` to the consensus state key which
@@ -74,42 +73,6 @@ func GetConsensusState(store storetypes.KVStore, cdc codec.BinaryCodec, height e
 func deleteConsensusState(clientStore storetypes.KVStore, height exported.Height) {
 	key := host.ConsensusStateKey(height)
 	clientStore.Delete(key)
-}
-
-// IterateConsensusMetadata iterates through the prefix store and applies the callback.
-// If the cb returns true, then iterator will close and stop.
-func IterateConsensusMetadata(store storetypes.KVStore, cb func(key, val []byte) bool) {
-	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyConsensusStatePrefix))
-
-	// iterate over processed time and processed height
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-		// processed time key in prefix store has format: "consensusState/<height>/processedTime"
-		if len(keySplit) != 3 {
-			// ignore all consensus state keys
-			continue
-		}
-
-		if keySplit[2] != "processedTime" && keySplit[2] != "processedHeight" {
-			// only perform callback on consensus metadata
-			continue
-		}
-
-		if cb(iterator.Key(), iterator.Value()) {
-			break
-		}
-	}
-
-	// iterate over iteration keys
-	iter := storetypes.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
-
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		if cb(iter.Key(), iter.Value()) {
-			break
-		}
-	}
 }
 
 // ProcessedTimeKey returns the key under which the processed time will be stored in the client store.

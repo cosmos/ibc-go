@@ -26,8 +26,6 @@ message MerklePrefix {
 // arbitrary structured object (defined by a commitment type).
 // MerklePath is represented from root-to-leaf
 message MerklePath {
-  option (gogoproto.goproto_stringer) = false;
-
   repeated string key_path = 1;
 }
 

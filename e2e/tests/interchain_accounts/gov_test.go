@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package interchainaccounts
 
 import (
@@ -21,6 +23,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -38,7 +41,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
@@ -51,8 +54,8 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 
 	t.Run("execute proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version)
-		s.ExecuteGovV1Proposal(ctx, msgRegisterAccount, chainA, controllerAccount)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version, channeltypes.ORDERED)
+		s.ExecuteAndPassGovV1Proposal(ctx, msgRegisterAccount, chainA, controllerAccount)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -102,14 +105,14 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			}
 
 			msgSendTx := controllertypes.NewMsgSendTx(govModuleAddress.String(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
-			s.ExecuteGovV1Proposal(ctx, msgSendTx, chainA, controllerAccount)
+			s.ExecuteAndPassGovV1Proposal(ctx, msgSendTx, chainA, controllerAccount)
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			_, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
+			_, err = s.QueryBalance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount

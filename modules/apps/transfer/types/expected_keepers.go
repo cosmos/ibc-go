@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -53,4 +54,9 @@ type ConnectionKeeper interface {
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
+}
+
+// ParamSubspace defines the expected Subspace interface for module parameters.
+type ParamSubspace interface {
+	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
 }

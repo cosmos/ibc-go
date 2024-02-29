@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -13,5 +12,6 @@ func NewControllerPortID(owner string) (string, error) {
 		return "", errorsmod.Wrap(ErrInvalidAccountAddress, "owner address cannot be empty")
 	}
 
-	return fmt.Sprint(ControllerPortPrefix, owner), nil
+	ownerWithPrefix := ControllerPortPrefix + owner
+	return ownerWithPrefix, nil
 }

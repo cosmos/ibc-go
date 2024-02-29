@@ -45,7 +45,7 @@ ctx.EventManager().EmitEvents(sdk.Events{
     sdk.NewAttribute(types.AttributeKeyHops, strings.Join(connectionHops, ",")),
     sdk.NewAttribute(types.AttributeKeyOrder, order.String()),
     sdk.NewAttribute(types.AttributeKeySrcPort, portID),
-    sdk.NewAttribute(types.AttributeKeySrcChannel, chanenlID),
+    sdk.NewAttribute(types.AttributeKeySrcChannel, channelID),
     sdk.NewAttribute(types.AttributeKeySrcVersion, version),
     sdk.NewAttribute(types.AttributeKeyDstPort, counterparty.GetPortID()),
     sdk.NewAttribute(types.AttributeKeyDstChannel, counterparty.GetChannelID()),
@@ -138,4 +138,4 @@ More IBC events are exposed.
 
 ## References
 
-- The Agoric VM's IBC handler currently [accomodates `attemptChanOpenTry`](https://github.com/Agoric/agoric-sdk/blob/904b3a0423222a1b32893453e44bbde598473960/packages/cosmic-swingset/lib/ag-solo/vats/ibc.js#L546)
+- The Agoric VM's IBC handler currently [accommodates `attemptChanOpenTry`](https://github.com/Agoric/agoric-sdk/blob/904b3a0423222a1b32893453e44bbde598473960/packages/cosmic-swingset/lib/ag-solo/vats/ibc.js#L546)

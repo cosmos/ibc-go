@@ -16,7 +16,9 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -299,12 +301,14 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
 		}
+
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
+			require.Error(t, err)
 		}
 	}
 }

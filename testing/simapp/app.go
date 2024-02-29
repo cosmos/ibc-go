@@ -123,6 +123,7 @@ import (
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -213,6 +214,7 @@ type SimApp struct {
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
+	IBCMockModule ibcmock.IBCModule
 	ICAAuthModule ibcmock.IBCModule
 	FeeMockModule ibcmock.IBCModule
 
@@ -339,6 +341,7 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
+	scopedIBCMockBlockUpgradeKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.MockBlockUpgrade)
 	scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(MockFeePort)
 	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icacontrollertypes.SubModuleName)
 
@@ -484,7 +487,15 @@ func NewSimApp(
 
 	// The mock module is used for testing IBC
 	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
+	app.IBCMockModule = mockIBCModule
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
+
+	// Mock IBC app wrapped with a middleware which does not implement the UpgradeableModule interface.
+	// NOTE: this is used to test integration with apps which do not yet fulfill the UpgradeableModule interface and error when
+	// an upgrade is tried on the channel.
+	mockBlockUpgradeIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.MockBlockUpgrade, scopedIBCMockBlockUpgradeKeeper))
+	mockBlockUpgradeMw := ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockBlockUpgradeIBCModule.IBCApp)
+	ibcRouter.AddRoute(ibcmock.MockBlockUpgrade, mockBlockUpgradeMw)
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -594,8 +605,8 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		ibctm.AppModuleBasic{},
-		solomachine.AppModuleBasic{},
+		ibctm.NewAppModule(),
+		solomachine.NewAppModule(),
 		mockModule,
 	)
 
@@ -890,11 +901,8 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 	}
 
 	return autocli.AppOptions{
-		Modules:               modules,
-		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.ModuleManager.Modules),
-		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
-		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
-		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+		Modules:       modules,
+		ModuleOptions: runtimeservices.ExtractAutoCLIOptions(app.ModuleManager.Modules),
 	}
 }
 
@@ -1005,12 +1013,13 @@ func BlockedAddresses() map[string]bool {
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
-	// TODO: ibc module subspaces can be removed after migration of params
-	// https://github.com/cosmos/ibc-go/issues/2010
-	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
-	paramsKeeper.Subspace(ibcexported.ModuleName)
-	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
-	paramsKeeper.Subspace(icahosttypes.SubModuleName)
+	// register the key tables for legacy param subspaces
+	keyTable := ibcclienttypes.ParamKeyTable()
+	keyTable.RegisterParamSet(&ibcconnectiontypes.Params{})
+	paramsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
+	paramsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
+	paramsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
+	paramsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
 
 	return paramsKeeper
 }

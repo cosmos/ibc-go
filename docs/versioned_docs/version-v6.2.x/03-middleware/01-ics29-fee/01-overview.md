@@ -36,7 +36,7 @@ To achieve the stated requirements, the **fee middleware module has two main gro
 
   This is described in the [Fee messages section](03-msgs.md).
 
-We complete the introduction by giving a list of definitions of relevant terminolgy.
+We complete the introduction by giving a list of definitions of relevant terminology.
 
 `Forward relayer`: The relayer that submits the `MsgRecvPacket` message for a given packet (on the destination chain).
 

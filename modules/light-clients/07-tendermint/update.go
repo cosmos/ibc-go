@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cometbft/cometbft/light"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -68,17 +68,17 @@ func (cs *ClientState) verifyHeader(
 		)
 	}
 
-	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
+	tmTrustedValidators, err := cmttypes.ValidatorSetFromProto(header.TrustedValidators)
 	if err != nil {
 		return errorsmod.Wrap(err, "trusted validator set in not tendermint validator set type")
 	}
 
-	tmSignedHeader, err := tmtypes.SignedHeaderFromProto(header.SignedHeader)
+	tmSignedHeader, err := cmttypes.SignedHeaderFromProto(header.SignedHeader)
 	if err != nil {
 		return errorsmod.Wrap(err, "signed header in not tendermint signed header type")
 	}
 
-	tmValidatorSet, err := tmtypes.ValidatorSetFromProto(header.ValidatorSet)
+	tmValidatorSet, err := cmttypes.ValidatorSetFromProto(header.ValidatorSet)
 	if err != nil {
 		return errorsmod.Wrap(err, "validator set in not tendermint validator set type")
 	}
@@ -94,13 +94,13 @@ func (cs *ClientState) verifyHeader(
 	// Construct a trusted header using the fields in consensus state
 	// Only Height, Time, and NextValidatorsHash are necessary for verification
 	// NOTE: updates must be within the same revision
-	trustedHeader := tmtypes.Header{
+	trustedHeader := cmttypes.Header{
 		ChainID:            cs.GetChainID(),
 		Height:             int64(header.TrustedHeight.RevisionHeight),
 		Time:               consState.Timestamp,
 		NextValidatorsHash: consState.NextValidatorsHash,
 	}
-	signedHeader := tmtypes.SignedHeader{
+	signedHeader := cmttypes.SignedHeader{
 		Header: &trustedHeader,
 	}
 
@@ -156,7 +156,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		NextValidatorsHash: header.Header.NextValidatorsHash,
 	}
 
-	// set client state, consensus state and asssociated metadata
+	// set client state, consensus state and associated metadata
 	setClientState(clientStore, cdc, &cs)
 	setConsensusState(clientStore, cdc, consensusState, header.GetHeight())
 	setConsensusMetadata(ctx, clientStore, header.GetHeight())
@@ -207,7 +207,7 @@ func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.Binar
 
 // checkTrustedHeader checks that consensus state matches trusted fields of Header
 func checkTrustedHeader(header *Header, consState *ConsensusState) error {
-	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
+	tmTrustedValidators, err := cmttypes.ValidatorSetFromProto(header.TrustedValidators)
 	if err != nil {
 		return errorsmod.Wrap(err, "trusted validator set in not tendermint validator set type")
 	}

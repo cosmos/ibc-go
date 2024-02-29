@@ -3,7 +3,7 @@ package tendermint_test
 import (
 	"time"
 
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+	cmtprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -11,12 +11,12 @@ import (
 )
 
 func (suite *TendermintTestSuite) TestGetHeight() {
-	header := suite.chainA.LastHeader
+	header := suite.chainA.LatestCommittedHeader
 	suite.Require().NotEqual(uint64(0), header.GetHeight())
 }
 
 func (suite *TendermintTestSuite) TestGetTime() {
-	header := suite.chainA.LastHeader
+	header := suite.chainA.LatestCommittedHeader
 	suite.Require().NotEqual(time.Time{}, header.GetTime())
 }
 
@@ -38,7 +38,7 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 			header.SignedHeader.Commit.Height = -1
 		}, false},
 		{"signed header failed tendermint ValidateBasic", func() {
-			header = suite.chainA.LastHeader
+			header = suite.chainA.LatestCommittedHeader
 			header.SignedHeader.Commit = nil
 		}, false},
 		{"trusted height is equal to header height", func() {
@@ -48,11 +48,11 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 			header.ValidatorSet = nil
 		}, false},
 		{"ValidatorSetFromProto failed", func() {
-			header.ValidatorSet.Validators[0].PubKey = tmprotocrypto.PublicKey{}
+			header.ValidatorSet.Validators[0].PubKey = cmtprotocrypto.PublicKey{}
 		}, false},
 		{"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set
-			header.ValidatorSet = suite.chainB.LastHeader.ValidatorSet
+			header.ValidatorSet = suite.chainB.LatestCommittedHeader.ValidatorSet
 		}, false},
 	}
 
@@ -64,7 +64,7 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			header = suite.chainA.LastHeader // must be explicitly changed in malleate
+			header = suite.chainA.LatestCommittedHeader // must be explicitly changed in malleate
 
 			tc.malleate()
 

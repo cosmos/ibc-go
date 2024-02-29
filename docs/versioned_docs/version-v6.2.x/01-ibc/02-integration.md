@@ -17,7 +17,7 @@ send fungible token transfers to other chains.
 
 ## Integrating the IBC module
 
-Integrating the IBC module to your SDK-based application is straighforward. The general changes can be summarized in the following steps:
+Integrating the IBC module to your SDK-based application is straightforward. The general changes can be summarized in the following steps:
 
 - Add required modules to the `module.BasicManager`
 - Define additional `Keeper` fields for the new modules on the `App` type
@@ -178,7 +178,7 @@ One addition from IBC is the concept of `HistoricalEntries` which are stored on 
 Each entry contains the historical information for the `Header` and `ValidatorSet` of this chain which is stored
 at each height during the `BeginBlock` call. The historical info is required to introspect the
 past historical info at any given height in order to verify the light client `ConsensusState` during the
-connection handhake.
+connection handshake.
 
 The IBC module also has
 [`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) logic as well. This is optional as it is only required if your application uses the localhost client to connect two different modules from the same chain.

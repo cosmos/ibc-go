@@ -20,7 +20,7 @@ const (
 )
 
 // GetCmdQueryClientStates defines the command to query all the light clients
-// that this chain mantains.
+// that this chain maintains.
 func GetCmdQueryClientStates() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "states",

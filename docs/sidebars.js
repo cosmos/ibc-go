@@ -33,13 +33,18 @@ const sidebars = {
         },
         {
           type: "link",
-          label: "Tutorials",
+          label: "Developer Portal",
           href: "https://tutorials.cosmos.network",
         },
         {
           type: "link",
           label: "Awesome Cosmos",
           href: "https://github.com/cosmos/awesome-cosmos",
+        },
+        {
+          type: "link",
+          label: "ibc-rs",
+          href: "https://github.com/cosmos/ibc-rs",
         },
       ],
     },

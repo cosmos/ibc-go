@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package client
 
 import (
@@ -9,34 +11,32 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/x/upgrade/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
-	tmjson "github.com/cometbft/cometbft/libs/json"
+	cmtjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/privval"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
-	tmtypes "github.com/cometbft/cometbft/types"
-	tmversion "github.com/cometbft/cometbft/version"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
+	cmttypes "github.com/cometbft/cometbft/types"
+	cmtversion "github.com/cometbft/cometbft/version"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const (
@@ -78,11 +78,12 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	const planHeight = int64(75)
+	const planHeight = int64(300)
+	const legacyPlanHeight = planHeight * 2
 	var newChainID string
 
 	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
@@ -105,14 +106,14 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
 			authority.String(),
-			types.Plan{
+			upgradetypes.Plan{
 				Name:   "upgrade-client",
 				Height: planHeight,
 			},
 			upgradedClientState,
 		)
 		s.Require().NoError(err)
-		s.ExecuteGovV1Proposal(ctx, scheduleUpgradeMsg, chainA, chainAWallet)
+		s.ExecuteAndPassGovV1Proposal(ctx, scheduleUpgradeMsg, chainA, chainAWallet)
 	})
 
 	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
@@ -129,6 +130,116 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 		s.Require().Equal("upgrade-client", plan.Name)
 		s.Require().Equal(planHeight, plan.Height)
+	})
+
+	t.Run("ensure legacy proposal does not succeed", func(t *testing.T) {
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
+
+		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		originalChainID := clientState.(*ibctm.ClientState).ChainId
+		revisionNumber := clienttypes.ParseChainID(originalChainID)
+		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
+		newChainID, err = clienttypes.SetRevisionNumber(originalChainID, revisionNumber+1)
+		s.Require().NoError(err)
+		s.Require().NotEqual(originalChainID, newChainID)
+
+		upgradedClientState := clientState.(*ibctm.ClientState).ZeroCustomFields()
+		upgradedClientState.ChainId = newChainID
+
+		legacyUpgradeProposal, err := clienttypes.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, upgradetypes.Plan{
+			Name:   "upgrade-client-legacy",
+			Height: legacyPlanHeight,
+		}, upgradedClientState)
+
+		s.Require().NoError(err)
+		txResp := s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, legacyUpgradeProposal)
+		s.AssertTxFailure(txResp, govtypes.ErrInvalidProposalContent)
+	})
+}
+
+func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
+	t := s.T()
+	ctx := context.TODO()
+
+	var (
+		pathName           string
+		relayer            ibc.Relayer
+		subjectClientID    string
+		substituteClientID string
+		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
+		badTrustingPeriod = time.Second * 10
+	)
+
+	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
+
+		// TODO: update when client identifier created is accessible
+		// currently assumes first client is 07-tendermint-0
+		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
+
+		// TODO: replace with better handling of path names
+		pathName = fmt.Sprintf("%s-path-%d", s.T().Name(), 0)
+		pathName = strings.ReplaceAll(pathName, "/", "-")
+	})
+
+	chainA, chainB := s.GetChains()
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	t.Run("create subject client with bad trusting period", func(t *testing.T) {
+		createClientOptions := ibc.CreateClientOptions{
+			TrustingPeriod: badTrustingPeriod.String(),
+		}
+
+		s.SetupClients(ctx, relayer, createClientOptions)
+
+		// TODO: update when client identifier created is accessible
+		// currently assumes second client is 07-tendermint-1
+		subjectClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 1)
+	})
+
+	time.Sleep(badTrustingPeriod)
+
+	t.Run("update substitute client", func(t *testing.T) {
+		s.UpdateClients(ctx, relayer, pathName)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("check status of each client", func(t *testing.T) {
+		t.Run("substitute should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, substituteClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
+
+		t.Run("subject should be expired", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, subjectClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Expired.String(), status)
+		})
+	})
+
+	t.Run("pass client update proposal", func(t *testing.T) {
+		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
+		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
+	})
+
+	t.Run("check status of each client", func(t *testing.T) {
+		t.Run("substitute should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, substituteClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
+
+		t.Run("subject should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, subjectClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
 	})
 }
 
@@ -147,7 +258,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx)
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
@@ -200,7 +311,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		s.Require().NoError(err)
 		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
 		s.Require().NotNil(recoverClientMsg)
-		s.ExecuteGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet)
+		s.ExecuteAndPassGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet)
 	})
 
 	t.Run("check status of each client", func(t *testing.T) {
@@ -226,14 +337,14 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		trustedHeight   clienttypes.Height
 		latestHeight    clienttypes.Height
 		clientState     ibcexported.ClientState
-		header          testsuite.Header
-		signers         []tmtypes.PrivValidator
-		validatorSet    []*tmtypes.Validator
+		header          *cmtservice.Header
+		signers         []cmttypes.PrivValidator
+		validatorSet    []*cmttypes.Validator
 		maliciousHeader *ibctm.Header
 		err             error
 	)
 
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
@@ -289,7 +400,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 				pubKey, err := pv.GetPubKey()
 				s.Require().NoError(err)
 
-				validator := tmtypes.NewValidator(pubKey, validators[i].VotingPower)
+				validator := cmttypes.NewValidator(pubKey, validators[i].VotingPower)
 
 				validatorSet = append(validatorSet, validator)
 				signers = append(signers, pv)
@@ -298,7 +409,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("create malicious header", func(t *testing.T) {
-		valSet := tmtypes.NewValidatorSet(validatorSet)
+		valSet := cmttypes.NewValidatorSet(validatorSet)
 		maliciousHeader, err = createMaliciousTMHeader(chainB.Config().ChainID, int64(latestHeight.GetRevisionHeight()), trustedHeight,
 			header.GetTime(), valSet, valSet, signers, header)
 		s.Require().NoError(err)
@@ -337,6 +448,9 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 		allowedClients := s.QueryAllowedClients(ctx, chainA)
 
 		defaultAllowedClients := clienttypes.DefaultAllowedClients
+		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(chainAVersion) {
+			defaultAllowedClients = []string{ibcexported.Solomachine, ibcexported.Tendermint, ibcexported.Localhost, wasmtypes.Wasm}
+		}
 		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
 			defaultAllowedClients = slices.DeleteFunc(defaultAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
 		}
@@ -351,16 +465,16 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			s.Require().NotNil(authority)
 
 			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
-			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
-			value, err := tmjson.Marshal([]string{allowedClient})
+			value, err := cmtjson.Marshal([]string{allowedClient})
 			s.Require().NoError(err)
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 
@@ -376,14 +490,14 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	})
 }
 
-// extractChainPrivateKeys returns a slice of tmtypes.PrivValidator which hold the private keys for all validator
+// extractChainPrivateKeys returns a slice of cmttypes.PrivValidator which hold the private keys for all validator
 // nodes for a given chain.
-func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *cosmos.CosmosChain) []tmtypes.PrivValidator {
+func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc.Chain) []cmttypes.PrivValidator {
 	testContainers, err := dockerutil.GetTestContainers(ctx, s.T(), s.DockerClient)
 	s.Require().NoError(err)
 
 	var filePvs []privval.FilePVKey
-	var pvs []tmtypes.PrivValidator
+	var pvs []cmttypes.PrivValidator
 	for _, container := range testContainers {
 		isNodeForDifferentChain := !strings.Contains(container.Names[0], chain.Config().ChainID)
 		isFullNode := strings.Contains(container.Names[0], fmt.Sprintf("%s-fn", chain.Config().ChainID))
@@ -396,7 +510,7 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *co
 		s.Require().NoError(err)
 
 		var filePV privval.FilePVKey
-		err = tmjson.Unmarshal(privKeyFileContents, &filePV)
+		err = cmtjson.Unmarshal(privKeyFileContents, &filePV)
 		s.Require().NoError(err)
 		filePvs = append(filePvs, filePV)
 	}
@@ -408,18 +522,18 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *co
 	})
 
 	for _, filePV := range filePvs {
-		pvs = append(pvs, &ibcmock.PV{
-			PrivKey: &ed25519.PrivKey{Key: filePV.PrivKey.Bytes()},
-		})
+		pvs = append(pvs, cmttypes.NewMockPVWithParams(
+			filePV.PrivKey, false, false,
+		))
 	}
 
 	return pvs
 }
 
 // createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
-func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator, oldHeader testsuite.Header) (*ibctm.Header, error) {
-	tmHeader := tmtypes.Header{
-		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
+func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *cmttypes.ValidatorSet, signers []cmttypes.PrivValidator, oldHeader *cmtservice.Header) (*ibctm.Header, error) {
+	tmHeader := cmttypes.Header{
+		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
 		Height:             blockHeight,
 		Time:               timestamp,
@@ -437,14 +551,14 @@ func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight cl
 
 	hhash := tmHeader.Hash()
 	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte(invalidHashValue)))
-	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
+	voteSet := cmttypes.NewVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, tmValSet)
 
-	extCommit, err := tmtypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signers, timestamp, false)
+	extCommit, err := cmttypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signers, timestamp, false)
 	if err != nil {
 		return nil, err
 	}
 
-	signedHeader := &tmproto.SignedHeader{
+	signedHeader := &cmtproto.SignedHeader{
 		Header: tmHeader.ToProto(),
 		Commit: extCommit.ToCommit().ToProto(),
 	}

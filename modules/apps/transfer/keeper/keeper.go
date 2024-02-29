@@ -13,9 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -28,7 +27,7 @@ import (
 type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.BinaryCodec
-	legacySubspace paramtypes.Subspace
+	legacySubspace types.ParamSubspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -46,7 +45,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
-	legacySubspace paramtypes.Subspace,
+	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
@@ -58,10 +57,6 @@ func NewKeeper(
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(errors.New("the IBC transfer module account has not been set"))
-	}
-	// set KeyTable if it has not already been set
-	if !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	if strings.TrimSpace(authority) == "" {
@@ -144,8 +139,8 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store.Set([]byte(types.ParamsKey), bz)
 }
 
-// GetDenomTrace retreives the full identifiers trace and base denomination from the store.
-func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (types.DenomTrace, bool) {
+// GetDenomTrace retrieves the full identifiers trace and base denomination from the store.
+func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash cmtbytes.HexBytes) (types.DenomTrace, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	bz := store.Get(denomTraceHash)
 	if len(bz) == 0 {
@@ -157,7 +152,7 @@ func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) 
 }
 
 // HasDenomTrace checks if a the key with the given denomination trace hash exists on the store.
-func (k Keeper) HasDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) bool {
+func (k Keeper) HasDenomTrace(ctx sdk.Context, denomTraceHash cmtbytes.HexBytes) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	return store.Has(denomTraceHash)
 }

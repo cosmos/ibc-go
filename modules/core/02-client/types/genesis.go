@@ -107,7 +107,7 @@ func (gs GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 // failure.
 func (gs GenesisState) Validate() error {
 	// keep track of the max sequence to ensure it is less than
-	// the next sequence used in creating client identifers.
+	// the next sequence used in creating client identifiers.
 	var maxSequence uint64
 
 	if err := gs.Params.Validate(); err != nil {

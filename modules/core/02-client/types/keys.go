@@ -28,6 +28,10 @@ const (
 
 	// ParamsKey is the store key for the IBC client parameters
 	ParamsKey = "clientParams"
+
+	// AllowAllClients is the value that if set in AllowedClients param
+	// would allow any wired up light client modules to be allowed
+	AllowAllClients = "*"
 )
 
 // FormatClientIdentifier returns the client identifier with the sequence appended.
@@ -41,7 +45,7 @@ func FormatClientIdentifier(clientType string, sequence uint64) string {
 // which per the specification only permits ASCII for the {client-type} segment and
 // 1 to 20 digits for the {N} segment.
 // `([\w-]+\w)?` allows for a letter or hyphen, with the {client-type} starting with a letter
-// and ending with a letter, i.e. `letter+(letter|hypen+letter)?`.
+// and ending with a letter, i.e. `letter+(letter|hyphen+letter)?`.
 var IsClientIDFormat = regexp.MustCompile(`^\w+([\w-]+\w)?-[0-9]{1,20}$`).MatchString
 
 // IsValidClientID checks if the clientID is valid and can be parsed into the client

@@ -30,10 +30,10 @@ func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	var params types.Params
 	m.keeper.legacySubspace.GetParamSet(ctx, &params)
-
 	if err := params.Validate(); err != nil {
 		return err
 	}
+
 	m.keeper.SetParams(ctx, params)
 	m.keeper.Logger(ctx).Info("successfully migrated connection to self-manage params")
 	return nil

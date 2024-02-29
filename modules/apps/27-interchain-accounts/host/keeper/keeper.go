@@ -11,12 +11,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -27,7 +27,7 @@ import (
 type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.Codec
-	legacySubspace paramtypes.Subspace
+	legacySubspace icatypes.ParamSubspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
@@ -45,7 +45,7 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
-	cdc codec.Codec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace,
+	cdc codec.Codec, key storetypes.StoreKey, legacySubspace icatypes.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
 	authority string,
@@ -53,11 +53,6 @@ func NewKeeper(
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
 		panic(errors.New("the Interchain Accounts module account has not been set"))
-	}
-
-	// set KeyTable if it has not already been set
-	if !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	if strings.TrimSpace(authority) == "" {
@@ -90,6 +85,15 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
 }
 
+// getConnectionID returns the connection id for the given port and channelIDs.
+func (k Keeper) getConnectionID(ctx sdk.Context, portID, channelID string) (string, error) {
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return "", errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+	return channel.ConnectionHops[0], nil
+}
+
 // setPort sets the provided portID in state.
 func (k Keeper) setPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
@@ -117,20 +121,14 @@ func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string
 	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
-// GetAppMetadata retrieves the interchain accounts channel metadata from the store associated with the provided portID and channelID
+// getAppMetadata retrieves the interchain accounts channel metadata from the store associated with the provided portID and channelID
 func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
 	appVersion, found := k.GetAppVersion(ctx, portID, channelID)
 	if !found {
 		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
-	var metadata icatypes.Metadata
-	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(appVersion), &metadata); err != nil {
-		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
-		return icatypes.Metadata{}, errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
-	}
-
-	return metadata, nil
+	return icatypes.MetadataFromVersion(appVersion)
 }
 
 // GetActiveChannelID retrieves the active channelID from the store keyed by the provided connectionID and portID
@@ -154,7 +152,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 
-	if found && channel.IsOpen() {
+	if found && channel.State == channeltypes.OPEN {
 		return channelID, true
 	}
 

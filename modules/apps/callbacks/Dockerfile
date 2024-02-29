@@ -3,7 +3,6 @@ FROM golang:1.21-alpine3.18 as builder
 RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make;
 
 ENV GOPATH=""
-ENV GOMODULE="on"
 
 # Copy relevant files before go mod download. Replace directives to local paths break if local
 # files are not copied before go mod download.

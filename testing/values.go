@@ -11,6 +11,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cometbft/cometbft/crypto/tmhash"
+
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -43,7 +45,8 @@ const (
 	Title       = "title"
 	Description = "description"
 
-	LongString = "LoremipsumdolorsitameconsecteturadipiscingeliseddoeiusmodtemporincididuntutlaboreetdoloremagnaaliquUtenimadminimveniamquisnostrudexercitationullamcolaborisnisiutaliquipexeacommodoconsequDuisauteiruredolorinreprehenderitinvoluptateelitsseillumoloreufugiatnullaariaturEcepteurintoccaectupidatatonroidentuntnulpauifficiaeseruntmollitanimidestlaborum"
+	// character set used for generating a random string in GenerateString
+	charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 var (
@@ -66,4 +69,6 @@ var (
 	MockRecvCanaryCapabilityName = mock.MockRecvCanaryCapabilityName
 
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
+	// unusedHash is a placeholder hash used for testing.
+	unusedHash = tmhash.Sum([]byte{0x00})
 )

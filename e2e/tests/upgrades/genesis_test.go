@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package upgrades
 
 import (
@@ -22,6 +24,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -42,14 +45,14 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	appTomlOverrides["halt-height"] = haltHeight
 	configFileOverrides["config/app.toml"] = appTomlOverrides
 	chainOpts := func(options *testsuite.ChainOptions) {
-		options.ChainAConfig.ConfigFileOverrides = configFileOverrides
+		options.ChainASpec.ConfigFileOverrides = configFileOverrides
 	}
 
 	// create chains with specified chain configuration options
 	chainA, chainB := s.GetChains(chainOpts)
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
@@ -87,7 +90,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	t.Run("ics27: broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
@@ -100,7 +103,8 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	t.Run("ics20: packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -121,7 +125,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
-		s.HaltChainAndExportGenesis(ctx, chainA, relayer, int64(haltHeight))
+		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), relayer, int64(haltHeight))
 	})
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
@@ -194,7 +198,7 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	state, err := chain.ExportState(ctx, int64(haltHeight))
+	state, err := chain.ExportState(ctx, haltHeight)
 	s.Require().NoError(err)
 
 	appTomlOverrides := make(test.Toml)

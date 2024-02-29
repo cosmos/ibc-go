@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 func TestChannelValidateBasic(t *testing.T) {
@@ -55,5 +56,39 @@ func TestCounterpartyValidateBasic(t *testing.T) {
 		} else {
 			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
 		}
+	}
+}
+
+// TestIdentifiedChannelValidateBasic tests ValidateBasic for IdentifiedChannel.
+func TestIdentifiedChannelValidateBasic(t *testing.T) {
+	channel := types.NewChannel(types.TRYOPEN, types.ORDERED, types.Counterparty{"portidone", "channelidone"}, connHops, version)
+
+	testCases := []struct {
+		name              string
+		identifiedChannel types.IdentifiedChannel
+		expErr            error
+	}{
+		{
+			"valid identified channel",
+			types.NewIdentifiedChannel("portidone", "channelidone", channel),
+			nil,
+		},
+		{
+			"invalid portID",
+			types.NewIdentifiedChannel("(InvalidPort)", "channelidone", channel),
+			host.ErrInvalidID,
+		},
+		{
+			"invalid channelID",
+			types.NewIdentifiedChannel("portidone", "(InvalidChannel)", channel),
+			host.ErrInvalidID,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		err := tc.identifiedChannel.ValidateBasic()
+		require.ErrorIs(t, err, tc.expErr)
 	}
 }
