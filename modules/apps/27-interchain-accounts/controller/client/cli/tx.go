@@ -81,8 +81,10 @@ func newSendTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "send-tx [connection-id] [path/to/packet_msg.json]",
 		Short: "Send an interchain account tx on the provided connection.",
-		Long: strings.TrimSpace(`Submits pre-built packet data containing messages to be executed on the host chain 
-and attempts to send the packet. Packet data is provided as json, file or string. A relative timeout timestamp can be provided with flag {packet-timeout-timestamp}.
+		Long: strings.TrimSpace(`Submits pre-built packet data containing messages to be executed on the host chain and attempts to send the packet. 
+Packet data is provided as json, file or string. A timeout timestamp can be provided using the flag {packet-timeout-timestamp}. 
+By default timeout timestamps are calculated relatively, adding {packet-timeout-timestamp} to the user's local system clock time. 
+Absolute timeout timestamp values can be used by setting the {absolute-timeouts} flag to true.
 If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
