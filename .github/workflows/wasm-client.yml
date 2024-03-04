@@ -2,10 +2,9 @@ name: Wasm Light-Client
 # This workflow runs when a PR is opened that targets code that is part of the wasm light-client.
 on:
   pull_request:
-    paths:
-      - '.github/workflows/wasm-client.yml'
-      - 'modules/light-clients/08-wasm/**'
-      - 'proto/ibc/lightclients/wasm/**'
+  push:
+    branches:
+      main
 permissions:
   contents: read
 

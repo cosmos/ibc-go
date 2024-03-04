@@ -305,6 +305,16 @@ func (k Keeper) WriteAcknowledgement(
 		)
 	}
 
+	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
+	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
+	// upgrade all packets under the recvStartSequence will have been processed and thus should be
+	// rejected. Any asynchronous acknowledgement writes from packets processed in a previous lifecycle of a channel
+	// will also be rejected.
+	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if packet.GetSequence() < recvStartSequence {
+		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
+	}
+
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
