@@ -272,7 +272,7 @@ queryPlugins := ibcwasmtypes.QueryPlugins {
 ```
 
 Note that the `Stargate` querier appends the user defined accept list of query routes to a default list defined by the `08-wasm` module.
-The `defaultAcceptList` defines a single query route: `"/ibc.core.client.v1.Query/VerifyMembership"`. This allows for lightclient smart contracts to delegate to parts of their workflows to other lightclients for auxiliary proof verification. For example, proof of inclusion of block and tx data by a data availability provider.
+The `defaultAcceptList` defines a single query route: `"/ibc.core.client.v1.Query/VerifyMembership"`. This allows for lightclient smart contracts to delegate parts of their workflow to other lightclients for auxiliary proof verification. For example, proof of inclusion of block and tx data by a data availability provider.
 
 ```go
 // defaultAcceptList defines a set of default allowed queries made available to the Querier.
