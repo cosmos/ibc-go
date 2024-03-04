@@ -395,3 +395,7 @@ help: Makefile
 	@echo " Choose a command run in "$(PROJECT_NAME)":"
 	@sed -n 's/^#?//p' $< | column -t -s ':' |  sort | sed -e 's/^/ /'
 .PHONY: help
+
+#? build-docker-wasm: Build wasm simapp with specified tag.
+build-docker-wasm:
+	./scripts/build-wasm-simapp-docker.sh $(tag)
