@@ -258,6 +258,14 @@ const config = {
   themes: ["docusaurus-theme-github-codeblock"],
   plugins: [
     [
+      'docusaurus-pushfeedback',{
+        project: 'ewpg8ls3n5',
+        buttonPosition: 'center-right',
+        modalPosition: 'sidebar-right',
+        buttonStyle: 'dark',
+      }
+    ],
+    [
       "@docusaurus/plugin-content-docs",
       {
         id: "adrs",
