@@ -254,7 +254,7 @@ Currently the only option available is the `WithQueryPlugins` option, which allo
 
 #### `WithQueryPlugins`
 
-By default, the `08-wasm` module does not configure any querier options for lightclient contracts. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L45) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L54-L61).
+By default, the `08-wasm` module does not configure any querier options for light client contracts. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L45) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L54-L61).
 
 Assuming that the keeper is not yet instantiated, the following sample code shows how to register query plugins for the `08-wasm` module.
 
@@ -272,12 +272,12 @@ queryPlugins := ibcwasmtypes.QueryPlugins {
 ```
 
 Note that the `Stargate` querier appends the user defined accept list of query routes to a default list defined by the `08-wasm` module.
-The `defaultAcceptList` defines a single query route: `"/ibc.core.client.v1.Query/VerifyMembership"`. This allows for lightclient smart contracts to delegate parts of their workflow to other lightclients for auxiliary proof verification. For example, proof of inclusion of block and tx data by a data availability provider.
+The `defaultAcceptList` defines a single query route: `"/ibc.core.client.v1.Query/VerifyMembership"`. This allows for light client smart contracts to delegate parts of their workflow to other light clients for auxiliary proof verification. For example, proof of inclusion of block and tx data by a data availability provider.
 
 ```go
 // defaultAcceptList defines a set of default allowed queries made available to the Querier.
 var defaultAcceptList = []string{
-	"/ibc.core.client.v1.Query/VerifyMembership",
+  "/ibc.core.client.v1.Query/VerifyMembership",
 }
 ```
 
