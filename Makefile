@@ -139,6 +139,12 @@ clean:
 
 .PHONY: distclean clean
 
+#? build-docker-wasm: Build wasm simapp with specified tag.
+build-docker-wasm:
+	./scripts/build-wasm-simapp-docker.sh $(tag)
+
+.PHONY: build-docker-wasm
+
 ###############################################################################
 ###                          Tools & Dependencies                           ###
 ###############################################################################
