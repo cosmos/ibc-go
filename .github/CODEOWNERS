@@ -39,7 +39,7 @@
 
 # CODEOWNERS for fee module
 
-/modules/apps/29-fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan  @chatton
+/modules/apps/29-fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan @chatton
 /proto/ibc/applications/fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan @chatton
 
 # CODEOWNERS for callbacks middleware
