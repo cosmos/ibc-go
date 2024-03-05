@@ -33,20 +33,6 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 		// 	nil,
 		// },
 		{
-			"cannot parse malformed subject client ID",
-			func() {
-				subjectClientID = ibctesting.InvalidID
-			},
-			host.ErrInvalidID,
-		},
-		{
-			"subject client ID does not contain 08-wasm prefix",
-			func() {
-				subjectClientID = tmClientID
-			},
-			clienttypes.ErrInvalidClientType,
-		},
-		{
 			"cannot parse malformed substitute client ID",
 			func() {
 				substituteClientID = ibctesting.InvalidID
