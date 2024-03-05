@@ -2,10 +2,9 @@ name: Wasm Light-Client
 # This workflow runs when a PR is opened that targets code that is part of the wasm light-client.
 on:
   pull_request:
-    paths:
-      - '.github/workflows/wasm-client.yml'
-      - 'modules/light-clients/08-wasm/**'
-      - 'proto/ibc/lightclients/wasm/**'
+  push:
+    branches:
+      main
 permissions:
   contents: read
 
@@ -17,7 +16,7 @@ jobs:
         with:
           go-version: '1.21'
       - uses: actions/checkout@v4
-      - uses: golangci/golangci-lint-action@v3.7.0
+      - uses: golangci/golangci-lint-action@v4.0.0
         with:
           version: v1.54.2
           args: --timeout 10m

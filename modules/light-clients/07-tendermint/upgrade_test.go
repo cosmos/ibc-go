@@ -13,7 +13,7 @@ import (
 func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 	var (
 		newChainID                                       string
-		upgradedClient                                   exported.ClientState
+		upgradedClient                                   *ibctm.ClientState
 		upgradedConsState                                exported.ConsensusState
 		lastHeight                                       clienttypes.Height
 		path                                             *ibctesting.Path

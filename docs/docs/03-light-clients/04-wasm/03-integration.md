@@ -136,7 +136,7 @@ In order to share the Wasm VM instance please follow the guideline below. Please
 - Instantiate the Wasm VM in `app.go` with the parameters of your choice.
 - [Create an `Option` with this Wasm VM instance](https://github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/options.go#L21-L25).
 - Add the option created in the previous step to a slice and [pass it to the `x/wasm NewKeeper` constructor function](https://github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/keeper_cgo.go#L36).
-- Pass the pointer to the Wasm VM instance to `08-wasm` [NewKeeperWithVM constructor function](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/keeper/keeper.go#L39-L47).
+- Pass the pointer to the Wasm VM instance to `08-wasm` [`NewKeeperWithVM` constructor function](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/keeper/keeper.go#L39-L47).
 
 The code to set this up would look something like this:
 
@@ -208,7 +208,7 @@ app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
 ### If `x/wasm` is not present
 
 If the chain does not use [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm), even though it is still possible to use the method above from the previous section
-(e.g. instantiating a Wasm VM in app.go an pass it to 08-wasm's [`NewKeeperWithVM` constructor function](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/keeper/keeper.go#L39-L47), since there would be no need in this case to share the Wasm VM instance with another module, you can use the [`NewKeeperWithConfig`` constructor function](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/keeper/keeper.go#L88-L96) and provide the Wasm VM configuration parameters of your choice instead. A Wasm VM instance will be created in`NewKeeperWithConfig`. The parameters that can set are:
+(e.g. instantiating a Wasm VM in app.go an pass it to 08-wasm's [`NewKeeperWithVM` constructor function](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/keeper/keeper.go#L39-L47), since there would be no need in this case to share the Wasm VM instance with another module, you can use the [`NewKeeperWithConfig` constructor function](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/keeper/keeper.go#L88-L96) and provide the Wasm VM configuration parameters of your choice instead. A Wasm VM instance will be created in `NewKeeperWithConfig`. The parameters that can set are:
 
 - `DataDir` is the [directory for Wasm blobs and various caches](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L25). In `wasmd` this is set to the [`wasm` folder under the home directory](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/app/app.go#L578).
 - `SupportedCapabilities` is a comma separated [list of capabilities supported by the chain](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L26). [`wasmd` sets this to all the available capabilities](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/app/app.go#L586), but 08-wasm only requires `iterator`.
@@ -229,9 +229,13 @@ import (
   ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
   ...
 )
+
 ...
+
+// homePath is the path to the directory where the data
+// directory for Wasm blobs and caches will be created
 wasmConfig := ibcwasmtypes.WasmConfig{
-  DataDir:               "ibc_08-wasm_client_data",
+  DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data"),
   SupportedCapabilities: "iterator",
   ContractDebugMode:     false,
 }
@@ -335,7 +339,7 @@ func CreateWasmUpgradeHandler(
 }
 ```
 
-Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../01-developer-guide/09-setup.md#creating-clients) for an example of how to do this).
+Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../01-developer-guide/08-setup.md#creating-clients) for an example of how to do this).
 
 ## Adding the module to the store
 
