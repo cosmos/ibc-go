@@ -295,7 +295,7 @@ func (endpoint *Endpoint) ConnOpenConfirm() error {
 func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	clientState exported.ClientState, clientProof,
 	consensusProof []byte, consensusHeight clienttypes.Height,
-	connectioProof []byte, proofHeight clienttypes.Height,
+	connectionProof []byte, proofHeight clienttypes.Height,
 ) {
 	// obtain the client state on the counterparty chain
 	clientState = endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
@@ -312,9 +312,9 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 
 	// query proof for the connection on the counterparty
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
-	connectioProof, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
+	connectionProof, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
 
-	return clientState, clientProof, consensusProof, consensusHeight, connectioProof, proofHeight
+	return clientState, clientProof, consensusProof, consensusHeight, connectionProof, proofHeight
 }
 
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
