@@ -121,6 +121,10 @@ $(BUILD_TARGETS): go.sum $(BUILDDIR)/
 $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
 
+#? build-docker-wasm: Build wasm simapp with specified tag.
+build-docker-wasm:
+	./scripts/build-wasm-simapp-docker.sh $(tag)
+
 .PHONY: build build-linux
 
 #? distclean: Run `make clean`
