@@ -2,6 +2,7 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -26,7 +27,6 @@ func NewWasmTMClientValidator(cdc codec.BinaryCodec, tm *clientkeeper.Tendermint
 }
 
 func (w *WasmTMClientValidator) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
-	//return w.tm.GetSelfConsensusState(ctx, height)
 	consensusState, err := w.tm.GetSelfConsensusState(ctx, height)
 	if err != nil {
 		return nil, err

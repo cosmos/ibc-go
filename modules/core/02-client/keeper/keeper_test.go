@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.cdc = app.AppCodec()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx)
-	suite.keeper = &app.IBCKeeper.ClientKeeper
+	suite.keeper = app.IBCKeeper.ClientKeeper
 	suite.privVal = cmttypes.NewMockPV()
 	pubKey, err := suite.privVal.GetPubKey()
 	suite.Require().NoError(err)
