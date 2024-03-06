@@ -12,9 +12,9 @@ are the most critical to review.
 
 closes: #XXXX
 
-<!-- Please refer to the [guidelines](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) for commit messages in ibc-go: 
+<!-- Please refer to the [guidelines](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) for commit messages in ibc-go.
 
-This repository follows conventional commits: https://www.conventionalcommits.org/en/v1.0.0/
+This repository uses [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 Example commit messages:
 
