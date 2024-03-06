@@ -7,8 +7,8 @@ reviews:
     review_status: true
     collapse_walkthrough: true
     path_filters:
-      - !**/*.pb.go
-      - !**/*.pb.gw.go
+      - "!**/*.pb.go"
+      - "!**/*.pb.gw.go"
     path_instructions:
         - path: "**/*.go"
           instructions: "Review the Golang code for conformity with the Uber Golang style guide, highlighting any deviations."
