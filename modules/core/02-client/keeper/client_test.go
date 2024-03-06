@@ -127,21 +127,19 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		expFreeze bool
 	}{
 		{"valid update", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			trustHeight := clientState.LatestHeight
+			trustedHeight := path.EndpointA.GetClientLatestHeight()
 
 			// store intermediate consensus state to check that trustedHeight does not need to be highest consensus state before header height
 			err := path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			updateHeader = createFutureUpdateFn(trustHeight)
+			updateHeader = createFutureUpdateFn(trustedHeight.(clienttypes.Height))
 		}, true, false},
 		{"valid past update", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			trustedHeight := clientState.LatestHeight
+			trustedHeight := path.EndpointA.GetClientLatestHeight()
 
 			currHeight := suite.chainB.ProposedHeader.Height
-			fillHeight := clienttypes.NewHeight(clientState.LatestHeight.GetRevisionNumber(), uint64(currHeight))
+			fillHeight := clienttypes.NewHeight(trustedHeight.GetRevisionNumber(), uint64(currHeight))
 
 			// commit a couple blocks to allow client to fill in gaps
 			suite.coordinator.CommitBlock(suite.chainB) // this height is not filled in yet
@@ -156,7 +154,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 			// updateHeader will fill in consensus state between prevConsState and suite.consState
 			// clientState should not be updated
-			updateHeader = createPastUpdateFn(fillHeight, trustedHeight)
+			updateHeader = createPastUpdateFn(fillHeight, trustedHeight.(clienttypes.Height))
 		}, true, false},
 		{"valid duplicate update", func() {
 			height1 := clienttypes.NewHeight(1, 1)

@@ -202,7 +202,6 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 		{"consensus state verification failed", func() {
 			// retrieve client state of chainA to pass as counterpartyClient
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
-			tmCounterpartyClient := counterpartyClient.(*ibctm.ClientState)
 
 			// give chainA wrong consensus state for chainB
 			consState, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID)
@@ -212,7 +211,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = time.Now()
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmCounterpartyClient.LatestHeight, tmConsState)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, path.EndpointA.GetClientLatestHeight(), tmConsState)
 
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
@@ -243,7 +242,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			if consensusHeight.IsZero() {
 				// retrieve consensus state height to provide proof for
-				consensusHeight = suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetLatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				consensusHeight = path.EndpointA.GetClientLatestHeight()
 			}
 
 			consensusKey := host.FullConsensusStateKey(path.EndpointA.ClientID, consensusHeight)
@@ -454,7 +453,6 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 			// retrieve client state of chainB to pass as counterpartyClient
 			counterpartyClient = suite.chainB.GetClientState(path.EndpointB.ClientID)
-			tmCounterpartyclient := counterpartyClient.(*ibctm.ClientState)
 
 			// give chainB wrong consensus state for chainA
 			consState, found := suite.chainB.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID)
@@ -464,7 +462,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = tmConsState.Timestamp.Add(time.Second)
-			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, tmCounterpartyclient.LatestHeight, tmConsState)
+			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, path.EndpointB.GetClientLatestHeight(), tmConsState)
 
 			err = path.EndpointB.ConnOpenTry()
 			suite.Require().NoError(err)
@@ -491,8 +489,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 			if consensusHeight.IsZero() {
 				// retrieve consensus state height to provide proof for
-				clientState := suite.chainB.GetClientState(path.EndpointB.ClientID)
-				consensusHeight = clientState.(*ibctm.ClientState).LatestHeight
+				consensusHeight = path.EndpointB.GetClientLatestHeight()
 			}
 			consensusKey := host.FullConsensusStateKey(path.EndpointB.ClientID, consensusHeight)
 			consensusProof, _ := suite.chainB.QueryProof(consensusKey)

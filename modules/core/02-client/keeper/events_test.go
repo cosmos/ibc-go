@@ -79,8 +79,8 @@ func (suite *KeeperTestSuite) TestMsgUpdateClientEvents() {
 			clienttypes.EventTypeUpdateClient,
 			sdk.NewAttribute(clienttypes.AttributeKeyClientID, ibctesting.FirstClientID),
 			sdk.NewAttribute(clienttypes.AttributeKeyClientType, path.EndpointA.GetClientState().ClientType()),
-			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, path.EndpointA.GetClientState().(*ibctm.ClientState).LatestHeight.String()),
-			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeights, path.EndpointA.GetClientState().(*ibctm.ClientState).LatestHeight.String()),
+			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, path.EndpointA.GetClientLatestHeight().String()),
+			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeights, path.EndpointA.GetClientLatestHeight().String()),
 		),
 	}.ToABCIEvents()
 
