@@ -8,11 +8,13 @@ v    If a checkbox is n/a - please still include it but + a little note why
 
 <!-- Add a description of the changes that this PR introduces and the files that
 are the most critical to review.
+-->
 
---- 
+closes: #XXXX
+
+<!-- Please refer to the [guidelines](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) for commit messages in ibc-go: 
 
 This repository follows conventional commits: https://www.conventionalcommits.org/en/v1.0.0/
-Please refer to the guidelines for commit messages in ibc-go: (https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages)
 
 Example commit messages:
 
@@ -26,7 +28,6 @@ feat(api)!: this is an api breaking feature
 fix(statemachine)!: this is a statemachine breaking fix
 -->
 
-closes: #XXXX
 
 ---
 
