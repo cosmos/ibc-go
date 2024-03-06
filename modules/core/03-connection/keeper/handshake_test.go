@@ -243,8 +243,9 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			if consensusHeight.IsZero() {
 				// retrieve consensus state height to provide proof for
-				consensusHeight = counterpartyClient.LatestHeight
+				consensusHeight = suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetLatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			}
+
 			consensusKey := host.FullConsensusStateKey(path.EndpointA.ClientID, consensusHeight)
 			consensusProof, _ := suite.chainA.QueryProof(consensusKey)
 

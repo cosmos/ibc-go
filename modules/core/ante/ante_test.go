@@ -159,7 +159,7 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		trustedHeight := endpoint.GetClientState().(*ibctm.ClientState).LatestHeight
+		trustedHeight := endpoint.Chain.GetSimApp().IBCKeeper.ClientKeeper.GetLatestHeight(endpoint.Chain.GetContext(), endpoint.ClientID).(clienttypes.Height)
 		header, _ = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 
 	default:

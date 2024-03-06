@@ -373,11 +373,11 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 
 	expConsensusStates := types.ClientsConsensusStates{
 		types.NewClientConsensusStates(path.EndpointA.ClientID, []types.ConsensusStateWithHeight{
-			types.NewConsensusStateWithHeight(expConsensusHeight0.(types.Height), expConsensus[0]),
-			types.NewConsensusStateWithHeight(expConsensusHeight1.(types.Height), expConsensus[1]),
+			types.NewConsensusStateWithHeight(expConsensusHeight0, expConsensus[0]),
+			types.NewConsensusStateWithHeight(expConsensusHeight1, expConsensus[1]),
 		}),
 		types.NewClientConsensusStates(path2.EndpointA.ClientID, []types.ConsensusStateWithHeight{
-			types.NewConsensusStateWithHeight(expConsensusHeight2.(types.Height), expConsensus2[0]),
+			types.NewConsensusStateWithHeight(expConsensusHeight2, expConsensus2[0]),
 		}),
 	}.Sort()
 

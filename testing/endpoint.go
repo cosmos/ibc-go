@@ -65,11 +65,10 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 // QueryProof queries proof associated with this endpoint using the latest client state
 // height on the counterparty chain.
 func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
-	// obtain the counterparty client representing the chain associated with the endpoint
-	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
-
+	// obtain the counterparty client height.
+	latestCounterpartyHeight := endpoint.Counterparty.Chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ClientID)
 	// query proof on the counterparty using the latest height of the IBC client
-	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
+	return endpoint.QueryProofAtHeight(key, latestCounterpartyHeight.GetRevisionHeight())
 }
 
 // QueryProofAtHeight queries proof associated with this endpoint using the proof height
@@ -139,7 +138,8 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		trustedHeight := endpoint.GetClientState().GetLatestHeight().(clienttypes.Height)
+		trustedHeight, ok := endpoint.Chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(endpoint.Chain.GetContext(), endpoint.ClientID).(clienttypes.Height)
+		require.True(endpoint.Chain.TB, ok)
 		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
@@ -200,7 +200,11 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LatestCommittedHeader.Header.GetAppHash()),
 		NextValidatorsHash: endpoint.Chain.LatestCommittedHeader.Header.NextValidatorsHash,
 	}
-	endpoint.Counterparty.SetConsensusState(tmConsensusState, clientState.GetLatestHeight())
+
+	latestHeight, ok := endpoint.Counterparty.Chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ClientID).(clienttypes.Height)
+	require.True(endpoint.Counterparty.Chain.TB, ok)
+
+	endpoint.Counterparty.SetConsensusState(tmConsensusState, latestHeight)
 
 	// ensure the next update isn't identical to the one set in state
 	endpoint.Chain.Coordinator.IncrementTime()
@@ -304,7 +308,7 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	clientKey := host.FullClientStateKey(endpoint.Counterparty.ClientID)
 	clientProof, proofHeight = endpoint.Counterparty.QueryProof(clientKey)
 
-	consensusHeight = clientState.GetLatestHeight().(clienttypes.Height)
+	consensusHeight = endpoint.Counterparty.Chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ClientID).(clienttypes.Height)
 
 	// query proof for the consensus state on the counterparty
 	consensusKey := host.FullConsensusStateKey(endpoint.Counterparty.ClientID, consensusHeight)

@@ -899,7 +899,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 					clienttypes.EventTypeUpgradeClient,
 					sdk.NewAttribute(clienttypes.AttributeKeyClientID, ibctesting.FirstClientID),
 					sdk.NewAttribute(clienttypes.AttributeKeyClientType, path.EndpointA.GetClientState().ClientType()),
-					sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, path.EndpointA.GetClientState().GetLatestHeight().String()),
+					sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetLatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID).String()),
 				),
 			}.ToABCIEvents()
 

@@ -15,8 +15,8 @@ var (
 
 func (suite *TendermintTestSuite) TestRecoverClient() {
 	var (
-		subjectClientID, substituteClientID       string
-		subjectClientState, substituteClientState exported.ClientState
+		subjectClientID, substituteClientID string
+		subjectClientState                  exported.ClientState
 	)
 
 	testCases := []struct {
@@ -74,7 +74,6 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			substitutePath.SetupClients()
 			substituteClientID = substitutePath.EndpointA.ClientID
-			substituteClientState = suite.chainA.GetClientState(substituteClientID)
 
 			tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 			suite.Require().True(ok)
