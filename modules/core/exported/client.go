@@ -48,9 +48,9 @@ type ClientStoreProvider interface {
 	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
 }
 
-type LightClientModule interface {
-	// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-	// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
+type clientModule interface {
+	// RegisterStoreProvider is called by core IBC when a clientModule is added to the router.
+	// It allows the clientModule to set a ClientStoreProvider which supplies isolated prefix client stores
 	// to IBC light client instances.
 	RegisterStoreProvider(storeProvider ClientStoreProvider)
 

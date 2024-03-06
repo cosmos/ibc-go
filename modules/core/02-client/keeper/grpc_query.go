@@ -369,7 +369,7 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
 	}()
 
-	lightClientModule, found := k.GetRouter().GetRoute(req.ClientId)
+	clientModule, found := k.GetRouter().GetRoute(req.ClientId)
 	if !found {
 		return nil, status.Error(codes.NotFound, req.ClientId)
 	}
@@ -378,7 +378,7 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
 	}
 
-	if err := lightClientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
+	if err := clientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
 		k.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
 		return &types.QueryVerifyMembershipResponse{
 			Success: false,

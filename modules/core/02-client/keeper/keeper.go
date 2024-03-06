@@ -40,7 +40,7 @@ type Keeper struct {
 // NewKeeper creates a new NewKeeper instance
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
 	router := types.NewRouter(key)
-	localhostModule := localhost.NewLightClientModule(cdc, key)
+	localhostModule := localhost.NewclientModule(cdc, key)
 	router.AddRoute(exported.Localhost, localhostModule)
 
 	return Keeper{
@@ -64,22 +64,22 @@ func (k Keeper) GetRouter() *types.Router {
 
 // CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	lightClientModule, found := k.router.GetRoute(exported.LocalhostClientID)
+	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
 	if !found {
 		return errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
 	}
 
-	return lightClientModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
+	return clientModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
 }
 
 // UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
 func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
-	lightClientModule, found := k.router.GetRoute(exported.LocalhostClientID)
+	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
 	if !found {
 		panic(errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID))
 	}
 
-	return lightClientModule.UpdateState(ctx, exported.LocalhostClientID, nil)
+	return clientModule.UpdateState(ctx, exported.LocalhostClientID, nil)
 }
 
 // GenerateClientIdentifier returns the next client identifier.
@@ -290,12 +290,12 @@ func (k Keeper) HasClientConsensusState(ctx sdk.Context, clientID string, height
 
 // GetLatestClientConsensusState gets the latest ConsensusState stored for a given client
 func (k Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) (exported.ConsensusState, bool) {
-	lightClientModule, found := k.router.GetRoute(clientID)
+	clientModule, found := k.router.GetRoute(clientID)
 	if !found {
 		return nil, false
 	}
 
-	return k.GetClientConsensusState(ctx, clientID, lightClientModule.LatestHeight(ctx, clientID))
+	return k.GetClientConsensusState(ctx, clientID, clientModule.LatestHeight(ctx, clientID))
 }
 
 // GetSelfConsensusState introspects the (self) past historical info at a given height
@@ -468,12 +468,12 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Statu
 		return exported.Unauthorized
 	}
 
-	lightClientModule, found := k.router.GetRoute(clientID)
+	clientModule, found := k.router.GetRoute(clientID)
 	if !found {
 		return exported.Unauthorized
 	}
 
-	return lightClientModule.Status(ctx, clientID)
+	return clientModule.Status(ctx, clientID)
 }
 
 // GetLatestHeight returns the latest height of a client state for a given client identifier. If the client type is not in the allowed
@@ -489,12 +489,12 @@ func (k Keeper) GetLatestHeight(ctx sdk.Context, clientID string) exported.Heigh
 		return types.ZeroHeight()
 	}
 
-	lightClientModule, found := k.router.GetRoute(clientID)
+	clientModule, found := k.router.GetRoute(clientID)
 	if !found {
 		return types.ZeroHeight()
 	}
 
-	return lightClientModule.LatestHeight(ctx, clientID)
+	return clientModule.LatestHeight(ctx, clientID)
 }
 
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
@@ -509,12 +509,12 @@ func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, clientID string, height ex
 		return 0, errorsmod.Wrapf(types.ErrInvalidClientType, "client state type %s is not registered in the allowlist", clientType)
 	}
 
-	lightClientModule, found := k.router.GetRoute(clientID)
+	clientModule, found := k.router.GetRoute(clientID)
 	if !found {
 		return 0, errorsmod.Wrap(types.ErrRouteNotFound, clientType)
 	}
 
-	return lightClientModule.TimestampAtHeight(ctx, clientID, height)
+	return clientModule.TimestampAtHeight(ctx, clientID, height)
 }
 
 // GetParams returns the total set of ibc-client parameters.
