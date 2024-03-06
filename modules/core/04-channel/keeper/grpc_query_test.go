@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
@@ -558,16 +557,15 @@ func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
 				err := path.EndpointA.ChanOpenInit()
 				suite.Require().NoError(err)
 
-				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)
-				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.LatestHeight)
+				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, path.EndpointA.GetClientLatestHeight())
 				suite.Require().NotNil(expConsensusState)
 				expClientID = path.EndpointA.ClientID
 
 				req = &types.QueryChannelConsensusStateRequest{
 					PortId:         path.EndpointA.ChannelConfig.PortID,
 					ChannelId:      path.EndpointA.ChannelID,
-					RevisionNumber: clientState.LatestHeight.GetRevisionNumber(),
-					RevisionHeight: clientState.LatestHeight.GetRevisionHeight(),
+					RevisionNumber: path.EndpointA.GetClientLatestHeight().GetRevisionNumber(),
+					RevisionHeight: path.EndpointA.GetClientLatestHeight().GetRevisionHeight(),
 				}
 			},
 			true,
