@@ -39,8 +39,9 @@ write a little note why.
 - [ ] Linked to Github issue with discussion and accepted design OR link to spec that describes this work.
 - [ ] Code follows the [module structure standards](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/11-structure.md) and [Go style guide](../docs/dev/go-style-guide.md).
 - [ ] Wrote unit and integration [tests](https://github.com/cosmos/ibc-go/blob/main/testing/README.md#ibc-testing-package).
-- [ ] Updated relevant documentation (`docs/`) or specification (`x/<module>/spec/`).
+- [ ] Updated relevant documentation (`docs/`).
 - [ ] Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code).
-- [ ] Provide a [commit message](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) to be used for the changelog entry in the PR description for review.
+- [ ] Provide a [conventional commit message](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) to follow the repository standards.
+- [ ] Include a descriptive changelog entry when appropriate. This may be left to the discretion of the PR reviewers. (e.g. chores should be omitted from changelog)
 - [ ] Re-reviewed `Files changed` in the Github PR explorer.
 - [ ] Review `Codecov Report` in the comment section below once CI passes.
