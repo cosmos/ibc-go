@@ -611,6 +611,14 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 	return capability
 }
 
+// GetClientLatestHeight returns the latest height for the client state with the given client identifier.
+// If an invalid client identifier is provided then a zero value height will be returned.
+func (chain *TestChain) GetClientLatestHeight(clientID string) exported.Height {
+	latestHeight := chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(chain.GetContext(), clientID)
+	require.False(chain.TB, latestHeight.IsZero())
+	return latestHeight
+}
+
 // GetTimeoutHeight is a convenience function which returns a IBC packet timeout height
 // to be used for testing. It returns the current IBC height + 100 blocks
 func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {

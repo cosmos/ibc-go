@@ -791,7 +791,13 @@ func (endpoint *Endpoint) UpdateChannel(updater func(channel *channeltypes.Chann
 	require.NoError(endpoint.Chain.TB, err)
 }
 
-// GetClientState retrieves the Client State for this endpoint. The
+// GetClientLatestHeight returns the latest height for the client state for this endpoint.
+// The client state is expected to exist otherwise testing will fail.
+func (endpoint *Endpoint) GetClientLatestHeight() exported.Height {
+	return endpoint.Chain.GetClientLatestHeight(endpoint.ClientID)
+}
+
+// GetClientState retrieves the client state for this endpoint. The
 // client state is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetClientState() exported.ClientState {
 	return endpoint.Chain.GetClientState(endpoint.ClientID)
