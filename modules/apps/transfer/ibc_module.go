@@ -2,11 +2,11 @@ package transfer
 
 import (
 	"fmt"
-	"math"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -167,6 +167,37 @@ func (IBCModule) OnChanCloseConfirm(
 	channelID string,
 ) error {
 	return nil
+}
+
+func (im IBCModule) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	packetData []byte,
+) error {
+	var data types.FungibleTokenPacketData
+	if err := types.ModuleCdc.UnmarshalJSON(packetData, &data); err != nil {
+		return err
+	}
+
+	amount, ok := math.NewIntFromString(data.Amount)
+	if !ok {
+		return errorsmod.Wrapf(types.ErrInvalidAmount, "invalid amount: %s", data.Amount)
+
+	}
+	token := sdk.NewCoin(data.Denom, amount)
+	sender := sdk.MustAccAddressFromBech32(data.Sender)
+
+	_, err := im.keeper.SendTransfer(
+		ctx,
+		portID,
+		channelID,
+		token,
+		sender,
+		data.Receiver,
+		data.Memo,
+	)
+	return err
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement

@@ -13,9 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 )
@@ -52,15 +50,15 @@ import (
 // 4. A -> C : sender chain is sink zone. Denom upon receiving: 'C/B/denom'
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
-func (k Keeper) sendTransfer(
+func (k Keeper) SendTransfer(
 	ctx sdk.Context,
 	sourcePort,
 	sourceChannel string,
 	token sdk.Coin,
 	sender sdk.AccAddress,
 	receiver string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	// timeoutHeight clienttypes.Height,
+	// timeoutTimestamp uint64,
 	memo string,
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
@@ -73,10 +71,10 @@ func (k Keeper) sendTransfer(
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
+	// channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
+	// if !ok {
+	// 	return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+	// }
 
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
 	fullDenomPath := token.Denom
@@ -130,14 +128,14 @@ func (k Keeper) sendTransfer(
 		}
 	}
 
-	packetData := types.NewFungibleTokenPacketData(
-		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
-	)
+	// packetData := types.NewFungibleTokenPacketData(
+	// 	fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
+	// )
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
-	if err != nil {
-		return 0, err
-	}
+	// sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
+	// if err != nil {
+	// 	return 0, err
+	// }
 
 	defer func() {
 		if token.Amount.IsInt64() {
@@ -155,7 +153,9 @@ func (k Keeper) sendTransfer(
 		)
 	}()
 
-	return sequence, nil
+	return 0, nil
+
+	// return sequence, nil
 }
 
 // OnRecvPacket processes a cross chain fungible token transfer. If the
