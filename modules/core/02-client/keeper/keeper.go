@@ -456,7 +456,7 @@ func (k Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
 
-// GetClientStatus returns the status for a given clientState. If the client type is not in the allowed
+// GetClientStatus returns the status for a client state  given a client identifier. If the client type is not in the allowed
 // clients param field, Unauthorized is returned, otherwise the client state status is returned.
 func (k Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Status {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
@@ -476,6 +476,9 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Statu
 	return lightClientModule.Status(ctx, clientID)
 }
 
+// GetLatestHeight returns the latest height of a client state for a given client identifier. If the client type is not in the allowed
+// clients param field, a zero value height is returned, otherwise the client state latest height is returned.
+// TODO: Replace exported.Height with concrete type.
 func (k Keeper) GetLatestHeight(ctx sdk.Context, clientID string) exported.Height {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
