@@ -49,4 +49,4 @@ write a little note why.
 - [ ] Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code).
 - [ ] Provide a [commit message](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) to be used for the changelog entry in the PR description for review.
 - [ ] Re-reviewed `Files changed` in the Github PR explorer.
-- [ ] Review `Codecov Report` in the comment section below once CI passes.
+- [ ] Review `SonarCloud Report` in the comment section below once CI passes.
