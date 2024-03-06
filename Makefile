@@ -125,7 +125,7 @@ $(BUILDDIR)/:
 build-docker-wasm:
 	./scripts/build-wasm-simapp-docker.sh $(tag)
 
-.PHONY: build build-linux
+.PHONY: build build-linux build-docker-wasm
 
 #? distclean: Run `make clean`
 distclean: clean 
@@ -392,7 +392,6 @@ proto-update-deps:
 	$(DOCKER) run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps
-
 
 #? help: Get more info on make commands
 help: Makefile
