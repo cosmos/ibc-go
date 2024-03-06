@@ -144,6 +144,10 @@ func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Statu
 	return exported.Active
 }
 
+// LatestHeight returns the latest height for the client state for the given client identifier.
+// If no client is present for the provided client identifier a zero value height is returned.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 
