@@ -32,12 +32,12 @@ func (k Keeper) CreateClient(
 
 	clientID := k.GenerateClientIdentifier(ctx, clientType)
 
-	lightClientModule, found := k.router.GetRoute(clientID)
+	clientModule, found := k.router.GetRoute(clientID)
 	if !found {
 		return "", errorsmod.Wrap(types.ErrRouteNotFound, clientID)
 	}
 
-	if err := lightClientModule.Initialize(ctx, clientID, clientState, consensusState); err != nil {
+	if err := clientModule.Initialize(ctx, clientID, clientState, consensusState); err != nil {
 		return "", err
 	}
 
@@ -45,7 +45,7 @@ func (k Keeper) CreateClient(
 		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client (%s) with status %s", clientID, status)
 	}
 
-	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", lightClientModule.LatestHeight(ctx, clientID).String())
+	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientModule.LatestHeight(ctx, clientID).String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "create"},
@@ -53,7 +53,7 @@ func (k Keeper) CreateClient(
 		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientType)},
 	)
 
-	emitCreateClientEvent(ctx, clientID, clientType)
+	emitCreateClientEvent(ctx, clientID, clientType, clientModule.LatestHeight(ctx, clientID))
 
 	return clientID, nil
 }
@@ -69,18 +69,18 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", clientID)
 	}
 
-	lightClientModule, found := k.router.GetRoute(clientID)
+	clientModule, found := k.router.GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
 	}
 
-	if err := lightClientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
+	if err := clientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
 		return err
 	}
 
-	foundMisbehaviour := lightClientModule.CheckForMisbehaviour(ctx, clientID, clientMsg)
+	foundMisbehaviour := clientModule.CheckForMisbehaviour(ctx, clientID, clientMsg)
 	if foundMisbehaviour {
-		lightClientModule.UpdateStateOnMisbehaviour(ctx, clientID, clientMsg)
+		clientModule.UpdateStateOnMisbehaviour(ctx, clientID, clientMsg)
 
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID)
 
@@ -99,7 +99,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 		return nil
 	}
 
-	consensusHeights := lightClientModule.UpdateState(ctx, clientID, clientMsg)
+	consensusHeights := clientModule.UpdateState(ctx, clientID, clientMsg)
 
 	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
@@ -162,7 +162,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		},
 	)
 
-	emitUpgradeClientEvent(ctx, clientID, upgradedClient)
+	emitUpgradeClientEvent(ctx, clientID, upgradedClient.ClientType(), k.GetLatestHeight(ctx, clientID))
 
 	return nil
 }
@@ -188,18 +188,18 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", subjectClientID)
 	}
 
-	lightClientModule, found := k.router.GetRoute(subjectClientID)
+	clientModule, found := k.router.GetRoute(subjectClientID)
 	if !found {
 		return errorsmod.Wrap(types.ErrRouteNotFound, subjectClientID)
 	}
 
-	subjectLatestHeight := lightClientModule.LatestHeight(ctx, subjectClientID)
-	substituteCLatestHeight := lightClientModule.LatestHeight(ctx, substituteClientID)
+	subjectLatestHeight := clientModule.LatestHeight(ctx, subjectClientID)
+	substituteCLatestHeight := clientModule.LatestHeight(ctx, substituteClientID)
 	if subjectLatestHeight.GTE(substituteCLatestHeight) {
 		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectLatestHeight, substituteCLatestHeight)
 	}
 
-	if err := lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID); err != nil {
+	if err := clientModule.RecoverClient(ctx, subjectClientID, substituteClientID); err != nil {
 		return err
 	}
 
