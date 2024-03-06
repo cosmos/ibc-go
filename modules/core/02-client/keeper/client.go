@@ -150,8 +150,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		return errorsmod.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
-	// TODO: do we need this logging?
-	// k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
+	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", k.GetLatestHeight(ctx, clientID).String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "upgrade"},
