@@ -152,7 +152,7 @@ Sample exception flows:
 | 3.04 | The `ChanUpgradeAck` datagram informs the chain of the timeout period specified by the counterparty for the upgrade process to complete | TBD | `Drafted` |
 | 3.05 | When channel is in `FLUSHING` state, no new packets are allowed to be sent | TBD | `Drafted` |
 | 3.06 | When channel is in `FLUSHING` state, it is only allowed to receive packets with sequence number smaller or equal than the sequence number of the last packet sent on the counterparty when the channel moved to `FLUSHING` state | TBD | `Drafted` |
-| 3.07 | When channel is in `FLUSHING` state and packets are acknowledged or timed out, if the counterparty-specified timeoud is reached, then the channel will be restored to its initial state, an error receipt will be written and the upgrade will be aborted | TBD | `Drafted` |
+| 3.07 | When channel is in `FLUSHING` state and packets are acknowledged or timed out, if the counterparty-specified timeout is reached, then the channel will be restored to its initial state, an error receipt will be written and the upgrade will be aborted | TBD | `Drafted` |
 | 3.08 | Once in-flight packets have been flushed, the channel state shall change from `FLUSHING` to `FLUSHCOMPLETE` | TBD | `Drafted` |
 | 3.09 | A relayer must initiate the `ChanUpgradeConfirm` datagram on the counterparty to inform of the timeout period specified by the counterparty for the upgrade process to complete | TBD | `Drafted` |
 | 3.10 | Successful execution of the `ChanUpgradeConfirm` datagram when the channel state is `FLUSHCOMPLETE` changes the channel state to `OPEN` | TBD | `Drafted` |
