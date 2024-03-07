@@ -176,6 +176,7 @@ func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.S
 
 // LatestHeight returns the latest height for the client state for the given client identifier.
 // If no client is present for the provided client identifier a zero value height is returned.
+// NOTE: RevisionNumber is always 0 for solomachine client heights.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
 func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
@@ -186,7 +187,7 @@ func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) expo
 		return clienttypes.ZeroHeight()
 	}
 
-	return clientState.GetLatestHeight()
+	return clienttypes.NewHeight(0, clientState.Sequence)
 }
 
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
