@@ -31,7 +31,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		{
 			"consensus state not found", func() {
 				// use height with no consensus state set
-				height = height.(clienttypes.Height).Increment()
+				height = height.Increment()
 			}, false, false,
 		},
 		{
@@ -60,8 +60,8 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			path.Setup()
-			clientState := suite.chainA.GetClientState(path.EndpointA.ClientID).(*tendermint.ClientState)
-			height = clientState.LatestHeight
+
+			height = path.EndpointA.GetClientLatestHeight()
 
 			tc.malleate() // change vars as necessary
 
@@ -101,8 +101,7 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	err := path.EndpointA.CreateClient()
 	suite.Require().NoError(err)
 
-	clientState := suite.chainA.GetClientState(path.EndpointA.ClientID).(*tendermint.ClientState)
-	height := clientState.LatestHeight
+	height := path.EndpointA.GetClientLatestHeight()
 
 	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	actualTime, ok := tendermint.GetProcessedTime(store, height)
@@ -117,8 +116,7 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	err = path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	clientState = suite.chainA.GetClientState(path.EndpointA.ClientID).(*tendermint.ClientState)
-	height = clientState.LatestHeight
+	height = path.EndpointA.GetClientLatestHeight()
 
 	store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	actualTime, ok = tendermint.GetProcessedTime(store, height)
