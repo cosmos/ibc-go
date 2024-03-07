@@ -387,7 +387,7 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
 	}
 
-	// consume flat gas fee for queries to this rpc to read consensus state bytes from store
+	// consume flat gas fee for proof verification queries
 	ctx.GasMeter().ConsumeGas(
 		3*ctx.KVGasConfig().ReadCostPerByte*uint64(len(req.Proof)),
 		"verify membership query",
