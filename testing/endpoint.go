@@ -66,7 +66,7 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 // height on the counterparty chain.
 func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 	// obtain the counterparty client height.
-	latestCounterpartyHeight := endpoint.Counterparty.Chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ClientID)
+	latestCounterpartyHeight := endpoint.Counterparty.GetClientLatestHeight()
 	// query proof on the counterparty using the latest height of the IBC client
 	return endpoint.QueryProofAtHeight(key, latestCounterpartyHeight.GetRevisionHeight())
 }
@@ -138,8 +138,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		trustedHeight, ok := endpoint.Chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(endpoint.Chain.GetContext(), endpoint.ClientID).(clienttypes.Height)
-		require.True(endpoint.Chain.TB, ok)
+		trustedHeight := endpoint.GetClientLatestHeight().(clienttypes.Height)
 		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
@@ -201,8 +200,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		NextValidatorsHash: endpoint.Chain.LatestCommittedHeader.Header.NextValidatorsHash,
 	}
 
-	latestHeight, ok := endpoint.Counterparty.Chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ClientID).(clienttypes.Height)
-	require.True(endpoint.Counterparty.Chain.TB, ok)
+	latestHeight := endpoint.Counterparty.GetClientLatestHeight()
 
 	endpoint.Counterparty.SetConsensusState(tmConsensusState, latestHeight)
 
@@ -308,8 +306,7 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	clientKey := host.FullClientStateKey(endpoint.Counterparty.ClientID)
 	clientProof, proofHeight = endpoint.Counterparty.QueryProof(clientKey)
 
-	consensusHeight = endpoint.Counterparty.Chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ClientID).(clienttypes.Height)
-
+	consensusHeight = endpoint.Counterparty.GetClientLatestHeight().(clienttypes.Height)
 	// query proof for the consensus state on the counterparty
 	consensusKey := host.FullConsensusStateKey(endpoint.Counterparty.ClientID, consensusHeight)
 	consensusProof, _ = endpoint.Counterparty.QueryProofAtHeight(consensusKey, proofHeight.GetRevisionHeight())
