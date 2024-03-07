@@ -48,25 +48,19 @@ jobs:
     # we skip the job in this case.
     if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
     needs: determine-image-tag # we are required to have a docker tag before we can build any images.
-    steps:
-      - uses: ./.github/workflows/e2e-test-workflow-call.yml
-        # unless we explicitly tell the workflow to inherit secrets, required secrets such as GITHUB_TOKEN will not be
-        # provided to the workflow. This would cause privileged operations to fail.
-        secrets: inherit
-        with:
-          # with each test, we build an image from the current code.
-          build-and-push-docker-image: true
-          # if the test fails, we upload logs so that we can download them from the UI.
-          upload-logs: true
-          chain-image: ghcr.io/cosmos/ibc-go-simd
-          # with regular tests, both images are the same.
-          chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-          chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-          chain-binary: 'simd'
-          # on regular PRs we won't run upgrade tests.
-          test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite'
-      - uses: actions/upload-artifact@v4
-          if: env.GIT_DIFF
-          with:
-            name: '${{ github.sha }}-e2e-coverage'
-            path: ./${{ matrix.part }}profile.out
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    # unless we explicitly tell the workflow to inherit secrets, required secrets such as GITHUB_TOKEN will not be
+    # provided to the workflow. This would cause privileged operations to fail.
+    secrets: inherit
+    with:
+      # with each test, we build an image from the current code.
+      build-and-push-docker-image: true
+      # if the test fails, we upload logs so that we can download them from the UI.
+      upload-logs: true
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      # with regular tests, both images are the same.
+      chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+      chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+      chain-binary: 'simd'
+      # on regular PRs we won't run upgrade tests.
+      test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite'
