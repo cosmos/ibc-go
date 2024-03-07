@@ -16,8 +16,8 @@ func (k Keeper) StartFlushing(ctx sdk.Context, portID, channelID string, upgrade
 }
 
 // ValidateSelfUpgradeFields is a wrapper around validateSelfUpgradeFields to allow the function to be directly called in tests.
-func (k Keeper) ValidateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
-	return k.validateSelfUpgradeFields(ctx, proposedUpgrade, currentChannel)
+func (k Keeper) ValidateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, channel types.Channel) error {
+	return k.validateSelfUpgradeFields(ctx, proposedUpgrade, channel)
 }
 
 // CheckForUpgradeCompatibility is a wrapper around checkForUpgradeCompatibility to allow the function to be directly called in tests.
