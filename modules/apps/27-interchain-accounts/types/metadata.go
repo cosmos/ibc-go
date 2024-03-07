@@ -33,11 +33,11 @@ func NewMetadata(version, controllerConnectionID, hostConnectionID, accAddress, 
 }
 
 // NewDefaultMetadata creates and returns a new ICS27 Metadata instance containing the default ICS27 Metadata values
-// with the provided controller connection identifier
-func NewDefaultMetadata(controllerConnectionID string) Metadata {
+// with the provided controller and host connection identifiers. The host connection identifier may be an empty string.
+func NewDefaultMetadata(controllerConnectionID, hostConnectionID string) Metadata {
 	metadata := Metadata{
 		ControllerConnectionId: controllerConnectionID,
-		HostConnectionId:       "",
+		HostConnectionId:       hostConnectionID,
 		Encoding:               EncodingProtobuf,
 		TxType:                 TxTypeSDKMultiMsg,
 		Version:                Version,
@@ -47,17 +47,9 @@ func NewDefaultMetadata(controllerConnectionID string) Metadata {
 }
 
 // NewDefaultMetadataString creates and returns a new JSON encoded version string containing the default ICS27 Metadata values
-// with the provided controller connection identifier and an empty host connection identifier
-func NewDefaultMetadataString(controllerConnectionID string) string {
-	metadata := NewDefaultMetadata(controllerConnectionID)
-
-	return string(ModuleCdc.MustMarshalJSON(&metadata))
-}
-
-// NewDefaultMetadataStringWithHostConnectionID creates and returns a new JSON encoded version string containing the default ICS27 Metadata values
-// with the provided controller and host connection identifiers
-func NewDefaultMetadataStringWithHostConnectionID(controllerConnectionID, hostConnectionID string) string {
-	metadata := NewMetadata(Version, controllerConnectionID, hostConnectionID, "", EncodingProtobuf, TxTypeSDKMultiMsg)
+// with the provided controller and host connection identifiers. The host connection identifier may be an empty string.
+func NewDefaultMetadataString(controllerConnectionID, hostConnectionID string) string {
+	metadata := NewDefaultMetadata(controllerConnectionID, hostConnectionID)
 
 	return string(ModuleCdc.MustMarshalJSON(&metadata))
 }

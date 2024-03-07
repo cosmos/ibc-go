@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			"success: empty channel version returns default metadata JSON string",
 			func() {
 				channel.Version = ""
-				expectedVersion = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID)
+				expectedVersion = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			},
 			nil,
 		},
@@ -169,6 +169,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			func() {
 				channel.ConnectionHops = []string{"invalid-connnection-id"}
 				path.EndpointA.SetChannel(*channel)
+			},
+			connectiontypes.ErrConnectionNotFound,
+		},
+		{
+			"connection not found with default empty channel version",
+			func() {
+				channel.ConnectionHops = []string{"connection-10"}
+				channel.Version = ""
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},
@@ -648,8 +656,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			suite.Require().NoError(err)
 
 			order = channeltypes.ORDERED
-			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
-			metadata.HostConnectionId = path.EndpointB.ConnectionID
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 
@@ -814,9 +821,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().NoError(err)
 
-			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
-			// add host connection id to metadata
-			metadata.HostConnectionId = path.EndpointB.ConnectionID
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 

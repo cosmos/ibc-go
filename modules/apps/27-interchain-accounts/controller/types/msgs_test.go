@@ -43,7 +43,7 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 			func() {
 				feeMetadata := feetypes.Metadata{
 					FeeVersion: feetypes.Version,
-					AppVersion: icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID),
+					AppVersion: icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID),
 				}
 
 				bz := feetypes.ModuleCdc.MustMarshalJSON(&feeMetadata)
@@ -87,7 +87,7 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 		msg = types.NewMsgRegisterInterchainAccount(
 			ibctesting.FirstConnectionID,
 			ibctesting.TestAccAddress,
-			icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID),
+			icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID),
 			channeltypes.ORDERED,
 		)
 

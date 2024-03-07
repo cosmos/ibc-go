@@ -116,7 +116,7 @@ func (s *CallbacksTestSuite) SetupICATest() string {
 
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	// ICAVersion defines a interchain accounts version string
-	icaVersion := icatypes.NewDefaultMetadataStringWithHostConnectionID(s.path.EndpointA.ConnectionID, s.path.EndpointB.ConnectionID)
+	icaVersion := icatypes.NewDefaultMetadataString(s.path.EndpointA.ConnectionID, s.path.EndpointB.ConnectionID)
 	icaControllerPortID, err := icatypes.NewControllerPortID(icaOwner)
 	s.Require().NoError(err)
 
