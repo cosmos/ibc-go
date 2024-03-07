@@ -1,7 +1,6 @@
 package avalanche
 
 import (
-	"encoding/json"
 	"reflect"
 	"strings"
 	"time"
@@ -431,29 +430,12 @@ func (cs ClientState) VerifyMembership(
 		return err
 	}
 
-	var validatorSet []byte
-	for _, m := range vdrs {
-		vldtr := warp.Validator{
-			PublicKey: m.PublicKey,
-			Weight:    m.Weight,
-			NodeIDs:   m.NodeIDs,
-		}
-		data, err := json.Marshal(vldtr)
-		if err != nil {
-			return err
-		}
-		validatorSet = append(validatorSet, data...)
-	}
-
 	chainID, err := ids.ToID([]byte(cs.ChainId))
 	if err != nil {
 		return err
 	}
-	unsignedMsg, err := warp.NewUnsignedMessage(
-		cs.NetworkId,
-		chainID,
-		validatorSet,
-	)
+
+	unsignedMsg, err := MakeValidatorSetMsg(consensusState.Vdrs, cs.NetworkId, chainID)
 	if err != nil {
 		return err
 	}
@@ -498,9 +480,6 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	// TODO
-	networkID := uint32(1)
-
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
@@ -522,29 +501,12 @@ func (cs ClientState) VerifyNonMembership(
 		return err
 	}
 
-	var validatorSet []byte
-	for _, m := range vdrs {
-		vldtr := warp.Validator{
-			PublicKey: m.PublicKey,
-			Weight:    m.Weight,
-			NodeIDs:   m.NodeIDs,
-		}
-		data, err := json.Marshal(vldtr)
-		if err != nil {
-			return err
-		}
-		validatorSet = append(validatorSet, data...)
-	}
-
 	chainID, err := ids.ToID([]byte(cs.ChainId))
 	if err != nil {
 		return err
 	}
-	unsignedMsg, err := warp.NewUnsignedMessage(
-		cs.NetworkId,
-		chainID,
-		validatorSet,
-	)
+
+	unsignedMsg, err := MakeValidatorSetMsg(consensusState.Vdrs, cs.NetworkId, chainID)
 	if err != nil {
 		return err
 	}
@@ -556,7 +518,7 @@ func (cs ClientState) VerifyNonMembership(
 	}
 
 	unsignedMsg, err = warp.NewUnsignedMessage(
-		networkID,
+		cs.NetworkId,
 		chainID,
 		consensusState.StorageRoot,
 	)
@@ -573,4 +535,30 @@ func (cs ClientState) VerifyNonMembership(
 	key := path.(*MerkleKey)
 
 	return VerifyNonMembership(cs.Proof, consensusState.StorageRoot, key)
+}
+
+func MakeValidatorSetMsg(vdrs []*Validator, networkID uint32, sourceChainID ids.ID) (*warp.UnsignedMessage, error) {
+	var validatorSet []byte
+	for _, m := range vdrs {
+		vldtr := Validator{
+			PublicKeyByte: m.PublicKeyByte,
+			Weight:        m.Weight,
+			NodeIDs:       m.NodeIDs,
+		}
+		data, err := vldtr.Marshal()
+		if err != nil {
+			return nil, err
+		}
+		validatorSet = append(validatorSet, data...)
+	}
+
+	unsignedMsg, err := warp.NewUnsignedMessage(
+		networkID,
+		sourceChainID,
+		validatorSet,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return unsignedMsg, nil
 }
