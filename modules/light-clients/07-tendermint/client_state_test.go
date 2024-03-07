@@ -653,8 +653,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				path, err = commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
 				suite.Require().NoError(err)
 
-				clientState := testingpath.EndpointA.GetClientState().(*ibctm.ClientState)
-				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(clientState.LatestHeight.GetRevisionHeight()))
+				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(testingpath.EndpointA.GetClientLatestHeight().GetRevisionHeight()))
 			},
 			true,
 		},
