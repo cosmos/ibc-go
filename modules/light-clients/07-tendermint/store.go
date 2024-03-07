@@ -268,34 +268,6 @@ func PruneAllExpiredConsensusStates(
 	return len(heights)
 }
 
-func PruneAllConsensusStates(
-	ctx sdk.Context,
-	clientStore storetypes.KVStore,
-	cdc codec.BinaryCodec,
-	clientState *ClientState,
-) int {
-	var heights []exported.Height
-
-	pruneCb := func(height exported.Height) bool {
-		_, found := GetConsensusState(clientStore, cdc, height)
-		if !found { // consensus state should always be found
-			return true
-		}
-
-		heights = append(heights, height)
-		return false
-	}
-
-	IterateConsensusStateAscending(clientStore, pruneCb)
-
-	for _, height := range heights {
-		deleteConsensusState(clientStore, height)
-		deleteConsensusMetadata(clientStore, height)
-	}
-
-	return len(heights)
-}
-
 // Helper function for GetNextConsensusState and GetPreviousConsensusState
 func getTmConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, key []byte) (*ConsensusState, bool) {
 	bz := clientStore.Get(key)
