@@ -211,7 +211,7 @@ type SimApp struct {
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
 
 	// mock contract keeper used for testing
-	MockContractKeeper ContractKeeper
+	MockContractKeeper *ContractKeeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router

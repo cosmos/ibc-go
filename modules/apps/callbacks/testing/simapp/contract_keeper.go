@@ -107,26 +107,26 @@ func (k ContractKeeper) IncrementStateEntryCounter(ctx sdk.Context) {
 }
 
 // NewKeeper creates a new mock ContractKeeper.
-func NewContractKeeper(key storetypes.StoreKey) ContractKeeper {
-	k := ContractKeeper{
+func NewContractKeeper(key storetypes.StoreKey) *ContractKeeper {
+	k := &ContractKeeper{
 		key:      key,
 		Counters: make(map[callbacktypes.CallbackType]int),
 	}
 
 	k.IBCSendPacketCallbackFn = func(ctx sdk.Context, _, _ string, _ clienttypes.Height, _ uint64, _ []byte, contractAddress, _ string) error {
-		return k.processMockCallback(ctx, callbacktypes.CallbackTypeSendPacket, contractAddress)
+		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeSendPacket, contractAddress)
 	}
 
 	k.IBCOnAcknowledgementPacketCallbackFn = func(ctx sdk.Context, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress, contractAddress, _ string) error {
-		return k.processMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgementPacket, contractAddress)
+		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgementPacket, contractAddress)
 	}
 
 	k.IBCOnTimeoutPacketCallbackFn = func(ctx sdk.Context, _ channeltypes.Packet, _ sdk.AccAddress, contractAddress, _ string) error {
-		return k.processMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, contractAddress)
+		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, contractAddress)
 	}
 
 	k.IBCReceivePacketCallbackFn = func(ctx sdk.Context, _ ibcexported.PacketI, _ ibcexported.Acknowledgement, contractAddress string) error {
-		return k.processMockCallback(ctx, callbacktypes.CallbackTypeReceivePacket, contractAddress)
+		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeReceivePacket, contractAddress)
 	}
 
 	return k
@@ -203,7 +203,7 @@ func (k ContractKeeper) IBCReceivePacketCallback(
 	return k.IBCReceivePacketCallbackFn(ctx, packet, ack, contractAddress)
 }
 
-// processMockCallback processes a mock callback.
+// ProcessMockCallback processes a mock callback.
 // It increments the stateful entry counter and the callback counter.
 // This function:
 //   - returns MockApplicationCallbackError and consumes half the remaining gas if the contract address is ErrorContract
@@ -211,7 +211,7 @@ func (k ContractKeeper) IBCReceivePacketCallback(
 //   - returns MockApplicationCallbackError and consumes all the remaining gas + 1 if the contract address is OogErrorContract
 //   - Panics and consumes half the remaining gas if the contract address is PanicContract
 //   - returns nil and consumes half the remaining gas if the contract address is SuccessContract or any other value
-func (k ContractKeeper) processMockCallback(
+func (k ContractKeeper) ProcessMockCallback(
 	ctx sdk.Context,
 	callbackType callbacktypes.CallbackType,
 	contractAddress string,
