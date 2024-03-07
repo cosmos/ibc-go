@@ -30,6 +30,7 @@ const (
 	// Do not change the length of these variables
 	fiftyCharChainID    = "12345678901234567890123456789012345678901234567890"
 	fiftyOneCharChainID = "123456789012345678901234567890123456789012345678901"
+	testNetworkID       = uint32(1)
 )
 
 func (suite *AvalancheTestSuite) TestStatus() {
@@ -65,7 +66,7 @@ func (suite *AvalancheTestSuite) TestStatus() {
 	for _, tc := range testCases {
 
 		clientState = ibcava.NewClientState(
-			chainID,
+			chainID, testNetworkID,
 			ibcava.Fraction{1, 1},
 			trustingPeriod,
 			maxClockDrift,
@@ -100,17 +101,17 @@ func (suite *AvalancheTestSuite) TestValidate() {
 	}{
 		{
 			name:        "valid client",
-			clientState: ibcava.NewClientState(chainID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, upgradePath, nil),
+			clientState: ibcava.NewClientState(chainID, testNetworkID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, upgradePath, nil),
 			expPass:     true,
 		},
 		{
 			name:        "valid client with empty upgrade path",
-			clientState: ibcava.NewClientState(chainID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, "", nil),
+			clientState: ibcava.NewClientState(chainID, testNetworkID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, "", nil),
 			expPass:     false,
 		},
 		{
 			name:        "invalid chainID",
-			clientState: ibcava.NewClientState("  ", ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, upgradePath, nil),
+			clientState: ibcava.NewClientState("  ", testNetworkID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, upgradePath, nil),
 			expPass:     false,
 		},
 		{
@@ -118,7 +119,7 @@ func (suite *AvalancheTestSuite) TestValidate() {
 			// Do not only fix the test, fix the code!
 			// https://github.com/cosmos/ibc-go/issues/177
 			name:        "valid chainID - chainID validation failed for chainID of length 50! ",
-			clientState: ibcava.NewClientState(fiftyCharChainID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, upgradePath, nil),
+			clientState: ibcava.NewClientState(fiftyCharChainID, testNetworkID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, upgradePath, nil),
 			expPass:     true,
 		},
 		{
@@ -126,27 +127,27 @@ func (suite *AvalancheTestSuite) TestValidate() {
 			// Do not only fix the test, fix the code!
 			// https://github.com/cosmos/ibc-go/issues/177
 			name:        "invalid chainID - chainID validation did not fail for chainID of length 51! ",
-			clientState: ibcava.NewClientState(fiftyOneCharChainID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, upgradePath, nil),
+			clientState: ibcava.NewClientState(fiftyOneCharChainID, testNetworkID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, height, upgradePath, nil),
 			expPass:     false,
 		},
 		{
 			name:        "invalid zero trusting period",
-			clientState: ibcava.NewClientState(chainID, ibcava.DefaultTrustLevel, 0, maxClockDrift, height, upgradePath, nil),
+			clientState: ibcava.NewClientState(chainID, testNetworkID, ibcava.DefaultTrustLevel, 0, maxClockDrift, height, upgradePath, nil),
 			expPass:     false,
 		},
 		{
 			name:        "invalid negative trusting period",
-			clientState: ibcava.NewClientState(chainID, ibcava.DefaultTrustLevel, -1, maxClockDrift, height, upgradePath, nil),
+			clientState: ibcava.NewClientState(chainID, testNetworkID, ibcava.DefaultTrustLevel, -1, maxClockDrift, height, upgradePath, nil),
 			expPass:     false,
 		},
 		{
 			name:        "invalid revision number",
-			clientState: ibcava.NewClientState(chainID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), upgradePath, nil),
+			clientState: ibcava.NewClientState(chainID, testNetworkID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), upgradePath, nil),
 			expPass:     false,
 		},
 		{
 			name:        "invalid revision height",
-			clientState: ibcava.NewClientState(chainID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, clienttypes.ZeroHeight(), upgradePath, nil),
+			clientState: ibcava.NewClientState(chainID, testNetworkID, ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift, clienttypes.ZeroHeight(), upgradePath, nil),
 			expPass:     false,
 		},
 	}
@@ -191,7 +192,7 @@ func (suite *AvalancheTestSuite) TestInitialize() {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
 		clientState := ibcava.NewClientState(
-			path.EndpointB.Chain.ChainID,
+			path.EndpointB.Chain.ChainID, testNetworkID,
 			ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift,
 			suite.chainB.LastHeader.GetTrustedHeight(), upgradePath, nil)
 
@@ -341,7 +342,6 @@ func (suite *AvalancheTestSuite) TestVerifyMembership() {
 			signers := set.NewBits()
 			signers.Add(1)
 			signers.Add(2)
-			signersInput := signers.Bytes()
 
 			unsignedMsg, _ := warp.NewUnsignedMessage(
 				networkID,
@@ -384,7 +384,7 @@ func (suite *AvalancheTestSuite) TestVerifyMembership() {
 			tc.malleate() // make changes as necessary
 
 			clientState := ibcava.NewClientState(
-				testingpath.EndpointA.Chain.ChainID,
+				testingpath.EndpointA.Chain.ChainID, testNetworkID,
 				ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift,
 				suite.chainB.LastHeader.GetTrustedHeight(), upgradePath, proof)
 
@@ -398,7 +398,6 @@ func (suite *AvalancheTestSuite) TestVerifyMembership() {
 				signedStorageRoot[:],
 				validatorSet,
 				signedValidatorSet[:],
-				signersInput,
 			), proofHeight)
 
 			err = clientState.VerifyMembership(
@@ -588,7 +587,6 @@ func (suite *AvalancheTestSuite) TestVerifyNonMembership() {
 			signers := set.NewBits()
 			signers.Add(1)
 			signers.Add(2)
-			signersInput := signers.Bytes()
 
 			chainID, _ := ids.ToID([]byte(testingpath.EndpointA.Chain.ChainID))
 
@@ -633,7 +631,7 @@ func (suite *AvalancheTestSuite) TestVerifyNonMembership() {
 			tc.malleate() // make changes as necessary
 
 			clientState := ibcava.NewClientState(
-				testingpath.EndpointA.Chain.ChainID,
+				testingpath.EndpointA.Chain.ChainID, testNetworkID,
 				ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift,
 				suite.chainB.LastHeader.GetTrustedHeight(), upgradePath, proof)
 
@@ -647,7 +645,6 @@ func (suite *AvalancheTestSuite) TestVerifyNonMembership() {
 				signedStorageRoot[:],
 				validatorSet,
 				signedValidatorSet[:],
-				signersInput,
 			), proofHeight)
 
 			err = clientState.VerifyNonMembership(
@@ -676,7 +673,7 @@ func (suite *AvalancheTestSuite) TestGetTimestampAtHeight() {
 	ctx := suite.chainA.GetContext()
 
 	clientState := ibcava.NewClientState(
-		suite.chainA.ChainID,
+		suite.chainA.ChainID, testNetworkID,
 		ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift,
 		suite.chainB.LastHeader.GetTrustedHeight(), upgradePath, [][]byte{})
 
@@ -685,7 +682,6 @@ func (suite *AvalancheTestSuite) TestGetTimestampAtHeight() {
 	ibcava.SetConsensusState(store, marshaler, ibcava.NewConsensusState(
 		ctx.BlockTime(),
 		[]*ibcava.Validator{},
-		[]byte{},
 		[]byte{},
 		[]byte{},
 		[]byte{},
@@ -751,8 +747,14 @@ func (suite *AvalancheTestSuite) TestVerifyHeader() {
 						BlockHash:  []byte("SubnetHeaderBlockHash"),
 						PchainVdrs: []*ibcava.Validator{vdrs[0], vdrs[2]},
 					},
+					PrevSubnetHeader: &ibcava.SubnetHeader{
+						Height:     &clienttypes.Height{RevisionNumber: 2, RevisionHeight: 1},
+						Timestamp:  suite.chainA.GetContext().BlockTime(),
+						BlockHash:  []byte("SubnetHeaderBlockHash"),
+						PchainVdrs: vdrs,
+					},
 					PchainHeader: &ibcava.PchainHeader{
-						Height:    &clienttypes.Height{RevisionNumber: 3, RevisionHeight: 3},
+						Height: &clienttypes.Height{RevisionNumber: 2, RevisionHeight: 3},
 						Timestamp: suite.chainA.GetContext().BlockTime(),
 						BlockHash: []byte("PchainHeaderBlockHash"),
 					},
@@ -766,6 +768,12 @@ func (suite *AvalancheTestSuite) TestVerifyHeader() {
 			malleate: func() {
 				// passing the CurrentHeader.Height as the block height as it will become a previous height once we commit N blocks
 				header = &ibcava.Header{
+					PrevSubnetHeader: &ibcava.SubnetHeader{
+						Height:     &clienttypes.Height{RevisionNumber: 5, RevisionHeight: 1},
+						Timestamp:  suite.chainA.GetContext().BlockTime(),
+						BlockHash:  []byte("SubnetHeaderBlockHash"),
+						PchainVdrs: vdrs,
+					},
 					SubnetHeader: &ibcava.SubnetHeader{
 						Height:     &clienttypes.Height{RevisionNumber: 4, RevisionHeight: 9},
 						Timestamp:  suite.chainA.GetContext().BlockTime(),
@@ -804,7 +812,7 @@ func (suite *AvalancheTestSuite) TestVerifyHeader() {
 		ctx := suite.chainA.GetContext()
 
 		clientState := ibcava.NewClientState(
-			suite.chainA.ChainID,
+			suite.chainA.ChainID, testNetworkID,
 			ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift,
 			suite.chainB.LastHeader.GetTrustedHeight(), upgradePath, [][]byte{})
 
@@ -812,13 +820,19 @@ func (suite *AvalancheTestSuite) TestVerifyHeader() {
 
 		header = &ibcava.Header{
 			SubnetHeader: &ibcava.SubnetHeader{
+				Height:     &clienttypes.Height{RevisionNumber: 2, RevisionHeight: 2},
+ 				Timestamp:  suite.chainA.GetContext().BlockTime(),
+ 				BlockHash:  []byte("SubnetHeaderBlockHash"),
+ 				PchainVdrs: vdrs,
+ 			},
+ 			PrevSubnetHeader: &ibcava.SubnetHeader{
 				Height:     &clienttypes.Height{RevisionNumber: 2, RevisionHeight: 1},
 				Timestamp:  suite.chainA.GetContext().BlockTime(),
 				BlockHash:  []byte("SubnetHeaderBlockHash"),
 				PchainVdrs: vdrs,
 			},
 			PchainHeader: &ibcava.PchainHeader{
-				Height:    &clienttypes.Height{RevisionNumber: 3, RevisionHeight: 2},
+				Height:    &clienttypes.Height{RevisionNumber: 2, RevisionHeight: 3},
 				Timestamp: suite.chainA.GetContext().BlockTime(),
 				BlockHash: []byte("PchainHeaderBlockHash"),
 			},
@@ -832,8 +846,7 @@ func (suite *AvalancheTestSuite) TestVerifyHeader() {
 			[]byte{},
 			[]byte{},
 			[]byte{},
-			[]byte{},
-		), header.SubnetHeader.Height)
+		), header.PrevSubnetHeader.Height)
 
 		tc.malleate()
 
@@ -879,7 +892,7 @@ func (suite *AvalancheTestSuite) TestUpdateStateOnMisbehaviour() {
 			tc.malleate()
 
 			clientState := ibcava.NewClientState(
-				suite.chainA.ChainID,
+				suite.chainA.ChainID, testNetworkID,
 				ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift,
 				suite.chainB.LastHeader.GetTrustedHeight(), upgradePath, [][]byte{})
 
@@ -962,7 +975,6 @@ func (suite *AvalancheTestSuite) TestUpdateState() {
 				[]byte{},
 				[]byte{},
 				[]byte{},
-				[]byte{},
 			)
 
 			tc.malleate()
@@ -999,7 +1011,7 @@ func (suite *AvalancheTestSuite) TestCheckSubstituteUpdateStateBasic() {
 		{
 			"non-matching substitute", func() {
 				substituteClientState = ibcava.NewClientState(
-					"different chain",
+					"different chain", testNetworkID,
 					ibcava.DefaultTrustLevel, time.Hour*24*7, maxClockDrift,
 					suite.chainB.LastHeader.GetTrustedHeight(), upgradePath, [][]byte{})
 			},
@@ -1025,11 +1037,10 @@ func (suite *AvalancheTestSuite) TestCheckSubstituteUpdateStateBasic() {
 				[]byte{},
 				[]byte{},
 				[]byte{},
-				[]byte{},
 			)
 
 			clientState := ibcava.NewClientState(
-				suite.chainA.ChainID,
+				suite.chainA.ChainID, testNetworkID,
 				ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift,
 				suite.chainB.LastHeader.GetTrustedHeight(), upgradePath, [][]byte{})
 
@@ -1171,11 +1182,10 @@ func (suite *AvalancheTestSuite) TestCheckForMisbehaviour() {
 				[]byte{},
 				[]byte{},
 				[]byte{},
-				[]byte{},
 			)
 
 			clientState := ibcava.NewClientState(
-				suite.chainA.ChainID,
+				suite.chainA.ChainID, testNetworkID,
 				ibcava.DefaultTrustLevel, trustingPeriod, maxClockDrift,
 				suite.chainB.LastHeader.GetTrustedHeight(), upgradePath, [][]byte{})
 

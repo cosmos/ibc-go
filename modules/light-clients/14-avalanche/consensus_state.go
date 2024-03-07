@@ -16,14 +16,13 @@ const SentinelRoot = "sentinel_root"
 // NewConsensusState creates a new ConsensusState instance.
 func NewConsensusState(
 	timestamp time.Time, vdrs []*Validator,
-	storageRoot, signedStorageRoot, validatorSet, signedValidatorSet []byte,
+	storageRoot, signedStorageRoot, signedValidatorSet []byte,
 	signersInput []byte,
 ) *ConsensusState {
 	return &ConsensusState{
 		Timestamp:          timestamp,
 		StorageRoot:        storageRoot,
 		SignedStorageRoot:  signedStorageRoot,
-		ValidatorSet:       validatorSet,
 		SignedValidatorSet: signedValidatorSet,
 		Vdrs:               vdrs,
 		SignersInput:       signersInput,
@@ -49,9 +48,6 @@ func (cs ConsensusState) ValidateBasic() error {
 	}
 	if len(cs.SignedStorageRoot) != bls.SignatureLen {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "root signature length not equal bls.SignatureLen")
-	}
-	if len(cs.ValidatorSet) == 0 {
-		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "validator set cannot be empty")
 	}
 	if len(cs.SignedValidatorSet) != bls.SignatureLen {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "validator set signature length not equal bls.SignatureLen")

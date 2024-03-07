@@ -42,7 +42,7 @@ func (cs *ClientState) verifyHeader(
 	header *Header,
 ) error {
 	// Retrieve trusted consensus states for each Header in misbehaviour
-	consState, found := GetConsensusState(clientStore, cdc, header.SubnetHeader.Height)
+	consState, found := GetConsensusState(clientStore, cdc, header.PrevSubnetHeader.Height)
 	if !found {
 		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header at TrustedHeight: %s", header.SubnetHeader.Height)
 	}
@@ -66,18 +66,10 @@ func (cs *ClientState) verifyHeader(
 	}
 
 	// assert header height is newer than consensus state
-	if header.SubnetHeader.Height.LTE(*header.SubnetHeader.Height) {
+	if header.SubnetHeader.Height.LTE(*header.PrevSubnetHeader.Height) {
 		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"SubnetHeader height ≤ consensus state height (%s < %s)", header.SubnetHeader.Height, header.SubnetHeader.Height,
-		)
-	}
-
-	// assert header height is newer than consensus state
-	if header.SubnetHeader.Height.LTE(*header.PchainHeader.Height) {
-		return errorsmod.Wrapf(
-			clienttypes.ErrInvalidHeader,
-			"PchainHeader height ≤ consensus state height (%s < %s)", header.SubnetHeader.Height, header.PchainHeader.Height,
 		)
 	}
 
@@ -139,7 +131,6 @@ func (cs *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clien
 		Timestamp:          header.SubnetHeader.Timestamp,
 		StorageRoot:        header.StorageRoot,
 		SignedStorageRoot:  header.SignedStorageRoot,
-		ValidatorSet:       header.ValidatorSet,
 		SignedValidatorSet: header.SignedValidatorSet,
 		Vdrs:               header.Vdrs,
 		SignersInput:       header.SignersInput,

@@ -1,6 +1,7 @@
 package avalanche
 
 import (
+	"encoding/json"
 	"reflect"
 	"strings"
 	"time"
@@ -26,7 +27,7 @@ const (
 
 // NewClientState creates a new ClientState instance
 func NewClientState(
-	chainID string, trustLevel Fraction,
+	chainID string, networkID uint32, trustLevel Fraction,
 	trustingPeriod time.Duration,
 	maxClockDrift time.Duration,
 	latestHeight clienttypes.Height,
@@ -35,6 +36,7 @@ func NewClientState(
 ) *ClientState {
 	return &ClientState{
 		ChainId:        chainID,
+		NetworkId:      networkID,
 		TrustLevel:     trustLevel,
 		TrustingPeriod: trustingPeriod,
 		MaxClockDrift:  maxClockDrift,
@@ -357,6 +359,7 @@ func (cs *ClientState) VerifyUpgradeAndUpdateState(ctx sdk.Context, cdc codec.Bi
 	// come from current client.
 	newClientState := NewClientState(
 		avaUpgradeClient.ChainId,
+		avaUpgradeClient.NetworkId,
 		cs.TrustLevel,
 		cs.TrustingPeriod,
 		cs.MaxClockDrift,
@@ -381,7 +384,6 @@ func (cs *ClientState) VerifyUpgradeAndUpdateState(ctx sdk.Context, cdc codec.Bi
 		avaUpgradeConsState.Vdrs,
 		avaUpgradeConsState.StorageRoot,
 		avaUpgradeConsState.SignedStorageRoot,
-		avaUpgradeConsState.ValidatorSet,
 		avaUpgradeConsState.SignedValidatorSet,
 		avaUpgradeConsState.SignersInput,
 	)
@@ -407,8 +409,6 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	// TODO
-	networkID := uint32(1)
 
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
@@ -431,12 +431,32 @@ func (cs ClientState) VerifyMembership(
 		return err
 	}
 
-	chainID, _ := ids.ToID([]byte(cs.ChainId))
-	unsignedMsg, _ := warp.NewUnsignedMessage(
-		networkID,
+	var validatorSet []byte
+	for _, m := range vdrs {
+		vldtr := warp.Validator{
+			PublicKey: m.PublicKey,
+			Weight:    m.Weight,
+			NodeIDs:   m.NodeIDs,
+		}
+		data, err := json.Marshal(vldtr)
+		if err != nil {
+			return err
+		}
+		validatorSet = append(validatorSet, data...)
+	}
+
+	chainID, err := ids.ToID([]byte(cs.ChainId))
+	if err != nil {
+		return err
+	}
+	unsignedMsg, err := warp.NewUnsignedMessage(
+		cs.NetworkId,
 		chainID,
-		consensusState.ValidatorSet,
+		validatorSet,
 	)
+	if err != nil {
+		return err
+	}
 
 	// check ValidatorSet by SignedValidatorSet signature, and check signers and vdrs ratio by cs.TrustLevel ratio
 	err = VerifyBls(consensusState.SignersInput, SetSignature(consensusState.SignedValidatorSet), unsignedMsg.Bytes(), vdrs, totalWeigth, cs.TrustLevel.Numerator, cs.TrustLevel.Denominator)
@@ -444,11 +464,14 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrap(err, "failed to verify ValidatorSet signature")
 	}
 
-	unsignedMsg, _ = warp.NewUnsignedMessage(
-		networkID,
+	unsignedMsg, err = warp.NewUnsignedMessage(
+		cs.NetworkId,
 		chainID,
 		consensusState.StorageRoot,
 	)
+	if err != nil {
+		return err
+	}
 
 	// check StorageRoot by SignedStorageRoot signature, and check signers and vdrs ratio by cs.TrustLevel ratio
 	err = VerifyBls(consensusState.SignersInput, SetSignature(consensusState.SignedStorageRoot), unsignedMsg.Bytes(), vdrs, totalWeigth, cs.TrustLevel.Numerator, cs.TrustLevel.Denominator)
@@ -499,12 +522,32 @@ func (cs ClientState) VerifyNonMembership(
 		return err
 	}
 
-	chainID, _ := ids.ToID([]byte(cs.ChainId))
-	unsignedMsg, _ := warp.NewUnsignedMessage(
-		networkID,
+	var validatorSet []byte
+	for _, m := range vdrs {
+		vldtr := warp.Validator{
+			PublicKey: m.PublicKey,
+			Weight:    m.Weight,
+			NodeIDs:   m.NodeIDs,
+		}
+		data, err := json.Marshal(vldtr)
+		if err != nil {
+			return err
+		}
+		validatorSet = append(validatorSet, data...)
+	}
+
+	chainID, err := ids.ToID([]byte(cs.ChainId))
+	if err != nil {
+		return err
+	}
+	unsignedMsg, err := warp.NewUnsignedMessage(
+		cs.NetworkId,
 		chainID,
-		consensusState.ValidatorSet,
+		validatorSet,
 	)
+	if err != nil {
+		return err
+	}
 
 	// check ValidatorSet by SignedValidatorSet signature, and check signers and vdrs ratio by cs.TrustLevel ratio
 	err = VerifyBls(consensusState.SignersInput, SetSignature(consensusState.SignedValidatorSet), unsignedMsg.Bytes(), vdrs, totalWeigth, cs.TrustLevel.Numerator, cs.TrustLevel.Denominator)
@@ -512,11 +555,14 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrap(err, "failed to verify ValidatorSet signature")
 	}
 
-	unsignedMsg, _ = warp.NewUnsignedMessage(
+	unsignedMsg, err = warp.NewUnsignedMessage(
 		networkID,
 		chainID,
 		consensusState.StorageRoot,
 	)
+	if err != nil {
+		return err
+	}
 
 	// check StorageRoot by SignedStorageRoot signature, and check signers and vdrs ratio by cs.TrustLevel ratio
 	err = VerifyBls(consensusState.SignersInput, SetSignature(consensusState.SignedStorageRoot), unsignedMsg.Bytes(), vdrs, totalWeigth, cs.TrustLevel.Numerator, cs.TrustLevel.Denominator)

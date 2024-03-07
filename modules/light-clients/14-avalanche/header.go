@@ -14,7 +14,6 @@ func (h Header) ConsensusState() *ConsensusState {
 		Timestamp:          h.SubnetHeader.Timestamp,
 		StorageRoot:        h.StorageRoot,
 		SignedStorageRoot:  h.SignedStorageRoot,
-		ValidatorSet:       h.ValidatorSet,
 		SignedValidatorSet: h.SignedValidatorSet,
 		Vdrs:               h.Vdrs,
 		SignersInput:       h.SignersInput,

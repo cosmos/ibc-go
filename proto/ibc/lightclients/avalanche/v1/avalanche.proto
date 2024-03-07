@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package ibc.lightclients.avalanche.v1;
+
+
+option go_package = "github.com/cosmos/ibc-go/v8/modules/light-clients/14-avalanche;avalanche";
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+import "cosmos/ics23/v1/proofs.proto";
+import "google/protobuf/timestamp.proto";
+import "ibc/core/client/v1/client.proto";
+import "ibc/core/commitment/v1/commitment.proto";
+
+// ClientState defines the 14-avalanche client state
+message ClientState {
+  option (gogoproto.goproto_getters) = false;
+
+  string chain_id   = 1;
+  uint32 network_id = 2;
+
+  Fraction trust_level = 3 [(gogoproto.nullable) = false];
+  // duration of the period since the LastestTimestamp during which the
+  // submitted headers are valid for upgrade
+  google.protobuf.Duration trusting_period = 4 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  // defines how much new (untrusted) header's Time can drift into the future.
+  google.protobuf.Duration max_clock_drift = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  // Block height when the client was frozen due to a misbehaviour
+  ibc.core.client.v1.Height frozen_height = 6 [(gogoproto.nullable) = false];
+  // the latest block height
+  ibc.core.client.v1.Height latest_height = 7 [(gogoproto.nullable) = false];
+
+  repeated bytes proof = 8;
+
+  // Path at which next upgraded client will be committed.
+  // Each element corresponds to the key for a single CommitmentProof in the
+  // chained proof. NOTE: ClientState must stored under
+  // `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored
+  // under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using
+  // the default upgrade module, upgrade_path should be []string{"upgrade",
+  // "upgradedIBCState"}`
+  string upgrade_path = 9;
+
+  // allow_update_after_expiry is deprecated
+  bool allow_update_after_expiry = 10 [deprecated = true];
+  // allow_update_after_misbehaviour is deprecated
+  bool allow_update_after_misbehaviour = 11 [deprecated = true];
+}
+
+// ConsensusState defines the consensus state from Tendermint.
+message ConsensusState {
+  option (gogoproto.goproto_getters) = false;
+
+  // timestamp that corresponds to the block height in which the ConsensusState
+  // was stored.
+  google.protobuf.Timestamp timestamp = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  // commitment root (i.e app hash)
+
+  bytes storage_root         = 2;
+  bytes signed_storage_root  = 3;
+  bytes signed_validator_set = 4;
+
+  repeated Validator vdrs          = 5;
+  bytes              signers_input = 6;
+}
+
+// Fraction defines the protobuf message type for tmmath.Fraction that only
+// supports positive values.
+message Fraction {
+  uint64 numerator   = 1;
+  uint64 denominator = 2;
+}
+
+message Misbehaviour {
+  option (gogoproto.goproto_getters) = false;
+
+  Header header_1 = 2 [(gogoproto.customname) = "Header1"];
+  Header header_2 = 3 [(gogoproto.customname) = "Header2"];
+}
+
+message Header {
+  SubnetHeader prev_subnet_header = 1;
+  SubnetHeader subnet_header      = 2;
+  PchainHeader pchain_header      = 3;
+
+  bytes              storage_root         = 4;
+  bytes              signed_storage_root  = 5;
+  bytes              validator_set        = 6;
+  bytes              signed_validator_set = 7;
+  repeated Validator vdrs                 = 8;
+  bytes              signers_input        = 9;
+}
+
+message SubnetHeader {
+  ibc.core.client.v1.Height height     = 1;
+  google.protobuf.Timestamp timestamp  = 2 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  bytes                     block_hash = 3;
+
+  ibc.core.client.v1.Height pchain_height = 4;
+  repeated Validator        pchain_vdrs   = 5;
+}
+
+message PchainHeader {
+  ibc.core.client.v1.Height height     = 1;
+  google.protobuf.Timestamp timestamp  = 2 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  bytes                     block_hash = 3;
+}
+
+message Validator {
+  bytes                     public_key_byte = 1;
+  uint64                    weight          = 3;
+  repeated bytes            nodeIDs         = 4;
+  google.protobuf.Timestamp end_time        = 5 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+}
+
+message MerkleKey {
+  string key = 1;
+}
