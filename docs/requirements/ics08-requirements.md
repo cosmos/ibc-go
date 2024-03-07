@@ -32,11 +32,11 @@ it becomes a proper solution to port the code for ibc-go to interpret without re
 
 ## Objectives
 
-The objective of this module is to have allow two chains with heterogenous consensus algorithms being connected through light clients that are not necesarily written in Go, but compiled to Wasm instead.
+The objective of this module is to have allow two chains with heterogenous consensus algorithms being connected through light clients that are not necessarily written in Go, but compiled to Wasm instead.
 
 ## Scope
 
-The scope of this feature is to allow any implemention written in Wasm to be compliant with the interface 
+The scope of this feature is to allow any implementation written in Wasm to be compliant with the interface 
 expressed in [02-client `ClientState` interface](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L44-L139).
 
 | Features               | Release |
@@ -44,7 +44,7 @@ expressed in [02-client `ClientState` interface](https://github.com/cosmos/ibc-g
 | Store light client contract bytecode by means of a governance proposal. | v1 |
 | Dispatch messages to a light client written in Wasm following the `ClientState` interface. | v1 |
 | Migrate the contract instance of a light client to a newer contract bytecode. | v1 |
-| Remove checksums from the list of allowed checksums to dissalow contract instantiation. | v1 |
+| Remove checksums from the list of allowed checksums to disallow contract instantiation. | v1 |
 | Support GRANDPA light client. | v1 |
 
 # User requirements
@@ -108,7 +108,7 @@ The first use case that this module will enable is the connection between GRANDP
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
-| 6.01 | The 08-wasm module must ensure that the contracts do not remove or corrupt the the stored client state state. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/vm.go#L227). | `Verified` | v0.1.0 | 
+| 6.01 | The 08-wasm module must ensure that the contracts do not remove or corrupt the stored client state state. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/vm.go#L227). | `Verified` | v0.1.0 | 
 | 6.02 | The 08-wasm module must ensure that the contracts do not include in the response to sudo, instantiate or migrate calls messages, events or attributes. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/vm.go#L300). |  `Verified` | v0.1.0 | 
 
 # External interface requirements
