@@ -118,10 +118,10 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 					_ string,
 				) error {
 					// deserialize the acknowledgement using json
-					ack := &feetypes.IncentivizedAcknowledgement{}
+					ack := &channeltypes.Acknowledgement{}
 					err := json.Unmarshal(acknowledgement, ack)
 					s.Require().NoError(err)
-					s.Require().Equal(ack.ForwardRelayerAddress, s.chainB.SenderAccount.GetAddress().String())
+					s.Require().True(ack.Success())
 
 					return k.ProcessMockCallback(cachedCtx, types.CallbackTypeAcknowledgementPacket, contractAddress)
 				}
