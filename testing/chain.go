@@ -276,7 +276,7 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 // QueryConsensusStateProof performs an abci query for a consensus state
 // stored on the given clientID. The proof and consensusHeight are returned.
 func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clienttypes.Height) {
-	consensusHeight := chain.GetSimApp().IBCKeeper.ClientKeeper.GetLatestHeight(chain.GetContext(), clientID).(clienttypes.Height)
+	consensusHeight := chain.GetClientLatestHeight(clientID).(clienttypes.Height)
 	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
 	consensusProof, _ := chain.QueryProof(consensusKey)
 
