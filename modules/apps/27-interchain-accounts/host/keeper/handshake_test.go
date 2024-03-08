@@ -588,10 +588,8 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 
 			order = channeltypes.ORDERED
 			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-			metadata.HostConnectionId = path.EndpointB.ConnectionID
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
-
 			// this is the actual change to the version.
 			metadata.Encoding = icatypes.EncodingProto3JSON
 
