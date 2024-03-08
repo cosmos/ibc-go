@@ -42,8 +42,8 @@ The in-line comments describe the execution flow of packets between the applicat
 // channel.RecvPacket -> fee.OnRecvPacket -> callbacks.OnRecvPacket -> transfer.OnRecvPacket
 
 // transfer stack contains (from top to bottom):
-// - IBC Callbacks Middleware
 // - IBC Fee Middleware
+// - IBC Callbacks Middleware
 // - Transfer
 
 // create IBC module from bottom to top of stack
