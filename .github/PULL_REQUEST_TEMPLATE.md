@@ -43,4 +43,4 @@ write a little note why.
 - [ ] Provide a [conventional commit message](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) to follow the repository standards.
 - [ ] Include a descriptive changelog entry when appropriate. This may be left to the discretion of the PR reviewers. (e.g. chores should be omitted from changelog)
 - [ ] Re-reviewed `Files changed` in the GitHub PR explorer.
-- [ ] Review `Codecov Report` in the comment section below once CI passes.
+- [ ] Review `SonarCloud Report` in the comment section below once CI passes.
