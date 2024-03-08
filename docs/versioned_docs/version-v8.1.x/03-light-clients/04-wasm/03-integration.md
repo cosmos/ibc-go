@@ -147,7 +147,11 @@ import (
   "github.com/cosmos/cosmos-sdk/runtime"
 
   wasmvm "github.com/CosmWasm/wasmvm"
-  ibcwasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+  wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+  wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
+  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
   ...
 )
 
@@ -167,15 +171,15 @@ if err != nil {
 
 // create an Option slice (or append to an existing one)
 // with the option to use a custom Wasm VM instance
-wasmOpts = []ibcwasmkeeper.Option{
-  ibcwasmkeeper.WithWasmEngine(wasmer),
+wasmOpts = []wasmkeeper.Option{
+  wasmkeeper.WithWasmEngine(wasmer),
 }
 
 // the keeper will use the provided Wasm VM instance,
 // instead of instantiating a new one
-app.WasmKeeper = ibcwasmkeeper.NewKeeper(
+app.WasmKeeper = wasmkeeper.NewKeeper(
   appCodec,
-  keys[ibcwasmtypes.StoreKey],
+  keys[wasmtypes.StoreKey],
   app.AccountKeeper,
   app.BankKeeper,
   app.StakingKeeper,
@@ -225,7 +229,7 @@ import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
 
-  ibcwasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
   ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
   ...
 )
