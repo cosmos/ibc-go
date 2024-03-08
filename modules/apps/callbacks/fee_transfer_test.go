@@ -1,7 +1,6 @@
 package ibccallbacks_test
 
 import (
-	"encoding/json"
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
@@ -117,11 +116,8 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 					contractAddress,
 					_ string,
 				) error {
-					// deserialize the acknowledgement using json
-					ack := &channeltypes.Acknowledgement{}
-					err := json.Unmarshal(acknowledgement, ack)
-					s.Require().NoError(err)
-					s.Require().True(ack.Success())
+					expAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+					s.Require().Equal(expAck, acknowledgement)
 
 					return k.ProcessMockCallback(cachedCtx, types.CallbackTypeAcknowledgementPacket, contractAddress)
 				}
