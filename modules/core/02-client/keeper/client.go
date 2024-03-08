@@ -193,9 +193,9 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 	}
 
 	subjectLatestHeight := clientModule.LatestHeight(ctx, subjectClientID)
-	substituteCLatestHeight := clientModule.LatestHeight(ctx, substituteClientID)
-	if subjectLatestHeight.GTE(substituteCLatestHeight) {
-		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectLatestHeight, substituteCLatestHeight)
+	substituteLatestHeight := clientModule.LatestHeight(ctx, substituteClientID)
+	if subjectLatestHeight.GTE(substituteLatestHeight) {
+		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectLatestHeight, substituteLatestHeight)
 	}
 
 	if err := clientModule.RecoverClient(ctx, subjectClientID, substituteClientID); err != nil {
