@@ -13,15 +13,15 @@ The callbacks middleware is a minimal and stateless implementation of the IBC mi
 
 ## Pre-requisite Readings
 
-- [IBC middleware development](../../01-ibc/04-middleware/02-develop.md)
-- [IBC middleware integration](../../01-ibc/04-middleware/03-integration.md)
+- [IBC middleware development](../../01-ibc/04-middleware/01-develop.md)
+- [IBC middleware integration](../../01-ibc/04-middleware/02-integration.md)
 
 The callbacks middleware, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
 For Cosmos SDK chains this setup is done via the `app/app.go` file, where modules are constructed and configured in order to bootstrap the blockchain application.
 
 ## Configuring an application stack with the callbacks middleware
 
-As mentioned in [IBC middleware development](../../01-ibc/04-middleware/02-develop.md) an application stack may be composed of many or no middlewares that nest a base application.
+As mentioned in [IBC middleware development](../../01-ibc/04-middleware/01-develop.md) an application stack may be composed of many or no middlewares that nest a base application.
 These layers form the complete set of application logic that enable developers to build composable and flexible IBC application stacks.
 For example, an application stack may just be a single base application like `transfer`, however, the same application stack composed with `29-fee` and `callbacks` will nest the `transfer` base application twice by wrapping it with the Fee Middleware module and then callbacks middleware.
 
