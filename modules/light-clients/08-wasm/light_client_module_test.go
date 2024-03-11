@@ -26,9 +26,8 @@ const (
 
 func (suite *WasmTestSuite) TestRecoverClient() {
 	var (
-		expectedClientStateBz                     []byte
-		subjectClientID, substituteClientID       string
-		subjectClientState, substituteClientState exported.ClientState
+		expectedClientStateBz               []byte
+		subjectClientID, substituteClientID string
 	)
 
 	testCases := []struct {
@@ -71,26 +70,6 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			},
 			clienttypes.ErrClientNotFound,
 		},
-		{
-			"subject and substitute have equal latest height",
-			func() {
-				wasmClientState, ok := subjectClientState.(*types.ClientState)
-				suite.Require().True(ok)
-				wasmClientState.LatestHeight = substituteClientState.GetLatestHeight().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, wasmClientState)
-			},
-			clienttypes.ErrInvalidHeight,
-		},
-		{
-			"subject height is greater than substitute height",
-			func() {
-				wasmClientState, ok := subjectClientState.(*types.ClientState)
-				suite.Require().True(ok)
-				wasmClientState.LatestHeight = substituteClientState.GetLatestHeight().Increment().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, wasmClientState)
-			},
-			clienttypes.ErrInvalidHeight,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -104,15 +83,12 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			suite.Require().NoError(err)
 			subjectClientID = subjectEndpoint.ClientID
 
-			subjectClientState = subjectEndpoint.GetClientState()
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectClientID)
 
 			substituteEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err = substituteEndpoint.CreateClient()
 			suite.Require().NoError(err)
 			substituteClientID = substituteEndpoint.ClientID
-
-			substituteClientState = substituteEndpoint.GetClientState()
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
 			suite.Require().True(found)
@@ -179,9 +155,9 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 					suite.Require().NoError(err)
 
 					// set new client state and consensus state
-					wrappedUpgradedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data)
+					// wrappedUpgradedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data)
 					store.Set(host.ClientStateKey(), upgradedClientStateBz)
-					store.Set(host.ConsensusStateKey(wrappedUpgradedClient.GetLatestHeight()), upgradedConsensusStateBz)
+					store.Set(host.ConsensusStateKey(expectedUpgradedClient.LatestHeight), upgradedConsensusStateBz)
 
 					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
 				})
@@ -212,7 +188,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 		{
 			"upgraded client state height is not greater than current height",
 			func() {
-				latestHeight := clientState.GetLatestHeight()
+				latestHeight := clientState.LatestHeight
 				newLatestHeight := clienttypes.NewHeight(latestHeight.GetRevisionNumber(), latestHeight.GetRevisionHeight()-1)
 
 				wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
@@ -235,7 +211,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			clientID = endpoint.ClientID
 
 			clientState = endpoint.GetClientState().(*types.ClientState)
-			latestHeight := clientState.GetLatestHeight()
+			latestHeight := clientState.LatestHeight
 
 			newLatestHeight := clienttypes.NewHeight(latestHeight.GetRevisionNumber(), latestHeight.GetRevisionHeight()+1)
 			wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
@@ -275,7 +251,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 				suite.Require().NotEmpty(clientStateBz)
 				suite.Require().Equal(upgradedClientStateBz, clientStateBz)
 
-				consensusStateBz := clientStore.Get(host.ConsensusStateKey(upgradedClientState.GetLatestHeight()))
+				consensusStateBz := clientStore.Get(host.ConsensusStateKey(endpoint.GetClientLatestHeight()))
 				suite.Require().NotEmpty(consensusStateBz)
 				suite.Require().NotEmpty(upgradedConsensusStateBz, consensusStateBz)
 			} else {

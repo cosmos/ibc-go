@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -333,6 +334,16 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	clientType, _, err := types.ParseClientIdentifier(req.ClientId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	denyClients := []string{exported.Localhost, exported.Solomachine}
+	if slices.Contains(denyClients, clientType) {
+		return nil, status.Error(codes.InvalidArgument, errorsmod.Wrapf(types.ErrInvalidClientType, "verify membership is disabled for client types %s", denyClients).Error())
+	}
+
 	if len(req.Proof) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "empty proof")
 	}
@@ -358,12 +369,16 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
 	}()
 
-	lightClientModule, found := k.GetRouter().GetRoute(req.ClientId)
+	clientModule, found := k.GetRouter().GetRoute(req.ClientId)
 	if !found {
 		return nil, status.Error(codes.NotFound, req.ClientId)
 	}
 
-	if err := lightClientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
+	if clientStatus := k.GetClientStatus(ctx, req.ClientId); clientStatus != exported.Active {
+		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
+	}
+
+	if err := clientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
 		k.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
 		return &types.QueryVerifyMembershipResponse{
 			Success: false,

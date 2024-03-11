@@ -191,6 +191,21 @@ func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.S
 	return clientState.Status(ctx, clientStore, cdc)
 }
 
+// LatestHeight returns the latest height for the client state for the given client identifier.
+// If no client is present for the provided client identifier a zero value height is returned.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
+func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+
+	clientState, found := getClientState(clientStore, lcm.keeper.Codec())
+	if !found {
+		return clienttypes.ZeroHeight()
+	}
+
+	return clientState.LatestHeight
+}
+
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
@@ -236,10 +251,6 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	substituteClient, found := getClientState(substituteClientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
-	}
-
-	if clientState.GetLatestHeight().GTE(substituteClient.GetLatestHeight()) {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", clientState.GetLatestHeight(), substituteClient.GetLatestHeight())
 	}
 
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
@@ -295,9 +306,9 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	}
 
 	// last height of current counterparty chain must be client's latest height
-	lastHeight := clientState.GetLatestHeight()
-	if !newClientState.GetLatestHeight().GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.GetLatestHeight(), lastHeight)
+	lastHeight := clientState.LatestHeight
+	if !newTmClientState.LatestHeight.GT(lastHeight) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newTmClientState.LatestHeight, lastHeight)
 	}
 
 	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, newTmClientState, newTmConsensusState, upgradeClientProof, upgradeConsensusStateProof)

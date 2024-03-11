@@ -412,15 +412,15 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupConnections()
 
-				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+				clientHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientHeight)
 				suite.Require().NotNil(expConsensusState)
 				expClientID = path.EndpointA.ClientID
 
 				req = &types.QueryConnectionConsensusStateRequest{
 					ConnectionId:   path.EndpointA.ConnectionID,
-					RevisionNumber: clientState.GetLatestHeight().GetRevisionNumber(),
-					RevisionHeight: clientState.GetLatestHeight().GetRevisionHeight(),
+					RevisionNumber: clientHeight.GetRevisionNumber(),
+					RevisionHeight: clientHeight.GetRevisionHeight(),
 				}
 			},
 			true,

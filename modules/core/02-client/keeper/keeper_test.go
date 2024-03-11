@@ -229,7 +229,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 	}
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllGenesisClients() {
 	clientIDs := []string{
 		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
 	}
@@ -252,7 +252,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this
 	suite.Require().Equal(expGenClients.Sort(), genClients)
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllGenesisMetadata() {
 	clientA, clientB := "07-tendermint-1", "clientB"
 
 	// create some starting state
@@ -308,7 +308,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // thi
 	})
 }
 
-func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetConsensusState() {
 	suite.ctx = suite.ctx.WithBlockHeight(10)
 	cases := []struct {
 		name    string
@@ -336,12 +336,11 @@ func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is
 
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
 // and a consensus state at the update height.
-func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllConsensusStates() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	clientState := path.EndpointA.GetClientState()
-	expConsensusHeight0 := clientState.GetLatestHeight()
+	expConsensusHeight0 := path.EndpointA.GetClientLatestHeight()
 	consensusState0, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight0)
 	suite.Require().True(ok)
 
@@ -349,8 +348,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	clientState = path.EndpointA.GetClientState()
-	expConsensusHeight1 := clientState.GetLatestHeight()
+	expConsensusHeight1 := path.EndpointA.GetClientLatestHeight()
 	suite.Require().True(expConsensusHeight1.GT(expConsensusHeight0))
 	consensusState1, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight1)
 	suite.Require().True(ok)
@@ -363,9 +361,8 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	// create second client on chainA
 	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path2.SetupClients()
-	clientState = path2.EndpointA.GetClientState()
 
-	expConsensusHeight2 := clientState.GetLatestHeight()
+	expConsensusHeight2 := path2.EndpointA.GetClientLatestHeight()
 	consensusState2, ok := suite.chainA.GetConsensusState(path2.EndpointA.ClientID, expConsensusHeight2)
 	suite.Require().True(ok)
 
@@ -385,7 +382,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
 }
 
-func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestIterateClientStates() {
 	paths := []*ibctesting.Path{
 		ibctesting.NewPath(suite.chainA, suite.chainB),
 		ibctesting.NewPath(suite.chainA, suite.chainB),

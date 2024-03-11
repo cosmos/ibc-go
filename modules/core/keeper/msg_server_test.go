@@ -819,11 +819,9 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				suite.Require().True(found)
-
-				upgradeClientProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				latestHeight := path.EndpointA.GetClientLatestHeight()
+				upgradeClientProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), latestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), latestHeight.GetRevisionHeight())
 
 				msg, err = clienttypes.NewMsgUpgradeClient(path.EndpointA.ClientID, upgradedClient, upgradedConsState,
 					upgradeClientProof, upgradedConsensusStateProof, suite.chainA.SenderAccount.GetAddress().String())
@@ -878,7 +876,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		newChainID, err = clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
 		suite.Require().NoError(err)
 
-		newClientHeight = clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1)
+		newClientHeight = clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1)
 
 		tc.setup()
 
@@ -897,7 +895,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 					clienttypes.EventTypeUpgradeClient,
 					sdk.NewAttribute(clienttypes.AttributeKeyClientID, ibctesting.FirstClientID),
 					sdk.NewAttribute(clienttypes.AttributeKeyClientType, path.EndpointA.GetClientState().ClientType()),
-					sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, path.EndpointA.GetClientState().GetLatestHeight().String()),
+					sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, path.EndpointA.GetClientLatestHeight().String()),
 				),
 			}.ToABCIEvents()
 

@@ -276,9 +276,7 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 // QueryConsensusStateProof performs an abci query for a consensus state
 // stored on the given clientID. The proof and consensusHeight are returned.
 func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clienttypes.Height) {
-	clientState := chain.GetClientState(clientID)
-
-	consensusHeight := clientState.GetLatestHeight().(clienttypes.Height)
+	consensusHeight := chain.GetClientLatestHeight(clientID).(clienttypes.Height)
 	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
 	consensusProof, _ := chain.QueryProof(consensusKey)
 
@@ -472,7 +470,7 @@ func (chain *TestChain) CurrentTMClientHeader() *ibctm.Header {
 // be used to sign over the proposed header.
 func CommitHeader(proposedHeader cmttypes.Header, valSet *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) (*cmtproto.SignedHeader, error) {
 	hhash := proposedHeader.Hash()
-	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
+	blockID := MakeBlockID(hhash, 3, unusedHash)
 	voteSet := cmttypes.NewVoteSet(proposedHeader.ChainID, proposedHeader.Height, 1, cmtproto.PrecommitType, valSet)
 
 	// MakeExtCommit expects a signer array in the same order as the validator array.
@@ -512,13 +510,13 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		Time:               timestamp,
 		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
 		LastCommitHash:     chain.App.LastCommitID().Hash,
-		DataHash:           tmhash.Sum([]byte("data_hash")),
+		DataHash:           unusedHash,
 		ValidatorsHash:     cmtValSet.Hash(),
 		NextValidatorsHash: nextVals.Hash(),
-		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
+		ConsensusHash:      unusedHash,
 		AppHash:            chain.ProposedHeader.AppHash,
-		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
-		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
+		LastResultsHash:    unusedHash,
+		EvidenceHash:       unusedHash,
 		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck
 	}
 
@@ -611,6 +609,14 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 	require.True(chain.TB, ok)
 
 	return capability
+}
+
+// GetClientLatestHeight returns the latest height for the client state with the given client identifier.
+// If an invalid client identifier is provided then a zero value height will be returned and testing wil fail.
+func (chain *TestChain) GetClientLatestHeight(clientID string) exported.Height {
+	latestHeight := chain.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(chain.GetContext(), clientID)
+	require.False(chain.TB, latestHeight.IsZero())
+	return latestHeight
 }
 
 // GetTimeoutHeight is a convenience function which returns a IBC packet timeout height

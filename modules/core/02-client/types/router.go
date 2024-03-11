@@ -25,9 +25,6 @@ func NewRouter(key storetypes.StoreKey) *Router {
 // AddRoute adds LightClientModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
 func (rtr *Router) AddRoute(clientType string, module exported.LightClientModule) *Router {
-	//	if !sdk.IsAlphaNumeric(module) {
-	//		panic(errors.New("route expressions can only contain alphanumeric characters"))
-	//	}
 	if rtr.HasRoute(clientType) {
 		panic(fmt.Errorf("route %s has already been registered", module))
 	}

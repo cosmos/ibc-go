@@ -241,7 +241,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientState().GetLatestHeight())
+				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientLatestHeight())
 
 				var err error
 				expConsensusState, err = types.PackConsensusState(cs)
@@ -259,7 +259,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				height := path.EndpointA.GetClientState().GetLatestHeight()
+				height := path.EndpointA.GetClientLatestHeight()
 				cs := path.EndpointA.GetConsensusState(height)
 
 				var err error
@@ -344,22 +344,22 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				height1 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				height1 := path.EndpointA.GetClientLatestHeight()
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
-						height1,
+						height1.(types.Height),
 						path.EndpointA.GetConsensusState(height1),
 					))
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				height2 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				height2 := path.EndpointA.GetClientLatestHeight()
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
-						height2,
+						height2.(types.Height),
 						path.EndpointA.GetConsensusState(height2),
 					))
 
@@ -449,12 +449,12 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientLatestHeight().(types.Height))
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientLatestHeight().(types.Height))
 
 				req = &types.QueryConsensusStateHeightsRequest{
 					ClientId: path.EndpointA.ClientID,
@@ -828,6 +828,24 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			host.ErrInvalidID,
 		},
 		{
+			"localhost client ID is denied",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: exported.LocalhostClientID,
+				}
+			},
+			types.ErrInvalidClientType,
+		},
+		{
+			"solomachine client ID is denied",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: types.FormatClientIdentifier(exported.Solomachine, 1),
+				}
+			},
+			types.ErrInvalidClientType,
+		},
+		{
 			"empty proof",
 			func() {
 				req = &types.QueryVerifyMembershipRequest{
@@ -883,6 +901,22 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 				}
 			},
 			errors.New(wasmClientID),
+		},
+		{
+			"client not active",
+			func() {
+				params := types.NewParams("") // disable all clients
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    path.EndpointA.ClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					Value:       []byte{0x01},
+				}
+			},
+			types.ErrClientNotActive,
 		},
 	}
 

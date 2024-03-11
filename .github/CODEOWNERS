@@ -11,17 +11,17 @@
 
 # CODEOWNERS for the CODEOWNER file
 
-/.github/CODEOWNERS @colin-axner @AdityaSripal @crodriguezvega @damiannolan
+/.github/CODEOWNERS @colin-axner @AdityaSripal @crodriguezvega @damiannolan @chatton
 
 # CODEOWNERS for the core IBC module
 
-/modules/core/ @colin-axner @AdityaSripal @damiannolan
-/proto/ibc/core/ @colin-axner @AdityaSripal @damiannolan
+/modules/core/ @colin-axner @AdityaSripal @damiannolan @chatton
+/proto/ibc/core/ @colin-axner @AdityaSripal @damiannolan @chatton
 
 # CODEOWNERS for the light-clients
 
-/modules/light-clients/ @colin-axner @AdityaSripal @damiannolan
-/proto/ibc/lightclients/ @colin-axner @AdityaSripal @damiannolan
+/modules/light-clients/ @colin-axner @AdityaSripal @damiannolan @chatton
+/proto/ibc/lightclients/ @colin-axner @AdityaSripal @damiannolan @chatton
 
 # CODEOWNERS for 08-wasm light client module
 
@@ -29,22 +29,22 @@
 
 # CODEOWNERS for ICS 20
 
-/modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan
-/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal @damiannolan
+/modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton
+/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton
 
 # CODEOWNERS for interchain-accounts module
 
-/modules/apps/27-interchain-accounts/ @colin-axner @AdityaSripal @damiannolan
-/proto/ibc/applications/interchain_accounts/ @colin-axner @AdityaSripal @damiannolan
+/modules/apps/27-interchain-accounts/ @colin-axner @AdityaSripal @damiannolan @chatton
+/proto/ibc/applications/interchain_accounts/ @colin-axner @AdityaSripal @damiannolan @chatton
 
 # CODEOWNERS for fee module
 
-/modules/apps/29-fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan 
-/proto/ibc/applications/fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan
+/modules/apps/29-fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan @chatton
+/proto/ibc/applications/fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan @chatton
 
 # CODEOWNERS for callbacks middleware
 
-/modules/apps/callbacks/ @colin-axner @AdityaSripal @damiannolan @srdtrk
+/modules/apps/callbacks/ @colin-axner @AdityaSripal @damiannolan @srdtrk @chatton
 
 # CODEOWNERS for docs
 
