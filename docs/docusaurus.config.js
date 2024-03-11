@@ -259,7 +259,7 @@ const config = {
   plugins: [
     [
       'docusaurus-pushfeedback',{
-        project: 'ewpg8ls3n5',
+        project: '3mpmaho4fa',
         buttonPosition: 'center-right',
         modalPosition: 'sidebar-right',
         buttonStyle: 'dark',
