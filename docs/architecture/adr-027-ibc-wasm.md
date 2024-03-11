@@ -23,7 +23,7 @@ corresponding hard-fork event.
 
 Currently in ibc-go light clients are defined as part of the codebase and are implemented as modules under
 `modules/light-clients`. Adding support for new light clients or updating an existing light client in the event
-of a security issue or consensus update is a multi-step process which is both time consuming and error prone. 
+of a security issue or consensus update is a multi-step process which is both time-consuming and error-prone. 
 In order to enable new IBC light client implementations it is necessary to modify the codebase of ibc-go (if the light
 client is part of its codebase), re-build chains' binaries, pass a governance proposal and validators upgrade their nodes.
 
