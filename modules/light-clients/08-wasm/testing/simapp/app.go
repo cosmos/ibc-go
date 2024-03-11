@@ -463,7 +463,7 @@ func NewSimApp(
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.
 	wasmConfig := wasmtypes.WasmConfig{
-		DataDir:               "ibc_08-wasm_client_data",
+		DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data"),
 		SupportedCapabilities: "iterator",
 		ContractDebugMode:     false,
 	}

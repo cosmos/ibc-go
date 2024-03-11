@@ -17,8 +17,8 @@
   <a href="https://goreportcard.com/report/github.com/cosmos/ibc-go">
     <img alt="Go report card" src="https://goreportcard.com/badge/github.com/cosmos/ibc-go" />
   </a>
-  <a href="https://codecov.io/gh/cosmos/ibc-go">
-    <img alt="Code Coverage" src="https://codecov.io/gh/cosmos/ibc-go/branch/main/graph/badge.svg" />
+  <a href="https://sonarcloud.io/summary/overall?id=cosmos_ibc-go">
+    <img alt="Code Coverage" src="https://sonarcloud.io/api/project_badges/measure?project=cosmos_ibc-go&metric=coverage" />
   </a>
 </div>
 <div align="center">
@@ -49,7 +49,7 @@ For the latest expected release timelines, please check [here](https://github.co
 
 ## Releases
 
-The release lines currently supported are v6, v7 and v8.
+The release lines currently supported are v7 and v8.
 
 Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
 

@@ -167,10 +167,6 @@ build-docs:
 serve-docs:
 	@cd docs && npm run serve
 
-#? changelog: Show changelog
-changelog:
-	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)
-
 # If the DOCS_VERSION variable is not set, display an error message and exit
 ifndef DOCS_VERSION
 #? tag-docs-version: Tag the docs version
@@ -317,6 +313,7 @@ setup-pre-commit:
 	@cp .git/hooks/pre-commit .git/hooks/pre-commit.bak 2>/dev/null || true
 	@echo "Installing pre-commit hook..."
 	@ln -sf ../../scripts/hooks/pre-commit.sh .git/hooks/pre-commit
+	@echo "Pre-commit hook was installed at .git/hooks/pre-commit"
 
 #? lint: Run golangci-lint on all modules
 lint:

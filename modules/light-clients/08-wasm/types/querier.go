@@ -34,6 +34,11 @@ var (
 	_ ibcwasm.QueryPluginsI = (*QueryPlugins)(nil)
 )
 
+// defaultAcceptList defines a set of default allowed queries made available to the Querier.
+var defaultAcceptList = []string{
+	"/ibc.core.client.v1.Query/VerifyMembership",
+}
+
 // queryHandler is a wrapper around the sdk.Context and the CallerID that calls
 // into the query plugins.
 type queryHandler struct {
@@ -129,8 +134,8 @@ func NewDefaultQueryPlugins() *QueryPlugins {
 // This function returns protobuf encoded responses in bytes.
 func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
-		// A default list of accepted queries can be added here.
-		// accepted = append(defaultAcceptList, accepted...)
+		// append user defined accepted queries to default list defined above.
+		acceptedQueries = append(defaultAcceptList, acceptedQueries...)
 
 		isAccepted := slices.Contains(acceptedQueries, request.Path)
 		if !isAccepted {

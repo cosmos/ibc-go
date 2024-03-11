@@ -23,12 +23,12 @@ jobs:
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
-      uses: docker/metadata-action@dbef88086f6cef02e264edb7dbf63250c17cef6c
+      uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81
       with:
         images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
     - name: Build Docker image
-      uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+      uses: docker/build-push-action@af5a7ed5ba88268d5278f7203fb52cd833f66d6e
       with:
         context: .
         tags: ${{ steps.meta.outputs.tags }}
@@ -46,7 +46,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push Docker image
-      uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+      uses: docker/build-push-action@af5a7ed5ba88268d5278f7203fb52cd833f66d6e
       with:
         context: .
         push: true

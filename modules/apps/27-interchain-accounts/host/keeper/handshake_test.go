@@ -30,11 +30,8 @@ func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	err = path.EndpointB.ChanOpenConfirm()
 	suite.Require().NoError(err)
 
-	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
-	suite.Require().NoError(err)
-
-	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
-	suite.Require().NoError(err)
+	path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+	path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 
 	path.EndpointA.ChannelID = ""
 	err = RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -503,9 +500,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 		{
 			name: "failure: cannot decode version string from channel",
 			malleate: func() {
-				channel := path.EndpointB.GetChannel()
-				channel.Version = "invalid-metadata-string"
-				path.EndpointB.SetChannel(channel)
+				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = "invalid-metadata-string" })
 			},
 			expError: icatypes.ErrUnknownDataType,
 		},
