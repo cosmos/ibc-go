@@ -399,9 +399,9 @@ func (chain *TestChain) GetConsensusState(clientID string, height exported.Heigh
 	return chain.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
 }
 
-// GetValsAtHeight will return the trusted validator set of the chain for the given trusted height. It will return
-// a success boolean depending on if the validator set exists or not at that height.
-func (chain *TestChain) GetValsAtHeight(trustedHeight int64) (*cmttypes.ValidatorSet, bool) {
+// GetTrustedValidators will return the trusted validator set of the chain for the given trusted height. Otherwise
+// it will return an error.
+func (chain *TestChain) GetTrustedValidators(trustedHeight int64) (*cmttypes.ValidatorSet, error) {
 	// historical information does not store the validator set which committed the header at
 	// height h. During BeginBlock, it stores the last updated validator set. This is equivalent to
 	// the next validator set at height h. This is because cometbft processes the validator set
@@ -418,7 +418,7 @@ func (chain *TestChain) GetValsAtHeight(trustedHeight int64) (*cmttypes.Validato
 	// for height h, we can simply query using the trusted height.
 	histInfo, err := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), trustedHeight)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 
 	valSet := stakingtypes.Validators{
@@ -427,9 +427,9 @@ func (chain *TestChain) GetValsAtHeight(trustedHeight int64) (*cmttypes.Validato
 
 	tmValidators, err := testutil.ToCmtValidators(valSet, sdk.DefaultPowerReduction)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return cmttypes.NewValidatorSet(tmValidators), true
+	return cmttypes.NewValidatorSet(tmValidators), nil
 }
 
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
@@ -444,44 +444,6 @@ func (chain *TestChain) GetAcknowledgement(packet channeltypes.Packet) []byte {
 // GetPrefix returns the prefix for used by a chain in connection creation
 func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 	return commitmenttypes.NewMerklePrefix(chain.App.GetIBCKeeper().ConnectionKeeper.GetCommitmentPrefix().Bytes())
-}
-
-// ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
-// light client on the source chain.
-func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, clientID string) (*ibctm.Header, error) {
-	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
-}
-
-// ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
-// light client on the source chain.
-func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
-	header := counterparty.LatestCommittedHeader
-	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
-	if trustedHeight.IsZero() {
-		trustedHeight = chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
-	}
-	var (
-		cmtTrustedVals *cmttypes.ValidatorSet
-		ok             bool
-	)
-
-	cmtTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-	if !ok {
-		return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
-	}
-
-	// inject trusted fields into last header
-	// for now assume revision number is 0
-	header.TrustedHeight = trustedHeight
-
-	trustedVals, err := cmtTrustedVals.ToProto()
-	if err != nil {
-		return nil, err
-	}
-	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
-	header.TrustedValidators = trustedVals
-
-	return header, nil
 }
 
 // ExpireClient fast forwards the chain's block time by the provided amount of time which will
@@ -510,7 +472,7 @@ func (chain *TestChain) CurrentTMClientHeader() *ibctm.Header {
 // be used to sign over the proposed header.
 func CommitHeader(proposedHeader cmttypes.Header, valSet *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) (*cmtproto.SignedHeader, error) {
 	hhash := proposedHeader.Hash()
-	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
+	blockID := MakeBlockID(hhash, 3, unusedHash)
 	voteSet := cmttypes.NewVoteSet(proposedHeader.ChainID, proposedHeader.Height, 1, cmtproto.PrecommitType, valSet)
 
 	// MakeExtCommit expects a signer array in the same order as the validator array.
@@ -550,13 +512,13 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		Time:               timestamp,
 		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
 		LastCommitHash:     chain.App.LastCommitID().Hash,
-		DataHash:           tmhash.Sum([]byte("data_hash")),
+		DataHash:           unusedHash,
 		ValidatorsHash:     cmtValSet.Hash(),
 		NextValidatorsHash: nextVals.Hash(),
-		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
+		ConsensusHash:      unusedHash,
 		AppHash:            chain.ProposedHeader.AppHash,
-		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
-		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
+		LastResultsHash:    unusedHash,
+		EvidenceHash:       unusedHash,
 		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck
 	}
 
@@ -662,4 +624,28 @@ func (chain *TestChain) DeleteKey(key []byte) {
 	storeKey := chain.GetSimApp().GetKey(exported.StoreKey)
 	kvStore := chain.GetContext().KVStore(storeKey)
 	kvStore.Delete(key)
+}
+
+// IBCClientHeader will construct a 07-tendermint Header to update the light client
+// on the counterparty chain. The trustedHeight must be passed in as a non-zero height.
+func (chain *TestChain) IBCClientHeader(header *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
+	if trustedHeight.IsZero() {
+		return nil, errorsmod.Wrap(ibctm.ErrInvalidHeaderHeight, "trustedHeight must be a non-zero height")
+	}
+
+	cmtTrustedVals, err := chain.GetTrustedValidators(int64(trustedHeight.RevisionHeight))
+	if err != nil {
+		return nil, err
+	}
+
+	trustedVals, err := cmtTrustedVals.ToProto()
+	if err != nil {
+		return nil, err
+	}
+
+	header.TrustedHeight = trustedHeight
+	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
+	header.TrustedValidators = trustedVals
+
+	return header, nil
 }

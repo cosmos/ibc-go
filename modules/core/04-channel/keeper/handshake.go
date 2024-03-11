@@ -465,6 +465,17 @@ func (k Keeper) ChanCloseConfirm(
 		return err
 	}
 
+	// If the channel is closing during an upgrade, then we can delete all upgrade information.
+	if k.hasUpgrade(ctx, portID, channelID) {
+		k.deleteUpgradeInfo(ctx, portID, channelID)
+		k.Logger(ctx).Info(
+			"upgrade info deleted",
+			"port_id", portID,
+			"channel_id", channelID,
+			"upgrade_sequence", channel.UpgradeSequence,
+		)
+	}
+
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", types.CLOSED.String())
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")

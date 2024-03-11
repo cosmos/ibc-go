@@ -154,6 +154,42 @@ func (k Keeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string,
 	}
 }
 
+// iterateMetadata provides an iterator over all stored metadata keys in the client store.
+// For each metadata object, it will perform a callback.
+func (k Keeper) iterateMetadata(ctx sdk.Context, cb func(clientID string, key, value []byte) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
+
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	for ; iterator.Valid(); iterator.Next() {
+		split := strings.Split(string(iterator.Key()), "/")
+		if len(split) == 3 && split[2] == string(host.KeyClientState) {
+			// skip client state keys
+			continue
+		}
+
+		if len(split) == 4 && split[2] == string(host.KeyConsensusStatePrefix) {
+			// skip consensus state keys
+			continue
+		}
+
+		if split[0] != string(host.KeyClientStorePrefix) {
+			panic(errorsmod.Wrapf(host.ErrInvalidPath, "path does not begin with client store prefix: expected %s, got %s", host.KeyClientStorePrefix, split[0]))
+		}
+		if strings.TrimSpace(split[1]) == "" {
+			panic(errorsmod.Wrap(host.ErrInvalidPath, "clientID is empty"))
+		}
+
+		clientID := split[1]
+
+		key := []byte(strings.Join(split[2:], "/"))
+
+		if cb(clientID, key, iterator.Value()) {
+			break
+		}
+	}
+}
+
 // GetAllGenesisClients returns all the clients in state with their client ids returned as IdentifiedClientState
 func (k Keeper) GetAllGenesisClients(ctx sdk.Context) types.IdentifiedClientStates {
 	var genClients types.IdentifiedClientStates
@@ -169,30 +205,23 @@ func (k Keeper) GetAllGenesisClients(ctx sdk.Context) types.IdentifiedClientStat
 // of IdentifiedGenesisMetadata necessary for exporting and importing client metadata
 // into the client store.
 func (k Keeper) GetAllClientMetadata(ctx sdk.Context, genClients []types.IdentifiedClientState) ([]types.IdentifiedGenesisMetadata, error) {
+	metadataMap := make(map[string][]types.GenesisMetadata)
+	k.iterateMetadata(ctx, func(clientID string, key, value []byte) bool {
+		metadataMap[clientID] = append(metadataMap[clientID], types.NewGenesisMetadata(key, value))
+		return false
+	})
+
 	genMetadata := make([]types.IdentifiedGenesisMetadata, 0)
 	for _, ic := range genClients {
-		cs, err := types.UnpackClientState(ic.ClientState)
-		if err != nil {
-			return nil, err
+		metadata := metadataMap[ic.ClientId]
+		if len(metadata) != 0 {
+			genMetadata = append(genMetadata, types.NewIdentifiedGenesisMetadata(
+				ic.ClientId,
+				metadata,
+			))
 		}
-		gms := cs.ExportMetadata(k.ClientStore(ctx, ic.ClientId))
-		if len(gms) == 0 {
-			continue
-		}
-		clientMetadata := make([]types.GenesisMetadata, len(gms))
-		for i, metadata := range gms {
-			cmd, ok := metadata.(types.GenesisMetadata)
-			if !ok {
-				return nil, errorsmod.Wrapf(types.ErrInvalidClientMetadata, "expected metadata type: %T, got: %T",
-					types.GenesisMetadata{}, cmd)
-			}
-			clientMetadata[i] = cmd
-		}
-		genMetadata = append(genMetadata, types.NewIdentifiedGenesisMetadata(
-			ic.ClientId,
-			clientMetadata,
-		))
 	}
+
 	return genMetadata, nil
 }
 
@@ -365,12 +394,12 @@ func (k Keeper) SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz 
 	return k.upgradeKeeper.SetUpgradedConsensusState(ctx, planHeight, bz)
 }
 
-// IterateClientStates provides an iterator over all stored light client State
-// objects. For each State object, cb will be called. If the cb returns true,
+// IterateClientStates provides an iterator over all stored ibc ClientState
+// objects using the provided store prefix. For each ClientState object, cb will be called. If the cb returns true,
 // the iterator will close and stop.
-func (k Keeper) IterateClientStates(ctx sdk.Context, storeprefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
+func (k Keeper) IterateClientStates(ctx sdk.Context, storePrefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(storeprefix))
+	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(storePrefix))
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -439,7 +468,12 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 // ScheduleIBCSoftwareUpgrade schedules an upgrade for the IBC client.
 func (k Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Plan, upgradedClientState exported.ClientState) error {
 	// zero out any custom fields before setting
-	cs := upgradedClientState.ZeroCustomFields()
+	cs, ok := upgradedClientState.(*ibctm.ClientState)
+	if !ok {
+		return errorsmod.Wrapf(types.ErrInvalidClientType, "expected: %T, got: %T", &ibctm.ClientState{}, upgradedClientState)
+	}
+
+	cs = cs.ZeroCustomFields()
 	bz, err := types.MarshalClientState(k.cdc, cs)
 	if err != nil {
 		return errorsmod.Wrap(err, "could not marshal UpgradedClientState")

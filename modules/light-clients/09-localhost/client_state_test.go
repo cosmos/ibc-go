@@ -31,11 +31,6 @@ func (suite *LocalhostTestSuite) TestGetLatestHeight() {
 	suite.Require().Equal(expectedHeight, clientState.GetLatestHeight())
 }
 
-func (suite *LocalhostTestSuite) TestZeroCustomFields() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	suite.Require().Equal(clientState, clientState.ZeroCustomFields())
-}
-
 func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
 	ctx := suite.chain.GetContext()
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
@@ -421,11 +416,6 @@ func (suite *LocalhostTestSuite) TestUpdateState() {
 
 	clientState = suite.chain.GetClientState(exported.LocalhostClientID)
 	suite.Require().True(heights[0].EQ(clientState.GetLatestHeight()))
-}
-
-func (suite *LocalhostTestSuite) TestExportMetadata() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	suite.Require().Nil(clientState.ExportMetadata(nil))
 }
 
 func (suite *LocalhostTestSuite) TestCheckSubstituteAndUpdateState() {

@@ -37,13 +37,6 @@ All possible `Status` types can be found [here](https://github.com/cosmos/ibc-go
 
 This field is returned in the response of the gRPC [`ibc.core.client.v1.Query/ClientStatus`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/types/query.pb.go#L665) endpoint.
 
-## `ZeroCustomFields` method
-
-`ZeroCustomFields` should return a copy of the light client with all client customizable fields with their zero value. It should not mutate the fields of the light client.
-This method is used when [scheduling upgrades](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/proposal.go#L82). Upgrades are used to upgrade chain specific fields.
-In the tendermint case, this may be the chain ID or the unbonding period.
-For more information about client upgrades see the [Handling upgrades](05-upgrades.md) section.
-
 ## `GetTimestampAtHeight` method
 
 `GetTimestampAtHeight` must return the timestamp for the consensus state associated with the provided height.

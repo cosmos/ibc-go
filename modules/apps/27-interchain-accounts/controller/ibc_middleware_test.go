@@ -564,8 +564,22 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				0,
 			)
 
-			ack := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, nil)
+			ctx := suite.chainA.GetContext()
+			ack := cbs.OnRecvPacket(ctx, packet, nil)
 			suite.Require().Equal(tc.expPass, ack.Success())
+
+			expectedEvents := sdk.Events{
+				sdk.NewEvent(
+					icatypes.EventTypePacket,
+					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+					sdk.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
+					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", false)),
+					sdk.NewAttribute(icatypes.AttributeKeyAckError, "cannot receive packet on controller chain: invalid message sent to channel end"),
+				),
+			}.ToABCIEvents()
+
+			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 		})
 	}
 }
@@ -1196,10 +1210,8 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 	suite.Require().NoError(err)
 
 	// set the channel state to closed
-	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
-	suite.Require().NoError(err)
-	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
-	suite.Require().NoError(err)
+	path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+	path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 
 	// reset endpoint channel ids
 	path.EndpointA.ChannelID = ""
