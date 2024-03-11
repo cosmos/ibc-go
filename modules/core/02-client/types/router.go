@@ -8,13 +8,16 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// The router is a map from module name to the LightClientModule
-// which contains all the module-defined callbacks required by ICS-26
+// Router is a map from a light client module name to a LightClientModule.
+// The light client module name must be the same name as the client type.
+// The router also has a reference to the client store provided (02-client keeper)
+// and will set the store provider on a client module upon route registration.
 type Router struct {
 	routes        map[string]exported.LightClientModule
 	storeProvider exported.ClientStoreProvider
 }
 
+// NewRouter returns a instance of the Router.
 func NewRouter(key storetypes.StoreKey) *Router {
 	return &Router{
 		routes:        make(map[string]exported.LightClientModule),
@@ -24,6 +27,7 @@ func NewRouter(key storetypes.StoreKey) *Router {
 
 // AddRoute adds LightClientModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
+// The store provider will be registered on the light client module.
 func (rtr *Router) AddRoute(clientType string, module exported.LightClientModule) *Router {
 	if rtr.HasRoute(clientType) {
 		panic(fmt.Errorf("route %s has already been registered", module))
@@ -36,8 +40,8 @@ func (rtr *Router) AddRoute(clientType string, module exported.LightClientModule
 }
 
 // HasRoute returns true if the Router has a module registered or false otherwise.
-func (rtr *Router) HasRoute(module string) bool {
-	_, ok := rtr.routes[module]
+func (rtr *Router) HasRoute(clientType string) bool {
+	_, ok := rtr.routes[clientType]
 	return ok
 }
 
