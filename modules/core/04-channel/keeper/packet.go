@@ -76,8 +76,8 @@ func (k Keeper) SendPacket(
 
 	// check if packet is timed out on the receiving chain
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
-	if timeout.Elapsed(latestHeight.(clienttypes.Height), latestTimestamp) {
-		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight.(clienttypes.Height), latestTimestamp), "invalid packet timeout")
+	if timeout.Elapsed(latestHeight, latestTimestamp) {
+		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
