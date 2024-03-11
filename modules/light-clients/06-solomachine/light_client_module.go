@@ -229,10 +229,6 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
 	}
 
-	if clientState.Sequence >= substituteClient.Sequence {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "subject client state sequence is greater or equal to substitute client state sequence (%d >= %d)", clientState.Sequence, substituteClient.Sequence)
-	}
-
 	return clientState.CheckSubstituteAndUpdateState(ctx, lcm.cdc, clientStore, substituteClientStore, substituteClient)
 }
 
