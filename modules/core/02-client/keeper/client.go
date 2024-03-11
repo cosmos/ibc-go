@@ -45,7 +45,8 @@ func (k Keeper) CreateClient(
 		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client (%s) with status %s", clientID, status)
 	}
 
-	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientModule.LatestHeight(ctx, clientID).String())
+	initialHeight := clientModule.LatestHeight(ctx, clientID)
+	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", initialHeight.String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "create"},
@@ -53,7 +54,7 @@ func (k Keeper) CreateClient(
 		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientType)},
 	)
 
-	emitCreateClientEvent(ctx, clientID, clientType, clientModule.LatestHeight(ctx, clientID))
+	emitCreateClientEvent(ctx, clientID, clientType, initialHeight)
 
 	return clientID, nil
 }
