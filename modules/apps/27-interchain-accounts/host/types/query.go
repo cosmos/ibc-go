@@ -11,6 +11,7 @@ import (
 
 	queryv1 "cosmossdk.io/api/cosmos/query/v1"
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
@@ -20,10 +21,11 @@ import (
 //
 // For example, `/cosmos.bank.v1beta1.Query/Balance` is module safe, but
 // `/cosmos.reflection.v1.ReflectionService/FileDescriptors` is not.
-func IsModuleQuerySafe(grpcServicePath string) (bool, error) {
+func IsModuleQuerySafe(logger log.Logger, grpcServicePath string) bool {
 	methodPath, err := toMethodPath(grpcServicePath)
 	if err != nil {
-		return false, err
+		logger.Debug("failed to convert gRPC service path to method path", "grpcServicePath", grpcServicePath, "err", err)
+		return false
 	}
 
 	protoFiles, err := gogoproto.MergedRegistry()
@@ -37,15 +39,23 @@ func IsModuleQuerySafe(grpcServicePath string) (bool, error) {
 
 	fullName := protoreflect.FullName(methodPath)
 	if !fullName.IsValid() {
-		return false, errorsmod.Wrap(ibcerrors.ErrInvalidRequest, fmt.Sprintf("invalid method path: %s", methodPath))
+		logger.Debug("invalid method path", "methodPath", methodPath)
+		return false
 	}
 
 	serviceDesc, err := protoFiles.FindDescriptorByName(fullName)
 	if err != nil {
-		return false, errorsmod.Wrap(ibcerrors.ErrInvalidRequest, fmt.Sprintf("failed to find the descriptor: %s", methodPath))
+		logger.Debug("failed to find the descriptor", "methodPath", methodPath, "err", err)
+		return false
 	}
 
-	return isModuleQuerySafe(serviceDesc.(protoreflect.MethodDescriptor)), nil
+	methodDesc, ok := serviceDesc.(protoreflect.MethodDescriptor)
+	if !ok {
+		logger.Debug("invalid method descriptor", "methodPath", methodPath)
+		return false
+	}
+
+	return isModuleQuerySafe(methodDesc)
 }
 
 // isModuleQuerySafe checks whether the service has the

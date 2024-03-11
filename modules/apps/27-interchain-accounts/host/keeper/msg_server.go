@@ -29,15 +29,13 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 // This handler doesn't use the signer.
 func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQuerySafe) (*types.MsgModuleQuerySafeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	logger := m.Logger(ctx)
 
 	responses := make([][]byte, len(msg.Requests))
 	for i, query := range msg.Requests {
-		isModuleQuerySafe, err := types.IsModuleQuerySafe(query.Path)
-		if err != nil {
-			return nil, err
-		}
+		isModuleQuerySafe := types.IsModuleQuerySafe(logger, query.Path)
 		if !isModuleQuerySafe {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot verify module query safe: %s", query.Path)
 		}
 
 		route := m.queryRouter.Route(query.Path)
