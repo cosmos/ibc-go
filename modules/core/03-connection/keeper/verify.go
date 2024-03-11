@@ -29,7 +29,7 @@ func (k Keeper) VerifyClientState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -45,7 +45,7 @@ func (k Keeper) VerifyClientState(
 		return err
 	}
 
-	if err := lightClientModule.VerifyMembership(
+	if err := clientModule.VerifyMembership(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -71,7 +71,7 @@ func (k Keeper) VerifyClientConsensusState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -87,7 +87,7 @@ func (k Keeper) VerifyClientConsensusState(
 		return err
 	}
 
-	if err := lightClientModule.VerifyMembership(
+	if err := clientModule.VerifyMembership(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -113,7 +113,7 @@ func (k Keeper) VerifyConnectionState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -129,7 +129,7 @@ func (k Keeper) VerifyConnectionState(
 		return err
 	}
 
-	if err := lightClientModule.VerifyMembership(
+	if err := clientModule.VerifyMembership(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -156,7 +156,7 @@ func (k Keeper) VerifyChannelState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -172,7 +172,7 @@ func (k Keeper) VerifyChannelState(
 		return err
 	}
 
-	if err := lightClientModule.VerifyMembership(
+	if err := clientModule.VerifyMembership(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -200,7 +200,7 @@ func (k Keeper) VerifyPacketCommitment(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -215,7 +215,7 @@ func (k Keeper) VerifyPacketCommitment(
 		return err
 	}
 
-	if err := lightClientModule.VerifyMembership(
+	if err := clientModule.VerifyMembership(
 		ctx, clientID, height, timeDelay, blockDelay, proof, merklePath, commitmentBytes,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
@@ -241,7 +241,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -256,7 +256,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 		return err
 	}
 
-	if err := lightClientModule.VerifyMembership(
+	if err := clientModule.VerifyMembership(
 		ctx, clientID, height, timeDelay, blockDelay,
 		proof, merklePath, channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
@@ -288,7 +288,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		return err
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
 	}
@@ -303,7 +303,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		return err
 	}
 
-	if err := lightClientModule.VerifyNonMembership(
+	if err := clientModule.VerifyNonMembership(
 		ctx, clientID, height, timeDelay, blockDelay, proof, merklePath,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
@@ -328,7 +328,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -343,7 +343,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 		return err
 	}
 
-	if err := lightClientModule.VerifyMembership(
+	if err := clientModule.VerifyMembership(
 		ctx, clientID, height,
 		timeDelay, blockDelay,
 		proof, merklePath, sdk.Uint64ToBigEndian(nextSequenceRecv),
@@ -369,7 +369,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -385,7 +385,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 		return err
 	}
 
-	if err := lightClientModule.VerifyMembership(
+	if err := clientModule.VerifyMembership(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -411,7 +411,7 @@ func (k Keeper) VerifyChannelUpgrade(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -427,7 +427,7 @@ func (k Keeper) VerifyChannelUpgrade(
 		return err
 	}
 
-	if err := lightClientModule.VerifyMembership(
+	if err := clientModule.VerifyMembership(
 		ctx, clientID, proofHeight,
 		0, 0, // skip delay period checks for non-packet processing verification
 		upgradeProof, merklePath, bz,

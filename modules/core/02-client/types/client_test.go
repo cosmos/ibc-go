@@ -26,11 +26,12 @@ func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 			"tendermint client", func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-				consensusState, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+
+				latestHeight := path.EndpointA.GetClientLatestHeight().(types.Height)
+				consensusState, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, latestHeight)
 				suite.Require().True(ok)
 
-				cswh = types.NewConsensusStateWithHeight(clientState.GetLatestHeight().(types.Height), consensusState)
+				cswh = types.NewConsensusStateWithHeight(latestHeight, consensusState)
 			},
 		},
 	}

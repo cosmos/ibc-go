@@ -39,7 +39,7 @@ func (suite *KeeperTestSuite) TestMsgCreateClientEvents() {
 			clienttypes.EventTypeCreateClient,
 			sdk.NewAttribute(clienttypes.AttributeKeyClientID, ibctesting.FirstClientID),
 			sdk.NewAttribute(clienttypes.AttributeKeyClientType, clientState.ClientType()),
-			//		sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, clientState.LatestHeight.String()),
 		),
 	}.ToABCIEvents()
 
@@ -56,7 +56,8 @@ func (suite *KeeperTestSuite) TestMsgUpdateClientEvents() {
 
 	suite.chainB.Coordinator.CommitBlock(suite.chainB)
 
-	trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+	clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+	trustedHeight := clientState.LatestHeight
 	header, err := suite.chainB.IBCClientHeader(suite.chainB.LatestCommittedHeader, trustedHeight)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(header)
@@ -78,8 +79,8 @@ func (suite *KeeperTestSuite) TestMsgUpdateClientEvents() {
 			clienttypes.EventTypeUpdateClient,
 			sdk.NewAttribute(clienttypes.AttributeKeyClientID, ibctesting.FirstClientID),
 			sdk.NewAttribute(clienttypes.AttributeKeyClientType, path.EndpointA.GetClientState().ClientType()),
-			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, path.EndpointA.GetClientState().GetLatestHeight().String()),
-			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeights, path.EndpointA.GetClientState().GetLatestHeight().String()),
+			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, path.EndpointA.GetClientLatestHeight().String()),
+			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeights, path.EndpointA.GetClientLatestHeight().String()),
 		),
 	}.ToABCIEvents()
 

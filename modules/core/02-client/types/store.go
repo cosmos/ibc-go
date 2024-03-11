@@ -14,10 +14,12 @@ import (
 
 var _ exported.ClientStoreProvider = (*storeProvider)(nil)
 
+// storeProvider implements the api.ClientStoreProvider interface and encapsulates the IBC core store key.
 type storeProvider struct {
 	storeKey storetypes.StoreKey
 }
 
+// NewStoreProvider creates and returns a new ClientStoreProvider.
 func NewStoreProvider(storeKey storetypes.StoreKey) exported.ClientStoreProvider {
 	return storeProvider{
 		storeKey: storeKey,

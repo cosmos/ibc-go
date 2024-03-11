@@ -15,10 +15,6 @@ Learn how to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob
 `ClientType` should return a unique string identifier of the light client. This will be used when generating a client identifier.
 The format is created as follows: `ClientType-{N}` where `{N}` is the unique global nonce associated with a specific client.
 
-## `GetLatestHeight` method
-
-`GetLatestHeight` should return the latest block height that the client state represents.
-
 ## `Validate` method
 
 `Validate` should validate every client state field and should return an error if any value is invalid. The light client

@@ -55,13 +55,13 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("verify begin blocker was executed", func(t *testing.T) {
 		cs, err := s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
 		s.Require().NoError(err)
-		originalHeight := cs.GetLatestHeight()
+		originalHeight := cs.(*localhost.ClientState).LatestHeight
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
 		cs, err = s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
 		s.Require().NoError(err)
-		s.Require().True(cs.GetLatestHeight().GT(originalHeight), "client state height was not incremented")
+		s.Require().True(cs.(*localhost.ClientState).LatestHeight.GT(originalHeight), "client state height was not incremented")
 	})
 
 	t.Run("channel open init localhost", func(t *testing.T) {

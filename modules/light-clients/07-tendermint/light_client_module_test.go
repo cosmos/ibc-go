@@ -15,8 +15,8 @@ var (
 
 func (suite *TendermintTestSuite) TestRecoverClient() {
 	var (
-		subjectClientID, substituteClientID       string
-		subjectClientState, substituteClientState exported.ClientState
+		subjectClientID, substituteClientID string
+		subjectClientState                  exported.ClientState
 	)
 
 	testCases := []struct {
@@ -58,26 +58,6 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 			},
 			clienttypes.ErrClientNotFound,
 		},
-		{
-			"subject and substitute have equal latest height",
-			func() {
-				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
-				suite.Require().True(ok)
-				tmClientState.LatestHeight = substituteClientState.GetLatestHeight().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, tmClientState)
-			},
-			clienttypes.ErrInvalidHeight,
-		},
-		{
-			"subject height is greater than substitute height",
-			func() {
-				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
-				suite.Require().True(ok)
-				tmClientState.LatestHeight = substituteClientState.GetLatestHeight().Increment().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, tmClientState)
-			},
-			clienttypes.ErrInvalidHeight,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -94,7 +74,6 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			substitutePath.SetupClients()
 			substituteClientID = substitutePath.EndpointA.ClientID
-			substituteClientState = suite.chainA.GetClientState(substituteClientID)
 
 			tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 			suite.Require().True(ok)

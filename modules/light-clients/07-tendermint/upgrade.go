@@ -59,7 +59,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	}
 
 	// last height of current counterparty chain must be client's latest height
-	lastHeight := cs.GetLatestHeight()
+	lastHeight := cs.LatestHeight
 
 	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
 	// This verifies that upgrade is intended for the provided revision, since committed client must exist

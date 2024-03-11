@@ -2,10 +2,8 @@ package wasm_test
 
 import (
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -16,9 +14,8 @@ const (
 
 func (suite *WasmTestSuite) TestRecoverClient() {
 	var (
-		expectedClientStateBz                     []byte
-		subjectClientID, substituteClientID       string
-		subjectClientState, substituteClientState exported.ClientState
+		expectedClientStateBz               []byte
+		subjectClientID, substituteClientID string
 	)
 
 	testCases := []struct {
@@ -61,26 +58,6 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			},
 			clienttypes.ErrClientNotFound,
 		},
-		{
-			"subject and substitute have equal latest height",
-			func() {
-				wasmClientState, ok := subjectClientState.(*wasmtypes.ClientState)
-				suite.Require().True(ok)
-				wasmClientState.LatestHeight = substituteClientState.GetLatestHeight().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, wasmClientState)
-			},
-			clienttypes.ErrInvalidHeight,
-		},
-		{
-			"subject height is greater than substitute height",
-			func() {
-				wasmClientState, ok := subjectClientState.(*wasmtypes.ClientState)
-				suite.Require().True(ok)
-				wasmClientState.LatestHeight = substituteClientState.GetLatestHeight().Increment().(clienttypes.Height)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectClientID, wasmClientState)
-			},
-			clienttypes.ErrInvalidHeight,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -94,15 +71,12 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			suite.Require().NoError(err)
 			subjectClientID = subjectEndpoint.ClientID
 
-			subjectClientState = subjectEndpoint.GetClientState()
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectClientID)
 
 			substituteEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err = substituteEndpoint.CreateClient()
 			suite.Require().NoError(err)
 			substituteClientID = substituteEndpoint.ClientID
-
-			substituteClientState = substituteEndpoint.GetClientState()
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
 			suite.Require().True(found)

@@ -15,13 +15,13 @@ import (
 )
 
 // emitCreateClientEvent emits a create client event
-func emitCreateClientEvent(ctx sdk.Context, clientID, clientType string) {
+func emitCreateClientEvent(ctx sdk.Context, clientID, clientType string, latestHeight exported.Height) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-			//			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, latestHeight.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -60,13 +60,13 @@ func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 }
 
 // emitUpgradeClientEvent emits an upgrade client event
-func emitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+func emitUpgradeClientEvent(ctx sdk.Context, clientID, clientType string, latestHeight exported.Height) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpgradeClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, latestHeight.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

@@ -18,6 +18,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
@@ -153,7 +154,7 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState := endpoint.GetClientState().(*types.ClientState)
-			height = clientState.GetLatestHeight()
+			height = clientState.LatestHeight
 
 			tc.malleate()
 
@@ -256,15 +257,15 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
 
-					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
 
-					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
+					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.LatestHeight)
 					clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), clientStateBz)
 
 					consensusState := types.NewConsensusState(payload.ConsensusState)
 					consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), consensusState)
-					store.Set(host.ConsensusStateKey(clientState.GetLatestHeight()), consensusStateBz)
+					store.Set(host.ConsensusStateKey(clientState.LatestHeight), consensusStateBz)
 
 					resp, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -313,7 +314,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 			wrappedClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermitClientState)
 			wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientConsensusState)
-			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockTendermitClientState.GetLatestHeight().(clienttypes.Height))
+			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockTendermitClientState.LatestHeight)
 			consensusState = types.NewConsensusState(wrappedClientConsensusStateBz)
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
@@ -331,7 +332,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 				suite.Require().Equal(expClientState, clientStore.Get(host.ClientStateKey()))
 
 				expConsensusState := clienttypes.MustMarshalConsensusState(suite.chainA.Codec, consensusState)
-				suite.Require().Equal(expConsensusState, clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())))
+				suite.Require().Equal(expConsensusState, clientStore.Get(host.ConsensusStateKey(clientState.LatestHeight)))
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 			}

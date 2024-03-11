@@ -144,6 +144,21 @@ func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Statu
 	return exported.Active
 }
 
+// LatestHeight returns the latest height for the client state for the given client identifier.
+// If no client is present for the provided client identifier a zero value height is returned.
+//
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
+func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+
+	clientState, found := getClientState(clientStore, lcm.cdc)
+	if !found {
+		return clienttypes.ZeroHeight()
+	}
+
+	return clientState.LatestHeight
+}
+
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
 func (LightClientModule) TimestampAtHeight(

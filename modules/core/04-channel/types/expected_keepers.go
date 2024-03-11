@@ -6,16 +6,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // ClientKeeper expected account IBC client keeper
 type ClientKeeper interface {
+	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
 	GetClientStatus(ctx sdk.Context, clientID string) exported.Status
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
-	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
+	GetLatestHeight(ctx sdk.Context, clientID string) clienttypes.Height
 	GetTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error)
 }
 

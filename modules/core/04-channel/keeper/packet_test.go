@@ -150,19 +150,15 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			// use client state latest height for timeout
-			clientState := path.EndpointA.GetClientState()
-			timeoutHeight = clientState.GetLatestHeight().(clienttypes.Height)
+			timeoutHeight = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"timeout timestamp passed", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			// use latest time on client state
-			clientState := path.EndpointA.GetClientState()
 			connection := path.EndpointA.GetConnection()
-			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection.ClientId, clientState.GetLatestHeight())
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection.ClientId, path.EndpointA.GetClientLatestHeight())
 			suite.Require().NoError(err)
 
 			timeoutHeight = disabledTimeoutHeight
@@ -178,9 +174,8 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
 
-			clientState := path.EndpointA.GetClientState()
 			connection := path.EndpointA.GetConnection()
-			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection.ClientId, clientState.GetLatestHeight())
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection.ClientId, path.EndpointA.GetClientLatestHeight())
 			suite.Require().NoError(err)
 
 			sourceChannel = path.EndpointA.ChannelID

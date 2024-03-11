@@ -15,7 +15,7 @@ func (suite *LocalhostTestSuite) TestClientType() {
 func (suite *LocalhostTestSuite) TestGetLatestHeight() {
 	expectedHeight := clienttypes.NewHeight(3, 10)
 	clientState := localhost.NewClientState(expectedHeight)
-	suite.Require().Equal(expectedHeight, clientState.GetLatestHeight())
+	suite.Require().Equal(expectedHeight, clientState.LatestHeight)
 }
 
 func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
@@ -117,7 +117,7 @@ func (suite *LocalhostTestSuite) TestUpdateState() {
 	suite.Require().True(heights[0].EQ(expHeight))
 
 	clientState = suite.chain.GetClientState(exported.LocalhostClientID).(*localhost.ClientState)
-	suite.Require().True(heights[0].EQ(clientState.GetLatestHeight()))
+	suite.Require().True(heights[0].EQ(clientState.LatestHeight))
 }
 
 func (suite *LocalhostTestSuite) TestCheckSubstituteAndUpdateState() {

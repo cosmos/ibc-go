@@ -30,11 +30,6 @@ func (ClientState) ClientType() string {
 	return exported.Localhost
 }
 
-// GetLatestHeight returns the 09-localhost client state latest height.
-func (cs ClientState) GetLatestHeight() exported.Height {
-	return cs.LatestHeight
-}
-
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if cs.LatestHeight.RevisionHeight == 0 {

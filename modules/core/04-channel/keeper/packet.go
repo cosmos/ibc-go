@@ -63,17 +63,12 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
-	if !found {
-		return 0, clienttypes.ErrClientNotFound
-	}
-
 	// prevent accidental sends with clients that cannot be updated
 	if status := k.clientKeeper.GetClientStatus(ctx, connectionEnd.ClientId); status != exported.Active {
 		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.ClientId, status)
 	}
 
-	latestHeight := clientState.GetLatestHeight()
+	latestHeight := k.clientKeeper.GetLatestHeight(ctx, connectionEnd.ClientId)
 	latestTimestamp, err := k.clientKeeper.GetTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)
 	if err != nil {
 		return 0, err
@@ -81,8 +76,8 @@ func (k Keeper) SendPacket(
 
 	// check if packet is timed out on the receiving chain
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
-	if timeout.Elapsed(latestHeight.(clienttypes.Height), latestTimestamp) {
-		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight.(clienttypes.Height), latestTimestamp), "invalid packet timeout")
+	if timeout.Elapsed(latestHeight, latestTimestamp) {
+		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
