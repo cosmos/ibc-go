@@ -72,21 +72,21 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 
 	// Backwards Compatibility: the light client module is expecting
 	// to unmarshal an interface so we marshal the client state Any
-	upgradedClientState, err := k.cdc.Marshal(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-	// Backwards Compatibility: the light client module is expecting
-	// to unmarshal an interface so we marshal the consensus state Any
-	upgradedConsensusState, err := k.cdc.Marshal(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
+	// upgradedClientState, err := k.cdc.Marshal(msg.ClientState)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// // Backwards Compatibility: the light client module is expecting
+	// // to unmarshal an interface so we marshal the consensus state Any
+	// upgradedConsensusState, err := k.cdc.Marshal(msg.ConsensusState)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	if err := k.ClientKeeper.UpgradeClient(
 		ctx, msg.ClientId,
-		upgradedClientState,
-		upgradedConsensusState,
+		msg.ClientState.Value,
+		msg.ConsensusState.Value,
 		msg.ProofUpgradeClient,
 		msg.ProofUpgradeConsensusState,
 	); err != nil {

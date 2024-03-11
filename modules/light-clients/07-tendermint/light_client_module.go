@@ -279,25 +279,27 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 ) error {
 	var (
 		cdc               = lcm.keeper.Codec()
-		newClientState    exported.ClientState
-		newConsensusState exported.ConsensusState
+		newClientState    ClientState
+		newConsensusState ConsensusState
 	)
 
-	if err := cdc.UnmarshalInterface(newClient, &newClientState); err != nil {
+	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
 		return err
-	}
-	newTmClientState, ok := newClientState.(*ClientState)
-	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected client state type %T, got %T", (*ClientState)(nil), newClientState)
 	}
 
-	if err := cdc.UnmarshalInterface(newConsState, &newConsensusState); err != nil {
+	// newTmClientState, ok := newClientState.(*ClientState)
+	// if !ok {
+	// 	return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected client state type %T, got %T", (*ClientState)(nil), newClientState)
+	// }
+
+	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
 		return err
 	}
-	newTmConsensusState, ok := newConsensusState.(*ConsensusState)
-	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "expected consensus state type %T, got %T", (*ConsensusState)(nil), newConsensusState)
-	}
+
+	// newTmConsensusState, ok := newConsensusState.(*ConsensusState)
+	// if !ok {
+	// 	return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "expected consensus state type %T, got %T", (*ConsensusState)(nil), newConsensusState)
+	// }
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, cdc)
@@ -307,9 +309,9 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 
 	// last height of current counterparty chain must be client's latest height
 	lastHeight := clientState.LatestHeight
-	if !newTmClientState.LatestHeight.GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newTmClientState.LatestHeight, lastHeight)
+	if !newClientState.LatestHeight.GT(lastHeight) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.LatestHeight, lastHeight)
 	}
 
-	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, newTmClientState, newTmConsensusState, upgradeClientProof, upgradeConsensusStateProof)
+	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)
 }
