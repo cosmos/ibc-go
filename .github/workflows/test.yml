@@ -110,6 +110,7 @@ jobs:
           path: ./${{ matrix.part }}profile.out
 
   repo-analysis:
+    if: github.event.pull_request.head.repo.fork == 'false'
     runs-on: ubuntu-latest
     needs: [tests]
     steps:

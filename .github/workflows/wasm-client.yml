@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      main
+      - main
 permissions:
   contents: read
 
@@ -45,6 +45,7 @@ jobs:
           GOARCH=${{ matrix.go-arch }} CGO_ENABLED=1 go build ./...
 
   tests:
+    if: github.event.pull_request.head.repo.fork == 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
