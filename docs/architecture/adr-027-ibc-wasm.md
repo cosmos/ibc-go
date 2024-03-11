@@ -93,8 +93,7 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 
 The contract's bytecode is not stored in state (it is actually unnecessary and wasteful to store it, since
 the Wasm VM already stores it and can be queried back, if needed). The checksum is simply the hash of the bytecode
-of the contract and it is stored in state in an entry with key `checksums` that contains a list of the checksums
-of bytecodes that have been stored.
+of the contract and it is stored in state in an entry with key `checksums` that contains the checksums for the bytecodes that have been stored.
 
 ### How light client proxy works?
 
