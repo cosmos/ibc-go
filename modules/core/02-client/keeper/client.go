@@ -151,7 +151,8 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		return errorsmod.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", k.GetLatestHeight(ctx, clientID).String())
+	latestHeight := k.GetLatestHeight(ctx, clientID) // TODO: use clientModule when addressing this func in https://github.com/cosmos/ibc-go/pull/5827
+	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", latestHeight.String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "upgrade"},
@@ -162,7 +163,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 		},
 	)
 
-	emitUpgradeClientEvent(ctx, clientID, upgradedClient.ClientType(), k.GetLatestHeight(ctx, clientID))
+	emitUpgradeClientEvent(ctx, clientID, upgradedClient.ClientType(), latestHeight)
 
 	return nil
 }
