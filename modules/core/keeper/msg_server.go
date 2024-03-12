@@ -67,26 +67,18 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 }
 
 // UpgradeClient defines a rpc handler method for MsgUpgradeClient.
+// NOTE: The raw bytes of the conretes types encoded into protobuf.Any is passed to the client keeper.
+// The 02-client handler will route to the appropriate light client module based on client identifier and it is the responsibility
+// of the light client module to unmarshal and interpret the proto encoded bytes.
+// Backwards compatibility with older versions of ibc-go is maintained through the light client module reconstructing and encoding
+// the expected concrete type to the protobuf.Any for proof verification.
 func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgradeClient) (*clienttypes.MsgUpgradeClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Backwards Compatibility: the light client module is expecting
-	// to unmarshal an interface so we marshal the client state Any
-	upgradedClientState, err := k.cdc.Marshal(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-	// Backwards Compatibility: the light client module is expecting
-	// to unmarshal an interface so we marshal the consensus state Any
-	upgradedConsensusState, err := k.cdc.Marshal(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
-
 	if err := k.ClientKeeper.UpgradeClient(
 		ctx, msg.ClientId,
-		upgradedClientState,
-		upgradedConsensusState,
+		msg.ClientState.Value,
+		msg.ConsensusState.Value,
 		msg.ProofUpgradeClient,
 		msg.ProofUpgradeConsensusState,
 	); err != nil {

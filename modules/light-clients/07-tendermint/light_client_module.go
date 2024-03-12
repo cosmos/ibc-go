@@ -277,26 +277,16 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	upgradeClientProof,
 	upgradeConsensusStateProof []byte,
 ) error {
-	var (
-		cdc               = lcm.keeper.Codec()
-		newClientState    exported.ClientState
-		newConsensusState exported.ConsensusState
-	)
+	cdc := lcm.keeper.Codec()
 
-	if err := cdc.UnmarshalInterface(newClient, &newClientState); err != nil {
-		return err
-	}
-	newTmClientState, ok := newClientState.(*ClientState)
-	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected client state type %T, got %T", (*ClientState)(nil), newClientState)
+	var newClientState ClientState
+	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
+		return errorsmod.Wrap(clienttypes.ErrInvalidClient, err.Error())
 	}
 
-	if err := cdc.UnmarshalInterface(newConsState, &newConsensusState); err != nil {
-		return err
-	}
-	newTmConsensusState, ok := newConsensusState.(*ConsensusState)
-	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "expected consensus state type %T, got %T", (*ConsensusState)(nil), newConsensusState)
+	var newConsensusState ConsensusState
+	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
+		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, err.Error())
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
@@ -307,9 +297,9 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 
 	// last height of current counterparty chain must be client's latest height
 	lastHeight := clientState.LatestHeight
-	if !newTmClientState.LatestHeight.GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newTmClientState.LatestHeight, lastHeight)
+	if !newClientState.LatestHeight.GT(lastHeight) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.LatestHeight, lastHeight)
 	}
 
-	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, newTmClientState, newTmConsensusState, upgradeClientProof, upgradeConsensusStateProof)
+	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)
 }

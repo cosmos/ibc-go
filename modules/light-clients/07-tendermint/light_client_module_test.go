@@ -6,12 +6,13 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -116,7 +117,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 		clientID                                              string
 		path                                                  *ibctesting.Path
 		upgradedClientState                                   exported.ClientState
-		upgradedClientStateBz, upgradedConsensusStateBz       []byte
+		upgradedClientStateAny, upgradedConsensusStateAny     *codectypes.Any
 		upgradedClientStateProof, upgradedConsensusStateProof []byte
 	)
 
@@ -133,10 +134,13 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 				// zero custom fields and store in upgrade store
 				zeroedUpgradedClient := upgradedClientState.(*ibctm.ClientState).ZeroCustomFields()
-				zeroedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.Codec, zeroedUpgradedClient)
-				err := suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), zeroedUpgradedClientBz)
+				zeroedUpgradedClientAny, err := codectypes.NewAnyWithValue(zeroedUpgradedClient)
 				suite.Require().NoError(err)
-				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), upgradedConsensusStateBz)
+
+				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), suite.chainB.Codec.MustMarshal(zeroedUpgradedClientAny))
+				suite.Require().NoError(err)
+
+				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), suite.chainB.Codec.MustMarshal(upgradedConsensusStateAny))
 				suite.Require().NoError(err)
 
 				// commit upgrade store changes and update clients
@@ -159,29 +163,36 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 		{
 			"upgraded client state is not for tendermint client state",
 			func() {
-				upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.Codec, solomachine.NewClientState(0, &solomachine.ConsensusState{}))
+				upgradedClientStateAny = &codectypes.Any{
+					Value: []byte("invalid client state bytes"),
+				}
 			},
 			clienttypes.ErrInvalidClient,
 		},
 		{
 			"upgraded consensus state is not tendermint consensus state",
 			func() {
-				upgradedConsensusStateBz = clienttypes.MustMarshalConsensusState(suite.chainA.Codec, &solomachine.ConsensusState{})
+				upgradedConsensusStateAny = &codectypes.Any{
+					Value: []byte("invalid consensus state bytes"),
+				}
 			},
 			clienttypes.ErrInvalidConsensus,
 		},
 		{
 			"upgraded client state height is not greater than current height",
 			func() {
-				// last Height is at next block
-				lastHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()+1))
+				// upgrade height is at next block
+				upgradeHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()+1))
 
 				// zero custom fields and store in upgrade store
 				zeroedUpgradedClient := upgradedClientState.(*ibctm.ClientState).ZeroCustomFields()
-				zeroedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.Codec, zeroedUpgradedClient)
-				err := suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), zeroedUpgradedClientBz)
+				zeroedUpgradedClientAny, err := codectypes.NewAnyWithValue(zeroedUpgradedClient)
 				suite.Require().NoError(err)
-				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsensusStateBz)
+
+				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), suite.chainB.Codec.MustMarshal(zeroedUpgradedClientAny))
+				suite.Require().NoError(err)
+
+				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), suite.chainB.Codec.MustMarshal(upgradedConsensusStateAny))
 				suite.Require().NoError(err)
 
 				// change upgraded client state height to be lower than current client state height
@@ -191,15 +202,15 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 				suite.Require().True(ok)
 
 				tmClient.LatestHeight = newLatestheight.(clienttypes.Height)
-				upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.Codec, tmClient)
+				upgradedClientStateAny, err = codectypes.NewAnyWithValue(tmClient)
 				suite.Require().NoError(err)
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				upgradedClientStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
+				upgradedClientStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
 			},
 			ibcerrors.ErrInvalidHeight,
 		},
@@ -209,10 +220,10 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			var err error
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
+
 			clientID = path.EndpointA.ClientID
 			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
@@ -222,23 +233,25 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			suite.Require().NoError(err)
 
 			upgradedClientState = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, newUnbondindPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
-			upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.Codec, upgradedClientState)
+			upgradedClientStateAny, err = codectypes.NewAnyWithValue(upgradedClientState)
+			suite.Require().NoError(err)
 
 			nextValsHash := sha256.Sum256([]byte("new-nextValsHash"))
 			upgradedConsensusState := ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("new-hash")), nextValsHash[:])
-			upgradedConsensusStateBz = clienttypes.MustMarshalConsensusState(suite.chainA.Codec, upgradedConsensusState)
+
+			upgradedConsensusStateAny, err = codectypes.NewAnyWithValue(upgradedConsensusState)
 			suite.Require().NoError(err)
+
+			tc.malleate()
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(clientID)
 			suite.Require().True(found)
 
-			tc.malleate()
-
 			err = lightClientModule.VerifyUpgradeAndUpdateState(
 				suite.chainA.GetContext(),
 				clientID,
-				upgradedClientStateBz,
-				upgradedConsensusStateBz,
+				upgradedClientStateAny.Value,
+				upgradedConsensusStateAny.Value,
 				upgradedClientStateProof,
 				upgradedConsensusStateProof,
 			)
@@ -247,15 +260,15 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.Codec, upgradedClientState)
-				suite.Require().Equal(upgradedClientStateBz, clientStateBz)
+				expClientState := path.EndpointA.GetClientState()
+				expClientStateBz := suite.chainA.Codec.MustMarshal(expClientState)
+				suite.Require().Equal(upgradedClientStateAny.Value, expClientStateBz)
 
-				consensusState, found := suite.chainA.GetConsensusState(clientID, path.EndpointA.GetClientLatestHeight())
-				suite.Require().True(found)
-				suite.Require().NotNil(consensusState)
-				tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
-				suite.Require().True(ok)
-				suite.Require().Equal(upgradedConsensusState.NextValidatorsHash, tmConsensusState.NextValidatorsHash)
+				expConsensusState := ibctm.NewConsensusState(upgradedConsensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), upgradedConsensusState.NextValidatorsHash)
+				expConsensusStateBz := suite.chainA.Codec.MustMarshal(expConsensusState)
+
+				consensusStateBz := suite.chainA.Codec.MustMarshal(path.EndpointA.GetConsensusState(path.EndpointA.GetClientLatestHeight()))
+				suite.Require().Equal(expConsensusStateBz, consensusStateBz)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
