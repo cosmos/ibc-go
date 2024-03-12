@@ -5,7 +5,6 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -141,23 +140,6 @@ type ClientState interface {
 
 	ClientType() string
 	Validate() error
-
-	// Upgrade functions
-	// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
-	// height committed by the current revision. Clients are responsible for ensuring that the planned last
-	// height of the current revision is somehow encoded in the proof verification process.
-	// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
-	// may be cancelled or modified before the last planned height.
-	// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
-	VerifyUpgradeAndUpdateState(
-		ctx sdk.Context,
-		cdc codec.BinaryCodec,
-		store storetypes.KVStore,
-		newClient ClientState,
-		newConsState ConsensusState,
-		upgradeClientProof,
-		upgradeConsensusStateProof []byte,
-	) error
 }
 
 // ConsensusState is the state of the consensus process

@@ -125,9 +125,3 @@ func (suite *LocalhostTestSuite) TestCheckSubstituteAndUpdateState() {
 	err := clientState.CheckSubstituteAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil)
 	suite.Require().Error(err)
 }
-
-func (suite *LocalhostTestSuite) TestVerifyUpgradeAndUpdateState() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	err := clientState.VerifyUpgradeAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil, nil, nil)
-	suite.Require().Error(err)
-}

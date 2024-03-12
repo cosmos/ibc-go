@@ -8,6 +8,7 @@ import (
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -257,6 +258,37 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 // the new client state, consensus state, and any other client metadata.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient []byte, newConsState []byte, upgradeClientProof, upgradeConsensusStateProof []byte) error {
-	return nil
+func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
+	ctx sdk.Context,
+	clientID string,
+	newClient []byte,
+	newConsState []byte,
+	upgradeClientProof,
+	upgradeConsensusStateProof []byte,
+) error {
+	cdc := lcm.keeper.Codec()
+
+	var newClientState types.ClientState
+	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
+		return errorsmod.Wrap(clienttypes.ErrInvalidClient, err.Error())
+	}
+
+	var newConsensusState types.ConsensusState
+	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
+		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, err.Error())
+	}
+
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	clientState, found := types.GetClientState(clientStore, cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
+
+	// last height of current counterparty chain must be client's latest height
+	lastHeight := clientState.LatestHeight
+	if !newClientState.LatestHeight.GT(lastHeight) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.LatestHeight, lastHeight)
+	}
+
+	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)
 }

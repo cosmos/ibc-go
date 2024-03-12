@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint/internal/keeper"
 )
@@ -255,8 +256,17 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
 }
 
-// VerifyUpgradeAndUpdateState, on a successful verification expects the contract to update
-// the new client state, consensus state, and any other client metadata.
+// VerifyUpgradeAndUpdateState checks if the upgraded client has been committed by the current client
+// It will zero out all client-specific fields (e.g. TrustingPeriod) and verify all data
+// in client state that must be the same across all valid Tendermint clients for the new chain.
+// VerifyUpgrade will return an error if:
+// - the upgradedClient is not a Tendermint ClientState
+// - the latest height of the client state does not have the same revision number or has a greater
+// height than the committed client.
+//   - the height of upgraded client is not greater than that of current client
+//   - the latest height of the new client does not match or is greater than the height in committed client
+//   - any Tendermint chain specified parameter in upgraded client such as ChainID, UnbondingPeriod,
+//     and ProofSpecs do not match parameters set by committed client
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
@@ -267,29 +277,28 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	upgradeClientProof,
 	upgradeConsensusStateProof []byte,
 ) error {
-	var newClientState ClientState
-	if err := lcm.keeper.Codec().Unmarshal(newClient, &newClientState); err != nil {
-		return err
-	}
+	cdc := lcm.keeper.Codec()
 
-	if err := newClientState.Validate(); err != nil {
-		return err
+	var newClientState ClientState
+	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
+		return errorsmod.Wrap(clienttypes.ErrInvalidClient, err.Error())
 	}
 
 	var newConsensusState ConsensusState
-	if err := lcm.keeper.Codec().Unmarshal(newConsState, &newConsensusState); err != nil {
-		return err
-	}
-	if err := newConsensusState.ValidateBasic(); err != nil {
-		return err
+	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
+		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, err.Error())
 	}
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
-
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
+
+	// last height of current counterparty chain must be client's latest height
+	lastHeight := clientState.LatestHeight
+	if !newClientState.LatestHeight.GT(lastHeight) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.LatestHeight, lastHeight)
 	}
 
 	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)

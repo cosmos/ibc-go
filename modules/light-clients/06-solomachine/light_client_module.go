@@ -235,6 +235,13 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 // VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
-func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient []byte, newConsState []byte, upgradeClientProof, upgradeConsensusStateProof []byte) error {
-	return nil
+func (LightClientModule) VerifyUpgradeAndUpdateState(
+	ctx sdk.Context,
+	clientID string,
+	newClient []byte,
+	newConsState []byte,
+	upgradeClientProof,
+	upgradeConsensusStateProof []byte,
+) error {
+	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
 }

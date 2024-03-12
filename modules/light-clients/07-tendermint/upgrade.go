@@ -43,6 +43,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "upgraded client must be Tendermint client. expected: %T got: %T",
 			&ClientState{}, upgradedClient)
 	}
+
 	tmUpgradeConsState, ok := upgradedConsState.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "upgraded consensus state must be Tendermint consensus state. expected %T, got: %T",
