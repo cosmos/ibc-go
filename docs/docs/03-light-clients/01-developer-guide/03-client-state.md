@@ -19,5 +19,3 @@ The format is created as follows: `ClientType-{N}` where `{N}` is the unique glo
 
 `Validate` should validate every client state field and should return an error if any value is invalid. The light client
 implementer is in charge of determining which checks are required. See the [Tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/light-clients/07-tendermint/client_state.go#L111) as a reference.
-
-

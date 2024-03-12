@@ -41,6 +41,7 @@ Throughout this guide the `07-tendermint` light client module may be referred to
 `LightClientModule` is an interface defined by core IBC which allows for modular light client implementations. All light client implementations *must* implement the [`LightClientModule` interface](https://github.com/cosmos/ibc-go/blob/501a8462345da099144efe91d495bfcfa18d760d/modules/core/exported/client.go#L51) so that core IBC may redirect calls to the light client module. 
 
 For example a light client module may need to:
+
 - create clients
 - update clients
 - recover and upgrade clients
