@@ -162,7 +162,7 @@ func (k Keeper) UpgradeClient(
 	return nil
 }
 
-// RecoverClient will invoke the light client module associated with the subject clientID requiesting it to
+// RecoverClient will invoke the light client module associated with the subject clientID requesting it to
 // recover the subject client given a substitute client identifier. The light client implementation
 // is responsible for validating the parameters of the substitute (ensuring they match the subject's parameters)
 // as well as copying the necessary consensus states from the substitute to the subject client store.
