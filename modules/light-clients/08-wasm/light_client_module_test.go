@@ -7,6 +7,8 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -14,7 +16,6 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -116,7 +117,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 		clientState                                           *types.ClientState
 		upgradedClientState                                   exported.ClientState
 		upgradedConsensusState                                exported.ConsensusState
-		upgradedClientStateBz, upgradedConsensusStateBz       []byte
+		upgradedClientStateAny, upgradedConsensusStateAny     *codectypes.Any
 		upgradedClientStateProof, upgradedConsensusStateProof []byte
 	)
 
@@ -155,9 +156,15 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 					suite.Require().NoError(err)
 
 					// set new client state and consensus state
-					// wrappedUpgradedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data)
-					store.Set(host.ClientStateKey(), upgradedClientStateBz)
-					store.Set(host.ConsensusStateKey(expectedUpgradedClient.LatestHeight), upgradedConsensusStateBz)
+					bz, err := suite.chainA.Codec.MarshalInterface(upgradedClientState)
+					suite.Require().NoError(err)
+
+					store.Set(host.ClientStateKey(), bz)
+
+					bz, err = suite.chainA.Codec.MarshalInterface(upgradedConsensusState)
+					suite.Require().NoError(err)
+
+					store.Set(host.ConsensusStateKey(expectedUpgradedClient.LatestHeight), bz)
 
 					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
 				})
@@ -174,27 +181,33 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 		{
 			"upgraded client state is not wasm client state",
 			func() {
-				upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.Codec, solomachine.NewClientState(0, &solomachine.ConsensusState{}))
+				upgradedClientStateAny = &codectypes.Any{
+					Value: []byte("invalid client state bytes"),
+				}
 			},
 			clienttypes.ErrInvalidClient,
 		},
 		{
 			"upgraded consensus state is not wasm consensus sate",
 			func() {
-				upgradedConsensusStateBz = clienttypes.MustMarshalConsensusState(suite.chainA.Codec, &solomachine.ConsensusState{})
+				upgradedConsensusStateAny = &codectypes.Any{
+					Value: []byte("invalid consensus state bytes"),
+				}
 			},
 			clienttypes.ErrInvalidConsensus,
 		},
 		{
 			"upgraded client state height is not greater than current height",
 			func() {
+				var err error
 				latestHeight := clientState.LatestHeight
 				newLatestHeight := clienttypes.NewHeight(latestHeight.GetRevisionNumber(), latestHeight.GetRevisionHeight()-1)
 
 				wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
 				wrappedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wrappedUpgradedClient)
 				upgradedClientState = types.NewClientState(wrappedUpgradedClientBz, clientState.Checksum, newLatestHeight)
-				upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.Codec, upgradedClientState)
+				upgradedClientStateAny, err = codectypes.NewAnyWithValue(upgradedClientState)
+				suite.Require().NoError(err)
 			},
 			ibcerrors.ErrInvalidHeight,
 		},
@@ -217,12 +230,14 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
 			wrappedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wrappedUpgradedClient)
 			upgradedClientState = types.NewClientState(wrappedUpgradedClientBz, clientState.Checksum, newLatestHeight)
-			upgradedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.Codec, upgradedClientState)
+			upgradedClientStateAny, err = codectypes.NewAnyWithValue(upgradedClientState)
+			suite.Require().NoError(err)
 
 			wrappedUpgradedConsensus := ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("new-hash")), []byte("new-nextValsHash"))
 			wrappedUpgradedConsensusBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wrappedUpgradedConsensus)
 			upgradedConsensusState = types.NewConsensusState(wrappedUpgradedConsensusBz)
-			upgradedConsensusStateBz = clienttypes.MustMarshalConsensusState(suite.chainA.Codec, upgradedConsensusState)
+			upgradedConsensusStateAny, err = codectypes.NewAnyWithValue(upgradedConsensusState)
+			suite.Require().NoError(err)
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(clientID)
 			suite.Require().True(found)
@@ -237,11 +252,12 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			err = lightClientModule.VerifyUpgradeAndUpdateState(
 				suite.chainA.GetContext(),
 				clientID,
-				upgradedClientStateBz,
-				upgradedConsensusStateBz,
+				upgradedClientStateAny.Value,
+				upgradedConsensusStateAny.Value,
 				upgradedClientStateProof,
 				upgradedConsensusStateProof,
 			)
+
 			expPass := tc.expErr == nil
 			if expPass {
 				suite.Require().NoError(err)
@@ -249,11 +265,17 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 				// verify new client state and consensus state
 				clientStateBz := clientStore.Get(host.ClientStateKey())
 				suite.Require().NotEmpty(clientStateBz)
-				suite.Require().Equal(upgradedClientStateBz, clientStateBz)
+
+				expClientStateBz, err := suite.chainA.Codec.MarshalInterface(upgradedClientState)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expClientStateBz, clientStateBz)
 
 				consensusStateBz := clientStore.Get(host.ConsensusStateKey(endpoint.GetClientLatestHeight()))
 				suite.Require().NotEmpty(consensusStateBz)
-				suite.Require().NotEmpty(upgradedConsensusStateBz, consensusStateBz)
+
+				expConsensusStateBz, err := suite.chainA.Codec.MarshalInterface(upgradedConsensusState)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expConsensusStateBz, consensusStateBz)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
