@@ -8,16 +8,15 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// Router is a map from a light client module name to a LightClientModule.
-// The light client module name must be the same name as the client type.
-// The router also has a reference to the client store provided (02-client keeper)
-// and will set the store provider on a client module upon route registration.
+// Router is a map from a clientType to a LightClientModule instance.
+// The router has a reference to the client store provider (02-client keeper)
+// and will register the store provider on a client module upon route registration.
 type Router struct {
 	routes        map[string]exported.LightClientModule
 	storeProvider exported.ClientStoreProvider
 }
 
-// NewRouter returns a instance of the Router.
+// NewRouter returns an instance of the Router.
 func NewRouter(key storetypes.StoreKey) *Router {
 	return &Router{
 		routes:        make(map[string]exported.LightClientModule),
