@@ -4,6 +4,7 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -12,13 +13,13 @@ import (
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/core/module/v1"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 )
 
 var _ depinject.OnePerModuleType = AppModule{}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (am AppModule) IsOnePerModuleType() {}
+func (AppModule) IsOnePerModuleType() {}
 
 func init() {
 	appmodule.Register(
@@ -45,7 +46,7 @@ type ModuleInputs struct {
 type ModuleOutputs struct {
 	depinject.Out
 
-	IbcKeeper *keeper.Keeper
+	IbcKeeper *ibckeeper.Keeper
 	Module    appmodule.AppModule
 }
 
@@ -56,7 +57,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
 	}
 
-	keeper := keeper.NewKeeper(
+	keeper := ibckeeper.NewKeeper(
 		in.Cdc,
 		in.Key,
 		in.LegacySubspace,
