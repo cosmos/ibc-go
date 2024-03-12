@@ -7,7 +7,7 @@ require (
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/cometbft/cometbft v0.38.5
-	github.com/cosmos/cosmos-sdk v0.50.4
+	github.com/cosmos/cosmos-sdk v0.50.5
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0-00010101000000-000000000000
 	github.com/cosmos/ibc-go/v8 v8.0.0
@@ -151,7 +151,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.17.6 // indirect
+	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
