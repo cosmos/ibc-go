@@ -53,8 +53,7 @@ type ClientTestSuite struct {
 
 // Status queries the current status of the client
 func (s *ClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
-	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
-	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
+	res, err := testsuite.GRPCQuery[clienttypes.QueryClientStatusResponse](ctx, chain, &clienttypes.QueryClientStatusRequest{
 		ClientId: clientID,
 	})
 	if err != nil {
@@ -66,8 +65,7 @@ func (s *ClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID 
 
 // QueryAllowedClients queries the on-chain AllowedClients parameter for 02-client
 func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Chain) []string {
-	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
-	res, err := queryClient.ClientParams(ctx, &clienttypes.QueryClientParamsRequest{})
+	res, err := testsuite.GRPCQuery[clienttypes.QueryClientParamsResponse](ctx, chain, &clienttypes.QueryClientParamsRequest{})
 	s.Require().NoError(err)
 
 	return res.Params.AllowedClients
@@ -118,15 +116,22 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
 		// checks there is an upgraded client state stored
-		cs, err := s.QueryUpgradedClientState(ctx, chainA, ibctesting.FirstClientID)
+		upgradedCsResp, err := testsuite.GRPCQuery[clienttypes.QueryUpgradedClientStateResponse](ctx, chainA, &clienttypes.QueryUpgradedClientStateRequest{})
+
+		clientStateAny := upgradedCsResp.UpgradedClientState
+		s.Require().NoError(err)
+
+		cs, err := clienttypes.UnpackClientState(clientStateAny)
 		s.Require().NoError(err)
 
 		upgradedClientState, ok := cs.(*ibctm.ClientState)
 		s.Require().True(ok)
 		s.Require().Equal(upgradedClientState.ChainId, newChainID)
 
-		plan, err := s.QueryCurrentUpgradePlan(ctx, chainA)
+		planResponse, err := testsuite.GRPCQuery[upgradetypes.QueryCurrentPlanResponse](ctx, chainA, &upgradetypes.QueryCurrentPlanRequest{})
 		s.Require().NoError(err)
+
+		plan := planResponse.Plan
 
 		s.Require().Equal("upgrade-client", plan.Name)
 		s.Require().Equal(planHeight, plan.Height)
@@ -385,8 +390,12 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		var validators []*cmtservice.Validator
 
 		t.Run("fetch block header at latest client state height", func(t *testing.T) {
-			header, err = s.GetBlockHeaderByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
+			headerResp, err := testsuite.GRPCQuery[cmtservice.GetBlockByHeightResponse](ctx, chainB, &cmtservice.GetBlockByHeightRequest{
+				Height: int64(latestHeight.GetRevisionHeight()),
+			})
 			s.Require().NoError(err)
+
+			header = &headerResp.SdkBlock.Header
 		})
 
 		t.Run("get validators at latest height", func(t *testing.T) {
