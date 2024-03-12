@@ -9,21 +9,14 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/depinject"
 
-	store "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	modulev1 "github.com/cosmos/ibc-go/api/ibc/core/module/v1"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
 	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -58,9 +51,6 @@ type AppModuleBasic struct{}
 func (AppModuleBasic) Name() string {
 	return exported.ModuleName
 }
-
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
@@ -219,55 +209,4 @@ func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 // WeightedOperations returns the all the ibc module operations with their respective weights.
 func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
-}
-
-// App Wiring Setup
-
-func init() {
-	appmodule.Register(&modulev1.Module{},
-		appmodule.Provide(ProvideModule),
-	)
-}
-
-type ModuleInputs struct {
-	depinject.In
-
-	Config *modulev1.Module
-	Cdc    codec.Codec
-	Key    *store.KVStoreKey
-
-	StakingKeeper clienttypes.StakingKeeper
-	UpgradeKeeper clienttypes.UpgradeKeeper
-	ScopedKeeper  capabilitykeeper.ScopedKeeper
-
-	// LegacySubspace is used solely for migration of x/params managed parameters
-	LegacySubspace paramtypes.Subspace `optional:"true"`
-}
-
-type ModuleOutputs struct {
-	depinject.Out
-
-	IbcKeeper *keeper.Keeper
-	Module    appmodule.AppModule
-}
-
-func ProvideModule(in ModuleInputs) ModuleOutputs {
-	// default to governance authority if not provided
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
-	if in.Config.Authority != "" {
-		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
-	}
-
-	keeper := keeper.NewKeeper(
-		in.Cdc,
-		in.Key,
-		in.LegacySubspace,
-		in.StakingKeeper,
-		in.UpgradeKeeper,
-		in.ScopedKeeper,
-		authority.String(),
-	)
-	m := NewAppModule(keeper)
-
-	return ModuleOutputs{IbcKeeper: keeper, Module: m}
 }
