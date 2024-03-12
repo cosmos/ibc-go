@@ -12,12 +12,12 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// CreateClient generates a new client identifier and isolated prefix store for the provided client state.
-// The client state is responsible for setting any client-specific data in the store via the Initialize method.
-// This includes the client state, initial consensus state and any associated metadata.
-func (k Keeper) CreateClient(
-	ctx sdk.Context, clientType string, clientState []byte, consensusState []byte,
-) (string, error) {
+// CreateClient generates a new client identifier and invokes the associated light client module in order to
+// initialize a new client. An isolated prefixed store will be reserved for this client using the generated
+// client identifier. The light client module is responsible for setting any client-specific data in the store
+// via the Initialize method. This includes the client state, initial consensus state and any associated
+// metadata. The generated client identifier will be returned if a client was successfully initialized.
+func (k Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, consensusState []byte) (string, error) {
 	if clientType == exported.Localhost {
 		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientType)
 	}
@@ -162,13 +162,11 @@ func (k Keeper) UpgradeClient(
 	return nil
 }
 
-// RecoverClient will retrieve the subject and substitute client.
-// A callback will occur to the subject client state with the client
-// prefixed store being provided for both the subject and the substitute client.
-// The IBC client implementations are responsible for validating the parameters of the
-// substitute (ensuring they match the subject's parameters) as well as copying
-// the necessary consensus states from the substitute to the subject client
-// store. The substitute must be Active and the subject must not be Active.
+// RecoverClient will invoke the light client module associated with the subject clientID requiesting it to
+// recover the subject client given a substitute client identifier. The light client implementation
+// is responsible for validating the parameters of the substitute (ensuring they match the subject's parameters)
+// as well as copying the necessary consensus states from the substitute to the subject client store.
+// The substitute must be Active and the subject must not be Active.
 func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
 	if status := k.GetClientStatus(ctx, subjectClientID); status == exported.Active {
 		return errorsmod.Wrapf(types.ErrInvalidRecoveryClient, "cannot recover %s subject client", exported.Active)
