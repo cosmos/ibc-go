@@ -277,29 +277,17 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	upgradeClientProof,
 	upgradeConsensusStateProof []byte,
 ) error {
-	var (
-		cdc               = lcm.keeper.Codec()
-		newClientState    ClientState
-		newConsensusState ConsensusState
-	)
+	cdc := lcm.keeper.Codec()
 
+	var newClientState ClientState
 	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
-		return err
+		return errorsmod.Wrap(clienttypes.ErrInvalidClient, err.Error())
 	}
 
-	// newTmClientState, ok := newClientState.(*ClientState)
-	// if !ok {
-	// 	return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected client state type %T, got %T", (*ClientState)(nil), newClientState)
-	// }
-
+	var newConsensusState ConsensusState
 	if err := cdc.Unmarshal(newConsState, &newConsensusState); err != nil {
-		return err
+		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, err.Error())
 	}
-
-	// newTmConsensusState, ok := newConsensusState.(*ConsensusState)
-	// if !ok {
-	// 	return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "expected consensus state type %T, got %T", (*ConsensusState)(nil), newConsensusState)
-	// }
 
 	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, cdc)
