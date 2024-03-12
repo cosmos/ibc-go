@@ -1,0 +1,19 @@
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/cosmos/ibc-go/api
+    except:
+      - buf.build/googleapis/googleapis
+      - buf.build/cosmos/gogo-proto
+      - buf.build/cosmos/cosmos-proto
+      - buf.build/cosmos/cosmos-sdk
+      - buf.build/cosmos/ics23
+    override:
+plugins:
+  - name: go-pulsar
+    out: ../api
+    opt: Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types,Mcosmos/app/v1alpha1/module.proto=cosmossdk.io/api/cosmos/app/v1alpha1
+  - name: go-grpc
+    out: ../api
+    opt: Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types,Mcosmos/app/v1alpha1/module.proto=cosmossdk.io/api/cosmos/app/v1alpha1
