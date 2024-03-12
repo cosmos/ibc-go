@@ -607,7 +607,6 @@ func NewSimApp(
 	wasmLightClientModule := wasm.NewLightClientModule(app.WasmClientKeeper)
 	clientRouter.AddRoute(wasmtypes.ModuleName, &wasmLightClientModule)
 
-	// wasmClientModule := wasm.
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[evidencetypes.StoreKey]), app.StakingKeeper, app.SlashingKeeper, app.AccountKeeper.AddressCodec(), runtime.ProvideCometInfoService(),
