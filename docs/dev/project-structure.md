@@ -8,6 +8,10 @@ Every Interchain Standard (ICS) has been developed in its own package. The devel
 
 This folder contains implementations for the IBC TAO (`core`), IBC applications (`apps`) and light clients (`light-clients`).
 
+### `capability`
+
+This module is an implementation of [Cosmos SDK's ADR 003](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-003-dynamic-capability-store.md) that allows for provisioning, tracking, and authenticating multi-owner capabilities at runtime.
+
 ### `core`
 
 - `02-client`: This package is an implementation for Cosmos SDK-based chains of [ICS 02](https://github.com/cosmos/ibc/tree/main/spec/core/ics-002-client-semantics). This implementation defines the types and methods needed to operate light clients tracking other chain's consensus state.
@@ -22,11 +26,14 @@ This folder contains implementations for the IBC TAO (`core`), IBC applications 
 - `transfer`: This is the Cosmos SDK implementation of the [ICS 20](https://github.com/cosmos/ibc/tree/main/spec/app/ics-020-fungible-token-transfer) protocol, which enables cross-chain fungible token transfers. For more information, read the [module's docs](../docs/02-apps/01-transfer/01-overview.md)
 - `27-interchain-accounts`: This is the Cosmos SDK implementation of the [ICS 27](https://github.com/cosmos/ibc/tree/main/spec/app/ics-027-interchain-accounts) protocol, which enables cross-chain account management built upon IBC. For more information, read the [module's documentation](../docs/02-apps/02-interchain-accounts/01-overview.md).
 - `29-fee`: This is the Cosmos SDK implementation of the [ICS 29](https://github.com/cosmos/ibc/tree/main/spec/app/ics-029-fee-payment) middleware, which handles packet incentivisation and fee distribution on top of any ICS application protocol, enabling fee payment to relayer operators. For more information, read the [module's documentation](../docs/04-middleware/01-ics29-fee/01-overview.md).
+- `callbacks`: This is an implementation of [ADR 008](../architecture/adr-008-app-caller-cbs.md) that allows for secondary applications (e.g. smart contracts, modules) to call into IBC apps as part of their state machine logic and then do some actions on packet lifecycle events. For more information, read the [module's documentation](../docs/04-middleware/02-callbacks/01-overview.md).
 
 ### `light-clients`
 
 - `06-solomachine`: This package implements the types for the Solo Machine light client specified in [ICS 06](https://github.com/cosmos/ibc/tree/main/spec/client/ics-006-solo-machine-client).
 - `07-tendermint`: This package implements the types for the Tendermint consensus light client as specified in [ICS 07](https://github.com/cosmos/ibc/tree/main/spec/client/ics-007-tendermint-client).
+- `08-wasm`: This package implements a proxy light client module that routes requests to the actual light clients uploaded as Wasm byte code, as specified in [ICS 08](https://github.com/cosmos/ibc/tree/main/spec/client/ics-008-wasm-client).
+- `09-localhost`: This package implements a localhost loopback client with the ability to send and receive IBC packets to and from the same state machine, as specified in [ICS 09](https://github.com/cosmos/ibc/tree/main/spec/client/ics-009-loopback-cilent).
 
 ## `proto`
 
