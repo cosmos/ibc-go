@@ -112,8 +112,6 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 }
 
 func (suite *SoloMachineTestSuite) TestVerifyUpgradeAndUpdateState() {
-	suite.SetupTest()
-
 	clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
 
 	lightClientModule, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(clientID)
