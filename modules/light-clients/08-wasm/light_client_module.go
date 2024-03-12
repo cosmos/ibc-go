@@ -30,17 +30,17 @@ func NewLightClientModule(keeper wasmkeeper.Keeper) LightClientModule {
 // RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
 // It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
 // to IBC light client instances.
-func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	lcm.storeProvider = storeProvider
+func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
+	l.storeProvider = storeProvider
 }
 
 // Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
 // client state, consensus state and any client-specific metadata necessary for correct light client operation in the provided client store.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
+func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState types.ClientState
-	if err := lcm.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
+	if err := l.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
 		return err
 	}
 
@@ -49,7 +49,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 	}
 
 	var consensusState types.ConsensusState
-	if err := lcm.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
+	if err := l.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
 		return err
 	}
 
@@ -57,8 +57,8 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 		return err
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	return clientState.Initialize(ctx, cdc, clientStore, &consensusState)
 }
@@ -69,25 +69,25 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 // if the ClientMessage fails to verify.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyClientMessage(ctx, lcm.keeper.Codec(), clientStore, clientMsg)
+	return clientState.VerifyClientMessage(ctx, l.keeper.Codec(), clientStore, clientMsg)
 }
 
 // CheckForMisbehaviour checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
 // has already been verified.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -100,9 +100,9 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -116,9 +116,9 @@ func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -132,7 +132,7 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) VerifyMembership(
+func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height, // TODO: change to concrete type
@@ -142,8 +142,8 @@ func (lcm LightClientModule) VerifyMembership(
 	path exported.Path, // TODO: change to conrete type
 	value []byte,
 ) error {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -157,7 +157,7 @@ func (lcm LightClientModule) VerifyMembership(
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) VerifyNonMembership(
+func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height, // TODO: change to concrete type
@@ -166,8 +166,8 @@ func (lcm LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path, // TODO: change to conrete type
 ) error {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -180,9 +180,9 @@ func (lcm LightClientModule) VerifyNonMembership(
 // Status must return the status of the client. Only Active clients are allowed to process packets.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -196,9 +196,9 @@ func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.S
 // If no client is present for the provided client identifier a zero value height is returned.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -211,9 +211,9 @@ func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) expo
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
@@ -227,7 +227,7 @@ func (lcm LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string,
 // The light client must set the updated client and consensus states within the clientStore for the subject client.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
 		return err
@@ -237,15 +237,15 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", types.Wasm, substituteClientType)
 	}
 
-	cdc := lcm.keeper.Codec()
+	cdc := l.keeper.Codec()
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	substituteClientStore := lcm.storeProvider.ClientStore(ctx, substituteClientID)
+	substituteClientStore := l.storeProvider.ClientStore(ctx, substituteClientID)
 	substituteClient, found := types.GetClientState(substituteClientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
@@ -258,7 +258,7 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 // the new client state, consensus state, and any other client metadata.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
+func (l LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
 	newClient []byte,
@@ -266,7 +266,7 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	upgradeClientProof,
 	upgradeConsensusStateProof []byte,
 ) error {
-	cdc := lcm.keeper.Codec()
+	cdc := l.keeper.Codec()
 
 	var newClientState types.ClientState
 	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
@@ -278,7 +278,7 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, err.Error())
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := types.GetClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)

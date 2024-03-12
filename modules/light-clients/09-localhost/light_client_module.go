@@ -32,14 +32,14 @@ func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *Light
 // RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
 // It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
 // to IBC light client instances.
-func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	lcm.storeProvider = storeProvider
+func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
+	l.storeProvider = storeProvider
 }
 
 // Initialize ensures that initial consensus state for localhost is nil.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, _, consensusStateBz []byte) error {
+func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, _, consensusStateBz []byte) error {
 	if len(consensusStateBz) != 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
@@ -48,8 +48,8 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, _, con
 		LatestHeight: clienttypes.GetSelfHeight(ctx),
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, exported.LocalhostClientID)
-	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(lcm.cdc, &clientState))
+	clientStore := l.storeProvider.ClientStore(ctx, exported.LocalhostClientID)
+	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(l.cdc, &clientState))
 	return nil
 }
 
@@ -74,9 +74,9 @@ func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID str
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.cdc
+func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -91,7 +91,7 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 // The caller must provide the full IBC store.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (lcm LightClientModule) VerifyMembership(
+func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
@@ -101,9 +101,9 @@ func (lcm LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	ibcStore := ctx.KVStore(lcm.key)
-	cdc := lcm.cdc
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	ibcStore := ctx.KVStore(l.key)
+	cdc := l.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -118,7 +118,7 @@ func (lcm LightClientModule) VerifyMembership(
 // The caller must provide the full IBC store.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (lcm LightClientModule) VerifyNonMembership(
+func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height, // TODO: change to concrete type
@@ -127,9 +127,9 @@ func (lcm LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path, // TODO: change to conrete type
 ) error {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	ibcStore := ctx.KVStore(lcm.key)
-	cdc := lcm.cdc
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	ibcStore := ctx.KVStore(l.key)
+	cdc := l.cdc
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -148,10 +148,10 @@ func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Statu
 // If no client is present for the provided client identifier a zero value height is returned.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
-	clientState, found := getClientState(clientStore, lcm.cdc)
+	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		return clienttypes.ZeroHeight()
 	}

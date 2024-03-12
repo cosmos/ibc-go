@@ -30,17 +30,17 @@ func NewLightClientModule(cdc codec.BinaryCodec, authority string) LightClientMo
 // RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
 // It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
 // to IBC light client instances.
-func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	lcm.storeProvider = storeProvider
+func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
+	l.storeProvider = storeProvider
 }
 
 // Initialize checks that the initial consensus state is an 07-tendermint consensus state and
 // sets the client state, consensus state and associated metadata in the provided client store.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
+func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState ClientState
-	if err := lcm.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
+	if err := l.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
 		return err
 	}
 
@@ -49,7 +49,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 	}
 
 	var consensusState ConsensusState
-	if err := lcm.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
+	if err := l.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
 		return err
 	}
 
@@ -57,9 +57,9 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 		return err
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
-	return clientState.Initialize(ctx, lcm.keeper.Codec(), clientStore, &consensusState)
+	return clientState.Initialize(ctx, l.keeper.Codec(), clientStore, &consensusState)
 }
 
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
@@ -68,9 +68,9 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 // if the ClientMessage fails to verify.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -84,9 +84,9 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 // has already been verified.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -99,9 +99,9 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -115,9 +115,9 @@ func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -131,7 +131,7 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) VerifyMembership(
+func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
@@ -141,8 +141,8 @@ func (lcm LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -156,7 +156,7 @@ func (lcm LightClientModule) VerifyMembership(
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) VerifyNonMembership(
+func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height, // TODO: change to concrete type
@@ -165,8 +165,8 @@ func (lcm LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path, // TODO: change to conrete type
 ) error {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -179,9 +179,9 @@ func (lcm LightClientModule) VerifyNonMembership(
 // Status must return the status of the client. Only Active clients are allowed to process packets.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -195,10 +195,10 @@ func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.S
 // If no client is present for the provided client identifier a zero value height is returned.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
-	clientState, found := getClientState(clientStore, lcm.keeper.Codec())
+	clientState, found := getClientState(clientStore, l.keeper.Codec())
 	if !found {
 		return clienttypes.ZeroHeight()
 	}
@@ -209,13 +209,13 @@ func (lcm LightClientModule) LatestHeight(ctx sdk.Context, clientID string) expo
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) TimestampAtHeight(
+func (l LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
 ) (uint64, error) {
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
@@ -229,7 +229,7 @@ func (lcm LightClientModule) TimestampAtHeight(
 // The light client must set the updated client and consensus states within the clientStore for the subject client.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
 		return err
@@ -239,15 +239,15 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, substituteClientType)
 	}
 
-	cdc := lcm.keeper.Codec()
+	cdc := l.keeper.Codec()
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	substituteClientStore := lcm.storeProvider.ClientStore(ctx, substituteClientID)
+	substituteClientStore := l.storeProvider.ClientStore(ctx, substituteClientID)
 	substituteClient, found := getClientState(substituteClientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
@@ -269,7 +269,7 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 //     and ProofSpecs do not match parameters set by committed client
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
+func (l LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
 	newClient []byte,
@@ -277,7 +277,7 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 	upgradeClientProof,
 	upgradeConsensusStateProof []byte,
 ) error {
-	cdc := lcm.keeper.Codec()
+	cdc := l.keeper.Codec()
 
 	var newClientState ClientState
 	if err := cdc.Unmarshal(newClient, &newClientState); err != nil {
@@ -289,7 +289,7 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, err.Error())
 	}
 
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
