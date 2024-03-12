@@ -112,12 +112,59 @@ func (x *_Allocation_4_list) IsValid() bool {
 	return x.list != nil
 }
 
+var _ protoreflect.List = (*_Allocation_5_list)(nil)
+
+type _Allocation_5_list struct {
+	list *[]string
+}
+
+func (x *_Allocation_5_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_Allocation_5_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfString((*x.list)[i])
+}
+
+func (x *_Allocation_5_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_Allocation_5_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_Allocation_5_list) AppendMutable() protoreflect.Value {
+	panic(fmt.Errorf("AppendMutable can not be called on message Allocation at list field AllowedPacketData as it is not of Message kind"))
+}
+
+func (x *_Allocation_5_list) Truncate(n int) {
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_Allocation_5_list) NewElement() protoreflect.Value {
+	v := ""
+	return protoreflect.ValueOfString(v)
+}
+
+func (x *_Allocation_5_list) IsValid() bool {
+	return x.list != nil
+}
+
 var (
-	md_Allocation                protoreflect.MessageDescriptor
-	fd_Allocation_source_port    protoreflect.FieldDescriptor
-	fd_Allocation_source_channel protoreflect.FieldDescriptor
-	fd_Allocation_spend_limit    protoreflect.FieldDescriptor
-	fd_Allocation_allow_list     protoreflect.FieldDescriptor
+	md_Allocation                     protoreflect.MessageDescriptor
+	fd_Allocation_source_port         protoreflect.FieldDescriptor
+	fd_Allocation_source_channel      protoreflect.FieldDescriptor
+	fd_Allocation_spend_limit         protoreflect.FieldDescriptor
+	fd_Allocation_allow_list          protoreflect.FieldDescriptor
+	fd_Allocation_allowed_packet_data protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -127,6 +174,7 @@ func init() {
 	fd_Allocation_source_channel = md_Allocation.Fields().ByName("source_channel")
 	fd_Allocation_spend_limit = md_Allocation.Fields().ByName("spend_limit")
 	fd_Allocation_allow_list = md_Allocation.Fields().ByName("allow_list")
+	fd_Allocation_allowed_packet_data = md_Allocation.Fields().ByName("allowed_packet_data")
 }
 
 var _ protoreflect.Message = (*fastReflection_Allocation)(nil)
@@ -218,6 +266,12 @@ func (x *fastReflection_Allocation) Range(f func(protoreflect.FieldDescriptor, p
 			return
 		}
 	}
+	if len(x.AllowedPacketData) != 0 {
+		value := protoreflect.ValueOfList(&_Allocation_5_list{list: &x.AllowedPacketData})
+		if !f(fd_Allocation_allowed_packet_data, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -241,6 +295,8 @@ func (x *fastReflection_Allocation) Has(fd protoreflect.FieldDescriptor) bool {
 		return len(x.SpendLimit) != 0
 	case "ibc.applications.transfer.v1.Allocation.allow_list":
 		return len(x.AllowList) != 0
+	case "ibc.applications.transfer.v1.Allocation.allowed_packet_data":
+		return len(x.AllowedPacketData) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.transfer.v1.Allocation"))
@@ -265,6 +321,8 @@ func (x *fastReflection_Allocation) Clear(fd protoreflect.FieldDescriptor) {
 		x.SpendLimit = nil
 	case "ibc.applications.transfer.v1.Allocation.allow_list":
 		x.AllowList = nil
+	case "ibc.applications.transfer.v1.Allocation.allowed_packet_data":
+		x.AllowedPacketData = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.transfer.v1.Allocation"))
@@ -299,6 +357,12 @@ func (x *fastReflection_Allocation) Get(descriptor protoreflect.FieldDescriptor)
 		}
 		listValue := &_Allocation_4_list{list: &x.AllowList}
 		return protoreflect.ValueOfList(listValue)
+	case "ibc.applications.transfer.v1.Allocation.allowed_packet_data":
+		if len(x.AllowedPacketData) == 0 {
+			return protoreflect.ValueOfList(&_Allocation_5_list{})
+		}
+		listValue := &_Allocation_5_list{list: &x.AllowedPacketData}
+		return protoreflect.ValueOfList(listValue)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.transfer.v1.Allocation"))
@@ -331,6 +395,10 @@ func (x *fastReflection_Allocation) Set(fd protoreflect.FieldDescriptor, value p
 		lv := value.List()
 		clv := lv.(*_Allocation_4_list)
 		x.AllowList = *clv.list
+	case "ibc.applications.transfer.v1.Allocation.allowed_packet_data":
+		lv := value.List()
+		clv := lv.(*_Allocation_5_list)
+		x.AllowedPacketData = *clv.list
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.transfer.v1.Allocation"))
@@ -363,6 +431,12 @@ func (x *fastReflection_Allocation) Mutable(fd protoreflect.FieldDescriptor) pro
 		}
 		value := &_Allocation_4_list{list: &x.AllowList}
 		return protoreflect.ValueOfList(value)
+	case "ibc.applications.transfer.v1.Allocation.allowed_packet_data":
+		if x.AllowedPacketData == nil {
+			x.AllowedPacketData = []string{}
+		}
+		value := &_Allocation_5_list{list: &x.AllowedPacketData}
+		return protoreflect.ValueOfList(value)
 	case "ibc.applications.transfer.v1.Allocation.source_port":
 		panic(fmt.Errorf("field source_port of message ibc.applications.transfer.v1.Allocation is not mutable"))
 	case "ibc.applications.transfer.v1.Allocation.source_channel":
@@ -390,6 +464,9 @@ func (x *fastReflection_Allocation) NewField(fd protoreflect.FieldDescriptor) pr
 	case "ibc.applications.transfer.v1.Allocation.allow_list":
 		list := []string{}
 		return protoreflect.ValueOfList(&_Allocation_4_list{list: &list})
+	case "ibc.applications.transfer.v1.Allocation.allowed_packet_data":
+		list := []string{}
+		return protoreflect.ValueOfList(&_Allocation_5_list{list: &list})
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.transfer.v1.Allocation"))
@@ -479,6 +556,12 @@ func (x *fastReflection_Allocation) ProtoMethods() *protoiface.Methods {
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
 		}
+		if len(x.AllowedPacketData) > 0 {
+			for _, s := range x.AllowedPacketData {
+				l = len(s)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -507,6 +590,15 @@ func (x *fastReflection_Allocation) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.AllowedPacketData) > 0 {
+			for iNdEx := len(x.AllowedPacketData) - 1; iNdEx >= 0; iNdEx-- {
+				i -= len(x.AllowedPacketData[iNdEx])
+				copy(dAtA[i:], x.AllowedPacketData[iNdEx])
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.AllowedPacketData[iNdEx])))
+				i--
+				dAtA[i] = 0x2a
+			}
 		}
 		if len(x.AllowList) > 0 {
 			for iNdEx := len(x.AllowList) - 1; iNdEx >= 0; iNdEx-- {
@@ -725,6 +817,38 @@ func (x *fastReflection_Allocation) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				x.AllowList = append(x.AllowList, string(dAtA[iNdEx:postIndex]))
+				iNdEx = postIndex
+			case 5:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field AllowedPacketData", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.AllowedPacketData = append(x.AllowedPacketData, string(dAtA[iNdEx:postIndex]))
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -1282,6 +1406,9 @@ type Allocation struct {
 	SpendLimit []*types.Coin `protobuf:"bytes,3,rep,name=spend_limit,json=spendLimit,proto3" json:"spend_limit,omitempty"`
 	// allow list of receivers, an empty allow list permits any receiver address
 	AllowList []string `protobuf:"bytes,4,rep,name=allow_list,json=allowList,proto3" json:"allow_list,omitempty"`
+	// allow list of packet data keys, an empty list prohibits all packet data keys;
+	// a list only with "*" permits any packet data key
+	AllowedPacketData []string `protobuf:"bytes,5,rep,name=allowed_packet_data,json=allowedPacketData,proto3" json:"allowed_packet_data,omitempty"`
 }
 
 func (x *Allocation) Reset() {
@@ -1328,6 +1455,13 @@ func (x *Allocation) GetSpendLimit() []*types.Coin {
 func (x *Allocation) GetAllowList() []string {
 	if x != nil {
 		return x.AllowList
+	}
+	return nil
+}
+
+func (x *Allocation) GetAllowedPacketData() []string {
+	if x != nil {
+		return x.AllowedPacketData
 	}
 	return nil
 }
@@ -1382,7 +1516,7 @@ var file_ibc_applications_transfer_v1_authz_proto_rawDesc = []byte{
 	0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67,
 	0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
 	0x73, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2f, 0x63,
-	0x6f, 0x69, 0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xe1, 0x01, 0x0a, 0x0a, 0x41, 0x6c,
+	0x6f, 0x69, 0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x91, 0x02, 0x0a, 0x0a, 0x41, 0x6c,
 	0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x1f, 0x0a, 0x0b, 0x73, 0x6f, 0x75, 0x72,
 	0x63, 0x65, 0x5f, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x73,
 	0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x6f, 0x72, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x73, 0x6f, 0x75,
@@ -1396,7 +1530,10 @@ var file_ibc_applications_transfer_v1_authz_proto_rawDesc = []byte{
 	0x6f, 0x73, 0x2d, 0x73, 0x64, 0x6b, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x69,
 	0x6e, 0x73, 0x52, 0x0a, 0x73, 0x70, 0x65, 0x6e, 0x64, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x12, 0x1d,
 	0x0a, 0x0a, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x5f, 0x6c, 0x69, 0x73, 0x74, 0x18, 0x04, 0x20, 0x03,
-	0x28, 0x09, 0x52, 0x09, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x4c, 0x69, 0x73, 0x74, 0x22, 0x91, 0x01,
+	0x28, 0x09, 0x52, 0x09, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x2e, 0x0a,
+	0x13, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x70, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x5f,
+	0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x03, 0x28, 0x09, 0x52, 0x11, 0x61, 0x6c, 0x6c, 0x6f,
+	0x77, 0x65, 0x64, 0x50, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x44, 0x61, 0x74, 0x61, 0x22, 0x91, 0x01,
 	0x0a, 0x15, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x65, 0x72, 0x41, 0x75, 0x74, 0x68, 0x6f, 0x72,
 	0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x50, 0x0a, 0x0b, 0x61, 0x6c, 0x6c, 0x6f, 0x63,
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x69,

@@ -33,6 +33,9 @@ const (
 	Query_UnreceivedAcks_FullMethodName         = "/ibc.core.channel.v1.Query/UnreceivedAcks"
 	Query_NextSequenceReceive_FullMethodName    = "/ibc.core.channel.v1.Query/NextSequenceReceive"
 	Query_NextSequenceSend_FullMethodName       = "/ibc.core.channel.v1.Query/NextSequenceSend"
+	Query_UpgradeError_FullMethodName           = "/ibc.core.channel.v1.Query/UpgradeError"
+	Query_Upgrade_FullMethodName                = "/ibc.core.channel.v1.Query/Upgrade"
+	Query_ChannelParams_FullMethodName          = "/ibc.core.channel.v1.Query/ChannelParams"
 )
 
 // QueryClient is the client API for Query service.
@@ -75,6 +78,12 @@ type QueryClient interface {
 	NextSequenceReceive(ctx context.Context, in *QueryNextSequenceReceiveRequest, opts ...grpc.CallOption) (*QueryNextSequenceReceiveResponse, error)
 	// NextSequenceSend returns the next send sequence for a given channel.
 	NextSequenceSend(ctx context.Context, in *QueryNextSequenceSendRequest, opts ...grpc.CallOption) (*QueryNextSequenceSendResponse, error)
+	// UpgradeError returns the error receipt if the upgrade handshake failed.
+	UpgradeError(ctx context.Context, in *QueryUpgradeErrorRequest, opts ...grpc.CallOption) (*QueryUpgradeErrorResponse, error)
+	// Upgrade returns the upgrade for a given port and channel id.
+	Upgrade(ctx context.Context, in *QueryUpgradeRequest, opts ...grpc.CallOption) (*QueryUpgradeResponse, error)
+	// ChannelParams queries all parameters of the ibc channel submodule.
+	ChannelParams(ctx context.Context, in *QueryChannelParamsRequest, opts ...grpc.CallOption) (*QueryChannelParamsResponse, error)
 }
 
 type queryClient struct {
@@ -211,6 +220,33 @@ func (c *queryClient) NextSequenceSend(ctx context.Context, in *QueryNextSequenc
 	return out, nil
 }
 
+func (c *queryClient) UpgradeError(ctx context.Context, in *QueryUpgradeErrorRequest, opts ...grpc.CallOption) (*QueryUpgradeErrorResponse, error) {
+	out := new(QueryUpgradeErrorResponse)
+	err := c.cc.Invoke(ctx, Query_UpgradeError_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) Upgrade(ctx context.Context, in *QueryUpgradeRequest, opts ...grpc.CallOption) (*QueryUpgradeResponse, error) {
+	out := new(QueryUpgradeResponse)
+	err := c.cc.Invoke(ctx, Query_Upgrade_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) ChannelParams(ctx context.Context, in *QueryChannelParamsRequest, opts ...grpc.CallOption) (*QueryChannelParamsResponse, error) {
+	out := new(QueryChannelParamsResponse)
+	err := c.cc.Invoke(ctx, Query_ChannelParams_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -251,6 +287,12 @@ type QueryServer interface {
 	NextSequenceReceive(context.Context, *QueryNextSequenceReceiveRequest) (*QueryNextSequenceReceiveResponse, error)
 	// NextSequenceSend returns the next send sequence for a given channel.
 	NextSequenceSend(context.Context, *QueryNextSequenceSendRequest) (*QueryNextSequenceSendResponse, error)
+	// UpgradeError returns the error receipt if the upgrade handshake failed.
+	UpgradeError(context.Context, *QueryUpgradeErrorRequest) (*QueryUpgradeErrorResponse, error)
+	// Upgrade returns the upgrade for a given port and channel id.
+	Upgrade(context.Context, *QueryUpgradeRequest) (*QueryUpgradeResponse, error)
+	// ChannelParams queries all parameters of the ibc channel submodule.
+	ChannelParams(context.Context, *QueryChannelParamsRequest) (*QueryChannelParamsResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -299,6 +341,15 @@ func (UnimplementedQueryServer) NextSequenceReceive(context.Context, *QueryNextS
 }
 func (UnimplementedQueryServer) NextSequenceSend(context.Context, *QueryNextSequenceSendRequest) (*QueryNextSequenceSendResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NextSequenceSend not implemented")
+}
+func (UnimplementedQueryServer) UpgradeError(context.Context, *QueryUpgradeErrorRequest) (*QueryUpgradeErrorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpgradeError not implemented")
+}
+func (UnimplementedQueryServer) Upgrade(context.Context, *QueryUpgradeRequest) (*QueryUpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Upgrade not implemented")
+}
+func (UnimplementedQueryServer) ChannelParams(context.Context, *QueryChannelParamsRequest) (*QueryChannelParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelParams not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -565,6 +616,60 @@ func _Query_NextSequenceSend_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_UpgradeError_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryUpgradeErrorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).UpgradeError(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_UpgradeError_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).UpgradeError(ctx, req.(*QueryUpgradeErrorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_Upgrade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryUpgradeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).Upgrade(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_Upgrade_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).Upgrade(ctx, req.(*QueryUpgradeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_ChannelParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryChannelParamsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ChannelParams(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_ChannelParams_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ChannelParams(ctx, req.(*QueryChannelParamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -627,6 +732,18 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NextSequenceSend",
 			Handler:    _Query_NextSequenceSend_Handler,
+		},
+		{
+			MethodName: "UpgradeError",
+			Handler:    _Query_UpgradeError_Handler,
+		},
+		{
+			MethodName: "Upgrade",
+			Handler:    _Query_Upgrade_Handler,
+		},
+		{
+			MethodName: "ChannelParams",
+			Handler:    _Query_ChannelParams_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

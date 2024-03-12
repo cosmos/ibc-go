@@ -2108,8 +2108,8 @@ func (x *GenesisState) GetNextClientSequence() uint64 {
 	return 0
 }
 
-// GenesisMetadata defines the genesis type for metadata that clients may return
-// with ExportMetadata
+// GenesisMetadata defines the genesis type for metadata that will be used
+// to export all client store keys that are not client or consensus states.
 type GenesisMetadata struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

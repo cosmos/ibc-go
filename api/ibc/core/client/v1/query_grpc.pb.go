@@ -28,6 +28,7 @@ const (
 	Query_ClientParams_FullMethodName           = "/ibc.core.client.v1.Query/ClientParams"
 	Query_UpgradedClientState_FullMethodName    = "/ibc.core.client.v1.Query/UpgradedClientState"
 	Query_UpgradedConsensusState_FullMethodName = "/ibc.core.client.v1.Query/UpgradedConsensusState"
+	Query_VerifyMembership_FullMethodName       = "/ibc.core.client.v1.Query/VerifyMembership"
 )
 
 // QueryClient is the client API for Query service.
@@ -54,6 +55,8 @@ type QueryClient interface {
 	UpgradedClientState(ctx context.Context, in *QueryUpgradedClientStateRequest, opts ...grpc.CallOption) (*QueryUpgradedClientStateResponse, error)
 	// UpgradedConsensusState queries an Upgraded IBC consensus state.
 	UpgradedConsensusState(ctx context.Context, in *QueryUpgradedConsensusStateRequest, opts ...grpc.CallOption) (*QueryUpgradedConsensusStateResponse, error)
+	// VerifyMembership queries an IBC light client for proof verification of a value at a given key path.
+	VerifyMembership(ctx context.Context, in *QueryVerifyMembershipRequest, opts ...grpc.CallOption) (*QueryVerifyMembershipResponse, error)
 }
 
 type queryClient struct {
@@ -145,6 +148,15 @@ func (c *queryClient) UpgradedConsensusState(ctx context.Context, in *QueryUpgra
 	return out, nil
 }
 
+func (c *queryClient) VerifyMembership(ctx context.Context, in *QueryVerifyMembershipRequest, opts ...grpc.CallOption) (*QueryVerifyMembershipResponse, error) {
+	out := new(QueryVerifyMembershipResponse)
+	err := c.cc.Invoke(ctx, Query_VerifyMembership_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -169,6 +181,8 @@ type QueryServer interface {
 	UpgradedClientState(context.Context, *QueryUpgradedClientStateRequest) (*QueryUpgradedClientStateResponse, error)
 	// UpgradedConsensusState queries an Upgraded IBC consensus state.
 	UpgradedConsensusState(context.Context, *QueryUpgradedConsensusStateRequest) (*QueryUpgradedConsensusStateResponse, error)
+	// VerifyMembership queries an IBC light client for proof verification of a value at a given key path.
+	VerifyMembership(context.Context, *QueryVerifyMembershipRequest) (*QueryVerifyMembershipResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -202,6 +216,9 @@ func (UnimplementedQueryServer) UpgradedClientState(context.Context, *QueryUpgra
 }
 func (UnimplementedQueryServer) UpgradedConsensusState(context.Context, *QueryUpgradedConsensusStateRequest) (*QueryUpgradedConsensusStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpgradedConsensusState not implemented")
+}
+func (UnimplementedQueryServer) VerifyMembership(context.Context, *QueryVerifyMembershipRequest) (*QueryVerifyMembershipResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyMembership not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -378,6 +395,24 @@ func _Query_UpgradedConsensusState_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_VerifyMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVerifyMembershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VerifyMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_VerifyMembership_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VerifyMembership(ctx, req.(*QueryVerifyMembershipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -420,6 +455,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpgradedConsensusState",
 			Handler:    _Query_UpgradedConsensusState_Handler,
+		},
+		{
+			MethodName: "VerifyMembership",
+			Handler:    _Query_VerifyMembership_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
