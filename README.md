@@ -17,8 +17,8 @@
   <a href="https://goreportcard.com/report/github.com/cosmos/ibc-go">
     <img alt="Go report card" src="https://goreportcard.com/badge/github.com/cosmos/ibc-go" />
   </a>
-  <a href="https://codecov.io/gh/cosmos/ibc-go">
-    <img alt="Code Coverage" src="https://codecov.io/gh/cosmos/ibc-go/branch/main/graph/badge.svg" />
+  <a href="https://sonarcloud.io/summary/overall?id=cosmos_ibc-go">
+    <img alt="Code Coverage" src="https://sonarcloud.io/api/project_badges/measure?project=cosmos_ibc-go&metric=coverage" />
   </a>
 </div>
 <div align="center">
