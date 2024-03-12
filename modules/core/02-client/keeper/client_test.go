@@ -362,7 +362,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		{
 			name: "client state not found",
 			setup: func() {
-				// last Height is at next block
+				// upgrade height is at next block
 				upgradeHeight = clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()+1))
 
 				// zero custom fields and store in upgrade store
@@ -394,7 +394,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			setup: func() {
 				// client is frozen
 
-				// last Height is at next block
+				// upgrade height is at next block
 				upgradeHeight = clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()+1))
 
 				// zero custom fields and store in upgrade store
@@ -427,7 +427,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		{
 			name: "light client module VerifyUpgradeAndUpdateState fails",
 			setup: func() {
-				// last Height is at next block
+				// upgrade height is at next block
 				upgradeHeight = clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()+1))
 
 				// zero custom fields and store in upgrade store
