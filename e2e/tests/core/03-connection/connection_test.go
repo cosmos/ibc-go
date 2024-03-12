@@ -35,18 +35,15 @@ type ConnectionTestSuite struct {
 // QueryMaxExpectedTimePerBlockParam queries the on-chain max expected time per block param for 03-connection
 func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Context, chain ibc.Chain) uint64 {
 	if testvalues.SelfParamsFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
-		queryClient := s.GetChainGRCPClients(chain).ConnectionQueryClient
-		res, err := queryClient.ConnectionParams(ctx, &connectiontypes.QueryConnectionParamsRequest{})
+		res, err := testsuite.GRPCQuery[connectiontypes.QueryConnectionParamsResponse](ctx, chain, &connectiontypes.QueryConnectionParamsRequest{})
 		s.Require().NoError(err)
 
 		return res.Params.MaxExpectedTimePerBlock
 	}
-	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
-	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
+	res, err := testsuite.GRPCQuery[paramsproposaltypes.QueryParamsResponse](ctx, chain, &paramsproposaltypes.QueryParamsRequest{
 		Subspace: ibcexported.ModuleName,
 		Key:      string(connectiontypes.KeyMaxExpectedTimePerBlock),
 	})
-	s.Require().NoError(err)
 
 	// removing additional strings that are used for amino
 	delay := strings.ReplaceAll(res.Param.Value, "\"", "")

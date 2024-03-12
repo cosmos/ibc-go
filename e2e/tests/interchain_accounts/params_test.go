@@ -31,8 +31,7 @@ type InterchainAccountsParamsTestSuite struct {
 
 // QueryControllerParams queries the params for the controller
 func (s *InterchainAccountsParamsTestSuite) QueryControllerParams(ctx context.Context, chain ibc.Chain) controllertypes.Params {
-	queryClient := s.GetChainGRCPClients(chain).ICAControllerQueryClient
-	res, err := queryClient.Params(ctx, &controllertypes.QueryParamsRequest{})
+	res, err := testsuite.GRPCQuery[controllertypes.QueryParamsResponse](ctx, chain, &controllertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 
 	return *res.Params
@@ -40,8 +39,7 @@ func (s *InterchainAccountsParamsTestSuite) QueryControllerParams(ctx context.Co
 
 // QueryHostParams queries the host chain for the params
 func (s *InterchainAccountsParamsTestSuite) QueryHostParams(ctx context.Context, chain ibc.Chain) hosttypes.Params {
-	queryClient := s.GetChainGRCPClients(chain).ICAHostQueryClient
-	res, err := queryClient.Params(ctx, &hosttypes.QueryParamsRequest{})
+	res, err := testsuite.GRPCQuery[hosttypes.QueryParamsResponse](ctx, chain, &hosttypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 
 	return *res.Params

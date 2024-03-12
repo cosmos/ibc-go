@@ -78,7 +78,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestMsgSendTx_SuccessfulTra
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
+		hostAccount, err = QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
@@ -264,7 +264,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
+		interchainAccount, err = QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccount))
 

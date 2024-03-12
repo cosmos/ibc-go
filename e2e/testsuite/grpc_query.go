@@ -6,14 +6,18 @@ import (
 	"sort"
 	"strings"
 
+	"cosmossdk.io/math"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -142,4 +146,75 @@ func (*E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chai
 	})
 
 	return res.Validators, nil
+}
+
+// QueryBalance returns the balance of a specific denomination for a given account by address.
+func (*E2ETestSuite) QueryBalance(ctx context.Context, chain ibc.Chain, address string, denom string) (math.Int, error) {
+	res, err := GRPCQuery[banktypes.QueryBalanceResponse](ctx, chain, &banktypes.QueryBalanceRequest{
+		Address: address,
+		Denom:   denom,
+	})
+	if err != nil {
+		return math.Int{}, err
+	}
+
+	return res.Balance.Amount, nil
+}
+
+// QueryChannel queries the channel on a given chain for the provided portID and channelID
+func (s *E2ETestSuite) QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.Channel, error) {
+	res, err := GRPCQuery[channeltypes.QueryChannelResponse](ctx, chain, &channeltypes.QueryChannelRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+
+	if err != nil {
+		return channeltypes.Channel{}, err
+	}
+
+	return *res.Channel, nil
+}
+
+// QueryCounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
+func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
+	res, err := GRPCQuery[feetypes.QueryCounterpartyPayeeResponse](ctx, chain, &feetypes.QueryCounterpartyPayeeRequest{
+		ChannelId: channelID,
+		Relayer:  relayerAddress,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return res.CounterpartyPayee, nil
+}
+
+// QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
+func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
+	ctx context.Context,
+	chain ibc.Chain,
+	portID,
+	channelID string,
+) ([]*feetypes.IdentifiedPacketFees, error) {
+	res, err := GRPCQuery[feetypes.QueryIncentivizedPacketsForChannelResponse](ctx, chain, &feetypes.QueryIncentivizedPacketsForChannelRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return res.IncentivizedPackets, err
+}
+
+// QueryFeeEnabledChannel queries the fee-enabled status of a channel.
+func (s *E2ETestSuite) QueryFeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (bool, error) {
+	res, err := GRPCQuery[feetypes.QueryFeeEnabledChannelResponse](ctx, chain, &feetypes.QueryFeeEnabledChannelRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+
+	if err != nil {
+		return false, err
+	}
+	return res.FeeEnabled, nil
 }

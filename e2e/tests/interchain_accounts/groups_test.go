@@ -67,8 +67,7 @@ type InterchainAccountsGroupsTestSuite struct {
 }
 
 func (s *InterchainAccountsGroupsTestSuite) QueryGroupPolicyAddress(ctx context.Context, chain ibc.Chain) string {
-	queryClient := s.GetChainGRCPClients(chain).GroupsQueryClient
-	res, err := queryClient.GroupPoliciesByGroup(ctx, &grouptypes.QueryGroupPoliciesByGroupRequest{
+	res, err := testsuite.GRPCQuery[grouptypes.QueryGroupPoliciesByGroupResponse](ctx, chain, &grouptypes.QueryGroupPoliciesByGroupRequest{
 		GroupId: InitialGroupID, // always use the initial group id
 	})
 	s.Require().NoError(err)
@@ -141,7 +140,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 	})
 
 	t.Run("verify interchain account registration success", func(t *testing.T) {
-		interchainAccAddr, err = s.QueryInterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
+		interchainAccAddr, err = QueryInterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
 		s.Require().NotEmpty(interchainAccAddr)
 		s.Require().NoError(err)
 
