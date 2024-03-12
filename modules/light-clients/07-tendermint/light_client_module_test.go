@@ -181,7 +181,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 		{
 			"upgraded client state height is not greater than current height",
 			func() {
-				// last Height is at next block
+				// upgrade height is at next block
 				upgradeHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()+1))
 
 				// zero custom fields and store in upgrade store
