@@ -19,16 +19,25 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_ChannelOpenInit_FullMethodName     = "/ibc.core.channel.v1.Msg/ChannelOpenInit"
-	Msg_ChannelOpenTry_FullMethodName      = "/ibc.core.channel.v1.Msg/ChannelOpenTry"
-	Msg_ChannelOpenAck_FullMethodName      = "/ibc.core.channel.v1.Msg/ChannelOpenAck"
-	Msg_ChannelOpenConfirm_FullMethodName  = "/ibc.core.channel.v1.Msg/ChannelOpenConfirm"
-	Msg_ChannelCloseInit_FullMethodName    = "/ibc.core.channel.v1.Msg/ChannelCloseInit"
-	Msg_ChannelCloseConfirm_FullMethodName = "/ibc.core.channel.v1.Msg/ChannelCloseConfirm"
-	Msg_RecvPacket_FullMethodName          = "/ibc.core.channel.v1.Msg/RecvPacket"
-	Msg_Timeout_FullMethodName             = "/ibc.core.channel.v1.Msg/Timeout"
-	Msg_TimeoutOnClose_FullMethodName      = "/ibc.core.channel.v1.Msg/TimeoutOnClose"
-	Msg_Acknowledgement_FullMethodName     = "/ibc.core.channel.v1.Msg/Acknowledgement"
+	Msg_ChannelOpenInit_FullMethodName       = "/ibc.core.channel.v1.Msg/ChannelOpenInit"
+	Msg_ChannelOpenTry_FullMethodName        = "/ibc.core.channel.v1.Msg/ChannelOpenTry"
+	Msg_ChannelOpenAck_FullMethodName        = "/ibc.core.channel.v1.Msg/ChannelOpenAck"
+	Msg_ChannelOpenConfirm_FullMethodName    = "/ibc.core.channel.v1.Msg/ChannelOpenConfirm"
+	Msg_ChannelCloseInit_FullMethodName      = "/ibc.core.channel.v1.Msg/ChannelCloseInit"
+	Msg_ChannelCloseConfirm_FullMethodName   = "/ibc.core.channel.v1.Msg/ChannelCloseConfirm"
+	Msg_RecvPacket_FullMethodName            = "/ibc.core.channel.v1.Msg/RecvPacket"
+	Msg_Timeout_FullMethodName               = "/ibc.core.channel.v1.Msg/Timeout"
+	Msg_TimeoutOnClose_FullMethodName        = "/ibc.core.channel.v1.Msg/TimeoutOnClose"
+	Msg_Acknowledgement_FullMethodName       = "/ibc.core.channel.v1.Msg/Acknowledgement"
+	Msg_ChannelUpgradeInit_FullMethodName    = "/ibc.core.channel.v1.Msg/ChannelUpgradeInit"
+	Msg_ChannelUpgradeTry_FullMethodName     = "/ibc.core.channel.v1.Msg/ChannelUpgradeTry"
+	Msg_ChannelUpgradeAck_FullMethodName     = "/ibc.core.channel.v1.Msg/ChannelUpgradeAck"
+	Msg_ChannelUpgradeConfirm_FullMethodName = "/ibc.core.channel.v1.Msg/ChannelUpgradeConfirm"
+	Msg_ChannelUpgradeOpen_FullMethodName    = "/ibc.core.channel.v1.Msg/ChannelUpgradeOpen"
+	Msg_ChannelUpgradeTimeout_FullMethodName = "/ibc.core.channel.v1.Msg/ChannelUpgradeTimeout"
+	Msg_ChannelUpgradeCancel_FullMethodName  = "/ibc.core.channel.v1.Msg/ChannelUpgradeCancel"
+	Msg_UpdateChannelParams_FullMethodName   = "/ibc.core.channel.v1.Msg/UpdateChannelParams"
+	Msg_PruneAcknowledgements_FullMethodName = "/ibc.core.channel.v1.Msg/PruneAcknowledgements"
 )
 
 // MsgClient is the client API for Msg service.
@@ -56,6 +65,24 @@ type MsgClient interface {
 	TimeoutOnClose(ctx context.Context, in *MsgTimeoutOnClose, opts ...grpc.CallOption) (*MsgTimeoutOnCloseResponse, error)
 	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 	Acknowledgement(ctx context.Context, in *MsgAcknowledgement, opts ...grpc.CallOption) (*MsgAcknowledgementResponse, error)
+	// ChannelUpgradeInit defines a rpc handler method for MsgChannelUpgradeInit.
+	ChannelUpgradeInit(ctx context.Context, in *MsgChannelUpgradeInit, opts ...grpc.CallOption) (*MsgChannelUpgradeInitResponse, error)
+	// ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
+	ChannelUpgradeTry(ctx context.Context, in *MsgChannelUpgradeTry, opts ...grpc.CallOption) (*MsgChannelUpgradeTryResponse, error)
+	// ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
+	ChannelUpgradeAck(ctx context.Context, in *MsgChannelUpgradeAck, opts ...grpc.CallOption) (*MsgChannelUpgradeAckResponse, error)
+	// ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
+	ChannelUpgradeConfirm(ctx context.Context, in *MsgChannelUpgradeConfirm, opts ...grpc.CallOption) (*MsgChannelUpgradeConfirmResponse, error)
+	// ChannelUpgradeOpen defines a rpc handler method for MsgChannelUpgradeOpen.
+	ChannelUpgradeOpen(ctx context.Context, in *MsgChannelUpgradeOpen, opts ...grpc.CallOption) (*MsgChannelUpgradeOpenResponse, error)
+	// ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
+	ChannelUpgradeTimeout(ctx context.Context, in *MsgChannelUpgradeTimeout, opts ...grpc.CallOption) (*MsgChannelUpgradeTimeoutResponse, error)
+	// ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
+	ChannelUpgradeCancel(ctx context.Context, in *MsgChannelUpgradeCancel, opts ...grpc.CallOption) (*MsgChannelUpgradeCancelResponse, error)
+	// UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
+	UpdateChannelParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
+	PruneAcknowledgements(ctx context.Context, in *MsgPruneAcknowledgements, opts ...grpc.CallOption) (*MsgPruneAcknowledgementsResponse, error)
 }
 
 type msgClient struct {
@@ -156,6 +183,87 @@ func (c *msgClient) Acknowledgement(ctx context.Context, in *MsgAcknowledgement,
 	return out, nil
 }
 
+func (c *msgClient) ChannelUpgradeInit(ctx context.Context, in *MsgChannelUpgradeInit, opts ...grpc.CallOption) (*MsgChannelUpgradeInitResponse, error) {
+	out := new(MsgChannelUpgradeInitResponse)
+	err := c.cc.Invoke(ctx, Msg_ChannelUpgradeInit_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeTry(ctx context.Context, in *MsgChannelUpgradeTry, opts ...grpc.CallOption) (*MsgChannelUpgradeTryResponse, error) {
+	out := new(MsgChannelUpgradeTryResponse)
+	err := c.cc.Invoke(ctx, Msg_ChannelUpgradeTry_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeAck(ctx context.Context, in *MsgChannelUpgradeAck, opts ...grpc.CallOption) (*MsgChannelUpgradeAckResponse, error) {
+	out := new(MsgChannelUpgradeAckResponse)
+	err := c.cc.Invoke(ctx, Msg_ChannelUpgradeAck_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeConfirm(ctx context.Context, in *MsgChannelUpgradeConfirm, opts ...grpc.CallOption) (*MsgChannelUpgradeConfirmResponse, error) {
+	out := new(MsgChannelUpgradeConfirmResponse)
+	err := c.cc.Invoke(ctx, Msg_ChannelUpgradeConfirm_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeOpen(ctx context.Context, in *MsgChannelUpgradeOpen, opts ...grpc.CallOption) (*MsgChannelUpgradeOpenResponse, error) {
+	out := new(MsgChannelUpgradeOpenResponse)
+	err := c.cc.Invoke(ctx, Msg_ChannelUpgradeOpen_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeTimeout(ctx context.Context, in *MsgChannelUpgradeTimeout, opts ...grpc.CallOption) (*MsgChannelUpgradeTimeoutResponse, error) {
+	out := new(MsgChannelUpgradeTimeoutResponse)
+	err := c.cc.Invoke(ctx, Msg_ChannelUpgradeTimeout_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) ChannelUpgradeCancel(ctx context.Context, in *MsgChannelUpgradeCancel, opts ...grpc.CallOption) (*MsgChannelUpgradeCancelResponse, error) {
+	out := new(MsgChannelUpgradeCancelResponse)
+	err := c.cc.Invoke(ctx, Msg_ChannelUpgradeCancel_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateChannelParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
+	out := new(MsgUpdateParamsResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateChannelParams_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) PruneAcknowledgements(ctx context.Context, in *MsgPruneAcknowledgements, opts ...grpc.CallOption) (*MsgPruneAcknowledgementsResponse, error) {
+	out := new(MsgPruneAcknowledgementsResponse)
+	err := c.cc.Invoke(ctx, Msg_PruneAcknowledgements_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -181,6 +289,24 @@ type MsgServer interface {
 	TimeoutOnClose(context.Context, *MsgTimeoutOnClose) (*MsgTimeoutOnCloseResponse, error)
 	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 	Acknowledgement(context.Context, *MsgAcknowledgement) (*MsgAcknowledgementResponse, error)
+	// ChannelUpgradeInit defines a rpc handler method for MsgChannelUpgradeInit.
+	ChannelUpgradeInit(context.Context, *MsgChannelUpgradeInit) (*MsgChannelUpgradeInitResponse, error)
+	// ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
+	ChannelUpgradeTry(context.Context, *MsgChannelUpgradeTry) (*MsgChannelUpgradeTryResponse, error)
+	// ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
+	ChannelUpgradeAck(context.Context, *MsgChannelUpgradeAck) (*MsgChannelUpgradeAckResponse, error)
+	// ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
+	ChannelUpgradeConfirm(context.Context, *MsgChannelUpgradeConfirm) (*MsgChannelUpgradeConfirmResponse, error)
+	// ChannelUpgradeOpen defines a rpc handler method for MsgChannelUpgradeOpen.
+	ChannelUpgradeOpen(context.Context, *MsgChannelUpgradeOpen) (*MsgChannelUpgradeOpenResponse, error)
+	// ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
+	ChannelUpgradeTimeout(context.Context, *MsgChannelUpgradeTimeout) (*MsgChannelUpgradeTimeoutResponse, error)
+	// ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
+	ChannelUpgradeCancel(context.Context, *MsgChannelUpgradeCancel) (*MsgChannelUpgradeCancelResponse, error)
+	// UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
+	UpdateChannelParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
+	PruneAcknowledgements(context.Context, *MsgPruneAcknowledgements) (*MsgPruneAcknowledgementsResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -217,6 +343,33 @@ func (UnimplementedMsgServer) TimeoutOnClose(context.Context, *MsgTimeoutOnClose
 }
 func (UnimplementedMsgServer) Acknowledgement(context.Context, *MsgAcknowledgement) (*MsgAcknowledgementResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Acknowledgement not implemented")
+}
+func (UnimplementedMsgServer) ChannelUpgradeInit(context.Context, *MsgChannelUpgradeInit) (*MsgChannelUpgradeInitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeInit not implemented")
+}
+func (UnimplementedMsgServer) ChannelUpgradeTry(context.Context, *MsgChannelUpgradeTry) (*MsgChannelUpgradeTryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeTry not implemented")
+}
+func (UnimplementedMsgServer) ChannelUpgradeAck(context.Context, *MsgChannelUpgradeAck) (*MsgChannelUpgradeAckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeAck not implemented")
+}
+func (UnimplementedMsgServer) ChannelUpgradeConfirm(context.Context, *MsgChannelUpgradeConfirm) (*MsgChannelUpgradeConfirmResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeConfirm not implemented")
+}
+func (UnimplementedMsgServer) ChannelUpgradeOpen(context.Context, *MsgChannelUpgradeOpen) (*MsgChannelUpgradeOpenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeOpen not implemented")
+}
+func (UnimplementedMsgServer) ChannelUpgradeTimeout(context.Context, *MsgChannelUpgradeTimeout) (*MsgChannelUpgradeTimeoutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeTimeout not implemented")
+}
+func (UnimplementedMsgServer) ChannelUpgradeCancel(context.Context, *MsgChannelUpgradeCancel) (*MsgChannelUpgradeCancelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelUpgradeCancel not implemented")
+}
+func (UnimplementedMsgServer) UpdateChannelParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateChannelParams not implemented")
+}
+func (UnimplementedMsgServer) PruneAcknowledgements(context.Context, *MsgPruneAcknowledgements) (*MsgPruneAcknowledgementsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PruneAcknowledgements not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -411,6 +564,168 @@ func _Msg_Acknowledgement_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_ChannelUpgradeInit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeInit)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeInit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_ChannelUpgradeInit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeInit(ctx, req.(*MsgChannelUpgradeInit))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeTry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeTry)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeTry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_ChannelUpgradeTry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeTry(ctx, req.(*MsgChannelUpgradeTry))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeAck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeAck)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeAck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_ChannelUpgradeAck_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeAck(ctx, req.(*MsgChannelUpgradeAck))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeConfirm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeConfirm)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeConfirm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_ChannelUpgradeConfirm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeConfirm(ctx, req.(*MsgChannelUpgradeConfirm))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeOpen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeOpen)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeOpen(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_ChannelUpgradeOpen_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeOpen(ctx, req.(*MsgChannelUpgradeOpen))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeTimeout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeTimeout)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeTimeout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_ChannelUpgradeTimeout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeTimeout(ctx, req.(*MsgChannelUpgradeTimeout))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_ChannelUpgradeCancel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgChannelUpgradeCancel)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ChannelUpgradeCancel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_ChannelUpgradeCancel_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ChannelUpgradeCancel(ctx, req.(*MsgChannelUpgradeCancel))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateChannelParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateChannelParams(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateChannelParams_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateChannelParams(ctx, req.(*MsgUpdateParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_PruneAcknowledgements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgPruneAcknowledgements)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).PruneAcknowledgements(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_PruneAcknowledgements_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).PruneAcknowledgements(ctx, req.(*MsgPruneAcknowledgements))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -457,6 +772,42 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Acknowledgement",
 			Handler:    _Msg_Acknowledgement_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeInit",
+			Handler:    _Msg_ChannelUpgradeInit_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeTry",
+			Handler:    _Msg_ChannelUpgradeTry_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeAck",
+			Handler:    _Msg_ChannelUpgradeAck_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeConfirm",
+			Handler:    _Msg_ChannelUpgradeConfirm_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeOpen",
+			Handler:    _Msg_ChannelUpgradeOpen_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeTimeout",
+			Handler:    _Msg_ChannelUpgradeTimeout_Handler,
+		},
+		{
+			MethodName: "ChannelUpgradeCancel",
+			Handler:    _Msg_ChannelUpgradeCancel_Handler,
+		},
+		{
+			MethodName: "UpdateChannelParams",
+			Handler:    _Msg_UpdateChannelParams_Handler,
+		},
+		{
+			MethodName: "PruneAcknowledgements",
+			Handler:    _Msg_PruneAcknowledgements_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

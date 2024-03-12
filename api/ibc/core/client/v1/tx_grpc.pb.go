@@ -23,6 +23,8 @@ const (
 	Msg_UpdateClient_FullMethodName       = "/ibc.core.client.v1.Msg/UpdateClient"
 	Msg_UpgradeClient_FullMethodName      = "/ibc.core.client.v1.Msg/UpgradeClient"
 	Msg_SubmitMisbehaviour_FullMethodName = "/ibc.core.client.v1.Msg/SubmitMisbehaviour"
+	Msg_RecoverClient_FullMethodName      = "/ibc.core.client.v1.Msg/RecoverClient"
+	Msg_IBCSoftwareUpgrade_FullMethodName = "/ibc.core.client.v1.Msg/IBCSoftwareUpgrade"
 	Msg_UpdateClientParams_FullMethodName = "/ibc.core.client.v1.Msg/UpdateClientParams"
 )
 
@@ -38,6 +40,10 @@ type MsgClient interface {
 	UpgradeClient(ctx context.Context, in *MsgUpgradeClient, opts ...grpc.CallOption) (*MsgUpgradeClientResponse, error)
 	// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 	SubmitMisbehaviour(ctx context.Context, in *MsgSubmitMisbehaviour, opts ...grpc.CallOption) (*MsgSubmitMisbehaviourResponse, error)
+	// RecoverClient defines a rpc handler method for MsgRecoverClient.
+	RecoverClient(ctx context.Context, in *MsgRecoverClient, opts ...grpc.CallOption) (*MsgRecoverClientResponse, error)
+	// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+	IBCSoftwareUpgrade(ctx context.Context, in *MsgIBCSoftwareUpgrade, opts ...grpc.CallOption) (*MsgIBCSoftwareUpgradeResponse, error)
 	// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
 	UpdateClientParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 }
@@ -86,6 +92,24 @@ func (c *msgClient) SubmitMisbehaviour(ctx context.Context, in *MsgSubmitMisbeha
 	return out, nil
 }
 
+func (c *msgClient) RecoverClient(ctx context.Context, in *MsgRecoverClient, opts ...grpc.CallOption) (*MsgRecoverClientResponse, error) {
+	out := new(MsgRecoverClientResponse)
+	err := c.cc.Invoke(ctx, Msg_RecoverClient_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) IBCSoftwareUpgrade(ctx context.Context, in *MsgIBCSoftwareUpgrade, opts ...grpc.CallOption) (*MsgIBCSoftwareUpgradeResponse, error) {
+	out := new(MsgIBCSoftwareUpgradeResponse)
+	err := c.cc.Invoke(ctx, Msg_IBCSoftwareUpgrade_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) UpdateClientParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
 	out := new(MsgUpdateParamsResponse)
 	err := c.cc.Invoke(ctx, Msg_UpdateClientParams_FullMethodName, in, out, opts...)
@@ -107,6 +131,10 @@ type MsgServer interface {
 	UpgradeClient(context.Context, *MsgUpgradeClient) (*MsgUpgradeClientResponse, error)
 	// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 	SubmitMisbehaviour(context.Context, *MsgSubmitMisbehaviour) (*MsgSubmitMisbehaviourResponse, error)
+	// RecoverClient defines a rpc handler method for MsgRecoverClient.
+	RecoverClient(context.Context, *MsgRecoverClient) (*MsgRecoverClientResponse, error)
+	// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+	IBCSoftwareUpgrade(context.Context, *MsgIBCSoftwareUpgrade) (*MsgIBCSoftwareUpgradeResponse, error)
 	// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
 	UpdateClientParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	mustEmbedUnimplementedMsgServer()
@@ -127,6 +155,12 @@ func (UnimplementedMsgServer) UpgradeClient(context.Context, *MsgUpgradeClient) 
 }
 func (UnimplementedMsgServer) SubmitMisbehaviour(context.Context, *MsgSubmitMisbehaviour) (*MsgSubmitMisbehaviourResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitMisbehaviour not implemented")
+}
+func (UnimplementedMsgServer) RecoverClient(context.Context, *MsgRecoverClient) (*MsgRecoverClientResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecoverClient not implemented")
+}
+func (UnimplementedMsgServer) IBCSoftwareUpgrade(context.Context, *MsgIBCSoftwareUpgrade) (*MsgIBCSoftwareUpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IBCSoftwareUpgrade not implemented")
 }
 func (UnimplementedMsgServer) UpdateClientParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateClientParams not implemented")
@@ -216,6 +250,42 @@ func _Msg_SubmitMisbehaviour_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_RecoverClient_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRecoverClient)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RecoverClient(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_RecoverClient_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RecoverClient(ctx, req.(*MsgRecoverClient))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_IBCSoftwareUpgrade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgIBCSoftwareUpgrade)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).IBCSoftwareUpgrade(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_IBCSoftwareUpgrade_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).IBCSoftwareUpgrade(ctx, req.(*MsgIBCSoftwareUpgrade))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_UpdateClientParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateParams)
 	if err := dec(in); err != nil {
@@ -256,6 +326,14 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SubmitMisbehaviour",
 			Handler:    _Msg_SubmitMisbehaviour_Handler,
+		},
+		{
+			MethodName: "RecoverClient",
+			Handler:    _Msg_RecoverClient_Handler,
+		},
+		{
+			MethodName: "IBCSoftwareUpgrade",
+			Handler:    _Msg_IBCSoftwareUpgrade_Handler,
 		},
 		{
 			MethodName: "UpdateClientParams",

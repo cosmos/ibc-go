@@ -4454,7 +4454,7 @@ func (x *ConnectionPaths) GetPaths() []string {
 	return nil
 }
 
-// Version defines the versioning scheme used to negotiate the IBC verison in
+// Version defines the versioning scheme used to negotiate the IBC version in
 // the connection handshake.
 type Version struct {
 	state         protoimpl.MessageState
