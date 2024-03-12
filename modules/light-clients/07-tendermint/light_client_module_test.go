@@ -260,16 +260,15 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				clientStateAny, err := codectypes.NewAnyWithValue(upgradedClientState)
-				suite.Require().NoError(err)
-				suite.Require().Equal(upgradedClientStateAny.Value, clientStateAny.Value)
+				expClientState := path.EndpointA.GetClientState()
+				expClientStateBz := suite.chainA.Codec.MustMarshal(expClientState)
+				suite.Require().Equal(upgradedClientStateAny.Value, expClientStateBz)
 
-				consensusState, found := suite.chainA.GetConsensusState(clientID, path.EndpointA.GetClientLatestHeight())
-				suite.Require().True(found)
-				suite.Require().NotNil(consensusState)
-				tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
-				suite.Require().True(ok)
-				suite.Require().Equal(upgradedConsensusState.NextValidatorsHash, tmConsensusState.NextValidatorsHash)
+				expConsensusState := ibctm.NewConsensusState(upgradedConsensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), upgradedConsensusState.NextValidatorsHash)
+				expConsensusStateBz := suite.chainA.Codec.MustMarshal(expConsensusState)
+
+				consensusStateBz := suite.chainA.Codec.MustMarshal(path.EndpointA.GetConsensusState(path.EndpointA.GetClientLatestHeight()))
+				suite.Require().Equal(expConsensusStateBz, consensusStateBz)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
