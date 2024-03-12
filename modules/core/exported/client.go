@@ -72,18 +72,18 @@ type LightClientModule interface {
 
 	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 	// Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
-	UpdateState(ctx sdk.Context, clientID string, clientMsg ClientMessage) []Height // TODO: change to concrete type
+	UpdateState(ctx sdk.Context, clientID string, clientMsg ClientMessage) []Height
 
 	// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 	VerifyMembership(
 		ctx sdk.Context,
 		clientID string,
-		height Height, // TODO: change to concrete type
+		height Height,
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path Path, // TODO: change to conrete type
+		path Path,
 		value []byte,
 	) error
 
@@ -92,11 +92,11 @@ type LightClientModule interface {
 	VerifyNonMembership(
 		ctx sdk.Context,
 		clientID string,
-		height Height, // TODO: change to concrete type
+		height Height,
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path Path, // TODO: change to conrete type
+		path Path,
 	) error
 
 	// Status must return the status of the client. Only Active clients are allowed to process packets.
@@ -109,7 +109,7 @@ type LightClientModule interface {
 	TimestampAtHeight(
 		ctx sdk.Context,
 		clientID string,
-		height Height, // TODO: change to concrete type
+		height Height,
 	) (uint64, error)
 
 	// RecoverClient must verify that the provided substitute may be used to update the subject client.
