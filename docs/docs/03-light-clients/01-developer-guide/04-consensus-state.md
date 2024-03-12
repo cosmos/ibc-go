@@ -1,7 +1,7 @@
 ---
 title: Consensus State interface
 sidebar_label: Consensus State interface
-sidebar_position: 3
+sidebar_position: 4
 slug: /ibc/light-clients/consensus-state
 ---
 
@@ -16,7 +16,7 @@ The below [`ConsensusState`](https://github.com/cosmos/ibc-go/blob/v7.0.0/module
 
 ## `ClientType` method
 
-This is the type of client consensus. It should be the same as the `ClientType` return value for the [corresponding `ClientState` implementation](02-client-state.md).
+This is the type of client consensus. It should be the same as the `ClientType` return value for the [corresponding `ClientState` implementation](03-client-state.md).
 
 ## `GetTimestamp` method
 
