@@ -19,6 +19,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
@@ -108,11 +109,11 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	})
 
 	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
+		channelEndA, err := query.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
+		channelEndB, err := query.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
@@ -120,7 +121,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	})
 
 	t.Run("verify interchain account registration and deposit funds", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
+		interchainAccAddress, err := QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -134,7 +135,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	})
 
 	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
+		interchainAccAddress, err := QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -183,7 +184,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		balance, err := s.QueryBalance(ctx, chainA, userBWallet.FormattedAddress(), chainADenom)
+		balance, err := query.QueryBalance(ctx, chainA, userBWallet.FormattedAddress(), chainADenom)
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
@@ -263,11 +264,11 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
+		channelEndA, err := query.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
+		channelEndB, err := query.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
@@ -275,7 +276,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("verify interchain account registration and deposit funds", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
+		interchainAccAddress, err := QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -289,7 +290,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("send localhost interchain accounts packet with timeout", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
+		interchainAccAddress, err := QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -335,12 +336,12 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("verify localhost interchain accounts channel is closed", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
+		channelEndA, err := query.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channelEndA.State, "the channel was not in an expected state")
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
+		channelEndB, err := query.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channelEndB.State, "the channel was not in an expected state")
@@ -393,11 +394,11 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
+		channelEndA, err := query.QueryChannel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
+		channelEndB, err := query.QueryChannel(ctx, chainA, icatypes.HostPortID, msgChanOpenTryRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
@@ -405,11 +406,11 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("verify interchain account and existing balance", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
+		interchainAccAddress, err := QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
-		balance, err := s.QueryBalance(ctx, chainA, interchainAccAddress, chainADenom)
+		balance, err := query.QueryBalance(ctx, chainA, interchainAccAddress, chainADenom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount
@@ -417,7 +418,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
-		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
+		interchainAccAddress, err := QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddress))
 
@@ -468,7 +469,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t.Run("verify tokens transferred", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId, 1)
 
-		balance, err := s.QueryBalance(ctx, chainA, userBWallet.FormattedAddress(), chainADenom)
+		balance, err := query.QueryBalance(ctx, chainA, userBWallet.FormattedAddress(), chainADenom)
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount

@@ -20,6 +20,7 @@ import (
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
@@ -67,7 +68,7 @@ type InterchainAccountsGroupsTestSuite struct {
 }
 
 func (s *InterchainAccountsGroupsTestSuite) QueryGroupPolicyAddress(ctx context.Context, chain ibc.Chain) string {
-	res, err := testsuite.GRPCQuery[grouptypes.QueryGroupPoliciesByGroupResponse](ctx, chain, &grouptypes.QueryGroupPoliciesByGroupRequest{
+	res, err := query.GRPCQuery[grouptypes.QueryGroupPoliciesByGroupResponse](ctx, chain, &grouptypes.QueryGroupPoliciesByGroupRequest{
 		GroupId: InitialGroupID, // always use the initial group id
 	})
 	s.Require().NoError(err)
@@ -198,14 +199,14 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
-		balance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainB.Config().Denom)
+		balance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainB.Config().Denom)
 
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance.Int64())
 
-		balance, err = s.QueryBalance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
+		balance, err = query.QueryBalance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount

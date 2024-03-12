@@ -31,6 +31,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -53,7 +54,7 @@ type ClientTestSuite struct {
 
 // Status queries the current status of the client
 func (s *ClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
-	res, err := testsuite.GRPCQuery[clienttypes.QueryClientStatusResponse](ctx, chain, &clienttypes.QueryClientStatusRequest{
+	res, err := query.GRPCQuery[clienttypes.QueryClientStatusResponse](ctx, chain, &clienttypes.QueryClientStatusRequest{
 		ClientId: clientID,
 	})
 	if err != nil {
@@ -65,7 +66,7 @@ func (s *ClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID 
 
 // QueryAllowedClients queries the on-chain AllowedClients parameter for 02-client
 func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Chain) []string {
-	res, err := testsuite.GRPCQuery[clienttypes.QueryClientParamsResponse](ctx, chain, &clienttypes.QueryClientParamsRequest{})
+	res, err := query.GRPCQuery[clienttypes.QueryClientParamsResponse](ctx, chain, &clienttypes.QueryClientParamsRequest{})
 	s.Require().NoError(err)
 
 	return res.Params.AllowedClients
@@ -85,11 +86,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	var newChainID string
 
 	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
-		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
 
-		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
+		clientState, err := query.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
 		originalChainID := clientState.(*ibctm.ClientState).ChainId
@@ -116,7 +117,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
 		// checks there is an upgraded client state stored
-		upgradedCsResp, err := testsuite.GRPCQuery[clienttypes.QueryUpgradedClientStateResponse](ctx, chainA, &clienttypes.QueryUpgradedClientStateRequest{})
+		upgradedCsResp, err := query.GRPCQuery[clienttypes.QueryUpgradedClientStateResponse](ctx, chainA, &clienttypes.QueryUpgradedClientStateRequest{})
 
 		clientStateAny := upgradedCsResp.UpgradedClientState
 		s.Require().NoError(err)
@@ -128,7 +129,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().True(ok)
 		s.Require().Equal(upgradedClientState.ChainId, newChainID)
 
-		planResponse, err := testsuite.GRPCQuery[upgradetypes.QueryCurrentPlanResponse](ctx, chainA, &upgradetypes.QueryCurrentPlanRequest{})
+		planResponse, err := query.GRPCQuery[upgradetypes.QueryCurrentPlanResponse](ctx, chainA, &upgradetypes.QueryCurrentPlanRequest{})
 		s.Require().NoError(err)
 
 		plan := planResponse.Plan
@@ -138,11 +139,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	})
 
 	t.Run("ensure legacy proposal does not succeed", func(t *testing.T) {
-		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
 
-		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
+		clientState, err := query.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
 		originalChainID := clientState.(*ibctm.ClientState).ChainId
@@ -312,7 +313,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	})
 
 	t.Run("execute proposal for MsgRecoverClient", func(t *testing.T) {
-		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
 		s.Require().NotNil(recoverClientMsg)
@@ -358,7 +359,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
 		s.Require().NoError(err)
 
-		clientState, err = s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
+		clientState, err = query.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 	})
 
@@ -374,7 +375,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
 		s.Require().NoError(err)
 
-		clientState, err = s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
+		clientState, err = query.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 	})
 
@@ -390,7 +391,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		var validators []*cmtservice.Validator
 
 		t.Run("fetch block header at latest client state height", func(t *testing.T) {
-			headerResp, err := testsuite.GRPCQuery[cmtservice.GetBlockByHeightResponse](ctx, chainB, &cmtservice.GetBlockByHeightRequest{
+			headerResp, err := query.GRPCQuery[cmtservice.GetBlockByHeightResponse](ctx, chainB, &cmtservice.GetBlockByHeightRequest{
 				Height: int64(latestHeight.GetRevisionHeight()),
 			})
 			s.Require().NoError(err)
@@ -399,7 +400,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		})
 
 		t.Run("get validators at latest height", func(t *testing.T) {
-			validators, err = s.GetValidatorSetByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
+			validators, err = query.GetValidatorSetByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
 			s.Require().NoError(err)
 		})
 
@@ -434,7 +435,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("ensure client status is frozen", func(t *testing.T) {
-		status, err := s.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
+		status, err := query.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Frozen.String(), status)
 	})
@@ -469,7 +470,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	allowedClient := ibcexported.Solomachine
 	t.Run("change the allowed client to only allow solomachine clients", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+			authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -493,7 +494,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	})
 
 	t.Run("ensure querying non-allowed client's status returns Unauthorized Status", func(t *testing.T) {
-		status, err := s.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
+		status, err := query.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Unauthorized.String(), status)
 	})

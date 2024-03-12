@@ -1,80 +1,30 @@
-package testsuite
+package query
 
 import (
 	"context"
 	"fmt"
 	"sort"
-	"strings"
 
 	"cosmossdk.io/math"
+
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-
-	"github.com/cosmos/gogoproto/proto"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
-
-// Queries the chain with a query request and deserializes the response to T
-func GRPCQuery[T any](ctx context.Context, chain ibc.Chain, req proto.Message, opts ...grpc.CallOption) (*T, error) {
-	path, err := getProtoPath(req)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create a connection to the gRPC server.
-	grpcConn, err := grpc.Dial(
-		chain.GetHostGRPCAddress(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	defer grpcConn.Close()
-
-	resp := new(T)
-	err = grpcConn.Invoke(ctx, path, req, resp, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-func getProtoPath(req proto.Message) (string, error) {
-	typeURL := "/" + proto.MessageName(req)
-
-	queryIndex := strings.Index(typeURL, "Query")
-	if queryIndex == -1 {
-		return "", fmt.Errorf("invalid typeURL: %s", typeURL)
-	}
-
-	// Add to the index to account for the length of "Query"
-	queryIndex += len("Query")
-
-	// Add a slash before the query
-	urlWithSlash := typeURL[:queryIndex] + "/" + typeURL[queryIndex:]
-	if !strings.HasSuffix(urlWithSlash, "Request") {
-		return "", fmt.Errorf("invalid typeURL: %s", typeURL)
-	}
-
-	return strings.TrimSuffix(urlWithSlash, "Request"), nil
-}
 
 // QueryModuleAccountAddress returns the address of the given module on the given chain.
 // Added because interchaintest's method doesn't work.
-func (*E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chain) (sdk.AccAddress, error) {
+func QueryModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chain) (sdk.AccAddress, error) {
 	modAccResp, err := GRPCQuery[authtypes.QueryModuleAccountByNameResponse](
 		ctx, chain, &authtypes.QueryModuleAccountByNameRequest{Name: moduleName},
 	)
@@ -101,7 +51,7 @@ func (*E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName s
 }
 
 // QueryClientState queries the client state on the given chain for the provided clientID.
-func (*E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexported.ClientState, error) {
+func QueryClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexported.ClientState, error) {
 	clientStateResp, err := GRPCQuery[clienttypes.QueryClientStateResponse](ctx, chain, &clienttypes.QueryClientStateRequest{
 		ClientId: ibctesting.FirstClientID,
 	})
@@ -120,7 +70,7 @@ func (*E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, clie
 }
 
 // QueryClientStatus queries the status of the client by clientID
-func (*E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
+func QueryClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
 	clientStatusResp, err := GRPCQuery[clienttypes.QueryClientStatusResponse](ctx, chain, &clienttypes.QueryClientStatusRequest{
 		ClientId: clientID,
 	})
@@ -133,7 +83,7 @@ func (*E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, cli
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
 // are sorted by address.
-func (*E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*cmtservice.Validator, error) {
+func GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*cmtservice.Validator, error) {
 	res, err := GRPCQuery[cmtservice.GetValidatorSetByHeightResponse](ctx, chain, &cmtservice.GetValidatorSetByHeightRequest{
 		Height: int64(height),
 	})
@@ -149,7 +99,7 @@ func (*E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chai
 }
 
 // QueryBalance returns the balance of a specific denomination for a given account by address.
-func (*E2ETestSuite) QueryBalance(ctx context.Context, chain ibc.Chain, address string, denom string) (math.Int, error) {
+func QueryBalance(ctx context.Context, chain ibc.Chain, address string, denom string) (math.Int, error) {
 	res, err := GRPCQuery[banktypes.QueryBalanceResponse](ctx, chain, &banktypes.QueryBalanceRequest{
 		Address: address,
 		Denom:   denom,
@@ -162,12 +112,11 @@ func (*E2ETestSuite) QueryBalance(ctx context.Context, chain ibc.Chain, address 
 }
 
 // QueryChannel queries the channel on a given chain for the provided portID and channelID
-func (s *E2ETestSuite) QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.Channel, error) {
+func QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.Channel, error) {
 	res, err := GRPCQuery[channeltypes.QueryChannelResponse](ctx, chain, &channeltypes.QueryChannelRequest{
 		PortId:    portID,
 		ChannelId: channelID,
 	})
-
 	if err != nil {
 		return channeltypes.Channel{}, err
 	}
@@ -176,7 +125,7 @@ func (s *E2ETestSuite) QueryChannel(ctx context.Context, chain ibc.Chain, portID
 }
 
 // QueryCounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
-func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
+func QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
 	res, err := GRPCQuery[feetypes.QueryCounterpartyPayeeResponse](ctx, chain, &feetypes.QueryCounterpartyPayeeRequest{
 		ChannelId: channelID,
 		Relayer:  relayerAddress,
@@ -189,7 +138,7 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 }
 
 // QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
-func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
+func QueryIncentivizedPacketsForChannel(
 	ctx context.Context,
 	chain ibc.Chain,
 	portID,
@@ -207,7 +156,7 @@ func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 }
 
 // QueryFeeEnabledChannel queries the fee-enabled status of a channel.
-func (s *E2ETestSuite) QueryFeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (bool, error) {
+func QueryFeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (bool, error) {
 	res, err := GRPCQuery[feetypes.QueryFeeEnabledChannelResponse](ctx, chain, &feetypes.QueryFeeEnabledChannelRequest{
 		PortId:    portID,
 		ChannelId: channelID,
@@ -217,4 +166,42 @@ func (s *E2ETestSuite) QueryFeeEnabledChannel(ctx context.Context, chain ibc.Cha
 		return false, err
 	}
 	return res.FeeEnabled, nil
+}
+
+// QueryTotalEscrowForDenom queries the total amount of tokens in escrow for a denom
+func QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (sdk.Coin, error) {
+	res, err := GRPCQuery[transfertypes.QueryTotalEscrowForDenomResponse](ctx, chain, &transfertypes.QueryTotalEscrowForDenomRequest{
+		Denom: denom,
+	})
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
+	return res.Amount, nil
+}
+
+// QueryPacketAcknowledgements queries the packet acknowledgements on the given chain for the provided channel (optional) list of packet commitment sequences.
+func QueryPacketAcknowledgements(ctx context.Context, chain ibc.Chain, portID, channelID string, packetCommitmentSequences []uint64) ([]*channeltypes.PacketState, error) {
+	res, err := GRPCQuery[channeltypes.QueryPacketAcknowledgementsResponse](ctx, chain, &channeltypes.QueryPacketAcknowledgementsRequest{
+		PortId:                    portID,
+		ChannelId:                 channelID,
+		PacketCommitmentSequences: packetCommitmentSequences,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Acknowledgements, nil
+}
+
+// QueryUpgradeError queries the upgrade error on the given chain for the provided channel.
+func QueryUpgradeError(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.ErrorReceipt, error) {
+	res, err := GRPCQuery[channeltypes.QueryUpgradeErrorResponse](ctx, chain, &channeltypes.QueryUpgradeErrorRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+	if err != nil {
+		return channeltypes.ErrorReceipt{}, err
+	}
+	return res.ErrorReceipt, nil
 }

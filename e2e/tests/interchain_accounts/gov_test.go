@@ -20,6 +20,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
@@ -48,7 +49,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBAccount.FormattedAddress()
 
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	govModuleAddress, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -67,7 +68,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	var interchainAccAddr string
 	t.Run("verify interchain account registration success", func(t *testing.T) {
 		var err error
-		interchainAccAddr, err = s.QueryInterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
+		interchainAccAddr, err = QueryInterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddr))
 
@@ -109,10 +110,10 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := query.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			_, err = s.QueryBalance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
+			_, err = query.QueryBalance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount

@@ -14,6 +14,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -80,7 +81,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
-		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		chA, err := query.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
 		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
@@ -95,21 +96,21 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
 		// packet from chain A to chain B
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
-		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
 
 		// packet from chain B to chain A
 		s.AssertPacketRelayed(ctx, chainB, channelB.PortID, channelB.ChannelID, 1)
-		actualBalance, err = s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+		actualBalance, err = query.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 		s.Require().NoError(err)
 		expected = testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		channel, err := query.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
 		// check the channel version include the fee version
@@ -118,13 +119,13 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
-		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		feeEnabled, err := query.QueryFeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(true, feeEnabled)
 	})
 
 	t.Run("verify channel B upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		channel, err := query.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 
 		// check the channel version include the fee version
@@ -133,14 +134,14 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
-		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		feeEnabled, err := query.QueryFeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(true, feeEnabled)
 	})
 
 	t.Run("prune packet acknowledgements", func(t *testing.T) {
 		// there should be one ack for the packet that we sent before the upgrade
-		acks, err := s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		acks, err := query.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
 		s.Require().NoError(err)
 		s.Require().Len(acks, 1)
 		s.Require().Equal(uint64(1), acks[0].Sequence)
@@ -149,7 +150,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.AssertTxSuccess(pruneAcksTxResponse)
 
 		// after pruning there should not be any acks
-		acks, err = s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		acks, err = query.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
 		s.Require().NoError(err)
 		s.Require().Empty(acks)
 	})
@@ -177,7 +178,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.AssertTxSuccess(resp)
 
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
+		address, err := query.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
@@ -188,7 +189,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 
 	t.Run("send incentivized transfer packet", func(t *testing.T) {
 		// before adding fees for the packet, there should not be incentivized packets
-		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 
@@ -201,13 +202,13 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 	})
 
 	t.Run("tokens are received by walletB", func(t *testing.T) {
-		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		// walletB has received two IBC transfers of value testvalues.IBCTransferAmount since the start of the test.
@@ -269,7 +270,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			chA, err := query.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
 		}()
@@ -277,7 +278,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			chB, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+			chB, err := query.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 			s.Require().NoError(err)
 			s.InitiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.CreateUpgradeFields(chB))
 		}()
@@ -293,7 +294,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		channel, err := query.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
 		// check the channel version include the fee version
@@ -302,13 +303,13 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
-		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		feeEnabled, err := query.QueryFeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(true, feeEnabled)
 	})
 
 	t.Run("verify channel B upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		channel, err := query.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 
 		// check the channel version include the fee version
@@ -317,7 +318,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
-		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		feeEnabled, err := query.QueryFeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(true, feeEnabled)
 	})
@@ -342,7 +343,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
-		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		chA, err := query.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
 		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
@@ -355,26 +356,26 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("verify channel A did not upgrade", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		channel, err := query.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
 		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-1")
 
-		errorReceipt, err := s.QueryUpgradeError(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		errorReceipt, err := query.QueryUpgradeError(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(uint64(1), errorReceipt.Sequence)
 		s.Require().Contains(errorReceipt.Message, "restored channel to pre-upgrade state")
 	})
 
 	t.Run("verify channel B did not upgrade", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		channel, err := query.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
 		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-1")
 
-		errorReceipt, err := s.QueryUpgradeError(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		errorReceipt, err := query.QueryUpgradeError(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(uint64(1), errorReceipt.Sequence)
 		s.Require().Contains(errorReceipt.Message, "restored channel to pre-upgrade state")

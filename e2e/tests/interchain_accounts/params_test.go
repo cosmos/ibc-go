@@ -13,6 +13,7 @@ import (
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
@@ -31,7 +32,7 @@ type InterchainAccountsParamsTestSuite struct {
 
 // QueryControllerParams queries the params for the controller
 func (s *InterchainAccountsParamsTestSuite) QueryControllerParams(ctx context.Context, chain ibc.Chain) controllertypes.Params {
-	res, err := testsuite.GRPCQuery[controllertypes.QueryParamsResponse](ctx, chain, &controllertypes.QueryParamsRequest{})
+	res, err := query.GRPCQuery[controllertypes.QueryParamsResponse](ctx, chain, &controllertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 
 	return *res.Params
@@ -39,7 +40,7 @@ func (s *InterchainAccountsParamsTestSuite) QueryControllerParams(ctx context.Co
 
 // QueryHostParams queries the host chain for the params
 func (s *InterchainAccountsParamsTestSuite) QueryHostParams(ctx context.Context, chain ibc.Chain) hosttypes.Params {
-	res, err := testsuite.GRPCQuery[hosttypes.QueryParamsResponse](ctx, chain, &hosttypes.QueryParamsRequest{})
+	res, err := query.GRPCQuery[hosttypes.QueryParamsResponse](ctx, chain, &hosttypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 
 	return *res.Params
@@ -67,7 +68,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 
 	t.Run("disable the controller", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+			authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -124,7 +125,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 
 	t.Run("disable the host", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainBVersion) {
-			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
+			authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
