@@ -229,7 +229,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 	}
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllGenesisClients() {
 	clientIDs := []string{
 		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
 	}
@@ -252,7 +252,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this
 	suite.Require().Equal(expGenClients.Sort(), genClients)
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllGenesisMetadata() {
 	clientA, clientB := "07-tendermint-1", "clientB"
 
 	// create some starting state
@@ -308,7 +308,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // thi
 	})
 }
 
-func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetConsensusState() {
 	suite.ctx = suite.ctx.WithBlockHeight(10)
 	cases := []struct {
 		name    string
@@ -336,7 +336,7 @@ func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is
 
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
 // and a consensus state at the update height.
-func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllConsensusStates() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
@@ -385,7 +385,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
 }
 
-func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestIterateClientStates() {
 	paths := []*ibctesting.Path{
 		ibctesting.NewPath(suite.chainA, suite.chainB),
 		ibctesting.NewPath(suite.chainA, suite.chainB),
