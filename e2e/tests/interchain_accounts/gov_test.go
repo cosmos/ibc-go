@@ -68,7 +68,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	var interchainAccAddr string
 	t.Run("verify interchain account registration success", func(t *testing.T) {
 		var err error
-		interchainAccAddr, err = QueryInterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
+		interchainAccAddr, err = query.InterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccAddr))
 

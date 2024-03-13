@@ -42,19 +42,6 @@ type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// QueryInterchainAccount queries the interchain account for the given owner and connectionID.
-func QueryInterchainAccount(ctx context.Context, chain ibc.Chain, address, connectionID string) (string, error) {
-	res, err := query.GRPCQuery[controllertypes.QueryInterchainAccountResponse](ctx, chain, &controllertypes.QueryInterchainAccountRequest{
-		Owner:        address,
-		ConnectionId: connectionID,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return res.Address, nil
-}
-
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
 	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
@@ -100,7 +87,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
+		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
@@ -199,7 +186,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
+		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
@@ -297,7 +284,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
+		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 

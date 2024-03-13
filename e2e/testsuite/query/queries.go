@@ -14,12 +14,12 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // ModuleAccountAddress returns the address of the given module on the given chain.
@@ -53,7 +53,7 @@ func ModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chai
 // ClientState queries the client state on the given chain for the provided clientID.
 func ClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexported.ClientState, error) {
 	clientStateResp, err := GRPCQuery[clienttypes.QueryClientStateResponse](ctx, chain, &clienttypes.QueryClientStateRequest{
-		ClientId: ibctesting.FirstClientID,
+		ClientId: clientID,
 	})
 	if err != nil {
 		return nil, err
@@ -79,7 +79,6 @@ func ClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string
 	if err != nil {
 		return "", err
 	}
-
 	return clientStatusResp.Status, nil
 }
 
@@ -109,7 +108,6 @@ func Balance(ctx context.Context, chain ibc.Chain, address string, denom string)
 	if err != nil {
 		return math.Int{}, err
 	}
-
 	return res.Balance.Amount, nil
 }
 
@@ -122,7 +120,6 @@ func Channel(ctx context.Context, chain ibc.Chain, portID, channelID string) (ch
 	if err != nil {
 		return channeltypes.Channel{}, err
 	}
-
 	return *res.Channel, nil
 }
 
@@ -135,7 +132,6 @@ func CounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, cha
 	if err != nil {
 		return "", err
 	}
-
 	return res.CounterpartyPayee, nil
 }
 
@@ -176,7 +172,6 @@ func TotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (sd
 	if err != nil {
 		return sdk.Coin{}, err
 	}
-
 	return res.Amount, nil
 }
 
@@ -190,7 +185,6 @@ func PacketAcknowledgements(ctx context.Context, chain ibc.Chain, portID, channe
 	if err != nil {
 		return nil, err
 	}
-
 	return res.Acknowledgements, nil
 }
 
@@ -204,4 +198,16 @@ func UpgradeError(ctx context.Context, chain ibc.Chain, portID, channelID string
 		return channeltypes.ErrorReceipt{}, err
 	}
 	return res.ErrorReceipt, nil
+}
+
+// InterchainAccount queries the interchain account for the given owner and connectionID.
+func InterchainAccount(ctx context.Context, chain ibc.Chain, address, connectionID string) (string, error) {
+	res, err := GRPCQuery[controllertypes.QueryInterchainAccountResponse](ctx, chain, &controllertypes.QueryInterchainAccountRequest{
+		Owner:        address,
+		ConnectionId: connectionID,
+	})
+	if err != nil {
+		return "", err
+	}
+	return res.Address, nil
 }
