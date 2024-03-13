@@ -339,15 +339,12 @@ func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wall
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
 // The packet commitment will be deleted upon a packet acknowledgement or timeout.
 func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) {
-	commitmentResp, err := query.GRPCQuery[channeltypes.QueryPacketCommitmentResponse](ctx, chain, &channeltypes.QueryPacketCommitmentRequest{
+	_, err := query.GRPCQuery[channeltypes.QueryPacketCommitmentResponse](ctx, chain, &channeltypes.QueryPacketCommitmentRequest{
 		PortId:    portID,
 		ChannelId: channelID,
 		Sequence:  sequence,
 	})
 	s.Require().ErrorContains(err, "packet commitment hash not found")
-
-	commitment := commitmentResp.Commitment
-	s.Require().Empty(commitment)
 }
 
 // AssertHumanReadableDenom asserts that a human readable denom is present for a given chain.
