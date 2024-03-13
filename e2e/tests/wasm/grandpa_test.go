@@ -25,6 +25,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -85,8 +86,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
 		options.SkipPathCreation = true
 	})
-
-	s.InitGRPCClients(cosmosChain)
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
@@ -238,8 +237,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 		options.SkipPathCreation = true
 	})
 
-	s.InitGRPCClients(cosmosChain)
-
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
@@ -352,8 +349,6 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 		options.SkipPathCreation = true
 	})
 
-	s.InitGRPCClients(cosmosChain)
-
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
@@ -408,7 +403,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 
 	s.ExecuteAndPassGovV1Proposal(ctx, message, cosmosChain, cosmosWallet)
 
-	clientState, err := s.QueryClientState(ctx, cosmosChain, defaultWasmClientID)
+	clientState, err := query.QueryClientState(ctx, cosmosChain, defaultWasmClientID)
 	s.Require().NoError(err)
 
 	wasmClientState, ok := clientState.(*wasmtypes.ClientState)
@@ -438,8 +433,6 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
 		options.SkipPathCreation = true
 	})
-
-	s.InitGRPCClients(cosmosChain)
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
@@ -531,8 +524,6 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 		options.SkipPathCreation = true
 	})
 
-	s.InitGRPCClients(cosmosChain)
-
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw_expiry.wasm.gz")
@@ -583,19 +574,19 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// ensure subject client is expired
-	status, err := s.clientStatus(ctx, cosmosChain, subjectClientID)
+	status, err := query.QueryClientStatus(ctx, cosmosChain, subjectClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Expired.String(), status, "unexpected subject client status")
 
 	// ensure substitute client is active
-	status, err = s.clientStatus(ctx, cosmosChain, substituteClientID)
+	status, err = query.QueryClientStatus(ctx, cosmosChain, substituteClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Active.String(), status, "unexpected substitute client status")
 
 	version := cosmosChain.Nodes()[0].Image.Version
 	if govV1FeatureReleases.IsSupported(version) {
 		// create and execute a client recovery proposal
-		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
+		authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
 		s.Require().NoError(err)
 
 		msgRecoverClient := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
@@ -607,12 +598,12 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	}
 
 	// ensure subject client is active
-	status, err = s.clientStatus(ctx, cosmosChain, subjectClientID)
+	status, err = query.QueryClientStatus(ctx, cosmosChain, subjectClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Active.String(), status)
 
 	// ensure substitute client is active
-	status, err = s.clientStatus(ctx, cosmosChain, substituteClientID)
+	status, err = query.QueryClientStatus(ctx, cosmosChain, substituteClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Active.String(), status)
 }
@@ -641,26 +632,15 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 
 	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
 
-	checksumBz, err := s.QueryWasmCode(ctx, chain, computedChecksum)
+	codeResp, err := query.GRPCQuery[wasmtypes.QueryCodeResponse](ctx, chain, &wasmtypes.QueryCodeRequest{Checksum: computedChecksum})
 	s.Require().NoError(err)
 
+	checksumBz := codeResp.Data
 	checksum32 := sha256.Sum256(checksumBz)
 	actualChecksum := hex.EncodeToString(checksum32[:])
 	s.Require().Equal(computedChecksum, actualChecksum, "checksum returned from query did not match the computed checksum")
 
 	return actualChecksum
-}
-
-func (s *GrandpaTestSuite) clientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
-	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
-	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
-		ClientId: clientID,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return res.Status, nil
 }
 
 func (s *GrandpaTestSuite) fundUsers(ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
