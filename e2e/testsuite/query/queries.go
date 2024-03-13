@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sort"
 
-	"cosmossdk.io/math"
-
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,11 +15,11 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 // QueryModuleAccountAddress returns the address of the given module on the given chain.
@@ -128,7 +128,7 @@ func QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string
 func QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
 	res, err := GRPCQuery[feetypes.QueryCounterpartyPayeeResponse](ctx, chain, &feetypes.QueryCounterpartyPayeeRequest{
 		ChannelId: channelID,
-		Relayer:  relayerAddress,
+		Relayer:   relayerAddress,
 	})
 	if err != nil {
 		return "", err
@@ -148,7 +148,6 @@ func QueryIncentivizedPacketsForChannel(
 		PortId:    portID,
 		ChannelId: channelID,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +160,6 @@ func QueryFeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channe
 		PortId:    portID,
 		ChannelId: channelID,
 	})
-
 	if err != nil {
 		return false, err
 	}

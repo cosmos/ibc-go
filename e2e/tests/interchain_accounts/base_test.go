@@ -45,7 +45,7 @@ type InterchainAccountsTestSuite struct {
 // QueryInterchainAccount queries the interchain account for the given owner and connectionID.
 func QueryInterchainAccount(ctx context.Context, chain ibc.Chain, address, connectionID string) (string, error) {
 	res, err := query.GRPCQuery[controllertypes.QueryInterchainAccountResponse](ctx, chain, &controllertypes.QueryInterchainAccountRequest{
-		Owner:      address,
+		Owner:        address,
 		ConnectionId: connectionID,
 	})
 	if err != nil {

@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/cosmos/gogoproto/proto"
 )
 
 // Queries the chain with a query request and deserializes the response to T

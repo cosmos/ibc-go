@@ -114,7 +114,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	t.Run("ics27: verify interchain account", func(t *testing.T) {
 		res, err := query.GRPCQuery[controllertypes.QueryInterchainAccountResponse](ctx, chainA, &controllertypes.QueryInterchainAccountRequest{
-			Owner:      controllerAddress,
+			Owner:        controllerAddress,
 			ConnectionId: ibctesting.FirstConnectionID,
 		})
 		s.Require().NoError(err)
