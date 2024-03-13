@@ -344,7 +344,7 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain ibc.Chain,
 		ChannelId: channelID,
 		Sequence:  sequence,
 	})
-	s.Require().NoError(err)
+	s.Require().ErrorContains(err, "packet commitment hash not found")
 
 	commitment := commitmentResp.Commitment
 	s.Require().Empty(commitment)
