@@ -361,7 +361,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		s.Require().True(ok)
 
-		trustedHeight := tmClientState.LatestHeight
+		trustedHeight = tmClientState.LatestHeight
 		s.Require().True(trustedHeight.GT(clienttypes.ZeroHeight()))
 	})
 
@@ -377,7 +377,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		s.Require().True(ok)
 
-		latestHeight := tmClientState.LatestHeight
+		latestHeight = tmClientState.LatestHeight
 		s.Require().True(latestHeight.GT(clienttypes.ZeroHeight()))
 	})
 
