@@ -303,9 +303,15 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 	}
 }
 
-func (suite *LocalhostTestSuite) TestVerifyUpgradeAndUpdateState() {
-	suite.SetupTest()
+func (suite *LocalhostTestSuite) TestRecoverClient() {
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
+	suite.Require().True(found)
 
+	err := lightClientModule.RecoverClient(suite.chain.GetContext(), exported.LocalhostClientID, exported.LocalhostClientID)
+	suite.Require().Error(err)
+}
+
+func (suite *LocalhostTestSuite) TestVerifyUpgradeAndUpdateState() {
 	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
 	suite.Require().True(found)
 

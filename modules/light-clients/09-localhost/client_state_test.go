@@ -119,9 +119,3 @@ func (suite *LocalhostTestSuite) TestUpdateState() {
 	clientState = suite.chain.GetClientState(exported.LocalhostClientID).(*localhost.ClientState)
 	suite.Require().True(heights[0].EQ(clientState.LatestHeight))
 }
-
-func (suite *LocalhostTestSuite) TestCheckSubstituteAndUpdateState() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	err := clientState.CheckSubstituteAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil)
-	suite.Require().Error(err)
-}

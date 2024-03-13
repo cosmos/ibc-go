@@ -160,9 +160,3 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	return []exported.Height{height}
 }
-
-// CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by
-// proposals.
-func (ClientState) CheckSubstituteAndUpdateState(_ sdk.Context, _ codec.BinaryCodec, _, _ storetypes.KVStore, _ exported.ClientState) error {
-	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
-}

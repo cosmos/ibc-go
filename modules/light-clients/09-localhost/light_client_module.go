@@ -161,11 +161,7 @@ func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) export
 
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
-func (LightClientModule) TimestampAtHeight(
-	ctx sdk.Context,
-	clientID string,
-	height exported.Height,
-) (uint64, error) {
+func (LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
@@ -175,13 +171,6 @@ func (LightClientModule) RecoverClient(_ sdk.Context, _, _ string) error {
 }
 
 // VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded.
-func (LightClientModule) VerifyUpgradeAndUpdateState(
-	ctx sdk.Context,
-	clientID string,
-	newClient []byte,
-	newConsState []byte,
-	upgradeClientProof,
-	upgradeConsensusStateProof []byte,
-) error {
+func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient, newConsState, upgradeClientProof, upgradeConsensusStateProof []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }
