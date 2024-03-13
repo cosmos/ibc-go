@@ -41,25 +41,44 @@ func GRPCQuery[T any](ctx context.Context, chain ibc.Chain, req proto.Message, o
 func getProtoPath(req proto.Message) (string, error) {
 	typeURL := "/" + proto.MessageName(req)
 
-	serviceString := "Query"
-	// If the typeURL does not contain "Query", try "Service"
-	if !strings.Contains(typeURL, serviceString) {
-		// This exception is added for cmttypes
-		serviceString = "Service"
+	switch {
+	case strings.Contains(typeURL, "Query"):
+		return getQueryProtoPath(typeURL)
+	case strings.Contains(typeURL, "cosmos.base.tendermint"):
+		return getCmtProtoPath(typeURL)
+	default:
+		return "", fmt.Errorf("unsupported typeURL: %s", typeURL)
 	}
+}
 
-	queryIndex := strings.Index(typeURL, serviceString)
+func getQueryProtoPath(queryTypeURL string) (string, error) {
+	queryIndex := strings.Index(queryTypeURL, "Query")
 	if queryIndex == -1 {
-		return "", fmt.Errorf("invalid typeURL: %s", typeURL)
+		return "", fmt.Errorf("invalid typeURL: %s", queryTypeURL)
 	}
 
 	// Add to the index to account for the length of "Query"
-	queryIndex += len(serviceString)
+	queryIndex += len("Query")
 
 	// Add a slash before the query
-	urlWithSlash := typeURL[:queryIndex] + "/" + typeURL[queryIndex:]
+	urlWithSlash := queryTypeURL[:queryIndex] + "/" + queryTypeURL[queryIndex:]
 	if !strings.HasSuffix(urlWithSlash, "Request") {
-		return "", fmt.Errorf("invalid typeURL: %s", typeURL)
+		return "", fmt.Errorf("invalid typeURL: %s", queryTypeURL)
+	}
+
+	return strings.TrimSuffix(urlWithSlash, "Request"), nil
+}
+
+func getCmtProtoPath(cmtTypeURL string) (string, error) {
+	cmtIndex := strings.Index(cmtTypeURL, "Get")
+	if cmtIndex == -1 {
+		return "", fmt.Errorf("invalid typeURL: %s", cmtTypeURL)
+	}
+
+	// Add a slash before the commitment
+	urlWithSlash := cmtTypeURL[:cmtIndex] + "Service/" + cmtTypeURL[cmtIndex:]
+	if !strings.HasSuffix(urlWithSlash, "Request") {
+		return "", fmt.Errorf("invalid typeURL: %s", cmtTypeURL)
 	}
 
 	return strings.TrimSuffix(urlWithSlash, "Request"), nil
