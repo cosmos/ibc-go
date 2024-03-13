@@ -36,12 +36,12 @@ Clients may also store any necessary client-specific metadata.
 ## `VerifyMembership` method
 
 `VerifyMembership` must verify the existence of a value at a given commitment path at the specified height. For more information about membership proofs
-see the [Existence and non-existence proofs section](06-proofs.md).
+see the [Existence and non-existence proofs section](07-proofs.md).
 
 ## `VerifyNonMembership` method
 
 `VerifyNonMembership` must verify the absence of a value at a given commitment path at a specified height. For more information about non-membership proofs
-see the [Existence and non-existence proofs section](06-proofs.md).
+see the [Existence and non-existence proofs section](07-proofs.md).
 
 ## `VerifyClientMessage` method
 
