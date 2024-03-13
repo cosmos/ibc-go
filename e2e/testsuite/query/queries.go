@@ -61,7 +61,9 @@ func ClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexpo
 
 	clientStateAny := clientStateResp.ClientState
 
-	clientState, err := clienttypes.UnpackClientState(clientStateAny)
+	cfg := chain.Config().EncodingConfig
+	var clientState ibcexported.ClientState
+	err = cfg.InterfaceRegistry.UnpackAny(clientStateAny, &clientState)
 	if err != nil {
 		return nil, err
 	}
