@@ -24,6 +24,7 @@ ADD LICENSE LICENSE
 
 COPY go.mod .
 COPY go.sum .
+COPY ../../../api /go/api
 
 WORKDIR /go/modules/light-clients/08-wasm
 
