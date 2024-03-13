@@ -45,6 +45,7 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 		Subspace: ibcexported.ModuleName,
 		Key:      string(connectiontypes.KeyMaxExpectedTimePerBlock),
 	})
+	s.Require().NoError(err)
 
 	// removing additional strings that are used for amino
 	delay := strings.ReplaceAll(res.Param.Value, "\"", "")

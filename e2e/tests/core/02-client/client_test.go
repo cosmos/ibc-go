@@ -52,18 +52,6 @@ type ClientTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// Status queries the current status of the client
-func (s *ClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
-	res, err := query.GRPCQuery[clienttypes.QueryClientStatusResponse](ctx, chain, &clienttypes.QueryClientStatusRequest{
-		ClientId: clientID,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return res.Status, nil
-}
-
 // QueryAllowedClients queries the on-chain AllowedClients parameter for 02-client
 func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Chain) []string {
 	res, err := query.GRPCQuery[clienttypes.QueryClientParamsResponse](ctx, chain, &clienttypes.QueryClientParamsRequest{})
@@ -217,13 +205,13 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 
 	t.Run("check status of each client", func(t *testing.T) {
 		t.Run("substitute should be active", func(t *testing.T) {
-			status, err := s.Status(ctx, chainA, substituteClientID)
+			status, err := query.ClientStatus(ctx, chainA, substituteClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
 
 		t.Run("subject should be expired", func(t *testing.T) {
-			status, err := s.Status(ctx, chainA, subjectClientID)
+			status, err := query.ClientStatus(ctx, chainA, subjectClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Expired.String(), status)
 		})
@@ -236,13 +224,13 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 
 	t.Run("check status of each client", func(t *testing.T) {
 		t.Run("substitute should be active", func(t *testing.T) {
-			status, err := s.Status(ctx, chainA, substituteClientID)
+			status, err := query.ClientStatus(ctx, chainA, substituteClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
 
 		t.Run("subject should be active", func(t *testing.T) {
-			status, err := s.Status(ctx, chainA, subjectClientID)
+			status, err := query.ClientStatus(ctx, chainA, subjectClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
@@ -300,13 +288,13 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 
 	t.Run("check status of each client", func(t *testing.T) {
 		t.Run("substitute should be active", func(t *testing.T) {
-			status, err := s.Status(ctx, chainA, substituteClientID)
+			status, err := query.ClientStatus(ctx, chainA, substituteClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
 
 		t.Run("subject should be expired", func(t *testing.T) {
-			status, err := s.Status(ctx, chainA, subjectClientID)
+			status, err := query.ClientStatus(ctx, chainA, subjectClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Expired.String(), status)
 		})
@@ -322,13 +310,13 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 
 	t.Run("check status of each client", func(t *testing.T) {
 		t.Run("substitute should be active", func(t *testing.T) {
-			status, err := s.Status(ctx, chainA, substituteClientID)
+			status, err := query.ClientStatus(ctx, chainA, substituteClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
 
 		t.Run("subject should be active", func(t *testing.T) {
-			status, err := s.Status(ctx, chainA, subjectClientID)
+			status, err := query.ClientStatus(ctx, chainA, subjectClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
