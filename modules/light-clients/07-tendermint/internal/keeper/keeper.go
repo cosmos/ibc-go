@@ -16,6 +16,7 @@ type Keeper struct {
 	authority string
 }
 
+// NewKeeper returns a new instance of the Keeper
 func NewKeeper(cdc codec.BinaryCodec, authority string) Keeper {
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
@@ -27,6 +28,7 @@ func NewKeeper(cdc codec.BinaryCodec, authority string) Keeper {
 	}
 }
 
+// Codec returns the codec
 func (k Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
