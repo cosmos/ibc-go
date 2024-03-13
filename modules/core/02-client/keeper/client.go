@@ -67,7 +67,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", clientID)
+		return errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
 	}
 
 	clientModule, found := k.router.GetRoute(clientID)
@@ -133,7 +133,7 @@ func (k Keeper) UpgradeClient(
 
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", clientID)
+		return errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
 	}
 
 	clientModule, found := k.router.GetRoute(clientID)
