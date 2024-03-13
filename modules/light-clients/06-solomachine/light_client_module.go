@@ -85,7 +85,7 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 	return clientState.CheckForMisbehaviour(ctx, l.cdc, clientStore, clientMsg)
 }
 
-// UpdateStateOnMisbehaviour dobtains the client state associated with the client identifier and calls into the clientState.UpdateStateOnMisbehaviour method.
+// UpdateStateOnMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.UpdateStateOnMisbehaviour method.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
 func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
