@@ -20,7 +20,7 @@ type LightClientModule struct {
 	storeProvider exported.ClientStoreProvider
 }
 
-// NewLightClientModule creates and returns a new 08-wasm LightClientModule.
+// NewLightClientModule creates and returns a new 07-tendermint LightClientModule.
 func NewLightClientModule(cdc codec.BinaryCodec, authority string) LightClientModule {
 	return LightClientModule{
 		keeper: keeper.NewKeeper(cdc, authority),
@@ -159,11 +159,11 @@ func (l LightClientModule) VerifyMembership(
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height, // TODO: change to concrete type
+	height exported.Height,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path, // TODO: change to conrete type
+	path exported.Path,
 ) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()

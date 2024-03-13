@@ -135,11 +135,11 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height, // TODO: change to concrete type
+	height exported.Height,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path, // TODO: change to conrete type
+	path exported.Path,
 	value []byte,
 ) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
@@ -160,11 +160,11 @@ func (l LightClientModule) VerifyMembership(
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
-	height exported.Height, // TODO: change to concrete type
+	height exported.Height,
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path, // TODO: change to conrete type
+	path exported.Path,
 ) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
