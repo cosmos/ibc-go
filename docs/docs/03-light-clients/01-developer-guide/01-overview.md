@@ -49,7 +49,7 @@ For example a light client module may need to:
 
 The methods which make up this interface are detailed at a more granular level in the [LightClientModule section of this guide](02-light-client-module.md).
 
-Please refer to the `07-tendermint`'s[`LightClientModule` definition](https://github.com/cosmos/ibc-go/blob/501a8462345da099144efe91d495bfcfa18d760d/modules/light-clients/07-tendermint/light_client_module.go#L17) for more information. 
+Please refer to the `07-tendermint`'s [`LightClientModule` definition](https://github.com/cosmos/ibc-go/blob/501a8462345da099144efe91d495bfcfa18d760d/modules/light-clients/07-tendermint/light_client_module.go#L17) for more information. 
 
 ### `ClientState`
 
