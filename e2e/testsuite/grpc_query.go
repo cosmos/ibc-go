@@ -412,7 +412,7 @@ func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain ibc.Chain, 
 	return grants.Grants, nil
 }
 
-// QueryBalances returns all the balances on the given chain for the provided address.
+// QueryAllBalances returns all the balances on the given chain for the provided address.
 func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
 	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
 	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
