@@ -83,7 +83,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestMsgSendTx_SuccessfulTra
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
-		_, err = query.QueryChannel(ctx, chainA, portID, initialChannelID)
+		_, err = query.Channel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)
 	})
 
@@ -130,21 +130,21 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestMsgSendTx_SuccessfulTra
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		balance, err := query.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance.Int64())
 	})
 
-	channel, err := query.QueryChannel(ctx, chainA, portID, initialChannelID)
+	channel, err := query.Channel(ctx, chainA, portID, initialChannelID)
 	s.Require().NoError(err)
 
 	// upgrade the channel ordering to UNORDERED
 	upgradeFields := channeltypes.NewUpgradeFields(channeltypes.UNORDERED, channel.ConnectionHops, channel.Version)
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
-		govModuleAddress, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(govModuleAddress)
 
@@ -155,7 +155,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestMsgSendTx_SuccessfulTra
 	t.Run("verify channel A upgraded and is now unordered", func(t *testing.T) {
 		var channel channeltypes.Channel
 		waitErr := test.WaitForCondition(time.Minute*2, time.Second*5, func() (bool, error) {
-			channel, err = query.QueryChannel(ctx, chainA, portID, initialChannelID)
+			channel, err = query.Channel(ctx, chainA, portID, initialChannelID)
 			if err != nil {
 				return false, err
 			}
@@ -167,7 +167,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestMsgSendTx_SuccessfulTra
 	t.Run("verify channel B upgraded and is now unordered", func(t *testing.T) {
 		var channel channeltypes.Channel
 		waitErr := test.WaitForCondition(time.Minute*2, time.Second*5, func() (bool, error) {
-			channel, err = query.QueryChannel(ctx, chainB, icatypes.HostPortID, initialChannelID)
+			channel, err = query.Channel(ctx, chainB, icatypes.HostPortID, initialChannelID)
 			if err != nil {
 				return false, err
 			}
@@ -209,7 +209,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestMsgSendTx_SuccessfulTra
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		balance, err := query.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := 2*testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
@@ -269,7 +269,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAccount))
 
-		channelA, err = query.QueryChannel(ctx, chainA, controllerPortID, channelID)
+		channelA, err = query.Channel(ctx, chainA, controllerPortID, channelID)
 		s.Require().NoError(err)
 	})
 
@@ -280,7 +280,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := query.QueryChannel(ctx, chainA, controllerPortID, channelID)
+		channel, err := query.Channel(ctx, chainA, controllerPortID, channelID)
 		s.Require().NoError(err)
 
 		// check the channel version include the fee version
@@ -289,13 +289,13 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
-		feeEnabled, err := query.QueryFeeEnabledChannel(ctx, chainA, controllerPortID, channelID)
+		feeEnabled, err := query.FeeEnabledChannel(ctx, chainA, controllerPortID, channelID)
 		s.Require().NoError(err)
 		s.Require().Equal(true, feeEnabled)
 	})
 
 	t.Run("verify channel B upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := query.QueryChannel(ctx, chainB, hostPortID, channelID)
+		channel, err := query.Channel(ctx, chainB, hostPortID, channelID)
 		s.Require().NoError(err)
 
 		// check the channel version include the fee version
@@ -304,7 +304,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
-		feeEnabled, err := query.QueryFeeEnabledChannel(ctx, chainB, hostPortID, channelID)
+		feeEnabled, err := query.FeeEnabledChannel(ctx, chainB, hostPortID, channelID)
 		s.Require().NoError(err)
 		s.Require().Equal(true, feeEnabled)
 	})
@@ -366,14 +366,14 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 	})
 
 	t.Run("verify channel A is closed due to timeout on ordered channel", func(t *testing.T) {
-		channel, err := query.QueryChannel(ctx, chainA, controllerPortID, channelID)
+		channel, err := query.Channel(ctx, chainA, controllerPortID, channelID)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")
 	})
 
 	t.Run("verify channel B is closed due to timeout on ordered channel", func(t *testing.T) {
-		channel, err := query.QueryChannel(ctx, chainB, hostPortID, channelID)
+		channel, err := query.Channel(ctx, chainB, hostPortID, channelID)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")

@@ -86,11 +86,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	var newChainID string
 
 	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
-		authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
 
-		clientState, err := query.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
+		clientState, err := query.ClientState(ctx, chainB, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
 		originalChainID := clientState.(*ibctm.ClientState).ChainId
@@ -139,11 +139,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	})
 
 	t.Run("ensure legacy proposal does not succeed", func(t *testing.T) {
-		authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
 
-		clientState, err := query.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
+		clientState, err := query.ClientState(ctx, chainB, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
 		originalChainID := clientState.(*ibctm.ClientState).ChainId
@@ -313,7 +313,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	})
 
 	t.Run("execute proposal for MsgRecoverClient", func(t *testing.T) {
-		authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
 		s.Require().NotNil(recoverClientMsg)
@@ -359,7 +359,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
 		s.Require().NoError(err)
 
-		clientState, err = query.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
+		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 	})
 
@@ -375,7 +375,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
 		s.Require().NoError(err)
 
-		clientState, err = query.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
+		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 	})
 
@@ -435,7 +435,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("ensure client status is frozen", func(t *testing.T) {
-		status, err := query.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
+		status, err := query.ClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Frozen.String(), status)
 	})
@@ -470,7 +470,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	allowedClient := ibcexported.Solomachine
 	t.Run("change the allowed client to only allow solomachine clients", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -494,7 +494,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	})
 
 	t.Run("ensure querying non-allowed client's status returns Unauthorized Status", func(t *testing.T) {
-		status, err := query.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
+		status, err := query.ClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Unauthorized.String(), status)
 	})

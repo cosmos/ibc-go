@@ -49,7 +49,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBAccount.FormattedAddress()
 
-	govModuleAddress, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -110,10 +110,10 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := query.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			_, err = query.QueryBalance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
+			_, err = query.Balance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount

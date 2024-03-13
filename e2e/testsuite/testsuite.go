@@ -451,7 +451,7 @@ func (s *E2ETestSuite) CreateUpgradeFields(channel channeltypes.Channel) channel
 // SetUpgradeTimeoutParam creates and submits a governance proposal to execute the message to update 04-channel params with a timeout of 1s
 func (s *E2ETestSuite) SetUpgradeTimeoutParam(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet) {
 	const timeoutDelta = 1000000000 // use 1 second as relative timeout to force upgrade timeout on the counterparty
-	govModuleAddress, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -462,7 +462,7 @@ func (s *E2ETestSuite) SetUpgradeTimeoutParam(ctx context.Context, chain ibc.Cha
 
 // InitiateChannelUpgrade creates and submits a governance proposal to execute the message to initiate a channel upgrade
 func (s *E2ETestSuite) InitiateChannelUpgrade(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, portID, channelID string, upgradeFields channeltypes.UpgradeFields) {
-	govModuleAddress, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 

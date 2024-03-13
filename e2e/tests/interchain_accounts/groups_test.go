@@ -199,14 +199,14 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
-		balance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainB.Config().Denom)
+		balance, err := query.Balance(ctx, chainB, chainBAddress, chainB.Config().Denom)
 
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance.Int64())
 
-		balance, err = query.QueryBalance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
+		balance, err = query.Balance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount

@@ -83,7 +83,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t.Run("change the delay to 60 seconds", func(t *testing.T) {
 		delay := uint64(1 * time.Minute)
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -126,7 +126,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 		t.Run("packets are relayed", func(t *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
-			actualBalance, err := query.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+			actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 
 			s.Require().NoError(err)
 

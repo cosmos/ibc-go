@@ -68,7 +68,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 
 	t.Run("disable the controller", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -125,7 +125,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 
 	t.Run("disable the host", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainBVersion) {
-			authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
+			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 

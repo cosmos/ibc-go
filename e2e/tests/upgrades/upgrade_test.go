@@ -163,7 +163,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
 		s.Require().NoError(err)
 
@@ -191,7 +191,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 2)
-		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
 		s.Require().NoError(err)
 
@@ -210,7 +210,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 		t.Run("packets are relayed", func(t *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
-			actualBalance, err := query.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+			actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 
 			s.Require().NoError(err)
 
@@ -241,7 +241,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("verify tokens sent", func(t *testing.T) {
-		balance, err := query.QueryBalance(ctx, chain, userWalletAddr, chain.Config().Denom)
+		balance, err := query.Balance(ctx, chain, userWalletAddr, chain.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount * 2
@@ -265,7 +265,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("verify tokens sent", func(t *testing.T) {
-		balance, err := query.QueryBalance(ctx, chain, userWalletAddr, chain.Config().Denom)
+		balance, err := query.Balance(ctx, chain, userWalletAddr, chain.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount * 3
@@ -307,11 +307,11 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("check that both tendermint clients are active", func(t *testing.T) {
-		status, err := query.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(0))
+		status, err := query.ClientStatus(ctx, chainA, testvalues.TendermintClientID(0))
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
-		status, err = query.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(1))
+		status, err = query.ClientStatus(ctx, chainA, testvalues.TendermintClientID(1))
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 	})
@@ -346,7 +346,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	s.AssertTxSuccess(resp)
 
 	t.Run("check that the solomachine is now active and that the clientstate is a pre-upgrade v2 solomachine clientstate", func(t *testing.T) {
-		status, err := query.QueryClientStatus(ctx, chainA, testvalues.SolomachineClientID(2))
+		status, err := query.ClientStatus(ctx, chainA, testvalues.SolomachineClientID(2))
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
@@ -377,7 +377,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -401,11 +401,11 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	}
 
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {
-		status, err := query.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(0))
+		status, err := query.ClientStatus(ctx, chainA, testvalues.TendermintClientID(0))
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
-		status, err = query.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(1))
+		status, err = query.ClientStatus(ctx, chainA, testvalues.TendermintClientID(1))
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 	})
@@ -418,7 +418,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount * 2
@@ -472,7 +472,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	t.Run("packet is relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -487,7 +487,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	})
 
 	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
-		status, err := query.QueryClientStatus(ctx, chainA, exported.LocalhostClientID)
+		status, err := query.ClientStatus(ctx, chainA, exported.LocalhostClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
@@ -500,7 +500,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	})
 
 	t.Run("ensure escrow amount for native denom is stored in state", func(t *testing.T) {
-		actualTotalEscrow, err := query.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+		actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 
 		expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
@@ -563,7 +563,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	t.Run("packet is relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -578,7 +578,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	})
 
 	t.Run("update params", func(t *testing.T) {
-		authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
 
@@ -649,7 +649,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 
 	t.Run("pay packet fee", func(t *testing.T) {
 		t.Run("no packet fees in escrow", func(t *testing.T) {
-			packets, err := query.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -664,7 +664,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 		})
 
 		t.Run("query incentivized packets", func(t *testing.T) {
-			packets, err := query.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -693,7 +693,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 		s.Require().Equal(expected, actualBalance)
 
 		// query incentivised packets and assert calculated values are correct
-		packets, err := query.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Len(packets, 1)
 		actualFee := packets[0].PacketFees[0].Fee
@@ -702,7 +702,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 		s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
 		s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 
-		escrowBalance, err := query.QueryBalance(ctx, chainA, authtypes.NewModuleAddress(feetypes.ModuleName).String(), chainADenom)
+		escrowBalance, err := query.Balance(ctx, chainA, authtypes.NewModuleAddress(feetypes.ModuleName).String(), chainADenom)
 		s.Require().NoError(err)
 
 		expected = testFee.Total().AmountOf(chainADenom).Int64()
@@ -718,7 +718,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	t.Run("packet is relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -844,7 +844,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
-		chA, err := query.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		chA, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
 		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
@@ -858,20 +858,20 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 
 	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
 		// packet from chain A to chain B
-		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
 
 		// packet from chain B to chain A
-		actualBalance, err = query.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+		actualBalance, err = query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 		s.Require().NoError(err)
 		expected = testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := query.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
 		// check the channel version include the fee version
@@ -880,13 +880,13 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
-		feeEnabled, err := query.QueryFeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		feeEnabled, err := query.FeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(true, feeEnabled)
 	})
 
 	t.Run("verify channel B upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := query.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		channel, err := query.Channel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 
 		// check the channel version include the fee version
@@ -895,14 +895,14 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
-		feeEnabled, err := query.QueryFeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		feeEnabled, err := query.FeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(true, feeEnabled)
 	})
 
 	t.Run("prune packet acknowledgements", func(t *testing.T) {
 		// there should be one ack for the packet that we sent before the upgrade
-		acks, err := query.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		acks, err := query.PacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
 		s.Require().NoError(err)
 		s.Require().Len(acks, 1)
 		s.Require().Equal(uint64(1), acks[0].Sequence)
@@ -911,7 +911,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 		s.AssertTxSuccess(pruneAcksTxResponse)
 
 		// after pruning there should not be any acks
-		acks, err = query.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		acks, err = query.PacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
 		s.Require().NoError(err)
 		s.Require().Empty(acks)
 	})
@@ -939,7 +939,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.AssertTxSuccess(resp)
 
-		address, err := query.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
+		address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
@@ -950,7 +950,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 
 	t.Run("send incentivized transfer packet", func(t *testing.T) {
 		// before adding fees for the packet, there should not be incentivized packets
-		packets, err := query.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 
@@ -972,13 +972,13 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		packets, err := query.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 	})
 
 	t.Run("tokens are received by walletB", func(t *testing.T) {
-		actualBalance, err := query.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		// walletB has received two IBC transfers of value testvalues.IBCTransferAmount since the start of the test.

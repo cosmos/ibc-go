@@ -403,7 +403,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 
 	s.ExecuteAndPassGovV1Proposal(ctx, message, cosmosChain, cosmosWallet)
 
-	clientState, err := query.QueryClientState(ctx, cosmosChain, defaultWasmClientID)
+	clientState, err := query.ClientState(ctx, cosmosChain, defaultWasmClientID)
 	s.Require().NoError(err)
 
 	wasmClientState, ok := clientState.(*wasmtypes.ClientState)
@@ -574,19 +574,19 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// ensure subject client is expired
-	status, err := query.QueryClientStatus(ctx, cosmosChain, subjectClientID)
+	status, err := query.ClientStatus(ctx, cosmosChain, subjectClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Expired.String(), status, "unexpected subject client status")
 
 	// ensure substitute client is active
-	status, err = query.QueryClientStatus(ctx, cosmosChain, substituteClientID)
+	status, err = query.ClientStatus(ctx, cosmosChain, substituteClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Active.String(), status, "unexpected substitute client status")
 
 	version := cosmosChain.Nodes()[0].Image.Version
 	if govV1FeatureReleases.IsSupported(version) {
 		// create and execute a client recovery proposal
-		authority, err := query.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
 		s.Require().NoError(err)
 
 		msgRecoverClient := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
@@ -598,12 +598,12 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	}
 
 	// ensure subject client is active
-	status, err = query.QueryClientStatus(ctx, cosmosChain, subjectClientID)
+	status, err = query.ClientStatus(ctx, cosmosChain, subjectClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Active.String(), status)
 
 	// ensure substitute client is active
-	status, err = query.QueryClientStatus(ctx, cosmosChain, substituteClientID)
+	status, err = query.ClientStatus(ctx, cosmosChain, substituteClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Active.String(), status)
 }

@@ -156,10 +156,10 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := query.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			_, err = query.QueryBalance(ctx, chainB, hostAccount, chainB.Config().Denom)
+			_, err = query.Balance(ctx, chainB, hostAccount, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
@@ -210,7 +210,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 	t.Run("fail to execute bank transfer over ICA", func(t *testing.T) {
 		t.Run("verify empty host wallet", func(t *testing.T) {
-			hostAccountBalance, err := query.QueryBalance(ctx, chainB, hostAccount, chainB.Config().Denom)
+			hostAccountBalance, err := query.Balance(ctx, chainB, hostAccount, chainB.Config().Denom)
 
 			s.Require().NoError(err)
 			s.Require().Zero(hostAccountBalance.Int64())
@@ -249,7 +249,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		})
 
 		t.Run("verify balance is the same", func(t *testing.T) {
-			balance, err := query.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount
@@ -301,7 +301,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
-		_, err = query.QueryChannel(ctx, chainA, portID, initialChannelID)
+		_, err = query.Channel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)
 	})
 
@@ -361,17 +361,17 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	t.Run("verify channel is closed due to timeout on ordered channel", func(t *testing.T) {
-		channel, err := query.QueryChannel(ctx, chainA, portID, initialChannelID)
+		channel, err := query.Channel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")
 	})
 
 	t.Run("verify tokens not transferred", func(t *testing.T) {
-		balance, err := query.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		_, err = query.QueryBalance(ctx, chainB, hostAccount, chainB.Config().Denom)
+		_, err = query.Balance(ctx, chainB, hostAccount, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount
@@ -390,7 +390,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	t.Run("verify new channel is now open and interchain account has been reregistered with the same portID", func(t *testing.T) {
-		channel, err := query.QueryChannel(ctx, chainA, portID, channelIDAfterReopening)
+		channel, err := query.Channel(ctx, chainA, portID, channelIDAfterReopening)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel was not in an expected state")
@@ -431,7 +431,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		balance, err := query.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount

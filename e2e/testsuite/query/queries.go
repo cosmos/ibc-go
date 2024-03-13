@@ -22,9 +22,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-// QueryModuleAccountAddress returns the address of the given module on the given chain.
+// ModuleAccountAddress returns the address of the given module on the given chain.
 // Added because interchaintest's method doesn't work.
-func QueryModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chain) (sdk.AccAddress, error) {
+func ModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chain) (sdk.AccAddress, error) {
 	modAccResp, err := GRPCQuery[authtypes.QueryModuleAccountByNameResponse](
 		ctx, chain, &authtypes.QueryModuleAccountByNameRequest{Name: moduleName},
 	)
@@ -50,8 +50,8 @@ func QueryModuleAccountAddress(ctx context.Context, moduleName string, chain ibc
 	return govAccount.GetAddress(), nil
 }
 
-// QueryClientState queries the client state on the given chain for the provided clientID.
-func QueryClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexported.ClientState, error) {
+// ClientState queries the client state on the given chain for the provided clientID.
+func ClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexported.ClientState, error) {
 	clientStateResp, err := GRPCQuery[clienttypes.QueryClientStateResponse](ctx, chain, &clienttypes.QueryClientStateRequest{
 		ClientId: ibctesting.FirstClientID,
 	})
@@ -69,8 +69,8 @@ func QueryClientState(ctx context.Context, chain ibc.Chain, clientID string) (ib
 	return clientState, nil
 }
 
-// QueryClientStatus queries the status of the client by clientID
-func QueryClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
+// ClientStatus queries the status of the client by clientID
+func ClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
 	clientStatusResp, err := GRPCQuery[clienttypes.QueryClientStatusResponse](ctx, chain, &clienttypes.QueryClientStatusRequest{
 		ClientId: clientID,
 	})
@@ -98,8 +98,8 @@ func GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64
 	return res.Validators, nil
 }
 
-// QueryBalance returns the balance of a specific denomination for a given account by address.
-func QueryBalance(ctx context.Context, chain ibc.Chain, address string, denom string) (math.Int, error) {
+// Balance returns the balance of a specific denomination for a given account by address.
+func Balance(ctx context.Context, chain ibc.Chain, address string, denom string) (math.Int, error) {
 	res, err := GRPCQuery[banktypes.QueryBalanceResponse](ctx, chain, &banktypes.QueryBalanceRequest{
 		Address: address,
 		Denom:   denom,
@@ -111,8 +111,8 @@ func QueryBalance(ctx context.Context, chain ibc.Chain, address string, denom st
 	return res.Balance.Amount, nil
 }
 
-// QueryChannel queries the channel on a given chain for the provided portID and channelID
-func QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.Channel, error) {
+// Channel queries the channel on a given chain for the provided portID and channelID
+func Channel(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.Channel, error) {
 	res, err := GRPCQuery[channeltypes.QueryChannelResponse](ctx, chain, &channeltypes.QueryChannelRequest{
 		PortId:    portID,
 		ChannelId: channelID,
@@ -124,8 +124,8 @@ func QueryChannel(ctx context.Context, chain ibc.Chain, portID, channelID string
 	return *res.Channel, nil
 }
 
-// QueryCounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
-func QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
+// CounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
+func CounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
 	res, err := GRPCQuery[feetypes.QueryCounterpartyPayeeResponse](ctx, chain, &feetypes.QueryCounterpartyPayeeRequest{
 		ChannelId: channelID,
 		Relayer:   relayerAddress,
@@ -137,8 +137,8 @@ func QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress
 	return res.CounterpartyPayee, nil
 }
 
-// QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
-func QueryIncentivizedPacketsForChannel(
+// IncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
+func IncentivizedPacketsForChannel(
 	ctx context.Context,
 	chain ibc.Chain,
 	portID,
@@ -154,8 +154,8 @@ func QueryIncentivizedPacketsForChannel(
 	return res.IncentivizedPackets, err
 }
 
-// QueryFeeEnabledChannel queries the fee-enabled status of a channel.
-func QueryFeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (bool, error) {
+// FeeEnabledChannel queries the fee-enabled status of a channel.
+func FeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (bool, error) {
 	res, err := GRPCQuery[feetypes.QueryFeeEnabledChannelResponse](ctx, chain, &feetypes.QueryFeeEnabledChannelRequest{
 		PortId:    portID,
 		ChannelId: channelID,
@@ -166,8 +166,8 @@ func QueryFeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channe
 	return res.FeeEnabled, nil
 }
 
-// QueryTotalEscrowForDenom queries the total amount of tokens in escrow for a denom
-func QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (sdk.Coin, error) {
+// TotalEscrowForDenom queries the total amount of tokens in escrow for a denom
+func TotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (sdk.Coin, error) {
 	res, err := GRPCQuery[transfertypes.QueryTotalEscrowForDenomResponse](ctx, chain, &transfertypes.QueryTotalEscrowForDenomRequest{
 		Denom: denom,
 	})
@@ -178,8 +178,8 @@ func QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string
 	return res.Amount, nil
 }
 
-// QueryPacketAcknowledgements queries the packet acknowledgements on the given chain for the provided channel (optional) list of packet commitment sequences.
-func QueryPacketAcknowledgements(ctx context.Context, chain ibc.Chain, portID, channelID string, packetCommitmentSequences []uint64) ([]*channeltypes.PacketState, error) {
+// PacketAcknowledgements queries the packet acknowledgements on the given chain for the provided channel (optional) list of packet commitment sequences.
+func PacketAcknowledgements(ctx context.Context, chain ibc.Chain, portID, channelID string, packetCommitmentSequences []uint64) ([]*channeltypes.PacketState, error) {
 	res, err := GRPCQuery[channeltypes.QueryPacketAcknowledgementsResponse](ctx, chain, &channeltypes.QueryPacketAcknowledgementsRequest{
 		PortId:                    portID,
 		ChannelId:                 channelID,
@@ -192,8 +192,8 @@ func QueryPacketAcknowledgements(ctx context.Context, chain ibc.Chain, portID, c
 	return res.Acknowledgements, nil
 }
 
-// QueryUpgradeError queries the upgrade error on the given chain for the provided channel.
-func QueryUpgradeError(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.ErrorReceipt, error) {
+// UpgradeError queries the upgrade error on the given chain for the provided channel.
+func UpgradeError(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.ErrorReceipt, error) {
 	res, err := GRPCQuery[channeltypes.QueryUpgradeErrorResponse](ctx, chain, &channeltypes.QueryUpgradeErrorRequest{
 		PortId:    portID,
 		ChannelId: channelID,
