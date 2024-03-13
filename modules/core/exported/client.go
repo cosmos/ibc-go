@@ -123,7 +123,6 @@ type LightClientModule interface {
 	// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
 	// may be cancelled or modified before the last planned height.
 	// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
-	// Deprecated: will be removed as performs internal functionality
 	VerifyUpgradeAndUpdateState(
 		ctx sdk.Context,
 		clientID string,

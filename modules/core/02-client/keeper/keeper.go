@@ -497,7 +497,6 @@ func (k Keeper) GetLatestHeight(ctx sdk.Context, clientID string) types.Height {
 }
 
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
-// TODO: Replace exported.Height with concrete type.
 func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
