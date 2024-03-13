@@ -28,6 +28,8 @@ type MigrationsTestSuite struct {
 }
 
 func (suite *MigrationsTestSuite) SetupTest() {
+	version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -38,8 +40,8 @@ func (suite *MigrationsTestSuite) SetupTest() {
 	suite.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 	suite.path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	suite.path.EndpointA.ChannelConfig.Version = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-	suite.path.EndpointB.ChannelConfig.Version = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+	suite.path.EndpointA.ChannelConfig.Version = version
+	suite.path.EndpointB.ChannelConfig.Version = version
 }
 
 func (suite *MigrationsTestSuite) SetupPath() error {

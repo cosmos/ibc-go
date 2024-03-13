@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
+
 ### Features
 
 ### Bug Fixes

@@ -173,10 +173,6 @@ build-docs:
 serve-docs:
 	@cd docs && npm run serve
 
-#? changelog: Show changelog
-changelog:
-	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)
-
 # If the DOCS_VERSION variable is not set, display an error message and exit
 ifndef DOCS_VERSION
 #? tag-docs-version: Tag the docs version
