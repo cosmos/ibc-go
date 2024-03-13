@@ -102,7 +102,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 
 				suite.Require().Equal(substituteClientState.ConsensusState, smClientState.ConsensusState)
 				suite.Require().Equal(substituteClientState.Sequence, smClientState.Sequence)
-				suite.Require().Equal(exported.Active, smClientState.Status(ctx, clientStore, cdc))
+				suite.Require().Equal(exported.Active, lightClientModule.Status(ctx, subjectClientID))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
