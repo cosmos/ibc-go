@@ -70,8 +70,7 @@ func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID str
 	// no-op
 }
 
-// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
-// Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
+// UpdateState obtains the localhost client state and calls into the clientState.UpdateState method.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
@@ -86,9 +85,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
 }
 
-// VerifyMembership is a generic proof verification method which verifies the existence of a given key and value within the IBC store.
-// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-// The caller must provide the full IBC store.
+// VerifyMembership obtains the localhost client state and calls into the clientState.VerifyMembership method.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyMembership(
@@ -113,9 +110,7 @@ func (l LightClientModule) VerifyMembership(
 	return clientState.VerifyMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
-// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath within the IBC store.
-// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-// The caller must provide the full IBC store.
+// VerifyNonMembership obtains the localhost client state and calls into the clientState.VerifyNonMembership method.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyNonMembership(
