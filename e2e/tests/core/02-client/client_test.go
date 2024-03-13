@@ -106,11 +106,13 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
 		// checks there is an upgraded client state stored
 		upgradedCsResp, err := query.GRPCQuery[clienttypes.QueryUpgradedClientStateResponse](ctx, chainA, &clienttypes.QueryUpgradedClientStateRequest{})
-
-		clientStateAny := upgradedCsResp.UpgradedClientState
 		s.Require().NoError(err)
 
-		cs, err := clienttypes.UnpackClientState(clientStateAny)
+		clientStateAny := upgradedCsResp.UpgradedClientState
+
+		cfg := chainA.Config().EncodingConfig
+		var cs ibcexported.ClientState
+		err = cfg.InterfaceRegistry.UnpackAny(clientStateAny, &cs)
 		s.Require().NoError(err)
 
 		upgradedClientState, ok := cs.(*ibctm.ClientState)
