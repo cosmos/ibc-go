@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand"
 	"path"
 	"testing"
 
@@ -13,7 +14,7 @@ import (
 	dockerclient "github.com/docker/docker/client"
 )
 
-const testLabel = "ibc-test"
+const CleanupLabel = "ibc-test"
 
 // GetTestContainers returns all docker containers that have been created by interchain test.
 func GetTestContainers(ctx context.Context, t *testing.T, dc *dockerclient.Client) ([]dockertypes.Container, error) {
@@ -24,7 +25,7 @@ func GetTestContainers(ctx context.Context, t *testing.T, dc *dockerclient.Clien
 		Filters: filters.NewArgs(
 			// see: https://github.com/strangelove-ventures/interchaintest/blob/0bdc194c2aa11aa32479f32b19e1c50304301981/internal/dockerutil/setup.go#L31-L36
 			// for the label needed to identify test containers.
-			filters.Arg("label", testLabel+"="+t.Name()),
+			filters.Arg("label", CleanupLabel+"="+t.Name()),
 		),
 	})
 	if err != nil {
@@ -68,4 +69,19 @@ func GetFileContentsFromContainer(ctx context.Context, dc *dockerclient.Client, 
 	}
 
 	return io.ReadAll(tr)
+}
+
+var chars = []byte("abcdefghijklmnopqrstuvwxyz")
+
+// RandLowerCaseLetterString returns a lowercase letter string of given length
+func RandLowerCaseLetterString(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
+}
+
+func GetRootUserString() string {
+	return "0:0"
 }
