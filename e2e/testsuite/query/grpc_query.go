@@ -41,13 +41,20 @@ func GRPCQuery[T any](ctx context.Context, chain ibc.Chain, req proto.Message, o
 func getProtoPath(req proto.Message) (string, error) {
 	typeURL := "/" + proto.MessageName(req)
 
-	queryIndex := strings.Index(typeURL, "Query")
+	serviceString := "Query"
+	// If the typeURL does not contain "Query", try "Service"
+	if !strings.Contains(typeURL, serviceString) {
+		// This exception is added for cmttypes
+		serviceString = "Service"
+	}
+
+	queryIndex := strings.Index(typeURL, serviceString)
 	if queryIndex == -1 {
 		return "", fmt.Errorf("invalid typeURL: %s", typeURL)
 	}
 
 	// Add to the index to account for the length of "Query"
-	queryIndex += len("Query")
+	queryIndex += len(serviceString)
 
 	// Add a slash before the query
 	urlWithSlash := typeURL[:queryIndex] + "/" + typeURL[queryIndex:]
