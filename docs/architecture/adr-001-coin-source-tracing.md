@@ -1,4 +1,4 @@
-# ADR 001: Coin Source Tracing
+ # ADR 001: Coin Source Tracing
 
 ## Changelog
 
