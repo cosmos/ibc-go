@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -79,6 +79,8 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.checksum = storeWasmCode(suite, wasmtesting.Code)
+
+	wasmtesting.AllowWasmClients(suite.chainA)
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {

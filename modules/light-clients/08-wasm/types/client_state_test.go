@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"time"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
+	mock "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/mock"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -19,7 +20,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *TypesTestSuite) TestStatus() {
@@ -114,6 +114,7 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 					suite.Require().NotNil(payload.TimestampAtHeight)
 					suite.Require().Nil(payload.CheckForMisbehaviour)
 					suite.Require().Nil(payload.Status)
+					suite.Require().Nil(payload.ExportMetadata)
 					suite.Require().Nil(payload.VerifyClientMessage)
 
 					resp, err := json.Marshal(types.TimestampAtHeightResult{Timestamp: expectedTimestamp})
@@ -136,7 +137,7 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 		{
 			"error: invalid height",
 			func() {
-				height = ibcmock.Height{}
+				height = mock.Height{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
@@ -437,14 +438,14 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 		{
 			"invalid path argument",
 			func() {
-				path = ibcmock.KeyPath{}
+				path = mock.KeyPath{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"proof height is invalid type",
 			func() {
-				proofHeight = ibcmock.Height{}
+				proofHeight = mock.Height{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
@@ -578,14 +579,14 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 		{
 			"invalid path argument",
 			func() {
-				path = ibcmock.KeyPath{}
+				path = mock.KeyPath{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"proof height is invalid type",
 			func() {
-				proofHeight = ibcmock.Height{}
+				proofHeight = mock.Height{}
 			},
 			ibcerrors.ErrInvalidType,
 		},

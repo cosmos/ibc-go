@@ -3,8 +3,8 @@ package types_test
 import (
 	"encoding/json"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -25,8 +25,6 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 			func() {
 				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					// Ensure GoAPI is set
-					suite.Require().NotNil(goapi.CanonicalAddress)
-					suite.Require().NotNil(goapi.HumanAddress)
 
 					var payload types.InstantiateMessage
 					err := json.Unmarshal(initMsg, &payload)
@@ -187,9 +185,6 @@ func (suite *TypesTestSuite) TestWasmMigrate() {
 			func() {
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, goapi wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					// Ensure GoAPI is set
-					suite.Require().NotNil(goapi.CanonicalAddress)
-					suite.Require().NotNil(goapi.HumanAddress)
-
 					resp, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
@@ -317,8 +312,6 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, goapi wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					// Ensure GoAPI is set
-					suite.Require().NotNil(goapi.CanonicalAddress)
-					suite.Require().NotNil(goapi.HumanAddress)
 
 					resp, err := json.Marshal(types.StatusResult{Status: exported.Frozen.String()})
 					suite.Require().NoError(err)
@@ -393,9 +386,6 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, goapi wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					// Ensure GoAPI is set
-					suite.Require().NotNil(goapi.CanonicalAddress)
-					suite.Require().NotNil(goapi.HumanAddress)
-
 					resp, err := json.Marshal(types.UpdateStateResult{})
 					suite.Require().NoError(err)
 

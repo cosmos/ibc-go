@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -57,6 +57,20 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 				msg = types.NewMsgStoreCode(signer, []byte{})
 			},
 			types.ErrWasmEmptyCode,
+		},
+		{
+			"fails with checksum",
+			func() {
+				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
+			},
+			errors.New("Wasm bytes do not not start with Wasm magic number"),
+		},
+		{
+			"fails with wasm code too large",
+			func() {
+				msg = types.NewMsgStoreCode(signer, append(wasmtesting.WasmMagicNumber, []byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))...))
+			},
+			types.ErrWasmCodeTooLarge,
 		},
 		{
 			"fails with checksum",
@@ -140,7 +154,6 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 	suite.Require().NoError(err)
 
 	newByteCode := wasmtesting.CreateMockContract([]byte("MockByteCode-TestMsgMigrateContract"))
-
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	var (

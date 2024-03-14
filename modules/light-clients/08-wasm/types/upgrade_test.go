@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -46,6 +46,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 					suite.Require().Nil(msg.Status)
 					suite.Require().Nil(msg.CheckForMisbehaviour)
 					suite.Require().Nil(msg.TimestampAtHeight)
+					suite.Require().Nil(msg.ExportMetadata)
 
 					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
 
@@ -121,10 +122,10 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 
 func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 	var (
-		upgradedClient              exported.ClientState
-		upgradedConsState           exported.ConsensusState
-		upgradedClientProof         []byte
-		upgradedConsensusStateProof []byte
+		upgradedClient         exported.ClientState
+		upgradedConsState      exported.ConsensusState
+		proofUpgradedClient    []byte
+		proofUpgradedConsState []byte
 	)
 
 	testCases := []struct {
@@ -149,8 +150,8 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					// verify payload values
 					suite.Require().Equal(expectedUpgradedClient.Data, payload.VerifyUpgradeAndUpdateState.UpgradeClientState)
 					suite.Require().Equal(expectedUpgradedConsensus.Data, payload.VerifyUpgradeAndUpdateState.UpgradeConsensusState)
-					suite.Require().Equal(upgradedClientProof, payload.VerifyUpgradeAndUpdateState.ProofUpgradeClient)
-					suite.Require().Equal(upgradedConsensusStateProof, payload.VerifyUpgradeAndUpdateState.ProofUpgradeConsensusState)
+					suite.Require().Equal(proofUpgradedClient, payload.VerifyUpgradeAndUpdateState.ProofUpgradeClient)
+					suite.Require().Equal(proofUpgradedConsState, payload.VerifyUpgradeAndUpdateState.ProofUpgradeConsensusState)
 
 					// verify other Sudo fields are nil
 					suite.Require().Nil(payload.UpdateState)
@@ -222,8 +223,8 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
 
-			upgradedClientProof = wasmtesting.MockUpgradedClientStateProofBz
-			upgradedConsensusStateProof = wasmtesting.MockUpgradedConsensusStateProofBz
+			proofUpgradedClient = wasmtesting.MockUpgradedClientStateProofBz
+			proofUpgradedConsState = wasmtesting.MockUpgradedConsensusStateProofBz
 
 			err = clientState.VerifyUpgradeAndUpdateState(
 				suite.chainA.GetContext(),
@@ -231,8 +232,8 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 				clientStore,
 				upgradedClient,
 				upgradedConsState,
-				upgradedClientProof,
-				upgradedConsensusStateProof,
+				proofUpgradedClient,
+				proofUpgradedConsState,
 			)
 
 			expPass := tc.expErr == nil

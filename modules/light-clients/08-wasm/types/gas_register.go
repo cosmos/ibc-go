@@ -1,7 +1,7 @@
 package types
 
 import (
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -80,7 +80,7 @@ type GasRegister interface {
 	// ReplyCosts costs to to handle a message reply
 	ReplyCosts(pinned bool, reply wasmvmtypes.Reply) storetypes.Gas
 	// EventCosts costs to persist an event
-	EventCosts(attrs []wasmvmtypes.EventAttribute, events wasmvmtypes.Events) storetypes.Gas
+	EventCosts(attrs []wasmvmtypes.EventAttribute, events wasmvmtypes.Event) storetypes.Gas
 	// ToWasmVMGas converts from Cosmos SDK gas units to [CosmWasm gas] (aka. wasmvm gas)
 	//
 	// [CosmWasm gas]: https://github.com/CosmWasm/cosmwasm/blob/v1.3.1/docs/GAS.md
@@ -197,21 +197,21 @@ func (g WasmGasRegister) ReplyCosts(pinned bool, reply wasmvmtypes.Reply) storet
 			attrs = append(attrs, e.Attributes...)
 		}
 		// apply free tier on the whole set not per event
-		eventGas += g.EventCosts(attrs, nil)
+		eventGas += g.EventCosts(attrs, wasmvmtypes.Event{})
 	}
 	return eventGas + g.InstantiateContractCosts(pinned, msgLen)
 }
 
 // EventCosts costs to persist an event
-func (g WasmGasRegister) EventCosts(attrs []wasmvmtypes.EventAttribute, events wasmvmtypes.Events) storetypes.Gas {
+func (g WasmGasRegister) EventCosts(attrs []wasmvmtypes.EventAttribute, event wasmvmtypes.Event) storetypes.Gas {
 	gas, remainingFreeTier := g.eventAttributeCosts(attrs, g.c.EventAttributeDataFreeTier)
-	for _, e := range events {
-		gas += g.c.CustomEventCost
-		gas += storetypes.Gas(len(e.Type)) * g.c.EventAttributeDataCost // no free tier with event type
-		var attrCost storetypes.Gas
-		attrCost, remainingFreeTier = g.eventAttributeCosts(e.Attributes, remainingFreeTier)
-		gas += attrCost
-	}
+	// for _, e := range events {
+	gas += g.c.CustomEventCost
+	gas += storetypes.Gas(len(event.Type)) * g.c.EventAttributeDataCost // no free tier with event type
+	var attrCost storetypes.Gas
+	attrCost, remainingFreeTier = g.eventAttributeCosts(event.Attributes, remainingFreeTier)
+	gas += attrCost
+	// }
 	return gas
 }
 

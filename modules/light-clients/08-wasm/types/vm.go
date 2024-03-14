@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -26,13 +26,13 @@ var (
 	// wasmvmAPI is a wasmvm.GoAPI implementation that is passed to the wasmvm, it
 	// doesn't implement any functionality, directly returning an error.
 	wasmvmAPI = wasmvm.GoAPI{
-		HumanAddress:     humanAddress,
-		CanonicalAddress: canonicalAddress,
+		HumanizeAddress:     humanAddress,
+		CanonicalizeAddress: canonicalAddress,
 	}
 )
 
 // instantiateContract calls vm.Instantiate with appropriate arguments.
-func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
+func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -55,7 +55,7 @@ func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checks
 }
 
 // callContract calls vm.Sudo with internally constructed gas meter and environment.
-func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
+func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -73,7 +73,7 @@ func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Chec
 }
 
 // migrateContract calls vm.Migrate with internally constructed gas meter and environment.
-func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
+func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -87,7 +87,7 @@ func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KV
 }
 
 // queryContract calls vm.Query.
-func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) ([]byte, error) {
+func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.QueryResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -160,7 +160,7 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientSt
 		return result, errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
-	if err := json.Unmarshal(resp.Data, &result); err != nil {
+	if err := json.Unmarshal(resp.Ok.Data, &result); err != nil {
 		return result, errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
 
@@ -212,7 +212,7 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
 
-	if err := json.Unmarshal(resp, &result); err != nil {
+	if err := json.Unmarshal(resp.Ok, &result); err != nil {
 		return result, errorsmod.Wrapf(ErrWasmInvalidResponseData, "failed to unmarshal result of wasm query: %v", err)
 	}
 
@@ -276,7 +276,7 @@ func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 	env := wasmvmtypes.Env{
 		Block: wasmvmtypes.BlockInfo{
 			Height:  uint64(height),
-			Time:    uint64(nsec),
+			Time:    wasmvmtypes.Uint64(nsec),
 			ChainID: chainID,
 		},
 		Contract: wasmvmtypes.ContractInfo{
@@ -297,15 +297,15 @@ func canonicalAddress(human string) ([]byte, uint64, error) {
 
 // checkResponse returns an error if the response from a sudo, instantiate or migrate call
 // to the Wasm VM contains messages, events or attributes.
-func checkResponse(response *wasmvmtypes.Response) error {
+func checkResponse(response *wasmvmtypes.ContractResult) error {
 	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
-	if len(response.Messages) > 0 {
+	if len(response.Ok.Messages) > 0 {
 		return ErrWasmSubMessagesNotAllowed
 	}
-	if len(response.Events) > 0 {
+	if len(response.Ok.Events) > 0 {
 		return ErrWasmEventsNotAllowed
 	}
-	if len(response.Attributes) > 0 {
+	if len(response.Ok.Attributes) > 0 {
 		return ErrWasmAttributesNotAllowed
 	}
 
