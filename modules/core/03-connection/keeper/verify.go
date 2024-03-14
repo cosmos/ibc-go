@@ -4,7 +4,6 @@ import (
 	"math"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -26,17 +25,17 @@ func (k Keeper) VerifyClientState(
 	clientState exported.ClientState,
 ) error {
 	clientID := connection.ClientId
-	targetClient, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, targetClient, clientID); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
+	}
+
 	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.Counterparty.ClientId))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -46,8 +45,8 @@ func (k Keeper) VerifyClientState(
 		return err
 	}
 
-	if err := targetClient.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+	if err := clientModule.VerifyMembership(
+		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
 	); err != nil {
@@ -68,17 +67,17 @@ func (k Keeper) VerifyClientConsensusState(
 	consensusState exported.ConsensusState,
 ) error {
 	clientID := connection.ClientId
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
+	}
+
 	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.Counterparty.ClientId, consensusHeight))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -88,8 +87,8 @@ func (k Keeper) VerifyClientConsensusState(
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+	if err := clientModule.VerifyMembership(
+		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
 	); err != nil {
@@ -110,17 +109,17 @@ func (k Keeper) VerifyConnectionState(
 	counterpartyConnection types.ConnectionEnd, // opposite connection
 ) error {
 	clientID := connection.ClientId
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
+	}
+
 	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -130,8 +129,8 @@ func (k Keeper) VerifyConnectionState(
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+	if err := clientModule.VerifyMembership(
+		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
 	); err != nil {
@@ -153,17 +152,17 @@ func (k Keeper) VerifyChannelState(
 	channel channeltypes.Channel,
 ) error {
 	clientID := connection.ClientId
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
+	}
+
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -173,8 +172,8 @@ func (k Keeper) VerifyChannelState(
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+	if err := clientModule.VerifyMembership(
+		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
 	); err != nil {
@@ -197,13 +196,13 @@ func (k Keeper) VerifyPacketCommitment(
 	commitmentBytes []byte,
 ) error {
 	clientID := connection.ClientId
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	// get time and block delays
@@ -211,15 +210,13 @@ func (k Keeper) VerifyPacketCommitment(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
-		timeDelay, blockDelay,
-		proof, merklePath, commitmentBytes,
+	if err := clientModule.VerifyMembership(
+		ctx, clientID, height, timeDelay, blockDelay, proof, merklePath, commitmentBytes,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
 	}
@@ -240,13 +237,13 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	acknowledgement []byte,
 ) error {
 	clientID := connection.ClientId
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	// get time and block delays
@@ -254,14 +251,13 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
-		timeDelay, blockDelay,
+	if err := clientModule.VerifyMembership(
+		ctx, clientID, height, timeDelay, blockDelay,
 		proof, merklePath, channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
@@ -283,13 +279,18 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	sequence uint64,
 ) error {
 	clientID := connection.ClientId
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		return err
 	}
 
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
 	}
 
 	// get time and block delays
@@ -302,10 +303,8 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		return err
 	}
 
-	if err := clientState.VerifyNonMembership(
-		ctx, clientStore, k.cdc, height,
-		timeDelay, blockDelay,
-		proof, merklePath,
+	if err := clientModule.VerifyNonMembership(
+		ctx, clientID, height, timeDelay, blockDelay, proof, merklePath,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
 	}
@@ -325,13 +324,13 @@ func (k Keeper) VerifyNextSequenceRecv(
 	nextSequenceRecv uint64,
 ) error {
 	clientID := connection.ClientId
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
 	// get time and block delays
@@ -339,13 +338,13 @@ func (k Keeper) VerifyNextSequenceRecv(
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+	if err := clientModule.VerifyMembership(
+		ctx, clientID, height,
 		timeDelay, blockDelay,
 		proof, merklePath, sdk.Uint64ToBigEndian(nextSequenceRecv),
 	); err != nil {
@@ -366,17 +365,17 @@ func (k Keeper) VerifyChannelUpgradeError(
 	errorReceipt channeltypes.ErrorReceipt,
 ) error {
 	clientID := connection.ClientId
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
+	}
+
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -386,8 +385,8 @@ func (k Keeper) VerifyChannelUpgradeError(
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+	if err := clientModule.VerifyMembership(
+		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
 	); err != nil {
@@ -408,17 +407,17 @@ func (k Keeper) VerifyChannelUpgrade(
 	upgrade channeltypes.Upgrade,
 ) error {
 	clientID := connection.ClientId
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
+	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
+	}
+
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
@@ -428,8 +427,8 @@ func (k Keeper) VerifyChannelUpgrade(
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, proofHeight,
+	if err := clientModule.VerifyMembership(
+		ctx, clientID, proofHeight,
 		0, 0, // skip delay period checks for non-packet processing verification
 		upgradeProof, merklePath, bz,
 	); err != nil {
@@ -452,20 +451,4 @@ func (k Keeper) getBlockDelay(ctx sdk.Context, connection types.ConnectionEnd) u
 	// by the expected time per block. Round up the block delay.
 	timeDelay := connection.DelayPeriod
 	return uint64(math.Ceil(float64(timeDelay) / float64(expectedTimePerBlock)))
-}
-
-// getClientStateAndVerificationStore returns the client state and associated KVStore for the provided client identifier.
-// If the client type is localhost then the core IBC KVStore is returned, otherwise the client prefixed store is returned.
-func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID string) (exported.ClientState, storetypes.KVStore, error) {
-	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
-	if !found {
-		return nil, nil, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
-	}
-
-	store := k.clientKeeper.ClientStore(ctx, clientID)
-	if clientID == exported.LocalhostClientID {
-		store = ctx.KVStore(k.storeKey)
-	}
-
-	return clientState, store, nil
 }

@@ -63,7 +63,7 @@ func (k Keeper) TimeoutPacket(
 	}
 
 	// check that timeout height or timeout timestamp has passed on the other end
-	proofTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, proofHeight)
+	proofTimestamp, err := k.clientKeeper.GetTimestampAtHeight(ctx, connectionEnd.ClientId, proofHeight)
 	if err != nil {
 		return err
 	}
