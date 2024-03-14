@@ -34,21 +34,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
-
-### Dependencies
-
-### API Breaking
-
-### State Machine Breaking
+## [v8.1.1](https://github.com/cosmos/ibc-go/releases/tag/v8.1.1) - 2024-03-14
 
 ### Improvements
 
 * (proto) [\#5988](https://github.com/cosmos/ibc-go/pull/5988) Add wasm proto files.
-
-### Features
-
-### Bug Fixes
 
 ## [v8.1.0](https://github.com/cosmos/ibc-go/releases/tag/v8.1.0) - 2024-01-31
 
