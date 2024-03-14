@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (proto) [\#5987](https://github.com/cosmos/ibc-go/pull/5987) Add wasm proto files.
+
 ### Features
 
 * [\#5788](https://github.com/cosmos/ibc-go/pull/5788) Add `NewErrorAcknowledgementWithCodespace` to allow codespaces in ack errors.
