@@ -1,14 +1,14 @@
 ---
 title: Handling Updates and Misbehaviour
 sidebar_label: Handling Updates and Misbehaviour
-sidebar_position: 4
+sidebar_position: 5
 slug: /ibc/light-clients/updates-and-misbehaviour
 ---
 
 
 # Handling `ClientMessage`s: updates and misbehaviour
 
-As mentioned before in the documentation about [implementing the `ConsensusState` interface](03-consensus-state.md), [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L147) is an interface used to update an IBC client. This update may be performed by:
+As mentioned before in the documentation about [implementing the `ConsensusState` interface](04-consensus-state.md), [`ClientMessage`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L147) is an interface used to update an IBC client. This update may be performed by:
 
 - a single header
 - a batch of headers
@@ -30,7 +30,7 @@ type ClientMessage interface {
 }
 ```
 
-The `ClientMessage` will be passed to the client to be used in [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L48), which retrieves the `ClientState` by client ID (available in `MsgUpdateClient`). This `ClientState` implements the [`ClientState` interface](02-client-state.md) for its specific consenus type (e.g. Tendermint).
+The `ClientMessage` will be passed to the client to be used in [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L48), which retrieves the `ClientState` by client ID (available in `MsgUpdateClient`). This `ClientState` implements the [`ClientState` interface](03-client-state.md) for its specific consenus type (e.g. Tendermint).
 
 `UpdateClient` will then handle a number of cases including misbehaviour and/or updating the consensus state, utilizing the specific methods defined in the relevant `ClientState`.
 

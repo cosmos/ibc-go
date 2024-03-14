@@ -79,7 +79,8 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					bz := store.Get(host.ClientStateKey())
 					suite.Require().NotEmpty(bz)
-					clientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, bz).(*types.ClientState)
+					clientState, ok := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, bz).(*types.ClientState)
+					suite.Require().True(ok)
 					clientState.LatestHeight = mockHeight
 					expectedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), expectedClientStateBz)
@@ -146,7 +147,8 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 			tc.malleate()
 
-			clientState := endpoint.GetClientState()
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			var heights []exported.Height
 			updateState := func() {
@@ -222,7 +224,8 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 					// set new client state in store
 					bz := store.Get(host.ClientStateKey())
 					suite.Require().NotEmpty(bz)
-					clientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz).(*types.ClientState)
+					clientState, ok := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz).(*types.ClientState)
+					suite.Require().True(ok)
 					clientState.LatestHeight = mockHeight
 					expectedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), expectedClientStateBz)
@@ -273,8 +276,8 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 			clientMsg = &types.ClientMessage{
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientMisbehaviour),
 			}
-			clientState := endpoint.GetClientState()
-
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 			tc.malleate()
 
 			if tc.panicErr == nil {

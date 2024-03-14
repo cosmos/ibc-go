@@ -211,7 +211,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = time.Now()
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, counterpartyClient.GetLatestHeight(), tmConsState)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, path.EndpointA.GetClientLatestHeight(), tmConsState)
 
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
@@ -242,8 +242,9 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			if consensusHeight.IsZero() {
 				// retrieve consensus state height to provide proof for
-				consensusHeight = counterpartyClient.GetLatestHeight()
+				consensusHeight = path.EndpointA.GetClientLatestHeight()
 			}
+
 			consensusKey := host.FullConsensusStateKey(path.EndpointA.ClientID, consensusHeight)
 			consensusProof, _ := suite.chainA.QueryProof(consensusKey)
 
@@ -461,7 +462,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = tmConsState.Timestamp.Add(time.Second)
-			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, counterpartyClient.GetLatestHeight(), tmConsState)
+			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, path.EndpointB.GetClientLatestHeight(), tmConsState)
 
 			err = path.EndpointB.ConnOpenTry()
 			suite.Require().NoError(err)
@@ -488,8 +489,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 			if consensusHeight.IsZero() {
 				// retrieve consensus state height to provide proof for
-				clientState := suite.chainB.GetClientState(path.EndpointB.ClientID)
-				consensusHeight = clientState.GetLatestHeight()
+				consensusHeight = path.EndpointB.GetClientLatestHeight()
 			}
 			consensusKey := host.FullConsensusStateKey(path.EndpointB.ClientID, consensusHeight)
 			consensusProof, _ := suite.chainB.QueryProof(consensusKey)
