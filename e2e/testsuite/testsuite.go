@@ -363,7 +363,12 @@ func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.C
 // createChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.Chain) {
-	client, network := interchaintest.DockerSetup(s.T())
+	client := chainOptions.DockerClient
+	network := chainOptions.DockerNetwork
+	if chainOptions.DockerNetwork != "" && chainOptions.DockerClient == nil {
+		client, network = interchaintest.DockerSetup(s.T())
+	}
+
 	t := s.T()
 
 	s.logger = zap.NewExample()

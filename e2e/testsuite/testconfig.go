@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	dockerclient "github.com/docker/docker/client"
 	"os"
 	"path"
 	"strings"
@@ -460,6 +461,8 @@ func IsFork() bool {
 type ChainOptions struct {
 	ChainASpec       *interchaintest.ChainSpec
 	ChainBSpec       *interchaintest.ChainSpec
+	DockerClient     *dockerclient.Client
+	DockerNetwork    string
 	SkipPathCreation bool
 }
 
