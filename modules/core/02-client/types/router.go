@@ -31,12 +31,12 @@ func NewRouter(key storetypes.StoreKey) *Router {
 // - or a module is already registered for the provided client type,
 // - or the client type is invalid.
 func (rtr *Router) AddRoute(clientType string, module exported.LightClientModule) *Router {
-	if err := ValidateClientType(clientType); err != nil {
-		panic(err)
-	}
-
 	if rtr.HasRoute(clientType) {
 		panic(fmt.Errorf("route %s has already been registered", module))
+	}
+
+	if err := ValidateClientType(clientType); err != nil {
+		panic(fmt.Errorf("failed to add route: %w", err))
 	}
 
 	rtr.routes[clientType] = module

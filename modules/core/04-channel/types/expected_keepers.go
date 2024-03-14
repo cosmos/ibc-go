@@ -1,8 +1,6 @@
 package types
 
 import (
-	storetypes "cosmossdk.io/store/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -13,7 +11,6 @@ import (
 
 // ClientKeeper expected account IBC client keeper
 type ClientKeeper interface {
-	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
 	GetClientStatus(ctx sdk.Context, clientID string) exported.Status
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)

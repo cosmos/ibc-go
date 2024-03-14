@@ -26,14 +26,13 @@ func NewStoreProvider(storeKey storetypes.StoreKey) exported.ClientStoreProvider
 	}
 }
 
-// ClientStore returns isolated prefix store for each client so they can read/write in separate
-// namespace without being able to read/write other client's data
+// ClientStore returns isolated prefix store for each client so they can read/write in separate namespaces.
 func (s storeProvider) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 	return prefix.NewStore(ctx.KVStore(s.storeKey), clientPrefix)
 }
 
-// ModuleStore returns the 02-client module store
-func (s storeProvider) ModuleStore(ctx sdk.Context, clientType string) storetypes.KVStore {
+// ClientModuleStore returns the module store for a provided client type.
+func (s storeProvider) ClientModuleStore(ctx sdk.Context, clientType string) storetypes.KVStore {
 	return prefix.NewStore(ctx.KVStore(s.storeKey), host.PrefixedClientStoreKey([]byte(clientType)))
 }
