@@ -41,7 +41,7 @@ type PrivValidatorKeyFile struct {
 
 func (s *RollkitTestSuite) extractChainPrivateKeys(ctx context.Context, chain *cosmos.CosmosChain) PrivValidatorKeyFile {
 	fr := NewFileRetriever(zap.NewNop(), s.DockerClient, s.T().Name())
-	contents, err := fr.SingleFileContent(ctx, chain.Validators[0].VolumeName, "config/priv_validator_key.json")
+	contents, err := fr.SingleFileContent(ctx, chain.GetNode().VolumeName, "config/priv_validator_key.json")
 	s.Require().NoError(err)
 	var privValidatorKeyFile PrivValidatorKeyFile
 	s.Require().NoError(json.Unmarshal(contents, &privValidatorKeyFile))
@@ -69,7 +69,8 @@ func (s *RollkitTestSuite) rollkitGenesisModification(config ibc.ChainConfig, ge
 				"type":  privateKeys.PubKey.Type,
 				"value": privateKeys.PubKey.Value,
 			},
-			"power": "1000",
+
+			"power": "5000000", // interchaintest hard codes this value (somewhere)
 			"name":  "Rollkit Sequencer",
 		},
 	}
@@ -80,9 +81,11 @@ func (s *RollkitTestSuite) rollkitGenesisModification(config ibc.ChainConfig, ge
 
 func (s *RollkitTestSuite) Test_Rollkit_Succeeds() {
 	_, _ = s.SetupChainsRelayerAndChannel(context.TODO(), nil, func(options *testsuite.ChainOptions) {
+		options.ChainASpec.ChainName = "rollkit"
+		options.ChainASpec.ChainID = "rollkit-app"
 		options.ChainASpec.Bin = "gmd"
 		options.ChainASpec.Bech32Prefix = "gm"
-		options.ChainASpec.AdditionalStartArgs = []string{"--rollkit.aggregator"}
+		//options.ChainASpec.AdditionalStartArgs = []string{"--rollkit.aggregator"}
 
 		options.ChainASpec.ModifyGenesis = s.rollkitGenesisModification
 
