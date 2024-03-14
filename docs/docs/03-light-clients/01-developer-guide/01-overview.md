@@ -47,7 +47,7 @@ For example a light client module may need to:
 - recover and upgrade clients
 - verify membership and non-membership
 
-The methods which make up this interface are detailed at a more granular level in the [LightClientModule section of this guide](02-light-client-module.md).
+The methods which make up this interface are detailed at a more granular level in the [`LightClientModule` section of this guide](02-light-client-module.md).
 
 Please refer to the `07-tendermint`'s [`LightClientModule` definition](https://github.com/cosmos/ibc-go/blob/501a8462345da099144efe91d495bfcfa18d760d/modules/light-clients/07-tendermint/light_client_module.go#L17) for more information. 
 
@@ -63,7 +63,7 @@ For example:
 - Constraints used for client upgrades.
 
 The `ClientState` type maintained within the light client module *must* implement the [`ClientState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L36) interface defined in `core/modules/exported/client.go`.
-The methods which make up this interface are detailed at a more granular level in the [ClientState section of this guide](03-client-state.md).
+The methods which make up this interface are detailed at a more granular level in the [`ClientState` section of this guide](03-client-state.md).
 
 Please refer to the `07-tendermint` light client module's [`ClientState` definition](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/lightclients/tendermint/v1/tendermint.proto#L18) containing information such as chain ID, status, latest height, unbonding period and proof specifications.
 

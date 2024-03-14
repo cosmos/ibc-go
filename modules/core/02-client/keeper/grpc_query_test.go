@@ -344,22 +344,22 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				height1 := path.EndpointA.GetClientLatestHeight()
+				height1 := path.EndpointA.GetClientLatestHeight().(types.Height)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
-						height1.(types.Height),
+						height1,
 						path.EndpointA.GetConsensusState(height1),
 					))
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				height2 := path.EndpointA.GetClientLatestHeight()
+				height2 := path.EndpointA.GetClientLatestHeight().(types.Height)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
-						height2.(types.Height),
+						height2,
 						path.EndpointA.GetConsensusState(height2),
 					))
 

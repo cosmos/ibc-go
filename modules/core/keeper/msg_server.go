@@ -27,7 +27,7 @@ var (
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
-// NOTE: The raw bytes of the conrete types encoded into protobuf.Any is passed to the client keeper.
+// NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
 // The 02-client handler will route to the appropriate light client module based on client type and it is the responsibility
 // of the light client module to unmarshal and interpret the proto encoded bytes.
 // Backwards compatibility with older versions of ibc-go is maintained through the light client module reconstructing and encoding
@@ -64,7 +64,7 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 }
 
 // UpgradeClient defines a rpc handler method for MsgUpgradeClient.
-// NOTE: The raw bytes of the conrete types encoded into protobuf.Any is passed to the client keeper.
+// NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
 // The 02-client handler will route to the appropriate light client module based on client identifier and it is the responsibility
 // of the light client module to unmarshal and interpret the proto encoded bytes.
 // Backwards compatibility with older versions of ibc-go is maintained through the light client module reconstructing and encoding

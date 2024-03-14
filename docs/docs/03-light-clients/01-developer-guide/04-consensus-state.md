@@ -20,9 +20,7 @@ This is the type of client consensus. It should be the same as the `ClientType` 
 
 ## `GetTimestamp` method
 
-*Deprecated*: soon to be removed from interface
-
-`GetTimestamp` should return the timestamp (in nanoseconds) of the consensus state snapshot.
+`GetTimestamp` should return the timestamp (in nanoseconds) of the consensus state snapshot. This function has been deprecated and will be removed in a future release.
 
 ## `ValidateBasic` method
 

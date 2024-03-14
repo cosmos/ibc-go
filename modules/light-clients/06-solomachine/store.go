@@ -9,6 +9,8 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
+// getClientState retrieves the client state from the store using the provided KVStore and codec.
+// It returns the unmarshaled ClientState and a boolean indicating if the state was found.
 func getClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, bool) {
 	bz := store.Get(host.ClientStateKey())
 	if len(bz) == 0 {

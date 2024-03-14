@@ -99,7 +99,8 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			suite.Require().NoError(err)
 
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState().(*types.ClientState)
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			clientMsg = &types.ClientMessage{
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
@@ -207,7 +208,8 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			clientState := endpoint.GetClientState().(*types.ClientState)
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			newLatestHeight := clienttypes.NewHeight(2, 10)
 			wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)

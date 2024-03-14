@@ -108,7 +108,9 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState().(*types.ClientState)
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
+
 			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 
 			// reset query plugins after each test

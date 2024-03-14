@@ -8,12 +8,12 @@ slug: /ibc/light-clients/client-state
 
 # Implementing the `ClientState` interface
 
-Learn how to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L36) interface. This list of methods described here does not include all methods of the interface. Some methods are explained in detail in the relevant sections of the guide.
+Learn how to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L36) interface.
 
 ## `ClientType` method
 
 `ClientType` should return a unique string identifier of the light client. This will be used when generating a client identifier.
-The format is created as follows: `ClientType-{N}` where `{N}` is the unique global nonce associated with a specific client.
+The format is created as follows: `{client-type}-{N}` where `{N}` is the unique global nonce associated with a specific client (e.g `07-tendermint-0`).
 
 ## `Validate` method
 

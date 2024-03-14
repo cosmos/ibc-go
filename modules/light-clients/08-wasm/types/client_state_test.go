@@ -86,7 +86,8 @@ func (suite *TypesTestSuite) TestStatus() {
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState().(*types.ClientState)
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 			suite.Require().Equal(tc.expStatus, status)
@@ -153,7 +154,9 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 			suite.Require().NoError(err)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState().(*types.ClientState)
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
+
 			height = clientState.LatestHeight
 
 			tc.malleate()
@@ -453,6 +456,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			var ok bool
 			suite.SetupWasmWithMockVM()
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -465,7 +469,8 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			value = []byte("value")
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState().(*types.ClientState)
+			clientState, ok = endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			tc.malleate()
 
@@ -594,6 +599,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			var ok bool
 			suite.SetupWasmWithMockVM()
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -605,7 +611,8 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 			proofHeight = clienttypes.NewHeight(0, 1)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState().(*types.ClientState)
+			clientState, ok = endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			tc.malleate()
 

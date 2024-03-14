@@ -32,6 +32,8 @@ var (
 	substitutePrefix = []byte("substitute/")
 )
 
+// GetClientState retrieves the client state from the store using the provided KVStore and codec.
+// It returns the unmarshaled ClientState and a boolean indicating if the state was found.
 func GetClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, bool) {
 	bz := store.Get(host.ClientStateKey())
 	if len(bz) == 0 {
