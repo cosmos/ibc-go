@@ -16,10 +16,11 @@ const (
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	var (
-		channel  *channeltypes.Channel
-		path     *ibctesting.Path
-		chanCap  *capabilitytypes.Capability
-		metadata icatypes.Metadata
+		channel         *channeltypes.Channel
+		path            *ibctesting.Path
+		chanCap         *capabilitytypes.Capability
+		metadata        icatypes.Metadata
+		expectedVersion string
 	)
 
 	testCases := []struct {
@@ -54,6 +55,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			"success: empty channel version returns default metadata JSON string",
 			func() {
 				channel.Version = ""
+				expectedVersion = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			},
 			nil,
 		},
@@ -275,6 +277,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
+			expectedVersion = string(versionBytes)
+
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.INIT,
@@ -296,7 +300,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(string(versionBytes), version)
+				suite.Require().Equal(expectedVersion, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
