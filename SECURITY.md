@@ -67,14 +67,11 @@ If you follow these guidelines when reporting an issue to us, we commit to:
 
 ### More information
 
-- See [TIMELINE.md] for an example timeline of a disclosure.
-- See [DISCLOSURE.md] to see more into the inner workings of the disclosure
+- See TIMELINE.md for an example timeline of a disclosure.
+- See DISCLOSURE.md to see more into the inner workings of the disclosure
   process.
-- See [EXAMPLES.md] for some of the examples that we are interested in for the
+- See EXAMPLES.md for some of the examples that we are interested in for the
   bug bounty program.
 
 [gh-private-advisory]: https://github.com/cosmos/ibc-go/security/advisories/new
 [h1]: https://hackerone.com/cosmos
-[TIMELINE.md]: https://github.com/cosmos/security/blob/main/TIMELINE.md
-[DISCLOSURE.md]: https://github.com/cosmos/security/blob/main/DISCLOSURE.md
-[EXAMPLES.md]: https://github.com/cosmos/security/blob/main/EXAMPLES.md
