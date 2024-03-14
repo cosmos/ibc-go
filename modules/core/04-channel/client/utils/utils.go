@@ -14,8 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/client"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // QueryChannel returns a channel end.
