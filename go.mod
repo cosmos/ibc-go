@@ -14,12 +14,21 @@ require (
 	cosmossdk.io/x/circuit v0.1.0
 	cosmossdk.io/x/evidence v0.1.0
 	cosmossdk.io/x/feegrant v0.1.0
+<<<<<<< HEAD
 	cosmossdk.io/x/tx v0.12.0
 	cosmossdk.io/x/upgrade v0.1.0
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.50.1
+=======
+	cosmossdk.io/x/tx v0.13.1
+	cosmossdk.io/x/upgrade v0.1.1
+	github.com/cometbft/cometbft v0.38.6
+	github.com/cosmos/cosmos-db v1.0.2
+	github.com/cosmos/cosmos-proto v1.0.0-beta.4
+	github.com/cosmos/cosmos-sdk v0.50.5
+>>>>>>> 661088d4 (deps: bump SDK v50.5 (#5975))
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/modules/capability v1.0.0
 	github.com/cosmos/ics23/go v0.10.0
@@ -125,7 +134,11 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
+<<<<<<< HEAD
 	github.com/klauspost/compress v1.17.2 // indirect
+=======
+	github.com/klauspost/compress v1.17.7 // indirect
+>>>>>>> 661088d4 (deps: bump SDK v50.5 (#5975))
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.10.7 // indirect
