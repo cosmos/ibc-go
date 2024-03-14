@@ -1,5 +1,7 @@
 package rollkit
 
+// NOTE: this file should be able to be removed when https://github.com/strangelove-ventures/interchaintest/issues/869 is resolved
+
 import (
 	"archive/tar"
 	"context"
