@@ -5,6 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	gogoproto "github.com/cosmos/gogoproto/proto"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+
+	msgv1 "cosmossdk.io/api/cosmos/msg/v1"
+	queryv1 "cosmossdk.io/api/cosmos/query/v1"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -39,6 +45,9 @@ type Keeper struct {
 	msgRouter   icatypes.MessageRouter
 	queryRouter icatypes.QueryRouter
 
+	// whitelist of module safe queries
+	mqsWhitelist []string
+
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
@@ -71,6 +80,7 @@ func NewKeeper(
 		scopedKeeper:   scopedKeeper,
 		msgRouter:      msgRouter,
 		queryRouter:    queryRouter,
+		mqsWhitelist:   newModuleQuerySafeWhitelist(),
 		authority:      authority,
 	}
 }
@@ -257,4 +267,42 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&params)
 	store.Set([]byte(types.ParamsKey), bz)
+}
+
+func newModuleQuerySafeWhitelist() []string {
+	// Create a whitelist of module safe queries
+	whitelist := []string{}
+
+	protoFiles, err := gogoproto.MergedRegistry()
+	if err != nil {
+		panic(err)
+	}
+
+	protoFiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		for i := 0; i < fd.Services().Len(); i++ {
+			// Get the service descriptor
+			sd := fd.Services().Get(i)
+
+			// Skip services that are annotated with the "cosmos.msg.v1.service" option.
+			if ext := proto.GetExtension(sd.Options(), msgv1.E_Service); ext != nil && ext.(bool) {
+				continue
+			}
+
+			for j := 0; j < sd.Methods().Len(); j++ {
+				// Get the method descriptor
+				md := sd.Methods().Get(j)
+
+				// Skip methods that are not annotated with the "cosmos.query.v1.module_query_safe" option.
+				if ext := proto.GetExtension(md.Options(), queryv1.E_ModuleQuerySafe); ext == nil || !ext.(bool) {
+					continue
+				}
+
+				// Add the method to the whitelist
+				whitelist = append(whitelist, fmt.Sprintf("/%s/%s", sd.FullName(), md.Name()))
+			}
+		}
+		return true
+	})
+
+	return whitelist
 }
