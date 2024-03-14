@@ -125,39 +125,6 @@ func QueryChannelConsensusState(
 	return res, nil
 }
 
-// QueryLatestConsensusState uses the channel Querier to return the
-// latest ConsensusState given the source port ID and source channel ID.
-func QueryLatestConsensusState(
-	clientCtx client.Context, portID, channelID string,
-) (exported.ConsensusState, clienttypes.Height, clienttypes.Height, error) {
-	clientRes, err := QueryChannelClientState(clientCtx, portID, channelID, false)
-	if err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	var clientState exported.ClientState
-	if err := clientCtx.InterfaceRegistry.UnpackAny(clientRes.IdentifiedClientState.ClientState, &clientState); err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	clientHeight, ok := clientState.GetLatestHeight().(clienttypes.Height)
-	if !ok {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "invalid height type. expected type: %T, got: %T",
-			clienttypes.Height{}, clientHeight)
-	}
-	res, err := QueryChannelConsensusState(clientCtx, portID, channelID, clientHeight, false)
-	if err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	var consensusState exported.ConsensusState
-	if err := clientCtx.InterfaceRegistry.UnpackAny(res.ConsensusState, &consensusState); err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	return consensusState, clientHeight, res.ProofHeight, nil
-}
-
 // QueryNextSequenceReceive returns the next sequence receive.
 // If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
 // it uses the gRPC query client.
