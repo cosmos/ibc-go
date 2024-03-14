@@ -2046,7 +2046,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 		expResult func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error)
 	}{
 		{
-			"success: keeper is not authority, valid error receipt so channnel changed to match error receipt seq",
+			"success: keeper is not authority, valid error receipt so channel changed to match error receipt seq",
 			func() {},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
