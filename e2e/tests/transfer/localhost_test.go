@@ -63,7 +63,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 		cs, err = s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
 		s.Require().NoError(err)
-		s.Require().True(localhostClientState.LatestHeight.GT(originalHeight), "client state height was not incremented")
+		s.Require().True(cs.(*localhost.ClientState).LatestHeight.GT(originalHeight), "client state height was not incremented")
 	})
 
 	t.Run("channel open init localhost", func(t *testing.T) {
