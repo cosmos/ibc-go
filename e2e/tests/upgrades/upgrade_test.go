@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	haltHeight         = uint64(100)
+	haltHeight         = int64(100)
 	blocksAfterUpgrade = uint64(10)
 )
 
@@ -61,7 +61,7 @@ type UpgradeTestSuite struct {
 func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, planName, currentVersion, upgradeVersion string) {
 	plan := upgradetypes.Plan{
 		Name:   planName,
-		Height: int64(haltHeight),
+		Height: haltHeight,
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 

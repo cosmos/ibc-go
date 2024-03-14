@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	haltHeight         = uint64(325)
+	haltHeight         = int64(325)
 	blocksAfterUpgrade = uint64(10)
 )
 
@@ -84,7 +84,7 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, planName, currentVersion, upgradeVersion string) {
 	plan := upgradetypes.Plan{
 		Name:   planName,
-		Height: int64(haltHeight),
+		Height: haltHeight,
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 
