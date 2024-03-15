@@ -108,7 +108,9 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState()
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
+
 			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 
 			// reset query plugins after each test
@@ -294,13 +296,14 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 			tc.malleate()
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState()
+			clientRouter := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter()
+			clientModule, found := clientRouter.GetRoute(endpoint.ClientID)
+			suite.Require().True(found)
 
 			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
 			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
 			// due to test case: "success: verify membership query"
-			_, err = clientState.GetTimestampAtHeight(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), clienttypes.NewHeight(1, 100))
+			_, err = clientModule.TimestampAtHeight(suite.chainA.GetContext(), endpoint.ClientID, clienttypes.NewHeight(1, 100))
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -310,6 +313,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 				suite.Require().ErrorContains(err, tc.expError.Error())
 			}
 
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			if expDiscardedState {
 				suite.Require().False(clientStore.Has(testKey))
 			} else {

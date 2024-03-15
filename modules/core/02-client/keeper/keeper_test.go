@@ -337,22 +337,20 @@ func (suite *KeeperTestSuite) TestGetConsensusState() {
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
 // and a consensus state at the update height.
 func (suite *KeeperTestSuite) TestGetAllConsensusStates() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	path.SetupClients()
+	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path1.SetupClients()
 
-	clientState := path.EndpointA.GetClientState()
-	expConsensusHeight0 := clientState.GetLatestHeight()
-	consensusState0, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight0)
+	expConsensusHeight0 := path1.EndpointA.GetClientLatestHeight()
+	consensusState0, ok := suite.chainA.GetConsensusState(path1.EndpointA.ClientID, expConsensusHeight0)
 	suite.Require().True(ok)
 
 	// update client to create a second consensus state
-	err := path.EndpointA.UpdateClient()
+	err := path1.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	clientState = path.EndpointA.GetClientState()
-	expConsensusHeight1 := clientState.GetLatestHeight()
+	expConsensusHeight1 := path1.EndpointA.GetClientLatestHeight()
 	suite.Require().True(expConsensusHeight1.GT(expConsensusHeight0))
-	consensusState1, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight1)
+	consensusState1, ok := suite.chainA.GetConsensusState(path1.EndpointA.ClientID, expConsensusHeight1)
 	suite.Require().True(ok)
 
 	expConsensus := []exported.ConsensusState{
@@ -363,16 +361,15 @@ func (suite *KeeperTestSuite) TestGetAllConsensusStates() {
 	// create second client on chainA
 	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path2.SetupClients()
-	clientState = path2.EndpointA.GetClientState()
 
-	expConsensusHeight2 := clientState.GetLatestHeight()
+	expConsensusHeight2 := path2.EndpointA.GetClientLatestHeight()
 	consensusState2, ok := suite.chainA.GetConsensusState(path2.EndpointA.ClientID, expConsensusHeight2)
 	suite.Require().True(ok)
 
 	expConsensus2 := []exported.ConsensusState{consensusState2}
 
 	expConsensusStates := types.ClientsConsensusStates{
-		types.NewClientConsensusStates(path.EndpointA.ClientID, []types.ConsensusStateWithHeight{
+		types.NewClientConsensusStates(path1.EndpointA.ClientID, []types.ConsensusStateWithHeight{
 			types.NewConsensusStateWithHeight(expConsensusHeight0.(types.Height), expConsensus[0]),
 			types.NewConsensusStateWithHeight(expConsensusHeight1.(types.Height), expConsensus[1]),
 		}),
@@ -454,6 +451,64 @@ func (suite *KeeperTestSuite) TestIterateClientStates() {
 			})
 
 			suite.Require().ElementsMatch(tc.expClientIDs(), clientIDs)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
+	var (
+		clientID string
+		height   exported.Height
+	)
+
+	cases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"verification success",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupConnections()
+
+				clientID = path.EndpointA.ClientID
+				height = suite.chainB.LatestCommittedHeader.GetHeight()
+			},
+			true,
+		},
+		{
+			"client state not found",
+			func() {},
+			false,
+		},
+		{
+			"consensus state not found", func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupConnections()
+				clientID = path.EndpointA.ClientID
+				height = suite.chainB.LatestCommittedHeader.GetHeight().Increment()
+			},
+			false,
+		},
+	}
+
+	for _, tc := range cases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+
+			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(
+				suite.chainA.GetContext(), clientID, height,
+			)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().EqualValues(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
+			} else {
+				suite.Require().Error(err)
+			}
 		})
 	}
 }

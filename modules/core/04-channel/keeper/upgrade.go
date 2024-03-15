@@ -745,7 +745,7 @@ func (k Keeper) ChanUpgradeTimeout(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
-	proofTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connection, proofHeight)
+	proofTimestamp, err := k.clientKeeper.GetTimestampAtHeight(ctx, connection.ClientId, proofHeight)
 	if err != nil {
 		return err
 	}

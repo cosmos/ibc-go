@@ -9,7 +9,7 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
-	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,8 +25,9 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc          codec.BinaryCodec
-	storeService storetypes.KVStoreService
+	cdc codec.BinaryCodec
+
+	storeService store.KVStoreService
 
 	clientKeeper types.ClientKeeper
 
@@ -38,7 +39,7 @@ type Keeper struct {
 // and the same Wasm VM instance should be shared with it.
 func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeService store.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
@@ -87,7 +88,7 @@ func NewKeeperWithVM(
 // and a Wasm VM needs to be instantiated using the provided parameters.
 func NewKeeperWithConfig(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeService store.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
@@ -100,6 +101,11 @@ func NewKeeperWithConfig(
 	}
 
 	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, queryRouter, opts...)
+}
+
+// Codec returns the 08-wasm module's codec.
+func (k Keeper) Codec() codec.BinaryCodec {
+	return k.cdc
 }
 
 // GetAuthority returns the 08-wasm module's authority.

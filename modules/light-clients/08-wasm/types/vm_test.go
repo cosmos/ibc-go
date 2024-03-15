@@ -11,6 +11,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
@@ -33,15 +34,15 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 					err := json.Unmarshal(initMsg, &payload)
 					suite.Require().NoError(err)
 
-					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
 
-					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
+					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.LatestHeight)
 					clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), clientStateBz)
 
 					consensusState := types.NewConsensusState(payload.ConsensusState)
 					consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), consensusState)
-					store.Set(host.ConsensusStateKey(clientState.GetLatestHeight()), consensusStateBz)
+					store.Set(host.ConsensusStateKey(clientState.LatestHeight), consensusStateBz)
 
 					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{}}, 0, nil
 				}
@@ -146,8 +147,8 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 					suite.Require().NoError(err)
 
 					// Change the checksum to something else.
-					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
-					clientState := types.NewClientState(payload.ClientState, []byte("new checksum"), wrappedClientState.GetLatestHeight().(clienttypes.Height))
+					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
+					clientState := types.NewClientState(payload.ClientState, []byte("new checksum"), wrappedClientState.LatestHeight)
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
 
 					resp, err := json.Marshal(types.UpdateStateResult{})

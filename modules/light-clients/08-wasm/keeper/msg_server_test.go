@@ -264,6 +264,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			var ok bool
 			suite.SetupWasmWithMockVM()
 
 			storeWasmCode(suite, wasmtesting.Code)
@@ -274,7 +275,8 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			suite.Require().NoError(err)
 
 			// this is the old client state
-			expClientState = endpoint.GetClientState().(*types.ClientState)
+			expClientState, ok = endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			tc.malleate()
 
