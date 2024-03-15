@@ -34,12 +34,7 @@ func (k Keeper) ConnOpenInit(
 		versions = []*types.Version{version}
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
-	if !found {
-		return "", errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", clientID)
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
 		return "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 

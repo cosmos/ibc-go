@@ -77,7 +77,8 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			clientState := endpoint.GetClientState()
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 			clientMessage = &types.ClientMessage{
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientMisbehaviour),
 			}
