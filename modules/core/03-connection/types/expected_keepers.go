@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -19,7 +18,7 @@ type ClientKeeper interface {
 	ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error
 	IterateClientStates(ctx sdk.Context, prefix []byte, cb func(string, exported.ClientState) bool)
 	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
-	GetRouter() *clienttypes.Router
+	Route(clientID string) (exported.LightClientModule, bool)
 }
 
 // ParamSubspace defines the expected Subspace interface for module parameters.

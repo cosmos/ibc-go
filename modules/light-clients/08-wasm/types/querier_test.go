@@ -296,8 +296,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 			tc.malleate()
 
-			clientRouter := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter()
-			clientModule, found := clientRouter.GetRoute(endpoint.ClientID)
+			clientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(endpoint.ClientID)
 			suite.Require().True(found)
 
 			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
