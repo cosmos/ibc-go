@@ -92,7 +92,8 @@ To report a security vulnerability, see our [Coordinated Vulnerability Disclosur
 
 The following audits have been performed on the `ibc-go` source code:
 
-- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/blob/main/docs/audits/27-interchain-accounts/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) by Trail of Bits.
+- [ICS20 Fungible Token Transfer](https://github.com/informalsystems/audits/tree/dc8b503727adcbb8e29c3d3a25a9070e0bf1ec87/IBC-GO) by Informal Systems.
+- ICS27 Interchain Accounts by [Trail of Bits](https://github.com/cosmos/ibc-go/blob/main/docs/audits/27-interchain-accounts/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) and [Informal Systems](https://github.com/cosmos/ibc-go/issues/631).
 - [ICS08 Wasm Clients](https://github.com/cosmos/ibc-go/blob/main/docs/audits/08-wasm/Ethan%20Frey%20-%20Wasm%20Client%20Review.pdf) by Ethan Frey/Confio.
 - [ICS04 Channel upgradability](https://github.com/cosmos/ibc-go/blob/main/docs/audits/04-channel-upgrades/Atredis%20Partners%20-%20Interchain%20Foundation%20IBC-Go%20Channel%20Upgrade%20Feature%20Assessment%20-%20Report%20v1.1.pdf) by Atredis Partners.
 
