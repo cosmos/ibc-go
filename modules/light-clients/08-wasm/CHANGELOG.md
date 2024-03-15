@@ -38,6 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [#\5975](https://github.com/cosmos/ibc-go/pull/5975) Upgrade Cosmos SDK to v0.50.5.
+
 ### API Breaking
 
 ### State Machine Breaking
