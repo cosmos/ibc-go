@@ -301,11 +301,11 @@ func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 }
 
 func humanizeAddress(canon []byte) (string, uint64, error) {
-	return "", 0, errors.New("humanAddress not implemented")
+	return "", 0, errors.New("humanizeAddress not implemented")
 }
 
 func canonicalizeAddress(human string) ([]byte, uint64, error) {
-	return nil, 0, errors.New("canonicalAddress not implemented")
+	return nil, 0, errors.New("canonicalizeAddress not implemented")
 }
 
 func validateAddress(human string) (uint64, error) {

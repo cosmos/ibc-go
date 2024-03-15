@@ -164,14 +164,6 @@ func NewWasmGasRegister(c WasmGasRegisterConfig) WasmGasRegister {
 	}
 }
 
-// CompileCosts costs to persist and "compile" a new wasm contract
-func (g WasmGasRegister) CompileCosts(byteLength int) storetypes.Gas {
-	if byteLength < 0 {
-		panic(errorsmod.Wrap(ErrInvalid, "negative length"))
-	}
-	return g.c.CompileCost * uint64(byteLength)
-}
-
 // UncompressCosts costs to unpack a new wasm contract
 func (g WasmGasRegister) UncompressCosts(byteLength int) storetypes.Gas {
 	if byteLength < 0 {
@@ -190,8 +182,9 @@ func (g WasmGasRegister) SetupContractCost(discount bool, msgLen int) storetypes
 	dataCost := storetypes.Gas(msgLen) * g.c.ContractMessageDataCost
 	if discount {
 		return g.c.InstanceCostDiscount + dataCost
+	} else {
+		return g.c.InstanceCost + dataCost
 	}
-	return g.c.InstanceCost + dataCost
 }
 
 // ReplyCosts costs to to handle a message reply.
