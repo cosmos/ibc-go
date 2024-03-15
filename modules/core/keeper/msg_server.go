@@ -27,6 +27,11 @@ var (
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
+// NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
+// The 02-client handler will route to the appropriate light client module based on client type and it is the responsibility
+// of the light client module to unmarshal and interpret the proto encoded bytes.
+// Backwards compatibility with older versions of ibc-go is maintained through the light client module reconstructing and encoding
+// the expected concrete type to the protobuf.Any for proof verification.
 func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -35,12 +40,7 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 		return nil, err
 	}
 
-	consensusState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err = k.ClientKeeper.CreateClient(ctx, clientState, consensusState); err != nil {
+	if _, err = k.ClientKeeper.CreateClient(ctx, clientState.ClientType(), msg.ClientState.Value, msg.ConsensusState.Value); err != nil {
 		return nil, err
 	}
 
@@ -64,20 +64,21 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 }
 
 // UpgradeClient defines a rpc handler method for MsgUpgradeClient.
+// NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
+// The 02-client handler will route to the appropriate light client module based on client identifier and it is the responsibility
+// of the light client module to unmarshal and interpret the proto encoded bytes.
+// Backwards compatibility with older versions of ibc-go is maintained through the light client module reconstructing and encoding
+// the expected concrete type to the protobuf.Any for proof verification.
 func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgradeClient) (*clienttypes.MsgUpgradeClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	upgradedClient, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-	upgradedConsState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = k.ClientKeeper.UpgradeClient(ctx, msg.ClientId, upgradedClient, upgradedConsState,
-		msg.ProofUpgradeClient, msg.ProofUpgradeConsensusState); err != nil {
+	if err := k.ClientKeeper.UpgradeClient(
+		ctx, msg.ClientId,
+		msg.ClientState.Value,
+		msg.ConsensusState.Value,
+		msg.ProofUpgradeClient,
+		msg.ProofUpgradeConsensusState,
+	); err != nil {
 		return nil, err
 	}
 

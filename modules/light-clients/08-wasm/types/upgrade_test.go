@@ -99,7 +99,8 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			suite.Require().NoError(err)
 
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState()
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			clientMsg = &types.ClientMessage{
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
@@ -162,9 +163,9 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					suite.Require().NoError(err)
 
 					// set new client state and consensus state
-					wrappedUpgradedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data)
+					wrappedUpgradedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data).(*ibctm.ClientState)
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), upgradedClient))
-					store.Set(host.ConsensusStateKey(wrappedUpgradedClient.GetLatestHeight()), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState))
+					store.Set(host.ConsensusStateKey(wrappedUpgradedClient.LatestHeight), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState))
 
 					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
 				})
@@ -207,7 +208,8 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			clientState := endpoint.GetClientState().(*types.ClientState)
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			newLatestHeight := clienttypes.NewHeight(2, 10)
 			wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
@@ -244,7 +246,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 				suite.Require().NotEmpty(clientStateBz)
 				suite.Require().Equal(upgradedClient, clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz))
 
-				consStateBz := clientStore.Get(host.ConsensusStateKey(upgradedClient.GetLatestHeight()))
+				consStateBz := clientStore.Get(host.ConsensusStateKey(upgradedClient.(*types.ClientState).LatestHeight))
 				suite.Require().NotEmpty(consStateBz)
 				suite.Require().Equal(upgradedConsState, clienttypes.MustUnmarshalConsensusState(suite.chainA.Codec, consStateBz))
 			} else {

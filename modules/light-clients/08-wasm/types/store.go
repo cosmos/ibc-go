@@ -17,7 +17,11 @@ import (
 	"cosmossdk.io/store/tracekv"
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 var (
@@ -27,6 +31,18 @@ var (
 	subjectPrefix    = []byte("subject/")
 	substitutePrefix = []byte("substitute/")
 )
+
+// GetClientState retrieves the client state from the store using the provided KVStore and codec.
+// It returns the unmarshaled ClientState and a boolean indicating if the state was found.
+func GetClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, bool) {
+	bz := store.Get(host.ClientStateKey())
+	if len(bz) == 0 {
+		return nil, false
+	}
+
+	clientStateI := clienttypes.MustUnmarshalClientState(cdc, bz)
+	return clientStateI.(*ClientState), true
+}
 
 // Checksum is a type alias used for wasm byte code checksums.
 type Checksum = wasmvmtypes.Checksum

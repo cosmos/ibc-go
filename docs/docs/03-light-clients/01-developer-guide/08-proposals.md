@@ -1,7 +1,7 @@
 ---
 title: Handling Proposals
 sidebar_label: Handling Proposals
-sidebar_position: 7
+sidebar_position: 8
 slug: /ibc/light-clients/proposals
 ---
 
