@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking
 
 * (core/02-client, light-clients) [\#5806](https://github.com/cosmos/ibc-go/pull/5806) Decouple light client routing from their encoding structure.
+* (core/04-channel) [\#5991](https://github.com/cosmos/ibc-go/pull/5991) The client CLI `QueryLatestConsensusState` has been removed.
 
 ### State Machine Breaking
 
