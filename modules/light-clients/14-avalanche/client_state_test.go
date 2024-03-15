@@ -306,19 +306,16 @@ func (suite *AvalancheTestSuite) TestVerifyMembership() {
 					NodeIDs:       [][]byte{testVdrs[0].nodeID.Bytes()},
 					PublicKeyByte: bls.PublicKeyToBytes(testVdrs[0].vdr.PublicKey),
 					Weight:        testVdrs[0].vdr.Weight,
-					EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 				},
 				{
 					NodeIDs:       [][]byte{testVdrs[1].nodeID.Bytes()},
 					PublicKeyByte: bls.PublicKeyToBytes(testVdrs[1].vdr.PublicKey),
 					Weight:        testVdrs[1].vdr.Weight,
-					EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 				},
 				{
 					NodeIDs:       [][]byte{testVdrs[2].nodeID.Bytes()},
 					PublicKeyByte: bls.PublicKeyToBytes(testVdrs[2].vdr.PublicKey),
 					Weight:        testVdrs[2].vdr.Weight,
-					EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 				},
 			}
 
@@ -551,19 +548,16 @@ func (suite *AvalancheTestSuite) TestVerifyNonMembership() {
 					NodeIDs:       [][]byte{testVdrs[0].nodeID.Bytes()},
 					PublicKeyByte: bls.PublicKeyToBytes(testVdrs[0].vdr.PublicKey),
 					Weight:        testVdrs[0].vdr.Weight,
-					EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 				},
 				{
 					NodeIDs:       [][]byte{testVdrs[1].nodeID.Bytes()},
 					PublicKeyByte: bls.PublicKeyToBytes(testVdrs[1].vdr.PublicKey),
 					Weight:        testVdrs[1].vdr.Weight,
-					EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 				},
 				{
 					NodeIDs:       [][]byte{testVdrs[2].nodeID.Bytes()},
 					PublicKeyByte: bls.PublicKeyToBytes(testVdrs[2].vdr.PublicKey),
 					Weight:        testVdrs[2].vdr.Weight,
-					EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 				},
 			}
 
@@ -710,19 +704,16 @@ func (suite *AvalancheTestSuite) TestVerifyHeader() {
 			NodeIDs:       [][]byte{testVdrs[0].nodeID.Bytes()},
 			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[0].vdr.PublicKey),
 			Weight:        testVdrs[0].vdr.Weight,
-			EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[1].nodeID.Bytes()},
 			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[1].vdr.PublicKey),
 			Weight:        testVdrs[1].vdr.Weight,
-			EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[2].nodeID.Bytes()},
 			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[2].vdr.PublicKey),
 			Weight:        testVdrs[2].vdr.Weight,
-			EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 		},
 	}
 
@@ -754,7 +745,7 @@ func (suite *AvalancheTestSuite) TestVerifyHeader() {
 						PchainVdrs: vdrs,
 					},
 					PchainHeader: &ibcava.PchainHeader{
-						Height: &clienttypes.Height{RevisionNumber: 2, RevisionHeight: 3},
+						Height:    &clienttypes.Height{RevisionNumber: 2, RevisionHeight: 3},
 						Timestamp: suite.chainA.GetContext().BlockTime(),
 						BlockHash: []byte("PchainHeaderBlockHash"),
 					},
@@ -821,11 +812,11 @@ func (suite *AvalancheTestSuite) TestVerifyHeader() {
 		header = &ibcava.Header{
 			SubnetHeader: &ibcava.SubnetHeader{
 				Height:     &clienttypes.Height{RevisionNumber: 2, RevisionHeight: 2},
- 				Timestamp:  suite.chainA.GetContext().BlockTime(),
- 				BlockHash:  []byte("SubnetHeaderBlockHash"),
- 				PchainVdrs: vdrs,
- 			},
- 			PrevSubnetHeader: &ibcava.SubnetHeader{
+				Timestamp:  suite.chainA.GetContext().BlockTime(),
+				BlockHash:  []byte("SubnetHeaderBlockHash"),
+				PchainVdrs: vdrs,
+			},
+			PrevSubnetHeader: &ibcava.SubnetHeader{
 				Height:     &clienttypes.Height{RevisionNumber: 2, RevisionHeight: 1},
 				Timestamp:  suite.chainA.GetContext().BlockTime(),
 				BlockHash:  []byte("SubnetHeaderBlockHash"),
@@ -1086,19 +1077,16 @@ func (suite *AvalancheTestSuite) TestCheckForMisbehaviour() {
 			NodeIDs:       [][]byte{testVdrs[0].nodeID.Bytes()},
 			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[0].vdr.PublicKey),
 			Weight:        testVdrs[0].vdr.Weight,
-			EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[1].nodeID.Bytes()},
 			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[1].vdr.PublicKey),
 			Weight:        testVdrs[1].vdr.Weight,
-			EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[2].nodeID.Bytes()},
 			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[2].vdr.PublicKey),
 			Weight:        testVdrs[2].vdr.Weight,
-			EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 		},
 	}
 

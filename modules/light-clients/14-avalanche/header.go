@@ -39,10 +39,6 @@ func (h Header) ValidateBasic() error {
 		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "Avalanche header cannot empty StorageRoot")
 	}
 
-	if len(h.ValidatorSet) == 0 {
-		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "Avalanche header cannot empty ValidatorSet")
-	}
-
 	if len(h.SignedValidatorSet) == 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "Avalanche header cannot empty SignedValidatorSet")
 	}

@@ -18,19 +18,16 @@ func (suite *AvalancheTestSuite) TestHeaderValidateBasic() {
 			NodeIDs:       [][]byte{testVdrs[0].nodeID.Bytes()},
 			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[0].vdr.PublicKey),
 			Weight:        testVdrs[0].vdr.Weight,
-			EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[1].nodeID.Bytes()},
 			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[1].vdr.PublicKey),
 			Weight:        testVdrs[1].vdr.Weight,
-			EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[2].nodeID.Bytes()},
 			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[2].vdr.PublicKey),
 			Weight:        testVdrs[2].vdr.Weight,
-			EndTime:       suite.chainA.GetContext().BlockTime().Add(900000000000000),
 		},
 	}
 
@@ -52,9 +49,6 @@ func (suite *AvalancheTestSuite) TestHeaderValidateBasic() {
 		}, false},
 		{"trusted height is equal to header height", func() {
 			header.SubnetHeader = header.PrevSubnetHeader
-		}, false},
-		{"ValidatorSet set nil", func() {
-			header.ValidatorSet = nil
 		}, false},
 		{"validator set nil", func() {
 			header.Vdrs = nil
@@ -92,7 +86,6 @@ func (suite *AvalancheTestSuite) TestHeaderValidateBasic() {
 					BlockHash: []byte("PchainHeaderBlockHash"),
 				},
 				Vdrs:              []*ibcava.Validator{vdrs[0], vdrs[1], vdrs[2]},
-				ValidatorSet:      []byte("ValidatorSet"),
 				StorageRoot:       []byte("StorageRoot"),
 				SignedStorageRoot: []byte("SignedStorageRoot"),
 				SignedValidatorSet: []byte("SignedValidatorSet"),

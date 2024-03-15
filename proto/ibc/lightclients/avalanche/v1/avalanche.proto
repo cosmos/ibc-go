@@ -16,9 +16,12 @@ import "ibc/core/commitment/v1/commitment.proto";
 message ClientState {
   option (gogoproto.goproto_getters) = false;
 
+  // chain_id it is uniq identifaer of chain 
   string chain_id   = 1;
+  // network_id it is uniq identifaer of network 
   uint32 network_id = 2;
 
+  // trust_level it is ratio between sinersWeight and totalWeight sufficient for validate tx
   Fraction trust_level = 3 [(gogoproto.nullable) = false];
   // duration of the period since the LastestTimestamp during which the
   // submitted headers are valid for upgrade
@@ -29,22 +32,11 @@ message ClientState {
   ibc.core.client.v1.Height frozen_height = 6 [(gogoproto.nullable) = false];
   // the latest block height
   ibc.core.client.v1.Height latest_height = 7 [(gogoproto.nullable) = false];
-
+  // proof it is view of database to confirm the presence of data in the database
   repeated bytes proof = 8;
 
-  // Path at which next upgraded client will be committed.
-  // Each element corresponds to the key for a single CommitmentProof in the
-  // chained proof. NOTE: ClientState must stored under
-  // `{upgradePath}/{upgradeHeight}/clientState` ConsensusState must be stored
-  // under `{upgradepath}/{upgradeHeight}/consensusState` For SDK chains using
-  // the default upgrade module, upgrade_path should be []string{"upgrade",
-  // "upgradedIBCState"}`
+  // it is key in database of being checked value
   string upgrade_path = 9;
-
-  // allow_update_after_expiry is deprecated
-  bool allow_update_after_expiry = 10 [deprecated = true];
-  // allow_update_after_misbehaviour is deprecated
-  bool allow_update_after_misbehaviour = 11 [deprecated = true];
 }
 
 // ConsensusState defines the consensus state from Tendermint.
@@ -54,13 +46,17 @@ message ConsensusState {
   // timestamp that corresponds to the block height in which the ConsensusState
   // was stored.
   google.protobuf.Timestamp timestamp = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-  // commitment root (i.e app hash)
 
+  // commitment root (i.e app hash)
   bytes storage_root         = 2;
+  // signed byte of storage_root to check 
   bytes signed_storage_root  = 3;
+  // signed in warp backend avalanche and got by p2p network to verify validator set
   bytes signed_validator_set = 4;
 
+  // list of validator from avalanche with would sorted and marshaled to verify by  signed_validator_set
   repeated Validator vdrs          = 5;
+  // it is index of sorted vdrs, it can be used to verify ratio between sinersWeight and totalWeight, and for aggregate public key
   bytes              signers_input = 6;
 }
 
@@ -73,44 +69,62 @@ message Fraction {
 
 message Misbehaviour {
   option (gogoproto.goproto_getters) = false;
-
+  // header witch 
   Header header_1 = 2 [(gogoproto.customname) = "Header1"];
   Header header_2 = 3 [(gogoproto.customname) = "Header2"];
 }
-
+// structure to description valid update of light client state  
 message Header {
+  // previus subnet header
   SubnetHeader prev_subnet_header = 1;
+  // actual subnet header
   SubnetHeader subnet_header      = 2;
+  // actual pchain header
   PchainHeader pchain_header      = 3;
 
+  // commitment root (i.e app hash)
   bytes              storage_root         = 4;
+  // signed byte of storage_root to check 
   bytes              signed_storage_root  = 5;
-  bytes              validator_set        = 6;
-  bytes              signed_validator_set = 7;
-  repeated Validator vdrs                 = 8;
-  bytes              signers_input        = 9;
+  // signed in warp backend avalanche and got by p2p network to verify validator set
+  bytes              signed_validator_set = 6;
+  // list of validator from avalanche with would sorted and marshaled to verify by  signed_validator_set
+  repeated Validator vdrs                 = 7;
+  // it is index of sorted vdrs, it can be used to verify ratio between sinersWeight and totalWeight, and for aggregate public key
+  bytes              signers_input        = 8;
 }
 
-message SubnetHeader {
-  ibc.core.client.v1.Height height     = 1;
-  google.protobuf.Timestamp timestamp  = 2 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-  bytes                     block_hash = 3;
 
+// structure to description subnet new block
+message SubnetHeader {
+  // new height of subnet evm
+  ibc.core.client.v1.Height height     = 1;
+  // timestamp of update
+  google.protobuf.Timestamp timestamp  = 2 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  // hash of new block
+  bytes                     block_hash = 3;
+  // height of pchain when new block of subnet evm was created
   ibc.core.client.v1.Height pchain_height = 4;
+  // actual pchain validators set
   repeated Validator        pchain_vdrs   = 5;
 }
 
+// structure to description subnet new block
 message PchainHeader {
   ibc.core.client.v1.Height height     = 1;
-  google.protobuf.Timestamp timestamp  = 2 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  // timestamp of update
+  google.protobuf.Timestamp timestamp  = 2 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];  
+  // hash of new block
   bytes                     block_hash = 3;
 }
-
+//  
 message Validator {
+  // validator public key
   bytes                     public_key_byte = 1;
+  // validator weight
   uint64                    weight          = 3;
+  // nodeIDs where is validator exist
   repeated bytes            nodeIDs         = 4;
-  google.protobuf.Timestamp end_time        = 5 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
 
 message MerkleKey {

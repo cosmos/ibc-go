@@ -84,11 +84,6 @@ func ValidateValidatorSet(
 		err         error
 	)
 	for i, vdr := range vdrSet {
-		currentTimestamp := uint64(ctx.BlockTime().UnixNano())
-		if currentTimestamp > uint64(vdr.EndTime.UnixNano()) {
-			continue
-		}
-
 		totalWeight, err = math.Add64(totalWeight, vdr.Weight)
 		if err != nil {
 			return nil, 0, fmt.Errorf("%w: %v", warp.ErrWeightOverflow, err)
