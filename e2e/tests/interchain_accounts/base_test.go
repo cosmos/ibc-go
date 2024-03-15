@@ -466,7 +466,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
+		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
@@ -490,7 +490,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 		})
 
 		t.Run("broadcast MsgSendTx for MsgSubmitProposal", func(t *testing.T) {
-			govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
+			govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 			s.Require().NoError(err)
 			s.Require().NotNil(govModuleAddress)
 
@@ -529,11 +529,11 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 
-		t.Run("verify proposal executed", func(t *testing.T) {
-			proposal, err := s.QueryProposalV1(ctx, chainB, 1)
+		t.Run("verify proposal included", func(t *testing.T) {
+			proposalResp, err := query.GRPCQuery[govv1.QueryProposalResponse](ctx, chainB, &govv1.QueryProposalRequest{ProposalId: 1})
 			s.Require().NoError(err)
 
-			s.Require().Equal("e2e", proposal.Title)
+			s.Require().Equal("e2e", proposalResp.Proposal.Title)
 		})
 	})
 }
