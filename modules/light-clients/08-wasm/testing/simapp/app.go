@@ -596,6 +596,17 @@ func NewSimApp(
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
+	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+
+	smLightClientModule := solomachine.NewLightClientModule(appCodec)
+	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
+
+	wasmLightClientModule := wasm.NewLightClientModule(app.WasmClientKeeper)
+	clientRouter.AddRoute(wasmtypes.ModuleName, &wasmLightClientModule)
+
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[evidencetypes.StoreKey]), app.StakingKeeper, app.SlashingKeeper, app.AccountKeeper.AddressCodec(), runtime.ProvideCometInfoService(),
@@ -640,10 +651,12 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		wasm.NewAppModule(app.WasmClientKeeper),
-		ibctm.AppModuleBasic{},
-		solomachine.AppModuleBasic{},
 		mockModule,
+
+		// IBC light clients
+		wasm.NewAppModule(app.WasmClientKeeper), // TODO(damian): see if we want to pass the lightclient module here, keeper is used in AppModule.RegisterServices etc
+		ibctm.NewAppModule(tmLightClientModule),
+		solomachine.NewAppModule(smLightClientModule),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,

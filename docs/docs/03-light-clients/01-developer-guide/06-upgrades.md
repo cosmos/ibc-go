@@ -1,7 +1,7 @@
 ---
 title: Handling Upgrades
 sidebar_label: Handling Upgrades
-sidebar_position: 5
+sidebar_position: 6
 slug: /ibc/light-clients/upgrades
 ---
 

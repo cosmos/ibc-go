@@ -18,6 +18,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
@@ -85,7 +86,8 @@ func (suite *TypesTestSuite) TestStatus() {
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState()
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 			suite.Require().Equal(tc.expStatus, status)
@@ -152,8 +154,10 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 			suite.Require().NoError(err)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState().(*types.ClientState)
-			height = clientState.GetLatestHeight()
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
+
+			height = clientState.LatestHeight
 
 			tc.malleate()
 
@@ -232,7 +236,7 @@ func (suite *TypesTestSuite) TestValidate() {
 func (suite *TypesTestSuite) TestInitialize() {
 	var (
 		consensusState exported.ConsensusState
-		clientState    exported.ClientState
+		clientState    *types.ClientState
 		clientStore    storetypes.KVStore
 	)
 
@@ -256,15 +260,15 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
 
-					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
 
-					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
+					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.LatestHeight)
 					clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), clientStateBz)
 
 					consensusState := types.NewConsensusState(payload.ConsensusState)
 					consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), consensusState)
-					store.Set(host.ConsensusStateKey(clientState.GetLatestHeight()), consensusStateBz)
+					store.Set(host.ConsensusStateKey(clientState.LatestHeight), consensusStateBz)
 
 					resp, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -313,7 +317,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 			wrappedClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermitClientState)
 			wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientConsensusState)
-			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockTendermitClientState.GetLatestHeight().(clienttypes.Height))
+			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockTendermitClientState.LatestHeight)
 			consensusState = types.NewConsensusState(wrappedClientConsensusStateBz)
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
@@ -331,7 +335,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 				suite.Require().Equal(expClientState, clientStore.Get(host.ClientStateKey()))
 
 				expConsensusState := clienttypes.MustMarshalConsensusState(suite.chainA.Codec, consensusState)
-				suite.Require().Equal(expConsensusState, clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())))
+				suite.Require().Equal(expConsensusState, clientStore.Get(host.ConsensusStateKey(clientState.LatestHeight)))
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 			}
@@ -341,7 +345,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 func (suite *TypesTestSuite) TestVerifyMembership() {
 	var (
-		clientState      exported.ClientState
+		clientState      *types.ClientState
 		expClientStateBz []byte
 		path             exported.Path
 		proof            []byte
@@ -452,6 +456,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			var ok bool
 			suite.SetupWasmWithMockVM()
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -464,7 +469,8 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			value = []byte("value")
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState()
+			clientState, ok = endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			tc.malleate()
 
@@ -485,7 +491,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 func (suite *TypesTestSuite) TestVerifyNonMembership() {
 	var (
-		clientState      exported.ClientState
+		clientState      *types.ClientState
 		expClientStateBz []byte
 		path             exported.Path
 		proof            []byte
@@ -593,6 +599,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			var ok bool
 			suite.SetupWasmWithMockVM()
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -604,7 +611,8 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 			proofHeight = clienttypes.NewHeight(0, 1)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState()
+			clientState, ok = endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			tc.malleate()
 
