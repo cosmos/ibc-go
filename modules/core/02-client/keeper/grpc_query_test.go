@@ -241,7 +241,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientState().GetLatestHeight())
+				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientLatestHeight())
 
 				var err error
 				expConsensusState, err = types.PackConsensusState(cs)
@@ -259,7 +259,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				height := path.EndpointA.GetClientState().GetLatestHeight()
+				height := path.EndpointA.GetClientLatestHeight()
 				cs := path.EndpointA.GetConsensusState(height)
 
 				var err error
@@ -344,7 +344,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				height1 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				height1 := path.EndpointA.GetClientLatestHeight().(types.Height)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -355,7 +355,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				height2 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				height2 := path.EndpointA.GetClientLatestHeight().(types.Height)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -449,12 +449,12 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientLatestHeight().(types.Height))
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientLatestHeight().(types.Height))
 
 				req = &types.QueryConsensusStateHeightsRequest{
 					ClientId: path.EndpointA.ClientID,
@@ -530,7 +530,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: ibctesting.InvalidID,
 				}
 			},
-			false, "",
+			true, exported.Unauthorized.String(),
 		},
 		{
 			"Active client status",
@@ -776,6 +776,8 @@ func (suite *KeeperTestSuite) TestQueryClientParams() {
 }
 
 func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
+	const wasmClientID = "08-wasm-0"
+
 	var (
 		path *ibctesting.Path
 		req  *types.QueryVerifyMembershipRequest
@@ -888,17 +890,33 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			errors.New("empty value"),
 		},
 		{
-			"client not found",
+			"light client module not found",
 			func() {
 				req = &types.QueryVerifyMembershipRequest{
-					ClientId:    types.FormatClientIdentifier(exported.Tendermint, 100), // use a sequence which hasn't been created yet
+					ClientId:    wasmClientID, // use a client type that is not registered
 					Proof:       []byte{0x01},
 					ProofHeight: types.NewHeight(1, 100),
 					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
 					Value:       []byte{0x01},
 				}
 			},
-			types.ErrClientNotFound,
+			errors.New(wasmClientID),
+		},
+		{
+			"client not active",
+			func() {
+				params := types.NewParams("") // disable all clients
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    path.EndpointA.ClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					Value:       []byte{0x01},
+				}
+			},
+			types.ErrClientNotActive,
 		},
 		{
 			"client not active",

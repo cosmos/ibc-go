@@ -99,8 +99,6 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			heightDiff = 5
 		}, false},
 		{"verification failed", func() {
-			clientState := suite.chainB.GetClientState(path.EndpointB.ClientID)
-
 			// give chainB wrong consensus state for chainA
 			consState, found := suite.chainB.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID)
 			suite.Require().True(found)
@@ -109,7 +107,7 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = time.Now()
-			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, clientState.GetLatestHeight(), tmConsState)
+			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, path.EndpointB.GetClientLatestHeight(), tmConsState)
 
 			suite.coordinator.CommitBlock(suite.chainB)
 		}, false},

@@ -745,7 +745,7 @@ func (k Keeper) ChanUpgradeTimeout(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
-	proofTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connection, proofHeight)
+	proofTimestamp, err := k.clientKeeper.GetTimestampAtHeight(ctx, connection.ClientId, proofHeight)
 	if err != nil {
 		return err
 	}
@@ -909,8 +909,8 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
-func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
-	currentFields := extractUpgradeFields(currentChannel)
+func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, channel types.Channel) error {
+	currentFields := extractUpgradeFields(channel)
 
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
 		return errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got %s", proposedUpgrade)
