@@ -31,6 +31,11 @@ type Keeper struct {
 	authority string
 }
 
+// Codec returns the 08-wasm module's codec.
+func (k Keeper) Codec() codec.BinaryCodec {
+	return k.cdc
+}
+
 // GetAuthority returns the 08-wasm module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
