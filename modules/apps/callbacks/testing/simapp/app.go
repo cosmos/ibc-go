@@ -619,9 +619,11 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		mockModule,
+
+		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
-		mockModule,
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,

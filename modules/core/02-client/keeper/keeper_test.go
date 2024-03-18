@@ -455,59 +455,130 @@ func (suite *KeeperTestSuite) TestIterateClientStates() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
-	var (
-		clientID string
-		height   exported.Height
-	)
+func (suite *KeeperTestSuite) TestGetLatestHeight() {
+	var path *ibctesting.Path
 
 	cases := []struct {
-		msg      string
+		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			"verification success",
-			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.SetupConnections()
-
-				clientID = path.EndpointA.ClientID
-				height = suite.chainB.LatestCommittedHeader.GetHeight()
-			},
+			"success",
+			func() {},
 			true,
 		},
 		{
-			"client state not found",
-			func() {},
+			"invalid client type",
+			func() {
+				path.EndpointA.ClientID = ibctesting.InvalidID
+			},
 			false,
 		},
 		{
-			"consensus state not found", func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.SetupConnections()
-				clientID = path.EndpointA.ClientID
-				height = suite.chainB.LatestCommittedHeader.GetHeight().Increment()
+			"client type is not allowed", func() {
+				params := types.NewParams(exported.Localhost)
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+			},
+			false,
+		},
+		{
+			"client type is not registered on router", func() {
+				path.EndpointA.ClientID = types.FormatClientIdentifier("08-wasm", 0)
 			},
 			false,
 		},
 	}
 
 	for _, tc := range cases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupConnections()
 
 			tc.malleate()
 
-			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(
-				suite.chainA.GetContext(), clientID, height,
-			)
+			height := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().EqualValues(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
+				suite.Require().Equal(suite.chainB.LatestCommittedHeader.GetHeight().(types.Height), height)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().Equal(types.ZeroHeight(), height)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
+	var (
+		height exported.Height
+		path   *ibctesting.Path
+	)
+
+	cases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"invalid client type",
+			func() {
+				path.EndpointA.ClientID = ibctesting.InvalidID
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"client type is not allowed", func() {
+				params := types.NewParams(exported.Localhost)
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+			},
+			types.ErrInvalidClientType,
+		},
+		{
+			"client type is not registered on router", func() {
+				path.EndpointA.ClientID = types.FormatClientIdentifier("08-wasm", 0)
+			},
+			types.ErrRouteNotFound,
+		},
+		{
+			"client state not found", func() {
+				path.EndpointA.ClientID = types.FormatClientIdentifier(exported.Tendermint, 100)
+			},
+			types.ErrClientNotFound,
+		},
+		{
+			"consensus state not found", func() {
+				height = suite.chainB.LatestCommittedHeader.GetHeight().Increment()
+			},
+			types.ErrConsensusStateNotFound,
+		},
+	}
+
+	for _, tc := range cases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupConnections()
+
+			height = suite.chainB.LatestCommittedHeader.GetHeight()
+
+			tc.malleate()
+
+			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), path.EndpointA.ClientID, height)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
