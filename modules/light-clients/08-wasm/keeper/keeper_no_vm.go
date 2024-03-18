@@ -23,7 +23,7 @@ func NewKeeperWithVM(
 	_ ibcwasm.QueryRouter,
 	_ ...Option,
 ) Keeper {
-	panic("not implemented, please build with cgo enabled")
+	panic("not implemented, please build with ibcwasm_novm disabled")
 }
 
 // NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
@@ -38,5 +38,5 @@ func NewKeeperWithConfig(
 	_ ibcwasm.QueryRouter,
 	_ ...Option,
 ) Keeper {
-	panic("not implemented, please build with cgo enabled")
+	panic("not implemented, please build with ibcwasm_novm disabled")
 }
