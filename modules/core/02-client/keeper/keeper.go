@@ -501,7 +501,7 @@ func (k Keeper) GetLatestHeight(ctx sdk.Context, clientID string) types.Height {
 func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
-		return 0, errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", clientID)
+		return 0, errorsmod.Wrapf(err, "clientID (%s)", clientID)
 	}
 
 	if !k.GetParams(ctx).IsAllowedClient(clientType) {
