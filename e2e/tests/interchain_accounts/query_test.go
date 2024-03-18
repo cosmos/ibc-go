@@ -5,6 +5,7 @@ package interchainaccounts
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
@@ -84,7 +85,19 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 				},
 			})
 
-			txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, queryMsg)
+			cdc := testsuite.Codec()
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{queryMsg}, icatypes.EncodingProtobuf)
+			s.Require().NoError(err)
+
+			packetData := icatypes.InterchainAccountPacketData{
+				Type: icatypes.EXECUTE_TX,
+				Data: bz,
+				Memo: "e2e",
+			}
+
+			icaQueryMsg := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+
+			txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, icaQueryMsg)
 			s.AssertTxSuccess(txResp)
 
 			s.Require().NoError(testutil.WaitForBlocks(ctx, 10, chainA, chainB))
