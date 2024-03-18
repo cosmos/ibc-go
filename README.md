@@ -25,7 +25,7 @@
   <a href="https://github.com/cosmos/ibc-go">
     <img alt="Lines Of Code" src="https://tokei.rs/b1/github/cosmos/ibc-go" />
   </a>
-  <a href="https://discord.gg/cosmosnetwork">
+  <a href="https://discord.com/invite/interchain">
     <img alt="Discord" src="https://img.shields.io/discord/669268347736686612.svg" />
   </a>
   <a href="https://sourcegraph.com/github.com/cosmos/ibc-go?badge">
@@ -63,7 +63,7 @@ Discover more applications and middleware in the [cosmos/ibc-apps repository](ht
 
 We have active, helpful communities on Discord and Telegram.
 
-For questions and support please use the `developers` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/1019978171367559208) or join the [IBC Gang Discord server](https://discord.gg/Wtmk6ZNa8G). The issue list of this repo is exclusively for bug reports and feature requests.
+For questions and support please use the `developers` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/1019978171367559208) or join the [Interchain Discord server](https://discord.com/invite/interchain). The issue list of this repo is exclusively for bug reports and feature requests.
 
 To receive announcements of new releases or other technical updates, please join the [Telegram group that we administer](https://t.me/ibc_is_expansive).
 
@@ -82,7 +82,7 @@ To help contributors understand which issues are good to pick up, we have the fo
 
 If you are interested in working on an issue, please comment on it; then we will be able to assign it to you. We will be happy to answer any questions you may have and help you out while you work on the issue.
 
-If you have any general questions or feedback, please reach out to us in the [IBC Gang Discord server](https://discord.com/channels/955868717269516318/955883113484013578).
+If you have any general questions or feedback, please reach out to us in the [Interchain Discord server](https://discord.com/invite/interchain).
 
 ## Security
 
