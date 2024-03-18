@@ -176,7 +176,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 			func() {
 				clientState = solomachine.NewClientState(1, &solomachine.ConsensusState{})
 
-				smSelfClientValidator := &mock.ClientValidator{
+				smConsensusHost := &mock.ConsensusHost{
 					ValidateSelfClientFn: func(ctx sdk.Context, clientState exported.ClientState) error {
 						smClientState, ok := clientState.(*solomachine.ClientState)
 						suite.Require().True(ok)
@@ -186,8 +186,8 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 					},
 				}
 
-				// add some mock validation logic
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfClientValidator(smSelfClientValidator)
+				// add mock validation logic
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(smConsensusHost)
 			},
 			nil,
 		},
@@ -378,24 +378,24 @@ func (suite *KeeperTestSuite) TestGetConsensusState() {
 		{
 			name: "custom client validator: failure",
 			malleate: func() {
-				clientValidator := &mock.ClientValidator{
+				consensusHost := &mock.ConsensusHost{
 					GetSelfConsensusStateFn: func(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
 						return nil, mock.MockApplicationCallbackError
 					},
 				}
-				suite.keeper.SetSelfClientValidator(clientValidator)
+				suite.keeper.SetSelfConsensusHost(consensusHost)
 			},
 			expError: mock.MockApplicationCallbackError,
 		},
 		{
 			name: "custom client validator: success",
 			malleate: func() {
-				clientValidator := &mock.ClientValidator{
+				consensusHost := &mock.ConsensusHost{
 					GetSelfConsensusStateFn: func(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
 						return &solomachine.ConsensusState{}, nil
 					},
 				}
-				suite.keeper.SetSelfClientValidator(clientValidator)
+				suite.keeper.SetSelfConsensusHost(consensusHost)
 			},
 			expError: nil,
 		},

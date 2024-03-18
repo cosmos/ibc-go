@@ -17,22 +17,22 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
-var _ types.SelfClientValidator = (*TendermintClientValidator)(nil)
+var _ types.ConsensusHost = (*TendermintConsensusHost)(nil)
 
-// TendermintClientValidator implements the SelfClientValidator interface.
-type TendermintClientValidator struct {
+// TendermintConsensusHost implements the 02-client types.ConsensusHost interface
+type TendermintConsensusHost struct {
 	stakingKeeper types.StakingKeeper
 }
 
-// NewTendermintClientValidator creates and returns a new SelfClientValidator for tendermint consensus.
-func NewTendermintClientValidator(stakingKeeper types.StakingKeeper) *TendermintClientValidator {
-	return &TendermintClientValidator{
+// NewTendermintConsensusHost creates and returns a new ConsensusHost for tendermint consensus.
+func NewTendermintConsensusHost(stakingKeeper types.StakingKeeper) types.ConsensusHost {
+	return &TendermintConsensusHost{
 		stakingKeeper: stakingKeeper,
 	}
 }
 
-// GetSelfConsensusState implements types.SelfClientValidatorI.
-func (tcv *TendermintClientValidator) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
+// GetSelfConsensusState implements the 02-client types.ConsensusHost interface.
+func (tcv *TendermintConsensusHost) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
 	selfHeight, ok := height.(types.Height)
 	if !ok {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", types.Height{}, height)
@@ -58,8 +58,8 @@ func (tcv *TendermintClientValidator) GetSelfConsensusState(ctx sdk.Context, hei
 	return consensusState, nil
 }
 
-// ValidateSelfClient implements types.SelfClientValidatorI.
-func (tcv *TendermintClientValidator) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
+// ValidateSelfClient implements the 02-client types.ConsensusHost interface.
+func (tcv *TendermintConsensusHost) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
 	tmClient, ok := clientState.(*ibctm.ClientState)
 	if !ok {
 		return errorsmod.Wrapf(types.ErrInvalidClient, "client must be a Tendermint client, expected: %T, got: %T", &ibctm.ClientState{}, tmClient)

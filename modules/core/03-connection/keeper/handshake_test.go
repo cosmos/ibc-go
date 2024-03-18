@@ -226,13 +226,13 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			// retrieve client state of chainA to pass as counterpartyClient
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
 
-			mockValidator := mock.ClientValidator{
+			mockValidator := mock.ConsensusHost{
 				ValidateSelfClientFn: func(ctx sdk.Context, clientState exported.ClientState) error {
 					return mock.MockApplicationCallbackError
 				},
 			}
 
-			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetSelfClientValidator(&mockValidator)
+			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(&mockValidator)
 		}, false},
 	}
 

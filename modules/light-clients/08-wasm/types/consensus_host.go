@@ -11,22 +11,24 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-type WasmTMClientValidator struct {
+// WasmTMConsensusHost implements the 02-client types.ConsensusHost interface.
+type WasmTMConsensusHost struct {
 	cdc codec.BinaryCodec
-	tm  *clientkeeper.TendermintClientValidator
+	tm  *clientkeeper.TendermintConsensusHost
 }
 
-var _ clienttypes.SelfClientValidator = (*WasmTMClientValidator)(nil)
+var _ clienttypes.ConsensusHost = (*WasmTMConsensusHost)(nil)
 
-// NewWasmTMClientValidator creates and returns a new SelfClientValidator for wasm tendermint consensus.
-func NewWasmTMClientValidator(cdc codec.BinaryCodec, tm *clientkeeper.TendermintClientValidator) *WasmTMClientValidator {
-	return &WasmTMClientValidator{
+// NewWasmTMConsensusHost creates and returns a new ConsensusHost for wasm tendermint consensus client state and consensus state self validation.
+func NewWasmTMConsensusHost(cdc codec.BinaryCodec, tm *clientkeeper.TendermintConsensusHost) *WasmTMConsensusHost {
+	return &WasmTMConsensusHost{
 		cdc: cdc,
 		tm:  tm,
 	}
 }
 
-func (w *WasmTMClientValidator) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
+// GetSelfConsensusState implements the 02-client types.ConsensusHost interface.
+func (w *WasmTMConsensusHost) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
 	consensusState, err := w.tm.GetSelfConsensusState(ctx, height)
 	if err != nil {
 		return nil, err
@@ -45,7 +47,8 @@ func (w *WasmTMClientValidator) GetSelfConsensusState(ctx sdk.Context, height ex
 	return wasmConsensusState, nil
 }
 
-func (w *WasmTMClientValidator) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
+// ValidateSelfClient implements the 02-client types.ConsensusHost interface.
+func (w *WasmTMConsensusHost) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
 	wasmClientState, ok := clientState.(*ClientState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "client must be a wasm client, expected: %T, got: %T", ClientState{}, wasmClientState)

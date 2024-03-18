@@ -24,13 +24,13 @@ import (
 // Keeper represents a type that grants read and write permissions to any client
 // state information
 type Keeper struct {
-	storeKey            storetypes.StoreKey
-	cdc                 codec.BinaryCodec
-	router              *types.Router
-	selfClientValidator types.SelfClientValidator
-	legacySubspace      types.ParamSubspace
-	stakingKeeper       types.StakingKeeper
-	upgradeKeeper       types.UpgradeKeeper
+	storeKey       storetypes.StoreKey
+	cdc            codec.BinaryCodec
+	router         *types.Router
+	consensusHost  types.ConsensusHost
+	legacySubspace types.ParamSubspace
+	stakingKeeper  types.StakingKeeper
+	upgradeKeeper  types.UpgradeKeeper
 }
 
 // NewKeeper creates a new NewKeeper instance
@@ -40,13 +40,13 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace ty
 	router.AddRoute(exported.Localhost, localhostModule)
 
 	return Keeper{
-		storeKey:            key,
-		cdc:                 cdc,
-		router:              router,
-		selfClientValidator: NewTendermintClientValidator(sk),
-		legacySubspace:      legacySubspace,
-		stakingKeeper:       sk,
-		upgradeKeeper:       uk,
+		storeKey:       key,
+		cdc:            cdc,
+		router:         router,
+		consensusHost:  NewTendermintConsensusHost(sk),
+		legacySubspace: legacySubspace,
+		stakingKeeper:  sk,
+		upgradeKeeper:  uk,
 	}
 }
 
@@ -80,13 +80,13 @@ func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.Clie
 	return clientModule.UpdateState(ctx, exported.LocalhostClientID, nil)
 }
 
-// SetSelfClientValidator sets a custom self client validation function.
-func (k *Keeper) SetSelfClientValidator(selfClientValidator types.SelfClientValidator) {
-	if selfClientValidator == nil {
+// SetSelfConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
+func (k *Keeper) SetSelfConsensusHost(consensusHost types.ConsensusHost) {
+	if consensusHost == nil {
 		panic(fmt.Errorf("cannot set a nil self client validator"))
 	}
 
-	k.selfClientValidator = selfClientValidator
+	k.consensusHost = consensusHost
 }
 
 // GenerateClientIdentifier returns the next client identifier.
@@ -309,7 +309,7 @@ func (k Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) 
 // and returns the expected consensus state at that height.
 // For now, can only retrieve self consensus states for the current revision
 func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
-	return k.selfClientValidator.GetSelfConsensusState(ctx, height)
+	return k.consensusHost.GetSelfConsensusState(ctx, height)
 }
 
 // ValidateSelfClient validates the client parameters for a client of the running chain.
@@ -317,7 +317,7 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 // NOTE: If the client type is not of type Tendermint then delegate to a custom client validator function.
 // This allows support for non-Tendermint clients, for example 08-wasm clients.
 func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
-	return k.selfClientValidator.ValidateSelfClient(ctx, clientState)
+	return k.consensusHost.ValidateSelfClient(ctx, clientState)
 }
 
 // GetUpgradePlan executes the upgrade keeper GetUpgradePlan function.
