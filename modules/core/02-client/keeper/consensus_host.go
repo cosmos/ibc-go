@@ -32,7 +32,7 @@ func NewTendermintConsensusHost(stakingKeeper types.StakingKeeper) types.Consens
 }
 
 // GetSelfConsensusState implements the 02-client types.ConsensusHost interface.
-func (tcv *TendermintConsensusHost) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
+func (tch *TendermintConsensusHost) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
 	selfHeight, ok := height.(types.Height)
 	if !ok {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", types.Height{}, height)
@@ -44,7 +44,7 @@ func (tcv *TendermintConsensusHost) GetSelfConsensusState(ctx sdk.Context, heigh
 		return nil, errorsmod.Wrapf(types.ErrInvalidHeight, "chainID revision number does not match height revision number: expected %d, got %d", revision, height.GetRevisionNumber())
 	}
 
-	histInfo, err := tcv.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
+	histInfo, err := tch.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "height %d", selfHeight.RevisionHeight)
 	}
@@ -59,7 +59,7 @@ func (tcv *TendermintConsensusHost) GetSelfConsensusState(ctx sdk.Context, heigh
 }
 
 // ValidateSelfClient implements the 02-client types.ConsensusHost interface.
-func (tcv *TendermintConsensusHost) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
+func (tch *TendermintConsensusHost) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
 	tmClient, ok := clientState.(*ibctm.ClientState)
 	if !ok {
 		return errorsmod.Wrapf(types.ErrInvalidClient, "client must be a Tendermint client, expected: %T, got: %T", &ibctm.ClientState{}, tmClient)
@@ -98,7 +98,7 @@ func (tcv *TendermintConsensusHost) ValidateSelfClient(ctx sdk.Context, clientSt
 		return errorsmod.Wrapf(types.ErrInvalidClient, "trust-level invalid: %v", err)
 	}
 
-	expectedUbdPeriod, err := tcv.stakingKeeper.UnbondingTime(ctx)
+	expectedUbdPeriod, err := tch.stakingKeeper.UnbondingTime(ctx)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to retrieve unbonding period")
 	}
