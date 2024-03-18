@@ -6,7 +6,7 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
-	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -22,8 +22,9 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc          codec.BinaryCodec
-	storeService storetypes.KVStoreService
+	cdc codec.BinaryCodec
+
+	storeService store.KVStoreService
 
 	clientKeeper types.ClientKeeper
 

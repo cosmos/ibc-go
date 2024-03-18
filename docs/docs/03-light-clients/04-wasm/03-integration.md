@@ -353,7 +353,7 @@ func CreateWasmUpgradeHandler(
 }
 ```
 
-Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../01-developer-guide/08-setup.md#creating-clients) for an example of how to do this).
+Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../01-developer-guide/09-setup.md#creating-clients) for an example of how to do this).
 
 ## Adding the module to the store
 

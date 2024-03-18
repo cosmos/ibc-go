@@ -49,7 +49,7 @@ func CreateMockTendermintClientState(height clienttypes.Height) *ibctm.ClientSta
 // CreateMockClientStateBz returns valid client state bytes for use in tests.
 func CreateMockClientStateBz(cdc codec.BinaryCodec, checksum types.Checksum) []byte {
 	wrappedClientStateBz := clienttypes.MustMarshalClientState(cdc, MockTendermitClientState)
-	mockClientSate := types.NewClientState(wrappedClientStateBz, checksum, MockTendermitClientState.GetLatestHeight().(clienttypes.Height))
+	mockClientSate := types.NewClientState(wrappedClientStateBz, checksum, MockTendermitClientState.LatestHeight)
 	return clienttypes.MustMarshalClientState(cdc, mockClientSate)
 }
 

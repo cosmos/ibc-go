@@ -1,28 +1,12 @@
 ---
-title: Client State interface
-sidebar_label: Client State interface
+title: Light Client Module interface
+sidebar_label: Light Client Module interface
 sidebar_position: 2
-slug: /ibc/light-clients/client-state
+slug: /ibc/light-clients/light-client-module
 ---
 
 
-# Implementing the `ClientState` interface
-
-Learn how to implement the [`ClientState`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L36) interface. This list of methods described here does not include all methods of the interface. Some methods are explained in detail in the relevant sections of the guide.
-
-## `ClientType` method
-
-`ClientType` should return a unique string identifier of the light client. This will be used when generating a client identifier.
-The format is created as follows: `ClientType-{N}` where `{N}` is the unique global nonce associated with a specific client.
-
-## `GetLatestHeight` method
-
-`GetLatestHeight` should return the latest block height that the client state represents.
-
-## `Validate` method
-
-`Validate` should validate every client state field and should return an error if any value is invalid. The light client
-implementer is in charge of determining which checks are required. See the [Tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/light-clients/07-tendermint/client_state.go#L111) as a reference.
+# Implementing the `LightClientModule` interface
 
 ## `Status` method
 
@@ -37,9 +21,9 @@ All possible `Status` types can be found [here](https://github.com/cosmos/ibc-go
 
 This field is returned in the response of the gRPC [`ibc.core.client.v1.Query/ClientStatus`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/types/query.pb.go#L665) endpoint.
 
-## `GetTimestampAtHeight` method
+## `TimestampAtHeight` method
 
-`GetTimestampAtHeight` must return the timestamp for the consensus state associated with the provided height.
+`TimestampAtHeight` must return the timestamp for the consensus state associated with the provided height.
 This value is used to facilitate timeouts by checking the packet timeout timestamp against the returned value.
 
 ## `Initialize` method
@@ -52,12 +36,12 @@ Clients may also store any necessary client-specific metadata.
 ## `VerifyMembership` method
 
 `VerifyMembership` must verify the existence of a value at a given commitment path at the specified height. For more information about membership proofs
-see the [Existence and non-existence proofs section](06-proofs.md).
+see the [Existence and non-existence proofs section](07-proofs.md).
 
 ## `VerifyNonMembership` method
 
 `VerifyNonMembership` must verify the absence of a value at a given commitment path at a specified height. For more information about non-membership proofs
-see the [Existence and non-existence proofs section](06-proofs.md).
+see the [Existence and non-existence proofs section](07-proofs.md).
 
 ## `VerifyClientMessage` method
 

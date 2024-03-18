@@ -399,7 +399,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 
 func (suite *SoloMachineTestSuite) TestUpdateState() {
 	var (
-		clientState exported.ClientState
+		clientState *solomachine.ClientState
 		clientMsg   exported.ClientMessage
 	)
 

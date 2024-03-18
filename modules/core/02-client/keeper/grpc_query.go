@@ -240,15 +240,7 @@ func (k Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	clientState, found := k.GetClientState(ctx, req.ClientId)
-	if !found {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
-		)
-	}
-
-	clientStatus := k.GetClientStatus(ctx, clientState, req.ClientId)
+	clientStatus := k.GetClientStatus(ctx, req.ClientId)
 
 	return &types.QueryClientStatusResponse{
 		Status: clientStatus.String(),
@@ -378,12 +370,12 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
 	}()
 
-	clientState, found := k.GetClientState(cachedCtx, req.ClientId)
+	clientModule, found := k.GetRouter().GetRoute(req.ClientId)
 	if !found {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error())
+		return nil, status.Error(codes.NotFound, req.ClientId)
 	}
 
-	if clientStatus := k.GetClientStatus(ctx, clientState, req.ClientId); clientStatus != exported.Active {
+	if clientStatus := k.GetClientStatus(ctx, req.ClientId); clientStatus != exported.Active {
 		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
 	}
 
@@ -394,7 +386,7 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		"verify membership query",
 	)
 
-	if err := clientState.VerifyMembership(cachedCtx, k.ClientStore(cachedCtx, req.ClientId), k.cdc, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
+	if err := clientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
 		k.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
 		return &types.QueryVerifyMembershipResponse{
 			Success: false,
