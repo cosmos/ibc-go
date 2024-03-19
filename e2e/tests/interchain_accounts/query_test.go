@@ -4,7 +4,6 @@ package interchainaccounts
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -118,7 +117,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 
 			// unmarshal the acknowledgement
 			ack := &channeltypes.Acknowledgement{}
-			err = json.Unmarshal(ackResp.Acknowledgement, ack)
+			err = channeltypes.SubModuleCdc.UnmarshalJSON(ackResp.Acknowledgement, ack)
 			s.Require().NoError(err)
 
 			icaAck := &sdk.TxMsgData{}
