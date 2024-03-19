@@ -44,9 +44,7 @@ const (
 	maxClockDrift  time.Duration = time.Second * 10
 )
 
-var (
-	testClientHeight = types.NewHeight(0, 5)
-)
+var testClientHeight = types.NewHeight(0, 5)
 
 type KeeperTestSuite struct {
 	testifysuite.Suite
