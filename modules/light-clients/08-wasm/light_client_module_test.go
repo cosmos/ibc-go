@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
@@ -129,7 +129,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 		{
 			"success",
 			func() {
-				suite.mockVM.RegisterSudoCallback(types.VerifyUpgradeAndUpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.RegisterSudoCallback(types.VerifyUpgradeAndUpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					var payload types.SudoMsg
 
 					err := json.Unmarshal(sudoMsg, &payload)
@@ -166,7 +166,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 					store.Set(host.ConsensusStateKey(expectedUpgradedClient.LatestHeight), bz)
 
-					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: data}}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,

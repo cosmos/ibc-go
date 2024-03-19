@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"math"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -57,7 +57,7 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 				}
 				ibcwasm.SetQueryPlugins(&querierPlugin)
 
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					echo := CustomQuery{
 						Echo: &QueryEcho{
 							Data: "hello world",
@@ -79,14 +79,14 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 					resp, err = json.Marshal(types.StatusResult{Status: exported.Active.String()})
 					suite.Require().NoError(err)
 
-					return resp, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 		},
 		{
 			"failure: default query",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					resp, err := querier.Query(wasmvmtypes.QueryRequest{Custom: json.RawMessage("{}")}, math.MaxUint64)
 					suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
 					suite.Require().Nil(resp)
@@ -144,7 +144,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 
 				ibcwasm.SetQueryPlugins(&querierPlugin)
 
-				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
 					bz, err := queryRequest.Marshal()
 					suite.Require().NoError(err)
@@ -171,7 +171,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 					result, err := json.Marshal(types.TimestampAtHeightResult{})
 					suite.Require().NoError(err)
 
-					return result, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.QueryResult{Ok: result}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -201,7 +201,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainA.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
-				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					queryRequest := clienttypes.QueryVerifyMembershipRequest{
 						ClientId:    endpoint.ClientID,
 						Proof:       proof,
@@ -230,12 +230,12 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 					result, err := json.Marshal(types.TimestampAtHeightResult{})
 					suite.Require().NoError(err)
 
-					return result, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.QueryResult{Ok: result}, wasmtesting.DefaultGasUsed, nil
 				})
 
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-				) (*wasmvmtypes.Response, uint64, error) {
+				) (*wasmvmtypes.ContractResult, uint64, error) {
 					var payload types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &payload)
 					suite.Require().NoError(err)
@@ -254,7 +254,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 					expDiscardedState = true
 					store.Set(testKey, value)
 
-					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: bz}}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -262,7 +262,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 		{
 			"failure: default querier",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
 					bz, err := queryRequest.Marshal()
 					suite.Require().NoError(err)
