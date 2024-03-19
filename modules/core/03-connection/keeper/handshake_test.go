@@ -219,7 +219,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
 		}, false},
-		{"override self client validator", func() {
+		{"override self consensus host", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
 
