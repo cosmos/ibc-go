@@ -12,23 +12,23 @@ import (
 
 // WasmConsensusHost implements the 02-client types.ConsensusHost interface.
 type WasmConsensusHost struct {
-	cdc codec.BinaryCodec
-	tm  clienttypes.ConsensusHost
+	cdc      codec.BinaryCodec
+	delegate clienttypes.ConsensusHost
 }
 
 var _ clienttypes.ConsensusHost = (*WasmConsensusHost)(nil)
 
 // NewWasmConsensusHost creates and returns a new ConsensusHost for wasm wrapped consensus client state and consensus state self validation.
-func NewWasmConsensusHost(cdc codec.BinaryCodec, tm clienttypes.ConsensusHost) *WasmConsensusHost {
+func NewWasmConsensusHost(cdc codec.BinaryCodec, delegate clienttypes.ConsensusHost) *WasmConsensusHost {
 	return &WasmConsensusHost{
-		cdc: cdc,
-		tm:  tm,
+		cdc:      cdc,
+		delegate: delegate,
 	}
 }
 
 // GetSelfConsensusState implements the 02-client types.ConsensusHost interface.
 func (w *WasmConsensusHost) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
-	consensusState, err := w.tm.GetSelfConsensusState(ctx, height)
+	consensusState, err := w.delegate.GetSelfConsensusState(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -71,5 +71,5 @@ func (w *WasmConsensusHost) ValidateSelfClient(ctx sdk.Context, clientState expo
 		return err
 	}
 
-	return w.tm.ValidateSelfClient(ctx, unwrappedClientState)
+	return w.delegate.ValidateSelfClient(ctx, unwrappedClientState)
 }
