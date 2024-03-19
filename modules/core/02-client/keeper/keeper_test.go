@@ -341,7 +341,7 @@ func (suite *KeeperTestSuite) TestIterateClientStates() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetLatestHeight() {
+func (suite *KeeperTestSuite) TestGetClientLatestHeight() {
 	var path *ibctesting.Path
 
 	cases := []struct {
@@ -385,7 +385,7 @@ func (suite *KeeperTestSuite) TestGetLatestHeight() {
 
 			tc.malleate()
 
-			height := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			height := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientLatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			if tc.expPass {
 				suite.Require().Equal(suite.chainB.LatestCommittedHeader.GetHeight().(types.Height), height)
@@ -457,7 +457,7 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 
 			tc.malleate()
 
-			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), path.EndpointA.ClientID, height)
+			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientTimestampAtHeight(suite.chainA.GetContext(), path.EndpointA.ClientID, height)
 
 			expPass := tc.expError == nil
 			if expPass {

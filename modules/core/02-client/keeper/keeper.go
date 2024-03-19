@@ -407,9 +407,9 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Statu
 	return clientModule.Status(ctx, clientID)
 }
 
-// GetLatestHeight returns the latest height of a client state for a given client identifier. If the client type is not in the allowed
+// GetClientLatestHeight returns the latest height of a client state for a given client identifier. If the client type is not in the allowed
 // clients param field, a zero value height is returned, otherwise the client state latest height is returned.
-func (k Keeper) GetLatestHeight(ctx sdk.Context, clientID string) types.Height {
+func (k Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.Height {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
 		return types.ZeroHeight()
@@ -427,8 +427,8 @@ func (k Keeper) GetLatestHeight(ctx sdk.Context, clientID string) types.Height {
 	return clientModule.LatestHeight(ctx, clientID).(types.Height)
 }
 
-// GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
-func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
+// GetClientTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
+func (k Keeper) GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
 		return 0, errorsmod.Wrapf(err, "clientID (%s)", clientID)
