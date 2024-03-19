@@ -3,8 +3,8 @@ package types_test
 import (
 	"encoding/json"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	errorsmod "cosmossdk.io/errors"
 

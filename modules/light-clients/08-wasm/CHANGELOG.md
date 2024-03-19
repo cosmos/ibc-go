@@ -38,11 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-<<<<<<< HEAD
 * [#\5975](https://github.com/cosmos/ibc-go/pull/5975) Upgrade Cosmos SDK to v0.50.5.
-=======
 * [#\5909](https://github.com/cosmos/ibc-go/pull/5909) Update wasmvm to v2.0.0.
->>>>>>> 30d56fc8 (deps: bump wasmvm v2.0.0 (#5909))
 
 ### API Breaking
 

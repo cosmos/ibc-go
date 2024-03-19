@@ -130,7 +130,7 @@ func NewSimApp(
 
 ## Keeper instantiation
 
-When it comes to instantiating `08-wasm`'s keeper there are two recommended ways of doing it. Choosing one or the other will depend on whether the chain already integrates [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) or not. Both available constructor functions accept a querier parameter that should implement the [`Querier` interface of `wasmvm`](https://github.com/CosmWasm/wasmvm/blob/v1.5.0/types/queries.go#L37). If `nil` is provided, then a default querier implementation is used that returns error for any query type.
+When it comes to instantiating `08-wasm`'s keeper there are two recommended ways of doing it. Choosing one or the other will depend on whether the chain already integrates [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) or not. Both available constructor functions accept a querier parameter that should implement the [`Querier` interface of `wasmvm`](https://github.com/CosmWasm/wasmvm/blob/v2.0.0/types/queries.go#L37). If `nil` is provided, then a default querier implementation is used that returns error for any query type.
 
 ### If `x/wasm` is present
 
@@ -150,13 +150,8 @@ The code to set this up would look something like this:
 import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
-<<<<<<< HEAD
-  
-  wasmvm "github.com/CosmWasm/wasmvm"
-=======
 
   wasmvm "github.com/CosmWasm/wasmvm/v2"
->>>>>>> 30d56fc8 (deps: bump wasmvm v2.0.0 (#5909))
   wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
   ...
 )
@@ -244,18 +239,12 @@ import (
   ...
 )
 ...
-<<<<<<< HEAD
-wasmConfig := wasmtypes.WasmConfig{
-  DataDir:               "ibc_08-wasm_client_data",
-  SupportedCapabilities: "iterator",
-=======
 
 // homePath is the path to the directory where the data
 // directory for Wasm blobs and caches will be created
 wasmConfig := ibcwasmtypes.WasmConfig{
   DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data"),
   SupportedCapabilities: []string{"iterator"},
->>>>>>> 30d56fc8 (deps: bump wasmvm v2.0.0 (#5909))
   ContractDebugMode:     false,
 }
 app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(

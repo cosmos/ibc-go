@@ -470,13 +470,8 @@ func NewSimApp(
 	// different VM instances running in the same data directory. In production environments, the
 	// appended random string is not needed.
 	wasmConfig := wasmtypes.WasmConfig{
-<<<<<<< HEAD
-		DataDir:               "ibc_08-wasm_client_data",
-		SupportedCapabilities: "iterator",
-=======
 		DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000))),
 		SupportedCapabilities: []string{"iterator"},
->>>>>>> 30d56fc8 (deps: bump wasmvm v2.0.0 (#5909))
 		ContractDebugMode:     false,
 	}
 	if mockVM != nil {
