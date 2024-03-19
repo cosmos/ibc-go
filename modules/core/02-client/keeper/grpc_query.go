@@ -370,7 +370,7 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
 	}()
 
-	clientModule, found := k.GetRouter().GetRoute(req.ClientId)
+	clientModule, found := k.Route(req.ClientId)
 	if !found {
 		return nil, status.Error(codes.NotFound, req.ClientId)
 	}
