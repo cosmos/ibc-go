@@ -2,7 +2,7 @@
   <h1>ibc-go</h1>
 </div>
 
-![banner](docs/ibc-go-image.png)
+![banner](https://raw.githubusercontent.com/cosmos/ibc-go/main/docs/static/img/IBC-go-cover.svg)
 
 <div align="center">
   <a href="https://github.com/cosmos/ibc-go/releases/latest">
