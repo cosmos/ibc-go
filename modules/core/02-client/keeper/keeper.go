@@ -60,6 +60,11 @@ func (k Keeper) GetRouter() *types.Router {
 	return k.router
 }
 
+// Route returns the light client module for the given client identifier.
+func (k Keeper) Route(clientID string) (exported.LightClientModule, bool) {
+	return k.router.GetRoute(clientID)
+}
+
 // CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
 	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)

@@ -91,7 +91,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			suite.Require().NoError(err)
 			substituteClientID = substituteEndpoint.ClientID
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
 			suite.Require().True(found)
 
 			tc.malleate()
@@ -239,7 +239,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			upgradedConsensusStateAny, err = codectypes.NewAnyWithValue(upgradedConsensusState)
 			suite.Require().NoError(err)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(clientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
 			suite.Require().True(found)
 
 			tc.malleate()
