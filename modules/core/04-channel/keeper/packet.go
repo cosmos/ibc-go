@@ -68,8 +68,8 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.ClientId, status)
 	}
 
-	latestHeight := k.clientKeeper.GetLatestHeight(ctx, connectionEnd.ClientId)
-	latestTimestamp, err := k.clientKeeper.GetTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)
+	latestHeight := k.clientKeeper.GetClientLatestHeight(ctx, connectionEnd.ClientId)
+	latestTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)
 	if err != nil {
 		return 0, err
 	}
