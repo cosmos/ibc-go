@@ -83,7 +83,7 @@ func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.Clie
 // SetSelfConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
 func (k *Keeper) SetSelfConsensusHost(consensusHost types.ConsensusHost) {
 	if consensusHost == nil {
-		panic(fmt.Errorf("cannot set a nil self client validator"))
+		panic(fmt.Errorf("cannot set a nil self consensus host"))
 	}
 
 	k.consensusHost = consensusHost

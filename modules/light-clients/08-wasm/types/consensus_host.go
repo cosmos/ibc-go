@@ -55,11 +55,11 @@ func (w *WasmTMConsensusHost) ValidateSelfClient(ctx sdk.Context, clientState ex
 	}
 
 	if w == nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm client validator is nil")
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm consensus host is nil")
 	}
 
 	if w.cdc == nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm client validator cdc is nil")
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm consensus host cdc is nil")
 	}
 
 	if wasmClientState.Data == nil {

@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestGetSelfConsensusState() {
 			expError: stakingtypes.ErrNoHistoricalInfo,
 		},
 		{
-			name: "custom client validator: failure",
+			name: "custom consensus host: failure",
 			malleate: func() {
 				consensusHost := &mock.ConsensusHost{
 					GetSelfConsensusStateFn: func(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) TestGetSelfConsensusState() {
 			expError: mock.MockApplicationCallbackError,
 		},
 		{
-			name: "custom client validator: success",
+			name: "custom consensus host: success",
 			malleate: func() {
 				consensusHost := &mock.ConsensusHost{
 					GetSelfConsensusStateFn: func(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
