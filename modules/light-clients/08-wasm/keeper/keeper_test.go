@@ -191,7 +191,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			errors.New("client keeper must be not nil"),
+			errors.New("client keeper must not be nil"),
 		},
 		{
 			"failure: nil wasm VM",
@@ -206,7 +206,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			errors.New("wasm VM must be not nil"),
+			errors.New("wasm VM must not be nil"),
 		},
 		{
 			"failure: nil store service",
@@ -221,7 +221,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			errors.New("store service must be not nil"),
+			errors.New("store service must not be nil"),
 		},
 		{
 			"failure: nil query router",
@@ -236,7 +236,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			errors.New("query router must be not nil"),
+			errors.New("query router must not be nil"),
 		},
 	}
 
