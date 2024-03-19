@@ -4,6 +4,7 @@ package interchainaccounts
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -115,8 +116,13 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			s.Require().NotNil(ackResp)
 			s.Require().NotEmpty(ackResp.Acknowledgement)
 
+			// unmarshal the acknowledgement
+			ack := &channeltypes.Acknowledgement{}
+			err = json.Unmarshal(ackResp.Acknowledgement, ack)
+			s.Require().NoError(err)
+
 			icaAck := &sdk.TxMsgData{}
-			err = proto.Unmarshal(ackResp.Acknowledgement, icaAck)
+			err = proto.Unmarshal(ack.GetResult(), icaAck)
 			s.Require().NoError(err)
 
 			queryResp := &banktypes.QueryBalanceResponse{}
