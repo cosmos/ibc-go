@@ -72,7 +72,9 @@ func (suite *TendermintTestSuite) TestGetSelfConsensusState() {
 				// historical info is set on BeginBlock in x/staking, which is now encapsulated within the FinalizeBlock abci method,
 				// thus, we do not have historical info for current height due to how the ibctesting library operates.
 				// ibctesting calls app.Commit() as a final step on NextBlock and we invoke test code before FinalizeBlock is called at the current height once again.
-				suite.chainA.GetSimApp().StakingKeeper.TrackHistoricalInfo(suite.chainA.GetContext())
+				err := suite.chainA.GetSimApp().StakingKeeper.TrackHistoricalInfo(suite.chainA.GetContext())
+				suite.Require().NoError(err)
+
 				height = clienttypes.GetSelfHeight(suite.chainA.GetContext())
 			},
 			expError: nil,
