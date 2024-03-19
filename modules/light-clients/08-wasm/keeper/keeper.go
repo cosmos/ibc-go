@@ -47,15 +47,15 @@ func NewKeeperWithVM(
 	opts ...Option,
 ) Keeper {
 	if clientKeeper == nil {
-		panic(errors.New("client keeper must be not nil"))
+		panic(errors.New("client keeper must not be nil"))
 	}
 
 	if vm == nil {
-		panic(errors.New("wasm VM must be not nil"))
+		panic(errors.New("wasm VM must not be nil"))
 	}
 
 	if storeService == nil {
-		panic(errors.New("store service must be not nil"))
+		panic(errors.New("store service must not be nil"))
 	}
 
 	if strings.TrimSpace(authority) == "" {
