@@ -1,10 +1,10 @@
-package keeper_test
+package tendermint_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
@@ -13,8 +13,8 @@ import (
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-func (suite *KeeperTestSuite) TestGetSelfConsensusState() {
-	var height types.Height
+func (suite *TendermintTestSuite) TestGetSelfConsensusState() {
+	var height clienttypes.Height
 
 	cases := []struct {
 		name     string
@@ -24,14 +24,14 @@ func (suite *KeeperTestSuite) TestGetSelfConsensusState() {
 		{
 			name: "zero height",
 			malleate: func() {
-				height = types.ZeroHeight()
+				height = clienttypes.ZeroHeight()
 			},
-			expError: stakingtypes.ErrNoHistoricalInfo,
+			expError: clienttypes.ErrInvalidHeight,
 		},
 		{
 			name: "height > latest height",
 			malleate: func() {
-				height = types.NewHeight(0, uint64(suite.ctx.BlockHeight())+1)
+				height = clienttypes.NewHeight(1, uint64(suite.chainA.GetContext().BlockHeight())+1)
 			},
 			expError: stakingtypes.ErrNoHistoricalInfo,
 		},
@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestGetSelfConsensusState() {
 						return nil, mock.MockApplicationCallbackError
 					},
 				}
-				suite.keeper.SetSelfConsensusHost(consensusHost)
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(consensusHost)
 			},
 			expError: mock.MockApplicationCallbackError,
 		},
@@ -55,50 +55,55 @@ func (suite *KeeperTestSuite) TestGetSelfConsensusState() {
 						return &solomachine.ConsensusState{}, nil
 					},
 				}
-				suite.keeper.SetSelfConsensusHost(consensusHost)
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(consensusHost)
 			},
 			expError: nil,
 		},
 		{
 			name: "latest height - 1",
 			malleate: func() {
-				height = types.NewHeight(0, uint64(suite.ctx.BlockHeight())-1)
+				height = clienttypes.NewHeight(1, uint64(suite.chainA.GetContext().BlockHeight())-1)
 			},
 			expError: nil,
 		},
 		{
 			name: "latest height",
 			malleate: func() {
-				height = types.GetSelfHeight(suite.ctx)
+				// historical info is set on BeginBlock in x/staking, which is now encapsulated within the FinalizeBlock abci method,
+				// thus, we do not have historical info for current height due to how the ibctesting library operates.
+				// ibctesting calls app.Commit() as a final step on NextBlock and we invoke test code before FinalizeBlock is called at the current height once again.
+				suite.chainA.GetSimApp().StakingKeeper.TrackHistoricalInfo(suite.chainA.GetContext())
+				height = clienttypes.GetSelfHeight(suite.chainA.GetContext())
 			},
 			expError: nil,
 		},
 	}
 
 	for i, tc := range cases {
-		suite.SetupTest()
-		suite.ctx = suite.ctx.WithBlockHeight(10)
 		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-		height = types.ZeroHeight()
+			height = clienttypes.ZeroHeight()
 
-		tc.malleate()
+			tc.malleate()
 
-		cs, err := suite.keeper.GetSelfConsensusState(suite.ctx, height)
+			cs, err := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), height)
 
-		expPass := tc.expError == nil
-		if expPass {
-			suite.Require().NoError(err, "Case %d should have passed: %s", i, tc.name)
-			suite.Require().NotNil(cs, "Case %d should have passed: %s", i, tc.name)
-		} else {
-			suite.Require().ErrorIs(err, tc.expError, "Case %d should have failed: %s", i, tc.name)
-			suite.Require().Nil(cs, "Case %d should have failed: %s", i, tc.name)
-		}
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err, "Case %d should have passed: %s", i, tc.name)
+				suite.Require().NotNil(cs, "Case %d should have passed: %s", i, tc.name)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError, "Case %d should have failed: %s", i, tc.name)
+				suite.Require().Nil(cs, "Case %d should have failed: %s", i, tc.name)
+			}
+		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestValidateSelfClient() {
-	testClientHeight := types.GetSelfHeight(suite.chainA.GetContext())
+func (suite *TendermintTestSuite) TestValidateSelfClient() {
+	testClientHeight := clienttypes.GetSelfHeight(suite.chainA.GetContext())
 	testClientHeight.RevisionHeight--
 
 	var clientState exported.ClientState
@@ -147,70 +152,70 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 			malleate: func() {
 				clientState = &ibctm.ClientState{ChainId: suite.chainA.ChainID, TrustLevel: ibctm.DefaultTrustLevel, TrustingPeriod: trustingPeriod, UnbondingPeriod: ubdPeriod, MaxClockDrift: maxClockDrift, FrozenHeight: testClientHeight, LatestHeight: testClientHeight, ProofSpecs: commitmenttypes.GetSDKSpecs(), UpgradePath: ibctesting.UpgradePath}
 			},
-			expError: types.ErrClientFrozen,
+			expError: clienttypes.ErrClientFrozen,
 		},
 		{
 			name: "incorrect chainID",
 			malleate: func() {
 				clientState = ibctm.NewClientState("gaiatestnet", ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			expError: types.ErrInvalidClient,
+			expError: clienttypes.ErrInvalidClient,
 		},
 		{
 			name: "invalid client height",
 			malleate: func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.GetSelfHeight(suite.chainA.GetContext()).Increment().(types.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.GetSelfHeight(suite.chainA.GetContext()).Increment().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			expError: types.ErrInvalidClient,
+			expError: clienttypes.ErrInvalidClient,
 		},
 		{
 			name: "invalid client type",
 			malleate: func() {
-				clientState = solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time})
+				clientState = solomachine.NewClientState(0, &solomachine.ConsensusState{})
 			},
-			expError: types.ErrInvalidClient,
+			expError: clienttypes.ErrInvalidClient,
 		},
 		{
 			name: "invalid client revision",
 			malleate: func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeightRevision1, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.NewHeight(1, 5), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			expError: types.ErrInvalidClient,
+			expError: clienttypes.ErrInvalidClient,
 		},
 		{
 			name: "invalid proof specs",
 			malleate: func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, nil, ibctesting.UpgradePath)
 			},
-			expError: types.ErrInvalidClient,
+			expError: clienttypes.ErrInvalidClient,
 		},
 		{
 			name: "invalid trust level",
 			malleate: func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			expError: types.ErrInvalidClient,
+			expError: clienttypes.ErrInvalidClient,
 		},
 		{
 			name: "invalid unbonding period",
 			malleate: func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+10, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			expError: types.ErrInvalidClient,
+			expError: clienttypes.ErrInvalidClient,
 		},
 		{
 			name: "invalid trusting period",
 			malleate: func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ubdPeriod+10, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 			},
-			expError: types.ErrInvalidClient,
+			expError: clienttypes.ErrInvalidClient,
 		},
 		{
 			name: "invalid upgrade path",
 			malleate: func() {
 				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), []string{"bad", "upgrade", "path"})
 			},
-			expError: types.ErrInvalidClient,
+			expError: clienttypes.ErrInvalidClient,
 		},
 	}
 

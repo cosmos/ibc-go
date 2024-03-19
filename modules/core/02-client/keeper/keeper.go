@@ -43,7 +43,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace ty
 		storeKey:       key,
 		cdc:            cdc,
 		router:         router,
-		consensusHost:  NewTendermintConsensusHost(sk),
+		consensusHost:  ibctm.NewConsensusHost(sk),
 		legacySubspace: legacySubspace,
 		stakingKeeper:  sk,
 		upgradeKeeper:  uk,
