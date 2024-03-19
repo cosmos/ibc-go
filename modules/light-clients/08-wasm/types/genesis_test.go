@@ -59,7 +59,7 @@ func (suite *TypesTestSuite) TestExportMetatada() {
 		{
 			"success",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.ExportMetadataMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.ExportMetadataMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					var msg types.QueryMsg
 
 					err := json.Unmarshal(queryMsg, &msg)
@@ -76,7 +76,7 @@ func (suite *TypesTestSuite) TestExportMetatada() {
 					})
 					suite.Require().NoError(err)
 
-					return resp, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -85,11 +85,11 @@ func (suite *TypesTestSuite) TestExportMetatada() {
 		{
 			"failure: contract returns an error",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.ExportMetadataMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.ExportMetadataMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
+			errorsmod.Wrapf(types.ErrVMError, wasmtesting.ErrMockContract.Error()),
 			nil,
 		},
 	}
