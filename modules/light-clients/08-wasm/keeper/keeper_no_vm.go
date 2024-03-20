@@ -27,6 +27,8 @@ func NewKeeperWithVM(
 	panic("not implemented, please build with cgo enabled or nolink_libwasmvm disabled")
 }
 
+// NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
+// This constructor function is used when binaries are compiled with cgo disabled or the
 // custom build directive: nolink_libwasmvm.
 // This function is intended to panic and notify users that 08-wasm keeper functionality is not available.
 func NewKeeperWithConfig(
