@@ -5,6 +5,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -12,6 +13,68 @@ const (
 	smClientID   = "06-solomachine-100"
 	wasmClientID = "08-wasm-0"
 )
+
+func (suite *SoloMachineTestSuite) TestInitialize() {
+	// test singlesig and multisig public keys
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+		malleatedConsensus := sm.ClientState().ConsensusState
+		malleatedConsensus.Timestamp += 10
+
+		testCases := []struct {
+			name      string
+			consState exported.ConsensusState
+			expPass   bool
+		}{
+			{
+				"valid consensus state",
+				sm.ConsensusState(),
+				true,
+			},
+			{
+				"nil consensus state",
+				nil,
+				false,
+			},
+			{
+				"invalid consensus state: Tendermint consensus state",
+				&ibctm.ConsensusState{},
+				false,
+			},
+			{
+				"invalid consensus state: consensus state does not match consensus state in client",
+				malleatedConsensus,
+				false,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
+
+				clientStateBz := suite.chainA.Codec.MustMarshal(sm.ClientState())
+				consStateBz := suite.chainA.Codec.MustMarshal(tc.consState)
+
+				clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
+
+				lcm, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.Route(clientID)
+				suite.Require().True(found)
+
+				err := lcm.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consStateBz)
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
+
+				if tc.expPass {
+					suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
+					suite.Require().True(store.Has(host.ClientStateKey()))
+				} else {
+					suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
+					suite.Require().False(store.Has(host.ClientStateKey()))
+				}
+			})
+		}
+	}
+}
 
 func (suite *SoloMachineTestSuite) TestRecoverClient() {
 	var (

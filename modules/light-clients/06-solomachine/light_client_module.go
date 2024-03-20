@@ -1,6 +1,8 @@
 package solomachine
 
 import (
+	"reflect"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -56,7 +58,15 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	return clientState.Initialize(ctx, l.cdc, clientStore, &consensusState)
+
+	if !reflect.DeepEqual(clientState.ConsensusState, &consensusState) {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
+			clientState.ConsensusState, &consensusState)
+	}
+
+	setClientState(clientStore, l.cdc, &clientState)
+
+	return nil
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier and calls into the clientState.VerifyClientMessage method.
