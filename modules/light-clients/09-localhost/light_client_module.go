@@ -24,16 +24,10 @@ type LightClientModule struct {
 // NewLightClientModule creates and returns a new 09-localhost LightClientModule.
 func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *LightClientModule {
 	return &LightClientModule{
-		cdc: cdc,
-		key: key,
+		cdc:           cdc,
+		key:           key,
+		storeProvider: clienttypes.NewStoreProvider(key),
 	}
-}
-
-// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-// to IBC light client instances.
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	l.storeProvider = storeProvider
 }
 
 // Initialize ensures that initial consensus state for localhost is nil.
