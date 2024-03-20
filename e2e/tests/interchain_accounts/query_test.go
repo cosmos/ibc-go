@@ -132,8 +132,6 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 					ackBz, err := hex.DecodeString(attr.Value)
 					s.Require().NoError(err)
 
-					// s.Require().Equal("", string(ackBz))
-
 					err = json.Unmarshal(ackBz, ack)
 					s.Require().NoError(err)
 
