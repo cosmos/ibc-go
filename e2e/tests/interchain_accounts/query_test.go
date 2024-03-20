@@ -112,7 +112,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 
 			// get acknowledgement
 			ackFound := false
-			ack := &channeltypes.Acknowledgement{}
+			ack := &channeltypes.Acknowledgement_Result{}
 
 		search_ack:
 			for _, event := range txSearchRes.Txs[0].Events {
@@ -133,8 +133,6 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 					err = json.Unmarshal(ackBz, ack)
 					s.Require().NoError(err)
 
-					s.T().Logf("ack deserialized: %s", ack.String())
-
 					ackFound = true
 
 					break search_ack
@@ -142,11 +140,10 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			}
 			s.Require().True(ackFound)
 			s.Require().NotZero(ack)
-			s.Require().NotZero(ack.GetResult())
 
 			// unmarshal the ica response
 			icaAck := &sdk.TxMsgData{}
-			err = proto.Unmarshal(ack.GetResult(), icaAck)
+			err = proto.Unmarshal(ack.Result, icaAck)
 			s.Require().NoError(err)
 			s.Require().Equal("", icaAck.String())
 			s.Require().Len(icaAck.GetMsgResponses(), 1)
