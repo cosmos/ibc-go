@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -13,6 +14,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/v2"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -26,15 +28,15 @@ var (
 	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
 )
 
-// IBCModule implements the ICS26 interface for transfer given the transfer keeper.
+// IBCModule implements the ICS26 interface for transfer given the transferKeeper.
 type IBCModule struct {
-	keeper keeper.Keeper
+	transferKeeper keeper.Keeper
 }
 
-// NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
+// NewIBCModule creates a new IBCModule given the transferKeeper
+func NewIBCModule(transferKeeper keeper.Keeper) IBCModule {
 	return IBCModule{
-		keeper: k,
+		transferKeeper: transferKeeper,
 	}
 }
 
@@ -81,24 +83,29 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, im.transferKeeper, order, portID, channelID); err != nil {
 		return "", err
 	}
 
 	if strings.TrimSpace(version) == "" {
-		version = types.Version
+		version = types.CurrentVersion
 	}
 
-	if version != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, version)
+	if !slices.Contains([]string{types.CurrentVersion, types.Version1}, version) {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, version)
 	}
 
 	// Claim channel capability passed back by IBC module
-	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+	if err := im.transferKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
 	}
 
-	return version, nil
+	if version == types.Version1 {
+		return types.Version1, nil
+	}
+
+	// default to latest supported version
+	return types.CurrentVersion, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface.
@@ -112,20 +119,20 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, im.transferKeeper, order, portID, channelID); err != nil {
 		return "", err
 	}
 
-	if counterpartyVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, counterpartyVersion)
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
-	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+	if err := im.transferKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
 	}
 
-	return types.Version, nil
+	return counterpartyVersion, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -136,9 +143,10 @@ func (IBCModule) OnChanOpenAck(
 	_ string,
 	counterpartyVersion string,
 ) error {
-	if counterpartyVersion != types.Version {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, counterpartyVersion)
 	}
+
 	return nil
 }
 
@@ -170,6 +178,24 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
+func getFungibleTokenPacketDataV2(bz []byte) (types.FungibleTokenPacketDataV2, error) {
+	var datav1 types.FungibleTokenPacketData
+	if err := json.Unmarshal(bz, &datav1); err == nil {
+		if len(datav1.Amount) != 0 {
+			return transferv2.ConvertPacketV1ToPacketV2(datav1), nil
+		}
+	}
+
+	var data types.FungibleTokenPacketDataV2
+	if err := json.Unmarshal(bz, &data); err == nil {
+		if len(data.Tokens) != 0 {
+			return data, nil
+		}
+	}
+
+	return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+}
+
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
@@ -178,13 +204,11 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	logger := im.keeper.Logger(ctx)
+	logger := im.transferKeeper.Logger(ctx)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	var data types.FungibleTokenPacketData
-	var ackErr error
-	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
-		ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+	data, ackErr := getFungibleTokenPacketDataV2(packet.GetData())
+	if ackErr != nil {
 		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 	}
@@ -192,7 +216,7 @@ func (im IBCModule) OnRecvPacket(
 	// only attempt the application logic if the packet data
 	// was successfully decoded
 	if ack.Success() {
-		err := im.keeper.OnRecvPacket(ctx, packet, data)
+		err := im.transferKeeper.OnRecvPacket(ctx, packet, data)
 		if err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err)
 			ackErr = err
@@ -202,13 +226,20 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
+	// TODO: emit these for each token in the packet
+	var denomPath, amount string
+	if len(data.Tokens) > 0 {
+		denomPath = data.Tokens[0].GetFullDenomPath()
+		amount = fmt.Sprintf("%d", data.Tokens[0].Amount)
+	}
+
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+		sdk.NewAttribute(types.AttributeKeySender, data.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-		sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
 		sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+		sdk.NewAttribute(types.AttributeKeyDenom, denomPath),
+		sdk.NewAttribute(types.AttributeKeyAmount, amount),
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}
 
@@ -238,12 +269,13 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
-	var data types.FungibleTokenPacketData
-	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+
+	data, err := getFungibleTokenPacketDataV2(packet.GetData())
+	if err != nil {
+		return err
 	}
 
-	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
+	if err := im.transferKeeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
 		return err
 	}
 
@@ -251,10 +283,10 @@ func (im IBCModule) OnAcknowledgementPacket(
 		sdk.NewEvent(
 			types.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+			sdk.NewAttribute(types.AttributeKeySender, data.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
+			sdk.NewAttribute(types.AttributeKeyDenom, data.Tokens[0].GetFullDenomPath()),
+			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%d", data.Tokens[0].Amount)),
 			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
@@ -286,12 +318,13 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	var data types.FungibleTokenPacketData
-	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+	data, err := getFungibleTokenPacketDataV2(packet.GetData())
+	if err != nil {
+		return err
 	}
+
 	// refund tokens
-	if err := im.keeper.OnTimeoutPacket(ctx, packet, data); err != nil {
+	if err := im.transferKeeper.OnTimeoutPacket(ctx, packet, data); err != nil {
 		return err
 	}
 
@@ -300,8 +333,8 @@ func (im IBCModule) OnTimeoutPacket(
 			types.EventTypeTimeout,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),
+			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Tokens[0].GetFullDenomPath()),
+			sdk.NewAttribute(types.AttributeKeyRefundAmount, fmt.Sprintf("%d", data.Tokens[0].Amount)),
 			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		),
 	)
@@ -311,12 +344,12 @@ func (im IBCModule) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, proposedOrder, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, im.transferKeeper, proposedOrder, portID, channelID); err != nil {
 		return "", err
 	}
 
-	if proposedVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, proposedVersion)
+	if !slices.Contains(types.SupportedVersions, proposedVersion) {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid proposed version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, proposedVersion)
 	}
 
 	return proposedVersion, nil
@@ -324,12 +357,12 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string,
 
 // OnChanUpgradeTry implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, proposedOrder, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, im.transferKeeper, proposedOrder, portID, channelID); err != nil {
 		return "", err
 	}
 
-	if counterpartyVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, counterpartyVersion)
 	}
 
 	return counterpartyVersion, nil
@@ -337,8 +370,8 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 
 // OnChanUpgradeAck implements the IBCModule interface
 func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	if counterpartyVersion != types.Version {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, counterpartyVersion)
 	}
 
 	return nil
@@ -352,10 +385,10 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	var packetData types.FungibleTokenPacketData
-	if err := json.Unmarshal(bz, &packetData); err != nil {
+	ftpd, err := getFungibleTokenPacketDataV2(bz)
+	if err != nil {
 		return nil, err
 	}
 
-	return packetData, nil
+	return ftpd, nil
 }

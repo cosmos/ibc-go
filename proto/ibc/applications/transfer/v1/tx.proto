@@ -49,6 +49,8 @@ message MsgTransfer {
   uint64 timeout_timestamp = 7;
   // optional memo
   string memo = 8;
+  // tokens to be transferred
+  repeated cosmos.base.v1beta1.Coin tokens = 9 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.

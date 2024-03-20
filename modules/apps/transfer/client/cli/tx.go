@@ -23,6 +23,7 @@ const (
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 	flagAbsoluteTimeouts       = "absolute-timeouts"
 	flagMemo                   = "memo"
+	flagMultiDenom             = "multi-denom"
 )
 
 // defaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
@@ -35,10 +36,13 @@ var defaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Min
 func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer [src-port] [src-channel] [receiver] [amount]",
-		Short: "Transfer a fungible token through IBC",
-		Long: strings.TrimSpace(`Transfer a fungible token through IBC. Timeouts can be specified as absolute using the {absolute-timeouts} flag. 
-Timeout height can be set by passing in the height string in the form {revision}-{height} using the {packet-timeout-height} flag. Note, relative timeout height is not supported. 
-Relative timeout timestamp is added to the value of the user's local system clock time using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
+		Short: "Transfer a fungible token (or multiple fungible tokens in one packet) through IBC",
+		Long: strings.TrimSpace(`Transfer a fungible token through IBC. Multiple denoms can also be transferred in a single
+		packet, if the coinslist is a comma-separated string. Timeouts can be specified as absolute or relative using the "absolute-timeouts" flag. Timeout height can be set by passing in the height string
+in the form {revision}-{height} using the "packet-timeout-height" flag. Relative timeout height is added to the block
+height queried from the latest consensus state corresponding to the counterparty channel. Relative timeout timestamp 
+is added to the greater value of the local clock time and the block timestamp queried from the latest consensus state 
+corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [amount]", version.AppName),
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -51,14 +55,23 @@ Relative timeout timestamp is added to the value of the user's local system cloc
 			srcChannel := args[1]
 			receiver := args[2]
 
+			var coins sdk.Coins
+
 			coin, err := sdk.ParseCoinNormalized(args[3])
-			if err != nil {
-				return err
+			if err == nil {
+				coins = append(coins, coin)
+			} else {
+				coins, err = sdk.ParseCoinsNormalized(args[3])
+				if err != nil {
+					return err
+				}
 			}
 
-			if !strings.HasPrefix(coin.Denom, "ibc/") {
-				denomTrace := types.ParseDenomTrace(coin.Denom)
-				coin.Denom = denomTrace.IBCDenom()
+			for _, coin := range coins {
+				if !strings.HasPrefix(coin.Denom, "ibc/") {
+					denomTrace := types.ParseDenomTrace(coin.Denom)
+					coin.Denom = denomTrace.IBCDenom()
+				}
 			}
 
 			timeoutHeightStr, err := cmd.Flags().GetString(flagPacketTimeoutHeight)
@@ -107,7 +120,7 @@ Relative timeout timestamp is added to the value of the user's local system cloc
 			}
 
 			msg := types.NewMsgTransfer(
-				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp, memo,
+				srcPort, srcChannel, sdk.Coin{}, sender, receiver, timeoutHeight, timeoutTimestamp, memo, coins...,
 			)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

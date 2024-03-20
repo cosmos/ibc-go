@@ -8,6 +8,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
@@ -95,4 +97,102 @@ func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} 
 	}
 
 	return memoData
+}
+
+// NewFungibleTokenPacketDataV2 constructs a new NewFungibleTokenPacketDataV2 instance
+func NewFungibleTokenPacketDataV2(
+	tokens []*Token,
+	sender, receiver string,
+	memo string,
+) FungibleTokenPacketDataV2 {
+	return FungibleTokenPacketDataV2{
+		Tokens:   tokens,
+		Sender:   sender,
+		Receiver: receiver,
+		Memo:     memo,
+	}
+}
+
+// ValidateBasic is used for validating the token transfer.
+// NOTE: The addresses formats are not validated as the sender and recipient can have different
+// formats defined by their corresponding chains that are not known to IBC.
+func (ftpdv2 FungibleTokenPacketDataV2) ValidateBasic() error {
+	if strings.TrimSpace(ftpdv2.Sender) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "sender address cannot be blank")
+	}
+
+	if strings.TrimSpace(ftpdv2.Receiver) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "receiver address cannot be blank")
+	}
+
+	if len(ftpdv2.Tokens) == 0 {
+		return errorsmod.Wrap(ErrInvalidAmount, "tokens cannot be empty")
+	}
+
+	for _, token := range ftpdv2.Tokens {
+		if token.Amount == 0 {
+			return errorsmod.Wrapf(ErrInvalidAmount, "amount must be greater than zero: got %d", token.Amount)
+		}
+
+		if err := sdk.ValidateDenom(token.Denom); err != nil {
+			// TODO: correct error
+			return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, err.Error())
+		}
+	}
+
+	if len(ftpdv2.Memo) > MaximumMemoLength {
+		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
+	}
+
+	return nil
+}
+
+func (t *Token) GetFullDenomPath() string {
+	if len(t.Trace) == 0 {
+		return t.Denom
+	}
+	return strings.Join(t.Trace, "/") + "/" + t.Denom
+}
+
+// GetBytes is a helper for serialising
+func (ftpdv2 FungibleTokenPacketDataV2) GetBytes() []byte {
+	bz, err := json.Marshal(&ftpdv2)
+	if err != nil {
+		panic(errors.New("cannot marshal FungibleTokenPacketDataV2 into bytes"))
+	}
+
+	return bz
+}
+
+// GetCustomPacketData interprets the memo field of the packet data as a JSON object
+// and returns the value associated with the given key.
+// If the key is missing or the memo is not properly formatted, then nil is returned.
+func (ftpdv2 FungibleTokenPacketDataV2) GetCustomPacketData(key string) interface{} {
+	if len(ftpdv2.Memo) == 0 {
+		return nil
+	}
+
+	jsonObject := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ftpdv2.Memo), &jsonObject)
+	if err != nil {
+		return nil
+	}
+
+	memoData, found := jsonObject[key]
+	if !found {
+		return nil
+	}
+
+	return memoData
+}
+
+// GetPacketSender returns the sender address embedded in the packet data.
+//
+// NOTE:
+//   - The sender address is set by the module which requested the packet to be sent,
+//     and this module may not have validated the sender address by a signature check.
+//   - The sender address must only be used by modules on the sending chain.
+//   - sourcePortID is not used in this implementation.
+func (ftpdv2 FungibleTokenPacketDataV2) GetPacketSender(sourcePortID string) string {
+	return ftpdv2.Sender
 }

@@ -313,7 +313,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &transfertypes.MsgTransfer{
 					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
 					SourceChannel:    transferPath.EndpointA.ChannelID,
-					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
+					Tokens:           sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))},
 					Sender:           interchainAccountAddr,
 					Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
 					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &transfertypes.MsgTransfer{
 					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
 					SourceChannel:    transferPath.EndpointA.ChannelID,
-					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
+					Tokens:           sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))},
 					Sender:           interchainAccountAddr,
 					Receiver:         "",
 					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),

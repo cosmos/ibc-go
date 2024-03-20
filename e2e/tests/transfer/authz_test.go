@@ -34,7 +34,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptionsV1())
 	chainA, chainB := suite.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -107,7 +107,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		transferMsg := transfertypes.MsgTransfer{
 			SourcePort:    channelA.PortID,
 			SourceChannel: channelA.ChannelID,
-			Token:         testvalues.DefaultTransferAmount(chainADenom),
+			Tokens:        []sdk.Coin{testvalues.DefaultTransferAmount(chainADenom)},
 			Sender:        granterAddress,
 			Receiver:      receiverWalletAddress,
 			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
@@ -164,7 +164,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		transferMsg := transfertypes.MsgTransfer{
 			SourcePort:    channelA.PortID,
 			SourceChannel: channelA.ChannelID,
-			Token:         testvalues.DefaultTransferAmount(chainADenom),
+			Tokens:        []sdk.Coin{testvalues.DefaultTransferAmount(chainADenom)},
 			Sender:        granterAddress,
 			Receiver:      receiverWalletAddress,
 			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
@@ -187,7 +187,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptionsV1())
 	chainA, chainB := suite.GetChains()
 
 	chainAVersion := chainA.Config().Images[0].Version
@@ -244,7 +244,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			transferMsg := transfertypes.MsgTransfer{
 				SourcePort:    channelA.PortID,
 				SourceChannel: channelA.ChannelID,
-				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)},
+				Tokens:        []sdk.Coin{{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)}},
 				Sender:        granterAddress,
 				Receiver:      receiverWalletAddress,
 				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
@@ -301,7 +301,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			transferMsg := transfertypes.MsgTransfer{
 				SourcePort:    channelA.PortID,
 				SourceChannel: channelA.ChannelID,
-				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)},
+				Tokens:        []sdk.Coin{{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)}},
 				Sender:        granterAddress,
 				Receiver:      invalidWalletAddress,
 				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),

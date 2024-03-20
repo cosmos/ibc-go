@@ -44,10 +44,9 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 
 // NewMsgTransfer creates a new MsgTransfer instance
 func NewMsgTransfer(
-	sourcePort, sourceChannel string,
-	token sdk.Coin, sender, receiver string,
+	sourcePort, sourceChannel string, token sdk.Coin, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
-	memo string,
+	memo string, tokens ...sdk.Coin,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -58,6 +57,7 @@ func NewMsgTransfer(
 		TimeoutHeight:    timeoutHeight,
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             memo,
+		Tokens:           tokens,
 	}
 }
 
@@ -72,11 +72,13 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
 		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
-	if !msg.Token.IsValid() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
+
+	if len(msg.Tokens) == 0 && !isValidToken(msg.Token) {
+		return errorsmod.Wrap(ErrInvalidAmount, "either token or token array must be filled")
 	}
-	if !msg.Token.IsPositive() {
-		return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, msg.Token.String())
+
+	if len(msg.Tokens) != 0 && isValidToken(msg.Token) {
+		return errorsmod.Wrap(ErrInvalidAmount, "cannot fill both token and token array")
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
@@ -92,5 +94,51 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if len(msg.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
-	return ValidateIBCDenom(msg.Token.Denom)
+
+	for _, token := range msg.GetTokens() {
+		if !token.IsValid() {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.String())
+		}
+		if !token.IsPositive() {
+			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, token.String())
+		}
+		if err := ValidateIBCDenom(token.Denom); err != nil {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.Denom)
+		}
+	}
+
+	return nil
+}
+
+// GetTokens returns the tokens which will be transferred.
+func (msg MsgTransfer) GetTokens() []sdk.Coin {
+	tokensToValidate := msg.Tokens
+	if isValidToken(msg.Token) {
+		tokensToValidate = []sdk.Coin{msg.Token}
+	}
+	return tokensToValidate
+}
+
+// isValidToken returns true if the token provided is valid,
+// and should be used to transfer tokens.
+// this function is used in case the user constructs a sdk.Coin literal
+// instead of using the construction function.
+func isValidToken(coin sdk.Coin) bool {
+	if coin.IsNil() {
+		return false
+	}
+
+	if strings.TrimSpace(coin.Denom) == "" {
+		return false
+	}
+
+	if coin.Amount.IsZero() {
+		return false
+	}
+
+	if coin.Amount.IsNegative() {
+		return false
+	}
+
+	return true
 }

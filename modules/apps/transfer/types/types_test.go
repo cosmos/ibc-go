@@ -29,8 +29,8 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = types.PortID
 	path.EndpointB.ChannelConfig.PortID = types.PortID
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
+	path.EndpointA.ChannelConfig.Version = types.CurrentVersion
+	path.EndpointB.ChannelConfig.Version = types.CurrentVersion
 
 	return path
 }

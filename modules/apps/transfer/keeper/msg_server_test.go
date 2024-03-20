@@ -1,31 +1,42 @@
 package keeper_test
 
 import (
+	"errors"
+	"strings"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // TestMsgTransfer tests Transfer rpc handler
 func (suite *KeeperTestSuite) TestMsgTransfer() {
 	var msg *types.MsgTransfer
+	var path *ibctesting.Path
+	var coin sdk.Coin
+	var coin1 sdk.Coin
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name       string
+		malleate   func()
+		expError   error
+		multiDenom bool
 	}{
 		{
-			"success",
+			"success: single denom",
 			func() {},
-			true,
+			nil,
+			false,
 		},
 		{
-			"bank send enabled for denom",
+			"success: bank send enabled for denom",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
@@ -34,10 +45,55 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				)
 				suite.Require().NoError(err)
 			},
+			nil,
+			false,
+		},
+		{
+			"success: multi-denom with version ics20-2",
+			func() {
+				coin1 = sdk.NewCoin("bond", sdkmath.NewInt(100))
+
+				// send some coins of the second denom from bank module to the sender account as well
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin1)))
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin1)))
+
+				msg = types.NewMsgTransfer(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					sdk.Coin{}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+					suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+					"memo", coin, coin1,
+				)
+			},
+			nil,
 			true,
 		},
 		{
-			"send transfers disabled",
+			"fail: multidenom with ics20-1",
+			func() {
+				coin1 = sdk.NewCoin("bond", sdkmath.NewInt(100))
+
+				// send some coins of the second denom from bank module to the sender account as well
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin1)))
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin1)))
+
+				msg = types.NewMsgTransfer(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					sdk.Coin{}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+					suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+					"memo", coin, coin1,
+				)
+
+				channel := path.EndpointA.GetChannel()
+				channel.Version = types.Version1
+				path.EndpointA.SetChannel(channel)
+			},
+			ibcerrors.ErrInvalidRequest,
+			true,
+		},
+		{
+			"fail: send transfers disabled",
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(),
 					types.Params{
@@ -45,24 +101,27 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 					},
 				)
 			},
+			types.ErrSendDisabled,
 			false,
 		},
 		{
-			"invalid sender",
+			"fail: invalid sender",
 			func() {
 				msg.Sender = "address"
 			},
+			errors.New("decoding bech32 failed"),
 			false,
 		},
 		{
-			"sender is a blocked address",
+			"fail: sender is a blocked address",
 			func() {
 				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
 			},
+			ibcerrors.ErrUnauthorized,
 			false,
 		},
 		{
-			"bank send disabled for denom",
+			"fail: bank send disabled for denom",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
@@ -71,13 +130,15 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				)
 				suite.Require().NoError(err)
 			},
+			types.ErrSendDisabled,
 			false,
 		},
 		{
-			"channel does not exist",
+			"fail: channel does not exist",
 			func() {
 				msg.SourceChannel = "channel-100"
 			},
+			ibcerrors.ErrInvalidRequest,
 			false,
 		},
 	}
@@ -88,10 +149,11 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+			coin = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+
 			msg = types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
@@ -107,23 +169,54 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 			// Verify events
 			events := ctx.EventManager().Events().ToABCIEvents()
-			expEvents := ibctesting.EventsMap{
-				"ibc_transfer": {
-					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
-					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
-					"amount":   coin.Amount.String(),
-					"denom":    coin.Denom,
-					"memo":     "memo",
-				},
+
+			var expEvents []abci.Event
+			if tc.multiDenom {
+				expEvents = sdk.Events{
+					sdk.NewEvent(types.EventTypeTransfer,
+						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
+						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+						sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+						sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
+					),
+					sdk.NewEvent(types.EventTypeTransfer,
+						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
+						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+						sdk.NewAttribute(types.AttributeKeyDenom, coin1.Denom),
+						sdk.NewAttribute(types.AttributeKeyAmount, coin1.Amount.String()),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+					),
+				}.ToABCIEvents()
+			} else {
+				expEvents = sdk.Events{
+					sdk.NewEvent(types.EventTypeTransfer,
+						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
+						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+						sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+						sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+					),
+				}.ToABCIEvents()
 			}
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().True(errors.Is(err, tc.expError) || strings.Contains(err.Error(), tc.expError.Error()), err.Error())
 				suite.Require().Nil(res)
 				suite.Require().Len(events, 0)
 			}
