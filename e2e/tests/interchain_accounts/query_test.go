@@ -4,6 +4,8 @@ package interchainaccounts
 
 import (
 	"context"
+	"encoding/hex"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -104,30 +106,56 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 		})
 
 		t.Run("verify query response", func(t *testing.T) {
-			// query packet acknowledgement
-			ackReq := &channeltypes.QueryPacketAcknowledgementRequest{
-				PortId:    icatypes.HostPortID,
-				ChannelId: "channel-1",
-				Sequence:  uint64(1),
-			}
-			ackResp, err := s.GetChainGRCPClients(chainB).ChannelQueryClient.PacketAcknowledgement(ctx, ackReq)
+			txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, "message.action='/ibc.core.channel.v1.MsgRecvPacket'", "")
 			s.Require().NoError(err)
-			s.Require().NotNil(ackResp)
-			s.Require().NotEmpty(ackResp.Acknowledgement)
+			s.Require().Len(txSearchRes.Txs, 1)
 
-			// unmarshal the acknowledgement
+			// get acknowledgement
+			ackFound := false
 			ack := &channeltypes.Acknowledgement{}
-			err = channeltypes.SubModuleCdc.UnmarshalJSON(ackResp.Acknowledgement, ack)
-			s.Require().NoError(err)
 
+		search_ack:
+			for _, event := range txSearchRes.Txs[0].Events {
+				if event.Type != icatypes.EventTypePacket {
+					continue
+				}
+
+				for _, attr := range event.Attributes {
+					if attr.Key != channeltypes.AttributeKeyAckHex {
+						continue
+					}
+
+					ackBz, err := hex.DecodeString(attr.Value)
+					s.Require().NoError(err)
+
+					err = json.Unmarshal(ackBz, ack)
+					s.Require().NoError(err)
+
+					ackFound = true
+
+					break search_ack
+				}
+			}
+			s.Require().True(ackFound)
+
+			// unmarshal the ica response
 			icaAck := &sdk.TxMsgData{}
 			err = proto.Unmarshal(ack.GetResult(), icaAck)
 			s.Require().NoError(err)
+			s.Require().Len(icaAck.MsgResponses, 1)
 
-			queryResp := &banktypes.QueryBalanceResponse{}
-			err = proto.Unmarshal(icaAck.MsgResponses[0].GetValue(), queryResp)
+			// unmarshal the tx response
+			queryTxResp := &icahosttypes.MsgModuleQuerySafeResponse{}
+			err = proto.Unmarshal(icaAck.MsgResponses[0].Value, queryTxResp)
 			s.Require().NoError(err)
-			s.Require().Equal(testvalues.StartingTokenAmount, queryResp.Balance.Amount.Int64())
+			s.Require().Len(queryTxResp.Responses, 1)
+
+			// unmarshal the bank query response
+			balanceResp := &banktypes.QueryBalanceResponse{}
+			err = proto.Unmarshal(queryTxResp.Responses[0], balanceResp)
+			s.Require().NoError(err)
+			s.Require().Equal(balanceResp.Balance.Denom, chainB.Config().Denom)
+			s.Require().Equal(balanceResp.Balance.Amount, testvalues.StartingTokenAmount)
 		})
 	})
 }
