@@ -12,6 +12,7 @@ import (
 	"cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
