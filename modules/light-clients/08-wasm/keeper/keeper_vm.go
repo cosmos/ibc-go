@@ -1,4 +1,4 @@
-//go:build !ibcwasm_novm
+//go:build cgo && !nolink_libwasmvm
 
 package keeper
 

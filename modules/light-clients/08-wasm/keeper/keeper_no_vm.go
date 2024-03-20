@@ -1,4 +1,4 @@
-//go:build ibcwasm_novm
+//go:build !cgo || nolink_libwasmvm
 
 package keeper
 
@@ -12,8 +12,9 @@ import (
 )
 
 // NewKeeperWithVM creates a new Keeper instance with the provided Wasm VM.
-// This constructor function is meant to be used when the chain uses x/wasm
-// and the same Wasm VM instance should be shared with it.
+// This constructor function is used when binaries are compiled with cgo disabled or the
+// custom build directive: nolink_libwasmvm.
+// This function is intended to panic and notify users that 08-wasm keeper functionality is not available.
 func NewKeeperWithVM(
 	_ codec.BinaryCodec,
 	_ storetypes.KVStoreService,
@@ -23,12 +24,13 @@ func NewKeeperWithVM(
 	_ ibcwasm.QueryRouter,
 	_ ...Option,
 ) Keeper {
-	panic("not implemented, please build with ibcwasm_novm disabled")
+	panic("not implemented, please build with cgo enabled or nolink_libwasmvm disabled")
 }
 
 // NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
-// This constructor function is meant to be used when the chain does not use x/wasm
-// and a Wasm VM needs to be instantiated using the provided parameters.
+// This constructor function is used when binaries are compiled with cgo disabled or the
+// custom build directive: nolink_libwasmvm.
+// This function is intended to panic and notify users that 08-wasm keeper functionality is not available.
 func NewKeeperWithConfig(
 	_ codec.BinaryCodec,
 	_ storetypes.KVStoreService,
@@ -38,5 +40,5 @@ func NewKeeperWithConfig(
 	_ ibcwasm.QueryRouter,
 	_ ...Option,
 ) Keeper {
-	panic("not implemented, please build with ibcwasm_novm disabled")
+	panic("not implemented, please build with cgo enabled or nolink_libwasmvm disabled")
 }
