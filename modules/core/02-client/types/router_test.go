@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	storetypes "cosmossdk.io/store/types"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
