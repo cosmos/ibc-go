@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"cosmossdk.io/core/store"
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
+
+	"cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
