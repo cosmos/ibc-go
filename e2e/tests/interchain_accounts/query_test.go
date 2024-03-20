@@ -157,8 +157,8 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			balanceResp := &banktypes.QueryBalanceResponse{}
 			err = proto.Unmarshal(queryTxResp.Responses[0], balanceResp)
 			s.Require().NoError(err)
-			s.Require().Equal(balanceResp.Balance.Denom, chainB.Config().Denom)
-			s.Require().Equal(balanceResp.Balance.Amount, testvalues.StartingTokenAmount)
+			s.Require().Equal(chainB.Config().Denom, balanceResp.Balance.Denom)
+			s.Require().Equal(testvalues.StartingTokenAmount, balanceResp.Balance.Amount.Int64())
 		})
 	})
 }
