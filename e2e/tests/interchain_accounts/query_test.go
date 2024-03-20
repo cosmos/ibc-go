@@ -128,8 +128,12 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 					ackBz, err := hex.DecodeString(attr.Value)
 					s.Require().NoError(err)
 
+					s.T().Logf("ack found: %s", string(ackBz))
+
 					err = json.Unmarshal(ackBz, ack)
 					s.Require().NoError(err)
+
+					s.T().Logf("ack deserialized: %s", ack.String())
 
 					ackFound = true
 
@@ -138,10 +142,6 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			}
 			s.Require().True(ackFound)
 			s.Require().NotZero(ack)
-			if !ack.Success() {
-				t.Logf("ack failed: %s", ack.String())
-				s.Require().FailNow(ack.String())
-			}
 			s.Require().NotZero(ack.GetResult())
 
 			// unmarshal the ica response
