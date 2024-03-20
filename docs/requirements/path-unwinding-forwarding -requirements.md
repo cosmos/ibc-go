@@ -87,16 +87,16 @@ A user on one chain, for example the Cosmos Hub holds an asset, e.g. ATOM and wa
 
 | ID | Description | Verification | Status | 
 | -- | ------ | ------------ | ------ | 
-| -- | When a user initiates a transfer to a destination chain with an IBC denom with > 1 hop, the token shall be sent back to its originating chain before being sent onto the destination as a default | ------------ | draft | 
-| -- | If a user does not want to unwind the tokens, then they can override the default unwinding | ------------ | draft | 
-| -- | The unwinding shall completely succeed or the tokens are recoverable on the chain they were sent from by the user | ------------ | draft | 
-| -- | When unwinding is used in combination with forwarding, both the unwind and forwarding should succeed or the tokens should be recoverable on the sending chain | ------------ | draft | 
-| -- | The forwarding mechanism shall allow a user to transfer tokens beyond the first destination for those tokens | ------------ | draft | 
-| -- | The forwarding mechanism shall allow tokens to have some action performed on them before being sent onto a new destination | ------------ | draft | 
-| -- | The routing information for forwarding or to go from unwound token to destination must be input with the initial transfer | ------------ | draft |
-| -- | If an intermediate chain does not have the unwinding or forwarding functionality, the tokens must be recoverable on the sending chain | ------------ | draft | 
- -- | If unwinding or forwarding fails, then the reason for the failure should be returned in an error | ------------ | draft |
- | -- | When unwinding, it should be possible for the unwind route to the tokens origin to be introspected from the denomination trace | ------------ | draft |
+| 1.01 | When a user initiates a transfer to a destination chain with an IBC denom with > 1 hop, the token shall be sent back to its originating chain before being sent onto the destination as a default | ------------ | draft | 
+| 1.02 | If a user does not want to unwind the tokens, then they can override the default unwinding | ------------ | draft | 
+| 1.03 | The unwinding shall completely succeed or the tokens are recoverable on the chain they were sent from by the user | ------------ | draft | 
+| 1.04 | When unwinding is used in combination with forwarding, both the unwind and forwarding should succeed or the tokens should be recoverable on the sending chain | ------------ | draft | 
+| 1.05 | The forwarding mechanism shall allow a user to transfer tokens beyond the first destination for those tokens | ------------ | draft | 
+| 1.06 | The forwarding mechanism shall allow tokens to have some action performed on them before being sent onto a new destination | ------------ | draft | 
+| 1.07 | The routing information for forwarding or to go from unwound token to destination must be input with the initial transfer | ------------ | draft |
+| 1.08 | If an intermediate chain does not have the unwinding or forwarding functionality, the tokens must be recoverable on the sending chain | ------------ | draft | 
+ 1.09 | If unwinding or forwarding fails, then the reason for the failure should be returned in an error | ------------ | draft |
+ | 1.10| When unwinding, it should be possible for the unwind route to the tokens origin to be introspected from the denomination trace | ------------ | draft |
    
 
 # External interface requirements
@@ -105,9 +105,9 @@ A user on one chain, for example the Cosmos Hub holds an asset, e.g. ATOM and wa
 
 | ID | Description | Verification | Status | 
 | -- | ----------- | ------------ | ------ | 
-| -- | There must be a CLI interface to initiate a transfer using path unwinding | ------------ | draft | 
-| -- | There must be a CLI interface to initiate a transfer using forwarding | ------------ | draft | 
-| -- | There must be a CLI interface to initiate a transfer using unwinding and forwarding in combination | ------------ | draft | 
+| 2.01 | There must be a CLI interface to initiate a transfer using path unwinding | ------------ | draft | 
+| 2.02 | There must be a CLI interface to initiate a transfer using forwarding | ------------ | draft | 
+| 2.03 | There must be a CLI interface to initiate a transfer using unwinding and forwarding in combination | ------------ | draft | 
 
 # Non-functional requirements
 
@@ -115,7 +115,7 @@ A user on one chain, for example the Cosmos Hub holds an asset, e.g. ATOM and wa
 
 | ID | Description | Verification | Status | 
 | -- | ----------- | ------------ | ------ | 
-| -- | It must not be possible for a users tokens to be intercepted by another actor during path-unwinding or token forwarding | ------------ | draft |
+| 3.01 | It must not be possible for a users tokens to be intercepted by another actor during path-unwinding or token forwarding | ------------ | draft |
  
 
 <!-- Other-than-functional requirements that do not specify what the system does, but rather how well it does those things. For example: quality requirements: performance, security, portability, etc. -->
