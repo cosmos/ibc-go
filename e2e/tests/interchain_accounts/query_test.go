@@ -112,20 +112,15 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 
 			// get acknowledgement
 			ackFound := false
-			eventFound := false
 			ack := &channeltypes.Acknowledgement{}
 
 		search_ack:
 			for _, event := range txSearchRes.Txs[0].Events {
-				if event.Type != icatypes.EventTypePacket {
+				if event.Type != channeltypes.EventTypeWriteAck {
 					continue
 				}
 
-				eventFound = true
-
 				for _, attr := range event.Attributes {
-					s.T().Logf("ack_key: %s", attr.Key)
-
 					if attr.Key != channeltypes.AttributeKeyAckHex {
 						continue
 					}
@@ -141,7 +136,6 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 					break search_ack
 				}
 			}
-			s.Require().True(eventFound)
 			s.Require().True(ackFound)
 
 			// unmarshal the ica response
