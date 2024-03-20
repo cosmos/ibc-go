@@ -70,7 +70,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				suite.Require().NoError(err)
 
 				suite.openAndCloseChannel(path)
-			}, true,
+			},
+			true,
 		},
 		{
 			"success - reopening account with new address",
@@ -90,7 +91,20 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				// assert interchain account address mapping was deleted
 				_, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().False(found)
-			}, true,
+			},
+			true,
+		},
+		{
+			"success - empty host connection ID",
+			func() {
+				metadata.HostConnectionId = ""
+
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				path.EndpointA.ChannelConfig.Version = string(versionBytes)
+			},
+			true,
 		},
 		{
 			"success - previous metadata is different",
@@ -128,7 +142,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 				acc := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), sdk.MustAccAddressFromBech32(addr))
 				suite.chainB.GetSimApp().AccountKeeper.RemoveAccount(suite.chainB.GetContext(), acc)
-			}, false,
+			},
+			false,
 		},
 		{
 			"reopening account fails - existing account is not interchain account type",
@@ -152,7 +167,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 				// overwrite existing account with only base account type, not intercahin account type
 				suite.chainB.GetSimApp().AccountKeeper.SetAccount(suite.chainB.GetContext(), icaAcc.BaseAccount)
-			}, false,
+			},
+			false,
 		},
 		{
 			"account already exists",
@@ -223,18 +239,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			false,
 		},
 		{
-			"invalid host connection ID",
-			func() {
-				metadata.HostConnectionId = "invalid-connnection-id"
-
-				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
-
-				path.EndpointA.ChannelConfig.Version = string(versionBytes)
-			},
-			false,
-		},
-		{
 			"invalid counterparty version",
 			func() {
 				metadata.Version = "invalid-version"
@@ -264,7 +268,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 				// set the active channelID in state
 				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			}, false,
+			},
+			false,
 		},
 		{
 			"channel is already active (FLUSHING state)",
@@ -306,6 +311,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
+			expectedMetadata := metadata
+
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.TRYOPEN,
@@ -336,6 +343,12 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				// Check if account is created
 				interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), interchainAccAddr)
 				suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
+
+				expectedMetadata.Address = storedAddr
+				expectedVersionBytes, err := icatypes.ModuleCdc.MarshalJSON(&expectedMetadata)
+				suite.Require().NoError(err)
+
+				suite.Require().Equal(string(expectedVersionBytes), version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal("", version)
@@ -577,7 +590,6 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
-
 			// this is the actual change to the version.
 			metadata.Encoding = icatypes.EncodingProto3JSON
 

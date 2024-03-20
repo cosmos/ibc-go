@@ -433,7 +433,7 @@ func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateCha
 func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain ibc.Chain) clienttypes.Height {
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err)
-	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), height+1000)
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
 }
 
 // CreateUpgradeFields creates upgrade fields for channel with fee middleware

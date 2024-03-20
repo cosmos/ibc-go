@@ -39,6 +39,9 @@ func (k Keeper) OnChanOpenTry(
 		return "", err
 	}
 
+	// set here the HostConnectionId in case the controller did not set it
+	metadata.HostConnectionId = connectionHops[0]
+
 	if err = icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", err
 	}

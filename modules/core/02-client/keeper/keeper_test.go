@@ -229,7 +229,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 	}
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllGenesisClients() {
 	clientIDs := []string{
 		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
 	}
@@ -252,7 +252,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this
 	suite.Require().Equal(expGenClients.Sort(), genClients)
 }
 
-func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllGenesisMetadata() {
 	clientA, clientB := "07-tendermint-1", "clientB"
 
 	// create some starting state
@@ -308,7 +308,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // thi
 	})
 }
 
-func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetConsensusState() {
 	suite.ctx = suite.ctx.WithBlockHeight(10)
 	cases := []struct {
 		name    string
@@ -336,23 +336,21 @@ func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is
 
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
 // and a consensus state at the update height.
-func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // this is a test, we are okay with copying locks
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	path.SetupClients()
+func (suite *KeeperTestSuite) TestGetAllConsensusStates() {
+	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path1.SetupClients()
 
-	clientState := path.EndpointA.GetClientState()
-	expConsensusHeight0 := clientState.GetLatestHeight()
-	consensusState0, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight0)
+	expConsensusHeight0 := path1.EndpointA.GetClientLatestHeight()
+	consensusState0, ok := suite.chainA.GetConsensusState(path1.EndpointA.ClientID, expConsensusHeight0)
 	suite.Require().True(ok)
 
 	// update client to create a second consensus state
-	err := path.EndpointA.UpdateClient()
+	err := path1.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	clientState = path.EndpointA.GetClientState()
-	expConsensusHeight1 := clientState.GetLatestHeight()
+	expConsensusHeight1 := path1.EndpointA.GetClientLatestHeight()
 	suite.Require().True(expConsensusHeight1.GT(expConsensusHeight0))
-	consensusState1, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, expConsensusHeight1)
+	consensusState1, ok := suite.chainA.GetConsensusState(path1.EndpointA.ClientID, expConsensusHeight1)
 	suite.Require().True(ok)
 
 	expConsensus := []exported.ConsensusState{
@@ -363,16 +361,15 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	// create second client on chainA
 	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path2.SetupClients()
-	clientState = path2.EndpointA.GetClientState()
 
-	expConsensusHeight2 := clientState.GetLatestHeight()
+	expConsensusHeight2 := path2.EndpointA.GetClientLatestHeight()
 	consensusState2, ok := suite.chainA.GetConsensusState(path2.EndpointA.ClientID, expConsensusHeight2)
 	suite.Require().True(ok)
 
 	expConsensus2 := []exported.ConsensusState{consensusState2}
 
 	expConsensusStates := types.ClientsConsensusStates{
-		types.NewClientConsensusStates(path.EndpointA.ClientID, []types.ConsensusStateWithHeight{
+		types.NewClientConsensusStates(path1.EndpointA.ClientID, []types.ConsensusStateWithHeight{
 			types.NewConsensusStateWithHeight(expConsensusHeight0.(types.Height), expConsensus[0]),
 			types.NewConsensusStateWithHeight(expConsensusHeight1.(types.Height), expConsensus[1]),
 		}),
@@ -385,7 +382,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
 }
 
-func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestIterateClientStates() {
 	paths := []*ibctesting.Path{
 		ibctesting.NewPath(suite.chainA, suite.chainB),
 		ibctesting.NewPath(suite.chainA, suite.chainB),
@@ -454,6 +451,135 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 			})
 
 			suite.Require().ElementsMatch(tc.expClientIDs(), clientIDs)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetClientLatestHeight() {
+	var path *ibctesting.Path
+
+	cases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"invalid client type",
+			func() {
+				path.EndpointA.ClientID = ibctesting.InvalidID
+			},
+			false,
+		},
+		{
+			"client type is not allowed", func() {
+				params := types.NewParams(exported.Localhost)
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+			},
+			false,
+		},
+		{
+			"client type is not registered on router", func() {
+				path.EndpointA.ClientID = types.FormatClientIdentifier("08-wasm", 0)
+			},
+			false,
+		},
+	}
+
+	for _, tc := range cases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupConnections()
+
+			tc.malleate()
+
+			height := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientLatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+			if tc.expPass {
+				suite.Require().Equal(suite.chainB.LatestCommittedHeader.GetHeight().(types.Height), height)
+			} else {
+				suite.Require().Equal(types.ZeroHeight(), height)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
+	var (
+		height exported.Height
+		path   *ibctesting.Path
+	)
+
+	cases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"invalid client type",
+			func() {
+				path.EndpointA.ClientID = ibctesting.InvalidID
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"client type is not allowed", func() {
+				params := types.NewParams(exported.Localhost)
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+			},
+			types.ErrInvalidClientType,
+		},
+		{
+			"client type is not registered on router", func() {
+				path.EndpointA.ClientID = types.FormatClientIdentifier("08-wasm", 0)
+			},
+			types.ErrRouteNotFound,
+		},
+		{
+			"client state not found", func() {
+				path.EndpointA.ClientID = types.FormatClientIdentifier(exported.Tendermint, 100)
+			},
+			types.ErrClientNotFound,
+		},
+		{
+			"consensus state not found", func() {
+				height = suite.chainB.LatestCommittedHeader.GetHeight().Increment()
+			},
+			types.ErrConsensusStateNotFound,
+		},
+	}
+
+	for _, tc := range cases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupConnections()
+
+			height = suite.chainB.LatestCommittedHeader.GetHeight()
+
+			tc.malleate()
+
+			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientTimestampAtHeight(suite.chainA.GetContext(), path.EndpointA.ClientID, height)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
 		})
 	}
 }
