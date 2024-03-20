@@ -137,12 +137,16 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 				}
 			}
 			s.Require().True(ackFound)
+			s.Require().NotZero(ack)
+			s.Require().NotZero(ack.GetResult())
+			s.Require().True(ack.Success())
 
 			// unmarshal the ica response
 			icaAck := &sdk.TxMsgData{}
 			err = proto.Unmarshal(ack.GetResult(), icaAck)
 			s.Require().NoError(err)
-			s.Require().Len(icaAck.MsgResponses, 1)
+			s.Require().Equal("", icaAck.String())
+			s.Require().Len(icaAck.GetMsgResponses(), 1)
 
 			// unmarshal the tx response
 			queryTxResp := &icahosttypes.MsgModuleQuerySafeResponse{}
