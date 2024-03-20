@@ -326,7 +326,7 @@ func (*E2ETestSuite) QueryTxsByEvents(
 		return nil, err
 	}
 
-	var result *sdk.SearchTxsResult
+	result := &sdk.SearchTxsResult{}
 	Codec().MustUnmarshalJSON(stdout, result)
 
 	return result, nil
