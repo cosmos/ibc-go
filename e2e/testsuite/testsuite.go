@@ -365,7 +365,7 @@ func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.C
 func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.Chain) {
 	client := chainOptions.DockerClient
 	network := chainOptions.DockerNetwork
-	if chainOptions.DockerNetwork != "" && chainOptions.DockerClient == nil {
+	if chainOptions.DockerNetwork == "" && chainOptions.DockerClient == nil {
 		client, network = interchaintest.DockerSetup(s.T())
 	}
 
