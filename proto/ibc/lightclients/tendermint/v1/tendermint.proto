@@ -43,11 +43,8 @@ message ClientState {
   // the default upgrade module, upgrade_path should be []string{"upgrade",
   // "upgradedIBCState"}`
   repeated string upgrade_path = 9;
-
-  // allow_update_after_expiry is deprecated
-  bool allow_update_after_expiry = 10 [deprecated = true];
-  // allow_update_after_misbehaviour is deprecated
-  bool allow_update_after_misbehaviour = 11 [deprecated = true];
+  
+  reserved 10 to 11;
 }
 
 // ConsensusState defines the consensus state from Tendermint.

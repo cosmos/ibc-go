@@ -93,11 +93,6 @@ func IsMatchingClientState(subject, substitute ClientState) bool {
 	substitute.TrustingPeriod = time.Duration(0)
 	subject.ChainId = ""
 	substitute.ChainId = ""
-	// sets both sets of flags to true as these flags have been DEPRECATED, see ADR-026 for more information
-	subject.AllowUpdateAfterExpiry = true
-	substitute.AllowUpdateAfterExpiry = true
-	subject.AllowUpdateAfterMisbehaviour = true
-	substitute.AllowUpdateAfterMisbehaviour = true
 
 	return reflect.DeepEqual(subject, substitute)
 }
