@@ -22,8 +22,8 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*ConsensusStateWithHeight)(nil)
 )
 
-// SelfClientValidator defines an interface used to validate an IBC ClientState against a host chain's underlying consensus parameters.
-type SelfClientValidator interface {
+// ConsensusHost defines an interface used to validate an IBC ClientState and ConsensusState against the host chain's underlying consensus parameters.
+type ConsensusHost interface {
 	GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error)
 	ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error
 }

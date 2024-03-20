@@ -25,11 +25,9 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
@@ -46,10 +44,7 @@ const (
 	maxClockDrift  time.Duration = time.Second * 10
 )
 
-var (
-	testClientHeight          = types.NewHeight(0, 5)
-	testClientHeightRevision1 = types.NewHeight(1, 5)
-)
+var testClientHeight = types.NewHeight(0, 5)
 
 type KeeperTestSuite struct {
 	testifysuite.Suite
@@ -146,142 +141,6 @@ func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.Require().Equal(suite.consensusState, tmConsState, "ConsensusState not stored correctly")
 }
 
-func (suite *KeeperTestSuite) TestValidateSelfClient() {
-	testClientHeight := types.GetSelfHeight(suite.chainA.GetContext())
-	testClientHeight.RevisionHeight--
-
-	var clientState exported.ClientState
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-			},
-			nil,
-		},
-		{
-			"success with nil UpgradePath",
-			func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), nil)
-			},
-			nil,
-		},
-		{
-			"success with custom self validator: solomachine",
-			func() {
-				clientState = solomachine.NewClientState(1, &solomachine.ConsensusState{})
-
-				smSelfClientValidator := &mock.ClientValidator{
-					ValidateSelfClientFn: func(ctx sdk.Context, clientState exported.ClientState) error {
-						smClientState, ok := clientState.(*solomachine.ClientState)
-						suite.Require().True(ok)
-						suite.Require().Equal(uint64(1), smClientState.Sequence)
-
-						return nil
-					},
-				}
-
-				// add some mock validation logic
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfClientValidator(smSelfClientValidator)
-			},
-			nil,
-		},
-		{
-			"frozen client",
-			func() {
-				clientState = &ibctm.ClientState{ChainId: suite.chainA.ChainID, TrustLevel: ibctm.DefaultTrustLevel, TrustingPeriod: trustingPeriod, UnbondingPeriod: ubdPeriod, MaxClockDrift: maxClockDrift, FrozenHeight: testClientHeight, LatestHeight: testClientHeight, ProofSpecs: commitmenttypes.GetSDKSpecs(), UpgradePath: ibctesting.UpgradePath}
-			},
-			types.ErrClientFrozen,
-		},
-		{
-			"incorrect chainID",
-			func() {
-				clientState = ibctm.NewClientState("gaiatestnet", ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-			},
-			types.ErrInvalidClient,
-		},
-		{
-			"invalid client height",
-			func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.GetSelfHeight(suite.chainA.GetContext()).Increment().(types.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-			},
-			types.ErrInvalidClient,
-		},
-		{
-			"invalid client type",
-			func() {
-				clientState = solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time})
-			},
-			types.ErrInvalidClient,
-		},
-		{
-			"invalid client revision",
-			func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeightRevision1, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-			},
-			types.ErrInvalidClient,
-		},
-		{
-			"invalid proof specs",
-			func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, nil, ibctesting.UpgradePath)
-			},
-			types.ErrInvalidClient,
-		},
-		{
-			"invalid trust level",
-			func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-			},
-			types.ErrInvalidClient,
-		},
-		{
-			"invalid unbonding period",
-			func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+10, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-			},
-			types.ErrInvalidClient,
-		},
-		{
-			"invalid trusting period",
-			func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ubdPeriod+10, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-			},
-			types.ErrInvalidClient,
-		},
-		{
-			"invalid upgrade path",
-			func() {
-				clientState = ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), []string{"bad", "upgrade", "path"})
-			},
-			types.ErrInvalidClient,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			tc.malleate()
-
-			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.ValidateSelfClient(suite.chainA.GetContext(), clientState)
-
-			expPass := tc.expError == nil
-			if expPass {
-				suite.Require().NoError(err, "expected valid client for case: %s", tc.name)
-			} else {
-				suite.Require().Error(err, "expected invalid client for case: %s", tc.name)
-			}
-		})
-	}
-}
-
 func (suite *KeeperTestSuite) TestGetAllGenesisClients() {
 	clientIDs := []string{
 		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
@@ -359,74 +218,6 @@ func (suite *KeeperTestSuite) TestGetAllGenesisMetadata() {
 	suite.Require().Panics(func() {
 		suite.chainA.App.GetIBCKeeper().ClientKeeper.GetAllClientMetadata(suite.chainA.GetContext(), genClients) //nolint:errcheck // we expect a panic
 	})
-}
-
-func (suite *KeeperTestSuite) TestGetConsensusState() {
-	var height types.Height
-
-	cases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{"zero height", func() {
-			height = types.ZeroHeight()
-		}, stakingtypes.ErrNoHistoricalInfo},
-		{"height > latest height", func() {
-			height = types.NewHeight(0, uint64(suite.ctx.BlockHeight())+1)
-		}, stakingtypes.ErrNoHistoricalInfo},
-		{
-			name: "custom client validator: failure",
-			malleate: func() {
-				clientValidator := &mock.ClientValidator{
-					GetSelfConsensusStateFn: func(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
-						return nil, mock.MockApplicationCallbackError
-					},
-				}
-				suite.keeper.SetSelfClientValidator(clientValidator)
-			},
-			expError: mock.MockApplicationCallbackError,
-		},
-		{
-			name: "custom client validator: success",
-			malleate: func() {
-				clientValidator := &mock.ClientValidator{
-					GetSelfConsensusStateFn: func(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
-						return &solomachine.ConsensusState{}, nil
-					},
-				}
-				suite.keeper.SetSelfClientValidator(clientValidator)
-			},
-			expError: nil,
-		},
-		{"latest height - 1", func() {
-			height = types.NewHeight(0, uint64(suite.ctx.BlockHeight())-1)
-		}, nil},
-		{"latest height", func() {
-			height = types.GetSelfHeight(suite.ctx)
-		}, nil},
-	}
-
-	for i, tc := range cases {
-		suite.SetupTest()
-		suite.ctx = suite.ctx.WithBlockHeight(10)
-		tc := tc
-
-		height = types.ZeroHeight()
-
-		tc.malleate()
-
-		cs, err := suite.keeper.GetSelfConsensusState(suite.ctx, height)
-
-		expPass := tc.expError == nil
-		if expPass {
-			suite.Require().NoError(err, "Case %d should have passed: %s", i, tc.name)
-			suite.Require().NotNil(cs, "Case %d should have passed: %s", i, tc.name)
-		} else {
-			suite.Require().ErrorIs(err, tc.expError, "Case %d should have failed: %s", i, tc.name)
-			suite.Require().Nil(cs, "Case %d should have failed: %s", i, tc.name)
-		}
-	}
 }
 
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state

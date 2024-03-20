@@ -219,20 +219,20 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
 		}, false},
-		{"override self client validator", func() {
+		{"override self consensus host", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
 
 			// retrieve client state of chainA to pass as counterpartyClient
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
 
-			mockValidator := mock.ClientValidator{
+			mockValidator := mock.ConsensusHost{
 				ValidateSelfClientFn: func(ctx sdk.Context, clientState exported.ClientState) error {
 					return mock.MockApplicationCallbackError
 				},
 			}
 
-			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetSelfClientValidator(&mockValidator)
+			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(&mockValidator)
 		}, false},
 	}
 
