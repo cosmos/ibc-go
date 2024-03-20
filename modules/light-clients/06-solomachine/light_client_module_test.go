@@ -84,7 +84,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 			subjectClientState.IsFrozen = true
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectClientID, subjectClientState)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
 			suite.Require().True(found)
 
 			tc.malleate()
@@ -114,7 +114,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 func (suite *SoloMachineTestSuite) TestVerifyUpgradeAndUpdateState() {
 	clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
 
-	lightClientModule, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(clientID)
+	lightClientModule, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.Route(clientID)
 	suite.Require().True(found)
 
 	err := lightClientModule.VerifyUpgradeAndUpdateState(suite.chainA.GetContext(), clientID, nil, nil, nil, nil)
