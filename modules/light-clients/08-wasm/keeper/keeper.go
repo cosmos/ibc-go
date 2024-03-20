@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
 	"cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
@@ -47,15 +47,15 @@ func NewKeeperWithVM(
 	opts ...Option,
 ) Keeper {
 	if clientKeeper == nil {
-		panic(errors.New("client keeper must be not nil"))
+		panic(errors.New("client keeper must not be nil"))
 	}
 
 	if vm == nil {
-		panic(errors.New("wasm VM must be not nil"))
+		panic(errors.New("wasm VM must not be nil"))
 	}
 
 	if storeService == nil {
-		panic(errors.New("store service must be not nil"))
+		panic(errors.New("store service must not be nil"))
 	}
 
 	if strings.TrimSpace(authority) == "" {
@@ -113,7 +113,7 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
+func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
@@ -139,8 +139,9 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 	}
 
 	// create the code in the vm
-	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
-	vmChecksum, err := storeFn(code)
+	gasLeft := types.VMGasRegister.RuntimeGasForContract(ctx)
+	vmChecksum, gasUsed, err := storeFn(code, gasLeft)
+	types.VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}
