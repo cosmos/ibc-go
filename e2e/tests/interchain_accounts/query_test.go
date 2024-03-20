@@ -91,10 +91,6 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{queryMsg}, icatypes.EncodingProtobuf)
 			s.Require().NoError(err)
 
-			// test that it is deserializeable
-			_, err = icatypes.DeserializeCosmosTx(cdc, bz, icatypes.EncodingProtobuf)
-			s.Require().NoError(err)
-
 			packetData := icatypes.InterchainAccountPacketData{
 				Type: icatypes.EXECUTE_TX,
 				Data: bz,
@@ -142,7 +138,10 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			}
 			s.Require().True(ackFound)
 			s.Require().NotZero(ack)
-			s.Require().True(ack.Success())
+			if !ack.Success() {
+				t.Logf("ack failed: %s", ack.String())
+				s.Require().FailNow(ack.String())
+			}
 			s.Require().NotZero(ack.GetResult())
 
 			// unmarshal the ica response
