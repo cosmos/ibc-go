@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-
-	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/core/store"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -22,7 +21,7 @@ import (
 // and the same Wasm VM instance should be shared with it.
 func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeService store.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
@@ -30,15 +29,15 @@ func NewKeeperWithVM(
 	opts ...Option,
 ) Keeper {
 	if clientKeeper == nil {
-		panic(errors.New("client keeper must be not nil"))
+		panic(errors.New("client keeper must not be nil"))
 	}
 
 	if vm == nil {
-		panic(errors.New("wasm VM must be not nil"))
+		panic(errors.New("wasm VM must not be nil"))
 	}
 
 	if storeService == nil {
-		panic(errors.New("store service must be not nil"))
+		panic(errors.New("store service must not be nil"))
 	}
 
 	if strings.TrimSpace(authority) == "" {
@@ -71,7 +70,7 @@ func NewKeeperWithVM(
 // and a Wasm VM needs to be instantiated using the provided parameters.
 func NewKeeperWithConfig(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeService store.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,

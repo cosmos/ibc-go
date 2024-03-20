@@ -29,7 +29,7 @@ func (k Keeper) VerifyClientState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -71,7 +71,7 @@ func (k Keeper) VerifyClientConsensusState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -113,7 +113,7 @@ func (k Keeper) VerifyConnectionState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -156,7 +156,7 @@ func (k Keeper) VerifyChannelState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -200,7 +200,7 @@ func (k Keeper) VerifyPacketCommitment(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -241,7 +241,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -288,7 +288,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 		return err
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
 	}
@@ -328,7 +328,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -369,7 +369,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
@@ -411,7 +411,7 @@ func (k Keeper) VerifyChannelUpgrade(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.GetRouter().GetRoute(clientID)
+	clientModule, found := k.clientKeeper.Route(clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}

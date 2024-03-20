@@ -343,7 +343,7 @@ docs-lint:
 
 #? docs-lint-fix: Lint markdown documentation files and fix
 docs-lint-fix:
-	markdownlint-cli2-fix "**.md"
+	markdownlint-cli2 "**.md" --fix
 
 #? docs-link-check: Run markdown-link-check
 docs-link-check:
