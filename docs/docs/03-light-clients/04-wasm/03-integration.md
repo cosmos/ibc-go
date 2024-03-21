@@ -71,6 +71,11 @@ func NewSimApp(
     wasmVM,
     app.GRPCQueryRouter(),
   )
+
+  clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+  wasmLightClientModule := wasm.NewLightClientModule(app.WasmClientKeeper)
+  clientRouter.AddRoute(ibcwasmtypes.ModuleName, &wasmLightClientModule)
+
   app.ModuleManager = module.NewManager(
     // SDK app modules
     ...
