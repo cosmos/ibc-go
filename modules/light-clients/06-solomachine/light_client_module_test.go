@@ -1,6 +1,8 @@
 package solomachine_test
 
 import (
+	fmt "fmt"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -21,29 +23,46 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 		malleatedConsensus.Timestamp += 10
 
 		testCases := []struct {
-			name      string
-			consState exported.ConsensusState
-			expPass   bool
+			name        string
+			consState   exported.ConsensusState
+			clientState exported.ClientState
+			expErr      error
 		}{
 			{
 				"valid consensus state",
 				sm.ConsensusState(),
-				true,
+				sm.ClientState(),
+				nil,
 			},
 			{
 				"nil consensus state",
 				nil,
-				false,
+				sm.ClientState(),
+				clienttypes.ErrInvalidConsensus,
 			},
 			{
 				"invalid consensus state: Tendermint consensus state",
 				&ibctm.ConsensusState{},
-				false,
+				sm.ClientState(),
+				fmt.Errorf("proto: wrong wireType = 0 for field TypeUrl"),
 			},
 			{
 				"invalid consensus state: consensus state does not match consensus state in client",
 				malleatedConsensus,
-				false,
+				sm.ClientState(),
+				clienttypes.ErrInvalidConsensus,
+			},
+			{
+				"invalid client state: sequence is zero",
+				sm.ConsensusState(),
+				solomachine.NewClientState(0, sm.ConsensusState()),
+				clienttypes.ErrInvalidClient,
+			},
+			{
+				"invalid client state",
+				sm.ConsensusState(),
+				&ibctm.ClientState{},
+				fmt.Errorf("proto: wrong wireType = 2 for field IsFrozen"),
 			},
 		}
 
@@ -53,7 +72,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 
-				clientStateBz := suite.chainA.Codec.MustMarshal(sm.ClientState())
+				clientStateBz := suite.chainA.Codec.MustMarshal(tc.clientState)
 				consStateBz := suite.chainA.Codec.MustMarshal(tc.consState)
 
 				clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
@@ -64,11 +83,12 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 				err := lcm.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consStateBz)
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
-				if tc.expPass {
+				expPass := tc.expErr == nil
+				if expPass {
 					suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
 					suite.Require().True(store.Has(host.ClientStateKey()))
 				} else {
-					suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 					suite.Require().False(store.Has(host.ClientStateKey()))
 				}
 			})
