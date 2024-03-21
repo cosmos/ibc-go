@@ -151,9 +151,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
-			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-			s.Require().True(ok)
+			transferICS4Wrapper := GetSimApp(s.chainA).TransferKeeper.GetICS4Wrapper()
 
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), callbackAddr,
@@ -169,7 +167,11 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				err error
 			)
 			sendPacket := func() {
+<<<<<<< HEAD
 				seq, err = transferStack.(porttypes.Middleware).SendPacket(s.chainA.GetContext(), chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+=======
+				seq, err = transferICS4Wrapper.SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			}
 
 			expPass := tc.expValue == nil
@@ -178,6 +180,18 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				sendPacket()
 				s.Require().Nil(err)
 				s.Require().Equal(uint64(1), seq)
+<<<<<<< HEAD
+=======
+
+				expEvent, exists := GetExpectedEvent(
+					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
+				)
+				if exists {
+					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+				}
+
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			case tc.expPanic:
 				s.Require().PanicsWithValue(tc.expValue, sendPacket)
 			default:
@@ -709,16 +723,31 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-			s.Require().True(ok)
+			transferICS4Wrapper := GetSimApp(s.chainB).TransferKeeper.GetICS4Wrapper()
 
+<<<<<<< HEAD
 			err := transferStack.(porttypes.Middleware).WriteAcknowledgement(ctx, chanCap, packet, ack)
+=======
+			err := transferICS4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 
 			expPass := tc.expError == nil
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
 
 			if expPass {
 				s.Require().NoError(err)
+<<<<<<< HEAD
+=======
+
+				expEvent, exists := GetExpectedEvent(
+					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
+				)
+				if exists {
+					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+				}
+
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			} else {
 				s.Require().ErrorIs(tc.expError, err)
 			}

@@ -8,8 +8,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+<<<<<<< HEAD
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+=======
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 )
 
 var (
@@ -19,75 +25,171 @@ var (
 )
 
 func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
+	var transferMemo string
+
 	testCases := []struct {
-		name         string
-		transferMemo string
-		expCallback  types.CallbackType
-		expSuccess   bool
+		name        string
+		malleate    func()
+		expCallback types.CallbackType
+		expSuccess  bool
 	}{
 		{
 			"success: transfer with no memo",
-			"",
+			func() {},
 			"none",
 			true,
 		},
 		{
 			"success: dest callback",
+<<<<<<< HEAD
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
+=======
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.SuccessContract)
+			},
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeReceivePacket,
 			true,
 		},
 		{
 			"success: dest callback with other json fields",
+<<<<<<< HEAD
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
+=======
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, simapp.SuccessContract)
+			},
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeReceivePacket,
 			true,
 		},
 		{
 			"success: dest callback with malformed json",
+<<<<<<< HEAD
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, malformed}`, callbackAddr),
+=======
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}, malformed}`, simapp.SuccessContract)
+			},
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			"none",
 			true,
 		},
 		{
 			"success: dest callback with missing address",
-			`{"dest_callback": {"address": ""}}`,
+			func() {
+				//nolint:goconst
+				transferMemo = `{"dest_callback": {"address": ""}}`
+			},
 			"none",
 			true,
 		},
 		{
 			"success: source callback",
+<<<<<<< HEAD
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+=======
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract)
+			},
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
+<<<<<<< HEAD
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
+=======
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, simapp.SuccessContract)
+			},
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with malformed json",
+<<<<<<< HEAD
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, callbackAddr),
+=======
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, simapp.SuccessContract)
+			},
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			"none",
 			true,
 		},
 		{
 			"success: source callback with missing address",
-			`{"src_callback": {"address": ""}}`,
+			func() {
+				//nolint:goconst
+				transferMemo = `{"src_callback": {"address": ""}}`
+			},
 			"none",
 			true,
 		},
 		{
+			"success: acknowledgement",
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract)
+
+				k := GetSimApp(s.chainA).MockContractKeeper
+
+				k.IBCOnAcknowledgementPacketCallbackFn = func(
+					cachedCtx sdk.Context,
+					_ channeltypes.Packet,
+					acknowledgement []byte,
+					_ sdk.AccAddress,
+					contractAddress,
+					_ string,
+				) error {
+					expAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+					s.Require().Equal(expAck, acknowledgement)
+
+					return k.ProcessMockCallback(cachedCtx, types.CallbackTypeAcknowledgementPacket, contractAddress)
+				}
+			},
+			types.CallbackTypeAcknowledgementPacket,
+			true,
+		},
+		{
 			"failure: dest callback with low gas (panic)",
+<<<<<<< HEAD
 			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
+=======
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogPanicContract)
+			},
+			types.CallbackTypeReceivePacket,
+			false,
+		},
+		{
+			"failure: dest callback with low gas (error)",
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogErrorContract)
+			},
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeReceivePacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas (panic)",
+<<<<<<< HEAD
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
+=======
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogPanicContract)
+			},
+			types.CallbackTypeSendPacket,
+			false,
+		},
+		{
+			"failure: source callback with low gas (error)",
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract)
+			},
+>>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeSendPacket,
 			false,
 		},
@@ -96,12 +198,15 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			s.SetupFeeTransferTest()
+			transferMemo = ""
+
+			tc.malleate()
 
 			fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 			s.ExecutePayPacketFeeMsg(fee)
 			preRelaySenderBalance := sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-			s.ExecuteTransfer(tc.transferMemo)
+			s.ExecuteTransfer(transferMemo)
 			// we manually subtract the transfer amount from the preRelaySenderBalance because ExecuteTransfer
 			// also relays the packet, which will trigger the fee payments.
 			preRelaySenderBalance = preRelaySenderBalance.Sub(ibctesting.TestCoin)
