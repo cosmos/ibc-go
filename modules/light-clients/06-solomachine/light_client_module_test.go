@@ -59,7 +59,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 				clienttypes.ErrInvalidClient,
 			},
 			{
-				"invalid client state",
+				"invalid client state: Tendermint client state",
 				sm.ConsensusState(),
 				&ibctm.ClientState{},
 				fmt.Errorf("proto: wrong wireType = 2 for field IsFrozen"),
