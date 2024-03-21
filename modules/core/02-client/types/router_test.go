@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/stretchr/testify/require"
@@ -24,14 +25,14 @@ func (suite *TypesTestSuite) TestAddRoute() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		panicMsg string
+		expError error
 	}{
 		{
 			"success",
 			func() {
 				clientType = exported.Tendermint
 			},
-			"",
+			nil,
 		},
 		{
 			"failure: route has already been imported",
@@ -39,14 +40,14 @@ func (suite *TypesTestSuite) TestAddRoute() {
 				clientType = exported.Tendermint
 				router.AddRoute(exported.Tendermint, &ibctm.LightClientModule{})
 			},
-			fmt.Sprintf("route %s has already been registered", exported.Tendermint),
+			fmt.Errorf("route %s has already been registered", exported.Tendermint),
 		},
 		{
 			"failure: client type is invalid",
 			func() {
 				clientType = ""
 			},
-			"failed to add route: client type cannot be blank",
+			errors.New("failed to add route: client type cannot be blank"),
 		},
 	}
 
@@ -63,13 +64,14 @@ func (suite *TypesTestSuite) TestAddRoute() {
 
 			tc.malleate()
 
-			if tc.panicMsg == "" {
+			expPass := tc.expError == nil
+			if expPass {
 				router.AddRoute(clientType, &tmLightClientModule)
 				suite.Require().True(router.HasRoute(clientType))
 			} else {
 				require.Panics(suite.T(), func() {
 					router.AddRoute(clientType, &tmLightClientModule)
-				}, tc.panicMsg)
+				}, tc.expError.Error())
 			}
 		})
 	}
