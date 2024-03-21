@@ -161,9 +161,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
-			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-			s.Require().True(ok)
+			transferICS4Wrapper := GetSimApp(s.chainA).TransferKeeper.GetICS4Wrapper()
 
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress,
@@ -182,7 +180,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				err error
 			)
 			sendPacket := func() {
-				seq, err = transferStack.(porttypes.ICS4Wrapper).SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+				seq, err = transferICS4Wrapper.SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
 			}
 
 			expPass := tc.expValue == nil
@@ -193,7 +191,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				s.Require().Equal(uint64(1), seq)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
 					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
 				)
 				if exists {
@@ -772,10 +770,9 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-			s.Require().True(ok)
+			transferICS4Wrapper := GetSimApp(s.chainB).TransferKeeper.GetICS4Wrapper()
 
-			err := transferStack.(porttypes.ICS4Wrapper).WriteAcknowledgement(ctx, chanCap, packet, ack)
+			err := transferICS4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
 
 			expPass := tc.expError == nil
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
@@ -784,7 +781,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				s.Require().NoError(err)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				if exists {
