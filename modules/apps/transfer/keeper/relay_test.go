@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			}, false, false,
 		},
 		{
-			"failure: receive is disabled - recvIsSource=true",
+			"failure: receive is disabled - chainB is source",
 			func() {
 				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(),
 					types.Params{
