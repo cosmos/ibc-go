@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
@@ -42,7 +43,7 @@ func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.
 
 	var shareProofProto ShareProof
 	if err := cdc.Unmarshal(proof, &shareProofProto); err != nil {
-		return err
+		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "could not unmarshal share proof: %v", err)
 	}
 
 	shareProof, err := shareProofFromProto(&shareProofProto)
