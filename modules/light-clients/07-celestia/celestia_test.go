@@ -8,7 +8,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	celestia "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia"
+	ibccelestia "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -49,7 +49,7 @@ func (suite *CelestiaTestSuite) CreateClient(endpoint *ibctesting.Endpoint) stri
 		commitmenttypes.GetSDKSpecs(),
 		ibctesting.UpgradePath,
 	)
-	clientState := &celestia.ClientState{
+	clientState := &ibccelestia.ClientState{
 		BaseClient: tmClientState,
 	}
 	tmConsensusState := endpoint.Counterparty.Chain.LatestCommittedHeader.ConsensusState()
