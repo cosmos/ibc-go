@@ -75,6 +75,11 @@ func (im *IBCMiddleware) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	im.ics4Wrapper = wrapper
 }
 
+// GetICS4Wrapper returns the ICS4Wrapper.
+func (im *IBCMiddleware) GetICS4Wrapper() porttypes.ICS4Wrapper {
+	return im.ics4Wrapper
+}
+
 // SendPacket implements source callbacks for sending packets.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback returns an error, panics, or runs out of gas, then
