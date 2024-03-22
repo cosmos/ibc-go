@@ -127,9 +127,9 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			channeltypes.ErrChannelNotFound,
 		},
 		{
-			"failure: callback execution fails, sender is not callback address",
+			"failure: callback execution fails",
 			func() {
-				packetData.Sender = simapp.MockCallbackUnauthorizedAddress
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.ErrorContract)
 			},
 			types.CallbackTypeSendPacket,
 			false,
@@ -138,11 +138,11 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
 			func() {
-				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, simapp.OogPanicContract)
 			},
 			types.CallbackTypeSendPacket,
 			true,
-			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeSendPacket)},
+			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback oog panic", types.CallbackTypeSendPacket)},
 		},
 	}
 
@@ -156,8 +156,8 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			s.Require().True(ok)
 
 			packetData = transfertypes.NewFungibleTokenPacketData(
-				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), callbackAddr,
-				ibctesting.TestAccAddress, fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress,
+				ibctesting.TestAccAddress, fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			)
 
 			chanCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
@@ -200,10 +200,11 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 	)
 
 	var (
-		packetData transfertypes.FungibleTokenPacketData
-		packet     channeltypes.Packet
-		ack        []byte
-		ctx        sdk.Context
+		packetData   transfertypes.FungibleTokenPacketData
+		packet       channeltypes.Packet
+		ack          []byte
+		ctx          sdk.Context
+		userGasLimit uint64
 	)
 
 	panicError := fmt.Errorf("panic error")
@@ -241,7 +242,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
 			func() {
-				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
 				packet.Data = packetData.GetBytes()
 			},
 			callbackFailed,
@@ -250,15 +251,18 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
+				packet.Data = packetData.GetBytes()
+
 				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicError,
 		},
 		{
-			"failure: callback execution fails, unauthorized address",
+			"failure: callback execution fails",
 			func() {
-				packetData.Sender = simapp.MockCallbackUnauthorizedAddress
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.ErrorContract)
 				packet.Data = packetData.GetBytes()
 			},
 			callbackFailed,
@@ -271,11 +275,10 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
-			// set user gas limit above panic level in mock contract keeper
-			userGasLimit := 600000
+			userGasLimit = 600000
 			packetData = transfertypes.NewFungibleTokenPacketData(
-				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), callbackAddr, ibctesting.TestAccAddress,
-				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, callbackAddr, userGasLimit),
+				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, ibctesting.TestAccAddress,
+				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
 			)
 
 			packet = channeltypes.Packet{
@@ -356,13 +359,11 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		ctx        sdk.Context
 	)
 
-	panicError := fmt.Errorf("panic error")
-
 	testCases := []struct {
 		name      string
 		malleate  func()
 		expResult expResult
-		expError  error
+		expValue  interface{}
 	}{
 		{
 			"success",
@@ -391,7 +392,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
 			func() {
-				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, simapp.OogPanicContract)
 				packet.Data = packetData.GetBytes()
 			},
 			callbackFailed,
@@ -400,15 +401,20 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.OogPanicContract)
+				packet.Data = packetData.GetBytes()
+
 				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
 			},
 			callbackFailed,
-			panicError,
+			sdk.ErrorOutOfGas{
+				Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeTimeoutPacket, maxCallbackGas),
+			},
 		},
 		{
-			"failure: callback execution fails, unauthorized address",
+			"failure: callback execution fails",
 			func() {
-				packetData.Sender = simapp.MockCallbackUnauthorizedAddress
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.ErrorContract)
 				packet.Data = packetData.GetBytes()
 			},
 			callbackFailed,
@@ -455,21 +461,17 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				return transferStack.OnTimeoutPacket(ctx, packet, s.chainA.SenderAccount.GetAddress())
 			}
 
-			switch tc.expError {
+			switch expValue := tc.expValue.(type) {
 			case nil:
 				err := onTimeoutPacket()
 				s.Require().Nil(err)
-
-			case panicError:
-				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeTimeoutPacket, userGasLimit),
-				}, func() {
+			case error:
+				err := onTimeoutPacket()
+				s.Require().ErrorIs(expValue, err)
+			default:
+				s.Require().PanicsWithValue(tc.expValue, func() {
 					_ = onTimeoutPacket()
 				})
-
-			default:
-				err := onTimeoutPacket()
-				s.Require().ErrorIs(tc.expError, err)
 			}
 
 			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
@@ -506,9 +508,10 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	)
 
 	var (
-		packetData transfertypes.FungibleTokenPacketData
-		packet     channeltypes.Packet
-		ctx        sdk.Context
+		packetData   transfertypes.FungibleTokenPacketData
+		packet       channeltypes.Packet
+		ctx          sdk.Context
+		userGasLimit uint64
 	)
 
 	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
@@ -547,7 +550,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
 			func() {
-				packetData.Memo = fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
+				packetData.Memo = fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
 				packet.Data = packetData.GetBytes()
 			},
 			callbackFailed,
@@ -556,10 +559,22 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
+				packetData.Memo = fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
+				packet.Data = packetData.GetBytes()
+
 				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicAck,
+		},
+		{
+			"failure: callback execution fails",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"dest_callback": {"address":"%s"}}`, simapp.ErrorContract)
+				packet.Data = packetData.GetBytes()
+			},
+			callbackFailed,
+			successAck,
 		},
 	}
 
@@ -569,7 +584,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			s.SetupTransferTest()
 
 			// set user gas limit above panic level in mock contract keeper
-			userGasLimit := 600_000
+			userGasLimit = 600_000
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit),
