@@ -8,14 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-<<<<<<< HEAD
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-=======
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 )
 
 var (
@@ -41,37 +36,25 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		},
 		{
 			"success: dest callback",
-<<<<<<< HEAD
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
-=======
 			func() {
 				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.SuccessContract)
 			},
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeReceivePacket,
 			true,
 		},
 		{
 			"success: dest callback with other json fields",
-<<<<<<< HEAD
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-=======
 			func() {
 				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, simapp.SuccessContract)
 			},
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeReceivePacket,
 			true,
 		},
 		{
 			"success: dest callback with malformed json",
-<<<<<<< HEAD
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, malformed}`, callbackAddr),
-=======
 			func() {
 				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}, malformed}`, simapp.SuccessContract)
 			},
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			"none",
 			true,
 		},
@@ -86,37 +69,25 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		},
 		{
 			"success: source callback",
-<<<<<<< HEAD
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-=======
 			func() {
 				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract)
 			},
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
-<<<<<<< HEAD
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-=======
 			func() {
 				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, simapp.SuccessContract)
 			},
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with malformed json",
-<<<<<<< HEAD
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, callbackAddr),
-=======
 			func() {
 				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, simapp.SuccessContract)
 			},
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			"none",
 			true,
 		},
@@ -155,9 +126,6 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		},
 		{
 			"failure: dest callback with low gas (panic)",
-<<<<<<< HEAD
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-=======
 			func() {
 				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogPanicContract)
 			},
@@ -169,15 +137,11 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 			func() {
 				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogErrorContract)
 			},
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeReceivePacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas (panic)",
-<<<<<<< HEAD
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-=======
 			func() {
 				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogPanicContract)
 			},
@@ -189,7 +153,6 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 			func() {
 				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract)
 			},
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 			types.CallbackTypeSendPacket,
 			false,
 		},

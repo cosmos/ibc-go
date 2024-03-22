@@ -8,10 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-<<<<<<< HEAD
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-=======
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 )
 
 // ProcessCallback is a wrapper around processCallback to allow the function to be directly called in tests.

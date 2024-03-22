@@ -135,11 +135,7 @@ func (k ContractKeeper) IBCSendPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-<<<<<<< HEAD
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeSendPacket, packetSenderAddress)
-=======
 	return k.IBCSendPacketCallbackFn(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData, contractAddress, packetSenderAddress)
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 }
 
 // IBCOnAcknowledgementPacketCallback returns nil if the gas meter has greater than
@@ -154,11 +150,7 @@ func (k ContractKeeper) IBCOnAcknowledgementPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-<<<<<<< HEAD
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgementPacket, packetSenderAddress)
-=======
 	return k.IBCOnAcknowledgementPacketCallbackFn(ctx, packet, acknowledgement, relayer, contractAddress, packetSenderAddress)
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 }
 
 // IBCOnTimeoutPacketCallback returns nil if the gas meter has greater than
@@ -172,11 +164,7 @@ func (k ContractKeeper) IBCOnTimeoutPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-<<<<<<< HEAD
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, packetSenderAddress)
-=======
 	return k.IBCOnTimeoutPacketCallbackFn(ctx, packet, relayer, contractAddress, packetSenderAddress)
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 }
 
 // IBCReceivePacketCallback returns nil if the gas meter has greater than
@@ -189,15 +177,6 @@ func (k ContractKeeper) IBCReceivePacketCallback(
 	ack ibcexported.Acknowledgement,
 	contractAddress string,
 ) error {
-<<<<<<< HEAD
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeReceivePacket, "")
-}
-
-// processMockCallback returns nil if the gas meter has greater than or equal to 500_000 gas remaining.
-// This function oog panics if the gas remaining is less than 500_000.
-// This function errors if the authAddress is MockCallbackUnauthorizedAddress.
-func (k ContractKeeper) processMockCallback(
-=======
 	return k.IBCReceivePacketCallbackFn(ctx, packet, ack, contractAddress)
 }
 
@@ -210,7 +189,6 @@ func (k ContractKeeper) processMockCallback(
 //   - Panics and consumes half the remaining gas if the contract address is PanicContract
 //   - returns nil and consumes half the remaining gas if the contract address is SuccessContract or any other value
 func (k ContractKeeper) ProcessMockCallback(
->>>>>>> ee4549bb (fix: fixed callbacks middleware wiring (#5950))
 	ctx sdk.Context,
 	callbackType callbacktypes.CallbackType,
 	authAddress string,
