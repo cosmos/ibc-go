@@ -30,4 +30,4 @@ jobs:
       - name: Go Test
         run: |
           cd e2e
-          go test -v -mod=readonly ./...
+          go test -v -mod=readonly ./... -tags='test_e2e'
