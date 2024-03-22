@@ -26,6 +26,7 @@ type LightClientModule struct {
   storeProvider exported.ClientStoreProvider
 }
 ```
+
 See section [`LightClientModule` of the light client module developer guide](../01-developer-guide/01-overview.md#lightclientmodule) for more information about the `LightClientModule` interface.
 
 ### `ClientState`
