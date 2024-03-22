@@ -20,26 +20,6 @@ func (*ClientState) ClientType() string {
 	return ModuleName
 }
 
-// GetLatestHeight implements exported.ClientState.
-func (cs *ClientState) GetLatestHeight() exported.Height {
-	return cs.BaseClient.GetLatestHeight()
-}
-
-// GetTimestampAtHeight implements exported.ClientState.
-func (cs *ClientState) GetTimestampAtHeight(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height) (uint64, error) {
-	return cs.BaseClient.GetTimestampAtHeight(ctx, clientStore, cdc, height)
-}
-
-// Status implements exported.ClientState.
-func (cs *ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec) exported.Status {
-	return cs.BaseClient.Status(ctx, clientStore, cdc)
-}
-
-// Initialize implements exported.ClientState.
-func (cs *ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consensusState exported.ConsensusState) error {
-	return cs.BaseClient.Initialize(ctx, cdc, clientStore, consensusState)
-}
-
 // Validate implements exported.ClientState.
 func (cs *ClientState) Validate() error {
 	return cs.BaseClient.Validate()
@@ -49,10 +29,10 @@ func (cs *ClientState) Validate() error {
 // TODO: Revise and look into delay periods for this.
 // TODO: Validate key path and value against the shareProof extracted from proof bytes.
 func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
-	if cs.BaseClient.GetLatestHeight().LT(height) {
+	if cs.BaseClient.LatestHeight.LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.BaseClient.LatestHeight, height,
 		)
 	}
 
@@ -78,11 +58,6 @@ func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.
 	return shareProof.Validate(consensusState.GetRoot().GetHash())
 }
 
-// VerifyNonMembership implements exported.ClientState.
-func (*ClientState) VerifyNonMembership(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path) error {
-	panic("unimplemented")
-}
-
 // verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
 // since consensus state was submitted before allowing verification to continue.
 func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
@@ -101,7 +76,6 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHei
 			return errorsmod.Wrapf(ibctm.ErrDelayPeriodNotPassed, "cannot verify packet until time: %d, current time: %d",
 				validTime, currentTimestamp)
 		}
-
 	}
 
 	if delayBlockPeriod != 0 {
