@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -195,25 +196,37 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 		},
 		{
 			"success: dest callback",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			"none",
 			true, // timeouts don't reach destination chain execution
 		},
 		{
 			"success: source callback",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			types.CallbackTypeTimeoutPacket,
 			true,
 		},
 		{
 			"success: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogPanicContract),
 			"none", // timeouts don't reach destination chain execution
 			false,
 		},
 		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogPanicContract),
+			types.CallbackTypeSendPacket,
+			false,
+		},
+		{
+			"success: dest callback with low gas (error)",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogErrorContract),
+			"none", // timeouts don't reach destination chain execution
+			false,
+		},
+		{
+			"failure: source callback with low gas (error)",
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract),
 			types.CallbackTypeSendPacket,
 			false,
 		},
