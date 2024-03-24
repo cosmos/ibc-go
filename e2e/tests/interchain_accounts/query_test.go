@@ -152,6 +152,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			err = proto.Unmarshal(icaAck.MsgResponses[0].Value, queryTxResp)
 			s.Require().NoError(err)
 			s.Require().Len(queryTxResp.Responses, 1)
+			s.Require().Equal(uint64(txSearchRes.Txs[0].Height), queryTxResp.Height)
 
 			// unmarshal the bank query response
 			balanceResp := &banktypes.QueryBalanceResponse{}
