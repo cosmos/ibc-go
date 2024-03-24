@@ -63,6 +63,7 @@ func (suite *CelestiaTestSuite) CreateClient(endpoint *ibctesting.Endpoint) stri
 
 	clientID, err := ibctesting.ParseClientIDFromEvents(res.Events)
 	require.NoError(endpoint.Chain.TB, err)
+	endpoint.ClientID = clientID
 
 	return clientID
 }

@@ -8,6 +8,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
@@ -39,21 +40,21 @@ func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientS
 func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState ClientState
 	if err := l.cdc.Unmarshal(clientStateBz, &clientState); err != nil {
-		return err
+		return errorsmod.Wrap(clienttypes.ErrInvalidClient, err.Error())
 	}
 
 	if err := clientState.Validate(); err != nil {
 		return err
 	}
 
-	var consensusState exported.ConsensusState
-	if err := l.cdc.UnmarshalInterface(consensusStateBz, &consensusState); err != nil {
-		return err
+	var consensusState ibctm.ConsensusState
+	if err := l.cdc.Unmarshal(consensusStateBz, &consensusState); err != nil {
+		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, err.Error())
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
-	return clientState.BaseClient.Initialize(ctx, l.cdc, clientStore, consensusState)
+	return clientState.BaseClient.Initialize(ctx, l.cdc, clientStore, &consensusState)
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier and calls into the clientState.VerifyClientMessage method.
@@ -216,7 +217,7 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
 	}
 
-	return clientState.BaseClient.CheckSubstituteAndUpdateState(ctx, l.cdc, clientStore, substituteClientStore, substituteClient)
+	return clientState.BaseClient.CheckSubstituteAndUpdateState(ctx, l.cdc, clientStore, substituteClientStore, substituteClient.BaseClient)
 }
 
 // VerifyUpgradeAndUpdateState obtains the client state associated with the client identifier and calls into the clientState.VerifyUpgradeAndUpdateState method.
