@@ -431,9 +431,7 @@ func (suite *CelestiaTestSuite) TestVerifyMembership() {
 }
 
 func (suite *CelestiaTestSuite) TestRecoverClient() {
-	var (
-		subjectClientID, substituteClientID string
-	)
+	var subjectClientID, substituteClientID string
 
 	testCases := []struct {
 		name     string
