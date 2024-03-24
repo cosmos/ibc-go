@@ -3,6 +3,8 @@ package celestia_test
 import (
 	fmt "fmt"
 
+	"github.com/stretchr/testify/require"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -10,7 +12,6 @@ import (
 	ibccelestia "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/stretchr/testify/require"
 )
 
 func (suite *CelestiaTestSuite) TestClientStateUpdateState() {

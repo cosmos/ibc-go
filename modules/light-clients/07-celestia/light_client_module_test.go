@@ -4,6 +4,8 @@ import (
 	fmt "fmt"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -12,7 +14,6 @@ import (
 	ibccelestia "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/stretchr/testify/require"
 )
 
 func (suite *CelestiaTestSuite) TestStatus() {
@@ -426,7 +427,7 @@ func (suite *CelestiaTestSuite) TestUpdateStateOnMisbehaviour() {
 	}
 }
 
-func (suite *CelestiaTestSuite) TestVerifyMembership() {
+func (*CelestiaTestSuite) TestVerifyMembership() {
 	// TODO
 }
 

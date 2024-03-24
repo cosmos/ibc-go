@@ -134,7 +134,7 @@ func (l LightClientModule) VerifyMembership(
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyNonMembership method.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-celestia-{n}.
-func (l LightClientModule) VerifyNonMembership(
+func (LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
@@ -225,7 +225,7 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 // than the existing client.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-celestia-{n}.
-func (l LightClientModule) VerifyUpgradeAndUpdateState(
+func (LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
 	newClient []byte,
