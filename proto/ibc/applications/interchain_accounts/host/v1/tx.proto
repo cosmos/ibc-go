@@ -52,6 +52,9 @@ message MsgModuleQuerySafe {
 
 // MsgModuleQuerySafeResponse defines the response for Msg/ModuleQuerySafe
 message MsgModuleQuerySafeResponse {
+  // height at which the responses were queried
+  uint64 height = 1;
+
   // protobuf encoded responses for each query
-  repeated bytes responses = 1;
+  repeated bytes responses = 2;
 }
