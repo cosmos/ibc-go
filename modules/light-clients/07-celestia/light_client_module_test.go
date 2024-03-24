@@ -176,7 +176,7 @@ func (suite *CelestiaTestSuite) TestInitialize() {
 
 			expPass := tc.expErr == nil
 			if expPass {
-				suite.Require().Nil(err)
+				suite.Require().NoError(err)
 
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 				clientStateBz := clientStore.Get(host.ClientStateKey())
@@ -236,7 +236,7 @@ func (suite *CelestiaTestSuite) TestVerifyClientMessage() {
 
 			expPass := tc.expErr == nil
 			if expPass {
-				suite.Require().Nil(err)
+				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
