@@ -57,7 +57,7 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 		responses[i] = res.Value
 	}
 
-	return &types.MsgModuleQuerySafeResponse{Responses: responses}, nil
+	return &types.MsgModuleQuerySafeResponse{Responses: responses, Height: uint64(ctx.BlockHeight())}, nil
 }
 
 // UpdateParams updates the host submodule's params.
