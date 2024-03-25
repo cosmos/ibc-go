@@ -41,11 +41,6 @@ func (suite *WasmTestSuite) TestStatus() {
 		expStatus exported.Status
 	}{
 		{
-			"success",
-			func() {},
-			exported.Active,
-		},
-		{
 			"client is active",
 			func() {},
 			exported.Active,
@@ -132,27 +127,6 @@ func (suite *WasmTestSuite) TestTimestampAtHeight() {
 		malleate func()
 		expErr   error
 	}{
-		{
-			"success",
-			func() {
-				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
-					var payload types.QueryMsg
-					err := json.Unmarshal(queryMsg, &payload)
-					suite.Require().NoError(err)
-
-					suite.Require().NotNil(payload.TimestampAtHeight)
-					suite.Require().Nil(payload.CheckForMisbehaviour)
-					suite.Require().Nil(payload.Status)
-					suite.Require().Nil(payload.VerifyClientMessage)
-
-					resp, err := json.Marshal(types.TimestampAtHeightResult{Timestamp: expectedTimestamp})
-					suite.Require().NoError(err)
-
-					return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
-				})
-			},
-			nil,
-		},
 		{
 			"success",
 			func() {
@@ -983,18 +957,6 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 		foundMisbehaviour bool
 		expPanic          error
 	}{
-		{
-			"success: no misbehaviour",
-			func() {
-				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
-					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: false})
-					suite.Require().NoError(err)
-					return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
-				})
-			},
-			false,
-			nil,
-		},
 		{
 			"success: no misbehaviour",
 			func() {
