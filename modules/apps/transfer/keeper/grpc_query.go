@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	errors "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -118,7 +119,7 @@ func (Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequ
 	}
 
 	addr := types.GetEscrowAddress(req.PortId, req.ChannelId)
-	
+
 	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
@@ -128,7 +129,7 @@ func (Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequ
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(errors.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 

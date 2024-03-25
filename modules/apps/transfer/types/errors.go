@@ -16,5 +16,4 @@ var (
 	ErrMaxTransferChannels     = errorsmod.Register(ModuleName, 9, "max transfer channels")
 	ErrInvalidAuthorization    = errorsmod.Register(ModuleName, 10, "invalid transfer authorization")
 	ErrInvalidMemo             = errorsmod.Register(ModuleName, 11, "invalid memo")
-	ErrChannelNotFound         = errorsmod.Register(ModuleName, 12, "channel not found")
 )
