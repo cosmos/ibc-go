@@ -128,8 +128,6 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 					ackBz, err := hex.DecodeString(attr.Value)
 					s.Require().NoError(err)
 
-					s.T().Logf("ack found: %s", string(ackBz))
-
 					err = json.Unmarshal(ackBz, ack)
 					s.Require().NoError(err)
 
