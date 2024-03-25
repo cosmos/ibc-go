@@ -23,6 +23,10 @@
 /modules/light-clients/ @colin-axner @AdityaSripal @damiannolan @chatton
 /proto/ibc/lightclients/ @colin-axner @AdityaSripal @damiannolan @chatton
 
+# CODEOWNERS for 07-celestia light client module
+
+/modules/light-clients/08-wasm/ @colin-axner @AdityaSripal @damiannolan
+
 # CODEOWNERS for 08-wasm light client module
 
 /modules/light-clients/08-wasm/ @colin-axner @AdityaSripal @damiannolan @charleenfei @chatton @DimitrisJim @srdtrk @crodriguezvega
