@@ -16,6 +16,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	errors "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -113,7 +114,7 @@ func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 }
 
 // EscrowAddress implements the EscrowAddress gRPC method
-func (Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
+func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
