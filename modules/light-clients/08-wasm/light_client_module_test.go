@@ -299,7 +299,6 @@ func (suite *WasmTestSuite) TestInitialize() {
 			consensusStateBz := suite.chainA.Codec.MustMarshal(consensusState)
 
 			err := lightClientModule.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consensusStateBz)
-			// err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, clientStore, consensusState)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -610,7 +609,6 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			tc.malleate()
 
 			err = lightClientModule.VerifyNonMembership(suite.chainA.GetContext(), endpoint.ClientID, proofHeight, 0, 0, proof, path)
-			// err = clientState.VerifyNonMembership(suite.chainA.GetContext(), clientStore, suite.chainA.Codec, proofHeight, 0, 0, proof, path)
 
 			expPass := tc.expError == nil
 			if expPass {
