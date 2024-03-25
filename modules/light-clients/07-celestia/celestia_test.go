@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"testing"
 
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
+
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	ibccelestia "github.com/cosmos/ibc-go/modules/light-clients/07-celestia"
