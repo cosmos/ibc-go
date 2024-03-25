@@ -26,7 +26,9 @@ func (cs *ClientState) Validate() error {
 	return cs.BaseClient.Validate()
 }
 
-// VerifyMembership implements exported.ClientState.
+// VerifyMembership is a generic proof verification method which verifies an NMT proof
+// that a set of shares exist in a set of rows and a Merkle proof that those rows exist
+// in a Merkle tree with a given data root.
 // TODO: Revise and look into delay periods for this.
 // TODO: Validate key path and value against the shareProof extracted from proof bytes.
 func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {

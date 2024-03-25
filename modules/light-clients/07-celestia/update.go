@@ -13,7 +13,10 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
-// UpdateState implements exported.ClientState.
+// UpdateState expects a Tendermint header as clientMsg and performs 07-tendermint UpdateState
+// logic, updating the client state to the new header and returning a list containing the updated
+// consensus height. Please note that the commitmment root of the stored consensus state is the data
+// hash of the header (as opposed to the header app hash, in vanilla 07-tendermint logic).
 func (cs *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	header, ok := clientMsg.(*ibctm.Header)
 	if !ok {
