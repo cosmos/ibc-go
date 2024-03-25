@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"time"
 
-	storetypes "cosmossdk.io/store/types"
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
