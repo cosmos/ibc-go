@@ -2,8 +2,8 @@ package wasm
 
 import (
 	errorsmod "cosmossdk.io/errors"
-
 	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
