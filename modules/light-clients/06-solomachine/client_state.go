@@ -1,8 +1,6 @@
 package solomachine
 
 import (
-	"reflect"
-
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -65,19 +63,6 @@ func (cs ClientState) Validate() error {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be nil")
 	}
 	return cs.ConsensusState.ValidateBasic()
-}
-
-// Initialize checks that the initial consensus state is equal to the latest consensus state of the initial client and
-// sets the client state in the provided client store.
-func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
-	if !reflect.DeepEqual(cs.ConsensusState, consState) {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
-			cs.ConsensusState, consState)
-	}
-
-	setClientState(clientStore, cdc, &cs)
-
-	return nil
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
