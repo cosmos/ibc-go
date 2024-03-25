@@ -29,7 +29,6 @@ type Keeper struct {
 	router         *types.Router
 	consensusHost  types.ConsensusHost
 	legacySubspace types.ParamSubspace
-	stakingKeeper  types.StakingKeeper
 	upgradeKeeper  types.UpgradeKeeper
 }
 
@@ -45,7 +44,6 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace ty
 		router:         router,
 		consensusHost:  ibctm.NewConsensusHost(sk),
 		legacySubspace: legacySubspace,
-		stakingKeeper:  sk,
 		upgradeKeeper:  uk,
 	}
 }
