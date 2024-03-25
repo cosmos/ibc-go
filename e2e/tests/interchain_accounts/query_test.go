@@ -110,34 +110,21 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			s.Require().NoError(err)
 			s.Require().Len(txSearchRes.Txs, 1)
 
-			// get acknowledgement
-			ackFound := false
+			ackHexValue, isFound := s.ExtractValueFromEvents(
+				txSearchRes.Txs[0].Events,
+				channeltypes.EventTypeWriteAck,
+				channeltypes.AttributeKeyAckHex,
+			)
+
+			s.Require().True(isFound)
+			s.Require().NotEmpty(ackHexValue)
+
 			ack := &channeltypes.Acknowledgement_Result{}
+			ackBz, err := hex.DecodeString(ackHexValue)
+			s.Require().NoError(err)
 
-		search_ack:
-			for _, event := range txSearchRes.Txs[0].Events {
-				if event.Type != channeltypes.EventTypeWriteAck {
-					continue
-				}
-
-				for _, attr := range event.Attributes {
-					if attr.Key != channeltypes.AttributeKeyAckHex {
-						continue
-					}
-
-					ackBz, err := hex.DecodeString(attr.Value)
-					s.Require().NoError(err)
-
-					err = json.Unmarshal(ackBz, ack)
-					s.Require().NoError(err)
-
-					ackFound = true
-
-					break search_ack
-				}
-			}
-			s.Require().True(ackFound)
-			s.Require().NotZero(ack)
+			err = json.Unmarshal(ackBz, ack)
+			s.Require().NoError(err)
 
 			// unmarshal the ica response
 			icaAck := &sdk.TxMsgData{}

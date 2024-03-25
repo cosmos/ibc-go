@@ -24,6 +24,8 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
@@ -330,4 +332,25 @@ func (*E2ETestSuite) QueryTxsByEvents(
 	Codec().MustUnmarshalJSON(stdout, result)
 
 	return result, nil
+}
+
+// ExtractValueFromEvents extracts the value of an attribute from a list of events.
+// If the attribute is not found, the function returns an empty string and false.
+// If the attribute is found, the function returns the value and true.
+func (*E2ETestSuite) ExtractValueFromEvents(events []abci.Event, eventType, attrKey string) (string, bool) {
+	for _, event := range events {
+		if event.Type != eventType {
+			continue
+		}
+
+		for _, attr := range event.Attributes {
+			if attr.Key != attrKey {
+				continue
+			}
+
+			return attr.Value, true
+		}
+	}
+
+	return "", false
 }
