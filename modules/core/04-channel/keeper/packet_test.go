@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"cosmossdk.io/errors"
 
@@ -847,7 +848,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		name      string
 		malleate  func()
 		expResult func(commitment []byte, err error)
-		expEvents func(path *ibctesting.Path) map[string]map[string]string
+		expEvents func(path *ibctesting.Path) []abci.Event
 	}{
 		{
 			name: "success on ordered channel",
@@ -954,19 +955,21 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), nextSequenceAck, "sequence incremented for UNORDERED channel")
 			},
-			expEvents: func(path *ibctesting.Path) map[string]map[string]string {
-				return ibctesting.EventsMap{
-					types.EventTypeChannelFlushComplete: {
-						types.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						types.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						types.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						types.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						types.AttributeKeyChannelState:       path.EndpointA.GetChannel().State.String(),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: types.AttributeValueCategory,
-					},
-				}
+			expEvents: func(path *ibctesting.Path) []abci.Event {
+				return sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeChannelFlushComplete,
+						sdk.NewAttribute(types.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(types.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(types.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(types.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(types.AttributeKeyChannelState, path.EndpointA.GetChannel().State.String()),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
 			},
 		},
 		{
@@ -1320,7 +1323,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				expEvents := tc.expEvents(path)
 
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			}
 		})
 	}
