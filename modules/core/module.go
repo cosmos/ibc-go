@@ -133,7 +133,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
-	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
+	clientMigrator := clientkeeper.NewMigrator(*am.keeper.ClientKeeper)
 	if err := cfg.RegisterMigration(exported.ModuleName, 2, clientMigrator.Migrate2to3); err != nil {
 		panic(err)
 	}
@@ -188,7 +188,7 @@ func (AppModule) ConsensusVersion() uint64 { return 6 }
 
 // BeginBlock returns the begin blocker for the ibc module.
 func (am AppModule) BeginBlock(ctx context.Context) error {
-	ibcclient.BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper.ClientKeeper)
+	ibcclient.BeginBlocker(sdk.UnwrapSDKContext(ctx), *am.keeper.ClientKeeper)
 	return nil
 }
 
