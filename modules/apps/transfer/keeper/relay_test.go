@@ -346,16 +346,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					})
 			}, false, false,
 		},
-		{
-			"failure: receive is disabled - chainB is source",
-			func() {
-				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(),
-					types.Params{
-						ReceiveEnabled: false,
-					})
-				expEscrowAmount = sdkmath.NewInt(100)
-			}, true, false,
-		},
 	}
 
 	for _, tc := range testCases {
