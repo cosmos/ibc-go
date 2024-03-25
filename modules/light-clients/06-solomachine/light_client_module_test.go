@@ -22,7 +22,7 @@ const (
 )
 
 func (suite *SoloMachineTestSuite) TestStatus() {
-	clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
+	clientID := suite.solomachine.ClientID
 	clientState := suite.solomachine.ClientState()
 
 	// Set a client state in store.
@@ -45,7 +45,7 @@ func (suite *SoloMachineTestSuite) TestStatus() {
 }
 
 func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
-	clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
+	clientID := suite.solomachine.ClientID
 	height := clienttypes.NewHeight(0, suite.solomachine.ClientState().Sequence)
 	// Single setup for all test cases.
 	suite.SetupTest()
@@ -92,7 +92,6 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 }
 
 func (suite *SoloMachineTestSuite) TestVerifyMembership() {
-	var clientID string
 	// test singlesig and multisig public keys
 	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
@@ -534,7 +533,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				tc.malleate()
 
 				// Generate clientID
-				clientID = suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
+				clientID := sm.ClientID
 
 				// Set the client state in the store for light client call to find.
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
@@ -760,7 +759,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				}
 
 				// Generate clientID
-				clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
+				clientID := sm.ClientID
 
 				// Set the client state in the store for light client call to find.
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
@@ -891,7 +890,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 }
 
 func (suite *SoloMachineTestSuite) TestVerifyUpgradeAndUpdateState() {
-	clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
+	clientID := suite.solomachine.ClientID
 
 	lightClientModule, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.Route(clientID)
 	suite.Require().True(found)
