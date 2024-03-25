@@ -35,7 +35,7 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 	for i, query := range msg.Requests {
 		isModuleQuerySafe := slices.Contains(m.mqsWhitelist, query.Path)
 		if !isModuleQuerySafe {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot verify module query safe: %s", query.Path)
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
 		}
 
 		route := m.queryRouter.Route(query.Path)

@@ -24,12 +24,12 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"success",
 			func() {
-				queryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
 				suite.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
 					Path: "/cosmos.bank.v1beta1.Query/Balance",
-					Data: queryBz,
+					Data: balanceQueryBz,
 				}
 
 				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq})
@@ -47,12 +47,12 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"success: multiple queries",
 			func() {
-				queryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
 				suite.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
 					Path: "/cosmos.bank.v1beta1.Query/Balance",
-					Data: queryBz,
+					Data: balanceQueryBz,
 				}
 
 				paramsQuery := stakingtypes.QueryParamsRequest{}
@@ -85,12 +85,12 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"failure: not module query safe",
 			func() {
-				queryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
 				suite.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
 					Path: "/cosmos.bank.v1beta1.Query/Balance",
-					Data: queryBz,
+					Data: balanceQueryBz,
 				}
 
 				paramsQuery := transfertypes.QueryParamsRequest{}
@@ -109,12 +109,12 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"failure: invalid query path",
 			func() {
-				queryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
 				suite.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
 					Path: "/cosmos.invalid.Query/Invalid",
-					Data: queryBz,
+					Data: balanceQueryBz,
 				}
 
 				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq})
