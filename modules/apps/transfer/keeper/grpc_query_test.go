@@ -254,7 +254,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 				}
 			},
 			false,
-		},		
+		},
 		{
 			"failure - channel not found due to invalid channelID",
 			func() {
