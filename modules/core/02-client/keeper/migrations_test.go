@@ -32,7 +32,7 @@ func (suite *KeeperTestSuite) TestMigrateParams() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
-			migrator := keeper.NewMigrator(*suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			migrator := keeper.NewMigrator(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			err := migrator.MigrateParams(ctx)
 			suite.Require().NoError(err)
 
