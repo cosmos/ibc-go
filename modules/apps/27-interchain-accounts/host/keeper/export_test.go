@@ -15,7 +15,7 @@ func (k Keeper) GetAppMetadata(ctx sdk.Context, portID, channelID string) (icaty
 	return k.getAppMetadata(ctx, portID, channelID)
 }
 
-// NewModuleQuerySafeWhitelist is a wrapper around newModuleQuerySafeWhitelist to allow the function to be directly called in tests.
-func NewModuleQuerySafeWhitelist() []string {
-	return newModuleQuerySafeWhitelist()
+// NewModuleQuerySafeAllowList is a wrapper around newModuleQuerySafeAllowList to allow the function to be directly called in tests.
+func NewModuleQuerySafeAllowList() []string {
+	return newModuleQuerySafeAllowList()
 }

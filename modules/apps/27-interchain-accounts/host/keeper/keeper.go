@@ -45,8 +45,8 @@ type Keeper struct {
 	msgRouter   icatypes.MessageRouter
 	queryRouter icatypes.QueryRouter
 
-	// whitelist of module safe queries
-	mqsWhitelist []string
+	// mqsAllowList is a list of all module safe query paths
+	mqsAllowList []string
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -80,7 +80,7 @@ func NewKeeper(
 		scopedKeeper:   scopedKeeper,
 		msgRouter:      msgRouter,
 		queryRouter:    queryRouter,
-		mqsWhitelist:   newModuleQuerySafeWhitelist(),
+		mqsAllowList:   newModuleQuerySafeAllowList(),
 		authority:      authority,
 	}
 }
@@ -274,14 +274,14 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store.Set([]byte(types.ParamsKey), bz)
 }
 
-// newModuleQuerySafeWhitelist returns a list of all query paths labeled with module_query_safe in the proto files.
-func newModuleQuerySafeWhitelist() []string {
+// newModuleQuerySafeAllowList returns a list of all query paths labeled with module_query_safe in the proto files.
+func newModuleQuerySafeAllowList() []string {
 	protoFiles, err := gogoproto.MergedRegistry()
 	if err != nil {
 		panic(err)
 	}
 
-	whitelist := []string{}
+	allowList := []string{}
 	protoFiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		for i := 0; i < fd.Services().Len(); i++ {
 			// Get the service descriptor
@@ -302,11 +302,11 @@ func newModuleQuerySafeWhitelist() []string {
 				}
 
 				// Add the method to the whitelist
-				whitelist = append(whitelist, fmt.Sprintf("/%s/%s", sd.FullName(), md.Name()))
+				allowList = append(allowList, fmt.Sprintf("/%s/%s", sd.FullName(), md.Name()))
 			}
 		}
 		return true
 	})
 
-	return whitelist
+	return allowList
 }
