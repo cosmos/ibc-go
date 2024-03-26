@@ -201,6 +201,31 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestNewModuleQuerySafeWhitelist() {
+	// Currently, all queries in bank, staking, auth, and circuit are marked safe
+	// Notably, the gov and distribution modules are not marked safe
+
+	var whitelist []string
+	suite.Require().NotPanics(func() {
+		whitelist = keeper.NewModuleQuerySafeWhitelist()
+	})
+
+	suite.Require().NotEmpty(whitelist)
+	suite.Require().Contains(whitelist, "/cosmos.bank.v1beta1.Query/Balance")
+	suite.Require().Contains(whitelist, "/cosmos.bank.v1beta1.Query/AllBalances")
+	suite.Require().Contains(whitelist, "/cosmos.staking.v1beta1.Query/Validator")
+	suite.Require().Contains(whitelist, "/cosmos.staking.v1beta1.Query/Validators")
+	suite.Require().Contains(whitelist, "/cosmos.circuit.v1.Query/Account")
+	suite.Require().Contains(whitelist, "/cosmos.circuit.v1.Query/DisabledList")
+	suite.Require().Contains(whitelist, "/cosmos.auth.v1beta1.Query/Accounts")
+	suite.Require().Contains(whitelist, "/cosmos.auth.v1beta1.Query/ModuleAccountByName")
+	suite.Require().Contains(whitelist, "/ibc.core.client.v1.Query/VerifyMembership")
+	suite.Require().NotContains(whitelist, "/cosmos.gov.v1beta1.Query/Proposals")
+	suite.Require().NotContains(whitelist, "/cosmos.gov.v1.Query/Proposals")
+	suite.Require().NotContains(whitelist, "/cosmos.distribution.v1beta1.Query/Params")
+	suite.Require().NotContains(whitelist, "/cosmos.distribution.v1beta1.Query/DelegationRewards")
+}
+
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	suite.SetupTest()
 
