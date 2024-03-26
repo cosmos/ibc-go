@@ -25,7 +25,7 @@
 
 # CODEOWNERS for 07-celestia light client module
 
-/modules/light-clients/08-wasm/ @colin-axner @AdityaSripal @damiannolan
+/modules/light-clients/07-celestia/ @colin-axner @AdityaSripal @damiannolan
 
 # CODEOWNERS for 08-wasm light client module
 
