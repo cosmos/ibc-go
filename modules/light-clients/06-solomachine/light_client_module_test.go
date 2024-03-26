@@ -50,7 +50,7 @@ func (suite *SoloMachineTestSuite) TestStatus() {
 			exported.Frozen,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedSmClientID
 			},
@@ -94,7 +94,7 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 			nil,
 		},
 		{
-			"failure: client not found",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedSmClientID
 			},
@@ -521,7 +521,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				nil,
 			},
 			{
-				"failure: cannot find subject client state",
+				"failure: cannot find client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -740,7 +740,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				nil,
 			},
 			{
-				"failure: cannot find subject client state",
+				"failure: cannot find client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1037,7 +1037,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				fmt.Errorf("unsupported ClientMessage: %T", sm.CreateMisbehaviour()),
 			},
 			{
-				"failure: cannot find subject client state",
+				"failure: cannot find client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1125,7 +1125,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 				nil,
 			},
 			{
-				"failure: cannot find subject client state",
+				"failure: cannot find client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1184,7 +1184,7 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 				nil,
 			},
 			{
-				"failure: cannot find subject client state",
+				"failure: cannot find client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1368,7 +1368,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				clienttypes.ErrInvalidHeader,
 			},
 			{
-				"failure: cannot find subject client state",
+				"failure: cannot find client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1614,7 +1614,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"failure: cannot find subject client state",
+				"failure: cannot find client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1674,7 +1674,7 @@ func (suite *SoloMachineTestSuite) TestLatestHeight() {
 			clienttypes.NewHeight(0, 1),
 		},
 		{
-			"failure: cannot find substitute client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedSmClientID
 			},
