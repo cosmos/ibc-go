@@ -28,6 +28,14 @@ func NewWasmConsensusHost(cdc codec.BinaryCodec, delegate clienttypes.ConsensusH
 
 // GetSelfConsensusState implements the 02-client types.ConsensusHost interface.
 func (w *WasmConsensusHost) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
+	if w.cdc == nil {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm consensus host codec is nil")
+	}
+
+	if w.delegate == nil {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm delegate consensus host is nil")
+	}
+
 	consensusState, err := w.delegate.GetSelfConsensusState(ctx, height)
 	if err != nil {
 		return nil, err
@@ -48,17 +56,17 @@ func (w *WasmConsensusHost) GetSelfConsensusState(ctx sdk.Context, height export
 
 // ValidateSelfClient implements the 02-client types.ConsensusHost interface.
 func (w *WasmConsensusHost) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
+	if w.cdc == nil {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm consensus host codec is nil")
+	}
+
+	if w.delegate == nil {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm delegate consensus host is nil")
+	}
+
 	wasmClientState, ok := clientState.(*ClientState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "client must be a wasm client, expected: %T, got: %T", ClientState{}, wasmClientState)
-	}
-
-	if w == nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm consensus host is nil")
-	}
-
-	if w.cdc == nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm consensus host cdc is nil")
 	}
 
 	if wasmClientState.Data == nil {
