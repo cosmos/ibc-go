@@ -238,18 +238,9 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 		{
 			"success",
 			func() {
-
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.SetupConnections()
-				path.SetChannelOrdered()
-
-				// init channel
-				err := path.EndpointA.ChanOpenInit()
-				suite.Require().NoError(err)
-
 				req = &types.QueryEscrowAddressRequest{
-					PortId:    path.EndpointA.ChannelConfig.PortID,
-					ChannelId: path.EndpointA.ChannelID,
+					PortId:    ibctesting.TransferPort,
+					ChannelId: ibctesting.FirstChannelID,
 				}
 			},
 			true,
@@ -258,7 +249,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 			"failure - channel not found",
 			func() {
 				req = &types.QueryEscrowAddressRequest{
-					PortId:    ibctesting.TransferPort,
+					PortId:    ibctesting.InvalidID,
 					ChannelId: ibctesting.FirstChannelID,
 				}
 			},
@@ -270,6 +261,8 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
@@ -278,7 +271,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				expected := types.GetEscrowAddress(req.PortId, req.ChannelId).String()
+				expected := types.GetEscrowAddress(ibctesting.TransferPort, ibctesting.FirstChannelID).String()
 				suite.Require().Equal(expected, res.EscrowAddress)
 			} else {
 				suite.Require().Error(err)
