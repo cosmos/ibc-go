@@ -18,38 +18,69 @@ import (
 )
 
 const (
-	smClientID   = "06-solomachine-100"
-	wasmClientID = "08-wasm-0"
+	smClientID       = "06-solomachine-100"
+	unusedSmClientID = "06-solomachine-999"
+	wasmClientID     = "08-wasm-0"
 )
 
 func (suite *SoloMachineTestSuite) TestStatus() {
-	clientID := suite.solomachine.ClientID
-	clientState := suite.solomachine.ClientState()
+	var (
+		clientState *solomachine.ClientState
+		clientID    string
+	)
 
-	// Set a client state in store.
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expStatus exported.Status
+	}{
+		{
+			"client is active",
+			func() {},
+			exported.Active,
+		},
+		{
+			"client is frozen",
+			func() {
+				clientState = solomachine.NewClientState(0, &solomachine.ConsensusState{})
+				clientState.IsFrozen = true
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+			},
+			exported.Frozen,
+		},
+		{
+			"cannot find subject client state",
+			func() {
+				clientID = unusedSmClientID
+			},
+			exported.Unknown,
+		},
+	}
 
-	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-	suite.Require().True(found)
+	for _, tc := range testCases {
+		tc := tc
 
-	status := lightClientModule.Status(suite.chainA.GetContext(), clientID)
+		suite.Run(tc.name, func() {
+			clientID = suite.solomachine.ClientID
+			clientState = suite.solomachine.ClientState()
 
-	// solo machine discards arguments
-	suite.Require().Equal(exported.Active, status)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+			suite.Require().True(found)
 
-	// freeze solo machine and update it in store.
-	clientState.IsFrozen = true
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 
-	status = clientState.Status(suite.chainA.GetContext(), nil, nil)
-	suite.Require().Equal(exported.Frozen, status)
+			tc.malleate()
+
+			status := lightClientModule.Status(suite.chainA.GetContext(), clientID)
+
+			suite.Require().Equal(tc.expStatus, status)
+		})
+	}
 }
 
 func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 	clientID := suite.solomachine.ClientID
 	height := clienttypes.NewHeight(0, suite.solomachine.ClientState().Sequence)
-	// Single setup for all test cases.
-	suite.SetupTest()
 
 	testCases := []struct {
 		name     string
@@ -65,29 +96,28 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 		},
 		{
 			"client not found",
-			"non existent client",
+			unusedSmClientID,
 			0,
 			clienttypes.ErrClientNotFound,
 		},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			ctx := suite.chainA.GetContext()
-
-			// Set a client state in store and grab light client module for _clientID_, the lookup for the timestamp
-			// is performed on the _tc.clientID_.
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, clientID, suite.solomachine.ClientState())
+			clientID = suite.solomachine.ClientID
+			clientState := suite.solomachine.ClientState()
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
 			suite.Require().True(found)
 
-			ts, err := lightClientModule.TimestampAtHeight(ctx, tc.clientID, height)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+
+			ts, err := lightClientModule.TimestampAtHeight(suite.chainA.GetContext(), tc.clientID, height)
 
 			suite.Require().Equal(tc.expValue, ts)
-			suite.Require().ErrorIs(err, tc.expErr, "valid test case %d failed: %s", i, tc.name)
+			suite.Require().ErrorIs(err, tc.expErr)
 		})
 	}
 }
@@ -147,11 +177,10 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
+				clientID := sm.ClientID
 
 				clientStateBz := suite.chainA.Codec.MustMarshal(tc.clientState)
 				consStateBz := suite.chainA.Codec.MustMarshal(tc.consState)
-
-				clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
 
 				lcm, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.Route(clientID)
 				suite.Require().True(found)
@@ -161,7 +190,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 
 				expPass := tc.expErr == nil
 				if expPass {
-					suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
+					suite.Require().NoError(err)
 					suite.Require().True(store.Has(host.ClientStateKey()))
 				} else {
 					suite.Require().ErrorContains(err, tc.expErr.Error())
@@ -173,17 +202,18 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 }
 
 func (suite *SoloMachineTestSuite) TestVerifyMembership() {
+	var (
+		clientState *solomachine.ClientState
+		path        exported.Path
+		proof       []byte
+		testingPath *ibctesting.Path
+		signBytes   solomachine.SignBytes
+		err         error
+		clientID    string
+	)
+
 	// test singlesig and multisig public keys
 	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-
-		var (
-			clientState *solomachine.ClientState
-			path        exported.Path
-			proof       []byte
-			testingPath *ibctesting.Path
-			signBytes   solomachine.SignBytes
-			err         error
-		)
 
 		testCases := []struct {
 			name     string
@@ -487,12 +517,13 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				},
 				nil,
 			},
-			// TODO: Cov missing, need a more extensive refactor of tests in order to cov it.
-			// {
-			// 	"client not found",
-			// 	func() {},
-			// 	clienttypes.ErrClientNotFound,
-			// },
+			{
+				"cannot find subject client state",
+				func() {
+					clientID = unusedSmClientID
+				},
+				clienttypes.ErrClientNotFound,
+			},
 			{
 				"invalid path type - empty",
 				func() {
@@ -517,6 +548,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					}
 
 					clientState = solomachine.NewClientState(sm.Sequence, consensusState)
+					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 				},
 				fmt.Errorf("the consensus state timestamp is greater than the signature timestamp (11 >= 10): %s", solomachine.ErrInvalidProof),
 			},
@@ -537,6 +569,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				"consensus state public key is nil",
 				func() {
 					clientState.ConsensusState.PublicKey = nil
+					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 				},
 				fmt.Errorf("consensus state PublicKey cannot be nil: %s", clienttypes.ErrInvalidConsensus),
 			},
@@ -583,6 +616,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				suite.SetupTest()
 				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
 
+				clientID = sm.ClientID
 				clientState = sm.ClientState()
 
 				path = commitmenttypes.NewMerklePath("ibc", "solomachine")
@@ -611,21 +645,18 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 				suite.Require().NoError(err)
 
-				tc.malleate()
-
-				// Generate clientID
-				clientID := sm.ClientID
+				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+				suite.Require().True(found)
 
 				// Set the client state in the store for light client call to find.
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+
+				tc.malleate()
 
 				var expSeq uint64
 				if clientState.ConsensusState != nil {
 					expSeq = clientState.Sequence + 1
 				}
-
-				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(smClientID)
-				suite.Require().True(found)
 
 				// Verify the membership proof
 				err = lightClientModule.VerifyMembership(
@@ -633,13 +664,13 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					0, 0, proof, path, signBytes.Data,
 				)
 
-				// Grab fresh client state after updates.
-				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
-				suite.Require().True(found)
-				clientState = cs.(*solomachine.ClientState)
-
 				expPass := tc.expErr == nil
 				if expPass {
+					// Grab fresh client state after updates.
+					cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
+					suite.Require().True(found)
+					clientState = cs.(*solomachine.ClientState)
+
 					suite.Require().NoError(err)
 					// clientState.Sequence is the most recent view of state.
 					suite.Require().Equal(expSeq, clientState.Sequence)
@@ -653,17 +684,17 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 }
 
 func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
+	var (
+		clientState *solomachine.ClientState
+		path        exported.Path
+		proof       []byte
+		signBytes   solomachine.SignBytes
+		err         error
+		clientID    string
+	)
+
 	// test singlesig and multisig public keys
 	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-
-		var (
-			clientState *solomachine.ClientState
-			path        exported.Path
-			proof       []byte
-			signBytes   solomachine.SignBytes
-			err         error
-		)
-
 		testCases := []struct {
 			name     string
 			malleate func()
@@ -705,12 +736,13 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				},
 				nil,
 			},
-			// TODO: Cov missing, need a more extensive refactor of tests in order to cov it.
-			// {
-			// 	"client not found",
-			// 	func() {},
-			// 	clienttypes.ErrClientNotFound,
-			// },
+			{
+				"cannot find subject client state",
+				func() {
+					clientID = unusedSmClientID
+				},
+				clienttypes.ErrClientNotFound,
+			},
 			{
 				"invalid path type",
 				func() {
@@ -735,6 +767,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					}
 
 					clientState = solomachine.NewClientState(sm.Sequence, consensusState)
+					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 				},
 				fmt.Errorf("the consensus state timestamp is greater than the signature timestamp (11 >= 10): %s", solomachine.ErrInvalidProof),
 			},
@@ -755,6 +788,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				"consensus state public key is nil",
 				func() {
 					clientState.ConsensusState.PublicKey = nil
+					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 				},
 				fmt.Errorf("consensus state PublicKey cannot be nil: %s", clienttypes.ErrInvalidConsensus),
 			},
@@ -805,6 +839,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 			suite.Run(tc.name, func() {
 				clientState = sm.ClientState()
+				clientID = sm.ClientID
 
 				path = commitmenttypes.NewMerklePath("ibc", "solomachine")
 				merklePath, ok := path.(commitmenttypes.MerklePath)
@@ -832,6 +867,12 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 				suite.Require().NoError(err)
 
+				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+				suite.Require().True(found)
+
+				// Set the client state in the store for light client call to find.
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+
 				tc.malleate()
 
 				var expSeq uint64
@@ -839,28 +880,19 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					expSeq = clientState.Sequence + 1
 				}
 
-				// Generate clientID
-				clientID := sm.ClientID
-
-				// Set the client state in the store for light client call to find.
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
-
-				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(smClientID)
-				suite.Require().True(found)
-
 				// Verify the membership proof
 				err = lightClientModule.VerifyNonMembership(
 					suite.chainA.GetContext(), clientID, clienttypes.ZeroHeight(),
 					0, 0, proof, path,
 				)
 
-				// Grab fresh client state after updates.
-				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
-				suite.Require().True(found)
-				clientState = cs.(*solomachine.ClientState)
-
 				expPass := tc.expErr == nil
 				if expPass {
+					// Grab fresh client state after updates.
+					cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
+					suite.Require().True(found)
+					clientState = cs.(*solomachine.ClientState)
+
 					suite.Require().NoError(err)
 					suite.Require().Equal(expSeq, clientState.Sequence)
 				} else {
@@ -970,6 +1002,92 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 	}
 }
 
+func (suite *SoloMachineTestSuite) TestUpdateState() {
+	var (
+		clientState *solomachine.ClientState
+		clientMsg   exported.ClientMessage
+		clientID    string
+	)
+
+	// test singlesig and multisig public keys
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+
+		testCases := []struct {
+			name     string
+			malleate func()
+			expPanic error
+		}{
+			{
+				"successful update",
+				func() {},
+				nil,
+			},
+			{
+				"invalid type misbehaviour",
+				func() {
+					clientState = sm.ClientState()
+					clientMsg = sm.CreateMisbehaviour()
+					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+				},
+				fmt.Errorf("unsupported ClientMessage: %T", sm.CreateMisbehaviour()),
+			},
+			{
+				"cannot find subject client state",
+				func() {
+					clientID = unusedSmClientID
+				},
+				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
+				clientID = sm.ClientID
+				clientState = sm.ClientState()
+				clientMsg = sm.CreateHeader(sm.Diversifier)
+
+				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+				suite.Require().True(found)
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+
+				tc.malleate() // setup test
+
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
+
+				var consensusHeights []exported.Height
+				updateStateFunc := func() {
+					consensusHeights = lightClientModule.UpdateState(suite.chainA.GetContext(), clientID, clientMsg)
+				}
+
+				expPass := tc.expPanic == nil
+				if expPass {
+					updateStateFunc()
+
+					clientStateBz := store.Get(host.ClientStateKey())
+					suite.Require().NotEmpty(clientStateBz)
+
+					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+
+					suite.Require().Len(consensusHeights, 1)
+					suite.Require().Equal(uint64(0), consensusHeights[0].GetRevisionNumber())
+					suite.Require().Equal(newClientState.(*solomachine.ClientState).Sequence, consensusHeights[0].GetRevisionHeight())
+
+					suite.Require().False(newClientState.(*solomachine.ClientState).IsFrozen)
+					suite.Require().Equal(clientMsg.(*solomachine.Header).NewPublicKey, newClientState.(*solomachine.ClientState).ConsensusState.PublicKey)
+					suite.Require().Equal(clientMsg.(*solomachine.Header).NewDiversifier, newClientState.(*solomachine.ClientState).ConsensusState.Diversifier)
+					suite.Require().Equal(clientMsg.(*solomachine.Header).Timestamp, newClientState.(*solomachine.ClientState).ConsensusState.Timestamp)
+				} else {
+					suite.Require().PanicsWithError(tc.expPanic.Error(), updateStateFunc)
+				}
+			})
+		}
+	}
+}
+
 func (suite *SoloMachineTestSuite) TestVerifyUpgradeAndUpdateState() {
 	clientID := suite.solomachine.ClientID
 
@@ -978,4 +1096,49 @@ func (suite *SoloMachineTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 	err := lightClientModule.VerifyUpgradeAndUpdateState(suite.chainA.GetContext(), clientID, nil, nil, nil, nil)
 	suite.Require().Error(err)
+}
+
+func (suite *SoloMachineTestSuite) TestLatestHeight() {
+	var clientID string
+
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expHeight clienttypes.Height
+	}{
+		{
+			"success",
+			func() {
+			},
+			// Default as returned by solomachine.ClientState()
+			clienttypes.NewHeight(0, 1),
+		},
+		{
+			"cannot find substitute client state",
+			func() {
+				clientID = unusedSmClientID
+			},
+			clienttypes.ZeroHeight(),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			clientID = suite.solomachine.ClientID
+			clientState := suite.solomachine.ClientState()
+
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+			suite.Require().True(found)
+
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+
+			tc.malleate()
+
+			height := lightClientModule.LatestHeight(suite.chainA.GetContext(), clientID)
+
+			suite.Require().Equal(tc.expHeight, height)
+		})
+	}
 }

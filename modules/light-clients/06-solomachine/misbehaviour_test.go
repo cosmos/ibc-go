@@ -12,7 +12,7 @@ func (suite *SoloMachineTestSuite) TestMisbehaviour() {
 	suite.Require().Equal(exported.Solomachine, misbehaviour.ClientType())
 }
 
-func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
+func (suite *SoloMachineTestSuite) Test_MisbehaviourValidateBasic() {
 	// test singlesig and multisig public keys
 	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 

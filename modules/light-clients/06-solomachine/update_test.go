@@ -397,7 +397,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestUpdateState() {
+func (suite *SoloMachineTestSuite) Test_UpdateState() {
 	var (
 		clientState *solomachine.ClientState
 		clientMsg   exported.ClientMessage

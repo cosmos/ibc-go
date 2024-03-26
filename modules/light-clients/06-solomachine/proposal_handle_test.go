@@ -9,7 +9,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
+func (suite *SoloMachineTestSuite) Test_Check_SubstituteAndUpdateState() {
 	var (
 		subjectClientState    *solomachine.ClientState
 		substituteClientState exported.ClientState
