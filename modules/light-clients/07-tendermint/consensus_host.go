@@ -1,12 +1,15 @@
 package tendermint
 
 import (
+	"context"
 	"reflect"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cometbft/cometbft/light"
 
@@ -18,9 +21,15 @@ import (
 
 var _ clienttypes.ConsensusHost = (*ConsensusHost)(nil)
 
-// ConsensusHost implements the 02-client clienttypes.ConsensusHost interface
+// ConsensusHost implements the 02-client clienttypes.ConsensusHost interface.
 type ConsensusHost struct {
-	stakingKeeper clienttypes.StakingKeeper
+	stakingKeeper StakingKeeper
+}
+
+// StakingKeeper defines an expected interface for the tendermint ConsensusHost.
+type StakingKeeper interface {
+	GetHistoricalInfo(ctx context.Context, height int64) (stakingtypes.HistoricalInfo, error)
+	UnbondingTime(ctx context.Context) (time.Duration, error)
 }
 
 // NewConsensusHost creates and returns a new ConsensusHost for tendermint consensus.
