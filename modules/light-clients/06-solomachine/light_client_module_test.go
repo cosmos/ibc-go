@@ -3,6 +3,7 @@ package solomachine_test
 import (
 	"fmt"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -1082,6 +1083,563 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 					suite.Require().Equal(clientMsg.(*solomachine.Header).Timestamp, newClientState.(*solomachine.ClientState).ConsensusState.Timestamp)
 				} else {
 					suite.Require().PanicsWithError(tc.expPanic.Error(), updateStateFunc)
+				}
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
+	var (
+		clientMsg exported.ClientMessage
+		clientID  string
+	)
+
+	// test singlesig and multisig public keys
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+		testCases := []struct {
+			name              string
+			malleate          func()
+			foundMisbehaviour bool
+			expPanic          error
+		}{
+			{
+				"success",
+				func() {
+					clientMsg = sm.CreateMisbehaviour()
+				},
+				true,
+				nil,
+			},
+			{
+				"normal header returns false",
+				func() {
+					clientMsg = sm.CreateHeader(sm.Diversifier)
+				},
+				false,
+				nil,
+			},
+			{
+				"cannot find subject client state",
+				func() {
+					clientID = unusedSmClientID
+				},
+				false,
+				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
+
+				clientID = sm.ClientID
+
+				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+				suite.Require().True(found)
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
+
+				tc.malleate()
+
+				var foundMisbehaviour bool
+				foundMisbehaviourFunc := func() {
+					foundMisbehaviour = lightClientModule.CheckForMisbehaviour(suite.chainA.GetContext(), clientID, clientMsg)
+				}
+
+				expPass := tc.expPanic == nil
+				if expPass {
+					foundMisbehaviourFunc()
+
+					suite.Require().Equal(tc.foundMisbehaviour, foundMisbehaviour)
+				} else {
+					suite.Require().PanicsWithError(tc.expPanic.Error(), foundMisbehaviourFunc)
+					suite.Require().False(foundMisbehaviour)
+				}
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
+	var clientID string
+
+	// test singlesig and multisig public keys
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+		testCases := []struct {
+			name     string
+			malleate func()
+			expPanic error
+		}{
+			{
+				"success",
+				func() {},
+				nil,
+			},
+			{
+				"cannot find subject client state",
+				func() {
+					clientID = unusedSmClientID
+				},
+				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
+				clientID = sm.ClientID
+
+				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+				suite.Require().True(found)
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
+
+				tc.malleate()
+
+				updateOnMisbehaviourFunc := func() {
+					lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), clientID, nil)
+				}
+
+				expPass := tc.expPanic == nil
+				if expPass {
+					updateOnMisbehaviourFunc()
+
+					store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
+
+					clientStateBz := store.Get(host.ClientStateKey())
+					suite.Require().NotEmpty(clientStateBz)
+
+					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+
+					suite.Require().True(newClientState.(*solomachine.ClientState).IsFrozen)
+				} else {
+					suite.Require().PanicsWithError(tc.expPanic.Error(), updateOnMisbehaviourFunc)
+				}
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
+	var (
+		clientMsg   exported.ClientMessage
+		clientState *solomachine.ClientState
+		clientID    string
+	)
+
+	// test singlesig and multisig public keys
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+
+		testCases := []struct {
+			name     string
+			malleate func()
+			expErr   error
+		}{
+			{
+				"successful header",
+				func() {
+					clientMsg = sm.CreateHeader(sm.Diversifier)
+				},
+				nil,
+			},
+			{
+				"successful header with new diversifier",
+				func() {
+					clientMsg = sm.CreateHeader(sm.Diversifier + "0")
+				},
+				nil,
+			},
+			{
+				"successful misbehaviour",
+				func() {
+					clientMsg = sm.CreateMisbehaviour()
+				},
+				nil,
+			},
+			{
+				"invalid client message type",
+				func() {
+					clientMsg = &ibctm.Header{}
+				},
+				clienttypes.ErrInvalidClientType,
+			},
+			{
+				"invalid header Signature",
+				func() {
+					h := sm.CreateHeader(sm.Diversifier)
+					h.Signature = suite.GetInvalidProof()
+					clientMsg = h
+				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
+			},
+			{
+				"invalid timestamp in header",
+				func() {
+					h := sm.CreateHeader(sm.Diversifier)
+					h.Timestamp--
+					clientMsg = h
+				}, clienttypes.ErrInvalidHeader,
+			},
+			{
+				"signature uses wrong sequence",
+				func() {
+					sm.Sequence++
+					clientMsg = sm.CreateHeader(sm.Diversifier)
+				},
+				solomachine.ErrSignatureVerificationFailed,
+			},
+			{
+				"signature uses new pubkey to sign",
+				func() {
+					// store in temp before assigning to interface type
+					cs := sm.ClientState()
+					h := sm.CreateHeader(sm.Diversifier)
+
+					publicKey, err := codectypes.NewAnyWithValue(sm.PublicKey)
+					suite.NoError(err)
+
+					data := &solomachine.HeaderData{
+						NewPubKey:      publicKey,
+						NewDiversifier: h.NewDiversifier,
+					}
+
+					dataBz, err := suite.chainA.Codec.Marshal(data)
+					suite.Require().NoError(err)
+
+					// generate invalid signature
+					signBytes := &solomachine.SignBytes{
+						Sequence:    cs.Sequence,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						Path:        []byte("invalid signature data"),
+						Data:        dataBz,
+					}
+
+					signBz, err := suite.chainA.Codec.Marshal(signBytes)
+					suite.Require().NoError(err)
+
+					sig := sm.GenerateSignature(signBz)
+					suite.Require().NoError(err)
+					h.Signature = sig
+
+					clientState = cs
+					clientMsg = h
+				},
+				solomachine.ErrSignatureVerificationFailed,
+			},
+			{
+				"signature signs over old pubkey",
+				func() {
+					// store in temp before assigning to interface type
+					cs := sm.ClientState()
+					oldPubKey := sm.PublicKey
+					h := sm.CreateHeader(sm.Diversifier)
+
+					// generate invalid signature
+					data := append(sdk.Uint64ToBigEndian(cs.Sequence), oldPubKey.Bytes()...)
+					sig := sm.GenerateSignature(data)
+					h.Signature = sig
+
+					clientState = cs
+					clientMsg = h
+
+					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
+				},
+				// TODO(jim): Doesn't fail on VerifySignature
+				clienttypes.ErrInvalidHeader,
+			},
+			{
+				"consensus state public key is nil - header",
+				func() {
+					clientState.ConsensusState.PublicKey = nil
+					clientMsg = sm.CreateHeader(sm.Diversifier)
+					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
+				},
+				// TODO(jim): Doesn't fail on VerifySignature
+				clienttypes.ErrInvalidHeader,
+			},
+			{
+				"cannot find subject client state",
+				func() {
+					clientID = unusedSmClientID
+				},
+				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
+				clientID = sm.ClientID
+
+				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+				suite.Require().True(found)
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
+
+				// setup test
+				tc.malleate()
+
+				err := lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
+
+				expPass := tc.expErr == nil
+				if expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().ErrorContains(err, tc.expErr.Error())
+				}
+			})
+		}
+	}
+}
+
+func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
+	var (
+		clientMsg   exported.ClientMessage
+		clientState *solomachine.ClientState
+		clientID    string
+	)
+
+	// test singlesig and multisig public keys
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+
+		testCases := []struct {
+			name     string
+			malleate func()
+			expErr   error
+		}{
+			{
+				"successful misbehaviour",
+				func() {
+					clientMsg = sm.CreateMisbehaviour()
+				},
+				nil,
+			},
+			{
+				"old misbehaviour is successful (timestamp is less than current consensus state)",
+				func() {
+					clientState = sm.ClientState()
+					sm.Time -= 5
+					clientMsg = sm.CreateMisbehaviour()
+				}, nil,
+			},
+			{
+				"invalid client message type",
+				func() {
+					clientMsg = &ibctm.Header{}
+				},
+				clienttypes.ErrInvalidClientType,
+			},
+			{
+				"consensus state pubkey is nil",
+				func() {
+					clientState.ConsensusState.PublicKey = nil
+					clientMsg = sm.CreateMisbehaviour()
+					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+				},
+				clienttypes.ErrInvalidConsensus,
+			},
+			{
+				"invalid SignatureOne SignatureData",
+				func() {
+					m := sm.CreateMisbehaviour()
+
+					m.SignatureOne.Signature = suite.GetInvalidProof()
+					clientMsg = m
+				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
+			},
+			{
+				"invalid SignatureTwo SignatureData",
+				func() {
+					m := sm.CreateMisbehaviour()
+
+					m.SignatureTwo.Signature = suite.GetInvalidProof()
+					clientMsg = m
+				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
+			},
+			{
+				"invalid SignatureOne timestamp",
+				func() {
+					m := sm.CreateMisbehaviour()
+
+					m.SignatureOne.Timestamp = 1000000000000
+					clientMsg = m
+				}, solomachine.ErrSignatureVerificationFailed,
+			},
+			{
+				"invalid SignatureTwo timestamp",
+				func() {
+					m := sm.CreateMisbehaviour()
+
+					m.SignatureTwo.Timestamp = 1000000000000
+					clientMsg = m
+				}, solomachine.ErrSignatureVerificationFailed,
+			},
+			{
+				"invalid first signature data",
+				func() {
+					// store in temp before assigning to interface type
+					m := sm.CreateMisbehaviour()
+
+					msg := []byte("DATA ONE")
+					signBytes := &solomachine.SignBytes{
+						Sequence:    sm.Sequence + 1,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						Path:        []byte("invalid signature data"),
+						Data:        msg,
+					}
+
+					data, err := suite.chainA.Codec.Marshal(signBytes)
+					suite.Require().NoError(err)
+
+					sig := sm.GenerateSignature(data)
+
+					m.SignatureOne.Signature = sig
+					m.SignatureOne.Data = msg
+					clientMsg = m
+				},
+				solomachine.ErrSignatureVerificationFailed,
+			},
+			{
+				"invalid second signature data",
+				func() {
+					// store in temp before assigning to interface type
+					m := sm.CreateMisbehaviour()
+
+					msg := []byte("DATA TWO")
+					signBytes := &solomachine.SignBytes{
+						Sequence:    sm.Sequence + 1,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						Path:        []byte("invalid signature data"),
+						Data:        msg,
+					}
+
+					data, err := suite.chainA.Codec.Marshal(signBytes)
+					suite.Require().NoError(err)
+
+					sig := sm.GenerateSignature(data)
+
+					m.SignatureTwo.Signature = sig
+					m.SignatureTwo.Data = msg
+					clientMsg = m
+				},
+				solomachine.ErrSignatureVerificationFailed,
+			},
+			{
+				"wrong pubkey generates first signature",
+				func() {
+					badMisbehaviour := sm.CreateMisbehaviour()
+
+					// update public key to a new one
+					sm.CreateHeader(sm.Diversifier)
+					m := sm.CreateMisbehaviour()
+
+					// set SignatureOne to use the wrong signature
+					m.SignatureOne = badMisbehaviour.SignatureOne
+					clientMsg = m
+				}, solomachine.ErrSignatureVerificationFailed,
+			},
+			{
+				"wrong pubkey generates second signature",
+				func() {
+					badMisbehaviour := sm.CreateMisbehaviour()
+
+					// update public key to a new one
+					sm.CreateHeader(sm.Diversifier)
+					m := sm.CreateMisbehaviour()
+
+					// set SignatureTwo to use the wrong signature
+					m.SignatureTwo = badMisbehaviour.SignatureTwo
+					clientMsg = m
+				}, solomachine.ErrSignatureVerificationFailed,
+			},
+			{
+				"signatures sign over different sequence",
+				func() {
+					// store in temp before assigning to interface type
+					m := sm.CreateMisbehaviour()
+
+					// Signature One
+					msg := []byte("DATA ONE")
+					// sequence used is plus 1
+					signBytes := &solomachine.SignBytes{
+						Sequence:    sm.Sequence + 1,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						Path:        []byte("invalid signature data"),
+						Data:        msg,
+					}
+
+					data, err := suite.chainA.Codec.Marshal(signBytes)
+					suite.Require().NoError(err)
+
+					sig := sm.GenerateSignature(data)
+
+					m.SignatureOne.Signature = sig
+					m.SignatureOne.Data = msg
+
+					// Signature Two
+					msg = []byte("DATA TWO")
+					// sequence used is minus 1
+
+					signBytes = &solomachine.SignBytes{
+						Sequence:    sm.Sequence - 1,
+						Timestamp:   sm.Time,
+						Diversifier: sm.Diversifier,
+						Path:        []byte("invalid signature data"),
+						Data:        msg,
+					}
+					data, err = suite.chainA.Codec.Marshal(signBytes)
+					suite.Require().NoError(err)
+
+					sig = sm.GenerateSignature(data)
+
+					m.SignatureTwo.Signature = sig
+					m.SignatureTwo.Data = msg
+
+					clientMsg = m
+				},
+				solomachine.ErrSignatureVerificationFailed,
+			},
+			{
+				"cannot find subject client state",
+				func() {
+					clientID = unusedSmClientID
+				},
+				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
+				clientID = sm.ClientID
+
+				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+				suite.Require().True(found)
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
+
+				// setup test
+				tc.malleate()
+
+				err := lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
+
+				expPass := tc.expErr == nil
+				if expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}

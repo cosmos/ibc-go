@@ -12,7 +12,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
+func (suite *SoloMachineTestSuite) Test_VerifyClientMessageHeader() {
 	var (
 		clientMsg   exported.ClientMessage
 		clientState *solomachine.ClientState
@@ -166,7 +166,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
+func (suite *SoloMachineTestSuite) Test_VerifyClientMessageMisbehaviour() {
 	var (
 		clientMsg   exported.ClientMessage
 		clientState *solomachine.ClientState
@@ -461,7 +461,7 @@ func (suite *SoloMachineTestSuite) Test_UpdateState() {
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
+func (suite *SoloMachineTestSuite) Test_CheckForMisbehaviour() {
 	var clientMsg exported.ClientMessage
 
 	// test singlesig and multisig public keys
@@ -507,7 +507,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
+func (suite *SoloMachineTestSuite) Test_UpdateStateOnMisbehaviour() {
 	// test singlesig and multisig public keys
 	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 		testCases := []struct {
