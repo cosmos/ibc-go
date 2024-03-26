@@ -13,6 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -73,7 +75,19 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
+	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+		return nil, err
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
+
+	found := k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
 
 	var packets []*types.IdentifiedPacketFees
 	keyPrefix := types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId)
@@ -257,11 +271,35 @@ func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnab
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
+	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+		return nil, err
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	found := k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
 
 	isFeeEnabled := k.IsFeeEnabled(ctx, req.PortId, req.ChannelId)
 
 	return &types.QueryFeeEnabledChannelResponse{
 		FeeEnabled: isFeeEnabled,
 	}, nil
+}
+
+func validategRPCRequest(portID, channelID string) error {
+	if err := host.PortIdentifierValidator(portID); err != nil {
+		return status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if err := host.ChannelIdentifierValidator(channelID); err != nil {
+		return status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	return nil
 }
