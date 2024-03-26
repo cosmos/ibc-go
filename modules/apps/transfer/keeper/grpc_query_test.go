@@ -254,6 +254,16 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 			},
 			true,
 		},
+		{
+			"failure - channel not found",
+			func() {
+				req = &types.QueryEscrowAddressRequest{
+					PortId:    ibctesting.TransferPort,
+					ChannelId: ibctesting.FirstChannelID,
+				}
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
