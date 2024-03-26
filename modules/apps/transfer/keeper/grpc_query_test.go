@@ -246,11 +246,21 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 			true,
 		},
 		{
-			"failure - channel not found",
+			"failure - channel not found due to invalid portID",
 			func() {
 				req = &types.QueryEscrowAddressRequest{
 					PortId:    ibctesting.InvalidID,
 					ChannelId: ibctesting.FirstChannelID,
+				}
+			},
+			false,
+		},		
+		{
+			"failure - channel not found due to invalid channelID",
+			func() {
+				req = &types.QueryEscrowAddressRequest{
+					PortId:    ibctesting.TransferPort,
+					ChannelId: ibctesting.InvalidID,
 				}
 			},
 			false,
