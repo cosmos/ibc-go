@@ -1,0 +1,63 @@
+name: Celestia Light-Client
+# This workflow runs when a PR is opened that targets code that is part of the 07-celestia module.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/celestia-client.yml'
+      - 'modules/light-clients/07-celestia/**'
+      - 'proto/ibc/lightclients/celestia/**'
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - uses: actions/checkout@v4
+      - uses: golangci/golangci-lint-action@v4.0.0
+        with:
+          version: v1.54.2
+          args: --timeout 10m
+          working-directory: modules/light-clients/07-celestia
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-arch: ['amd64', 'arm', 'arm64']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: Build celestia-client
+        run: |
+          cd modules/light-clients/07-celestia
+          GOARCH=${{ matrix.go-arch }} go build ./...
+
+  tests:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: Go Test
+        run: |
+          cd modules/light-clients/07-celestia
+          go test -v -mod=readonly ./...
+      - name: sonarcloud
+        if: ${{ env.GIT_DIFF && !github.event.pull_request.draft && env.SONAR_TOKEN != null }}
+        uses: SonarSource/sonarcloud-github-action@v2.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: modules/light-clients/07-celestia

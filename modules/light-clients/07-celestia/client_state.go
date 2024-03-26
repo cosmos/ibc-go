@@ -22,7 +22,7 @@ func (*ClientState) ClientType() string {
 
 // GetLatestHeight implements exported.ClientState.
 func (cs *ClientState) GetLatestHeight() exported.Height {
-	return cs.BaseClient.GetLatestHeight()
+	return cs.BaseClient.LatestHeight
 }
 
 // GetTimestampAtHeight implements exported.ClientState.
@@ -49,7 +49,7 @@ func (cs *ClientState) Validate() error {
 // TODO: Revise and look into delay periods for this.
 // TODO: Validate key path and value against the shareProof extracted from proof bytes.
 func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
-	if cs.BaseClient.GetLatestHeight().LT(height) {
+	if cs.BaseClient.LatestHeight.LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
 			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
