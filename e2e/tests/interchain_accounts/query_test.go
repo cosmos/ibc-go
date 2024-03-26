@@ -70,7 +70,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Len(channels, 2)
 	})
 
 	t.Run("query via interchain account", func(t *testing.T) {
@@ -106,45 +106,56 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 		})
 
 		t.Run("verify query response", func(t *testing.T) {
-			txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, "message.action='/ibc.core.channel.v1.MsgRecvPacket'", "")
-			s.Require().NoError(err)
-			s.Require().Len(txSearchRes.Txs, 1)
-
-			ackHexValue, isFound := s.ExtractValueFromEvents(
-				txSearchRes.Txs[0].Events,
-				channeltypes.EventTypeWriteAck,
-				channeltypes.AttributeKeyAckHex,
-			)
-
-			s.Require().True(isFound)
-			s.Require().NotEmpty(ackHexValue)
+			var expQueryHeight uint64
 
 			ack := &channeltypes.Acknowledgement_Result{}
-			ackBz, err := hex.DecodeString(ackHexValue)
-			s.Require().NoError(err)
+			t.Run("retrieve acknowledgement", func(t *testing.T) {
+				txSearchRes, err := s.QueryTxsByEvents(
+					ctx, chainB, 1, 1,
+					"message.action='/ibc.core.channel.v1.MsgRecvPacket'", "",
+				)
+				s.Require().NoError(err)
+				s.Require().Len(txSearchRes.Txs, 1)
 
-			err = json.Unmarshal(ackBz, ack)
-			s.Require().NoError(err)
+				expQueryHeight = uint64(txSearchRes.Txs[0].Height)
 
-			// unmarshal the ica response
+				ackHexValue, isFound := s.ExtractValueFromEvents(
+					txSearchRes.Txs[0].Events,
+					channeltypes.EventTypeWriteAck,
+					channeltypes.AttributeKeyAckHex,
+				)
+				s.Require().True(isFound)
+				s.Require().NotEmpty(ackHexValue)
+
+				ackBz, err := hex.DecodeString(ackHexValue)
+				s.Require().NoError(err)
+
+				err = json.Unmarshal(ackBz, ack)
+				s.Require().NoError(err)
+			})
+
 			icaAck := &sdk.TxMsgData{}
-			err = proto.Unmarshal(ack.Result, icaAck)
-			s.Require().NoError(err)
-			s.Require().Len(icaAck.GetMsgResponses(), 1)
+			t.Run("unmarshal ica response", func(t *testing.T) {
+				err := proto.Unmarshal(ack.Result, icaAck)
+				s.Require().NoError(err)
+				s.Require().Len(icaAck.GetMsgResponses(), 1)
+			})
 
-			// unmarshal the tx response
 			queryTxResp := &icahosttypes.MsgModuleQuerySafeResponse{}
-			err = proto.Unmarshal(icaAck.MsgResponses[0].Value, queryTxResp)
-			s.Require().NoError(err)
-			s.Require().Len(queryTxResp.Responses, 1)
-			s.Require().Equal(uint64(txSearchRes.Txs[0].Height), queryTxResp.Height)
+			t.Run("unmarshal MsgModuleQuerySafeResponse", func(t *testing.T) {
+				err := proto.Unmarshal(icaAck.MsgResponses[0].Value, queryTxResp)
+				s.Require().NoError(err)
+				s.Require().Len(queryTxResp.Responses, 1)
+				s.Require().Equal(expQueryHeight, queryTxResp.Height)
+			})
 
-			// unmarshal the bank query response
 			balanceResp := &banktypes.QueryBalanceResponse{}
-			err = proto.Unmarshal(queryTxResp.Responses[0], balanceResp)
-			s.Require().NoError(err)
-			s.Require().Equal(chainB.Config().Denom, balanceResp.Balance.Denom)
-			s.Require().Equal(testvalues.StartingTokenAmount, balanceResp.Balance.Amount.Int64())
+			t.Run("unmarshal and verify bank query response", func(t *testing.T) {
+				err := proto.Unmarshal(queryTxResp.Responses[0], balanceResp)
+				s.Require().NoError(err)
+				s.Require().Equal(chainB.Config().Denom, balanceResp.Balance.Denom)
+				s.Require().Equal(testvalues.StartingTokenAmount, balanceResp.Balance.Amount.Int64())
+			})
 		})
 	})
 }
