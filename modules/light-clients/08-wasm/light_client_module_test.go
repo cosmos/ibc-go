@@ -85,7 +85,7 @@ func (suite *WasmTestSuite) TestStatus() {
 			exported.Unauthorized,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
@@ -167,14 +167,14 @@ func (suite *WasmTestSuite) TestTimestampAtHeight() {
 			types.ErrWasmContractCallFailed,
 		},
 		{
-			"error: invalid height",
+			"failure: error: invalid height",
 			func() {
 				height = ibcmock.Height{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
@@ -408,14 +408,14 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			nil,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
 			clienttypes.ErrClientNotFound,
 		},
 		{
-			"contract returns invalid proof error",
+			"failure: contract returns invalid proof error",
 			func() {
 				proof = wasmtesting.MockInvalidProofBz
 
@@ -428,21 +428,21 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			types.ErrWasmContractCallFailed,
 		},
 		{
-			"proof height greater than client state latest height",
+			"failure: proof height greater than client state latest height",
 			func() {
 				proofHeight = clienttypes.NewHeight(1, 100)
 			},
 			ibcerrors.ErrInvalidHeight,
 		},
 		{
-			"invalid path argument",
+			"failure: invalid path argument",
 			func() {
 				path = ibcmock.KeyPath{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
-			"proof height is invalid type",
+			"failure: proof height is invalid type",
 			func() {
 				proofHeight = ibcmock.Height{}
 			},
@@ -465,7 +465,6 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			proofHeight = clienttypes.NewHeight(0, 1)
 			value = []byte("value")
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 			clientState, ok = endpoint.GetClientState().(*types.ClientState)
 			suite.Require().True(ok)
 
@@ -478,12 +477,12 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 
 			expPass := tc.expError == nil
 			if expPass {
-				suite.Require().NoError(err)
+				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
-				clientStateBz := clientStore.Get(host.ClientStateKey())
-				suite.Require().Equal(expClientStateBz, clientStateBz)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expClientStateBz, clientStore.Get(host.ClientStateKey()))
 			} else {
-				suite.Require().ErrorIs(err, tc.expError, "unexpected error in VerifyMembership")
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
@@ -563,14 +562,14 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			nil,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
 			clienttypes.ErrClientNotFound,
 		},
 		{
-			"wasm vm returns error",
+			"failure: wasm vm returns error",
 			func() {
 				proof = wasmtesting.MockInvalidProofBz
 
@@ -583,7 +582,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			types.ErrVMError,
 		},
 		{
-			"contract returns invalid proof error",
+			"failure: contract returns invalid proof error",
 			func() {
 				proof = wasmtesting.MockInvalidProofBz
 
@@ -596,21 +595,21 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			types.ErrWasmContractCallFailed,
 		},
 		{
-			"proof height greater than client state latest height",
+			"failure: proof height greater than client state latest height",
 			func() {
 				proofHeight = clienttypes.NewHeight(1, 100)
 			},
 			ibcerrors.ErrInvalidHeight,
 		},
 		{
-			"invalid path argument",
+			"failure: invalid path argument",
 			func() {
 				path = ibcmock.KeyPath{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
-			"proof height is invalid type",
+			"failure: proof height is invalid type",
 			func() {
 				proofHeight = ibcmock.Height{}
 			},
@@ -632,7 +631,6 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			proof = wasmtesting.MockInvalidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 			clientState, ok = endpoint.GetClientState().(*types.ClientState)
 			suite.Require().True(ok)
 
@@ -645,12 +643,12 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 
 			expPass := tc.expError == nil
 			if expPass {
-				suite.Require().NoError(err)
+				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
-				clientStateBz := clientStore.Get(host.ClientStateKey())
-				suite.Require().Equal(expClientStateBz, clientStateBz)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expClientStateBz, clientStore.Get(host.ClientStateKey()))
 			} else {
-				suite.Require().ErrorIs(err, tc.expError, "unexpected error in VerifyNonMembership")
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
@@ -693,7 +691,7 @@ func (suite *WasmTestSuite) TestVerifyClientMessage() {
 			nil,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
@@ -753,7 +751,6 @@ func (suite *WasmTestSuite) TestVerifyClientMessage() {
 			tc.malleate()
 
 			err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
-			// err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMsg)
 
 			expPass := tc.expErr == nil
 			if expPass {
@@ -819,21 +816,21 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			nil,
 		},
 		{
-			"invalid client state",
+			"failure: invalid client state",
 			func() {
 				upgradedClient = &solomachine.ClientState{Sequence: 20}
 			},
 			clienttypes.ErrInvalidClient,
 		},
 		{
-			"invalid height",
+			"failure: invalid height",
 			func() {
 				upgradedClient = &types.ClientState{LatestHeight: clienttypes.ZeroHeight()}
 			},
 			ibcerrors.ErrInvalidHeight,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
@@ -1017,12 +1014,12 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 			nil,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
 			false, // not applicable
-			fmt.Errorf("08-wasm-100: %s", clienttypes.ErrClientNotFound),
+			fmt.Errorf("%s: %s", unusedWasmClientID, clienttypes.ErrClientNotFound),
 		},
 	}
 
@@ -1030,6 +1027,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmWithMockVM()
+
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
@@ -1139,7 +1137,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 			[]exported.Height{mockHeight},
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
@@ -1180,17 +1178,17 @@ func (suite *WasmTestSuite) TestUpdateState() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM() // reset
-			expectedClientStateBz = nil
-
-			clientMsg = &types.ClientMessage{
-				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
-			}
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+
+			expectedClientStateBz = nil
+
+			clientMsg = &types.ClientMessage{
+				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
+			}
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
 			suite.Require().True(found)
@@ -1207,6 +1205,8 @@ func (suite *WasmTestSuite) TestUpdateState() {
 				suite.Require().Equal(tc.expHeights, heights)
 
 				if expectedClientStateBz != nil {
+					clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+
 					clientStateBz := clientStore.Get(host.ClientStateKey())
 					suite.Require().Equal(expectedClientStateBz, clientStateBz)
 				}
@@ -1289,11 +1289,11 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 			clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.CreateMockTendermintClientState(mockHeight)),
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
-			fmt.Errorf("08-wasm-100: %s", clienttypes.ErrClientNotFound),
+			fmt.Errorf("%s: %s", unusedWasmClientID, clienttypes.ErrClientNotFound),
 			nil,
 		},
 		{
@@ -1331,14 +1331,14 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmWithMockVM()
-			expectedClientStateBz = nil
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			expectedClientStateBz = nil
+
 			clientMsg = &types.ClientMessage{
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientMisbehaviour),
 			}
@@ -1355,6 +1355,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 			if tc.panicErr == nil {
 				updateFunc()
 				if expectedClientStateBz != nil {
+					store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 					suite.Require().Equal(expectedClientStateBz, store.Get(host.ClientStateKey()))
 				}
 			} else {
@@ -1408,28 +1409,28 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			nil,
 		},
 		{
-			"cannot parse malformed substitute client ID",
+			"failure: cannot parse malformed substitute client ID",
 			func() {
 				substituteClientID = ibctesting.InvalidID
 			},
 			host.ErrInvalidID,
 		},
 		{
-			"substitute client ID does not contain 08-wasm prefix",
+			"failure: substitute client ID does not contain 08-wasm prefix",
 			func() {
 				substituteClientID = tmClientID
 			},
 			clienttypes.ErrInvalidClientType,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find subject client state",
 			func() {
 				subjectClientID = unusedWasmClientID
 			},
 			clienttypes.ErrClientNotFound,
 		},
 		{
-			"cannot find substitute client state",
+			"failure: cannot find substitute client state",
 			func() {
 				substituteClientID = unusedWasmClientID
 			},
@@ -1483,19 +1484,18 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
-			expectedClientStateBz = nil
 
 			subjectEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := subjectEndpoint.CreateClient()
 			suite.Require().NoError(err)
 			subjectClientID = subjectEndpoint.ClientID
 
-			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectClientID)
-
 			substituteEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err = substituteEndpoint.CreateClient()
 			suite.Require().NoError(err)
 			substituteClientID = substituteEndpoint.ClientID
+
+			expectedClientStateBz = nil
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
 			suite.Require().True(found)
@@ -1508,8 +1508,8 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				clientStateBz := subjectClientStore.Get(host.ClientStateKey())
-				suite.Require().Equal(expectedClientStateBz, clientStateBz)
+				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectClientID)
+				suite.Require().Equal(expectedClientStateBz, subjectClientStore.Get(host.ClientStateKey()))
 			} else {
 				suite.Require().ErrorIs(err, tc.expErr)
 			}
@@ -1532,7 +1532,7 @@ func (suite *WasmTestSuite) TestLatestHeight() {
 			clienttypes.NewHeight(1, 5),
 		},
 		{
-			"cannot find substitute client state",
+			"failure: cannot find substitute client state",
 			func() {
 				clientID = unusedWasmClientID
 			},
