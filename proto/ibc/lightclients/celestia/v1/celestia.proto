@@ -8,8 +8,8 @@ import "tendermint/crypto/proof.proto";
 import "gogoproto/gogo.proto";
 import "ibc/lightclients/tendermint/v1/tendermint.proto";
 
-// ClientState from Tendermint tracks the current validator set, latest height,
-// and a possible frozen height.
+// ClientState from Celestia tracks the current validator set, latest height,
+// and a possible frozen height of Tendermint consensus.
 message ClientState {
   option (gogoproto.goproto_getters) = false;
 

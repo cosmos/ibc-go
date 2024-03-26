@@ -74,9 +74,9 @@ func (msg MsgCreateClient) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	if clientState.ClientType() != consensusState.ClientType() {
-		return errorsmod.Wrap(ErrInvalidClientType, "client type for client state and consensus state do not match")
-	}
+	// if clientState.ClientType() != consensusState.ClientType() {
+	// 	return errorsmod.Wrap(ErrInvalidClientType, "client type for client state and consensus state do not match")
+	// }
 	if err := ValidateClientType(clientState.ClientType()); err != nil {
 		return errorsmod.Wrap(err, "client type does not meet naming constraints")
 	}
