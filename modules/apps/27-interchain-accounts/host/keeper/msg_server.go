@@ -48,6 +48,7 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 			Data: query.Data,
 		})
 		if err != nil {
+			m.Logger(ctx).Debug("query failed", "path", query.Path, "error", err)
 			return nil, err
 		}
 		if res == nil || res.Value == nil {
