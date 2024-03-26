@@ -2,7 +2,7 @@
 
 ## Components
 
-The testing package comprises of four parts constructed as a stack.
+The testing package is comprised of four parts constructed as a stack.
 
 - coordinator
 - chain

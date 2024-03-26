@@ -22,8 +22,12 @@ It calls `CreateLocalhostClient`, declaring a new `ClientState` and initializing
 
 ```go
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-  var clientState localhost.ClientState
-  return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
+  clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
+  if !found {
+    return errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
+  }
+
+  return clientModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
 }
 ```
 

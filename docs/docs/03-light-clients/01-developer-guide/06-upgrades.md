@@ -15,21 +15,23 @@ It is vital that high-value IBC clients can upgrade along with their underlying 
 The IBC protocol allows client implementations to provide a path to upgrading clients given the upgraded `ClientState`, upgraded `ConsensusState` and proofs for each. This path is provided in the `VerifyUpgradeAndUpdateState` method:
 
 ```go
-// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last height committed by the current revision. Clients are responsible for ensuring that the planned last height of the current revision is somehow encoded in the proof verification process.
-// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty may be cancelled or modified before the last planned height.
+// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
+// height committed by the current revision. Clients are responsible for ensuring that the planned last
+// height of the current revision is somehow encoded in the proof verification process.
+// This is to ensure that no premature upgrades occur, since upgrade plans committed to by the counterparty
+// may be cancelled or modified before the last planned height.
 // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
-func (cs ClientState) VerifyUpgradeAndUpdateState(
+func (l LightClientModule) VerifyUpgradeAndUpdateState(
   ctx sdk.Context,
-  cdc codec.BinaryCodec,
-  store sdk.KVStore,
-  newClient ClientState,
-  newConsState ConsensusState,
+  clientID string,
+  newClient []byte,
+  newConsState []byte,
   upgradeClientProof,
   upgradeConsensusStateProof []byte,
 ) error
 ```
 
-> Please refer to the [Tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/light-clients/07-tendermint/upgrade.go#L27) as an example for implementation.
+> Please refer to the [Tendermint light client implementation](https://github.com/cosmos/ibc-go/blob/47162061bcbfe74df791161059715a635e31c604/modules/light-clients/07-tendermint/light_client_module.go#L257) as an example for implementation.
 
 It is important to note that light clients **must** handle all management of client and consensus states including the setting of updated `ClientState` and `ConsensusState` in the client store. This can include verifying that the submitted upgraded `ClientState` is of a valid `ClientState` type, that the height of the upgraded client is not greater than the height of the current client (in order to preserve BFT monotonic time), or that certain parameters which should not be changed have not been altered in the upgraded `ClientState`.
 
@@ -38,6 +40,7 @@ Developers must ensure that the `MsgUpgradeClient` does not pass until the last 
 ### Upgrade path
 
 Clients should have **prior knowledge of the merkle path** that the upgraded client and upgraded consensus states will use. The height at which the upgrade has occurred should also be encoded in the proof.
+
 > The Tendermint client implementation accomplishes this by including an `UpgradePath` in the `ClientState` itself, which is used along with the upgrade height to construct the merkle path under which the client state and consensus state are committed.
 
 ## Chain specific vs client specific client parameters
