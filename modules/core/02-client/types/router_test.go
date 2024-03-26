@@ -59,8 +59,8 @@ func (suite *TypesTestSuite) TestAddRoute() {
 			cdc := suite.chainA.App.AppCodec()
 
 			storeKey := storetypes.NewKVStoreKey("store-key")
-			tmLightClientModule := ibctm.NewLightClientModule(cdc, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-			router = types.NewRouter(storeKey)
+			tmLightClientModule := ibctm.NewLightClientModule(storeKey, cdc, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+			router = types.NewRouter()
 
 			tc.malleate()
 
@@ -125,8 +125,8 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 			cdc := suite.chainA.App.AppCodec()
 
 			storeKey := storetypes.NewKVStoreKey("store-key")
-			tmLightClientModule := ibctm.NewLightClientModule(cdc, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-			router := types.NewRouter(storeKey)
+			tmLightClientModule := ibctm.NewLightClientModule(storeKey, cdc, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+			router := types.NewRouter()
 			router.AddRoute(exported.Tendermint, &tmLightClientModule)
 
 			tc.malleate()

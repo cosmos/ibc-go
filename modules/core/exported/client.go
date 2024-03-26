@@ -54,11 +54,6 @@ type ClientStoreProvider interface {
 // LightClientModule is an interface which core IBC uses to interact with light client modules.
 // Light client modules must implement this interface to integrate with core IBC.
 type LightClientModule interface {
-	// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-	// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-	// to IBC light client instances.
-	RegisterStoreProvider(storeProvider ClientStoreProvider)
-
 	// Initialize is called upon client creation, it allows the client to perform validation on the client state and initial consensus state.
 	// The light client module is responsible for setting any client-specific data in the store. This includes the client state,
 	// initial consensus state and any associated metadata.
