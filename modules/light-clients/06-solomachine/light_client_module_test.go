@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	smClientID       = "06-solomachine-100"
 	unusedSmClientID = "06-solomachine-999"
 	wasmClientID     = "08-wasm-0"
 )
@@ -943,14 +942,14 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 		{
 			"failure: cannot find subject client state",
 			func() {
-				subjectClientID = smClientID
+				subjectClientID = unusedSmClientID
 			},
 			clienttypes.ErrClientNotFound,
 		},
 		{
 			"failure: cannot find substitute client state",
 			func() {
-				substituteClientID = smClientID
+				substituteClientID = unusedSmClientID
 			},
 			clienttypes.ErrClientNotFound,
 		},
