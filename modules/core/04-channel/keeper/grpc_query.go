@@ -217,6 +217,13 @@ func (k Keeper) PacketCommitment(c context.Context, req *types.QueryPacketCommit
 
 	ctx := sdk.UnwrapSDKContext(c)
 
+	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
+		)
+	}
+
 	commitmentBz := k.GetPacketCommitment(ctx, req.PortId, req.ChannelId, req.Sequence)
 	if len(commitmentBz) == 0 {
 		return nil, status.Error(codes.NotFound, "packet commitment hash not found")
@@ -238,6 +245,12 @@ func (k Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommi
 
 	ctx := sdk.UnwrapSDKContext(c)
 
+	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
+		)
+	}
 	var commitments []*types.PacketState
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.PacketCommitmentPrefixPath(req.PortId, req.ChannelId)))
 
@@ -281,6 +294,12 @@ func (k Keeper) PacketReceipt(c context.Context, req *types.QueryPacketReceiptRe
 
 	ctx := sdk.UnwrapSDKContext(c)
 
+	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
+		)
+	}
 	_, recvd := k.GetPacketReceipt(ctx, req.PortId, req.ChannelId, req.Sequence)
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
@@ -303,6 +322,12 @@ func (k Keeper) PacketAcknowledgement(c context.Context, req *types.QueryPacketA
 
 	ctx := sdk.UnwrapSDKContext(c)
 
+	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
+		)
+	}
 	acknowledgementBz, found := k.GetPacketAcknowledgement(ctx, req.PortId, req.ChannelId, req.Sequence)
 	if !found || len(acknowledgementBz) == 0 {
 		return nil, status.Error(codes.NotFound, "packet acknowledgement hash not found")
@@ -323,7 +348,13 @@ func (k Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-
+	
+	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
+		)
+	}
 	var acks []*types.PacketState
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.PacketAcknowledgementPrefixPath(req.PortId, req.ChannelId)))
 
@@ -485,7 +516,13 @@ func (k Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-
+	
+	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
+		)
+	}
 	var unreceivedSequences []uint64
 
 	for i, seq := range req.PacketAckSequences {
