@@ -126,7 +126,7 @@ func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	_, found := k.channelKeeper.GetChannel(ctx, req.PortId, req.ChannelId)
+	found := k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
