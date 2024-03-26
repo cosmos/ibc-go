@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	errors "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
@@ -130,7 +130,7 @@ func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(errors.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
