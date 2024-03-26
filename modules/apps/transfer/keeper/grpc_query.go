@@ -129,7 +129,7 @@ func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 	if !k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
