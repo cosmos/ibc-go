@@ -274,15 +274,14 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store.Set([]byte(types.ParamsKey), bz)
 }
 
+// newModuleQuerySafeWhitelist returns a list of all query paths labeled with module_query_safe in the proto files.
 func newModuleQuerySafeWhitelist() []string {
-	// Create a whitelist of module safe queries
-	whitelist := []string{}
-
 	protoFiles, err := gogoproto.MergedRegistry()
 	if err != nil {
 		panic(err)
 	}
 
+	whitelist := []string{}
 	protoFiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		for i := 0; i < fd.Services().Len(); i++ {
 			// Get the service descriptor
