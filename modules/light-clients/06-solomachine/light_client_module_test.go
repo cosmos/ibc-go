@@ -63,41 +63,41 @@ func (suite *SoloMachineTestSuite) TestStatus() {
 
 		suite.Run(tc.name, func() {
 			clientID = suite.solomachine.ClientID
-			clientState = suite.solomachine.ClientState()
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
 			suite.Require().True(found)
 
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, suite.solomachine.ClientState())
 
 			tc.malleate()
 
 			status := lightClientModule.Status(suite.chainA.GetContext(), clientID)
-
 			suite.Require().Equal(tc.expStatus, status)
 		})
 	}
 }
 
 func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
-	clientID := suite.solomachine.ClientID
+	var clientID string
 	height := clienttypes.NewHeight(0, suite.solomachine.ClientState().Sequence)
 
 	testCases := []struct {
 		name     string
-		clientID string
+		malleate func()
 		expValue uint64
 		expErr   error
 	}{
 		{
-			"get timestamp at height exists",
-			clientID,
+			"success: get timestamp at height exists",
+			func() {},
 			suite.solomachine.ClientState().ConsensusState.Timestamp,
 			nil,
 		},
 		{
-			"client not found",
-			unusedSmClientID,
+			"failure: client not found",
+			func() {
+				clientID = unusedSmClientID
+			},
 			0,
 			clienttypes.ErrClientNotFound,
 		},
@@ -115,7 +115,9 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 
-			ts, err := lightClientModule.TimestampAtHeight(suite.chainA.GetContext(), tc.clientID, height)
+			tc.malleate()
+
+			ts, err := lightClientModule.TimestampAtHeight(suite.chainA.GetContext(), clientID, height)
 
 			suite.Require().Equal(tc.expValue, ts)
 			suite.Require().ErrorIs(err, tc.expErr)
@@ -136,37 +138,37 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 			expErr      error
 		}{
 			{
-				"valid consensus state",
+				"success: valid consensus state",
 				sm.ConsensusState(),
 				sm.ClientState(),
 				nil,
 			},
 			{
-				"nil consensus state",
+				"failure: nil consensus state",
 				nil,
 				sm.ClientState(),
 				clienttypes.ErrInvalidConsensus,
 			},
 			{
-				"invalid consensus state: Tendermint consensus state",
+				"failure: invalid consensus state: Tendermint consensus state",
 				&ibctm.ConsensusState{},
 				sm.ClientState(),
 				fmt.Errorf("proto: wrong wireType = 0 for field TypeUrl"),
 			},
 			{
-				"invalid consensus state: consensus state does not match consensus state in client",
+				"failure: invalid consensus state: consensus state does not match consensus state in client",
 				malleatedConsensus,
 				sm.ClientState(),
 				clienttypes.ErrInvalidConsensus,
 			},
 			{
-				"invalid client state: sequence is zero",
+				"failure: invalid client state: sequence is zero",
 				sm.ConsensusState(),
 				solomachine.NewClientState(0, sm.ConsensusState()),
 				clienttypes.ErrInvalidClient,
 			},
 			{
-				"invalid client state: Tendermint client state",
+				"failure: invalid client state: Tendermint client state",
 				sm.ConsensusState(),
 				&ibctm.ClientState{},
 				fmt.Errorf("proto: wrong wireType = 2 for field IsFrozen"),
@@ -519,21 +521,21 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				nil,
 			},
 			{
-				"cannot find subject client state",
+				"failure: cannot find subject client state",
 				func() {
 					clientID = unusedSmClientID
 				},
 				clienttypes.ErrClientNotFound,
 			},
 			{
-				"invalid path type - empty",
+				"failure: invalid path type - empty",
 				func() {
 					path = ibcmock.KeyPath{}
 				},
 				ibcerrors.ErrInvalidType,
 			},
 			{
-				"malformed proof fails to unmarshal",
+				"failure: malformed proof fails to unmarshal",
 				func() {
 					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
@@ -541,7 +543,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				fmt.Errorf("failed to unmarshal proof into type"),
 			},
 			{
-				"consensus state timestamp is greater than signature",
+				"failure: consensus state timestamp is greater than signature",
 				func() {
 					consensusState := &solomachine.ConsensusState{
 						Timestamp: sm.Time + 1,
@@ -554,7 +556,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				fmt.Errorf("the consensus state timestamp is greater than the signature timestamp (11 >= 10): %s", solomachine.ErrInvalidProof),
 			},
 			{
-				"signature data is nil",
+				"failure: signature data is nil",
 				func() {
 					signatureDoc := &solomachine.TimestampedSignatureData{
 						SignatureData: nil,
@@ -567,7 +569,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				fmt.Errorf("signature data cannot be empty: %s", solomachine.ErrInvalidProof),
 			},
 			{
-				"consensus state public key is nil",
+				"failure: consensus state public key is nil",
 				func() {
 					clientState.ConsensusState.PublicKey = nil
 					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
@@ -575,7 +577,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				fmt.Errorf("consensus state PublicKey cannot be nil: %s", clienttypes.ErrInvalidConsensus),
 			},
 			{
-				"malformed signature data fails to unmarshal",
+				"failure: malformed signature data fails to unmarshal",
 				func() {
 					signatureDoc := &solomachine.TimestampedSignatureData{
 						SignatureData: []byte("invalid signature data"),
@@ -588,21 +590,21 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				fmt.Errorf("failed to unmarshal proof into type"),
 			},
 			{
-				"proof is nil",
+				"failure: proof is nil",
 				func() {
 					proof = nil
 				},
 				fmt.Errorf("proof cannot be empty: %s", solomachine.ErrInvalidProof),
 			},
 			{
-				"proof verification failed",
+				"failure: proof verification failed",
 				func() {
 					signBytes.Data = []byte("invalid membership data value")
 				},
 				solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"empty path",
+				"failure: empty path",
 				func() {
 					path = commitmenttypes.MerklePath{}
 				},
@@ -738,21 +740,21 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				nil,
 			},
 			{
-				"cannot find subject client state",
+				"failure: cannot find subject client state",
 				func() {
 					clientID = unusedSmClientID
 				},
 				clienttypes.ErrClientNotFound,
 			},
 			{
-				"invalid path type",
+				"failure: invalid path type",
 				func() {
 					path = ibcmock.KeyPath{}
 				},
 				ibcerrors.ErrInvalidType,
 			},
 			{
-				"malformed proof fails to unmarshal",
+				"failure: malformed proof fails to unmarshal",
 				func() {
 					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
@@ -760,7 +762,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				fmt.Errorf("failed to unmarshal proof into type"),
 			},
 			{
-				"consensus state timestamp is greater than signature",
+				"failure: consensus state timestamp is greater than signature",
 				func() {
 					consensusState := &solomachine.ConsensusState{
 						Timestamp: sm.Time + 1,
@@ -773,7 +775,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				fmt.Errorf("the consensus state timestamp is greater than the signature timestamp (11 >= 10): %s", solomachine.ErrInvalidProof),
 			},
 			{
-				"signature data is nil",
+				"failure: signature data is nil",
 				func() {
 					signatureDoc := &solomachine.TimestampedSignatureData{
 						SignatureData: nil,
@@ -786,7 +788,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				fmt.Errorf("signature data cannot be empty: %s", solomachine.ErrInvalidProof),
 			},
 			{
-				"consensus state public key is nil",
+				"failure: consensus state public key is nil",
 				func() {
 					clientState.ConsensusState.PublicKey = nil
 					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
@@ -794,7 +796,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				fmt.Errorf("consensus state PublicKey cannot be nil: %s", clienttypes.ErrInvalidConsensus),
 			},
 			{
-				"malformed signature data fails to unmarshal",
+				"failure: malformed signature data fails to unmarshal",
 				func() {
 					signatureDoc := &solomachine.TimestampedSignatureData{
 						SignatureData: []byte("invalid signature data"),
@@ -807,14 +809,14 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				fmt.Errorf("failed to unmarshal proof into type"),
 			},
 			{
-				"proof is nil",
+				"failure: proof is nil",
 				func() {
 					proof = nil
 				},
 				fmt.Errorf("proof cannot be empty: %s", solomachine.ErrInvalidProof),
 			},
 			{
-				"proof verification failed",
+				"failure: proof verification failed",
 				func() {
 					signBytes.Data = []byte("invalid non-membership data value")
 
@@ -839,6 +841,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			tc := tc
 
 			suite.Run(tc.name, func() {
+				suite.SetupTest()
+
 				clientState = sm.ClientState()
 				clientID = sm.ClientID
 
@@ -923,28 +927,28 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 			nil,
 		},
 		{
-			"cannot parse malformed substitute client ID",
+			"failure: cannot parse malformed substitute client ID",
 			func() {
 				substituteClientID = ibctesting.InvalidID
 			},
 			host.ErrInvalidID,
 		},
 		{
-			"substitute client ID does not contain 06-solomachine prefix",
+			"failure: substitute client ID does not contain 06-solomachine prefix",
 			func() {
 				substituteClientID = wasmClientID
 			},
 			clienttypes.ErrInvalidClientType,
 		},
 		{
-			"cannot find subject client state",
+			"failure: cannot find subject client state",
 			func() {
 				subjectClientID = smClientID
 			},
 			clienttypes.ErrClientNotFound,
 		},
 		{
-			"cannot find substitute client state",
+			"failure: cannot find substitute client state",
 			func() {
 				substituteClientID = smClientID
 			},
@@ -956,7 +960,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			cdc := suite.chainA.Codec
+
 			ctx := suite.chainA.GetContext()
 
 			subjectClientID = suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(ctx, exported.Solomachine)
@@ -970,7 +974,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, substituteClientID)
 			clientStore.Get(host.ClientStateKey())
-			bz := clienttypes.MustMarshalClientState(cdc, substituteClientState)
+			bz := clienttypes.MustMarshalClientState(suite.chainA.Codec, substituteClientState)
 			clientStore.Set(host.ClientStateKey(), bz)
 
 			subjectClientState.IsFrozen = true
@@ -990,7 +994,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 				// assert that status of subject client is now Active
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, subjectClientID)
 				bz = clientStore.Get(host.ClientStateKey())
-				smClientState := clienttypes.MustUnmarshalClientState(cdc, bz).(*solomachine.ClientState)
+				smClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, bz).(*solomachine.ClientState)
 
 				suite.Require().Equal(substituteClientState.ConsensusState, smClientState.ConsensusState)
 				suite.Require().Equal(substituteClientState.Sequence, smClientState.Sequence)
@@ -1024,7 +1028,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				nil,
 			},
 			{
-				"invalid type misbehaviour",
+				"failure: invalid type misbehaviour",
 				func() {
 					clientState = sm.ClientState()
 					clientMsg = sm.CreateMisbehaviour()
@@ -1033,7 +1037,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				fmt.Errorf("unsupported ClientMessage: %T", sm.CreateMisbehaviour()),
 			},
 			{
-				"cannot find subject client state",
+				"failure: cannot find subject client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1046,6 +1050,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
+
 				clientID = sm.ClientID
 				clientState = sm.ClientState()
 				clientMsg = sm.CreateHeader(sm.Diversifier)
@@ -1112,7 +1117,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 				nil,
 			},
 			{
-				"normal header returns false",
+				"failure: normal header returns false",
 				func() {
 					clientMsg = sm.CreateHeader(sm.Diversifier)
 				},
@@ -1120,7 +1125,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 				nil,
 			},
 			{
-				"cannot find subject client state",
+				"failure: cannot find subject client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1179,7 +1184,7 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 				nil,
 			},
 			{
-				"cannot find subject client state",
+				"failure: cannot find subject client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1241,35 +1246,35 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			expErr   error
 		}{
 			{
-				"successful header",
+				"success: successful header",
 				func() {
 					clientMsg = sm.CreateHeader(sm.Diversifier)
 				},
 				nil,
 			},
 			{
-				"successful header with new diversifier",
+				"success: successful header with new diversifier",
 				func() {
 					clientMsg = sm.CreateHeader(sm.Diversifier + "0")
 				},
 				nil,
 			},
 			{
-				"successful misbehaviour",
+				"success: successful misbehaviour",
 				func() {
 					clientMsg = sm.CreateMisbehaviour()
 				},
 				nil,
 			},
 			{
-				"invalid client message type",
+				"failure: invalid client message type",
 				func() {
 					clientMsg = &ibctm.Header{}
 				},
 				clienttypes.ErrInvalidClientType,
 			},
 			{
-				"invalid header Signature",
+				"failure: invalid header Signature",
 				func() {
 					h := sm.CreateHeader(sm.Diversifier)
 					h.Signature = suite.GetInvalidProof()
@@ -1277,7 +1282,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
 			},
 			{
-				"invalid timestamp in header",
+				"failure: invalid timestamp in header",
 				func() {
 					h := sm.CreateHeader(sm.Diversifier)
 					h.Timestamp--
@@ -1285,7 +1290,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				}, clienttypes.ErrInvalidHeader,
 			},
 			{
-				"signature uses wrong sequence",
+				"failure: signature uses wrong sequence",
 				func() {
 					sm.Sequence++
 					clientMsg = sm.CreateHeader(sm.Diversifier)
@@ -1332,7 +1337,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"signature signs over old pubkey",
+				"failure: signature signs over old pubkey",
 				func() {
 					// store in temp before assigning to interface type
 					cs := sm.ClientState()
@@ -1353,7 +1358,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				clienttypes.ErrInvalidHeader,
 			},
 			{
-				"consensus state public key is nil - header",
+				"failure: consensus state public key is nil - header",
 				func() {
 					clientState.ConsensusState.PublicKey = nil
 					clientMsg = sm.CreateHeader(sm.Diversifier)
@@ -1363,7 +1368,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				clienttypes.ErrInvalidHeader,
 			},
 			{
-				"cannot find subject client state",
+				"failure: cannot find subject client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1383,7 +1388,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
 
-				// setup test
 				tc.malleate()
 
 				err := lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
@@ -1415,14 +1419,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 			expErr   error
 		}{
 			{
-				"successful misbehaviour",
+				"success: successful misbehaviour",
 				func() {
 					clientMsg = sm.CreateMisbehaviour()
 				},
 				nil,
 			},
 			{
-				"old misbehaviour is successful (timestamp is less than current consensus state)",
+				"success: old misbehaviour is successful (timestamp is less than current consensus state)",
 				func() {
 					clientState = sm.ClientState()
 					sm.Time -= 5
@@ -1430,14 +1434,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				}, nil,
 			},
 			{
-				"invalid client message type",
+				"failure: invalid client message type",
 				func() {
 					clientMsg = &ibctm.Header{}
 				},
 				clienttypes.ErrInvalidClientType,
 			},
 			{
-				"consensus state pubkey is nil",
+				"failure: consensus state pubkey is nil",
 				func() {
 					clientState.ConsensusState.PublicKey = nil
 					clientMsg = sm.CreateMisbehaviour()
@@ -1446,7 +1450,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				clienttypes.ErrInvalidConsensus,
 			},
 			{
-				"invalid SignatureOne SignatureData",
+				"failure: invalid SignatureOne SignatureData",
 				func() {
 					m := sm.CreateMisbehaviour()
 
@@ -1455,7 +1459,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
 			},
 			{
-				"invalid SignatureTwo SignatureData",
+				"failure: invalid SignatureTwo SignatureData",
 				func() {
 					m := sm.CreateMisbehaviour()
 
@@ -1464,7 +1468,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
 			},
 			{
-				"invalid SignatureOne timestamp",
+				"failure: invalid SignatureOne timestamp",
 				func() {
 					m := sm.CreateMisbehaviour()
 
@@ -1473,7 +1477,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				}, solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"invalid SignatureTwo timestamp",
+				"failure: invalid SignatureTwo timestamp",
 				func() {
 					m := sm.CreateMisbehaviour()
 
@@ -1482,7 +1486,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				}, solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"invalid first signature data",
+				"failure: invalid first signature data",
 				func() {
 					// store in temp before assigning to interface type
 					m := sm.CreateMisbehaviour()
@@ -1508,7 +1512,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"invalid second signature data",
+				"failure: invalid second signature data",
 				func() {
 					// store in temp before assigning to interface type
 					m := sm.CreateMisbehaviour()
@@ -1534,7 +1538,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"wrong pubkey generates first signature",
+				"failure: wrong pubkey generates first signature",
 				func() {
 					badMisbehaviour := sm.CreateMisbehaviour()
 
@@ -1548,7 +1552,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				}, solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"wrong pubkey generates second signature",
+				"failure: wrong pubkey generates second signature",
 				func() {
 					badMisbehaviour := sm.CreateMisbehaviour()
 
@@ -1562,7 +1566,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				}, solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"signatures sign over different sequence",
+				"failure: signatures sign over different sequence",
 				func() {
 					// store in temp before assigning to interface type
 					m := sm.CreateMisbehaviour()
@@ -1610,7 +1614,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				solomachine.ErrSignatureVerificationFailed,
 			},
 			{
-				"cannot find subject client state",
+				"failure: cannot find subject client state",
 				func() {
 					clientID = unusedSmClientID
 				},
@@ -1630,7 +1634,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
 
-				// setup test
 				tc.malleate()
 
 				err := lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
@@ -1666,13 +1669,12 @@ func (suite *SoloMachineTestSuite) TestLatestHeight() {
 	}{
 		{
 			"success",
-			func() {
-			},
+			func() {},
 			// Default as returned by solomachine.ClientState()
 			clienttypes.NewHeight(0, 1),
 		},
 		{
-			"cannot find substitute client state",
+			"failure: cannot find substitute client state",
 			func() {
 				clientID = unusedSmClientID
 			},
