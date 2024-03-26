@@ -8,10 +8,10 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
+	ibccelestia "github.com/cosmos/ibc-go/modules/light-clients/07-celestia"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibccelestia "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )

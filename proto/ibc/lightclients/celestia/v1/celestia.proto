@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.lightclients.celestia.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia;celestia";
+option go_package = "github.com/cosmos/ibc-go/modules/light-clients/07-celestia;celestia";
 
 import "tendermint/crypto/proof.proto";
 import "gogoproto/gogo.proto";

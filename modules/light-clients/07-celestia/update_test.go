@@ -5,11 +5,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	ibccelestia "github.com/cosmos/ibc-go/modules/light-clients/07-celestia"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibccelestia "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )

@@ -1,17 +1,35 @@
 package celestia_test
 
 import (
+	"encoding/json"
 	"testing"
 
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/log"
+
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+
+	ibccelestia "github.com/cosmos/ibc-go/modules/light-clients/07-celestia"
+	"github.com/cosmos/ibc-go/modules/light-clients/07-celestia/testing/simapp"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibccelestia "github.com/cosmos/ibc-go/v8/modules/light-clients/07-celestia"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
+
+func init() {
+	ibctesting.DefaultTestingAppInit = SetupTestingApp
+}
+
+// SetupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
+func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	db := dbm.NewMemDB()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	return app, app.DefaultGenesis()
+}
 
 type CelestiaTestSuite struct {
 	testifysuite.Suite
