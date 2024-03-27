@@ -303,7 +303,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			nil,
+			true,
 		},
 		{
 			"interchain account successfully executes disttypes.MsgSetWithdrawAddress",
