@@ -16,12 +16,15 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -296,4 +299,61 @@ func (s *E2ETestSuite) PruneAcknowledgements(
 ) sdk.TxResponse {
 	msg := channeltypes.NewMsgPruneAcknowledgements(portID, channelID, limit, user.FormattedAddress())
 	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// QueryTxsByEvents runs the QueryTxsByEvents command on the given chain.
+// https://github.com/cosmos/cosmos-sdk/blob/65ab2530cc654fd9e252b124ed24cbaa18023b2b/x/auth/client/cli/query.go#L33
+func (*E2ETestSuite) QueryTxsByEvents(
+	ctx context.Context, chain ibc.Chain,
+	page, limit int, query, orderBy string,
+) (*sdk.SearchTxsResult, error) {
+	cosmosChain, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		return nil, fmt.Errorf("QueryTxsByEvents must be passed a cosmos.CosmosChain")
+	}
+
+	cmd := []string{"txs", "--query", query}
+	if orderBy != "" {
+		cmd = append(cmd, "--order_by", orderBy)
+	}
+	if page != 0 {
+		cmd = append(cmd, "--"+flags.FlagPage, strconv.Itoa(page))
+	}
+	if limit != 0 {
+		cmd = append(cmd, "--"+flags.FlagLimit, strconv.Itoa(limit))
+	}
+
+	stdout, _, err := cosmosChain.GetNode().ExecQuery(ctx, cmd...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &sdk.SearchTxsResult{}
+	err = Codec().UnmarshalJSON(stdout, result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// ExtractValueFromEvents extracts the value of an attribute from a list of events.
+// If the attribute is not found, the function returns an empty string and false.
+// If the attribute is found, the function returns the value and true.
+func (*E2ETestSuite) ExtractValueFromEvents(events []abci.Event, eventType, attrKey string) (string, bool) {
+	for _, event := range events {
+		if event.Type != eventType {
+			continue
+		}
+
+		for _, attr := range event.Attributes {
+			if attr.Key != attrKey {
+				continue
+			}
+
+			return attr.Value, true
+		}
+	}
+
+	return "", false
 }
