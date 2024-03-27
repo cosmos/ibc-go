@@ -50,7 +50,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+<<<<<<< HEAD
 * [\#5788](https://github.com/cosmos/ibc-go/pull/5788) Add `NewErrorAcknowledgementWithCodespace` to allow codespaces in ack errors.
+=======
+* (apps/27-interchain-accounts) [\#5785](https://github.com/cosmos/ibc-go/pull/5785) Introduce a new tx message that ICA host submodule can use to query the chain (only those marked with `module_query_safe`) and write the responses to the acknowledgement.
+>>>>>>> eecfa5c0 (feat: allow module safe queries in ICA (#5785))
 
 ### Bug Fixes
 
