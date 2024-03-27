@@ -130,8 +130,63 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
+<<<<<<< HEAD
 func (suite *KeeperTestSuite) TestIsBound() {
 	suite.SetupTest()
+=======
+func (suite *KeeperTestSuite) TestNewKeeper() {
+	testCases := []struct {
+		name          string
+		instantiateFn func()
+		expPass       bool
+	}{
+		{"success", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().ScopedICAHostKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
+				suite.chainA.GetSimApp().GRPCQueryRouter(),
+				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+			)
+		}, true},
+		{"failure: interchain accounts module account does not exist", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				authkeeper.AccountKeeper{}, // empty account keeper
+				suite.chainA.GetSimApp().ScopedICAHostKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
+				suite.chainA.GetSimApp().GRPCQueryRouter(),
+				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+			)
+		}, false},
+		{"failure: empty mock staking keeper", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().ScopedICAHostKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
+				suite.chainA.GetSimApp().GRPCQueryRouter(),
+				"", // authority
+			)
+		}, false},
+	}
+>>>>>>> eecfa5c0 (feat: allow module safe queries in ICA (#5785))
 
 	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 	suite.coordinator.SetupConnections(path)
@@ -141,6 +196,31 @@ func (suite *KeeperTestSuite) TestIsBound() {
 
 	isBound := suite.chainB.GetSimApp().ICAHostKeeper.IsBound(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 	suite.Require().True(isBound)
+}
+
+func (suite *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
+	// Currently, all queries in bank, staking, auth, and circuit are marked safe
+	// Notably, the gov and distribution modules are not marked safe
+
+	var allowList []string
+	suite.Require().NotPanics(func() {
+		allowList = keeper.NewModuleQuerySafeAllowList()
+	})
+
+	suite.Require().NotEmpty(allowList)
+	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/Balance")
+	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/AllBalances")
+	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validator")
+	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validators")
+	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/Account")
+	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/DisabledList")
+	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/Accounts")
+	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/ModuleAccountByName")
+	suite.Require().Contains(allowList, "/ibc.core.client.v1.Query/VerifyMembership")
+	suite.Require().NotContains(allowList, "/cosmos.gov.v1beta1.Query/Proposals")
+	suite.Require().NotContains(allowList, "/cosmos.gov.v1.Query/Proposals")
+	suite.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/Params")
+	suite.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/DelegationRewards")
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {

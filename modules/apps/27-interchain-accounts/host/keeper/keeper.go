@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	gogoproto "github.com/cosmos/gogoproto/proto"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+
+	msgv1 "cosmossdk.io/api/cosmos/msg/v1"
+	queryv1 "cosmossdk.io/api/cosmos/query/v1"
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 
@@ -36,7 +42,19 @@ type Keeper struct {
 
 	scopedKeeper exported.ScopedKeeper
 
+<<<<<<< HEAD
 	msgRouter icatypes.MessageRouter
+=======
+	msgRouter   icatypes.MessageRouter
+	queryRouter icatypes.QueryRouter
+
+	// mqsAllowList is a list of all module safe query paths
+	mqsAllowList []string
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
+>>>>>>> eecfa5c0 (feat: allow module safe queries in ICA (#5785))
 }
 
 // NewKeeper creates a new interchain accounts host Keeper instance
@@ -44,6 +62,10 @@ func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
+<<<<<<< HEAD
+=======
+	queryRouter icatypes.QueryRouter, authority string,
+>>>>>>> eecfa5c0 (feat: allow module safe queries in ICA (#5785))
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
@@ -56,6 +78,7 @@ func NewKeeper(
 	}
 
 	return Keeper{
+<<<<<<< HEAD
 		storeKey:      key,
 		cdc:           cdc,
 		paramSpace:    paramSpace,
@@ -65,6 +88,20 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		scopedKeeper:  scopedKeeper,
 		msgRouter:     msgRouter,
+=======
+		storeKey:       key,
+		cdc:            cdc,
+		legacySubspace: legacySubspace,
+		ics4Wrapper:    ics4Wrapper,
+		channelKeeper:  channelKeeper,
+		portKeeper:     portKeeper,
+		accountKeeper:  accountKeeper,
+		scopedKeeper:   scopedKeeper,
+		msgRouter:      msgRouter,
+		queryRouter:    queryRouter,
+		mqsAllowList:   newModuleQuerySafeAllowList(),
+		authority:      authority,
+>>>>>>> eecfa5c0 (feat: allow module safe queries in ICA (#5785))
 	}
 }
 
@@ -225,3 +262,68 @@ func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
 }
+<<<<<<< HEAD
+=======
+
+// GetAuthority returns the 27-interchain-accounts host submodule's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
+}
+
+// GetParams returns the total set of the host submodule parameters.
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.ParamsKey))
+	if bz == nil { // only panic on unset params and not on empty params
+		panic(errors.New("ica/host params are not set in store"))
+	}
+
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
+}
+
+// SetParams sets the total set of the host submodule parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set([]byte(types.ParamsKey), bz)
+}
+
+// newModuleQuerySafeAllowList returns a list of all query paths labeled with module_query_safe in the proto files.
+func newModuleQuerySafeAllowList() []string {
+	protoFiles, err := gogoproto.MergedRegistry()
+	if err != nil {
+		panic(err)
+	}
+
+	allowList := []string{}
+	protoFiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		for i := 0; i < fd.Services().Len(); i++ {
+			// Get the service descriptor
+			sd := fd.Services().Get(i)
+
+			// Skip services that are annotated with the "cosmos.msg.v1.service" option.
+			if ext := proto.GetExtension(sd.Options(), msgv1.E_Service); ext != nil && ext.(bool) {
+				continue
+			}
+
+			for j := 0; j < sd.Methods().Len(); j++ {
+				// Get the method descriptor
+				md := sd.Methods().Get(j)
+
+				// Skip methods that are not annotated with the "cosmos.query.v1.module_query_safe" option.
+				if ext := proto.GetExtension(md.Options(), queryv1.E_ModuleQuerySafe); ext == nil || !ext.(bool) {
+					continue
+				}
+
+				// Add the method to the whitelist
+				allowList = append(allowList, fmt.Sprintf("/%s/%s", sd.FullName(), md.Name()))
+			}
+		}
+		return true
+	})
+
+	return allowList
+}
+>>>>>>> eecfa5c0 (feat: allow module safe queries in ICA (#5785))
