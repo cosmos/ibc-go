@@ -247,6 +247,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
 			}
 
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
 
@@ -754,8 +757,6 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 		{
 			"fee not enabled on channel",
 			func() {
-				req.ChannelId = "invalid-channel-id"
-				req.PortId = "invalid-port-id"
 				expEnabled = false
 			},
 			true,
@@ -770,6 +771,8 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			expEnabled = true
 
 			suite.path.Setup()
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
 
 			req = &types.QueryFeeEnabledChannelRequest{
 				PortId:    suite.path.EndpointA.ChannelConfig.PortID,
