@@ -74,7 +74,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 }
 
 func TestMsgModuleQuerySafeValidateBasic(t *testing.T) {
-	var queryRequest = &types.QueryRequest{
+	queryRequest := &types.QueryRequest{
 		Path: "/cosmos.bank.v1beta1.Query/Balance",
 		Data: []byte{},
 	}
