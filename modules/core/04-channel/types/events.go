@@ -31,11 +31,6 @@ const (
 	EventTypeAcknowledgePacket = "acknowledge_packet"
 	EventTypeTimeoutPacket     = "timeout_packet"
 
-	// Deprecated: in favor of AttributeKeyDataHex
-	AttributeKeyData = "packet_data"
-	// Deprecated: in favor of AttributeKeyAckHex
-	AttributeKeyAck = "packet_ack"
-
 	AttributeKeyDataHex          = "packet_data_hex"
 	AttributeKeyAckHex           = "packet_ack_hex"
 	AttributeKeyTimeoutHeight    = "packet_timeout_height"
