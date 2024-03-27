@@ -819,11 +819,9 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				suite.Require().True(found)
-
-				upgradeClientProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				latestHeight := path.EndpointA.GetClientLatestHeight()
+				upgradeClientProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), latestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), latestHeight.GetRevisionHeight())
 
 				msg, err = clienttypes.NewMsgUpgradeClient(path.EndpointA.ClientID, upgradedClient, upgradedConsState,
 					upgradeClientProof, upgradedConsensusStateProof, suite.chainA.SenderAccount.GetAddress().String())
@@ -878,12 +876,12 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		newChainID, err = clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
 		suite.Require().NoError(err)
 
-		newClientHeight = clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1)
+		newClientHeight = clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1)
 
 		tc.setup()
 
 		ctx := suite.chainA.GetContext()
-		_, err = keeper.Keeper.UpgradeClient(*suite.chainA.App.GetIBCKeeper(), ctx, msg)
+		_, err = suite.chainA.GetSimApp().GetIBCKeeper().UpgradeClient(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err, "upgrade handler failed on valid case: %s", tc.name)
@@ -897,13 +895,12 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 					clienttypes.EventTypeUpgradeClient,
 					sdk.NewAttribute(clienttypes.AttributeKeyClientID, ibctesting.FirstClientID),
 					sdk.NewAttribute(clienttypes.AttributeKeyClientType, path.EndpointA.GetClientState().ClientType()),
-					sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, path.EndpointA.GetClientState().GetLatestHeight().String()),
+					sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, path.EndpointA.GetClientLatestHeight().String()),
 				),
 			}.ToABCIEvents()
 
 			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
 			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
-
 		} else {
 			suite.Require().Error(err, "upgrade handler passed on invalid case: %s", tc.name)
 		}
@@ -2046,7 +2043,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 		expResult func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error)
 	}{
 		{
-			"success: keeper is not authority, valid error receipt so channnel changed to match error receipt seq",
+			"success: keeper is not authority, valid error receipt so channel changed to match error receipt seq",
 			func() {},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)

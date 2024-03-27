@@ -272,7 +272,7 @@ func emitChannelClosedEvent(ctx sdk.Context, packet types.Packet, channel types.
 }
 
 // EmitChannelUpgradeInitEvent emits a channel upgrade init event
-func EmitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
+func EmitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeInit,
@@ -290,7 +290,7 @@ func EmitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID strin
 }
 
 // EmitChannelUpgradeTryEvent emits a channel upgrade try event
-func EmitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
+func EmitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeTry,
@@ -308,7 +308,7 @@ func EmitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 }
 
 // EmitChannelUpgradeAckEvent emits a channel upgrade ack event
-func EmitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
+func EmitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeAck,
@@ -326,16 +326,16 @@ func EmitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string
 }
 
 // EmitChannelUpgradeConfirmEvent emits a channel upgrade confirm event
-func EmitChannelUpgradeConfirmEvent(ctx sdk.Context, portID, channelID string, currentChannel types.Channel) {
+func EmitChannelUpgradeConfirmEvent(ctx sdk.Context, portID, channelID string, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeConfirm,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-			sdk.NewAttribute(types.AttributeKeyChannelState, currentChannel.State.String()),
-			sdk.NewAttribute(types.AttributeCounterpartyPortID, currentChannel.Counterparty.PortId),
-			sdk.NewAttribute(types.AttributeCounterpartyChannelID, currentChannel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
+			sdk.NewAttribute(types.AttributeKeyChannelState, channel.State.String()),
+			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
+			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
+			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -345,7 +345,7 @@ func EmitChannelUpgradeConfirmEvent(ctx sdk.Context, portID, channelID string, c
 }
 
 // EmitChannelUpgradeOpenEvent emits a channel upgrade open event
-func EmitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel) {
+func EmitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeOpen,
@@ -364,7 +364,7 @@ func EmitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID strin
 }
 
 // EmitChannelUpgradeTimeoutEvent emits an upgrade timeout event.
-func EmitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgrade types.Upgrade) {
+func EmitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeTimeout,
@@ -384,15 +384,15 @@ func EmitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID st
 }
 
 // EmitErrorReceiptEvent emits an error receipt event
-func EmitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, err error) {
+func EmitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, err error) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeError,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-			sdk.NewAttribute(types.AttributeCounterpartyPortID, currentChannel.Counterparty.PortId),
-			sdk.NewAttribute(types.AttributeCounterpartyChannelID, currentChannel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
+			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
+			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
+			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 			sdk.NewAttribute(types.AttributeKeyErrorReceipt, err.Error()),
 		),
 		sdk.NewEvent(
@@ -421,15 +421,15 @@ func EmitChannelUpgradeCancelEvent(ctx sdk.Context, portID string, channelID str
 }
 
 // emitChannelFlushCompleteEvents emits an flushing event.
-func emitChannelFlushCompleteEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel) {
+func emitChannelFlushCompleteEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelFlushComplete,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-			sdk.NewAttribute(types.AttributeCounterpartyPortID, currentChannel.Counterparty.PortId),
-			sdk.NewAttribute(types.AttributeCounterpartyChannelID, currentChannel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyChannelState, currentChannel.State.String()),
+			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
+			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
+			sdk.NewAttribute(types.AttributeKeyChannelState, channel.State.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

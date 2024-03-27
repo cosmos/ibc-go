@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -18,6 +18,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
@@ -36,10 +37,10 @@ func (suite *TypesTestSuite) TestStatus() {
 		{
 			"client is frozen",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					resp, err := json.Marshal(types.StatusResult{Status: exported.Frozen.String()})
 					suite.Require().NoError(err)
-					return resp, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			exported.Frozen,
@@ -47,10 +48,10 @@ func (suite *TypesTestSuite) TestStatus() {
 		{
 			"client status is expired",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					resp, err := json.Marshal(types.StatusResult{Status: exported.Expired.String()})
 					suite.Require().NoError(err)
-					return resp, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			exported.Expired,
@@ -58,7 +59,7 @@ func (suite *TypesTestSuite) TestStatus() {
 		{
 			"client status is unknown: vm returns an error",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
@@ -85,7 +86,8 @@ func (suite *TypesTestSuite) TestStatus() {
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState()
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 			suite.Require().Equal(tc.expStatus, status)
@@ -106,7 +108,7 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 		{
 			"success",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					var payload types.QueryMsg
 					err := json.Unmarshal(queryMsg, &payload)
 					suite.Require().NoError(err)
@@ -119,16 +121,25 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 					resp, err := json.Marshal(types.TimestampAtHeightResult{Timestamp: expectedTimestamp})
 					suite.Require().NoError(err)
 
-					return resp, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
 		},
 		{
+			"failure: vm returns error",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+					return nil, 0, wasmtesting.ErrMockVM
+				})
+			},
+			types.ErrVMError,
+		},
+		{
 			"failure: contract returns error",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					return nil, 0, wasmtesting.ErrMockContract
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+					return &wasmvmtypes.QueryResult{Err: wasmtesting.ErrMockContract.Error()}, 0, nil
 				})
 			},
 			types.ErrWasmContractCallFailed,
@@ -152,8 +163,10 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 			suite.Require().NoError(err)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState().(*types.ClientState)
-			height = clientState.GetLatestHeight()
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
+
+			height = clientState.LatestHeight
 
 			tc.malleate()
 
@@ -232,7 +245,7 @@ func (suite *TypesTestSuite) TestValidate() {
 func (suite *TypesTestSuite) TestInitialize() {
 	var (
 		consensusState exported.ConsensusState
-		clientState    exported.ClientState
+		clientState    *types.ClientState
 		clientStore    storetypes.KVStore
 	)
 
@@ -249,27 +262,27 @@ func (suite *TypesTestSuite) TestInitialize() {
 		{
 			"success: validate contract address",
 			func() {
-				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, env wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, env wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					var payload types.InstantiateMessage
 					err := json.Unmarshal(initMsg, &payload)
 					suite.Require().NoError(err)
 
 					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
 
-					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
 
-					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
+					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.LatestHeight)
 					clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), clientStateBz)
 
 					consensusState := types.NewConsensusState(payload.ConsensusState)
 					consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), consensusState)
-					store.Set(host.ConsensusStateKey(clientState.GetLatestHeight()), consensusStateBz)
+					store.Set(host.ConsensusStateKey(clientState.LatestHeight), consensusStateBz)
 
 					resp, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					return &wasmvmtypes.Response{Data: resp}, 0, nil
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: resp}}, 0, nil
 				}
 			},
 			nil,
@@ -279,7 +292,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 			func() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), ibctesting.InvalidID)
 			},
-			types.ErrWasmContractCallFailed,
+			types.ErrVMError,
 		},
 		{
 			"failure: invalid consensus state",
@@ -297,10 +310,19 @@ func (suite *TypesTestSuite) TestInitialize() {
 			types.ErrInvalidChecksum,
 		},
 		{
-			"failure: InstantiateFn returns error",
+			"failure: vm returns error",
 			func() {
-				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, 0, wasmtesting.ErrMockContract
+				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					return nil, 0, wasmtesting.ErrMockVM
+				}
+			},
+			types.ErrVMError,
+		},
+		{
+			"failure: contract returns error",
+			func() {
+				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					return &wasmvmtypes.ContractResult{Err: wasmtesting.ErrMockContract.Error()}, 0, nil
 				}
 			},
 			types.ErrWasmContractCallFailed,
@@ -313,7 +335,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 			wrappedClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermitClientState)
 			wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientConsensusState)
-			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockTendermitClientState.GetLatestHeight().(clienttypes.Height))
+			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockTendermitClientState.LatestHeight)
 			consensusState = types.NewConsensusState(wrappedClientConsensusStateBz)
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
@@ -331,7 +353,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 				suite.Require().Equal(expClientState, clientStore.Get(host.ClientStateKey()))
 
 				expConsensusState := clienttypes.MustMarshalConsensusState(suite.chainA.Codec, consensusState)
-				suite.Require().Equal(expConsensusState, clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())))
+				suite.Require().Equal(expConsensusState, clientStore.Get(host.ConsensusStateKey(clientState.LatestHeight)))
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 			}
@@ -341,7 +363,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 func (suite *TypesTestSuite) TestVerifyMembership() {
 	var (
-		clientState      exported.ClientState
+		clientState      *types.ClientState
 		expClientStateBz []byte
 		path             exported.Path
 		proof            []byte
@@ -360,7 +382,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-				) (*wasmvmtypes.Response, uint64, error) {
+				) (*wasmvmtypes.ContractResult, uint64, error) {
 					var payload types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &payload)
 					suite.Require().NoError(err)
@@ -378,7 +400,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: bz}}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -388,7 +410,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-				) (*wasmvmtypes.Response, uint64, error) {
+				) (*wasmvmtypes.ContractResult, uint64, error) {
 					var payload types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &payload)
 					suite.Require().NoError(err)
@@ -409,20 +431,20 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					expClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
-					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: bz}}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
 		},
 		{
-			"wasm vm returns invalid proof error",
+			"contract returns invalid proof error",
 			func() {
 				proof = wasmtesting.MockInvalidProofBz
 
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-				) (*wasmvmtypes.Response, uint64, error) {
-					return nil, wasmtesting.DefaultGasUsed, commitmenttypes.ErrInvalidProof
+				) (*wasmvmtypes.ContractResult, uint64, error) {
+					return &wasmvmtypes.ContractResult{Err: commitmenttypes.ErrInvalidProof.Error()}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			types.ErrWasmContractCallFailed,
@@ -452,6 +474,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			var ok bool
 			suite.SetupWasmWithMockVM()
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -464,7 +487,8 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			value = []byte("value")
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState()
+			clientState, ok = endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			tc.malleate()
 
@@ -485,7 +509,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 func (suite *TypesTestSuite) TestVerifyNonMembership() {
 	var (
-		clientState      exported.ClientState
+		clientState      *types.ClientState
 		expClientStateBz []byte
 		path             exported.Path
 		proof            []byte
@@ -503,7 +527,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-				) (*wasmvmtypes.Response, uint64, error) {
+				) (*wasmvmtypes.ContractResult, uint64, error) {
 					var payload types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &payload)
 					suite.Require().NoError(err)
@@ -520,7 +544,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: bz}}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -530,7 +554,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-				) (*wasmvmtypes.Response, uint64, error) {
+				) (*wasmvmtypes.ContractResult, uint64, error) {
 					var payload types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &payload)
 					suite.Require().NoError(err)
@@ -550,20 +574,33 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					expClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
-					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: bz}}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
 		},
 		{
-			"wasm vm returns invalid proof error",
+			"wasm vm returns error",
 			func() {
 				proof = wasmtesting.MockInvalidProofBz
 
 				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-				) (*wasmvmtypes.Response, uint64, error) {
-					return nil, wasmtesting.DefaultGasUsed, commitmenttypes.ErrInvalidProof
+				) (*wasmvmtypes.ContractResult, uint64, error) {
+					return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockVM
+				})
+			},
+			types.ErrVMError,
+		},
+		{
+			"contract returns invalid proof error",
+			func() {
+				proof = wasmtesting.MockInvalidProofBz
+
+				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore,
+					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
+				) (*wasmvmtypes.ContractResult, uint64, error) {
+					return &wasmvmtypes.ContractResult{Err: commitmenttypes.ErrInvalidProof.Error()}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			types.ErrWasmContractCallFailed,
@@ -593,6 +630,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			var ok bool
 			suite.SetupWasmWithMockVM()
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -604,7 +642,8 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 			proofHeight = clienttypes.NewHeight(0, 1)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState()
+			clientState, ok = endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			tc.malleate()
 

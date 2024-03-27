@@ -8,10 +8,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
@@ -86,63 +84,6 @@ func (suite *SoloMachineTestSuite) TestClientStateValidateBasic() {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
-				}
-			})
-		}
-	}
-}
-
-func (suite *SoloMachineTestSuite) TestInitialize() {
-	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-		malleatedConsensus := sm.ClientState().ConsensusState
-		malleatedConsensus.Timestamp += 10
-
-		testCases := []struct {
-			name      string
-			consState exported.ConsensusState
-			expPass   bool
-		}{
-			{
-				"valid consensus state",
-				sm.ConsensusState(),
-				true,
-			},
-			{
-				"nil consensus state",
-				nil,
-				false,
-			},
-			{
-				"invalid consensus state: Tendermint consensus state",
-				&ibctm.ConsensusState{},
-				false,
-			},
-			{
-				"invalid consensus state: consensus state does not match consensus state in client",
-				malleatedConsensus,
-				false,
-			},
-		}
-
-		for _, tc := range testCases {
-			tc := tc
-
-			suite.Run(tc.name, func() {
-				suite.SetupTest()
-
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine")
-				err := sm.ClientState().Initialize(
-					suite.chainA.GetContext(), suite.chainA.Codec,
-					store, tc.consState,
-				)
-
-				if tc.expPass {
-					suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
-					suite.Require().True(store.Has(host.ClientStateKey()))
-				} else {
-					suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
-					suite.Require().False(store.Has(host.ClientStateKey()))
 				}
 			})
 		}
@@ -850,7 +791,7 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 		{
 			name:        "get timestamp at height exists",
 			clientState: suite.solomachine.ClientState(),
-			height:      suite.solomachine.ClientState().GetLatestHeight(),
+			height:      clienttypes.NewHeight(0, suite.solomachine.ClientState().Sequence),
 			expValue:    suite.solomachine.ClientState().ConsensusState.Timestamp,
 			expPass:     true,
 		},

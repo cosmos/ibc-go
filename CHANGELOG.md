@@ -40,9 +40,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (core/02-client, light-clients) [\#5806](https://github.com/cosmos/ibc-go/pull/5806) Decouple light client routing from their encoding structure.
+* (core/04-channel) [\#5991](https://github.com/cosmos/ibc-go/pull/5991) The client CLI `QueryLatestConsensusState` has been removed.
+* (light-clients/06-solomachine) [\#6037](https://github.com/cosmos/ibc-go/pull/6037) Remove `Initialize` function from `ClientState` and move logic to `Initialize` function of `LightClientModule`.
+
 ### State Machine Breaking
 
 ### Improvements
+
+* (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
 
 ### Features
 

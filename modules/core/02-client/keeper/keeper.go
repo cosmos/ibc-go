@@ -31,6 +31,7 @@ import (
 type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.BinaryCodec
+	router         *types.Router
 	legacySubspace types.ParamSubspace
 	stakingKeeper  types.StakingKeeper
 	upgradeKeeper  types.UpgradeKeeper
@@ -38,9 +39,14 @@ type Keeper struct {
 
 // NewKeeper creates a new NewKeeper instance
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+	router := types.NewRouter(key)
+	localhostModule := localhost.NewLightClientModule(cdc, key)
+	router.AddRoute(exported.Localhost, localhostModule)
+
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,
+		router:         router,
 		legacySubspace: legacySubspace,
 		stakingKeeper:  sk,
 		upgradeKeeper:  uk,
@@ -52,15 +58,34 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
+// GetRouter returns the light client module router.
+func (k Keeper) GetRouter() *types.Router {
+	return k.router
+}
+
+// Route returns the light client module for the given client identifier.
+func (k Keeper) Route(clientID string) (exported.LightClientModule, bool) {
+	return k.router.GetRoute(clientID)
+}
+
 // CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	var clientState localhost.ClientState
-	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
+	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
+	if !found {
+		return errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
+	}
+
+	return clientModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
 }
 
 // UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
 func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
-	return clientState.UpdateState(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
+	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
+	if !found {
+		panic(errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID))
+	}
+
+	return clientModule.UpdateState(ctx, exported.LocalhostClientID, nil)
 }
 
 // GenerateClientIdentifier returns the next client identifier.
@@ -271,11 +296,12 @@ func (k Keeper) HasClientConsensusState(ctx sdk.Context, clientID string, height
 
 // GetLatestClientConsensusState gets the latest ConsensusState stored for a given client
 func (k Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) (exported.ConsensusState, bool) {
-	clientState, ok := k.GetClientState(ctx, clientID)
-	if !ok {
+	clientModule, found := k.router.GetRoute(clientID)
+	if !found {
 		return nil, false
 	}
-	return k.GetClientConsensusState(ctx, clientID, clientState.GetLatestHeight())
+
+	return k.GetClientConsensusState(ctx, clientID, clientModule.LatestHeight(ctx, clientID))
 }
 
 // GetSelfConsensusState introspects the (self) past historical info at a given height
@@ -436,13 +462,63 @@ func (k Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
 
-// GetClientStatus returns the status for a given clientState. If the client type is not in the allowed
+// GetClientStatus returns the status for a client state  given a client identifier. If the client type is not in the allowed
 // clients param field, Unauthorized is returned, otherwise the client state status is returned.
-func (k Keeper) GetClientStatus(ctx sdk.Context, clientState exported.ClientState, clientID string) exported.Status {
-	if !k.GetParams(ctx).IsAllowedClient(clientState.ClientType()) {
+func (k Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Status {
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
 		return exported.Unauthorized
 	}
-	return clientState.Status(ctx, k.ClientStore(ctx, clientID), k.cdc)
+
+	if !k.GetParams(ctx).IsAllowedClient(clientType) {
+		return exported.Unauthorized
+	}
+
+	clientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return exported.Unauthorized
+	}
+
+	return clientModule.Status(ctx, clientID)
+}
+
+// GetClientLatestHeight returns the latest height of a client state for a given client identifier. If the client type is not in the allowed
+// clients param field, a zero value height is returned, otherwise the client state latest height is returned.
+func (k Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.Height {
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
+		return types.ZeroHeight()
+	}
+
+	if !k.GetParams(ctx).IsAllowedClient(clientType) {
+		return types.ZeroHeight()
+	}
+
+	clientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return types.ZeroHeight()
+	}
+
+	return clientModule.LatestHeight(ctx, clientID).(types.Height)
+}
+
+// GetClientTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
+func (k Keeper) GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
+		return 0, errorsmod.Wrapf(err, "clientID (%s)", clientID)
+	}
+
+	if !k.GetParams(ctx).IsAllowedClient(clientType) {
+		return 0, errorsmod.Wrapf(types.ErrInvalidClientType, "client state type %s is not registered in the allowlist", clientType)
+	}
+
+	clientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return 0, errorsmod.Wrap(types.ErrRouteNotFound, clientType)
+	}
+
+	return clientModule.TimestampAtHeight(ctx, clientID, height)
 }
 
 // GetParams returns the total set of ibc-client parameters.

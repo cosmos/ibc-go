@@ -150,19 +150,15 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			// use client state latest height for timeout
-			clientState := path.EndpointA.GetClientState()
-			timeoutHeight = clientState.GetLatestHeight().(clienttypes.Height)
+			timeoutHeight = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"timeout timestamp passed", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			// use latest time on client state
-			clientState := path.EndpointA.GetClientState()
 			connection := path.EndpointA.GetConnection()
-			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight())
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientTimestampAtHeight(suite.chainA.GetContext(), connection.ClientId, path.EndpointA.GetClientLatestHeight())
 			suite.Require().NoError(err)
 
 			timeoutHeight = disabledTimeoutHeight
@@ -178,10 +174,8 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
 
-			clientState := path.EndpointA.GetClientState()
 			connection := path.EndpointA.GetConnection()
-
-			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight())
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientTimestampAtHeight(suite.chainA.GetContext(), connection.ClientId, path.EndpointA.GetClientLatestHeight())
 			suite.Require().NoError(err)
 
 			sourceChannel = path.EndpointA.ChannelID
@@ -774,6 +768,22 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = nil
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			},
+			false,
+		},
+		{
+			"packet already received",
+			func() {
+				path.Setup()
+
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				ack = ibcmock.MockAcknowledgement
+
+				// set recv seq start to indicate packet was processed in previous upgrade
+				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetRecvStartSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence+1)
 			},
 			false,
 		},
