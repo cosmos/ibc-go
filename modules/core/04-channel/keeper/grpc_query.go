@@ -217,7 +217,7 @@ func (k Keeper) PacketCommitment(c context.Context, req *types.QueryPacketCommit
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+	if !k.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
@@ -245,7 +245,7 @@ func (k Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommi
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+	if !k.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
@@ -294,7 +294,7 @@ func (k Keeper) PacketReceipt(c context.Context, req *types.QueryPacketReceiptRe
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+	if !k.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
@@ -322,7 +322,7 @@ func (k Keeper) PacketAcknowledgement(c context.Context, req *types.QueryPacketA
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+	if !k.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
@@ -348,8 +348,8 @@ func (k Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	
-	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+
+	if !k.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
@@ -516,8 +516,8 @@ func (k Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	
-	if !k.HasChannel(ctx,req.PortId,req.ChannelId) {
+
+	if !k.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
