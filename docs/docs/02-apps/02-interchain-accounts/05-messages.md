@@ -72,6 +72,31 @@ type MsgSendTxResponse struct {
 
 The packet `Sequence` is returned in the message response.
 
+### Queries
+
+It is possible to use [`MsgModuleQuerySafe`](https://github.com/cosmos/ibc-go/blob/eecfa5c09a4c38a5c9f2cc2a322d2286f45911da/proto/ibc/applications/interchain_accounts/host/v1/tx.proto#L41-L51) to execute a list of queries on the host chain. This message can be included in the list of encoded `sdk.Msg`s of `InterchainPacketData`. The host chain will return on the acknowledgment the responses for all the queries. Please note that only module safe queries can be executed. The following code block shows an example of how this message can be used to query the account balance of an account on the host chain. The resulting packet data variable is used to set the `PacketData` of `MsgSendTx`.
+
+```go
+balanceQuery := banktypes.NewQueryBalanceRequest("cosmos1...", "uatom")
+queryBz, err := balanceQuery.Marshal()
+
+// signer of message must be the interchain account on the host
+queryMsg := icahosttypes.NewMsgModuleQuerySafe("cosmos2...", []*icahosttypes.QueryRequest{
+  {
+    Path: "/cosmos.bank.v1beta1.Query/Balance",
+    Data: queryBz,
+  },
+})
+
+bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{queryMsg}, icatypes.EncodingProtobuf)
+
+packetData := icatypes.InterchainAccountPacketData{
+  Type: icatypes.EXECUTE_TX,
+  Data: bz,
+  Memo: "",
+}
+```
+
 ## Atomicity
 
 As the Interchain Accounts module supports the execution of multiple transactions using the Cosmos SDK `Msg` interface, it provides the same atomicity guarantees as Cosmos SDK-based applications, leveraging the [`CacheMultiStore`](https://docs.cosmos.network/main/learn/advanced/store#cachemultistore) architecture provided by the [`Context`](https://docs.cosmos.network/main/learn/advanced/context.html) type.

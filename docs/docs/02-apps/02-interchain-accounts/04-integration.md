@@ -82,14 +82,16 @@ scopedICAAuthKeeper := app.CapabilityKeeper.ScopeToModule(icaauthtypes.ModuleNam
 app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
   appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
   app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-  app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+  app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
   scopedICAControllerKeeper, app.MsgServiceRouter(),
+  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 app.ICAHostKeeper = icahostkeeper.NewKeeper(
   appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
   app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-  app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-  app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
+  app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper, app.AccountKeeper,
+  scopedICAHostKeeper, app.MsgServiceRouter(), app.GRPCQueryRouter(),
+  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 
 // Create Interchain Accounts AppModule
