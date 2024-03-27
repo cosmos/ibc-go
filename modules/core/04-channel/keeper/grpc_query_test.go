@@ -670,7 +670,6 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 				path.Setup()
 				expCommitment = []byte("hash")
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, expCommitment)
-				
 				req = &types.QueryPacketCommitmentRequest{
 					PortId:    path.EndpointA.ChannelConfig.PortID,
 					ChannelId: path.EndpointA.ChannelID,
