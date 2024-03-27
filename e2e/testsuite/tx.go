@@ -23,6 +23,7 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
@@ -179,16 +180,18 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 
 // waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
 // if the proposal has not passed within the duration of the voting period, an error is returned.
-func (s *E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
-	var govProposal govtypesv1.Proposal
+func (*E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
+	var govProposal *govtypesv1.Proposal
 	// poll for the query for the entire voting period to see if the proposal has passed.
 	err := test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
-		proposal, err := s.QueryProposalV1(ctx, chain, proposalID)
+		proposalResp, err := query.GRPCQuery[govtypesv1.QueryProposalResponse](ctx, chain, &govtypesv1.QueryProposalRequest{
+			ProposalId: proposalID,
+		})
 		if err != nil {
 			return false, err
 		}
 
-		govProposal = proposal
+		govProposal = proposalResp.Proposal
 		return govProposal.Status == govtypesv1.StatusPassed, nil
 	})
 
@@ -218,16 +221,24 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
 
-	proposal, err := s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
+	proposalResp, err := query.GRPCQuery[govtypesv1beta1.QueryProposalResponse](ctx, cosmosChain, &govtypesv1beta1.QueryProposalRequest{
+		ProposalId: proposalID,
+	})
 	s.Require().NoError(err)
+
+	proposal := proposalResp.Proposal
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
 	err = cosmosChain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
 	s.Require().NoError(err)
 
 	// ensure voting period has not passed before validators finished voting
-	proposal, err = s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
+	proposalResp, err = query.GRPCQuery[govtypesv1beta1.QueryProposalResponse](ctx, cosmosChain, &govtypesv1beta1.QueryProposalRequest{
+		ProposalId: proposalID,
+	})
 	s.Require().NoError(err)
+
+	proposal = proposalResp.Proposal
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
 	err = s.waitForGovV1Beta1ProposalToPass(ctx, cosmosChain, proposalID)
@@ -236,13 +247,17 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 
 // waitForGovV1Beta1ProposalToPass polls for the entire voting period to see if the proposal has passed.
 // if the proposal has not passed within the duration of the voting period, an error is returned.
-func (s *E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
+func (*E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
 	// poll for the query for the entire voting period to see if the proposal has passed.
 	return test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
-		proposal, err := s.QueryProposalV1Beta1(ctx, chain, proposalID)
+		proposalResp, err := query.GRPCQuery[govtypesv1beta1.QueryProposalResponse](ctx, chain, &govtypesv1beta1.QueryProposalRequest{
+			ProposalId: proposalID,
+		})
 		if err != nil {
 			return false, err
 		}
+
+		proposal := proposalResp.Proposal
 		return proposal.Status == govtypesv1beta1.StatusPassed, nil
 	})
 }

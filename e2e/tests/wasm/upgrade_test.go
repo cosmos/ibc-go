@@ -23,6 +23,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -72,9 +73,9 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 	})
 
 	t.Run("query wasm checksums", func(t *testing.T) {
-		checksums, err := s.QueryWasmChecksums(ctx, chain)
+		checksumsResp, err := query.GRPCQuery[wasmtypes.QueryChecksumsResponse](ctx, chain, &wasmtypes.QueryChecksumsRequest{})
 		s.Require().NoError(err)
-		s.Require().Contains(checksums, checksum)
+		s.Require().Contains(checksumsResp.Checksums, checksum)
 	})
 }
 
@@ -116,10 +117,6 @@ func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmo
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err, "error starting upgraded node(s)")
 
-	// we are reinitializing the clients because we need to update the hostGRPCAddress after
-	// the upgrade and subsequent restarting of nodes
-	s.InitGRPCClients(chain)
-
 	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
@@ -145,9 +142,10 @@ func (s *IBCWasmUpgradeTestSuite) ExecStoreCodeProposal(ctx context.Context, cha
 
 	s.ExecuteAndPassGovV1Proposal(ctx, &msgStoreCode, chain, wallet)
 
-	checksumBz, err := s.QueryWasmCode(ctx, chain, computedChecksum)
+	codeResp, err := query.GRPCQuery[wasmtypes.QueryCodeResponse](ctx, chain, &wasmtypes.QueryCodeRequest{Checksum: computedChecksum})
 	s.Require().NoError(err)
 
+	checksumBz := codeResp.Data
 	checksum32 := sha256.Sum256(checksumBz)
 	actualChecksum := hex.EncodeToString(checksum32[:])
 	s.Require().Equal(computedChecksum, actualChecksum, "checksum returned from query did not match the computed checksum")
