@@ -34,7 +34,6 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	return msg.Params.Validate()
 }
 
-<<<<<<< HEAD
 // GetSigners implements sdk.Msg
 func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -43,7 +42,8 @@ func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	}
 
 	return []sdk.AccAddress{accAddr}
-=======
+}
+
 // NewMsgModuleQuerySafe creates a new MsgModuleQuerySafe instance
 func NewMsgModuleQuerySafe(signer string, requests []*QueryRequest) *MsgModuleQuerySafe {
 	return &MsgModuleQuerySafe{
@@ -64,5 +64,14 @@ func (msg MsgModuleQuerySafe) ValidateBasic() error {
 	}
 
 	return nil
->>>>>>> eecfa5c0 (feat: allow module safe queries in ICA (#5785))
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgModuleQuerySafe) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{accAddr}
 }
