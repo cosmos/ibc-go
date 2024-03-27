@@ -459,9 +459,10 @@ func NewSimApp(
 		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper, app.AccountKeeper,
-		scopedICAHostKeeper, app.MsgServiceRouter(), app.GRPCQueryRouter(),
+		scopedICAHostKeeper, app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	app.ICAHostKeeper.WithQueryRouter(app.GRPCQueryRouter())
 
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()

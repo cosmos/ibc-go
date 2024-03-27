@@ -58,7 +58,7 @@ func NewKeeper(
 	cdc codec.Codec, key storetypes.StoreKey, legacySubspace icatypes.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
-	queryRouter icatypes.QueryRouter, authority string,
+	authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
@@ -79,17 +79,28 @@ func NewKeeper(
 		accountKeeper:  accountKeeper,
 		scopedKeeper:   scopedKeeper,
 		msgRouter:      msgRouter,
-		queryRouter:    queryRouter,
 		mqsAllowList:   newModuleQuerySafeAllowList(),
 		authority:      authority,
 	}
 }
 
 // WithICS4Wrapper sets the ICS4Wrapper. This function may be used after
-// the keepers creation to set the middleware which is above this module
+// the keeper's creation to set the middleware which is above this module
 // in the IBC application stack.
 func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	k.ics4Wrapper = wrapper
+}
+
+// WithQueryRouter sets the QueryRouter. This function may be used after
+// the keeper's creation to set the query router to which queries in the
+// ICA packet data will be routed to if they are module_safe_query.
+// Panics if the queryRouter is nil.
+func (k *Keeper) WithQueryRouter(queryRouter icatypes.QueryRouter) {
+	if queryRouter == nil {
+		panic(errors.New("cannot set a nil query router"))
+	}
+
+	k.queryRouter = queryRouter
 }
 
 // Logger returns the application logger, scoped to the associated module

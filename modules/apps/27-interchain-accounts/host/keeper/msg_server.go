@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
@@ -36,6 +37,10 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 		isModuleQuerySafe := slices.Contains(m.mqsAllowList, query.Path)
 		if !isModuleQuerySafe {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
+		}
+
+		if m.queryRouter == nil {
+			return nil, errors.New("query router must not be nil")
 		}
 
 		route := m.queryRouter.Route(query.Path)
