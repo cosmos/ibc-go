@@ -12,3 +12,14 @@ message Params {
   // allow_messages defines a list of sdk message typeURLs allowed to be executed on a host chain.
   repeated string allow_messages = 2;
 }
+
+// QueryRequest defines the parameters for a particular query request
+// by an interchain account.
+message QueryRequest {
+  // path defines the path of the query request as defined by ADR-021.
+  // https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-021-protobuf-query-encoding.md#custom-query-registration-and-routing
+  string path = 1;
+  // data defines the payload of the query request as defined by ADR-021.
+  // https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-021-protobuf-query-encoding.md#custom-query-registration-and-routing
+  bytes data = 2;
+}
