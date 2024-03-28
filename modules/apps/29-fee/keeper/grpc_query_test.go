@@ -16,7 +16,7 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-func (suite *KeeperTestSuite) enableFeeOnChannel(path *ibctesting.Path) {
+func enableFeeOnChannel(path *ibctesting.Path) {
 	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
 	path.EndpointA.ChannelConfig.Version = mockFeeVersion
 	path.EndpointB.ChannelConfig.Version = mockFeeVersion
@@ -259,6 +259,16 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			},
 			false,
 		},
+		{
+			"invalid ID",
+			func() {
+				req = &types.QueryIncentivizedPacketsForChannelRequest{
+					PortId:    "",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -284,7 +294,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			}
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.enableFeeOnChannel(path)
+			enableFeeOnChannel(path)
 			path.Setup()
 
 			tc.malleate()
@@ -807,6 +817,16 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			},
 			false,
 		},
+		{
+			"invalid ID",
+			func() {
+				req = &types.QueryFeeEnabledChannelRequest{
+					PortId:    "",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -817,7 +837,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			expEnabled = true
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.enableFeeOnChannel(path)
+			enableFeeOnChannel(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			req = &types.QueryFeeEnabledChannelRequest{
