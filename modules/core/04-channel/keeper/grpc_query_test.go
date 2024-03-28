@@ -679,7 +679,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 			false,
 		},
 		{
-			"invalid ID",			
+			"invalid ID",
 			func() {
 				req = &types.QueryPacketCommitmentRequest{
 					PortId:    "",
