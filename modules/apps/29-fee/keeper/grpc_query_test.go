@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
@@ -180,8 +181,19 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		{
 			"empty pagination",
 			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
+					suite.chainA.GetContext(),
+					ibctesting.MockFeePort,
+					"channel-10",
+					channeltypes.Channel{},
+				)
 				expIdentifiedPacketFees = nil
-				req = &types.QueryIncentivizedPacketsForChannelRequest{}
+				req = &types.QueryIncentivizedPacketsForChannelRequest{
+					Pagination:  &query.PageRequest{},
+					PortId:      ibctesting.MockFeePort,
+					ChannelId:   "channel-10",
+					QueryHeight: 0,
+				}
 			},
 			true,
 		},
@@ -210,6 +222,12 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		{
 			"no packets for specified channel",
 			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
+					suite.chainA.GetContext(),
+					ibctesting.MockFeePort,
+					"channel-10",
+					channeltypes.Channel{},
+				)
 				expIdentifiedPacketFees = nil
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
 					Pagination: &query.PageRequest{
@@ -222,6 +240,16 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				}
 			},
 			true,
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryIncentivizedPacketsForChannelRequest{
+					PortId:    ibctesting.MockFeePort,
+					ChannelId: ibctesting.InvalidID,
+				}
+			},
+			false,
 		},
 	}
 
@@ -248,6 +276,11 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			}
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+			path.EndpointA.ChannelConfig.Version = mockFeeVersion
+			path.EndpointB.ChannelConfig.Version = mockFeeVersion
+			path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
 			path.Setup()
 
 			tc.malleate()
@@ -734,6 +767,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 	var (
 		req        *types.QueryFeeEnabledChannelRequest
 		expEnabled bool
+		path       *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -758,8 +792,16 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			"fee not enabled on channel",
 			func() {
 				expEnabled = false
+				path.EndpointA.ChannelConfig.Version = ibcmock.Version
 			},
 			true,
+		},
+		{
+			"channel not found",
+			func() {
+				req.ChannelId = ibctesting.InvalidID
+			},
+			false,
 		},
 	}
 
@@ -770,16 +812,24 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			suite.SetupTest() // reset
 			expEnabled = true
 
-			suite.path.Setup()
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			path.Setup()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+			path.EndpointA.ChannelConfig.Version = mockFeeVersion
+			path.EndpointB.ChannelConfig.Version = mockFeeVersion
+			path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			req = &types.QueryFeeEnabledChannelRequest{
-				PortId:    suite.path.EndpointA.ChannelConfig.PortID,
-				ChannelId: suite.path.EndpointA.ChannelID,
+				PortId:    path.EndpointA.ChannelConfig.PortID,
+				ChannelId: path.EndpointA.ChannelID,
 			}
 
 			tc.malleate()
+			path.Setup()
+
+			suite.path = path
 
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannel(ctx, req)

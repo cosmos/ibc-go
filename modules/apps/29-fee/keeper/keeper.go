@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -81,8 +80,7 @@ func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channelty
 
 // HasChannel true if the channel with the given identifiers exists in state.
 func (k Keeper) HasChannel(ctx sdk.Context, portID, channelID string) bool {
-	store := ctx.KVStore(k.storeKey)
-	return store.Has(host.ChannelKey(portID, channelID))
+	return k.channelKeeper.HasChannel(ctx, portID, channelID)
 }
 
 // GetPacketCommitment wraps IBC ChannelKeeper's GetPacketCommitment function
