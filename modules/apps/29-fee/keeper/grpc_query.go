@@ -74,15 +74,14 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
- 
+
 	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
-	found := k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId)
-	if !found {
+	if !k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
