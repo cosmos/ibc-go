@@ -16,6 +16,14 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
+func (suite *KeeperTestSuite) enableFeeOnChannel(path *ibctesting.Path) {
+	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+	path.EndpointA.ChannelConfig.Version = mockFeeVersion
+	path.EndpointB.ChannelConfig.Version = mockFeeVersion
+	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+}
+
 func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 	var (
 		req             *types.QueryIncentivizedPacketsRequest
@@ -173,6 +181,16 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		TimeoutFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}},
 	}
 
+	const channelID = "channel-10"
+	setEmptyChannel := func() {
+		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
+			suite.chainA.GetContext(),
+			ibctesting.MockFeePort,
+			channelID,
+			channeltypes.Channel{},
+		)
+	}
+
 	testCases := []struct {
 		msg      string
 		malleate func()
@@ -181,17 +199,12 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		{
 			"empty pagination",
 			func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
-					suite.chainA.GetContext(),
-					ibctesting.MockFeePort,
-					"channel-10",
-					channeltypes.Channel{},
-				)
+				setEmptyChannel()
 				expIdentifiedPacketFees = nil
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
 					Pagination:  &query.PageRequest{},
 					PortId:      ibctesting.MockFeePort,
-					ChannelId:   "channel-10",
+					ChannelId:   channelID,
 					QueryHeight: 0,
 				}
 			},
@@ -222,12 +235,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		{
 			"no packets for specified channel",
 			func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
-					suite.chainA.GetContext(),
-					ibctesting.MockFeePort,
-					"channel-10",
-					channeltypes.Channel{},
-				)
+				setEmptyChannel()
 				expIdentifiedPacketFees = nil
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
 					Pagination: &query.PageRequest{
@@ -235,7 +243,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 						CountTotal: false,
 					},
 					PortId:      ibctesting.MockFeePort,
-					ChannelId:   "channel-10",
+					ChannelId:   channelID,
 					QueryHeight: 0,
 				}
 			},
@@ -276,11 +284,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			}
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
-			path.EndpointA.ChannelConfig.Version = mockFeeVersion
-			path.EndpointB.ChannelConfig.Version = mockFeeVersion
-			path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-			path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+			suite.enableFeeOnChannel(path)
 			path.Setup()
 
 			tc.malleate()
@@ -813,12 +817,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			expEnabled = true
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-
-			mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
-			path.EndpointA.ChannelConfig.Version = mockFeeVersion
-			path.EndpointB.ChannelConfig.Version = mockFeeVersion
-			path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-			path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+			suite.enableFeeOnChannel(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			req = &types.QueryFeeEnabledChannelRequest{
