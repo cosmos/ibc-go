@@ -994,8 +994,8 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, expAck)
 
 				req = &types.QueryPacketAcknowledgementRequest{
-					PortId:    "test-port-id",
-					ChannelId: "test-channel-id",
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
 					Sequence:  2,
 				}
 			},
