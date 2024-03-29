@@ -757,7 +757,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 			false,
 		},
 		{
-			"Channel not found",
+			"channel not found",
 			func() {
 				req = &types.QueryPacketCommitmentsRequest{
 					PortId:    "test-port-id",
