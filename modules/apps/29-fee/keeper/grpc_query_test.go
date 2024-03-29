@@ -848,8 +848,6 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			tc.malleate()
 			path.Setup()
 
-			suite.path = path
-
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannel(ctx, req)
 
