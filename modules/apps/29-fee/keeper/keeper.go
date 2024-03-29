@@ -78,7 +78,7 @@ func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channelty
 	return k.channelKeeper.GetChannel(ctx, portID, channelID)
 }
 
-// HasChannel true if the channel with the given identifiers exists in state.
+// HasChannel returns true if the channel with the given identifiers exists in state.
 func (k Keeper) HasChannel(ctx sdk.Context, portID, channelID string) bool {
 	return k.channelKeeper.HasChannel(ctx, portID, channelID)
 }
