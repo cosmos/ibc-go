@@ -107,15 +107,17 @@ func TestMsgModuleQuerySafeValidateBasic(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		err := tc.msg.ValidateBasic()
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.msg.ValidateBasic()
 
-		expPass := tc.expErr == nil
-		if expPass {
-			require.NoError(t, err)
-		} else {
-			require.Error(t, err)
-			require.ErrorIs(t, err, tc.expErr)
-		}
+			expPass := tc.expErr == nil
+			if expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				require.ErrorIs(t, err, tc.expErr)
+			}
+		})
 	}
 }
 
@@ -132,14 +134,16 @@ func TestMsgModuleQuerySafeGetSigners(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		msg := types.NewMsgModuleQuerySafe(tc.address.String(), []*types.QueryRequest{})
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
-		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
-		if tc.expPass {
-			require.NoError(t, err)
-			require.Equal(t, tc.address.Bytes(), signers[0])
-		} else {
-			require.Error(t, err)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			msg := types.NewMsgModuleQuerySafe(tc.address.String(), []*types.QueryRequest{})
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+			signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+			if tc.expPass {
+				require.NoError(t, err)
+				require.Equal(t, tc.address.Bytes(), signers[0])
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }
