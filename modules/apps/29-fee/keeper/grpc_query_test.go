@@ -13,16 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
-
-func enableFeeOnChannel(path *ibctesting.Path) {
-	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
-	path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-}
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 	var (
@@ -200,7 +191,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			"empty pagination",
 			func() {
 				path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-				enableFeeOnChannel(path)
+				ibctesting.EnableFeeOnChannel(path)
 				path.Setup()
 				expIdentifiedPacketFees = nil
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
@@ -296,7 +287,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			}
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			enableFeeOnChannel(path)
+			ibctesting.EnableFeeOnChannel(path)
 			path.Setup()
 
 			tc.malleate()
@@ -845,7 +836,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			expEnabled = true
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			enableFeeOnChannel(path)
+			ibctesting.EnableFeeOnChannel(path)
 			path.Setup()
 
 			req = &types.QueryFeeEnabledChannelRequest{

@@ -10,9 +10,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 // ApplyValSetChanges takes in cmttypes.ValidatorSet and []abci.ValidatorUpdate and will return a new cmttypes.ValidatorSet which has the
@@ -80,4 +82,13 @@ func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...codec.ProtoMars
 	}
 
 	return nil
+}
+
+// EnableFeeOnChannel enables fee on a channel given a path.
+func EnableFeeOnChannel(path *Path) {
+	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+	path.EndpointA.ChannelConfig.Version = mockFeeVersion
+	path.EndpointB.ChannelConfig.Version = mockFeeVersion
+	path.EndpointA.ChannelConfig.PortID = MockFeePort
+	path.EndpointB.ChannelConfig.PortID = MockFeePort
 }
