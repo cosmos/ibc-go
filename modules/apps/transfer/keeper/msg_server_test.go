@@ -126,7 +126,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
-				suite.Require().Len(expectedEvents, 0)
+				suite.Require().Len(actualEvents, 0)
 			}
 		})
 	}

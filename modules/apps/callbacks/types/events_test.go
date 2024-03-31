@@ -1,8 +1,9 @@
 package types_test
 
 import (
-	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -187,7 +188,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 					sdk.NewEvent(
 						types.EventTypeSourceCallback,
 						sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-						sdk.NewAttribute(types.AttributeKeyCallbackType, "something"),
+						sdk.NewAttribute(types.AttributeKeyCallbackType, string(types.CallbackTypeAcknowledgementPacket)),
 						sdk.NewAttribute(types.AttributeKeyCallbackAddress, ibctesting.TestAccAddress),
 						sdk.NewAttribute(types.AttributeKeyCallbackGasLimit, "100000"),
 						sdk.NewAttribute(types.AttributeKeyCallbackCommitGasLimit, "200000"),
@@ -205,7 +206,6 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 	for _, tc := range testCases {
 		tc := tc
 		s.Run(tc.name, func() {
-			//expEvents = constEvents()
 			newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
 			switch tc.callbackType {
 			case types.CallbackTypeReceivePacket:
