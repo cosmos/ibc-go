@@ -109,7 +109,7 @@ func UnmarshalMsgResponses(txResp sdk.TxResponse, msgs ...codec.ProtoMarshaler) 
 // MustProtoMarshalJSON provides an auxiliary function to return Proto3 JSON encoded
 // bytes of a message. This function should be used when marshalling a proto.Message
 // from the e2e tests. This function strips out unknown fields. This is useful for
-// backwards compatibility tests where the the types imported by the e2e package have
+// backwards compatibility tests where the types imported by the e2e package have
 // new fields that older versions do not recognize.
 func MustProtoMarshalJSON(msg proto.Message) []byte {
 	anyResolver := codectypes.NewInterfaceRegistry()
