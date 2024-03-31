@@ -50,7 +50,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-* [\#5788](https://github.com/cosmos/ibc-go/pull/5788) Add `NewErrorAcknowledgementWithCodespace` to allow codespaces in ack errors.
+* (core/04-channel) [\#5788](https://github.com/cosmos/ibc-go/pull/5788) Add `NewErrorAcknowledgementWithCodespace` to allow codespaces in ack errors.
 
 ### Bug Fixes
 
