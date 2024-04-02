@@ -172,16 +172,6 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		TimeoutFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}},
 	}
 
-	const emptyChannelID = "channel-10"
-	setEmptyChannel := func() {
-		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
-			suite.chainA.GetContext(),
-			ibctesting.MockFeePort,
-			emptyChannelID,
-			channeltypes.Channel{},
-		)
-	}
-
 	testCases := []struct {
 		msg      string
 		malleate func()
@@ -227,7 +217,13 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		{
 			"no packets for specified channel",
 			func() {
-				setEmptyChannel()
+				const emptyChannelID = "channel-10"
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
+					suite.chainA.GetContext(),
+					ibctesting.MockFeePort,
+					emptyChannelID,
+					channeltypes.Channel{},
+				)
 				expIdentifiedPacketFees = nil
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
 					Pagination: &query.PageRequest{
