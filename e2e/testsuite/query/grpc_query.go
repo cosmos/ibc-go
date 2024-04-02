@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// Queries the chain with a query request and deserializes the response to T
+// GRPCQuery queries the chain with a query request and deserializes the response to T
 func GRPCQuery[T any](ctx context.Context, chain ibc.Chain, req proto.Message, opts ...grpc.CallOption) (*T, error) {
 	path, err := getProtoPath(req)
 	if err != nil {
