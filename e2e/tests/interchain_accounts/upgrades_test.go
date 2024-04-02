@@ -81,7 +81,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestMsgSendTx_SuccessfulTra
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(hostAccount))
+		s.Require().NotEmpty(hostAccount)
 
 		_, err = query.Channel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)

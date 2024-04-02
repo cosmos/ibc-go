@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
@@ -91,7 +91,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			suite.Require().NoError(err)
 			substituteClientID = substituteEndpoint.ClientID
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
 			suite.Require().True(found)
 
 			tc.malleate()
@@ -129,7 +129,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 		{
 			"success",
 			func() {
-				suite.mockVM.RegisterSudoCallback(types.VerifyUpgradeAndUpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.RegisterSudoCallback(types.VerifyUpgradeAndUpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					var payload types.SudoMsg
 
 					err := json.Unmarshal(sudoMsg, &payload)
@@ -166,7 +166,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 					store.Set(host.ConsensusStateKey(expectedUpgradedClient.LatestHeight), bz)
 
-					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: data}}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -239,7 +239,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			upgradedConsensusStateAny, err = codectypes.NewAnyWithValue(upgradedConsensusState)
 			suite.Require().NoError(err)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(clientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
 			suite.Require().True(found)
 
 			tc.malleate()

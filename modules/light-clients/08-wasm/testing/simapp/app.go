@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
@@ -462,9 +464,14 @@ func NewSimApp(
 	// Function DefaultWasmConfig can also be used to use default values.
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.
+
+	// NOTE: a random string is appended to the data directory to ensure that every test
+	// runs using a different data directory. This is required because wasm VM forbids 2 or more
+	// different VM instances running in the same data directory. In production environments, the
+	// appended random string is not needed.
 	wasmConfig := wasmtypes.WasmConfig{
-		DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data"),
-		SupportedCapabilities: "iterator",
+		DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000))),
+		SupportedCapabilities: []string{"iterator"},
 		ContractDebugMode:     false,
 	}
 	if mockVM != nil {
@@ -503,7 +510,7 @@ func NewSimApp(
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.GRPCQueryRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Create IBC Router
@@ -651,10 +658,12 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		mockModule,
+
+		// IBC light clients
 		wasm.NewAppModule(app.WasmClientKeeper), // TODO(damian): see if we want to pass the lightclient module here, keeper is used in AppModule.RegisterServices etc
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
-		mockModule,
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,

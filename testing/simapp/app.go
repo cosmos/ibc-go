@@ -458,8 +458,8 @@ func NewSimApp(
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
-		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
+		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper, app.AccountKeeper,
+		scopedICAHostKeeper, app.MsgServiceRouter(), app.GRPCQueryRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -613,9 +613,11 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		mockModule,
+
+		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
-		mockModule,
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,

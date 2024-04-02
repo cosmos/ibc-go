@@ -211,7 +211,7 @@ type SimApp struct {
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
 
 	// mock contract keeper used for testing
-	MockContractKeeper ContractKeeper
+	MockContractKeeper *ContractKeeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -464,7 +464,7 @@ func NewSimApp(
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.GRPCQueryRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Create IBC Router
@@ -500,20 +500,21 @@ func NewSimApp(
 	// transferKeeper.SendPacket -> callbacks.SendPacket -> feeKeeper.SendPacket -> channel.SendPacket
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
+	// channel.RecvPacket -> fee.OnRecvPacket -> callbacks.OnRecvPacket -> transfer.OnRecvPacket
 
 	// transfer stack contains (from top to bottom):
-	// - IBC Callbacks Middleware
 	// - IBC Fee Middleware
+	// - IBC Callbacks Middleware
 	// - Transfer
 
 	// create IBC module from bottom to top of stack
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
-	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+	transferICS4Wrapper := transferStack.(porttypes.ICS4Wrapper)
+	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
-	app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.ICS4Wrapper))
+	app.TransferKeeper.WithICS4Wrapper(transferICS4Wrapper)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -527,10 +528,11 @@ func NewSimApp(
 	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
 	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
-	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+	icaICS4Wrapper := icaControllerStack.(porttypes.ICS4Wrapper)
+	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
-	app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.ICS4Wrapper))
+	app.ICAControllerKeeper.WithICS4Wrapper(icaICS4Wrapper)
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
@@ -619,9 +621,11 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		mockModule,
+
+		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
-		mockModule,
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,

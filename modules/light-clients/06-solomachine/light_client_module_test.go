@@ -1,10 +1,13 @@
 package solomachine_test
 
 import (
+	fmt "fmt"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -12,6 +15,86 @@ const (
 	smClientID   = "06-solomachine-100"
 	wasmClientID = "08-wasm-0"
 )
+
+func (suite *SoloMachineTestSuite) TestInitialize() {
+	// test singlesig and multisig public keys
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
+		malleatedConsensus := sm.ClientState().ConsensusState
+		malleatedConsensus.Timestamp += 10
+
+		testCases := []struct {
+			name        string
+			consState   exported.ConsensusState
+			clientState exported.ClientState
+			expErr      error
+		}{
+			{
+				"valid consensus state",
+				sm.ConsensusState(),
+				sm.ClientState(),
+				nil,
+			},
+			{
+				"nil consensus state",
+				nil,
+				sm.ClientState(),
+				clienttypes.ErrInvalidConsensus,
+			},
+			{
+				"invalid consensus state: Tendermint consensus state",
+				&ibctm.ConsensusState{},
+				sm.ClientState(),
+				fmt.Errorf("proto: wrong wireType = 0 for field TypeUrl"),
+			},
+			{
+				"invalid consensus state: consensus state does not match consensus state in client",
+				malleatedConsensus,
+				sm.ClientState(),
+				clienttypes.ErrInvalidConsensus,
+			},
+			{
+				"invalid client state: sequence is zero",
+				sm.ConsensusState(),
+				solomachine.NewClientState(0, sm.ConsensusState()),
+				clienttypes.ErrInvalidClient,
+			},
+			{
+				"invalid client state: Tendermint client state",
+				sm.ConsensusState(),
+				&ibctm.ClientState{},
+				fmt.Errorf("proto: wrong wireType = 2 for field IsFrozen"),
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
+
+				clientStateBz := suite.chainA.Codec.MustMarshal(tc.clientState)
+				consStateBz := suite.chainA.Codec.MustMarshal(tc.consState)
+
+				clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
+
+				lcm, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.Route(clientID)
+				suite.Require().True(found)
+
+				err := lcm.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consStateBz)
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
+
+				expPass := tc.expErr == nil
+				if expPass {
+					suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
+					suite.Require().True(store.Has(host.ClientStateKey()))
+				} else {
+					suite.Require().ErrorContains(err, tc.expErr.Error())
+					suite.Require().False(store.Has(host.ClientStateKey()))
+				}
+			})
+		}
+	}
+}
 
 func (suite *SoloMachineTestSuite) TestRecoverClient() {
 	var (
@@ -84,7 +167,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 			subjectClientState.IsFrozen = true
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectClientID, subjectClientState)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
 			suite.Require().True(found)
 
 			tc.malleate()
@@ -114,7 +197,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 func (suite *SoloMachineTestSuite) TestVerifyUpgradeAndUpdateState() {
 	clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), exported.Solomachine)
 
-	lightClientModule, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(clientID)
+	lightClientModule, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.Route(clientID)
 	suite.Require().True(found)
 
 	err := lightClientModule.VerifyUpgradeAndUpdateState(suite.chainA.GetContext(), clientID, nil, nil, nil, nil)

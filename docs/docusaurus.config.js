@@ -172,7 +172,7 @@ const config = {
             items: [
               {
                 label: "Discord",
-                href: "https://discord.gg/Wtmk6ZNa8G",
+                href: "https://discord.com/invite/interchain",
               },
               {
                 label: "Twitter",

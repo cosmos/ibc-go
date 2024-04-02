@@ -14,9 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/client"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 // QueryChannel returns a channel end.
@@ -124,42 +121,6 @@ func QueryChannelConsensusState(
 	}
 
 	return res, nil
-}
-
-// QueryLatestConsensusState uses the channel Querier to return the
-// latest ConsensusState given the source port ID and source channel ID.
-// Deprecated: This function will be removed in a later release of ibc-go.
-// NOTE: This function only supports querying latest consensus state of 07-tendermint client state implementations.
-func QueryLatestConsensusState(
-	clientCtx client.Context, portID, channelID string,
-) (exported.ConsensusState, clienttypes.Height, clienttypes.Height, error) {
-	clientRes, err := QueryChannelClientState(clientCtx, portID, channelID, false)
-	if err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	var clientState exported.ClientState
-	if err := clientCtx.InterfaceRegistry.UnpackAny(clientRes.IdentifiedClientState.ClientState, &clientState); err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	tmClientState, ok := clientState.(*ibctm.ClientState)
-	if !ok {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T",
-			ibctm.ClientState{}, clientState)
-	}
-
-	res, err := QueryChannelConsensusState(clientCtx, portID, channelID, tmClientState.LatestHeight, false)
-	if err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	var consensusState exported.ConsensusState
-	if err := clientCtx.InterfaceRegistry.UnpackAny(res.ConsensusState, &consensusState); err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	return consensusState, tmClientState.LatestHeight, res.ProofHeight, nil
 }
 
 // QueryNextSequenceReceive returns the next sequence receive.

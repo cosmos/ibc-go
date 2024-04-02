@@ -89,7 +89,7 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectPath.EndpointA.ClientID, tmClientState)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(subjectClientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
 			suite.Require().True(found)
 
 			tc.malleate()
@@ -244,7 +244,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			tc.malleate()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetRouter().GetRoute(clientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
 			suite.Require().True(found)
 
 			err = lightClientModule.VerifyUpgradeAndUpdateState(

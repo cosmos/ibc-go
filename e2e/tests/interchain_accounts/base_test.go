@@ -91,7 +91,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(hostAccount))
+		s.Require().NotEmpty(hostAccount)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
@@ -190,7 +190,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(hostAccount))
+		s.Require().NotEmpty(hostAccount)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
@@ -288,7 +288,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(hostAccount))
+		s.Require().NotEmpty(hostAccount)
 
 		_, err = query.Channel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)
@@ -468,7 +468,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(hostAccount))
+		s.Require().NotEmpty(hostAccount)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)

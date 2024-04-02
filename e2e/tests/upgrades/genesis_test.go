@@ -121,6 +121,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 		s.Require().NotZero(len(res.Address))
 
 		hostAccount = res.Address
+		s.Require().NotEmpty(hostAccount)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
@@ -130,7 +131,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
-		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), relayer, int64(haltHeight))
+		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), relayer, haltHeight)
 	})
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
@@ -243,5 +244,5 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height after halt")
 
-	s.Require().Greater(int64(height), haltHeight, "height did not increment after halt")
+	s.Require().Greater(height, haltHeight, "height did not increment after halt")
 }

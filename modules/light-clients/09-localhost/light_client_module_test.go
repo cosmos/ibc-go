@@ -15,7 +15,7 @@ import (
 )
 
 func (suite *LocalhostTestSuite) TestStatus() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
 	suite.Require().True(found)
 	suite.Require().Equal(exported.Active, lightClientModule.Status(suite.chain.GetContext(), exported.LocalhostClientID))
 }
@@ -204,7 +204,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 
 			tc.malleate()
 
-			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
+			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
 			suite.Require().True(found)
 
 			err := lightClientModule.VerifyMembership(
@@ -282,7 +282,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 
 			tc.malleate()
 
-			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
+			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
 			suite.Require().True(found)
 
 			err := lightClientModule.VerifyNonMembership(
@@ -304,7 +304,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 }
 
 func (suite *LocalhostTestSuite) TestRecoverClient() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
 	suite.Require().True(found)
 
 	err := lightClientModule.RecoverClient(suite.chain.GetContext(), exported.LocalhostClientID, exported.LocalhostClientID)
@@ -312,7 +312,7 @@ func (suite *LocalhostTestSuite) TestRecoverClient() {
 }
 
 func (suite *LocalhostTestSuite) TestVerifyUpgradeAndUpdateState() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.GetRouter().GetRoute(exported.LocalhostClientID)
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
 	suite.Require().True(found)
 
 	err := lightClientModule.VerifyUpgradeAndUpdateState(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil, nil, nil)
