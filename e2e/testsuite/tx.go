@@ -320,14 +320,14 @@ func (s *E2ETestSuite) PruneAcknowledgements(
 // https://github.com/cosmos/cosmos-sdk/blob/65ab2530cc654fd9e252b124ed24cbaa18023b2b/x/auth/client/cli/query.go#L33
 func (*E2ETestSuite) QueryTxsByEvents(
 	ctx context.Context, chain ibc.Chain,
-	page, limit int, query, orderBy string,
+	page, limit int, queryReq, orderBy string,
 ) (*sdk.SearchTxsResult, error) {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
 		return nil, fmt.Errorf("QueryTxsByEvents must be passed a cosmos.CosmosChain")
 	}
 
-	cmd := []string{"txs", "--query", query}
+	cmd := []string{"txs", "--query", queryReq}
 	if orderBy != "" {
 		cmd = append(cmd, "--order_by", orderBy)
 	}
