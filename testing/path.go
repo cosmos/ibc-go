@@ -6,7 +6,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -39,8 +38,7 @@ func NewPath(chainA, chainB *TestChain) *Path {
 // counterparty endpoint. It also enables Fee on the path
 func NewPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
 	path := NewPath(chainA, chainB)
-	EnableFeeOnPath(path)
-	return path
+	return EnableFeeOnPath(path)
 }
 
 // NewTransferPath constructs a new path between each chain suitable for use with
@@ -59,8 +57,7 @@ func NewTransferPath(chainA, chainB *TestChain) *Path {
 // the transfer module, and it enabled fees on it.
 func NewTransferPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
 	path := NewTransferPath(chainA, chainB)
-	EnableFeeOnPath(path)
-	return path
+	return EnableFeeOnPath(path)
 }
 
 // SetChannelOrdered sets the channel order for both endpoints to ORDERED.
@@ -230,10 +227,10 @@ func (path *Path) CreateChannels() {
 }
 
 // EnableFeeOnPath enables fee on a channel given a path.
-func EnableFeeOnPath(path *Path) {
-	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
-	path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	path.EndpointB.ChannelConfig.Version = mockFeeVersion
+func EnableFeeOnPath(path *Path) *Path {
+	path.EndpointA.ChannelConfig.Version = ibcmock.MockFeeVersion
+	path.EndpointB.ChannelConfig.Version = ibcmock.MockFeeVersion
 	path.EndpointA.ChannelConfig.PortID = MockFeePort
 	path.EndpointB.ChannelConfig.PortID = MockFeePort
+	return path
 }

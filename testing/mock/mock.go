@@ -22,6 +22,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 )
 
 const (
@@ -47,6 +48,8 @@ var (
 	// MockApplicationCallbackError should be returned when an application callback should fail. It is possible to
 	// test that this error was returned using ErrorIs.
 	MockApplicationCallbackError error = &applicationCallbackError{}
+	MockFeeVersion = 	 string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: Version}))
+
 )
 
 var (
