@@ -2,7 +2,7 @@ package tendermint_test
 
 import (
 	"crypto/sha256"
-	fmt "fmt"
+	"fmt"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
