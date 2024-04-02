@@ -1078,7 +1078,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 				// create a new path using a fee enabled channel and downgrade it to disable fees
 				path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-				ibctesting.EnableFeeOnChannel(path)
+				ibctesting.EnableFeeOnPath(path)
 
 				upgradeVersion := ibcmock.Version
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion

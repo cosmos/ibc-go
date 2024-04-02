@@ -6,8 +6,10 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 // Path contains two endpoints representing two chains connected over IBC
@@ -208,4 +210,13 @@ func (path *Path) CreateChannels() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// EnableFeeOnPath enables fee on a channel given a path.
+func EnableFeeOnPath(path *Path) {
+	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+	path.EndpointA.ChannelConfig.Version = mockFeeVersion
+	path.EndpointB.ChannelConfig.Version = mockFeeVersion
+	path.EndpointA.ChannelConfig.PortID = MockFeePort
+	path.EndpointB.ChannelConfig.PortID = MockFeePort
 }
