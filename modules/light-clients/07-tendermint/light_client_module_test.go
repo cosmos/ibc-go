@@ -2,6 +2,7 @@ package tendermint_test
 
 import (
 	"crypto/sha256"
+	fmt "fmt"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -37,18 +38,30 @@ func (suite *TendermintTestSuite) TestStatus() {
 		malleate  func()
 		expStatus exported.Status
 	}{
-		{"client is active", func() {}, exported.Active},
-		{"client is frozen", func() {
-			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			path.EndpointA.SetClientState(clientState)
-		}, exported.Frozen},
-		{"client status without consensus state", func() {
-			clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
-			path.EndpointA.SetClientState(clientState)
-		}, exported.Expired},
-		{"client status is expired", func() {
-			suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
-		}, exported.Expired},
+		{"client is active",
+			func() {},
+			exported.Active,
+		},
+		{"client is frozen",
+			func() {
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				path.EndpointA.SetClientState(clientState)
+			},
+			exported.Frozen,
+		},
+		{"client status without consensus state",
+			func() {
+				clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
+				path.EndpointA.SetClientState(clientState)
+			},
+			exported.Expired,
+		},
+		{"client status is expired",
+			func() {
+				suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
+			},
+			exported.Expired,
+		},
 		{
 			"client state not found for height",
 			func() {
@@ -155,71 +168,96 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 	}
 }
 
-// TODO: fix this test
-// func (suite *TendermintTestSuite) TestInitialize() {
+func (suite *TendermintTestSuite) TestInitialize() {
 
-// 	var consensusState exported.ConsensusState
-// 	var clientState *ibctm.ClientState
+	var consensusState exported.ConsensusState
+	var clientState exported.ClientState
 
-// 	testCases := []struct {
-// 		name     string
-// 		malleate func()
-// 		expErr   error
-// 	}{
-// 		{
-// 			"valid consensus & client states",
-// 			func() {},
-// 			nil,
-// 		},
-// 		{
-// 			"invalid client state",
-// 			func() {
-// 				clientState.ChainId = ""
-// 			},
-// 			ibctm.ErrInvalidChainID,
-// 		},
-// 		{
-// 			"invalid consensus: consensus state is solomachine consensus",
-// 			func() {
-// 				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
-// 			},
-// 			clienttypes.ErrInvalidConsensus,
-// 		},
-// 	}
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"valid consensus & client states",
+			func() {},
+			nil,
+		},
+		{
+			"invalid client state",
+			func() {
+				clientState.(*ibctm.ClientState).ChainId = ""
+			},
+			ibctm.ErrInvalidChainID,
+		},
+		{
+			"invalid client state: solomachine client state",
+			func() {
+				clientState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ClientState()
 
-// 	for _, tc := range testCases {
-// 		tc := tc
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest()
-// 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			},
+			fmt.Errorf("failed to unmarshal client state bytes into client state"),
+		},
+		{
+			"invalid consensus: consensus state is solomachine consensus",
+			func() {
+				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
+			},
+			fmt.Errorf("failed to unmarshal consensus state bytes into consensus state"),
+		},
+		{
+			"invalid consensus state",
+			func() {
+				consensusState = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), []byte("invalidNextValsHash"))
+			},
+			fmt.Errorf("next validators hash is invalid"),
+		},
+	}
 
-// 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
-// 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-// 			suite.Require().True(found)
+			tmConfig, ok := path.EndpointA.ClientConfig.(*ibctesting.TendermintConfig)
+			suite.Require().True(ok)
 
-// 			tc.malleate()
+			clientState = ibctm.NewClientState(
+				path.EndpointA.Chain.ChainID,
+				tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+				suite.chainA.LatestCommittedHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
+			)
 
-// 			clientStateBz := suite.chainB.Codec.MustMarshal(clientState)
-// 			consStateBz := suite.chainB.Codec.MustMarshal(consensusState)
+			consensusState = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), suite.chainA.ProposedHeader.ValidatorsHash)
 
-// 			err := lightClientModule.Initialize(suite.chainB.GetContext(), path.EndpointB.ClientID, clientStateBz, consStateBz)
+			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
 
-// 			store := suite.chainB.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainB.GetContext(), path.EndpointB.ClientID)
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
+			suite.Require().True(found)
 
-// 			expPass := tc.expErr == nil
-// 			if expPass {
-// 				suite.Require().NoError(err, "valid case returned an error")
-// 				suite.Require().True(store.Has(host.ClientStateKey()))
-// 				suite.Require().True(store.Has(host.ConsensusStateKey(height)))
-// 			} else {
-// 				suite.Require().ErrorContains(err, tc.expErr.Error())
-// 				suite.Require().False(store.Has(host.ClientStateKey()))
-// 				suite.Require().False(store.Has(host.ConsensusStateKey(height)))
-// 			}
-// 		})
-// 	}
-// }
+			tc.malleate()
+
+			clientStateBz := suite.chainA.Codec.MustMarshal(clientState)
+			consStateBz := suite.chainA.Codec.MustMarshal(consensusState)
+
+			err := lightClientModule.Initialize(suite.chainA.GetContext(), path.EndpointA.ClientID, clientStateBz, consStateBz)
+
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err, "valid case returned an error")
+				suite.Require().True(store.Has(host.ClientStateKey()))
+				suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LatestCommittedHeader.GetHeight())))
+			} else {
+				suite.Require().ErrorContains(err, tc.expErr.Error())
+				suite.Require().False(store.Has(host.ClientStateKey()))
+				suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LatestCommittedHeader.GetHeight())))
+			}
+		})
+	}
+}
 
 func (suite *TendermintTestSuite) TestRecoverClient() {
 	var (
