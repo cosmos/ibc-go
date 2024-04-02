@@ -3,9 +3,6 @@ package keeper
 import (
 	"bytes"
 	"encoding/hex"
-	"errors"
-	"fmt"
-	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
@@ -33,6 +30,7 @@ type Keeper struct {
 	authority string
 }
 
+<<<<<<< HEAD
 // NewKeeperWithVM creates a new Keeper instance with the provided Wasm VM.
 // This constructor function is meant to be used when the chain uses x/wasm
 // and the same Wasm VM instance should be shared with it.
@@ -100,6 +98,11 @@ func NewKeeperWithConfig(
 	}
 
 	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, queryRouter, opts...)
+=======
+// Codec returns the 08-wasm module's codec.
+func (k Keeper) Codec() codec.BinaryCodec {
+	return k.cdc
+>>>>>>> 031c2b83 (imp: adding 08-wasm build opts with libwasmvm linking disabled (#5923))
 }
 
 // GetAuthority returns the 08-wasm module's authority.
