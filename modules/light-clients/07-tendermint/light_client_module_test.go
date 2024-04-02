@@ -38,25 +38,29 @@ func (suite *TendermintTestSuite) TestStatus() {
 		malleate  func()
 		expStatus exported.Status
 	}{
-		{"client is active",
+		{
+			"client is active",
 			func() {},
 			exported.Active,
 		},
-		{"client is frozen",
+		{
+			"client is frozen",
 			func() {
 				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 				path.EndpointA.SetClientState(clientState)
 			},
 			exported.Frozen,
 		},
-		{"client status without consensus state",
+		{
+			"client status without consensus state",
 			func() {
 				clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
 				path.EndpointA.SetClientState(clientState)
 			},
 			exported.Expired,
 		},
-		{"client status is expired",
+		{
+			"client status is expired",
 			func() {
 				suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
 			},
@@ -169,7 +173,6 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 }
 
 func (suite *TendermintTestSuite) TestInitialize() {
-
 	var consensusState exported.ConsensusState
 	var clientState exported.ClientState
 
@@ -194,7 +197,6 @@ func (suite *TendermintTestSuite) TestInitialize() {
 			"invalid client state: solomachine client state",
 			func() {
 				clientState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ClientState()
-
 			},
 			fmt.Errorf("failed to unmarshal client state bytes into client state"),
 		},
