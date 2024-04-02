@@ -36,6 +36,15 @@ func (suite *TendermintTestSuite) TestGetSelfConsensusState() {
 			expError: stakingtypes.ErrNoHistoricalInfo,
 		},
 		{
+			name: "pruned historical info",
+			malleate: func() {
+				height = clienttypes.NewHeight(1, uint64(suite.chainA.GetContext().BlockHeight())-1)
+
+				suite.chainA.GetSimApp().StakingKeeper.DeleteHistoricalInfo(suite.chainA.GetContext(), int64(height.GetRevisionHeight()))
+			},
+			expError: stakingtypes.ErrNoHistoricalInfo,
+		},
+		{
 			name: "custom consensus host: failure",
 			malleate: func() {
 				consensusHost := &mock.ConsensusHost{
