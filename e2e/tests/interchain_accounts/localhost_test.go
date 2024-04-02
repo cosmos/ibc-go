@@ -122,7 +122,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	t.Run("verify interchain account registration and deposit funds", func(t *testing.T) {
 		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(interchainAccAddress))
+		s.Require().NotEmpty(interchainAccAddress)
 
 		walletAmount := ibc.WalletAmount{
 			Address: interchainAccAddress,
@@ -136,7 +136,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
 		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(interchainAccAddress))
+		s.Require().NotEmpty(interchainAccAddress)
 
 		msgSend := &banktypes.MsgSend{
 			FromAddress: interchainAccAddress,
@@ -277,7 +277,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t.Run("verify interchain account registration and deposit funds", func(t *testing.T) {
 		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(interchainAccAddress))
+		s.Require().NotEmpty(interchainAccAddress)
 
 		walletAmount := ibc.WalletAmount{
 			Address: interchainAccAddress,
@@ -291,7 +291,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t.Run("send localhost interchain accounts packet with timeout", func(t *testing.T) {
 		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(interchainAccAddress))
+		s.Require().NotEmpty(interchainAccAddress)
 
 		msgSend := &banktypes.MsgSend{
 			FromAddress: interchainAccAddress,
@@ -407,7 +407,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t.Run("verify interchain account and existing balance", func(t *testing.T) {
 		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(interchainAccAddress))
+		s.Require().NotEmpty(interchainAccAddress)
 
 		balance, err := s.QueryBalance(ctx, chainA, interchainAccAddress, chainADenom)
 		s.Require().NoError(err)
@@ -419,7 +419,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
 		interchainAccAddress, err := s.QueryInterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(interchainAccAddress))
+		s.Require().NotEmpty(interchainAccAddress)
 
 		msgSend := &banktypes.MsgSend{
 			FromAddress: interchainAccAddress,

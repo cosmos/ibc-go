@@ -155,7 +155,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			var err error
 			hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 			s.Require().NoError(err)
-			s.Require().NotZero(len(hostAccount))
+			s.Require().NotEmpty(hostAccount)
 
 			channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 			s.Require().NoError(err)
