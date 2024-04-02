@@ -190,8 +190,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		{
 			"empty pagination",
 			func() {
-				path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-				ibctesting.EnableFeeOnPath(path)
+				path := ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
 				path.Setup()
 				expIdentifiedPacketFees = nil
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
@@ -286,8 +285,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
 			}
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			ibctesting.EnableFeeOnPath(path)
+			path := ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
 			path.Setup()
 
 			tc.malleate()
@@ -835,8 +833,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			suite.SetupTest() // reset
 			expEnabled = true
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			ibctesting.EnableFeeOnPath(path)
+			path = ibctesting.NewPathWithFeeEnabled(suite.chainA, suite.chainB)
 			path.Setup()
 
 			req = &types.QueryFeeEnabledChannelRequest{

@@ -44,12 +44,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	ibctesting.EnableFeeOnPath(path)
+	path := ibctesting.NewPathWithFeeEnabled(suite.chainA, suite.chainB)
 	suite.path = path
 
-	path = ibctesting.NewPath(suite.chainA, suite.chainC)
-	ibctesting.EnableFeeOnPath(path)
+	path = ibctesting.NewPathWithFeeEnabled(suite.chainA, suite.chainC)
 	suite.pathAToC = path
 }
 

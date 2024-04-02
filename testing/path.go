@@ -34,6 +34,15 @@ func NewPath(chainA, chainB *TestChain) *Path {
 	}
 }
 
+// NewPath constructs an endpoint for each chain using the default values
+// for the endpoints. Each endpoint is updated to have a pointer to the
+// counterparty endpoint. It also enables Fee on the path
+func NewPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
+	path := NewPath(chainA, chainB)
+	EnableFeeOnPath(path)
+	return path
+}
+
 // NewTransferPath constructs a new path between each chain suitable for use with
 // the transfer module.
 func NewTransferPath(chainA, chainB *TestChain) *Path {
@@ -43,6 +52,14 @@ func NewTransferPath(chainA, chainB *TestChain) *Path {
 	path.EndpointA.ChannelConfig.Version = transfertypes.Version
 	path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
+	return path
+}
+
+// NewTransferPathWithFeeEnabled constructs a new path between each chain suitable for use with
+// the transfer module, and it enabled fees on it.
+func NewTransferPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
+	path := NewTransferPath(chainA, chainB)
+	EnableFeeOnPath(path)
 	return path
 }
 
