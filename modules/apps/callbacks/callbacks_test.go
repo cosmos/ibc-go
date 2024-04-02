@@ -100,7 +100,7 @@ func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 func (s *CallbacksTestSuite) SetupMockFeeTest() {
 	s.setupChains()
 
-	ibctesting.EnableFeeOnChannel(s.path)
+	ibctesting.EnableFeeOnPath(s.path)
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).

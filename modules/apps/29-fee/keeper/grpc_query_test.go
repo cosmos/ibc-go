@@ -172,12 +172,12 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		TimeoutFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}},
 	}
 
-	const emptyChannelId = "channel-10"
+	const emptyChannelID = "channel-10"
 	setEmptyChannel := func() {
 		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
 			suite.chainA.GetContext(),
 			ibctesting.MockFeePort,
-			emptyChannelId,
+			emptyChannelID,
 			channeltypes.Channel{},
 		)
 	}
@@ -236,7 +236,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 						CountTotal: false,
 					},
 					PortId:      ibctesting.MockFeePort,
-					ChannelId:   emptyChannelId,
+					ChannelId:   emptyChannelID,
 					QueryHeight: 0,
 				}
 			},
