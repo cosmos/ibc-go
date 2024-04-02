@@ -40,7 +40,8 @@ func (suite *TendermintTestSuite) TestGetSelfConsensusState() {
 			malleate: func() {
 				height = clienttypes.NewHeight(1, uint64(suite.chainA.GetContext().BlockHeight())-1)
 
-				suite.chainA.GetSimApp().StakingKeeper.DeleteHistoricalInfo(suite.chainA.GetContext(), int64(height.GetRevisionHeight()))
+				err := suite.chainA.GetSimApp().StakingKeeper.DeleteHistoricalInfo(suite.chainA.GetContext(), int64(height.GetRevisionHeight()))
+				suite.Require().NoError(err)
 			},
 			expError: stakingtypes.ErrNoHistoricalInfo,
 		},
