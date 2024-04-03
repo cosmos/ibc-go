@@ -156,4 +156,3 @@ func (k Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscr
 		Amount: amount,
 	}, nil
 }
-
