@@ -24,7 +24,6 @@ jobs:
           GOARCH=${{ matrix.go-arch }} go build ./...
 
   tests:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +34,11 @@ jobs:
         run: |
           cd modules/capability
           go test -v -mod=readonly ./...
+
+  code-analysis:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
       - name: sonarcloud
         if: ${{ env.GIT_DIFF && !github.event.pull_request.draft && env.SONAR_TOKEN != null }}
         uses: SonarSource/sonarcloud-github-action@v2.1.1

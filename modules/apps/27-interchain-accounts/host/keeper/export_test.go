@@ -14,3 +14,8 @@ import (
 func (k Keeper) GetAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
 	return k.getAppMetadata(ctx, portID, channelID)
 }
+
+// NewModuleQuerySafeAllowList is a wrapper around newModuleQuerySafeAllowList to allow the function to be directly called in tests.
+func NewModuleQuerySafeAllowList() []string {
+	return newModuleQuerySafeAllowList()
+}
