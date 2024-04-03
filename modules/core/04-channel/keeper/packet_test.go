@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+
 	"cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
