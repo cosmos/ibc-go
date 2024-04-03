@@ -217,21 +217,16 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		{
 			"no packets for specified channel",
 			func() {
-				const emptyChannelID = "channel-10"
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
-					suite.chainA.GetContext(),
-					ibctesting.MockFeePort,
-					emptyChannelID,
-					channeltypes.Channel{},
-				)
+				path := ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
+				path.Setup()
 				expIdentifiedPacketFees = nil
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
 					Pagination: &query.PageRequest{
 						Limit:      5,
 						CountTotal: false,
 					},
-					PortId:      ibctesting.MockFeePort,
-					ChannelId:   emptyChannelID,
+					PortId:      path.EndpointA.ChannelConfig.PortID,
+					ChannelId:   path.EndpointA.ChannelID,
 					QueryHeight: 0,
 				}
 			},
