@@ -1243,9 +1243,8 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 	var (
-		clientMsg   exported.ClientMessage
-		clientState *solomachine.ClientState
-		clientID    string
+		clientID  string
+		clientMsg exported.ClientMessage
 	)
 
 	// test singlesig and multisig public keys
@@ -1342,7 +1341,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 					suite.Require().NoError(err)
 					h.Signature = sig
 
-					clientState = cs
 					clientMsg = h
 				},
 				solomachine.ErrSignatureVerificationFailed,
@@ -1352,6 +1350,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				func() {
 					// store in temp before assigning to interface type
 					cs := sm.ClientState()
+
 					oldPubKey := sm.PublicKey
 					h := sm.CreateHeader(sm.Diversifier)
 
@@ -1360,23 +1359,18 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 					sig := sm.GenerateSignature(data)
 					h.Signature = sig
 
-					clientState = cs
 					clientMsg = h
-
-					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
 				},
-				// TODO(jim): Doesn't fail on VerifySignature
-				clienttypes.ErrInvalidHeader,
+				solomachine.ErrSignatureVerificationFailed,
 			},
 			{
 				"failure: consensus state public key is nil - header",
 				func() {
-					clientState.ConsensusState.PublicKey = nil
-					clientMsg = sm.CreateHeader(sm.Diversifier)
-					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
+					h := sm.CreateHeader(sm.Diversifier)
+					h.NewPublicKey = nil
+					clientMsg = h
 				},
-				// TODO(jim): Doesn't fail on VerifySignature
-				clienttypes.ErrInvalidHeader,
+				solomachine.ErrSignatureVerificationFailed,
 			},
 			{
 				"failure: cannot find client state",
