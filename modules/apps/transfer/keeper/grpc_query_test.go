@@ -245,12 +245,44 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 			},
 			true,
 		},
+		{
+			"failure - channel not found",
+			func() {
+				req = &types.QueryEscrowAddressRequest{
+					PortId:    ibctesting.InvalidID,
+					ChannelId: ibctesting.FirstChannelID,
+				}
+			},
+			false,
+		},
+		{
+			"failure - empty channelID",
+			func() {
+				req = &types.QueryEscrowAddressRequest{
+					PortId:    ibctesting.TransferPort,
+					ChannelId: "",
+				}
+			},
+			false,
+		},
+		{
+			"failure - empty portID",
+			func() {
+				req = &types.QueryEscrowAddressRequest{
+					PortId:    "",
+					ChannelId: ibctesting.FirstChannelID,
+				}
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
