@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-
 	testifysuite "github.com/stretchr/testify/suite"
 
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
