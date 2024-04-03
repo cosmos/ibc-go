@@ -295,7 +295,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
@@ -359,7 +359,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
@@ -429,7 +429,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
