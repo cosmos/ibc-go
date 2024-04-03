@@ -2,7 +2,6 @@ package validate_test
 
 import (
 	"fmt"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
