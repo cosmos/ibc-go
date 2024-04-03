@@ -107,11 +107,16 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 
 			tc.malleate()
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState, ok := endpoint.GetClientState().(*types.ClientState)
-			suite.Require().True(ok)
+			clientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(endpoint.ClientID)
+			suite.Require().True(found)
 
-			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+			// clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			// clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			// suite.Require().True(ok)
+
+			clientModule.Status(suite.chainA.GetContext(), endpoint.ClientID)
+
+			// clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 
 			// reset query plugins after each test
 			ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())

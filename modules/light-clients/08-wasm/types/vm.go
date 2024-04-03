@@ -105,8 +105,8 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Che
 	return resp, err
 }
 
-// wasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls instantiateContract.
-func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
+// WasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls instantiateContract.
+func WasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
@@ -138,15 +138,15 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 	return nil
 }
 
-// wasmSudo calls the contract with the given payload and returns the result.
-// wasmSudo returns an error if:
+// WasmSudo calls the contract with the given payload and returns the result.
+// WasmSudo returns an error if:
 // - the payload cannot be marshaled to JSON
 // - the contract call returns an error
 // - the response of the contract call contains non-empty messages
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
+func WasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -204,12 +204,12 @@ func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.
 	return err
 }
 
-// wasmQuery queries the contract with the given payload and returns the result.
-// wasmQuery returns an error if:
+// WasmQuery queries the contract with the given payload and returns the result.
+// WasmQuery returns an error if:
 // - the payload cannot be marshaled to JSON
 // - the contract query returns an error
 // - the data bytes of the response cannot be unmarshal into the result type
-func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload QueryMsg) (T, error) {
+func WasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload QueryMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)

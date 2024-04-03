@@ -21,7 +21,8 @@ import (
 type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
-
+	// vm contains an implementation of the WasmEngine that's invoked.
+	vm  ibcwasm.WasmEngine
 	cdc codec.BinaryCodec
 
 	storeService store.KVStoreService
@@ -39,6 +40,11 @@ func (k Keeper) Codec() codec.BinaryCodec {
 // GetAuthority returns the 08-wasm module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+// GetVM returns the keeper's vm engine.
+func (k Keeper) GetVM() ibcwasm.WasmEngine {
+	return k.vm
 }
 
 func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {

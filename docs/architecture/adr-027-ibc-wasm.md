@@ -139,7 +139,7 @@ func (cs ClientState) VerifyClientMessage(
   payload := QueryMsg{
     VerifyClientMessage: &VerifyClientMessageMsg{ClientMessage: clientMessage.Data},
   }
-  _, err := wasmQuery[EmptyResult](ctx, clientStore, &cs, payload)
+  _, err := WasmQuery[EmptyResult](ctx, clientStore, &cs, payload)
   return err
 }
 ```

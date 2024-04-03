@@ -98,7 +98,7 @@ type migrateClientWrappedStore struct {
 	substituteStore storetypes.KVStore
 }
 
-func newMigrateClientWrappedStore(subjectStore, substituteStore storetypes.KVStore) migrateClientWrappedStore {
+func NewMigrateClientWrappedStore(subjectStore, substituteStore storetypes.KVStore) migrateClientWrappedStore {
 	if subjectStore == nil {
 		panic(errors.New("subjectStore must not be nil"))
 	}

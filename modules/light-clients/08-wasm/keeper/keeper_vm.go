@@ -47,6 +47,7 @@ func NewKeeperWithVM(
 
 	keeper := &Keeper{
 		cdc:          cdc,
+		vm:           vm,
 		storeService: storeService,
 		clientKeeper: clientKeeper,
 		authority:    authority,
