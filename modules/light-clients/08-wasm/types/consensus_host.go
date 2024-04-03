@@ -58,14 +58,6 @@ func (w *WasmConsensusHost) GetSelfConsensusState(ctx sdk.Context, height export
 
 // ValidateSelfClient implements the 02-client types.ConsensusHost interface.
 func (w *WasmConsensusHost) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
-	if w.cdc == nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm consensus host codec is nil")
-	}
-
-	if w.delegate == nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm delegate consensus host is nil")
-	}
-
 	wasmClientState, ok := clientState.(*ClientState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "client must be a wasm client, expected: %T, got: %T", ClientState{}, wasmClientState)

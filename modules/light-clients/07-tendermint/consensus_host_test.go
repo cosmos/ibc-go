@@ -22,10 +22,8 @@ func (suite *TendermintTestSuite) TestGetSelfConsensusState() {
 		expError error
 	}{
 		{
-			name: "zero height",
-			malleate: func() {
-				height = clienttypes.ZeroHeight()
-			},
+			name:     "zero height",
+			malleate: func() {},
 			expError: clienttypes.ErrInvalidHeight,
 		},
 		{

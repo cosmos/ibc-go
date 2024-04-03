@@ -12,9 +12,11 @@ import (
 )
 
 func (suite *TypesTestSuite) TestGetSelfConsensusState() {
-	var height clienttypes.Height
-	var consensusHost clienttypes.ConsensusHost
-	var consensusState exported.ConsensusState
+	var (
+		consensusHost  clienttypes.ConsensusHost
+		consensusState exported.ConsensusState
+		height         clienttypes.Height
+	)
 
 	cases := []struct {
 		name     string
@@ -78,8 +80,10 @@ func (suite *TypesTestSuite) TestGetSelfConsensusState() {
 }
 
 func (suite *TypesTestSuite) TestValidateSelfClient() {
-	var clientState exported.ClientState
-	var consensusHost clienttypes.ConsensusHost
+	var (
+		clientState   exported.ClientState
+		consensusHost clienttypes.ConsensusHost
+	)
 
 	testCases := []struct {
 		name     string
