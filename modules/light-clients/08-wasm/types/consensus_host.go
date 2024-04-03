@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,23 +21,23 @@ type WasmConsensusHost struct {
 var _ clienttypes.ConsensusHost = (*WasmConsensusHost)(nil)
 
 // NewWasmConsensusHost creates and returns a new ConsensusHost for wasm wrapped consensus client state and consensus state self validation.
-func NewWasmConsensusHost(cdc codec.BinaryCodec, delegate clienttypes.ConsensusHost) *WasmConsensusHost {
+func NewWasmConsensusHost(cdc codec.BinaryCodec, delegate clienttypes.ConsensusHost) (*WasmConsensusHost, error) {
+	if cdc == nil {
+		return nil, fmt.Errorf("wasm consensus host codec is nil")
+	}
+
+	if delegate == nil {
+		return nil, fmt.Errorf("wasm delegate consensus host is nil")
+	}
+
 	return &WasmConsensusHost{
 		cdc:      cdc,
 		delegate: delegate,
-	}
+	}, nil
 }
 
 // GetSelfConsensusState implements the 02-client types.ConsensusHost interface.
 func (w *WasmConsensusHost) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
-	if w.cdc == nil {
-		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm consensus host codec is nil")
-	}
-
-	if w.delegate == nil {
-		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm delegate consensus host is nil")
-	}
-
 	consensusState, err := w.delegate.GetSelfConsensusState(ctx, height)
 	if err != nil {
 		return nil, err
