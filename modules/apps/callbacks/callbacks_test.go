@@ -27,7 +27,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const maxCallbackGas = uint64(1000000)
@@ -101,11 +100,7 @@ func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 func (s *CallbacksTestSuite) SetupMockFeeTest() {
 	s.setupChains()
 
-	mockFeeVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: ibcmock.Version}))
-	s.path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	s.path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	s.path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	s.path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	ibctesting.EnableFeeOnPath(s.path)
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
