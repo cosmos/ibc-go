@@ -15,6 +15,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -112,12 +114,24 @@ func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 }
 
 // EscrowAddress implements the EscrowAddress gRPC method
-func (Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
+func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	addr := types.GetEscrowAddress(req.PortId, req.ChannelId)
+
+	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	if !k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
+		)
+	}
 
 	return &types.QueryEscrowAddressResponse{
 		EscrowAddress: addr.String(),
@@ -141,4 +155,16 @@ func (k Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscr
 	return &types.QueryTotalEscrowForDenomResponse{
 		Amount: amount,
 	}, nil
+}
+
+func validategRPCRequest(portID, channelID string) error {
+	if err := host.PortIdentifierValidator(portID); err != nil {
+		return status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if err := host.ChannelIdentifierValidator(channelID); err != nil {
+		return status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	return nil
 }
