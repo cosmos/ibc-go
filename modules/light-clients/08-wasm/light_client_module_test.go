@@ -838,18 +838,6 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 		},
 		/* TODO(jim): Get back to these.
 		{
-			"failure: upgraded client state is not wasm client state",
-			func() {
-				// set upgraded client state to solomachine client state
-				upgradedClient = &types.ClientState{
-					Data:         nil,
-					Checksum:     nil,
-					LatestHeight: clienttypes.NewHeight(3, 0),
-				}
-			},
-			clienttypes.ErrInvalidClient,
-		},
-		{
 			"failure: upgraded consensus state is not wasm consensus state",
 			func() {
 				// set upgraded consensus state to solomachine consensus state
