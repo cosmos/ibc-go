@@ -47,7 +47,7 @@ func (k Keeper) GetVM() ibcwasm.WasmEngine {
 	return k.vm
 }
 
-func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
+func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
@@ -86,7 +86,7 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 	}
 
 	// pin the code to the vm in-memory cache
-	if err := ibcwasm.GetVM().Pin(vmChecksum); err != nil {
+	if err := k.GetVM().Pin(vmChecksum); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to pin contract with checksum (%s) to vm cache", hex.EncodeToString(vmChecksum))
 	}
 
@@ -108,7 +108,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksu
 
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
-	err = wasmClientState.MigrateContract(ctx, k.cdc, clientStore, clientID, newChecksum, migrateMsg)
+	err = wasmClientState.MigrateContract(ctx, k.GetVM(), k.cdc, clientStore, clientID, newChecksum, migrateMsg)
 	if err != nil {
 		return errorsmod.Wrap(err, "contract migration failed")
 	}
@@ -147,14 +147,15 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 }
 
 // InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
-func InitializePinnedCodes(ctx sdk.Context) error {
+// TODO(jim): Make meth on Keeper probably.
+func InitializePinnedCodes(ctx sdk.Context, k Keeper) error {
 	checksums, err := types.GetAllChecksums(ctx)
 	if err != nil {
 		return err
 	}
 
 	for _, checksum := range checksums {
-		if err := ibcwasm.GetVM().Pin(checksum); err != nil {
+		if err := k.GetVM().Pin(checksum); err != nil {
 			return err
 		}
 	}

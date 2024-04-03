@@ -135,7 +135,8 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 
 			tc.malleate()
 
-			err = clientState.MigrateContract(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, endpointA.ClientID, newHash, payload)
+			vm := GetSimApp(suite.chainA).WasmClientKeeper.GetVM()
+			err = clientState.MigrateContract(suite.chainA.GetContext(), vm, suite.chainA.App.AppCodec(), clientStore, endpointA.ClientID, newHash, payload)
 
 			// updated client state
 			clientState, ok = endpointA.GetClientState().(*types.ClientState)

@@ -20,7 +20,7 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // Code implements the Query/Code gRPC method
-func (Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types.QueryCodeResponse, error) {
+func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types.QueryCodeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -35,7 +35,7 @@ func (Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types.Q
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmChecksumNotFound, req.Checksum).Error())
 	}
 
-	code, err := ibcwasm.GetVM().GetCode(checksum)
+	code, err := k.GetVM().GetCode(checksum)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmChecksumNotFound, req.Checksum).Error())
 	}

@@ -9,14 +9,16 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
 // MigrateContract calls the migrate entry point on the contract with the given
 // migrateMsg. The contract must exist and the checksum must be found in the
 // store. If the checksum is the same as the current checksum, an error is returned.
 // This does not update the checksum in the client state.
+// TODO(jim): Move to lcm? Keeper?
 func (cs ClientState) MigrateContract(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
+	ctx sdk.Context, vm ibcwasm.WasmEngine, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	clientID string, newChecksum, migrateMsg []byte,
 ) error {
 	if !HasChecksum(ctx, newChecksum) {
@@ -32,7 +34,7 @@ func (cs ClientState) MigrateContract(
 	// persisted to the client store.
 	cs.Checksum = newChecksum
 
-	err := wasmMigrate(ctx, cdc, clientStore, &cs, clientID, migrateMsg)
+	err := wasmMigrate(ctx, vm, cdc, clientStore, &cs, clientID, migrateMsg)
 	if err != nil {
 		return err
 	}

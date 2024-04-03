@@ -8,8 +8,6 @@ import (
 )
 
 var (
-	vm WasmEngine
-
 	queryRouter  QueryRouter
 	queryPlugins QueryPluginsI
 
@@ -20,20 +18,6 @@ var (
 	// ChecksumsKey is the key under which all checksums are stored
 	ChecksumsKey = collections.NewPrefix(0)
 )
-
-// SetVM sets the wasm VM for the 08-wasm module.
-// It panics if the wasm VM is nil.
-func SetVM(wasmVM WasmEngine) {
-	if wasmVM == nil {
-		panic(errors.New("wasm VM must be not nil"))
-	}
-	vm = wasmVM
-}
-
-// GetVM returns the wasm VM for the 08-wasm module.
-func GetVM() WasmEngine {
-	return vm
-}
 
 // SetQueryRouter sets the custom wasm query router for the 08-wasm module.
 // Panics if the queryRouter is nil.

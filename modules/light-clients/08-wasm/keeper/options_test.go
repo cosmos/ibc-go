@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 					querierOption,
 				)
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 					querierOption,
 				)
@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 					querierOption,
 				)

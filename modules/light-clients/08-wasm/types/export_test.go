@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
 /*
@@ -18,11 +19,6 @@ var (
 	SubjectPrefix    = subjectPrefix
 	SubstitutePrefix = substitutePrefix
 )
-
-// GetClientID is a wrapper around getClientID to allow the function to be directly called in tests.
-func GetClientID(clientStore storetypes.KVStore) (string, error) {
-	return getClientID(clientStore)
-}
 
 // NewMigrateProposalWrappedStore is a wrapper around newMigrateProposalWrappedStore to allow the function to be directly called in tests.
 //
@@ -42,6 +38,6 @@ func SplitPrefix(key []byte) ([]byte, []byte) {
 }
 
 // WasmMigrate wraps wasmMigrate and is used solely for testing.
-func WasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
-	return wasmMigrate(ctx, cdc, clientStore, cs, clientID, payload)
+func WasmMigrate(ctx sdk.Context, vm ibcwasm.WasmEngine, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
+	return wasmMigrate(ctx, vm, cdc, clientStore, cs, clientID, payload)
 }

@@ -19,7 +19,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
@@ -156,7 +155,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
@@ -171,7 +170,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
@@ -186,7 +185,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
@@ -216,7 +215,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					nil,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
@@ -231,7 +230,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					nil,
 				)
 			},
@@ -313,7 +312,7 @@ func (suite *KeeperTestSuite) TestInitializedPinnedCodes() {
 			// malleate after storing contracts
 			tc.malleate()
 
-			err := keeper.InitializePinnedCodes(ctx)
+			err := keeper.InitializePinnedCodes(ctx, wasmClientKeeper)
 
 			expPass := tc.expError == nil
 			if expPass {

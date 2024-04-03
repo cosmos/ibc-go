@@ -175,7 +175,8 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 			}
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-			err := types.WasmInstantiate(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, &types.ClientState{Checksum: suite.checksum}, initMsg)
+			vm := GetSimApp(suite.chainA).WasmClientKeeper.GetVM()
+			err := types.WasmInstantiate(suite.chainA.GetContext(), vm, defaultWasmClientID, suite.chainA.App.AppCodec(), clientStore, &types.ClientState{Checksum: suite.checksum}, initMsg)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -313,7 +314,8 @@ func (suite *TypesTestSuite) TestWasmMigrate() {
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-			err = types.WasmMigrate(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
+			vm := GetSimApp(suite.chainA).WasmClientKeeper.GetVM()
+			err = types.WasmMigrate(suite.chainA.GetContext(), vm, suite.chainA.App.AppCodec(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -398,7 +400,8 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 
 			tc.malleate()
 
-			res, err := types.WasmQuery[types.StatusResult](suite.chainA.GetContext(), clientStore, wasmClientState, payload)
+			vm := GetSimApp(suite.chainA).WasmClientKeeper.GetVM()
+			res, err := types.WasmQuery[types.StatusResult](suite.chainA.GetContext(), vm, endpoint.ClientID, clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -576,7 +579,8 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 
 			tc.malleate()
 
-			res, err := types.WasmSudo[types.UpdateStateResult](suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, wasmClientState, payload)
+			vm := GetSimApp(suite.chainA).WasmClientKeeper.GetVM()
+			res, err := types.WasmSudo[types.UpdateStateResult](suite.chainA.GetContext(), vm, endpoint.ClientID, suite.chainA.App.AppCodec(), clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {

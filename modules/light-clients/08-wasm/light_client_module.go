@@ -11,6 +11,7 @@ import (
 
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -31,6 +32,11 @@ func NewLightClientModule(keeper wasmkeeper.Keeper) LightClientModule {
 	return LightClientModule{
 		keeper: keeper,
 	}
+}
+
+// GetVM returns the VM associated with this light client module.
+func (l *LightClientModule) GetVM() ibcwasm.WasmEngine {
+	return l.keeper.GetVM()
 }
 
 // RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
@@ -65,7 +71,6 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
 
 	// Do not allow initialization of a client with a checksum that hasn't been previously stored via storeWasmCode.
 	if !types.HasChecksum(ctx, clientState.Checksum) {
@@ -78,7 +83,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 		Checksum:       clientState.Checksum,
 	}
 
-	return types.WasmInstantiate(ctx, cdc, clientStore, &clientState, payload)
+	return types.WasmInstantiate(ctx, l.GetVM(), clientID, l.keeper.Codec(), clientStore, &clientState, payload)
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier, it then must verify the ClientMessage.
@@ -105,7 +110,7 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 	payload := types.QueryMsg{
 		VerifyClientMessage: &types.VerifyClientMessageMsg{ClientMessage: clientMessage.Data},
 	}
-	_, err := types.WasmQuery[types.EmptyResult](ctx, clientStore, clientState, payload)
+	_, err := types.WasmQuery[types.EmptyResult](ctx, l.GetVM(), clientID, clientStore, clientState, payload)
 	return err
 }
 
@@ -131,7 +136,7 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 		CheckForMisbehaviour: &types.CheckForMisbehaviourMsg{ClientMessage: clientMessage.Data},
 	}
 
-	result, err := types.WasmQuery[types.CheckForMisbehaviourResult](ctx, clientStore, clientState, payload)
+	result, err := types.WasmQuery[types.CheckForMisbehaviourResult](ctx, l.GetVM(), clientID, clientStore, clientState, payload)
 	if err != nil {
 		return false
 	}
@@ -162,7 +167,7 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 		UpdateStateOnMisbehaviour: &types.UpdateStateOnMisbehaviourMsg{ClientMessage: clientMessage.Data},
 	}
 
-	_, err := types.WasmSudo[types.EmptyResult](ctx, cdc, clientStore, clientState, payload)
+	_, err := types.WasmSudo[types.EmptyResult](ctx, l.GetVM(), clientID, cdc, clientStore, clientState, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -190,7 +195,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 		UpdateState: &types.UpdateStateMsg{ClientMessage: clientMessage.Data},
 	}
 
-	result, err := types.WasmSudo[types.UpdateStateResult](ctx, cdc, clientStore, clientState, payload)
+	result, err := types.WasmSudo[types.UpdateStateResult](ctx, l.GetVM(), clientID, cdc, clientStore, clientState, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -254,7 +259,7 @@ func (l LightClientModule) VerifyMembership(
 			Value:            value,
 		},
 	}
-	_, err := types.WasmSudo[types.EmptyResult](ctx, cdc, clientStore, clientState, payload)
+	_, err := types.WasmSudo[types.EmptyResult](ctx, l.GetVM(), clientID, cdc, clientStore, clientState, payload)
 	return err
 }
 
@@ -307,7 +312,7 @@ func (l LightClientModule) VerifyNonMembership(
 			Path:             merklePath,
 		},
 	}
-	_, err := types.WasmSudo[types.EmptyResult](ctx, cdc, clientStore, clientState, payload)
+	_, err := types.WasmSudo[types.EmptyResult](ctx, l.GetVM(), clientID, cdc, clientStore, clientState, payload)
 	return err
 }
 
@@ -338,7 +343,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 	}
 
 	payload := types.QueryMsg{Status: &types.StatusMsg{}}
-	result, err := types.WasmQuery[types.StatusResult](ctx, clientStore, clientState, payload)
+	result, err := types.WasmQuery[types.StatusResult](ctx, l.GetVM(), clientID, clientStore, clientState, payload)
 	if err != nil {
 		return exported.Unknown
 	}
@@ -386,7 +391,7 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 		},
 	}
 
-	result, err := types.WasmQuery[types.TimestampAtHeightResult](ctx, clientStore, clientState, payload)
+	result, err := types.WasmQuery[types.TimestampAtHeightResult](ctx, l.GetVM(), clientID, clientStore, clientState, payload)
 	if err != nil {
 		return 0, errorsmod.Wrapf(err, "height (%s)", height)
 	}
@@ -438,9 +443,8 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 		MigrateClientStore: &types.MigrateClientStoreMsg{},
 	}
 
-	_, err = types.WasmSudo[types.EmptyResult](ctx, cdc, store, clientState, payload)
+	_, err = types.WasmSudo[types.EmptyResult](ctx, l.GetVM(), clientID, cdc, store, clientState, payload)
 	return err
-	// return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
 }
 
 // VerifyUpgradeAndUpdateState obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
@@ -489,6 +493,6 @@ func (l LightClientModule) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	_, err := types.WasmSudo[types.EmptyResult](ctx, cdc, clientStore, clientState, payload)
+	_, err := types.WasmSudo[types.EmptyResult](ctx, l.GetVM(), clientID, cdc, clientStore, clientState, payload)
 	return err
 }

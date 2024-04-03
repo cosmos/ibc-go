@@ -60,7 +60,6 @@ func NewKeeperWithVM(
 		opt.apply(keeper)
 	}
 
-	ibcwasm.SetVM(vm)
 	ibcwasm.SetQueryRouter(queryRouter)
 	ibcwasm.SetupWasmStoreService(storeService)
 
