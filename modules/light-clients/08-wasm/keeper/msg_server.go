@@ -65,7 +65,7 @@ func (k Keeper) MigrateContract(goCtx context.Context, msg *types.MsgMigrateCont
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := k.migrateContractCode(ctx, msg.ClientId, msg.Checksum, msg.Msg)
+	err := k.MigrateContractCode(ctx, msg.ClientId, msg.Checksum, msg.Msg)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to migrate contract")
 	}

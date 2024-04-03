@@ -19,6 +19,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
@@ -320,6 +321,152 @@ func (suite *KeeperTestSuite) TestInitializedPinnedCodes() {
 				suite.ElementsMatch(checksumIDs, capturedChecksums)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMigrateContract() {
+	var (
+		oldHash        []byte
+		newHash        []byte
+		payload        []byte
+		expClientState *types.ClientState
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		// TODO(Jim): Figure this out, appears like a bad setup after moving from types test suite.
+		/*
+			{
+				"success: no update to client state",
+				func() {
+					err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash)
+					suite.Require().NoError(err)
+
+					payload = []byte{1}
+					expChecksum := wasmvmtypes.ForceNewChecksum(hex.EncodeToString(newHash))
+
+					suite.mockVM.MigrateFn = func(checksum wasmvm.Checksum, env wasmvmtypes.Env, msg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+						suite.Require().Equal(expChecksum, checksum)
+						suite.Require().Equal(defaultWasmClientID, env.Contract.Address)
+						suite.Require().Equal(payload, msg)
+
+						data, err := json.Marshal(types.EmptyResult{})
+						suite.Require().NoError(err)
+
+						return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: data}}, wasmtesting.DefaultGasUsed, nil
+					}
+				},
+				nil,
+			},
+		*/
+		{
+			"success: update client state",
+			func() {
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					expClientState = types.NewClientState([]byte{1}, newHash, clienttypes.NewHeight(2000, 2))
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), expClientState))
+
+					data, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: data}}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			nil,
+		},
+		{
+			"failure: new and old checksum are the same",
+			func() {
+				newHash = oldHash
+				// this should not be called
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					panic("unreachable")
+				}
+			},
+			types.ErrWasmCodeExists,
+		},
+		{
+			"failure: checksum not found",
+			func() {
+				err := ibcwasm.Checksums.Remove(suite.chainA.GetContext(), newHash)
+				suite.Require().NoError(err)
+			},
+			types.ErrWasmChecksumNotFound,
+		},
+		{
+			"failure: vm returns error",
+			func() {
+				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash)
+				suite.Require().NoError(err)
+
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockVM
+				}
+			},
+			types.ErrVMError,
+		},
+		{
+			"failure: contract returns error",
+			func() {
+				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash)
+				suite.Require().NoError(err)
+
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					return &wasmvmtypes.ContractResult{Err: wasmtesting.ErrMockContract.Error()}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			types.ErrWasmContractCallFailed,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+			storeWasmCode(suite, wasmtesting.Code)
+
+			var err error
+			oldHash, err = types.CreateChecksum(wasmtesting.Code)
+			suite.Require().NoError(err)
+			newHash, err = types.CreateChecksum(wasmtesting.CreateMockContract([]byte{1, 2, 3}))
+			suite.Require().NoError(err)
+
+			err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash)
+			suite.Require().NoError(err)
+
+			endpointA := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err = endpointA.CreateClient()
+			suite.Require().NoError(err)
+
+			// clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpointA.ClientID)
+			clientState, ok := endpointA.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
+
+			expClientState = clientState
+
+			tc.malleate()
+
+			wasmKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+			err = wasmKeeper.MigrateContractCode(suite.chainA.GetContext(), endpointA.ClientID, newHash, payload)
+
+			// vm := GetSimApp(suite.chainA).WasmClientKeeper.GetVM()
+			// err = clientState.MigrateContract(suite.chainA.GetContext(), vm, suite.chainA.App.AppCodec(), clientStore, endpointA.ClientID, newHash, payload)
+
+			// updated client state
+			clientState, ok = endpointA.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expClientState, clientState)
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

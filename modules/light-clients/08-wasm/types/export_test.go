@@ -2,10 +2,6 @@ package types
 
 import (
 	storetypes "cosmossdk.io/store/types"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
 /*
@@ -35,9 +31,4 @@ func (ws migrateClientWrappedStore) GetStore(key []byte) (storetypes.KVStore, bo
 // SplitPrefix is a wrapper around splitKey to allow the function to be directly called in tests.
 func SplitPrefix(key []byte) ([]byte, []byte) {
 	return splitPrefix(key)
-}
-
-// WasmMigrate wraps wasmMigrate and is used solely for testing.
-func WasmMigrate(ctx sdk.Context, vm ibcwasm.WasmEngine, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
-	return wasmMigrate(ctx, vm, cdc, clientStore, cs, clientID, payload)
 }

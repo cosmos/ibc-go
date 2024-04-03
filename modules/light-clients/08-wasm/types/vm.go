@@ -172,10 +172,10 @@ func WasmSudo[T ContractResult](ctx sdk.Context, vm ibcwasm.WasmEngine, clientID
 	return result, nil
 }
 
-// wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
-// wasmMigrate returns an error if:
+// WasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
+// WasmMigrate returns an error if:
 // - the contract migration returns an error
-func wasmMigrate(ctx sdk.Context, vm ibcwasm.WasmEngine, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
+func WasmMigrate(ctx sdk.Context, vm ibcwasm.WasmEngine, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
 	res, err := migrateContract(ctx, vm, clientID, clientStore, cs.Checksum, payload)
 	if err != nil {
 		return errorsmod.Wrap(ErrVMError, err.Error())

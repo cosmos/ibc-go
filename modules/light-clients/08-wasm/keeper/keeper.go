@@ -99,7 +99,8 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wa
 	return checksum, nil
 }
 
-func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
+// TODO(jim): Use an export_test.go here too and make private again.
+func (k Keeper) MigrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
 	wasmClientState, err := k.GetWasmClientState(ctx, clientID)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to retrieve wasm client state")
@@ -107,10 +108,27 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksu
 	oldChecksum := wasmClientState.Checksum
 
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
+	clientState, found := types.GetClientState(clientStore, k.cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
 
-	err = wasmClientState.MigrateContract(ctx, k.GetVM(), k.cdc, clientStore, clientID, newChecksum, migrateMsg)
+	if !types.HasChecksum(ctx, newChecksum) {
+		return types.ErrWasmChecksumNotFound
+	}
+
+	if bytes.Equal(clientState.Checksum, newChecksum) {
+		return errorsmod.Wrapf(types.ErrWasmCodeExists, "new checksum (%s) is the same as current checksum (%s)", hex.EncodeToString(newChecksum), hex.EncodeToString(clientState.Checksum))
+	}
+
+	// update the checksum, this needs to be done before the contract migration
+	// so that wasmMigrate can call the right code. Note that this is not
+	// persisted to the client store.
+	clientState.Checksum = newChecksum
+
+	err = types.WasmMigrate(ctx, k.GetVM(), k.cdc, clientStore, clientState, clientID, migrateMsg)
 	if err != nil {
-		return errorsmod.Wrap(err, "contract migration failed")
+		return err
 	}
 
 	// client state may be updated by the contract migration
