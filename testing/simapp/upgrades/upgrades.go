@@ -77,7 +77,7 @@ func CreateV7UpgradeHandler(
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		// OPTIONAL: prune expired tendermint consensus states to save storage space
-		if _, err := ibctmmigrations.PruneExpiredConsensusStates(sdkCtx, cdc, clientKeeper); err != nil {
+		if _, err := ibctmmigrations.PruneExpiredConsensusStates(sdkCtx, cdc, &clientKeeper); err != nil {
 			return nil, err
 		}
 
