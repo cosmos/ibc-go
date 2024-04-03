@@ -1351,8 +1351,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 					// store in temp before assigning to interface type
 					cs := sm.ClientState()
 
-					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
-
 					oldPubKey := sm.PublicKey
 					h := sm.CreateHeader(sm.Diversifier)
 
