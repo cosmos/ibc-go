@@ -43,8 +43,8 @@ func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey,
 	clientKeeper types.ClientKeeper, connectionKeeper types.ConnectionKeeper,
 	portKeeper types.PortKeeper, scopedKeeper exported.ScopedKeeper,
-) Keeper {
-	return Keeper{
+) *Keeper {
+	return &Keeper{
 		storeKey:         key,
 		cdc:              cdc,
 		clientKeeper:     clientKeeper,

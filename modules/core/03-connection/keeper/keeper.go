@@ -29,8 +29,8 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, ck types.ClientKeeper) Keeper {
-	return Keeper{
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, ck types.ClientKeeper) *Keeper {
+	return &Keeper{
 		storeKey:       key,
 		cdc:            cdc,
 		legacySubspace: legacySubspace,

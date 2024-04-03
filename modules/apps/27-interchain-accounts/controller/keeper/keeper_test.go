@@ -361,6 +361,6 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	suite.chainA.GetSimApp().ICAControllerKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 	ics4Wrapper = suite.chainA.GetSimApp().ICAControllerKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
+	_, isChannelKeeper = ics4Wrapper.(*channelkeeper.Keeper)
 	suite.Require().True(isChannelKeeper)
 }

@@ -21,8 +21,8 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(sck exported.ScopedKeeper) Keeper {
-	return Keeper{
+func NewKeeper(sck exported.ScopedKeeper) *Keeper {
+	return &Keeper{
 		scopedKeeper: sck,
 	}
 }
