@@ -77,8 +77,10 @@ func (suite *SoloMachineTestSuite) TestStatus() {
 }
 
 func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
-	var clientID string
-	height := clienttypes.NewHeight(0, suite.solomachine.ClientState().Sequence)
+	var (
+		clientID string
+		height   exported.Height
+	)
 
 	testCases := []struct {
 		name     string
@@ -89,6 +91,15 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 		{
 			"success: get timestamp at height exists",
 			func() {},
+			suite.solomachine.ClientState().ConsensusState.Timestamp,
+			nil,
+		},
+		{
+			"success: modified height",
+			func() {
+				height = clienttypes.ZeroHeight()
+			},
+			// Timestamp should be the same.
 			suite.solomachine.ClientState().ConsensusState.Timestamp,
 			nil,
 		},
@@ -108,6 +119,7 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 		suite.Run(tc.name, func() {
 			clientID = suite.solomachine.ClientID
 			clientState := suite.solomachine.ClientState()
+			height = clienttypes.NewHeight(0, suite.solomachine.ClientState().Sequence)
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
 			suite.Require().True(found)
@@ -231,7 +243,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				"success: client state verification",
 				func() {
 					clientState = sm.ClientState()
-					clientStateBz, err := suite.chainA.Codec.Marshal(clientState)
+					clientStateBz, err := suite.chainA.Codec.MarshalInterface(clientState)
 					suite.Require().NoError(err)
 
 					path = sm.GetClientStatePath(counterpartyClientIdentifier)
@@ -267,7 +279,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				func() {
 					clientState = sm.ClientState()
 					consensusState := clientState.ConsensusState
-					consensusStateBz, err := suite.chainA.Codec.Marshal(consensusState)
+					consensusStateBz, err := suite.chainA.Codec.MarshalInterface(consensusState)
 					suite.Require().NoError(err)
 
 					path = sm.GetConsensusStatePath(counterpartyClientIdentifier, clienttypes.NewHeight(0, 1))

@@ -14,7 +14,7 @@ const (
 	testPortID                   = "testportid"
 )
 
-func (suite *SoloMachineTestSuite) TestClientStateValidateBasic() {
+func (suite *SoloMachineTestSuite) TestClientStateValidate() {
 	// test singlesig and multisig public keys
 	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
