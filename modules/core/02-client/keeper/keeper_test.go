@@ -23,7 +23,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -44,10 +43,7 @@ const (
 	maxClockDrift  time.Duration = time.Second * 10
 )
 
-var (
-	testClientHeight          = types.NewHeight(0, 5)
-	testClientHeightRevision1 = types.NewHeight(1, 5)
-)
+var testClientHeight = types.NewHeight(0, 5)
 
 type KeeperTestSuite struct {
 	testifysuite.Suite
@@ -84,8 +80,13 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.cdc = app.AppCodec()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx)
+<<<<<<< HEAD
 	suite.keeper = &app.IBCKeeper.ClientKeeper
 	suite.privVal = ibctestingmock.NewPV()
+=======
+	suite.keeper = app.IBCKeeper.ClientKeeper
+	suite.privVal = cmttypes.NewMockPV()
+>>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
 	pubKey, err := suite.privVal.GetPubKey()
 	suite.Require().NoError(err)
 
@@ -144,6 +145,7 @@ func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.Require().Equal(suite.consensusState, tmConsState, "ConsensusState not stored correctly")
 }
 
+<<<<<<< HEAD
 func (suite *KeeperTestSuite) TestValidateSelfClient() {
 	testClientHeight := types.GetSelfHeight(suite.chainA.GetContext())
 	testClientHeight.RevisionHeight--
@@ -229,6 +231,9 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 }
 
 func (suite KeeperTestSuite) TestGetAllGenesisClients() { //nolint:govet // this is a test, we are okay with copying locks
+=======
+func (suite *KeeperTestSuite) TestGetAllGenesisClients() {
+>>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
 	clientIDs := []string{
 		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
 	}
@@ -281,6 +286,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() { //nolint:govet // thi
 	suite.Require().Equal(expectedGenMetadata, actualGenMetadata, "retrieved metadata is unexpected")
 }
 
+<<<<<<< HEAD
 func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is a test, we are okay with copying locks
 	suite.ctx = suite.ctx.WithBlockHeight(10)
 	cases := []struct {
@@ -307,6 +313,8 @@ func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is
 	}
 }
 
+=======
+>>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
 // and a consensus state at the update height.
 func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // this is a test, we are okay with copying locks

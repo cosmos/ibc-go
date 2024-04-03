@@ -46,6 +46,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+<<<<<<< HEAD
+=======
+* (apps/27-interchain-accounts) [\#5785](https://github.com/cosmos/ibc-go/pull/5785) Introduce a new tx message that ICA host submodule can use to query the chain (only those marked with `module_query_safe`) and write the responses to the acknowledgement.
+* (core) [\#6055](https://github.com/cosmos/ibc-go/pull/6055) Introduce a new interface `ConsensusHost` used to validate an IBC `ClientState` and `ConsensusState` against the host chain's underlying consensus parameters.
+
+>>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
 ### Bug Fixes
 
 ## [v8.2.0](https://github.com/cosmos/ibc-go/releases/tag/v8.2.0) - 2024-04-05
