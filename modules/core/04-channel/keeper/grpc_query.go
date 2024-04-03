@@ -18,6 +18,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/internal/validate"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -28,7 +29,7 @@ func (k Keeper) Channel(c context.Context, req *types.QueryChannelRequest) (*typ
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -138,7 +139,7 @@ func (k Keeper) ChannelClientState(c context.Context, req *types.QueryChannelCli
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -161,7 +162,7 @@ func (k Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -207,7 +208,7 @@ func (k Keeper) PacketCommitment(c context.Context, req *types.QueryPacketCommit
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -239,7 +240,7 @@ func (k Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommi
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -284,7 +285,7 @@ func (k Keeper) PacketReceipt(c context.Context, req *types.QueryPacketReceiptRe
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -312,7 +313,7 @@ func (k Keeper) PacketAcknowledgement(c context.Context, req *types.QueryPacketA
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -343,7 +344,7 @@ func (k Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -425,7 +426,7 @@ func (k Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -511,7 +512,7 @@ func (k Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -551,7 +552,7 @@ func (k Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -586,7 +587,7 @@ func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequence
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -609,7 +610,7 @@ func (k Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -640,7 +641,7 @@ func (k Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*typ
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -673,16 +674,4 @@ func (k Keeper) ChannelParams(c context.Context, req *types.QueryChannelParamsRe
 	return &types.QueryChannelParamsResponse{
 		Params: &params,
 	}, nil
-}
-
-func validategRPCRequest(portID, channelID string) error {
-	if err := host.PortIdentifierValidator(portID); err != nil {
-		return status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	if err := host.ChannelIdentifierValidator(channelID); err != nil {
-		return status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	return nil
 }
