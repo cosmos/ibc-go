@@ -1,25 +1,26 @@
 package validate_test
 
 import (
-	"testing"
 	"fmt"
+	"fmt"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v8/internal/validate"
 )
 
-func TestGRPCRequest(t* testing.T) {
+func TestGRPCRequest(t *testing.T) {
 	const (
-		validID = "validIdentifier"
+		validID   = "validIdentifier"
 		invalidID = ""
 	)
 	testCases := []struct {
-		msg string
-		portID string
+		msg       string
+		portID    string
 		channelID string
-		expPass bool
-	} {
+		expPass   bool
+	}{
 		{
 			"success",
 			validID,
@@ -40,14 +41,13 @@ func TestGRPCRequest(t* testing.T) {
 		},
 	}
 
-
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("Case %s", tc.msg), func(t * testing.T) {
+		t.Run(fmt.Sprintf("Case %s", tc.msg), func(t *testing.T) {
 			err := validate.GRPCRequest(tc.portID, tc.channelID)
 			if tc.expPass {
 				require.NoError(t, err, tc.msg)
 			} else {
-				require.Error(t,err,tc.msg)
+				require.Error(t, err, tc.msg)
 			}
 		})
 	}
