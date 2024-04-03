@@ -35,7 +35,7 @@ func NewPath(chainA, chainB *TestChain) *Path {
 
 // NewPath constructs an endpoint for each chain using the default values
 // for the endpoints. Each endpoint is updated to have a pointer to the
-// counterparty endpoint. It also enables Fee on the path
+// counterparty endpoint. It also enables fee on the path
 func NewPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
 	path := NewPath(chainA, chainB)
 	return EnableFeeOnPath(path)
