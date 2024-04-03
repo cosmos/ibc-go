@@ -54,7 +54,7 @@ func NewTransferPath(chainA, chainB *TestChain) *Path {
 }
 
 // NewTransferPathWithFeeEnabled constructs a new path between each chain suitable for use with
-// the transfer module, and it enabled fees on it.
+// the transfer module, and it enables fee on it.
 func NewTransferPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
 	path := NewTransferPath(chainA, chainB)
 	return EnableFeeOnPath(path)
