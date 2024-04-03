@@ -4,10 +4,9 @@ import (
 	"testing"
 	"fmt"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/ibc-go/v8/internal/validate"
 )
 
 func TestGRPCRequest(t* testing.T) {
@@ -19,30 +18,36 @@ func TestGRPCRequest(t* testing.T) {
 		msg string
 		portID string
 		channelID string
-		expError error
+		expPass bool
 	} {
 		{
 			"success",
 			validID,
 			validID,
-			nil,
+			true,
 		},
 		{
 			"invalid portID",
 			invalidID,
 			validID,
-			status.Error(codes.InvalidArgument),
+			false,
+		},
+		{
+			"invalid channelID",
+			validID,
+			invalidID,
+			false,
 		},
 	}
 
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("Case %s", tc.msg), func(t * testing.T) {
-			err := GRPCRequest(tc.portID, tc.channelID)
-			if tc.expError == nil {
+			err := validate.GRPCRequest(tc.portID, tc.channelID)
+			if tc.expPass {
 				require.NoError(t, err, tc.msg)
 			} else {
-				require.ErrorIs(t, err, tc.expError)
+				require.Error(t,err,tc.msg)
 			}
 		})
 	}
