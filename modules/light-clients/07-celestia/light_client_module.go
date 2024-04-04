@@ -106,6 +106,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
+	// execute custom 07-celestia update state logic
 	return clientState.UpdateState(ctx, l.cdc, clientStore, clientMsg)
 }
 
@@ -128,6 +129,7 @@ func (l LightClientModule) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
+	// execute custom 07-celestia verify membership logic
 	return clientState.VerifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
