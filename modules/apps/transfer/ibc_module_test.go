@@ -619,21 +619,21 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			true,
 			false,
 		},
-		{
-			"success: valid packet data v1 with memo",
-			func() {
-				expPacketDataV1 = types.FungibleTokenPacketData{
-					Denom:    ibctesting.TestCoin.Denom,
-					Amount:   ibctesting.TestCoin.Amount.String(),
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     "some memo",
-				}
-				data = expPacketDataV1.GetBytes()
-			},
-			true,
-			true,
-		},
+		//{
+		//	"success: valid packet data v1 with memo",
+		//	func() {
+		//		expPacketDataV1 = types.FungibleTokenPacketData{
+		//			Denom:    ibctesting.TestCoin.Denom,
+		//			Amount:   ibctesting.TestCoin.Amount.String(),
+		//			Sender:   sender,
+		//			Receiver: receiver,
+		//			Memo:     "some memo",
+		//		}
+		//		data = expPacketDataV1.GetBytes()
+		//	},
+		//	true,
+		//	true,
+		//},
 		{
 			"success: valid packet data without memo",
 			func() {

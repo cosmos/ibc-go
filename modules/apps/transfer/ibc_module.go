@@ -174,6 +174,8 @@ func (IBCModule) OnChanCloseConfirm(
 }
 
 func getFungibleTokenPacketDataV2(bz []byte) (types.FungibleTokenPacketDataV2, error) {
+	// TODO: remove support for this function parsing v1 packet data
+	// we should explicitly check for v2 packet data.
 	var datav1 types.FungibleTokenPacketData
 	if err := json.Unmarshal(bz, &datav1); err == nil {
 		if len(datav1.Amount) != 0 {
@@ -202,7 +204,7 @@ func (im IBCModule) OnRecvPacket(
 	logger := im.transferKeeper.Logger(ctx)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	data, ackErr := getFungibleTokenPacketDataV2(packet.GetData())
+	data, ackErr := im.getICS20V2PacketData(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetData())
 	if ackErr != nil {
 		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
@@ -253,6 +255,33 @@ func (im IBCModule) OnRecvPacket(
 	return ack
 }
 
+// getICS20V2PacketData returns the FungibleTokenPacketDataV2 from the given packet data. The packet data itself
+// can be either FungibleTokenPacketData or FungibleTokenPacketDataV2. If the packet data is FungibleTokenPacketData,
+// it will be converted to FungibleTokenPacketDataV2.
+func (im IBCModule) getICS20V2PacketData(ctx sdk.Context, portID, channelID string, bz []byte) (types.FungibleTokenPacketDataV2, error) {
+	transferVersion, ok := im.transferKeeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
+	if !ok {
+		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "cannot get app version")
+	}
+
+	if !slices.Contains(types.SupportedVersions, transferVersion) {
+		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(types.ErrInvalidVersion, "invalid transfer version: expected %s or %s, got %s", types.ICS20V1, types.ICS20V2, transferVersion)
+	}
+
+	switch transferVersion {
+	case types.ICS20V1:
+		var ftpd types.FungibleTokenPacketData
+		if err := json.Unmarshal(bz, &ftpd); err != nil {
+			return types.FungibleTokenPacketDataV2{}, err
+		}
+		return transferv2.ConvertPacketV1ToPacketV2(ftpd), nil
+	case types.ICS20V2:
+		return getFungibleTokenPacketDataV2(bz)
+	default:
+		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(types.ErrInvalidVersion, "invalid transfer version: expected %s or %s, got %s", types.ICS20V1, types.ICS20V2, transferVersion)
+	}
+}
+
 // OnAcknowledgementPacket implements the IBCModule interface
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
@@ -265,7 +294,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	data, err := getFungibleTokenPacketDataV2(packet.GetData())
+	data, err := im.getICS20V2PacketData(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetData())
 	if err != nil {
 		return err
 	}
@@ -380,6 +409,7 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
+
 	ftpd, err := getFungibleTokenPacketDataV2(bz)
 	if err != nil {
 		return nil, err
