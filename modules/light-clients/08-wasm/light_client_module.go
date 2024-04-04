@@ -73,7 +73,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
 	// Do not allow initialization of a client with a checksum that hasn't been previously stored via storeWasmCode.
-	if !types.HasChecksum(ctx, clientState.Checksum) {
+	if !l.keeper.HasChecksum(ctx, clientState.Checksum) {
 		return errorsmod.Wrapf(types.ErrInvalidChecksum, "checksum (%s) has not been previously stored", hex.EncodeToString(clientState.Checksum))
 	}
 
@@ -338,7 +338,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 	}
 
 	// Return unauthorized if the checksum hasn't been previously stored via storeWasmCode.
-	if !types.HasChecksum(ctx, clientState.Checksum) {
+	if !l.keeper.HasChecksum(ctx, clientState.Checksum) {
 		return exported.Unauthorized
 	}
 

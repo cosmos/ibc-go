@@ -66,7 +66,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 
 	ctx := sdk.NewContext(cacheMS, cmtproto.Header{}, false, nil)
 
-	checksums, err := types.GetAllChecksums(ctx)
+	checksums, err := ws.keeper.GetAllChecksums(ctx)
 	if err != nil {
 		return err
 	}

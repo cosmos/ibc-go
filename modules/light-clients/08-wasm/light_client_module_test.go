@@ -11,7 +11,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -79,7 +78,8 @@ func (suite *WasmTestSuite) TestStatus() {
 		{
 			"client status is unauthorized: checksum is not stored",
 			func() {
-				err := ibcwasm.Checksums.Remove(suite.chainA.GetContext(), suite.checksum)
+				keeper := GetSimApp(suite.chainA).WasmClientKeeper
+				err := keeper.GetChecksums().Remove(suite.chainA.GetContext(), suite.checksum)
 				suite.Require().NoError(err)
 			},
 			exported.Unauthorized,

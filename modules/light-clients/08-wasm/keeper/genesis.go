@@ -28,7 +28,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 // ExportGenesis returns the 08-wasm module's exported genesis. This includes the code
 // for all contracts previously stored.
 func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
-	checksums, err := types.GetAllChecksums(ctx)
+	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
 		panic(err)
 	}

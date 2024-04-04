@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -37,7 +36,7 @@ func (suite *KeeperTestSuite) TestMigrateWasmStore() {
 
 			// check that they were stored in KeySet
 			for _, hash := range tc.checksums {
-				suite.Require().True(ibcwasm.Checksums.Has(suite.chainA.GetContext(), hash))
+				suite.Require().True(wasmKeeper.GetChecksums().Has(suite.chainA.GetContext(), hash))
 			}
 
 			// check that the data under the old key was deleted

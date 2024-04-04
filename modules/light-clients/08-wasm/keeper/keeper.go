@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 
@@ -25,6 +27,9 @@ type Keeper struct {
 	vm  ibcwasm.WasmEngine
 	cdc codec.BinaryCodec
 
+	// state management
+	schema       collections.Schema
+	checksums    collections.KeySet[[]byte]
 	storeService store.KVStoreService
 
 	clientKeeper types.ClientKeeper
@@ -45,6 +50,10 @@ func (k Keeper) GetAuthority() string {
 // GetVM returns the keeper's vm engine.
 func (k Keeper) GetVM() ibcwasm.WasmEngine {
 	return k.vm
+}
+
+func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
+	return k.checksums
 }
 
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
@@ -68,7 +77,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wa
 		return nil, errorsmod.Wrap(err, "wasm bytecode checksum failed")
 	}
 
-	if types.HasChecksum(ctx, checksum) {
+	if k.HasChecksum(ctx, checksum) {
 		return nil, types.ErrWasmCodeExists
 	}
 
@@ -91,7 +100,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wa
 	}
 
 	// store the checksum
-	err = ibcwasm.Checksums.Set(ctx, checksum)
+	err = k.GetChecksums().Set(ctx, checksum)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store checksum")
 	}
@@ -113,7 +122,7 @@ func (k Keeper) MigrateContractCode(ctx sdk.Context, clientID string, newChecksu
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	if !types.HasChecksum(ctx, newChecksum) {
+	if !k.HasChecksum(ctx, newChecksum) {
 		return types.ErrWasmChecksumNotFound
 	}
 
@@ -164,10 +173,42 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 	return wasmClientState, nil
 }
 
+// GetAllChecksums is a helper to get all checksums from the store.
+// It returns an empty slice if no checksums are found
+func (k Keeper) GetAllChecksums(ctx context.Context) ([]types.Checksum, error) {
+	iterator, err := k.GetChecksums().Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	keys, err := iterator.Keys()
+	if err != nil {
+		return nil, err
+	}
+
+	checksums := []types.Checksum{}
+	for _, key := range keys {
+		checksums = append(checksums, key)
+	}
+
+	return checksums, nil
+}
+
+// HasChecksum returns true if the given checksum exists in the store and
+// false otherwise.
+func (k Keeper) HasChecksum(ctx context.Context, checksum types.Checksum) bool {
+	found, err := k.GetChecksums().Has(ctx, checksum)
+	if err != nil {
+		return false
+	}
+
+	return found
+}
+
 // InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
 // TODO(jim): Make meth on Keeper probably.
 func InitializePinnedCodes(ctx sdk.Context, k Keeper) error {
-	checksums, err := types.GetAllChecksums(ctx)
+	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
 		return err
 	}

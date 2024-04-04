@@ -1,5 +1,7 @@
 package types
 
+import "cosmossdk.io/collections"
+
 const (
 	// ModuleName for the wasm client
 	ModuleName = "08-wasm"
@@ -13,4 +15,9 @@ const (
 	// KeyChecksums is the key under which all checksums are stored
 	// Deprecated: in favor of collections.KeySet
 	KeyChecksums = "checksums"
+)
+
+var (
+	// ChecksumsKey is the key under which all checksums are stored
+	ChecksumsKey = collections.NewPrefix(0)
 )
