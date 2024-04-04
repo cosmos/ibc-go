@@ -206,8 +206,7 @@ func (k Keeper) HasChecksum(ctx context.Context, checksum types.Checksum) bool {
 }
 
 // InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
-// TODO(jim): Make meth on Keeper probably.
-func InitializePinnedCodes(ctx sdk.Context, k Keeper) error {
+func (k Keeper) InitializePinnedCodes(ctx sdk.Context) error {
 	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
 		return err

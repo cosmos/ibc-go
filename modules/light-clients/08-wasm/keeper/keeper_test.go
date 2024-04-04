@@ -312,7 +312,7 @@ func (suite *KeeperTestSuite) TestInitializedPinnedCodes() {
 			// malleate after storing contracts
 			tc.malleate()
 
-			err := keeper.InitializePinnedCodes(ctx, wasmClientKeeper)
+			err := wasmClientKeeper.InitializePinnedCodes(ctx)
 
 			expPass := tc.expError == nil
 			if expPass {
