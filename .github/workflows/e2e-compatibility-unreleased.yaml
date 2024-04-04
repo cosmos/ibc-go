@@ -75,13 +75,21 @@ jobs:
       test-file-directory: "unreleased"
       test-suite: "connection"
 
-  client:
+  client-1:
     needs:
       - build-release-images
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file-directory: "unreleased"
-      test-suite: "client"
+      test-suite: "clien-1"
+
+  client-2:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "client-2"
 
   genesis:
     needs:
@@ -163,13 +171,21 @@ jobs:
       test-file-directory: "unreleased"
       test-suite: "transfer-authz"
 
-  transfer-channel-upgrade:
+  transfer-channel-upgrade-chain-a:
     needs:
       - build-release-images
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file-directory: "unreleased"
-      test-suite: "transfer-channel-upgrade"
+      test-suite: "transfer-channel-upgrade-chain-a"
+  
+  transfer-channel-upgrade-chain-b:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-channel-upgrade-chain-b"
 
   ica-channel-upgrade:
     needs:
@@ -178,3 +194,19 @@ jobs:
     with:
       test-file-directory: "unreleased"
       test-suite: "ica-channel-upgrade"
+
+  ica-channel-upgrade-chain-a:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-channel-upgrade-chain-a"
+
+  ica-channel-upgrade-chain-b:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-channel-upgrade-chain-b"

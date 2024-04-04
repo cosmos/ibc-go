@@ -6,9 +6,7 @@
     "release-v7.4.x",
     "release-v7.3.x",
     "release-v7.2.x",
-    "release-v6.3.x",
-    "release-v5.4.x",
-    "release-v4.6.x"
+    "release-v6.3.x"
   ],
   "chain-b": [
     "release-v8.2.x",
@@ -17,9 +15,7 @@
     "release-v7.4.x",
     "release-v7.3.x",
     "release-v7.2.x",
-    "release-v6.3.x",
-    "release-v5.4.x",
-    "release-v4.6.x"
+    "release-v6.3.x"
   ],
   "entrypoint": [
     "TestIncentivizedInterchainAccountsTestSuite"
