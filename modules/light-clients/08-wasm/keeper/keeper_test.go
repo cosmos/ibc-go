@@ -338,31 +338,6 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 		malleate func()
 		expErr   error
 	}{
-		// TODO(Jim): Figure this out, appears like a bad setup after moving from types test suite.
-		/*
-			{
-				"success: no update to client state",
-				func() {
-					err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash)
-					suite.Require().NoError(err)
-
-					payload = []byte{1}
-					expChecksum := wasmvmtypes.ForceNewChecksum(hex.EncodeToString(newHash))
-
-					suite.mockVM.MigrateFn = func(checksum wasmvm.Checksum, env wasmvmtypes.Env, msg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
-						suite.Require().Equal(expChecksum, checksum)
-						suite.Require().Equal(defaultWasmClientID, env.Contract.Address)
-						suite.Require().Equal(payload, msg)
-
-						data, err := json.Marshal(types.EmptyResult{})
-						suite.Require().NoError(err)
-
-						return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: data}}, wasmtesting.DefaultGasUsed, nil
-					}
-				},
-				nil,
-			},
-		*/
 		{
 			"success: update client state",
 			func() {
@@ -392,8 +367,7 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 		{
 			"failure: checksum not found",
 			func() {
-				keeper := GetSimApp(suite.chainA).WasmClientKeeper
-				err := keeper.GetChecksums().Remove(suite.chainA.GetContext(), newHash)
+				err := GetSimApp(suite.chainA).WasmClientKeeper.GetChecksums().Remove(suite.chainA.GetContext(), newHash)
 				suite.Require().NoError(err)
 			},
 			types.ErrWasmChecksumNotFound,
@@ -401,8 +375,7 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 		{
 			"failure: vm returns error",
 			func() {
-				keeper := GetSimApp(suite.chainA).WasmClientKeeper
-				err := keeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
+				err := GetSimApp(suite.chainA).WasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
 				suite.Require().NoError(err)
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
@@ -414,8 +387,7 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 		{
 			"failure: contract returns error",
 			func() {
-				keeper := GetSimApp(suite.chainA).WasmClientKeeper
-				err := keeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
+				err := GetSimApp(suite.chainA).WasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
 				suite.Require().NoError(err)
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
@@ -438,15 +410,14 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 			newHash, err = types.CreateChecksum(wasmtesting.CreateMockContract([]byte{1, 2, 3}))
 			suite.Require().NoError(err)
 
-			keeper := GetSimApp(suite.chainA).WasmClientKeeper
-			err = keeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
+			wasmKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+			err = wasmKeeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
 			suite.Require().NoError(err)
 
 			endpointA := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err = endpointA.CreateClient()
 			suite.Require().NoError(err)
 
-			// clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpointA.ClientID)
 			clientState, ok := endpointA.GetClientState().(*types.ClientState)
 			suite.Require().True(ok)
 
@@ -454,11 +425,7 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 
 			tc.malleate()
 
-			wasmKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 			err = wasmKeeper.MigrateContractCode(suite.chainA.GetContext(), endpointA.ClientID, newHash, payload)
-
-			// vm := GetSimApp(suite.chainA).WasmClientKeeper.GetVM()
-			// err = clientState.MigrateContract(suite.chainA.GetContext(), vm, suite.chainA.App.AppCodec(), clientStore, endpointA.ClientID, newHash, payload)
 
 			// updated client state
 			clientState, ok = endpointA.GetClientState().(*types.ClientState)
