@@ -57,6 +57,11 @@ func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	k.ics4Wrapper = wrapper
 }
 
+// GetICS4Wrapper returns the ICS4Wrapper.
+func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
+	return k.ics4Wrapper
+}
+
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)
@@ -71,6 +76,11 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capabi
 // GetChannel wraps IBC ChannelKeeper's GetChannel function
 func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool) {
 	return k.channelKeeper.GetChannel(ctx, portID, channelID)
+}
+
+// HasChannel returns true if the channel with the given identifiers exists in state.
+func (k Keeper) HasChannel(ctx sdk.Context, portID, channelID string) bool {
+	return k.channelKeeper.HasChannel(ctx, portID, channelID)
 }
 
 // GetPacketCommitment wraps IBC ChannelKeeper's GetPacketCommitment function

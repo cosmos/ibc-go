@@ -35,7 +35,7 @@ type MsgPayPacketFee struct{
 ```
 
 The `Fee` message contained in this synchronous fee payment method configures different fees which will be paid out for `MsgRecvPacket`, `MsgAcknowledgement`, and `MsgTimeout`/`MsgTimeoutOnClose`.
-The amount of fees escrowed in total is the denomwise maxiumum of `RecvFee + AckFee` and `TimeoutFee`. This is because we do not know whether the packet will be successfully received and acknowledged or whether it will timeout.
+The amount of fees escrowed in total is the denomwise maximum of `RecvFee + AckFee` and `TimeoutFee`. This is because we do not know whether the packet will be successfully received and acknowledged or whether it will timeout.
 
 ```go
 type Fee struct {

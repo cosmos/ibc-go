@@ -397,7 +397,7 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 // TransferChannelOptionsV1 configures both of the chains to have non-incentivized v1 transfer channels.
 func (*E2ETestSuite) TransferChannelOptionsV1() func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transfertypes.Version1
+		opts.Version = transfertypes.Version
 		opts.SourcePortName = transfertypes.PortID
 		opts.DestPortName = transfertypes.PortID
 	}

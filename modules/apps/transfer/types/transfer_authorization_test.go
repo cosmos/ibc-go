@@ -257,7 +257,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := NewTransferPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			transferAuthz = types.TransferAuthorization{

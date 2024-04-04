@@ -338,6 +338,15 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				expEscrowAmount = sdkmath.NewInt(100)
 			}, true, false,
 		},
+		{
+			"failure: receive is disabled",
+			func() {
+				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(),
+					types.Params{
+						ReceiveEnabled: false,
+					})
+			}, false, false,
+		},
 	}
 
 	for _, tc := range testCases {

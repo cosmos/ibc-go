@@ -326,7 +326,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
@@ -390,7 +390,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
@@ -460,7 +460,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
@@ -502,11 +502,11 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 
 func (suite *TransferTestSuite) TestUpgradeTransferChannel() {
 	suite.SetupTest()
-	path := NewTransferPath(suite.chainA, suite.chainB)
+	path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 
 	// start both channels on ics20-1
-	path.EndpointA.ChannelConfig.Version = types.Version1
-	path.EndpointB.ChannelConfig.Version = types.Version1
+	path.EndpointA.ChannelConfig.Version = types.Version
+	path.EndpointB.ChannelConfig.Version = types.Version
 	path.Setup()
 
 	// upgrade both channels to ics20-2

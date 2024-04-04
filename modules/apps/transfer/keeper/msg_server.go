@@ -36,7 +36,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	// ics20-1 only supports a single token, so if that is the current version, we must only process a single token.
-	if appVersion == types.Version1 && len(tokens) > 1 {
+	if appVersion == types.Version && len(tokens) > 1 {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple tokens with ics20-1")
 	}
 

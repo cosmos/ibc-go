@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				)
 
 				channel := path.EndpointA.GetChannel()
-				channel.Version = types.Version1
+				channel.Version = types.Version
 				path.EndpointA.SetChannel(channel)
 			},
 			ibcerrors.ErrInvalidRequest,
