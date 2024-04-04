@@ -913,3 +913,87 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.ZeroInt(), totalEscrowChainB.Amount)
 }
+
+func (suite *KeeperTestSuite) TestPacketBackwardsCompatibility() {
+	// We are testing a scenario where a packet in the future has a new populated
+	// field called "new_field". And this packet is being sent to this module which
+	// doesn't have this field in the packet data. The module should be able to handle
+	// this packet without any issues.
+
+	var packetData []byte
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success: new field",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			true,
+		},
+		{
+			"success: no new field with memo",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			true,
+		},
+		{
+			"success: no new field without memo",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			true,
+		},
+		{
+			"failure: invalid packet data",
+			func() {
+				packetData = []byte("invalid packet data")
+			},
+			false,
+		},
+		{
+			"failure: missing field",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","receiver":"%s"}`, suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.msg, func() {
+			suite.SetupTest() // reset
+			packetData = nil
+
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			tc.malleate()
+
+			timeoutHeight := suite.chainB.GetTimeoutHeight()
+
+			seq, err := path.EndpointB.SendPacket(timeoutHeight, 0, packetData)
+			suite.Require().NoError(err)
+
+			packet := channeltypes.NewPacket(packetData, seq, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, 0)
+
+			// receive packet on chainA
+			err = path.RelayPacket(packet)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
