@@ -938,7 +938,7 @@ func (suite *KeeperTestSuite) TestPacketBackwardsCompatibility() {
 		{
 			"success: no new field with memo",
 			func() {
-				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
 			true,
