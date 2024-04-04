@@ -312,7 +312,7 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) string {
 	msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
 		transfertypes.PortID,
-		transfertypes.CurrentVersion,
+		transfertypes.Version,
 		channeltypes.UNORDERED,
 		[]string{connectionID},
 		transfertypes.PortID,
@@ -332,12 +332,12 @@ func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) str
 // ChanOpenAck performs the channel open ack handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
-	tryProof := solo.GenerateChanOpenTryProof(transfertypes.PortID, transfertypes.CurrentVersion, channelID)
+	tryProof := solo.GenerateChanOpenTryProof(transfertypes.PortID, transfertypes.Version, channelID)
 	msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 		transfertypes.PortID,
 		channelID,
 		channelIDSolomachine,
-		transfertypes.CurrentVersion,
+		transfertypes.Version,
 		tryProof,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
@@ -351,7 +351,7 @@ func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
 // ChanCloseConfirm performs the channel close confirm handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, portID, channelID string) {
-	initProof := solo.GenerateChanClosedProof(portID, transfertypes.CurrentVersion, channelID)
+	initProof := solo.GenerateChanClosedProof(portID, transfertypes.Version, channelID)
 	msgChanCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(
 		portID,
 		channelID,
@@ -441,7 +441,7 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 
 // TimeoutPacketOnClose creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
 func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
-	closedProof := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.CurrentVersion, channelID)
+	closedProof := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.Version, channelID)
 	unreceivedProof := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeoutOnClose(
 		packet,

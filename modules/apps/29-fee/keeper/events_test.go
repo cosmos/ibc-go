@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	// create an incentivized transfer path
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.CurrentVersion}))
+	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
 	path.EndpointA.ChannelConfig.Version = feeTransferVersion
 	path.EndpointB.ChannelConfig.Version = feeTransferVersion
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID

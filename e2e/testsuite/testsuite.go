@@ -406,7 +406,7 @@ func (*E2ETestSuite) TransferChannelOptionsV1() func(options *ibc.CreateChannelO
 // TransferChannelOptionsV2 configures both of the chains to have non-incentivized v2 transfer channels.
 func (*E2ETestSuite) TransferChannelOptionsV2() func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transfertypes.CurrentVersion
+		opts.Version = transfertypes.ICS20V2
 		opts.SourcePortName = transfertypes.PortID
 		opts.DestPortName = transfertypes.PortID
 	}
@@ -416,7 +416,7 @@ func (*E2ETestSuite) TransferChannelOptionsV2() func(options *ibc.CreateChannelO
 func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: transfertypes.CurrentVersion,
+		AppVersion: transfertypes.Version,
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)

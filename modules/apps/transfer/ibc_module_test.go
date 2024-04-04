@@ -100,7 +100,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.CurrentVersion,
+				Version:        types.Version,
 			}
 
 			var err error
@@ -119,7 +119,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				if tc.v1 {
 					suite.Require().Equal("ics20-1", version)
 				} else {
-					suite.Require().Equal(types.CurrentVersion, version)
+					suite.Require().Equal(types.Version, version)
 				}
 			} else {
 				suite.Require().Error(err)
@@ -196,9 +196,9 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.CurrentVersion,
+				Version:        types.Version,
 			}
-			counterpartyVersion = types.CurrentVersion
+			counterpartyVersion = types.Version
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
@@ -220,7 +220,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				if tc.v1 {
 					suite.Require().Equal("ics20-1", version)
 				} else {
-					suite.Require().Equal(types.CurrentVersion, version)
+					suite.Require().Equal(types.Version, version)
 				}
 			} else {
 				suite.Require().Error(err)
@@ -257,7 +257,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
-			counterpartyVersion = types.CurrentVersion
+			counterpartyVersion = types.Version
 
 			// ack callback requires the channel to have been created.
 			suite.Require().NoError(path.EndpointA.ChanOpenInit())
@@ -424,7 +424,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(types.CurrentVersion, version)
+				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
@@ -505,16 +505,16 @@ func (suite *TransferTestSuite) TestUpgradeTransferChannel() {
 	path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 
 	// start both channels on ics20-1
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
+	path.EndpointA.ChannelConfig.Version = types.ICS20V1
+	path.EndpointB.ChannelConfig.Version = types.ICS20V1
 	path.Setup()
 
 	// upgrade both channels to ics20-2
 	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{path.EndpointA.ConnectionID}
-	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = types.CurrentVersion
+	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = types.ICS20V2
 
 	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{path.EndpointB.ConnectionID}
-	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = types.CurrentVersion
+	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = types.ICS20V2
 
 	suite.T().Run("perform channel upgrade to ics20-2", func(t *testing.T) {
 		err := path.EndpointA.ChanUpgradeInit()
@@ -533,10 +533,10 @@ func (suite *TransferTestSuite) TestUpgradeTransferChannel() {
 		suite.Require().NoError(err)
 
 		channelA := path.EndpointA.GetChannel()
-		suite.Require().Equal(types.CurrentVersion, channelA.Version)
+		suite.Require().Equal(types.ICS20V2, channelA.Version)
 
 		channelB := path.EndpointB.GetChannel()
-		suite.Require().Equal(types.CurrentVersion, channelB.Version)
+		suite.Require().Equal(types.ICS20V2, channelB.Version)
 	})
 
 	secondCoin := sdk.NewCoin("atom", sdkmath.NewInt(1000))

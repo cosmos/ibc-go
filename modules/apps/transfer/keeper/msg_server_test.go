@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"errors"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
@@ -85,9 +86,10 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 					"memo", coin, coin1,
 				)
 
-				channel := path.EndpointA.GetChannel()
-				channel.Version = types.Version
-				path.EndpointA.SetChannel(channel)
+				// explicitly set to ics20-1 which does not support multi-denom
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.ICS20V1
+				})
 			},
 			ibcerrors.ErrInvalidRequest,
 			true,

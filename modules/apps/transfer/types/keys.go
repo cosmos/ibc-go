@@ -35,11 +35,14 @@ const (
 )
 
 const (
-	// CurrentVersion defines the current version the IBC transfer
-	CurrentVersion = "ics20-2"
+	// ICS20V1 defines first version of the IBC transfer module
+	ICS20V1 = "ics20-1"
 
-	// Version defines first version of the IBC transfer module
-	Version = "ics20-1"
+	// ICS20V2 defines second version of the IBC transfer module
+	ICS20V2 = "ics20-2"
+
+	// Version defines the current version of the IBC transfer module
+	Version = ICS20V2
 )
 
 var (
@@ -48,7 +51,7 @@ var (
 	// DenomTraceKey defines the key to store the denomination trace info in store
 	DenomTraceKey = []byte{0x02}
 	// SupportedVersions defines all versions that are supported by the module
-	SupportedVersions = []string{CurrentVersion, Version}
+	SupportedVersions = []string{ICS20V1, ICS20V2}
 )
 
 const (
