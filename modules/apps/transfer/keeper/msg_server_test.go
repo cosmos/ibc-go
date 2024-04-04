@@ -2,8 +2,8 @@ package keeper_test
 
 import (
 	"errors"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"strings"
+
 
 	sdkmath "cosmossdk.io/math"
 
@@ -13,6 +13,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
