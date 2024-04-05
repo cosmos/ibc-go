@@ -35,7 +35,21 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 All notable changes to this project will be documented in this file.
 
-## [v4.6.0](https://github.com/cosmos/ibc-go/releases/tag/v4.6.0) - 2023-04-05
+## [[Unreleased]]
+
+### Dependencies
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
+## [v4.6.0](https://github.com/cosmos/ibc-go/releases/tag/v4.6.0) - 2024-04-05
 
 ## [v4.5.1](https://github.com/cosmos/ibc-go/releases/tag/v4.5.1) - 2023-10-20
 
