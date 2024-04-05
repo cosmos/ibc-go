@@ -34,23 +34,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v8.2.0](https://github.com/cosmos/ibc-go/releases/tag/v8.2.0) - 2024-04-05
 
 ### Dependencies
 
 * [\#5975](https://github.com/cosmos/ibc-go/pull/5975) Bump Cosmos SDK to v0.50.5.
 
-### API Breaking
-
-### State Machine Breaking
-
 ### Improvements
 
 * (proto) [\#5987](https://github.com/cosmos/ibc-go/pull/5987) Add wasm proto files.
-
-### Features
-
-### Bug Fixes
 
 ## [v8.1.0](https://github.com/cosmos/ibc-go/releases/tag/v8.1.0) - 2024-01-31
 
