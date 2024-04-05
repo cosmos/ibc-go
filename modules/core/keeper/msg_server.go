@@ -567,16 +567,16 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
 	}
 
+	// Delete packet commitment
+	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
+		return nil, err
+	}
+
 	// Perform application logic callback
 	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
 	if err != nil {
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
-	}
-
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
-		return nil, err
 	}
 
 	defer telemetry.IncrCounterWithLabels(
@@ -639,6 +639,11 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 		return nil, errorsmod.Wrap(err, "timeout on close packet verification failed")
 	}
 
+	// Delete packet commitment
+	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
+		return nil, err
+	}
+
 	// Perform application logic callback
 	//
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
@@ -647,11 +652,6 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	if err != nil {
 		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout on close callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout on close callback failed")
-	}
-
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
-		return nil, err
 	}
 
 	defer telemetry.IncrCounterWithLabels(
