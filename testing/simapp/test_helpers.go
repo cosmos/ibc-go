@@ -34,6 +34,8 @@ import (
 	"github.com/cosmos/ibc-go/v6/testing/simapp/helpers"
 )
 
+var DefaultAppVersion uint64 = 1
+
 // DefaultConsensusParams defines the default Tendermint consensus params used in
 // SimApp testing.
 var DefaultConsensusParams = &abci.ConsensusParams{
@@ -50,6 +52,9 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 		PubKeyTypes: []string{
 			tmtypes.ABCIPubKeyTypeEd25519,
 		},
+	},
+	Version: &tmproto.VersionParams{
+		AppVersion: DefaultAppVersion,
 	},
 }
 
