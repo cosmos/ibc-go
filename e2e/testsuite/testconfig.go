@@ -230,6 +230,12 @@ type CometBFTConfig struct {
 type DebugConfig struct {
 	// DumpLogs forces the logs to be collected before removing test containers.
 	DumpLogs bool `yaml:"dumpLogs"`
+
+	// GenesisFilePath, if present, enables exporting of genesis debug files to the provided path.
+	GenesisFilePath string `yaml:"genesisFilePath"`
+
+	// GenesisChain
+	//ChainName string `yaml:"chainName"`
 }
 
 // LoadConfig attempts to load a atest configuration from the default file path.

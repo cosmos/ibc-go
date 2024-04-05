@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	dockerclient "github.com/docker/docker/client"
@@ -64,6 +65,15 @@ func newPath(chainA, chainB ibc.Chain) pathPair {
 	return pathPair{
 		chainA: chainA,
 		chainB: chainB,
+	}
+}
+
+// ConfigureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
+func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
+	tc := LoadConfig()
+	if tc.DebugConfig.GenesisFilePath != "" {
+		os.Setenv("EXPORT_GENESIS_FILE_PATH", tc.DebugConfig.GenesisFilePath)
+		os.Setenv("EXPORT_GENESIS_CHAIN", "simapp-a")
 	}
 }
 

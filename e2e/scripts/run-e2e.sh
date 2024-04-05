@@ -59,7 +59,7 @@ _verify_dependencies
 
 # if the dev configs directory is present, enable fzf completion to select a test config file to use.
 if [[ -d "dev-configs"  ]]; then
-  export E2E_CONFIG_PATH="$(pwd)/dev-configs/$(_select_test_config)"
+  export E2E_CONFIG_PATH="/workspaces/ibc-go/e2e/dev-configs/config.yaml"
   echo "Using configuration file at ${E2E_CONFIG_PATH}"
 fi
 
