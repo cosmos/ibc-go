@@ -46,8 +46,8 @@ type queryHandler struct {
 	CallerID string
 }
 
-// newQueryHandler returns a default querier that can be used in the contract.
-func newQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
+// NewQueryHandler returns a default querier that can be used in the contract.
+func NewQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
 	return &queryHandler{
 		Ctx:      ctx,
 		CallerID: callerID,

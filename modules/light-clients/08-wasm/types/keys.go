@@ -17,7 +17,5 @@ const (
 	KeyChecksums = "checksums"
 )
 
-var (
-	// ChecksumsKey is the key under which all checksums are stored
-	ChecksumsKey = collections.NewPrefix(0)
-)
+// ChecksumsKey is the key under which all checksums are stored
+var ChecksumsKey = collections.NewPrefix(0)

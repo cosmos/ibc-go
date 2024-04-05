@@ -223,8 +223,8 @@ type storeAdapter struct {
 	parent storetypes.KVStore
 }
 
-// newStoreAdapter constructor
-func newStoreAdapter(s storetypes.KVStore) *storeAdapter {
+// NewStoreAdapter constructor
+func NewStoreAdapter(s storetypes.KVStore) *storeAdapter {
 	if s == nil {
 		panic(errors.New("store must not be nil"))
 	}

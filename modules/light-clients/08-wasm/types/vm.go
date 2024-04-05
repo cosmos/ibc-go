@@ -46,7 +46,7 @@ func instantiateContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string
 	}
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: instantiate")
-	resp, gasUsed, err := vm.Instantiate(checksum, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvmAPI, newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := vm.Instantiate(checksum, env, msgInfo, msg, NewStoreAdapter(clientStore), wasmvmAPI, NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -60,7 +60,7 @@ func callContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string, clien
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: sudo")
-	resp, gasUsed, err := vm.Sudo(checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := vm.Sudo(checksum, env, msg, NewStoreAdapter(clientStore), wasmvmAPI, NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -74,7 +74,7 @@ func migrateContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string, cl
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: migrate")
-	resp, gasUsed, err := vm.Migrate(checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := vm.Migrate(checksum, env, msg, NewStoreAdapter(clientStore), wasmvmAPI, NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -88,7 +88,7 @@ func queryContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string, clie
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := vm.Query(checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := vm.Query(checksum, env, msg, NewStoreAdapter(clientStore), wasmvmAPI, NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -109,11 +109,11 @@ func WasmInstantiate(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string, cd
 		return errorsmod.Wrap(ErrWasmContractCallFailed, res.Err)
 	}
 
-	if err = checkResponse(res.Ok); err != nil {
+	if err = CheckResponse(res.Ok); err != nil {
 		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
-	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
+	newClientState, err := ValidatePostExecutionClientState(clientStore, cdc)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func WasmSudo[T ContractResult](ctx sdk.Context, vm ibcwasm.WasmEngine, clientID
 		return result, errorsmod.Wrap(ErrWasmContractCallFailed, res.Err)
 	}
 
-	if err = checkResponse(res.Ok); err != nil {
+	if err = CheckResponse(res.Ok); err != nil {
 		return result, errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
@@ -159,7 +159,7 @@ func WasmSudo[T ContractResult](ctx sdk.Context, vm ibcwasm.WasmEngine, clientID
 		return result, errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
 
-	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
+	newClientState, err := ValidatePostExecutionClientState(clientStore, cdc)
 	if err != nil {
 		return result, err
 	}
@@ -184,11 +184,11 @@ func WasmMigrate(ctx sdk.Context, vm ibcwasm.WasmEngine, cdc codec.BinaryCodec, 
 		return errorsmod.Wrap(ErrWasmContractCallFailed, res.Err)
 	}
 
-	if err = checkResponse(res.Ok); err != nil {
+	if err = CheckResponse(res.Ok); err != nil {
 		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
-	_, err = validatePostExecutionClientState(clientStore, cdc)
+	_, err = ValidatePostExecutionClientState(clientStore, cdc)
 	return err
 }
 
@@ -220,12 +220,12 @@ func WasmQuery[T ContractResult](ctx sdk.Context, vm ibcwasm.WasmEngine, clientI
 	return result, nil
 }
 
-// validatePostExecutionClientState validates that the contract has not many any invalid modifications
+// ValidatePostExecutionClientState validates that the contract has not many any invalid modifications
 // to the client state during execution. It ensures that
 // - the client state is still present
 // - the client state can be unmarshaled successfully.
 // - the client state is of type *ClientState
-func validatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
+func ValidatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
 	key := host.ClientStateKey()
 	_, ok := clientStore.(migrateClientWrappedStore)
 	if ok {
@@ -300,9 +300,9 @@ func validateAddress(human string) (uint64, error) {
 	return 0, errors.New("validateAddress not implemented")
 }
 
-// checkResponse returns an error if the response from a sudo, instantiate or migrate call
+// CheckResponse returns an error if the response from a sudo, instantiate or migrate call
 // to the Wasm VM contains messages, events or attributes.
-func checkResponse(response *wasmvmtypes.Response) error {
+func CheckResponse(response *wasmvmtypes.Response) error {
 	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
 	if len(response.Messages) > 0 {
 		return ErrWasmSubMessagesNotAllowed
