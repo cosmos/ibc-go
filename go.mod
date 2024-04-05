@@ -1,6 +1,7 @@
 go 1.19
 
 retract (
+	[v7.2.0, v7.3.2] // contains ASA-2024-007 vulnerability
 	v7.1.0 // contains ledger transaction signing bug
 	v7.0.1 // contains ledger transaction signing bug
 	v7.0.0 // contains huckleberry vulnerability
