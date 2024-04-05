@@ -3,6 +3,7 @@ go 1.19
 module github.com/cosmos/ibc-go/v6
 
 retract (
+	[v6.1.1, v6.2.1] // contains ASA-2024-007 vulnerability
 	v6.1.0 // contains huckleberry vulnerability
 	[v6.0.0, v6.0.1] // depends on SDK version < v0.46.7
 )
