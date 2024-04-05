@@ -3,6 +3,7 @@ go 1.19
 module github.com/cosmos/ibc-go/v4
 
 retract (
+	[v4.4.1, v4.5.1] // contains ASA-2024-007 vulnerability
 	v4.4.0 // contains huckleberry vulnerability
 	v4.3.0 // contains huckleberry vulnerability
 	v4.2.1 // contains state machine breaking change

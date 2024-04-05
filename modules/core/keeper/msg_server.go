@@ -483,15 +483,15 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 		return nil, sdkerrors.Wrap(err, "timeout packet verification failed")
 	}
 
+	// Delete packet commitment
+	if err = k.ChannelKeeper.TimeoutExecuted(ctx, cap, msg.Packet); err != nil {
+		return nil, err
+	}
+
 	// Perform application logic callback
 	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "timeout packet callback failed")
-	}
-
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, cap, msg.Packet); err != nil {
-		return nil, err
 	}
 
 	defer func() {
@@ -551,6 +551,11 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 		return nil, sdkerrors.Wrap(err, "timeout on close packet verification failed")
 	}
 
+	// Delete packet commitment
+	if err = k.ChannelKeeper.TimeoutExecuted(ctx, cap, msg.Packet); err != nil {
+		return nil, err
+	}
+
 	// Perform application logic callback
 	//
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
@@ -558,11 +563,6 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "timeout packet callback failed")
-	}
-
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, cap, msg.Packet); err != nil {
-		return nil, err
 	}
 
 	defer func() {
