@@ -34,6 +34,10 @@ type StakingKeeper interface {
 
 // NewConsensusHost creates and returns a new ConsensusHost for tendermint consensus.
 func NewConsensusHost(stakingKeeper clienttypes.StakingKeeper) clienttypes.ConsensusHost {
+	if stakingKeeper == nil {
+		panic("staking keeper cannot be nil")
+	}
+
 	return &ConsensusHost{
 		stakingKeeper: stakingKeeper,
 	}

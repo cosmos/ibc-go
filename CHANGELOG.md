@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client, light-clients) [\#5806](https://github.com/cosmos/ibc-go/pull/5806) Decouple light client routing from their encoding structure.
 * (core/04-channel) [\#5991](https://github.com/cosmos/ibc-go/pull/5991) The client CLI `QueryLatestConsensusState` has been removed.
 * (light-clients/06-solomachine) [\#6037](https://github.com/cosmos/ibc-go/pull/6037) Remove `Initialize` function from `ClientState` and move logic to `Initialize` function of `LightClientModule`.
+* (core/02-client) [\#6084](https://github.com/cosmos/ibc-go/pull/6084) Removed `stakingKeeper` as an argument to `NewKeeper` and replaced with a `ConsensusHost` implementation.
 
 ### State Machine Breaking
 
