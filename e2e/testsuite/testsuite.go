@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
+	"path"
 	"strings"
+	"testing"
 
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
@@ -69,12 +70,34 @@ func newPath(chainA, chainB ibc.Chain) pathPair {
 }
 
 // ConfigureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
-func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
+func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
 	tc := LoadConfig()
-	if tc.DebugConfig.GenesisFilePath != "" {
-		os.Setenv("EXPORT_GENESIS_FILE_PATH", tc.DebugConfig.GenesisFilePath)
-		os.Setenv("EXPORT_GENESIS_CHAIN", "simapp-a")
+	cfg := tc.DebugConfig.GenesisDebug
+	if !cfg.DumpGenesisDebugInfo {
+		return
 	}
+
+	exportPath := cfg.ExportFilePath
+	if exportPath == "" {
+		exportPath = defaultGenesisExportPath
+	}
+
+	if !path.IsAbs(exportPath) {
+		e2eDir, err := diagnostics.GetE2EDir(t)
+		if err != nil {
+			s.Fail("can't get e2e dir: %w", err)
+		}
+		exportPath = path.Join(e2eDir, exportPath)
+	}
+
+	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
+	chainIdx, err := tc.GetChainIndex(cfg.ChainName)
+	if err != nil {
+		s.Fail(err.Error())
+	}
+	genesisChainName := fmt.Sprintf("%s-%d", cfg.ChainName, chainIdx+1)
+	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
+
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users

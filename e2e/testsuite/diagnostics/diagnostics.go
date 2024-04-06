@@ -37,7 +37,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chain
 	t.Logf("writing logs for test: %s", t.Name())
 
 	ctx := context.TODO()
-	e2eDir, err := getE2EDir(t)
+	e2eDir, err := GetE2EDir(t)
 	if err != nil {
 		t.Logf("failed finding log directory: %s", err)
 		return
@@ -162,8 +162,8 @@ func relayerDiagnosticAbsoluteFilePaths() []string {
 	}
 }
 
-// getE2EDir finds the e2e directory above the test.
-func getE2EDir(t *testing.T) (string, error) {
+// GetE2EDir finds the e2e directory above the test.
+func GetE2EDir(t *testing.T) (string, error) {
 	t.Helper()
 
 	wd, err := os.Getwd()

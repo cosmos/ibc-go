@@ -26,7 +26,7 @@ import (
 
 func TestTransferTestSuite(t *testing.T) {
 	suite := new(TransferTestSuite)
-	suite.ConfigureGenesisDebugExport()
+	suite.ConfigureGenesisDebugExport(t)
 	testifysuite.Run(t, suite)
 }
 

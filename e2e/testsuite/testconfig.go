@@ -68,6 +68,9 @@ const (
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
+
+	// defaultGenesisExportPath is the default path to which Genesis debug files will be exported to.
+	defaultGenesisExportPath = "diagnostics/genesis.json"
 )
 
 func getChainImage(binary string) string {
@@ -103,6 +106,10 @@ func (tc TestConfig) Validate() error {
 	if err := tc.validateRelayers(); err != nil {
 		return fmt.Errorf("invalid relayer configuration: %w", err)
 	}
+
+	if err := tc.validateGenesisDebugConfig(); err != nil {
+		return fmt.Errorf("invalid Genesis debug configuration: %w", err)
+	}
 	return nil
 }
 
@@ -117,6 +124,10 @@ func (tc TestConfig) validateChains() error {
 		}
 		if cfg.Tag == "" {
 			return fmt.Errorf("chain config missing tag: %+v", cfg)
+		}
+		// TODO: defaults?
+		if cfg.Name == "" {
+			return fmt.Errorf("chain config missing name: %+v", cfg)
 		}
 
 		// TODO: validate chainID in https://github.com/cosmos/ibc-go/issues/4697
@@ -161,6 +172,33 @@ func (tc TestConfig) validateRelayers() error {
 	}
 
 	return nil
+}
+
+func (tc TestConfig) GetChainIndex(name string) (int, error) {
+	for i, chainCfg := range tc.ChainConfigs {
+		if chainCfg.Name == name {
+			return i, nil
+		}
+	}
+	return -1, fmt.Errorf("chain %s not found in chain configs", name)
+}
+
+// validateGenesisDebugConfig validates configuration of Genesis debug options/
+func (tc TestConfig) validateGenesisDebugConfig() error {
+	cfg := tc.DebugConfig.GenesisDebug
+	if !cfg.DumpGenesisDebugInfo {
+		return nil
+	}
+
+	if cfg.ChainName == "" {
+		//TODO create a default?
+		return fmt.Errorf("genesis debug config missing chain name: %+v", cfg)
+	}
+
+	// Verify that the provided chain exists in our config
+	_, err := tc.GetChainIndex(cfg.ChainName)
+
+	return err
 }
 
 // GetActiveRelayerConfig returns the currently specified relayer config.
@@ -216,6 +254,7 @@ type UpgradeConfig struct {
 // ChainConfig holds information about an individual chain used in the tests.
 type ChainConfig struct {
 	ChainID       string `yaml:"chainId"`
+	Name          string `yaml:"name"`
 	Image         string `yaml:"image"`
 	Tag           string `yaml:"tag"`
 	Binary        string `yaml:"binary"`
@@ -227,15 +266,23 @@ type CometBFTConfig struct {
 	LogLevel string `yaml:"logLevel"`
 }
 
+type GenesisDebugConfig struct {
+	// DumpGenesisDebugInfo enables the output of Genesis debug files.
+	DumpGenesisDebugInfo bool `yaml:"dumpGenesisDebugInfo"`
+
+	// ExportFilePath specifies which path to export Genesis debug files to.
+	ExportFilePath string `yaml:"filePath"`
+
+	// ChainName represent which chain to get Genesis debug info for.
+	ChainName string `yaml:"chainName"`
+}
+
 type DebugConfig struct {
 	// DumpLogs forces the logs to be collected before removing test containers.
 	DumpLogs bool `yaml:"dumpLogs"`
 
-	// GenesisFilePath, if present, enables exporting of genesis debug files to the provided path.
-	GenesisFilePath string `yaml:"genesisFilePath"`
-
-	// GenesisChain
-	//ChainName string `yaml:"chainName"`
+	// GenesisDebug contains debug information specific to Genesis.
+	GenesisDebug GenesisDebugConfig `yaml:"genesis"`
 }
 
 // LoadConfig attempts to load a atest configuration from the default file path.
@@ -477,8 +524,8 @@ type ChainOptionConfiguration func(options *ChainOptions)
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 
-	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.GetChainAID(), "atoma", tc.CometBFTConfig)
-	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], tc.ChainConfigs[0].Name, tc.GetChainAID(), "atoma", tc.CometBFTConfig)
+	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], tc.ChainConfigs[1].Name, tc.GetChainBID(), "atomb", tc.CometBFTConfig)
 
 	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
 	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
