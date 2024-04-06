@@ -73,6 +73,11 @@ const (
 	defaultGenesisExportPath = "diagnostics/genesis.json"
 )
 
+var (
+	// defaultChainNames contains the default name for chainA and chainB.
+	defaultChainNames = []string{"simapp-a", "simapp-b"}
+)
+
 func getChainImage(binary string) string {
 	if binary == "" {
 		binary = defaultBinary
@@ -124,10 +129,6 @@ func (tc TestConfig) validateChains() error {
 		}
 		if cfg.Tag == "" {
 			return fmt.Errorf("chain config missing tag: %+v", cfg)
-		}
-		// TODO: defaults?
-		if cfg.Name == "" {
-			return fmt.Errorf("chain config missing name: %+v", cfg)
 		}
 
 		// TODO: validate chainID in https://github.com/cosmos/ibc-go/issues/4697
@@ -243,6 +244,16 @@ func (tc TestConfig) GetChainBID() string {
 		return tc.ChainConfigs[1].ChainID
 	}
 	return "chainB-1"
+}
+
+// GetChainName returns the naime of the chain given an index.
+func (tc TestConfig) GetChainName(idx int) string {
+	// Assumes that only valid indices are provided. We do the same in several other places.
+	chainName := tc.ChainConfigs[idx].Name
+	if chainName == "" {
+		chainName = defaultChainNames[idx]
+	}
+	return chainName
 }
 
 // UpgradeConfig holds values relevant to upgrade tests.
@@ -524,8 +535,8 @@ type ChainOptionConfiguration func(options *ChainOptions)
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 
-	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], tc.ChainConfigs[0].Name, tc.GetChainAID(), "atoma", tc.CometBFTConfig)
-	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], tc.ChainConfigs[1].Name, tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], tc.GetChainName(0), tc.GetChainAID(), "atoma", tc.CometBFTConfig)
+	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], tc.GetChainName(1), tc.GetChainBID(), "atomb", tc.CometBFTConfig)
 
 	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
 	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
