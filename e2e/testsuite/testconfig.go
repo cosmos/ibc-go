@@ -190,7 +190,7 @@ func (tc TestConfig) validateGenesisDebugConfig() error {
 	}
 
 	// Verify that the provided chain exists in our config
-	_, err := tc.GetChainIndex(cfg.ChainName)
+	_, err := tc.GetChainIndex(tc.GetGenesisChainName())
 
 	return err
 }
