@@ -73,10 +73,8 @@ const (
 	defaultGenesisExportPath = "diagnostics/genesis.json"
 )
 
-var (
-	// defaultChainNames contains the default name for chainA and chainB.
-	defaultChainNames = []string{"simapp-a", "simapp-b"}
-)
+// defaultChainNames contains the default name for chainA and chainB.
+var defaultChainNames = []string{"simapp-a", "simapp-b"}
 
 func getChainImage(binary string) string {
 	if binary == "" {
