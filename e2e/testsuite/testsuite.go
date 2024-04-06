@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
+	gopath "path"
 	"strings"
 	"testing"
 
@@ -86,13 +86,13 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
 	if exportPath == "" {
 		e2eDir, err := diagnostics.GetE2EDir(t)
 		s.Require().NoError(err, "can't get e2edir")
-		exportPath = path.Join(e2eDir, defaultGenesisExportPath)
+		exportPath = gopath.Join(e2eDir, defaultGenesisExportPath)
 	}
 
-	if !path.IsAbs(exportPath) {
+	if !gopath.IsAbs(exportPath) {
 		wd, err := os.Getwd()
 		s.Require().NoError(err, "can't get working directory")
-		exportPath = path.Join(wd, exportPath)
+		exportPath = gopath.Join(wd, exportPath)
 	}
 
 	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
