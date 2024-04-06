@@ -36,7 +36,9 @@ var orderMapping = map[channeltypes.Order][]string{
 }
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(InterchainAccountsTestSuite))
+	s := new(InterchainAccountsTestSuite)
+	s.ConfigureGenesisDebugExport(t)
+	testifysuite.Run(t, s)
 }
 
 type InterchainAccountsTestSuite struct {

@@ -28,7 +28,9 @@ import (
 )
 
 func TestInterchainAccountsGovTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(InterchainAccountsGovTestSuite))
+	s := new(InterchainAccountsGovTestSuite)
+	s.ConfigureGenesisDebugExport(t)
+	testifysuite.Run(t, s)
 }
 
 type InterchainAccountsGovTestSuite struct {

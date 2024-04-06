@@ -29,7 +29,9 @@ import (
 )
 
 func TestInterchainAccountsChannelUpgradesTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(InterchainAccountsChannelUpgradesTestSuite))
+	s := new(InterchainAccountsChannelUpgradesTestSuite)
+	s.ConfigureGenesisDebugExport(t)
+	testifysuite.Run(t, s)
 }
 
 type InterchainAccountsChannelUpgradesTestSuite struct {

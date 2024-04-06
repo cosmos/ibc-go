@@ -25,7 +25,9 @@ import (
 )
 
 func TestConnectionTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(ConnectionTestSuite))
+	s := new(ConnectionTestSuite)
+	s.ConfigureGenesisDebugExport(t)
+	testifysuite.Run(t, s)
 }
 
 type ConnectionTestSuite struct {

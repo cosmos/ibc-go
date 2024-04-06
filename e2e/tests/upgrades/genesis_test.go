@@ -29,7 +29,9 @@ import (
 )
 
 func TestGenesisTestSuite(t *testing.T) {
-	suite.Run(t, new(GenesisTestSuite))
+	s := new(GenesisTestSuite)
+	s.ConfigureGenesisDebugExport(t)
+	suite.Run(t, s)
 }
 
 type GenesisTestSuite struct {

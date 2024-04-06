@@ -28,7 +28,9 @@ import (
 )
 
 func TestIncentivizedInterchainAccountsTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(IncentivizedInterchainAccountsTestSuite))
+	s := new(IncentivizedInterchainAccountsTestSuite)
+	s.ConfigureGenesisDebugExport(t)
+	testifysuite.Run(t, s)
 }
 
 type IncentivizedInterchainAccountsTestSuite struct {
