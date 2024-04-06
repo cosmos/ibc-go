@@ -191,7 +191,7 @@ func (tc TestConfig) validateGenesisDebugConfig() error {
 	}
 
 	if cfg.ChainName == "" {
-		//TODO create a default?
+		// TODO create a default?
 		return fmt.Errorf("genesis debug config missing chain name: %+v", cfg)
 	}
 

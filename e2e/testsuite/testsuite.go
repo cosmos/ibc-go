@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 	"testing"
@@ -79,15 +80,19 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
 
 	exportPath := cfg.ExportFilePath
 	if exportPath == "" {
-		exportPath = defaultGenesisExportPath
+		e2eDir, err := diagnostics.GetE2EDir(t)
+		if err != nil {
+			s.Fail("can't get e2edir: %w", err)
+		}
+		exportPath = path.Join(e2eDir, defaultGenesisExportPath)
 	}
 
 	if !path.IsAbs(exportPath) {
-		e2eDir, err := diagnostics.GetE2EDir(t)
+		wd, err := os.Getwd()
 		if err != nil {
-			s.Fail("can't get e2e dir: %w", err)
+			s.Fail("can't get working directory: %w", err)
 		}
-		exportPath = path.Join(e2eDir, exportPath)
+		exportPath = path.Join(wd, exportPath)
 	}
 
 	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
@@ -97,7 +102,6 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
 	}
 	genesisChainName := fmt.Sprintf("%s-%d", cfg.ChainName, chainIdx+1)
 	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
-
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
