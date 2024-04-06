@@ -189,11 +189,6 @@ func (tc TestConfig) validateGenesisDebugConfig() error {
 		return nil
 	}
 
-	if cfg.ChainName == "" {
-		// TODO create a default?
-		return fmt.Errorf("genesis debug config missing chain name: %+v", cfg)
-	}
-
 	// Verify that the provided chain exists in our config
 	_, err := tc.GetChainIndex(cfg.ChainName)
 
@@ -244,7 +239,7 @@ func (tc TestConfig) GetChainBID() string {
 	return "chainB-1"
 }
 
-// GetChainName returns the naime of the chain given an index.
+// GetChainName returns the name of the chain given an index.
 func (tc TestConfig) GetChainName(idx int) string {
 	// Assumes that only valid indices are provided. We do the same in several other places.
 	chainName := tc.ChainConfigs[idx].Name
@@ -252,6 +247,16 @@ func (tc TestConfig) GetChainName(idx int) string {
 		chainName = defaultChainNames[idx]
 	}
 	return chainName
+}
+
+// GetGenesisChainName returns the name of the chain for which to dump Genesis files.
+// If no chain is provided, it uses the default one (chainA).
+func (tc TestConfig) GetGenesisChainName() string {
+	name := tc.DebugConfig.GenesisDebug.ChainName
+	if name == "" {
+		return tc.GetChainName(0)
+	}
+	return name
 }
 
 // UpgradeConfig holds values relevant to upgrade tests.
