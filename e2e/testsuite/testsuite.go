@@ -72,6 +72,7 @@ func newPath(chainA, chainB ibc.Chain) pathPair {
 
 // ConfigureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
 func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
+	t.Helper()
 	tc := LoadConfig()
 	cfg := tc.DebugConfig.GenesisDebug
 	if !cfg.DumpGenesisDebugInfo {
