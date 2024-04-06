@@ -79,7 +79,10 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
 		return
 	}
 
+	// Set the export path.
 	exportPath := cfg.ExportFilePath
+
+	// If no path is provided, use the default (e2e/diagnostics/genesis.json).
 	if exportPath == "" {
 		e2eDir, err := diagnostics.GetE2EDir(t)
 		if err != nil {
@@ -97,6 +100,7 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
 	}
 
 	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
+
 	chainIdx, err := tc.GetChainIndex(cfg.ChainName)
 	if err != nil {
 		s.Fail(err.Error())
