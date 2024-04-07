@@ -30,7 +30,7 @@ This design is based on wasmd's (v0.50.0) querier plugin design.
 */
 
 var (
-	_ wasmvmtypes.Querier   = (*queryHandler)(nil)
+	_ wasmvmtypes.Querier   = (*QueryHandler)(nil)
 	_ ibcwasm.QueryPluginsI = (*QueryPlugins)(nil)
 )
 
@@ -39,28 +39,28 @@ var defaultAcceptList = []string{
 	"/ibc.core.client.v1.Query/VerifyMembership",
 }
 
-// queryHandler is a wrapper around the sdk.Context and the CallerID that calls
+// QueryHandler is a wrapper around the sdk.Context and the CallerID that calls
 // into the query plugins.
-type queryHandler struct {
+type QueryHandler struct {
 	Ctx      sdk.Context
 	CallerID string
 }
 
 // NewQueryHandler returns a default querier that can be used in the contract.
-func NewQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
-	return &queryHandler{
+func NewQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
+	return &QueryHandler{
 		Ctx:      ctx,
 		CallerID: callerID,
 	}
 }
 
 // GasConsumed implements the wasmvmtypes.Querier interface.
-func (q *queryHandler) GasConsumed() uint64 {
+func (q *QueryHandler) GasConsumed() uint64 {
 	return VMGasRegister.ToWasmVMGas(q.Ctx.GasMeter().GasConsumed())
 }
 
 // Query implements the wasmvmtypes.Querier interface.
-func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
+func (q *QueryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
 	sdkGas := VMGasRegister.FromWasmVMGas(gasLimit)
 
 	// discard all changes/events in subCtx by not committing the cached context

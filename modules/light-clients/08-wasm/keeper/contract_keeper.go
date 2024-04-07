@@ -38,7 +38,7 @@ var (
 // - the payload cannot be marshaled to JSON
 // - the contract query returns an error
 // - the data bytes of the response cannot be unmarshal into the result type
-func WasmQuery[T types.ContractResult](ctx sdk.Context, k Keeper, vm ibcwasm.WasmEngine, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.QueryMsg) (T, error) {
+func WasmQuery[T types.ContractResult](ctx sdk.Context, k Keeper, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.QueryMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -46,7 +46,7 @@ func WasmQuery[T types.ContractResult](ctx sdk.Context, k Keeper, vm ibcwasm.Was
 		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm query")
 	}
 
-	res, err := k.queryContract(ctx, vm, clientID, clientStore, cs.Checksum, encodedData)
+	res, err := k.queryContract(ctx, clientID, clientStore, cs.Checksum, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrap(types.ErrVMError, err.Error())
 	}
@@ -69,7 +69,7 @@ func WasmQuery[T types.ContractResult](ctx sdk.Context, k Keeper, vm ibcwasm.Was
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func WasmSudo[T types.ContractResult](ctx sdk.Context, k Keeper, vm ibcwasm.WasmEngine, clientID string, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *types.ClientState, payload types.SudoMsg) (T, error) {
+func WasmSudo[T types.ContractResult](ctx sdk.Context, k Keeper, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.SudoMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -78,7 +78,7 @@ func WasmSudo[T types.ContractResult](ctx sdk.Context, k Keeper, vm ibcwasm.Wasm
 	}
 
 	checksum := cs.Checksum
-	res, err := k.callContract(ctx, vm, clientID, clientStore, checksum, encodedData)
+	res, err := k.callContract(ctx, clientID, clientStore, checksum, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrap(types.ErrVMError, err.Error())
 	}
@@ -94,7 +94,7 @@ func WasmSudo[T types.ContractResult](ctx sdk.Context, k Keeper, vm ibcwasm.Wasm
 		return result, errorsmod.Wrap(types.ErrWasmInvalidResponseData, err.Error())
 	}
 
-	newClientState, err := ValidatePostExecutionClientState(clientStore, cdc)
+	newClientState, err := validatePostExecutionClientState(clientStore, k.Codec())
 	if err != nil {
 		return result, err
 	}
@@ -108,14 +108,14 @@ func WasmSudo[T types.ContractResult](ctx sdk.Context, k Keeper, vm ibcwasm.Wasm
 }
 
 // WasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls instantiateContract.
-func WasmInstantiate(ctx sdk.Context, k Keeper, vm ibcwasm.WasmEngine, clientID string, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *types.ClientState, payload types.InstantiateMessage) error {
+func WasmInstantiate(ctx sdk.Context, k Keeper, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
 	}
 
 	checksum := cs.Checksum
-	res, err := k.instantiateContract(ctx, vm, clientID, clientStore, checksum, encodedData)
+	res, err := k.instantiateContract(ctx, k.GetVM(), clientID, clientStore, checksum, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrVMError, err.Error())
 	}
@@ -127,7 +127,7 @@ func WasmInstantiate(ctx sdk.Context, k Keeper, vm ibcwasm.WasmEngine, clientID 
 		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
-	newClientState, err := ValidatePostExecutionClientState(clientStore, cdc)
+	newClientState, err := validatePostExecutionClientState(clientStore, k.Codec())
 	if err != nil {
 		return err
 	}
@@ -143,8 +143,8 @@ func WasmInstantiate(ctx sdk.Context, k Keeper, vm ibcwasm.WasmEngine, clientID 
 // WasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
 // WasmMigrate returns an error if:
 // - the contract migration returns an error
-func WasmMigrate(ctx sdk.Context, keeper Keeper, vm ibcwasm.WasmEngine, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *types.ClientState, clientID string, payload []byte) error {
-	res, err := keeper.migrateContract(ctx, vm, clientID, clientStore, cs.Checksum, payload)
+func WasmMigrate(ctx sdk.Context, keeper Keeper, clientStore storetypes.KVStore, cs *types.ClientState, clientID string, payload []byte) error {
+	res, err := keeper.migrateContract(ctx, clientID, clientStore, cs.Checksum, payload)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrVMError, err.Error())
 	}
@@ -156,12 +156,12 @@ func WasmMigrate(ctx sdk.Context, keeper Keeper, vm ibcwasm.WasmEngine, cdc code
 		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
-	_, err = ValidatePostExecutionClientState(clientStore, cdc)
+	_, err = validatePostExecutionClientState(clientStore, keeper.cdc)
 	return err
 }
 
 // migrateContract calls vm.Migrate with internally constructed gas meter and environment.
-func (k Keeper) migrateContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
+func (k Keeper) migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
@@ -169,13 +169,13 @@ func (k Keeper) migrateContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: migrate")
-	resp, gasUsed, err := vm.Migrate(checksum, env, msg, types.NewStoreAdapter(clientStore), wasmvmAPI, types.NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
+	resp, gasUsed, err := k.GetVM().Migrate(checksum, env, msg, types.NewStoreAdapter(clientStore), wasmvmAPI, types.NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
 
 // queryContract calls vm.Query.
-func (k Keeper) queryContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.QueryResult, error) {
+func (k Keeper) queryContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.QueryResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
@@ -183,13 +183,13 @@ func (k Keeper) queryContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID s
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := vm.Query(checksum, env, msg, types.NewStoreAdapter(clientStore), wasmvmAPI, types.NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
+	resp, gasUsed, err := k.GetVM().Query(checksum, env, msg, types.NewStoreAdapter(clientStore), wasmvmAPI, types.NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
 
 // callContract calls vm.Sudo with internally constructed gas meter and environment.
-func (k Keeper) callContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
+func (k Keeper) callContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
@@ -197,7 +197,7 @@ func (k Keeper) callContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID st
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: sudo")
-	resp, gasUsed, err := vm.Sudo(checksum, env, msg, types.NewStoreAdapter(clientStore), wasmvmAPI, types.NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
+	resp, gasUsed, err := k.GetVM().Sudo(checksum, env, msg, types.NewStoreAdapter(clientStore), wasmvmAPI, types.NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -221,12 +221,12 @@ func (Keeper) instantiateContract(ctx sdk.Context, vm ibcwasm.WasmEngine, client
 	return resp, err
 }
 
-// ValidatePostExecutionClientState validates that the contract has not many any invalid modifications
+// validatePostExecutionClientState validates that the contract has not many any invalid modifications
 // to the client state during execution. It ensures that
 // - the client state is still present
 // - the client state can be unmarshaled successfully.
 // - the client state is of type *ClientState
-func ValidatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*types.ClientState, error) {
+func validatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*types.ClientState, error) {
 	key := host.ClientStateKey()
 	_, ok := clientStore.(types.MigrateClientWrappedStore)
 	if ok {

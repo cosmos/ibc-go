@@ -135,7 +135,7 @@ func (k Keeper) MigrateContractCode(ctx sdk.Context, clientID string, newChecksu
 	// persisted to the client store.
 	clientState.Checksum = newChecksum
 
-	err = WasmMigrate(ctx, k, k.GetVM(), k.cdc, clientStore, clientState, clientID, migrateMsg)
+	err = WasmMigrate(ctx, k, clientStore, clientState, clientID, migrateMsg)
 	if err != nil {
 		return err
 	}

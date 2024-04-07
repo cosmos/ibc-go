@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	_ wasmvmtypes.KVStore = &storeAdapter{}
+	_ wasmvmtypes.KVStore = &StoreAdapter{}
 	_ storetypes.KVStore  = &MigrateClientWrappedStore{}
 
 	SubjectPrefix    = []byte("subject/")
@@ -218,40 +218,40 @@ func splitPrefix(key []byte) ([]byte, []byte) {
 	return nil, key
 }
 
-// storeAdapter bridges the SDK store implementation to wasmvm one. It implements the wasmvmtypes.KVStore interface.
-type storeAdapter struct {
+// StoreAdapter bridges the SDK store implementation to wasmvm one. It implements the wasmvmtypes.KVStore interface.
+type StoreAdapter struct {
 	parent storetypes.KVStore
 }
 
 // NewStoreAdapter constructor
-func NewStoreAdapter(s storetypes.KVStore) *storeAdapter {
+func NewStoreAdapter(s storetypes.KVStore) *StoreAdapter {
 	if s == nil {
 		panic(errors.New("store must not be nil"))
 	}
-	return &storeAdapter{parent: s}
+	return &StoreAdapter{parent: s}
 }
 
 // Get implements the wasmvmtypes.KVStore interface.
-func (s storeAdapter) Get(key []byte) []byte {
+func (s StoreAdapter) Get(key []byte) []byte {
 	return s.parent.Get(key)
 }
 
 // Set implements the wasmvmtypes.KVStore interface.
-func (s storeAdapter) Set(key, value []byte) {
+func (s StoreAdapter) Set(key, value []byte) {
 	s.parent.Set(key, value)
 }
 
 // Delete implements the wasmvmtypes.KVStore interface.
-func (s storeAdapter) Delete(key []byte) {
+func (s StoreAdapter) Delete(key []byte) {
 	s.parent.Delete(key)
 }
 
 // Iterator implements the wasmvmtypes.KVStore interface.
-func (s storeAdapter) Iterator(start, end []byte) wasmvmtypes.Iterator {
+func (s StoreAdapter) Iterator(start, end []byte) wasmvmtypes.Iterator {
 	return s.parent.Iterator(start, end)
 }
 
 // ReverseIterator implements the wasmvmtypes.KVStore interface.
-func (s storeAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
+func (s StoreAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
 	return s.parent.ReverseIterator(start, end)
 }
