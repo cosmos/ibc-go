@@ -17,6 +17,9 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
@@ -83,7 +86,7 @@ func WasmSudo[T types.ContractResult](ctx sdk.Context, k Keeper, vm ibcwasm.Wasm
 		return result, errorsmod.Wrap(types.ErrWasmContractCallFailed, res.Err)
 	}
 
-	if err = types.CheckResponse(res.Ok); err != nil {
+	if err = checkResponse(res.Ok); err != nil {
 		return result, errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
@@ -91,7 +94,7 @@ func WasmSudo[T types.ContractResult](ctx sdk.Context, k Keeper, vm ibcwasm.Wasm
 		return result, errorsmod.Wrap(types.ErrWasmInvalidResponseData, err.Error())
 	}
 
-	newClientState, err := types.ValidatePostExecutionClientState(clientStore, cdc)
+	newClientState, err := ValidatePostExecutionClientState(clientStore, cdc)
 	if err != nil {
 		return result, err
 	}
@@ -120,11 +123,11 @@ func WasmInstantiate(ctx sdk.Context, k Keeper, vm ibcwasm.WasmEngine, clientID 
 		return errorsmod.Wrap(types.ErrWasmContractCallFailed, res.Err)
 	}
 
-	if err = types.CheckResponse(res.Ok); err != nil {
+	if err = checkResponse(res.Ok); err != nil {
 		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
-	newClientState, err := types.ValidatePostExecutionClientState(clientStore, cdc)
+	newClientState, err := ValidatePostExecutionClientState(clientStore, cdc)
 	if err != nil {
 		return err
 	}
@@ -135,6 +138,40 @@ func WasmInstantiate(ctx sdk.Context, k Keeper, vm ibcwasm.WasmEngine, clientID 
 	}
 
 	return nil
+}
+
+// WasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
+// WasmMigrate returns an error if:
+// - the contract migration returns an error
+func WasmMigrate(ctx sdk.Context, keeper Keeper, vm ibcwasm.WasmEngine, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *types.ClientState, clientID string, payload []byte) error {
+	res, err := keeper.migrateContract(ctx, vm, clientID, clientStore, cs.Checksum, payload)
+	if err != nil {
+		return errorsmod.Wrap(types.ErrVMError, err.Error())
+	}
+	if res.Err != "" {
+		return errorsmod.Wrap(types.ErrWasmContractCallFailed, res.Err)
+	}
+
+	if err = checkResponse(res.Ok); err != nil {
+		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
+	}
+
+	_, err = ValidatePostExecutionClientState(clientStore, cdc)
+	return err
+}
+
+// migrateContract calls vm.Migrate with internally constructed gas meter and environment.
+func (k Keeper) migrateContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
+	sdkGasMeter := ctx.GasMeter()
+	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
+	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
+
+	env := getEnv(ctx, clientID)
+
+	ctx.GasMeter().ConsumeGas(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: migrate")
+	resp, gasUsed, err := vm.Migrate(checksum, env, msg, types.NewStoreAdapter(clientStore), wasmvmAPI, types.NewQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
+	VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
+	return resp, err
 }
 
 // queryContract calls vm.Query.
@@ -184,6 +221,46 @@ func (Keeper) instantiateContract(ctx sdk.Context, vm ibcwasm.WasmEngine, client
 	return resp, err
 }
 
+// ValidatePostExecutionClientState validates that the contract has not many any invalid modifications
+// to the client state during execution. It ensures that
+// - the client state is still present
+// - the client state can be unmarshaled successfully.
+// - the client state is of type *ClientState
+func ValidatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*types.ClientState, error) {
+	key := host.ClientStateKey()
+	_, ok := clientStore.(types.MigrateClientWrappedStore)
+	if ok {
+		key = append(types.SubjectPrefix, key...)
+	}
+
+	bz := clientStore.Get(key)
+	if len(bz) == 0 {
+		return nil, errorsmod.Wrap(types.ErrWasmInvalidContractModification, clienttypes.ErrClientNotFound.Error())
+	}
+
+	clientState, err := unmarshalClientState(cdc, bz)
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrWasmInvalidContractModification, err.Error())
+	}
+
+	cs, ok := clientState.(*types.ClientState)
+	if !ok {
+		return nil, errorsmod.Wrapf(types.ErrWasmInvalidContractModification, "expected client state type %T, got %T", (*types.ClientState)(nil), clientState)
+	}
+
+	return cs, nil
+}
+
+// unmarshalClientState unmarshals the client state from the given bytes.
+func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientState, error) {
+	var clientState exported.ClientState
+	if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
+		return nil, err
+	}
+
+	return clientState, nil
+}
+
 // getEnv returns the state of the blockchain environment the contract is running on
 func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 	chainID := ctx.BlockHeader().ChainID
@@ -222,4 +299,21 @@ func canonicalizeAddress(human string) ([]byte, uint64, error) {
 
 func validateAddress(human string) (uint64, error) {
 	return 0, errors.New("validateAddress not implemented")
+}
+
+// checkResponse returns an error if the response from a sudo, instantiate or migrate call
+// to the Wasm VM contains messages, events or attributes.
+func checkResponse(response *wasmvmtypes.Response) error {
+	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
+	if len(response.Messages) > 0 {
+		return types.ErrWasmSubMessagesNotAllowed
+	}
+	if len(response.Events) > 0 {
+		return types.ErrWasmEventsNotAllowed
+	}
+	if len(response.Attributes) > 0 {
+		return types.ErrWasmAttributesNotAllowed
+	}
+
+	return nil
 }

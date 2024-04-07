@@ -63,10 +63,13 @@ const (
 
 // default: 0.15 gas.
 // see https://github.com/CosmWasm/wasmd/pull/898#discussion_r937727200
-var defaultPerByteUncompressCost = wasmvmtypes.UFraction{
-	Numerator:   15,
-	Denominator: 100,
-}
+var (
+	defaultPerByteUncompressCost = wasmvmtypes.UFraction{
+		Numerator:   15,
+		Denominator: 100,
+	}
+	VMGasRegister = NewDefaultWasmGasRegister()
+)
 
 // DefaultPerByteUncompressCost is how much SDK gas we charge per source byte to unpack
 func DefaultPerByteUncompressCost() wasmvmtypes.UFraction {
