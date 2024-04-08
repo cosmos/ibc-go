@@ -67,24 +67,24 @@ func (k Keeper) GetVM() ibcwasm.WasmEngine {
 	return k.vm
 }
 
-// TODO(jim): Docu!
+// GetChecksums returns the stored checksums.
+// TODO(jim): Need a better name here, this + grpc query meth + GetAllChecksums are all too similar.
 func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
 	return k.checksums
 }
 
-// TODO(jim): Docu!
+// GetQueryPlugins returns the set query plugins.
 func (k Keeper) GetQueryPlugins() QueryPlugins {
 	return k.queryPlugins
 }
 
-// TODO(jim): Docu!
+// SetQueryPlugins sets the plugins.
 func (k *Keeper) SetQueryPlugins(plugins QueryPlugins) {
 	k.queryPlugins = plugins
 }
 
-// TODO(jim): Probably make query handler private? Can we do that?
-func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
-	return NewQueryHandler(ctx, k.GetQueryPlugins(), callerID)
+func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
+	return newQueryHandler(ctx, k.GetQueryPlugins(), callerID)
 }
 
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
