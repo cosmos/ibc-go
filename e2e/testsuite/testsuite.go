@@ -88,7 +88,7 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 
 	// If no path is provided, use the default (e2e/diagnostics/genesis.json).
 	if exportPath == "" {
-		e2eDir, err := directories.E2E(s.T())
+		e2eDir, err := directories.E2E(t)
 		s.Require().NoError(err, "can't get e2edir")
 		exportPath = gopath.Join(e2eDir, directories.DefaultGenesisExportPath)
 	}
@@ -105,9 +105,8 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 
 	chainName := tc.GetGenesisChainName()
 	chainIdx, err := tc.GetChainIndex(chainName)
-	if err != nil {
-		s.Fail(err.Error())
-	}
+	s.Require().NoError(err)
+
 	// Interchaintest adds a suffix (https://github.com/strangelove-ven pftures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
 	// to the chain name, so we need to do the same.
 	genesisChainName := fmt.Sprintf("%s-%d", chainName, chainIdx+1)
