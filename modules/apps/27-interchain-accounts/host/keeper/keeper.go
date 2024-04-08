@@ -288,8 +288,14 @@ func newModuleQuerySafeAllowList() []string {
 			sd := fd.Services().Get(i)
 
 			// Skip services that are annotated with the "cosmos.msg.v1.service" option.
-			if ext := proto.GetExtension(sd.Options(), msgv1.E_Service); ext != nil && ext.(bool) {
-				continue
+			if ext := proto.GetExtension(sd.Options(), msgv1.E_Service); ext != nil {
+				val, ok := ext.(bool)
+				if !ok {
+					panic("can't convert extension to boolean")
+				}
+				if val {
+					continue
+				}
 			}
 
 			for j := 0; j < sd.Methods().Len(); j++ {
