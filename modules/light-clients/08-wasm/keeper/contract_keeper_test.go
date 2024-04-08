@@ -6,7 +6,6 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
-	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -178,7 +177,7 @@ func (suite *KeeperTestSuite) TestWasmInstantiate() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
 			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
-			err := wasmkeeper.WasmInstantiate(suite.chainA.GetContext(), wasmClientKeeper, defaultWasmClientID, clientStore, &types.ClientState{Checksum: checksum}, initMsg)
+			err := wasmClientKeeper.WasmInstantiate(suite.chainA.GetContext(), defaultWasmClientID, clientStore, &types.ClientState{Checksum: checksum}, initMsg)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -318,7 +317,7 @@ func (suite *KeeperTestSuite) TestWasmMigrate() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
 			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
-			err = wasmkeeper.WasmMigrate(suite.chainA.GetContext(), wasmClientKeeper, clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
+			err = wasmClientKeeper.WasmMigrate(suite.chainA.GetContext(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -373,15 +372,18 @@ func (suite *KeeperTestSuite) TestWasmQuery() {
 			},
 			types.ErrWasmContractCallFailed,
 		},
-		{
-			"failure: response fails to unmarshal",
-			func() {
-				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
-					return &wasmvmtypes.QueryResult{Ok: []byte("invalid json")}, wasmtesting.DefaultGasUsed, nil
-				})
+		// TODO(jim): Moved to light client module.
+		/*
+			{
+				"failure: response fails to unmarshal",
+				func() {
+					suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+						return &wasmvmtypes.QueryResult{Ok: []byte("invalid json")}, wasmtesting.DefaultGasUsed, nil
+					})
+				},
+				types.ErrWasmInvalidResponseData,
 			},
-			types.ErrWasmInvalidResponseData,
-		},
+		*/
 	}
 
 	for _, tc := range testCases {
@@ -405,7 +407,7 @@ func (suite *KeeperTestSuite) TestWasmQuery() {
 			tc.malleate()
 
 			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
-			res, err := wasmkeeper.WasmQuery[types.StatusResult](suite.chainA.GetContext(), wasmClientKeeper, endpoint.ClientID, clientStore, wasmClientState, payload)
+			res, err := wasmClientKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -494,15 +496,18 @@ func (suite *KeeperTestSuite) TestWasmSudo() {
 			},
 			types.ErrWasmAttributesNotAllowed,
 		},
-		{
-			"failure: response fails to unmarshal",
-			func() {
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
-					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: []byte("invalid json")}}, wasmtesting.DefaultGasUsed, nil
-				})
+		// TODO(jim): Moved to light client module.
+		/*
+			{
+				"failure: response fails to unmarshal",
+				func() {
+					suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+						return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: []byte("invalid json")}}, wasmtesting.DefaultGasUsed, nil
+					})
+				},
+				types.ErrWasmInvalidResponseData,
 			},
-			types.ErrWasmInvalidResponseData,
-		},
+		*/
 		{
 			"failure: invalid clientstate type",
 			func() {
@@ -585,7 +590,7 @@ func (suite *KeeperTestSuite) TestWasmSudo() {
 			tc.malleate()
 
 			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
-			res, err := wasmkeeper.WasmSudo[types.UpdateStateResult](suite.chainA.GetContext(), wasmClientKeeper, endpoint.ClientID, clientStore, wasmClientState, payload)
+			res, err := wasmClientKeeper.WasmSudo(suite.chainA.GetContext(), endpoint.ClientID, clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {

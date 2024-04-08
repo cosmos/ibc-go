@@ -117,14 +117,14 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 			clientState, ok := endpoint.GetClientState().(*types.ClientState)
 			suite.Require().True(ok)
 
-			res, err := keeper.WasmQuery[types.StatusResult](suite.chainA.GetContext(), wasmKeeper, endpoint.ClientID, clientStore, clientState, types.QueryMsg{Status: &types.StatusMsg{}})
+			res, err := wasmKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, types.QueryMsg{Status: &types.StatusMsg{}})
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().Nil(err)
 				suite.Require().NotNil(res)
 			} else {
-				suite.Require().Equal(res.Status, "")
+				suite.Require().Nil(res)
 				suite.Require().ErrorIs(err, tc.expError)
 			}
 
@@ -328,7 +328,8 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
 			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
 			// due to test case: "success: verify membership query"
-			_, err = keeper.WasmQuery[types.TimestampAtHeightResult](suite.chainA.GetContext(), wasmKeeper, endpoint.ClientID, clientStore, clientState, payload)
+			// TODO(Jim): Sanity check that it unmarshals correctly?
+			_, err = wasmKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
