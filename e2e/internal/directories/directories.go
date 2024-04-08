@@ -11,7 +11,7 @@ import (
 const (
 	e2eDir = "e2e"
 
-	// defaultGenesisExportPath is the default path to which Genesis debug files will be exported to.
+	// DefaultGenesisExportPath is the default path to which Genesis debug files will be exported to.
 	DefaultGenesisExportPath = "diagnostics/genesis.json"
 )
 
