@@ -5,13 +5,12 @@ import (
 	"context"
 	"encoding/hex"
 
-	"cosmossdk.io/log"
-
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -51,7 +50,7 @@ func (k Keeper) GetAuthority() string {
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return moduleLogger(ctx)
 }
 
@@ -68,7 +67,7 @@ func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
 	return k.checksums
 }
 
-func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
+func (Keeper) newQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
 	return NewQueryHandler(ctx, callerID)
 }
 
