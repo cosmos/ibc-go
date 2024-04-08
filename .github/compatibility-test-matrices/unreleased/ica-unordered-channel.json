@@ -1,8 +1,10 @@
 {
   "chain-a": [
+    "release-v8.2.x",
     "release-v8.1.x"
   ],
   "chain-b": [
+    "release-v8.2.x",
     "release-v8.1.x"
   ],
   "entrypoint": [
