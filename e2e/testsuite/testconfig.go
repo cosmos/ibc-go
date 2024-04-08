@@ -173,12 +173,12 @@ func (tc TestConfig) validateRelayers() error {
 	return nil
 }
 
+// GetChainIndex returns the index of the chain with the given name, if it
+// exists.
 func (tc TestConfig) GetChainIndex(name string) (int, error) {
-	for i, chainCfg := range tc.ChainConfigs {
-		if chainCfg.Name == name {
-			return i, nil
-		}
-		if chainCfg.Name == "" && tc.GetChainName(i) == name {
+	for i := range tc.ChainConfigs {
+		chainName := tc.GetChainName(i)
+		if chainName == name {
 			return i, nil
 		}
 	}

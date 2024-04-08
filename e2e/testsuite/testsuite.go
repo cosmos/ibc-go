@@ -76,6 +76,7 @@ func (s *E2ETestSuite) SetupTest() {
 // ConfigureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
 func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 	tc := LoadConfig()
+	t := s.T()
 	cfg := tc.DebugConfig.GenesisDebug
 	if !cfg.DumpGenesisDebugInfo {
 		return
@@ -97,16 +98,17 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 		exportPath = gopath.Join(wd, exportPath)
 	}
 
-	os.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
+	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
 
-	chainIdx, err := tc.GetChainIndex(cfg.ChainName)
+	chainName := tc.GetGenesisChainName()
+	chainIdx, err := tc.GetChainIndex(chainName)
 	if err != nil {
 		s.Fail(err.Error())
 	}
 	// Interchaintest adds a suffix (https://github.com/strangelove-ven pftures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
 	// to the chain name, so we need to do the same.
-	genesisChainName := fmt.Sprintf("%s-%d", tc.GetChainName(chainIdx), chainIdx+1)
-	os.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
+	genesisChainName := fmt.Sprintf("%s-%d", chainName, chainIdx+1)
+	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
