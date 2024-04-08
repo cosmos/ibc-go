@@ -41,7 +41,7 @@ func (m Migrator) MigrateChecksums(ctx sdk.Context) error {
 		return err
 	}
 
-	types.Logger(ctx).Info("successfully migrated Checksums to collections")
+	m.keeper.Logger(ctx).Info("successfully migrated Checksums to collections")
 	return nil
 }
 

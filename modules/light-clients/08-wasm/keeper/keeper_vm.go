@@ -66,7 +66,7 @@ func NewKeeperWithVM(
 
 	// set query plugins to ensure there is a non-nil query plugin
 	// regardless of what options the user provides
-	ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
+	ibcwasm.SetQueryPlugins(NewDefaultQueryPlugins())
 	for _, opt := range opts {
 		opt.apply(keeper)
 	}

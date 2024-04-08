@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/hex"
 
+	"cosmossdk.io/log"
+
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
 	"cosmossdk.io/collections"
@@ -17,6 +19,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Keeper defines the 08-wasm keeper
@@ -47,6 +50,15 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
+// Logger returns a module-specific logger.
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return moduleLogger(ctx)
+}
+
+func moduleLogger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
+}
+
 // GetVM returns the keeper's vm engine.
 func (k Keeper) GetVM() ibcwasm.WasmEngine {
 	return k.vm
@@ -54,6 +66,10 @@ func (k Keeper) GetVM() ibcwasm.WasmEngine {
 
 func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
 	return k.checksums
+}
+
+func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
+	return NewQueryHandler(ctx, callerID)
 }
 
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {

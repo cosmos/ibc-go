@@ -1,4 +1,4 @@
-package types
+package keeper
 
 import (
 	"encoding/json"
@@ -47,6 +47,7 @@ type QueryHandler struct {
 }
 
 // NewQueryHandler returns a default querier that can be used in the contract.
+// TODO(jim): Make private and use export_test?
 func NewQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
 	return &QueryHandler{
 		Ctx:      ctx,
@@ -76,7 +77,7 @@ func (q *QueryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) 
 		return res, nil
 	}
 
-	Logger(q.Ctx).Debug("Redacting query error", "cause", err)
+	moduleLogger(q.Ctx).Debug("Redacting query error", "cause", err)
 	return nil, redactError(err)
 }
 

@@ -11,16 +11,17 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
-func MockCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
+func MockErrorCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 	return func(_ sdk.Context, _ json.RawMessage) ([]byte, error) {
 		return nil, errors.New("custom querier error for TestNewKeeperWithOptions")
 	}
 }
 
-func MockStargateQuerier() func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+func MockErrorStargateQuerier() func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(_ sdk.Context, _ *wasmvmtypes.StargateQuery) ([]byte, error) {
 		return nil, errors.New("stargate querier error for TestNewKeeperWithOptions")
 	}
@@ -46,7 +47,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := ibcwasm.GetQueryPlugins().(*types.QueryPlugins)
+				plugins := ibcwasm.GetQueryPlugins().(*wasmkeeper.QueryPlugins)
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
@@ -58,8 +59,8 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 		{
 			"success: custom querier",
 			func() {
-				querierOption := keeper.WithQueryPlugins(&types.QueryPlugins{
-					Custom: MockCustomQuerier(),
+				querierOption := keeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
+					Custom: MockErrorCustomQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
@@ -72,7 +73,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := ibcwasm.GetQueryPlugins().(*types.QueryPlugins)
+				plugins := ibcwasm.GetQueryPlugins().(*wasmkeeper.QueryPlugins)
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")
@@ -84,8 +85,8 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 		{
 			"success: stargate querier",
 			func() {
-				querierOption := keeper.WithQueryPlugins(&types.QueryPlugins{
-					Stargate: MockStargateQuerier(),
+				querierOption := keeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
+					Stargate: MockErrorStargateQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
@@ -98,7 +99,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := ibcwasm.GetQueryPlugins().(*types.QueryPlugins)
+				plugins := ibcwasm.GetQueryPlugins().(*wasmkeeper.QueryPlugins)
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
@@ -110,9 +111,9 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 		{
 			"success: both queriers",
 			func() {
-				querierOption := keeper.WithQueryPlugins(&types.QueryPlugins{
-					Custom:   MockCustomQuerier(),
-					Stargate: MockStargateQuerier(),
+				querierOption := keeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
+					Custom:   MockErrorCustomQuerier(),
+					Stargate: MockErrorStargateQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
@@ -125,7 +126,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := ibcwasm.GetQueryPlugins().(*types.QueryPlugins)
+				plugins := ibcwasm.GetQueryPlugins().(*wasmkeeper.QueryPlugins)
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")
@@ -142,13 +143,13 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 
 		suite.Run(tc.name, func() {
 			// make sure the default query plugins are set
-			ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins())
 
 			tc.malleate()
 			tc.verifyFn(k)
 
 			// reset query plugins after each test
-			ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins())
 		})
 	}
 }

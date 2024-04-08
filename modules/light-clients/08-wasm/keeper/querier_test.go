@@ -1,4 +1,4 @@
-package types_test
+package keeper_test
 
 import (
 	"encoding/hex"
@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -44,7 +45,7 @@ func MockCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 	}
 }
 
-func (suite *TypesTestSuite) TestCustomQuery() {
+func (suite *KeeperTestSuite) TestCustomQuery() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -52,7 +53,7 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 		{
 			"success: custom query",
 			func() {
-				querierPlugin := types.QueryPlugins{
+				querierPlugin := wasmkeeper.QueryPlugins{
 					Custom: MockCustomQuerier(),
 				}
 				ibcwasm.SetQueryPlugins(&querierPlugin)
@@ -100,6 +101,7 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
+			_ = storeWasmCode(suite, wasmtesting.Code)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -119,16 +121,17 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 			// clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 
 			// reset query plugins after each test
-			ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins())
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestStargateQuery() {
+func (suite *KeeperTestSuite) TestStargateQuery() {
 	typeURL := "/ibc.lightclients.wasm.v1.Query/Checksums"
 
 	var (
 		endpoint          *wasmtesting.WasmEndpoint
+		checksum          []byte
 		expDiscardedState = false
 		proofKey          = []byte("mock-key")
 		testKey           = []byte("test-key")
@@ -143,8 +146,8 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 		{
 			"success: custom query",
 			func() {
-				querierPlugin := types.QueryPlugins{
-					Stargate: types.AcceptListStargateQuerier([]string{typeURL}),
+				querierPlugin := wasmkeeper.QueryPlugins{
+					Stargate: wasmkeeper.AcceptListStargateQuerier([]string{typeURL}),
 				}
 
 				ibcwasm.SetQueryPlugins(&querierPlugin)
@@ -166,7 +169,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 					err = respData.Unmarshal(resp)
 					suite.Require().NoError(err)
 
-					expChecksum := hex.EncodeToString(suite.checksum)
+					expChecksum := hex.EncodeToString(checksum)
 
 					suite.Require().Len(respData.Checksums, 1)
 					suite.Require().Equal(expChecksum, respData.Checksums[0])
@@ -190,8 +193,8 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			// Furthermore we write a test key and assert that the state changes made by this handler were discarded by the cachedCtx at the grpc handler.
 			"success: verify membership query",
 			func() {
-				querierPlugin := types.QueryPlugins{
-					Stargate: types.AcceptListStargateQuerier([]string{""}),
+				querierPlugin := wasmkeeper.QueryPlugins{
+					Stargate: wasmkeeper.AcceptListStargateQuerier([]string{""}),
 				}
 
 				ibcwasm.SetQueryPlugins(&querierPlugin)
@@ -294,6 +297,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 		suite.Run(tc.name, func() {
 			expDiscardedState = false
 			suite.SetupWasmWithMockVM()
+			checksum = storeWasmCode(suite, wasmtesting.Code)
 
 			endpoint = wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -325,7 +329,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			}
 
 			// reset query plugins after each test
-			ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins())
 		})
 	}
 }
