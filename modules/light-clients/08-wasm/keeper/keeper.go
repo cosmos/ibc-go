@@ -35,8 +35,8 @@ type Keeper struct {
 	storeService store.KVStoreService
 
 	// handling queries
-	// TODO(jim): We had a reason we didn't call this interface QueryHanlder or something? Probably rename var to queryPlugins
-	queryHandler ibcwasm.QueryPluginsI
+	// TODO(jim): We had a reason we didn't call this interface QueryHanlder or something? Should we rename it to QueryHandler?
+	queryPlugins ibcwasm.QueryPluginsI
 
 	clientKeeper types.ClientKeeper
 
@@ -74,12 +74,12 @@ func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
 
 // TODO(jim): Docu!
 func (k Keeper) GetQueryPlugins() ibcwasm.QueryPluginsI {
-	return k.queryHandler
+	return k.queryPlugins
 }
 
 // TODO(jim): Docu!
 func (k *Keeper) SetQueryPlugins(plugins ibcwasm.QueryPluginsI) {
-	k.queryHandler = plugins
+	k.queryPlugins = plugins
 }
 
 // TODO(jim): Probably make query handler private? Can we do that?
