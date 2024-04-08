@@ -26,8 +26,11 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	if !k.bankKeeper.IsSendEnabledCoin(ctx, msg.Token) {
-		return nil, errorsmod.Wrapf(types.ErrSendDisabled, "%s transfers are currently disabled", msg.Token.Denom)
+	// TODO: replace with correct usage.
+	token := msg.GetTokens()[0]
+
+	if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
+		return nil, errorsmod.Wrapf(types.ErrSendDisabled, "%s transfers are currently disabled", token.Denom)
 	}
 
 	if k.bankKeeper.BlockedAddr(sender) {
@@ -35,21 +38,21 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
+		ctx, msg.SourcePort, msg.SourceChannel, token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
 		msg.Memo)
 	if err != nil {
 		return nil, err
 	}
 
-	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
+	k.Logger(ctx).Info("IBC fungible token transfer", "token", token.Denom, "amount", token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTransfer,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
+			sdk.NewAttribute(types.AttributeKeyAmount, token.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, token.Denom),
 			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
 		),
 		sdk.NewEvent(

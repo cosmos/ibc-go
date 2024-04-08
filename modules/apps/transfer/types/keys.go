@@ -27,7 +27,7 @@ const (
 	// QuerierRoute is the querier route for IBC transfer
 	QuerierRoute = ModuleName
 
-	// DenomPrefix is the prefix used for internal SDK coin representation.
+	// DenomPrefix is the prefix used for internal SDK coins representation.
 	DenomPrefix = "ibc"
 
 	// AllowAllPacketDataKeys holds the string key that allows all packet data keys in authz transfer messages
