@@ -78,8 +78,8 @@ func (suite *WasmTestSuite) TestStatus() {
 		{
 			"client status is unauthorized: checksum is not stored",
 			func() {
-				keeper := GetSimApp(suite.chainA).WasmClientKeeper
-				err := keeper.GetChecksums().Remove(suite.chainA.GetContext(), suite.checksum)
+				wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+				err := wasmClientKeeper.GetChecksums().Remove(suite.chainA.GetContext(), suite.checksum)
 				suite.Require().NoError(err)
 			},
 			exported.Unauthorized,

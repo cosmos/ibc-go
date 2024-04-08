@@ -410,8 +410,8 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 			newHash, err = types.CreateChecksum(wasmtesting.CreateMockContract([]byte{1, 2, 3}))
 			suite.Require().NoError(err)
 
-			wasmKeeper := GetSimApp(suite.chainA).WasmClientKeeper
-			err = wasmKeeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
+			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+			err = wasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
 			suite.Require().NoError(err)
 
 			endpointA := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -425,7 +425,7 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 
 			tc.malleate()
 
-			err = wasmKeeper.MigrateContractCode(suite.chainA.GetContext(), endpointA.ClientID, newHash, payload)
+			err = wasmClientKeeper.MigrateContractCode(suite.chainA.GetContext(), endpointA.ClientID, newHash, payload)
 
 			// updated client state
 			clientState, ok = endpointA.GetClientState().(*types.ClientState)
@@ -500,25 +500,25 @@ func (suite *KeeperTestSuite) TestAddChecksum() {
 	suite.SetupWasmWithMockVM()
 	storeWasmCode(suite, wasmtesting.Code)
 
-	wasmKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+	wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 
-	checksums, err := wasmKeeper.GetAllChecksums(suite.chainA.GetContext())
+	checksums, err := wasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
 	suite.Require().NoError(err)
 	// default mock vm contract is stored
 	suite.Require().Len(checksums, 1)
 
 	checksum1 := types.Checksum("checksum1")
 	checksum2 := types.Checksum("checksum2")
-	err = wasmKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum1)
+	err = wasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum1)
 	suite.Require().NoError(err)
-	err = wasmKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum2)
+	err = wasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum2)
 	suite.Require().NoError(err)
 
 	// Test adding the same checksum twice
-	err = wasmKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum1)
+	err = wasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum1)
 	suite.Require().NoError(err)
 
-	checksums, err = wasmKeeper.GetAllChecksums(suite.chainA.GetContext())
+	checksums, err = wasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
 	suite.Require().NoError(err)
 	suite.Require().Len(checksums, 3)
 	suite.Require().Contains(checksums, checksum1)

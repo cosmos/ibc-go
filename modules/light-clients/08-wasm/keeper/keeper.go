@@ -25,22 +25,18 @@ import (
 type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
-	// vm contains an implementation of the WasmEngine that's invoked.
-	vm  ibcwasm.WasmEngine
-	cdc codec.BinaryCodec
-
+	// vm contains an implementation of the WasmEngine
+	vm ibcwasm.WasmEngine
 	// state management
 	schema       collections.Schema
 	checksums    collections.KeySet[[]byte]
 	storeService store.KVStoreService
-
 	// handling queries
 	// TODO(jim): We had a reason we didn't call this interface QueryHanlder or something? Should we rename it to QueryHandler?
 	queryPlugins QueryPlugins
-
+	cdc          codec.BinaryCodec
 	clientKeeper types.ClientKeeper
-
-	authority string
+	authority    string
 }
 
 // Codec returns the 08-wasm module's codec.

@@ -109,15 +109,15 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			wasmKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 
-			tc.malleate(&wasmKeeper)
+			tc.malleate(&wasmClientKeeper)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState, ok := endpoint.GetClientState().(*types.ClientState)
 			suite.Require().True(ok)
 
-			res, err := wasmKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, types.QueryMsg{Status: &types.StatusMsg{}})
+			res, err := wasmClientKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, types.QueryMsg{Status: &types.StatusMsg{}})
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 			}
 
 			// reset query plugins after each test
-			wasmKeeper.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
+			wasmClientKeeper.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 		})
 	}
 }
@@ -311,9 +311,9 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			wasmKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 
-			tc.malleate(&wasmKeeper)
+			tc.malleate(&wasmClientKeeper)
 
 			payload := types.QueryMsg{
 				TimestampAtHeight: &types.TimestampAtHeightMsg{
@@ -329,7 +329,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
 			// due to test case: "success: verify membership query"
 			// TODO(Jim): Sanity check that it unmarshals correctly?
-			_, err = wasmKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, payload)
+			_, err = wasmClientKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			}
 
 			// reset query plugins after each test
-			wasmKeeper.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
+			wasmClientKeeper.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 		})
 	}
 }

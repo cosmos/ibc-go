@@ -71,9 +71,8 @@ func NewKeeperWithVM(
 
 	// set query plugins to ensure there is a non-nil query plugin
 	// regardless of what options the user provides
-	handler := NewDefaultQueryPlugins(queryRouter)
+	keeper.SetQueryPlugins(NewDefaultQueryPlugins(queryRouter))
 
-	keeper.SetQueryPlugins(handler)
 	for _, opt := range opts {
 		opt.apply(keeper)
 	}
