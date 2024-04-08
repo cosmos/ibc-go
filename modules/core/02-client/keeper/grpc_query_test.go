@@ -778,7 +778,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.Setup()
+			suite.coordinator.Setup(path)
 
 			tc.malleate()
 
