@@ -121,7 +121,7 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 			// clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 
 			// reset query plugins after each test
-			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 		})
 	}
 }
@@ -147,7 +147,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			"success: custom query",
 			func() {
 				querierPlugin := wasmkeeper.QueryPlugins{
-					Stargate: wasmkeeper.AcceptListStargateQuerier([]string{typeURL}),
+					Stargate: wasmkeeper.AcceptListStargateQuerier([]string{typeURL}, GetSimApp(suite.chainA).GRPCQueryRouter()),
 				}
 
 				ibcwasm.SetQueryPlugins(&querierPlugin)
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			"success: verify membership query",
 			func() {
 				querierPlugin := wasmkeeper.QueryPlugins{
-					Stargate: wasmkeeper.AcceptListStargateQuerier([]string{""}),
+					Stargate: wasmkeeper.AcceptListStargateQuerier([]string{""}, GetSimApp(suite.chainA).GRPCQueryRouter()),
 				}
 
 				ibcwasm.SetQueryPlugins(&querierPlugin)
@@ -329,7 +329,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			}
 
 			// reset query plugins after each test
-			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 		})
 	}
 }

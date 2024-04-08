@@ -34,6 +34,10 @@ func NewKeeperWithVM(
 		panic(errors.New("client keeper must not be nil"))
 	}
 
+	if queryRouter == nil {
+		panic(errors.New("query router must not be nil"))
+	}
+
 	if vm == nil {
 		panic(errors.New("wasm VM must not be nil"))
 	}
@@ -66,12 +70,10 @@ func NewKeeperWithVM(
 
 	// set query plugins to ensure there is a non-nil query plugin
 	// regardless of what options the user provides
-	ibcwasm.SetQueryPlugins(NewDefaultQueryPlugins())
+	ibcwasm.SetQueryPlugins(NewDefaultQueryPlugins(queryRouter))
 	for _, opt := range opts {
 		opt.apply(keeper)
 	}
-
-	ibcwasm.SetQueryRouter(queryRouter)
 
 	return *keeper
 }

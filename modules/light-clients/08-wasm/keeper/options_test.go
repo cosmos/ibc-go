@@ -142,13 +142,13 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 
 		suite.Run(tc.name, func() {
 			// make sure the default query plugins are set
-			ibcwasm.SetQueryPlugins(keeper.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 
 			tc.malleate()
 			tc.verifyFn(k)
 
 			// reset query plugins after each test
-			ibcwasm.SetQueryPlugins(keeper.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 		})
 	}
 }

@@ -124,16 +124,16 @@ func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvm
 }
 
 // NewDefaultQueryPlugins returns the default set of query plugins
-func NewDefaultQueryPlugins() *QueryPlugins {
+func NewDefaultQueryPlugins(queryRouter ibcwasm.QueryRouter) *QueryPlugins {
 	return &QueryPlugins{
 		Custom:   RejectCustomQuerier(),
-		Stargate: AcceptListStargateQuerier([]string{}),
+		Stargate: AcceptListStargateQuerier([]string{}, queryRouter),
 	}
 }
 
 // AcceptListStargateQuerier allows all queries that are in the provided accept list.
 // This function returns protobuf encoded responses in bytes.
-func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+func AcceptListStargateQuerier(acceptedQueries []string, queryRouter ibcwasm.QueryRouter) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// append user defined accepted queries to default list defined above.
 		acceptedQueries = append(defaultAcceptList, acceptedQueries...)
@@ -143,7 +143,7 @@ func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasm
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("'%s' path is not allowed from the contract", request.Path)}
 		}
 
-		route := ibcwasm.GetQueryRouter().Route(request.Path)
+		route := queryRouter.Route(request.Path)
 		if route == nil {
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
 		}
