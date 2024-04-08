@@ -288,7 +288,8 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 
 				// Assert that client status is now Active
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
-				tmClientState := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				tmClientState, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
 			} else {
 				suite.Require().Error(err)
@@ -870,7 +871,8 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		path.SetupClients()
 
 		var err error
-		clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+		clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+		suite.Require().True(ok)
 		revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
 		newChainID, err = clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
@@ -2574,7 +2576,8 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				Height: 1000,
 			}
 			// update trusting period
-			clientState := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.TrustingPeriod += 100
 
 			var err error
