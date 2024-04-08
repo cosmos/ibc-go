@@ -7,7 +7,6 @@ import (
 	"os"
 	gopath "path"
 	"strings"
-	"testing"
 
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
@@ -70,9 +69,12 @@ func newPath(chainA, chainB ibc.Chain) pathPair {
 	}
 }
 
+func (s *E2ETestSuite) SetupTest() {
+	s.ConfigureGenesisDebugExport()
+}
+
 // ConfigureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
-func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
-	t.Helper()
+func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 	tc := LoadConfig()
 	cfg := tc.DebugConfig.GenesisDebug
 	if !cfg.DumpGenesisDebugInfo {
@@ -84,7 +86,7 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
 
 	// If no path is provided, use the default (e2e/diagnostics/genesis.json).
 	if exportPath == "" {
-		e2eDir, err := diagnostics.GetE2EDir(t)
+		e2eDir, err := diagnostics.GetE2EDir(s.T())
 		s.Require().NoError(err, "can't get e2edir")
 		exportPath = gopath.Join(e2eDir, defaultGenesisExportPath)
 	}
@@ -95,16 +97,16 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport(t *testing.T) {
 		exportPath = gopath.Join(wd, exportPath)
 	}
 
-	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
+	os.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
 
 	chainIdx, err := tc.GetChainIndex(cfg.ChainName)
 	if err != nil {
 		s.Fail(err.Error())
 	}
-	// Interchaintest adds a suffix (https://github.com/strangelove-ventures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
+	// Interchaintest adds a suffix (https://github.com/strangelove-ven pftures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
 	// to the chain name, so we need to do the same.
-	genesisChainName := fmt.Sprintf("%s-%d", cfg.ChainName, chainIdx+1)
-	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
+	genesisChainName := fmt.Sprintf("%s-%d", tc.GetChainName(chainIdx), chainIdx+1)
+	os.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users

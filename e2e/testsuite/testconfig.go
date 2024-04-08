@@ -178,6 +178,9 @@ func (tc TestConfig) GetChainIndex(name string) (int, error) {
 		if chainCfg.Name == name {
 			return i, nil
 		}
+		if chainCfg.Name == "" && tc.GetChainName(i) == name {
+			return i, nil
+		}
 	}
 	return -1, fmt.Errorf("chain %s not found in chain configs", name)
 }
