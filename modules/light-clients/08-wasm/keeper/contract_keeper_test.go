@@ -372,18 +372,6 @@ func (suite *KeeperTestSuite) TestWasmQuery() {
 			},
 			types.ErrWasmContractCallFailed,
 		},
-		// TODO(jim): Moved to light client module.
-		/*
-			{
-				"failure: response fails to unmarshal",
-				func() {
-					suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
-						return &wasmvmtypes.QueryResult{Ok: []byte("invalid json")}, wasmtesting.DefaultGasUsed, nil
-					})
-				},
-				types.ErrWasmInvalidResponseData,
-			},
-		*/
 	}
 
 	for _, tc := range testCases {
@@ -496,18 +484,6 @@ func (suite *KeeperTestSuite) TestWasmSudo() {
 			},
 			types.ErrWasmAttributesNotAllowed,
 		},
-		// TODO(jim): Moved to light client module.
-		/*
-			{
-				"failure: response fails to unmarshal",
-				func() {
-					suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
-						return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: []byte("invalid json")}}, wasmtesting.DefaultGasUsed, nil
-					})
-				},
-				types.ErrWasmInvalidResponseData,
-			},
-		*/
 		{
 			"failure: invalid clientstate type",
 			func() {

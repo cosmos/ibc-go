@@ -35,7 +35,6 @@ var (
 
 // WasmQuery queries the contract with the given payload and returns the result.
 // WasmQuery returns an error if:
-// - the payload cannot be marshaled to JSON
 // - the contract query returns an error
 // - the data bytes of the response cannot be unmarshal into the result type
 func (k Keeper) WasmQuery(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.QueryMsg) ([]byte, error) {
@@ -57,7 +56,6 @@ func (k Keeper) WasmQuery(ctx sdk.Context, clientID string, clientStore storetyp
 
 // WasmSudo calls the contract with the given payload and returns the result.
 // WasmSudo returns an error if:
-// - the payload cannot be marshaled to JSON
 // - the contract call returns an error
 // - the response of the contract call contains non-empty messages
 // - the response of the contract call contains non-empty events
