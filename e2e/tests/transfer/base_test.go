@@ -25,9 +25,7 @@ import (
 )
 
 func TestTransferTestSuite(t *testing.T) {
-	suite := new(TransferTestSuite)
-	suite.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, suite)
+	testifysuite.Run(t, new(TransferTestSuite))
 }
 
 type TransferTestSuite struct {

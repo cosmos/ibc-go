@@ -31,9 +31,7 @@ import (
 )
 
 func TestInterchainAccountsParamsTestSuite(t *testing.T) {
-	s := new(InterchainAccountsParamsTestSuite)
-	s.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, s)
+	testifysuite.Run(t, new(InterchainAccountsParamsTestSuite))
 }
 
 type InterchainAccountsParamsTestSuite struct {

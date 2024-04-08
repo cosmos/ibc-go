@@ -21,9 +21,7 @@ import (
 )
 
 func TestTransferChannelUpgradesTestSuite(t *testing.T) {
-	s := new(TransferChannelUpgradesTestSuite)
-	s.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, s)
+	testifysuite.Run(t, new(TransferChannelUpgradesTestSuite))
 }
 
 type TransferChannelUpgradesTestSuite struct {

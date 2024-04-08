@@ -59,9 +59,7 @@ const (
 )
 
 func TestInterchainAccountsGroupsTestSuite(t *testing.T) {
-	s := new(InterchainAccountsGroupsTestSuite)
-	s.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, s)
+	testifysuite.Run(t, new(InterchainAccountsGroupsTestSuite))
 }
 
 type InterchainAccountsGroupsTestSuite struct {

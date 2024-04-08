@@ -20,9 +20,7 @@ import (
 )
 
 func TestTransferLocalhostTestSuite(t *testing.T) {
-	s := new(LocalhostTransferTestSuite)
-	s.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, s)
+	testifysuite.Run(t, new(LocalhostTransferTestSuite))
 }
 
 type LocalhostTransferTestSuite struct {

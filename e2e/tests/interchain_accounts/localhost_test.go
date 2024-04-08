@@ -30,9 +30,7 @@ import (
 )
 
 func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {
-	s := new(LocalhostInterchainAccountsTestSuite)
-	s.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, s)
+	testifysuite.Run(t, new(LocalhostInterchainAccountsTestSuite))
 }
 
 type LocalhostInterchainAccountsTestSuite struct {

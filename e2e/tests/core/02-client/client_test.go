@@ -44,9 +44,7 @@ const (
 )
 
 func TestClientTestSuite(t *testing.T) {
-	s := new(ClientTestSuite)
-	s.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, s)
+	testifysuite.Run(t, new(ClientTestSuite))
 }
 
 type ClientTestSuite struct {

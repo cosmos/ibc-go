@@ -23,9 +23,7 @@ import (
 )
 
 func TestAuthzTransferTestSuite(t *testing.T) {
-	s := new(AuthzTransferTestSuite)
-	s.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, s)
+	testifysuite.Run(t, new(AuthzTransferTestSuite))
 }
 
 type AuthzTransferTestSuite struct {

@@ -32,9 +32,7 @@ type IncentivizedTransferTestSuite struct {
 }
 
 func TestIncentivizedTransferTestSuite(t *testing.T) {
-	s := new(IncentivizedTransferTestSuite)
-	s.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, s)
+	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
 }
 
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {

@@ -26,9 +26,7 @@ import (
 )
 
 func TestInterchainAccountsQueryTestSuite(t *testing.T) {
-	s := new(InterchainAccountsQueryTestSuite)
-	s.ConfigureGenesisDebugExport(t)
-	testifysuite.Run(t, s)
+	testifysuite.Run(t, new(InterchainAccountsQueryTestSuite))
 }
 
 type InterchainAccountsQueryTestSuite struct {
