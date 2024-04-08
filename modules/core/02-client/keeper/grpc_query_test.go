@@ -1,15 +1,19 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestQueryClientState() {
@@ -658,8 +662,6 @@ func (suite *KeeperTestSuite) TestQueryClientParams() {
 	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
 }
-<<<<<<< HEAD
-=======
 
 func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 	var (
@@ -792,7 +794,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.Setup()
+			suite.coordinator.Setup(path)
 
 			tc.malleate()
 
@@ -816,4 +818,3 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 		})
 	}
 }
->>>>>>> 94a4597c (chore: add client status check to verify membership rpc (#5870))

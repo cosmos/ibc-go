@@ -328,8 +328,6 @@ func (k Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 		UpgradedConsensusState: protoAny,
 	}, nil
 }
-<<<<<<< HEAD
-=======
 
 // VerifyMembership implements the Query/VerifyMembership gRPC method
 // NOTE: Any state changes made within this handler are discarded by leveraging a cached context. Gas is consumed for underlying state access.
@@ -388,4 +386,3 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		Success: true,
 	}, nil
 }
->>>>>>> 94a4597c (chore: add client status check to verify membership rpc (#5870))
