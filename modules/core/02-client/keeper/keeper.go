@@ -26,11 +26,7 @@ import (
 type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.BinaryCodec
-<<<<<<< HEAD
-=======
-	router         *types.Router
 	consensusHost  types.ConsensusHost
->>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
 	legacySubspace types.ParamSubspace
 	upgradeKeeper  types.UpgradeKeeper
 }
@@ -40,11 +36,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace ty
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,
-<<<<<<< HEAD
-=======
-		router:         router,
 		consensusHost:  ibctm.NewConsensusHost(sk),
->>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
 		legacySubspace: legacySubspace,
 		upgradeKeeper:  uk,
 	}
@@ -265,30 +257,7 @@ func (k Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) 
 // and returns the expected consensus state at that height.
 // For now, can only retrieve self consensus states for the current revision
 func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
-<<<<<<< HEAD
-	selfHeight, ok := height.(types.Height)
-	if !ok {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", types.Height{}, height)
-	}
-	// check that height revision matches chainID revision
-	revision := types.ParseChainID(ctx.ChainID())
-	if revision != height.GetRevisionNumber() {
-		return nil, errorsmod.Wrapf(types.ErrInvalidHeight, "chainID revision number does not match height revision number: expected %d, got %d", revision, height.GetRevisionNumber())
-	}
-	histInfo, err := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
-	if err != nil {
-		return nil, errorsmod.Wrapf(err, "height %d", selfHeight.RevisionHeight)
-	}
-
-	consensusState := &ibctm.ConsensusState{
-		Timestamp:          histInfo.Header.Time,
-		Root:               commitmenttypes.NewMerkleRoot(histInfo.Header.GetAppHash()),
-		NextValidatorsHash: histInfo.Header.NextValidatorsHash,
-	}
-	return consensusState, nil
-=======
 	return k.consensusHost.GetSelfConsensusState(ctx, height)
->>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
 }
 
 // ValidateSelfClient validates the client parameters for a client of the running chain.

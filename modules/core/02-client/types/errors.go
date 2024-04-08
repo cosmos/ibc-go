@@ -36,9 +36,5 @@ var (
 	ErrClientNotActive                        = errorsmod.Register(SubModuleName, 29, "client state is not active")
 	ErrFailedMembershipVerification           = errorsmod.Register(SubModuleName, 30, "membership verification failed")
 	ErrFailedNonMembershipVerification        = errorsmod.Register(SubModuleName, 31, "non-membership verification failed")
-<<<<<<< HEAD
-=======
-	ErrRouteNotFound                          = errorsmod.Register(SubModuleName, 32, "light client module route not found")
-	ErrClientTypeNotSupported                 = errorsmod.Register(SubModuleName, 33, "client type not supported")
->>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
+	ErrClientTypeNotSupported                 = errorsmod.Register(SubModuleName, 32, "client type not supported")
 )
