@@ -7,17 +7,23 @@ slug: /ibc/roadmap
 
 # Roadmap ibc-go
 
-*Latest update: January 31st, 2024*
+*Latest update: April 05st, 2024*
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans. For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
-## v9.0.0
+## v8.3.0
 
 ### Conditional clients
 
 Conditional clients are light clients which are dependent on another client in order to verify or update state. Conditional clients are essential for integration with modular blockchains which break up consensus and state management, such as rollups. Currently, light clients receive a single provable store they maintain. There is an unidirectional communication channel with 02-client: the 02-client module will call into the light client, without allowing for the light client to call into the 02-client module. But modular blockchains break up a logical blockchain into many constituent parts, so in order to accurately represent these chains and also to account for various types of shared security primitives that are coming up, we need to introduce dependencies between clients. In the case of optimistic rollups, for example, in order to prove execution (allowing for fraud proofs), you must prove data availability and sequencing. A potential solution to this problem is that a light client may optionally specify a list of dependencies and the 02-client module would lookup read-only provable stores for each dependency and provide this to the conditional client to perform verification. Please see [this issue](https://github.com/cosmos/ibc-go/issues/5112) for more details.
+
+## v9.0.0
+
+### ICS20 v2
+
+The transfer application will be updated to add support for [transferring multiple tokens in the same packet](https://github.com/cosmos/ibc/pull/1020) and support for [atomically route tokens series of paths with a single packet](https://github.com/cosmos/ibc/pull/1090)
 
 ## v10.0.0
 
