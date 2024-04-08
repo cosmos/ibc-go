@@ -12,9 +12,6 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release-v1.5.x
-          - release-v2.5.x
-          - release-v3.4.x
           - release/v4.6.x
           - release/v5.4.x
           - release/v6.3.x
