@@ -714,6 +714,24 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			host.ErrInvalidID,
 		},
 		{
+			"localhost client ID is denied",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: exported.LocalhostClientID,
+				}
+			},
+			types.ErrInvalidClientType,
+		},
+		{
+			"solomachine client ID is denied",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: types.FormatClientIdentifier(exported.Solomachine, 1),
+				}
+			},
+			types.ErrInvalidClientType,
+		},
+		{
 			"empty proof",
 			func() {
 				req = &types.QueryVerifyMembershipRequest{
