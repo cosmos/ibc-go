@@ -11,8 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
-	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -48,16 +47,17 @@ func MockCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 func (suite *KeeperTestSuite) TestCustomQuery() {
 	testCases := []struct {
 		name     string
-		malleate func()
+		malleate func(k *keeper.Keeper)
+		expError error
 	}{
 		{
 			"success: custom query",
-			func() {
-				querierPlugin := wasmkeeper.QueryPlugins{
+			func(k *keeper.Keeper) {
+				querierPlugin := keeper.QueryPlugins{
 					Custom: MockCustomQuerier(),
 				}
-				ibcwasm.SetQueryPlugins(&querierPlugin)
 
+				k.SetQueryPlugins(querierPlugin)
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					echo := CustomQuery{
 						Echo: &QueryEcho{
@@ -83,10 +83,11 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 					return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
+			nil,
 		},
 		{
 			"failure: default query",
-			func() {
+			func(k *keeper.Keeper) {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					resp, err := querier.Query(wasmvmtypes.QueryRequest{Custom: json.RawMessage("{}")}, math.MaxUint64)
 					suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
@@ -95,6 +96,7 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 					return nil, wasmtesting.DefaultGasUsed, err
 				})
 			},
+			types.ErrVMError,
 		},
 	}
 
@@ -107,21 +109,27 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			tc.malleate()
+			wasmKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 
-			clientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(endpoint.ClientID)
-			suite.Require().True(found)
+			tc.malleate(&wasmKeeper)
 
-			// clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			// clientState, ok := endpoint.GetClientState().(*types.ClientState)
-			// suite.Require().True(ok)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
-			clientModule.Status(suite.chainA.GetContext(), endpoint.ClientID)
+			res, err := keeper.WasmQuery[types.StatusResult](suite.chainA.GetContext(), wasmKeeper, endpoint.ClientID, clientStore, clientState, types.QueryMsg{Status: &types.StatusMsg{}})
 
-			// clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().Nil(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Equal(res.Status, "")
+				suite.Require().ErrorIs(err, tc.expError)
+			}
 
 			// reset query plugins after each test
-			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
+			wasmKeeper.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 		})
 	}
 }
@@ -140,17 +148,17 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 
 	testCases := []struct {
 		name     string
-		malleate func()
+		malleate func(k *keeper.Keeper)
 		expError error
 	}{
 		{
 			"success: custom query",
-			func() {
-				querierPlugin := wasmkeeper.QueryPlugins{
-					Stargate: wasmkeeper.AcceptListStargateQuerier([]string{typeURL}, GetSimApp(suite.chainA).GRPCQueryRouter()),
+			func(k *keeper.Keeper) {
+				querierPlugin := keeper.QueryPlugins{
+					Stargate: keeper.AcceptListStargateQuerier([]string{typeURL}, GetSimApp(suite.chainA).GRPCQueryRouter()),
 				}
 
-				ibcwasm.SetQueryPlugins(&querierPlugin)
+				k.SetQueryPlugins(&querierPlugin)
 
 				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
@@ -192,12 +200,12 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			// This exercises the full flow through the grpc handler and into the light client for verification, handling encoding and routing.
 			// Furthermore we write a test key and assert that the state changes made by this handler were discarded by the cachedCtx at the grpc handler.
 			"success: verify membership query",
-			func() {
-				querierPlugin := wasmkeeper.QueryPlugins{
-					Stargate: wasmkeeper.AcceptListStargateQuerier([]string{""}, GetSimApp(suite.chainA).GRPCQueryRouter()),
+			func(k *keeper.Keeper) {
+				querierPlugin := keeper.QueryPlugins{
+					Stargate: keeper.AcceptListStargateQuerier([]string{""}, GetSimApp(suite.chainA).GRPCQueryRouter()),
 				}
 
-				ibcwasm.SetQueryPlugins(&querierPlugin)
+				k.SetQueryPlugins(&querierPlugin)
 
 				store := suite.chainA.GetContext().KVStore(GetSimApp(suite.chainA).GetKey(exported.StoreKey))
 				store.Set(proofKey, value)
@@ -269,7 +277,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 		},
 		{
 			"failure: default querier",
-			func() {
+			func(k *keeper.Keeper) {
 				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
 					bz, err := queryRequest.Marshal()
@@ -303,15 +311,24 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			tc.malleate()
+			wasmKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 
-			clientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(endpoint.ClientID)
-			suite.Require().True(found)
+			tc.malleate(&wasmKeeper)
+
+			payload := types.QueryMsg{
+				TimestampAtHeight: &types.TimestampAtHeightMsg{
+					Height: clienttypes.NewHeight(1, 100),
+				},
+			}
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState, ok := endpoint.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
 			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
 			// due to test case: "success: verify membership query"
-			_, err = clientModule.TimestampAtHeight(suite.chainA.GetContext(), endpoint.ClientID, clienttypes.NewHeight(1, 100))
+			_, err = keeper.WasmQuery[types.TimestampAtHeightResult](suite.chainA.GetContext(), wasmKeeper, endpoint.ClientID, clientStore, clientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -321,7 +338,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 				suite.Require().ErrorContains(err, tc.expError.Error())
 			}
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			if expDiscardedState {
 				suite.Require().False(clientStore.Has(testKey))
 			} else {
@@ -329,7 +346,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			}
 
 			// reset query plugins after each test
-			ibcwasm.SetQueryPlugins(wasmkeeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
+			wasmKeeper.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 		})
 	}
 }

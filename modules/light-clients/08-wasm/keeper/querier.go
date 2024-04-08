@@ -43,14 +43,16 @@ var defaultAcceptList = []string{
 // into the query plugins.
 type QueryHandler struct {
 	Ctx      sdk.Context
+	Plugins  ibcwasm.QueryPluginsI
 	CallerID string
 }
 
 // NewQueryHandler returns a default querier that can be used in the contract.
 // TODO(jim): Make private and use export_test?
-func NewQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
+func NewQueryHandler(ctx sdk.Context, plugins ibcwasm.QueryPluginsI, callerID string) *QueryHandler {
 	return &QueryHandler{
 		Ctx:      ctx,
+		Plugins:  plugins,
 		CallerID: callerID,
 	}
 }
@@ -72,7 +74,7 @@ func (q *QueryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) 
 		q.Ctx.GasMeter().ConsumeGas(subCtx.GasMeter().GasConsumed(), "contract sub-query")
 	}()
 
-	res, err := ibcwasm.GetQueryPlugins().HandleQuery(subCtx, q.CallerID, request)
+	res, err := q.Plugins.HandleQuery(subCtx, q.CallerID, request)
 	if err == nil {
 		return res, nil
 	}
@@ -124,8 +126,8 @@ func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvm
 }
 
 // NewDefaultQueryPlugins returns the default set of query plugins
-func NewDefaultQueryPlugins(queryRouter ibcwasm.QueryRouter) *QueryPlugins {
-	return &QueryPlugins{
+func NewDefaultQueryPlugins(queryRouter ibcwasm.QueryRouter) QueryPlugins {
+	return QueryPlugins{
 		Custom:   RejectCustomQuerier(),
 		Stargate: AcceptListStargateQuerier([]string{}, queryRouter),
 	}

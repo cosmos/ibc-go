@@ -34,6 +34,10 @@ type Keeper struct {
 	checksums    collections.KeySet[[]byte]
 	storeService store.KVStoreService
 
+	// handling queries
+	// TODO(jim): We had a reason we didn't call this interface QueryHanlder or something? Probably rename var to queryPlugins
+	queryHandler ibcwasm.QueryPluginsI
+
 	clientKeeper types.ClientKeeper
 
 	authority string
@@ -63,12 +67,24 @@ func (k Keeper) GetVM() ibcwasm.WasmEngine {
 	return k.vm
 }
 
+// TODO(jim): Docu!
 func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
 	return k.checksums
 }
 
-func (Keeper) newQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
-	return NewQueryHandler(ctx, callerID)
+// TODO(jim): Docu!
+func (k Keeper) GetQueryPlugins() ibcwasm.QueryPluginsI {
+	return k.queryHandler
+}
+
+// TODO(jim): Docu!
+func (k *Keeper) SetQueryPlugins(plugins ibcwasm.QueryPluginsI) {
+	k.queryHandler = plugins
+}
+
+// TODO(jim): Probably make query handler private? Can we do that?
+func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
+	return NewQueryHandler(ctx, k.GetQueryPlugins(), callerID)
 }
 
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {

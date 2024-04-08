@@ -66,11 +66,14 @@ func NewKeeperWithVM(
 		panic(err)
 	}
 
+	// TODO(jim): Is this needed? wasmd doesn't hold ref, sdk docs/code do.
 	keeper.schema = schema
 
 	// set query plugins to ensure there is a non-nil query plugin
 	// regardless of what options the user provides
-	ibcwasm.SetQueryPlugins(NewDefaultQueryPlugins(queryRouter))
+	handler := NewDefaultQueryPlugins(queryRouter)
+
+	keeper.SetQueryPlugins(handler)
 	for _, opt := range opts {
 		opt.apply(keeper)
 	}

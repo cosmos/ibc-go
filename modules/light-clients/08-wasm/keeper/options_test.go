@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -46,7 +45,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := ibcwasm.GetQueryPlugins().(*keeper.QueryPlugins)
+				plugins := k.GetQueryPlugins().(keeper.QueryPlugins)
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
@@ -72,7 +71,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := ibcwasm.GetQueryPlugins().(*keeper.QueryPlugins)
+				plugins := k.GetQueryPlugins().(keeper.QueryPlugins)
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")
@@ -98,7 +97,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := ibcwasm.GetQueryPlugins().(*keeper.QueryPlugins)
+				plugins := k.GetQueryPlugins().(keeper.QueryPlugins)
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
@@ -125,7 +124,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := ibcwasm.GetQueryPlugins().(*keeper.QueryPlugins)
+				plugins := k.GetQueryPlugins().(keeper.QueryPlugins)
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")
@@ -142,13 +141,13 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 
 		suite.Run(tc.name, func() {
 			// make sure the default query plugins are set
-			ibcwasm.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
+			k.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 
 			tc.malleate()
 			tc.verifyFn(k)
 
 			// reset query plugins after each test
-			ibcwasm.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
+			k.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
 		})
 	}
 }
