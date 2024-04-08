@@ -17,10 +17,9 @@ func PacketDataV1ToV3(packetData v1types.FungibleTokenPacketData) v3types.Fungib
 
 	v2Denom, trace := extractDenomAndTraceFromV1Denom(packetData.Denom)
 
-	// TODO: we should fail here, but some tests fail with this panic. We can re-visit.
-	// if v2Denom == "" {
-	// 	panic("base denom cannot be empty")
-	// }
+	if v2Denom == "" {
+		panic("invalid packet data, base denom cannot be empty")
+	}
 
 	return v3types.FungibleTokenPacketData{
 		Tokens: []*v3types.Token{
@@ -36,20 +35,25 @@ func PacketDataV1ToV3(packetData v1types.FungibleTokenPacketData) v3types.Fungib
 	}
 }
 
+// extractDenomAndTraceFromV1Denom extracts the base denom and remaining trace from a v1 IBC denom.
 func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 	v1DenomTrace := v1types.ParseDenomTrace(v1Denom)
 
 	splitPath := strings.Split(v1Denom, "/")
 	pathSlice := extractPathAndBaseFromFullDenomSlice(splitPath)
 
+	// if the path slice is empty, then the base denom is the full native denom.
 	if len(pathSlice) == 0 {
 		return v1DenomTrace.BaseDenom, []string(nil)
 	}
 
+	// this condition should never be reached.
 	if len(pathSlice)%2 != 0 {
 		panic("pathSlice length is not even")
 	}
 
+	// the path slices consists of entries of ports and channel ids separately,
+	// we need to combine them to form the trace.
 	var trace []string
 	for i := 0; i < len(pathSlice); i += 2 {
 		trace = append(trace, strings.Join(pathSlice[i:i+2], "/"))
@@ -58,24 +62,15 @@ func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 	return v1DenomTrace.BaseDenom, trace
 }
 
+// extractPathAndBaseFromFullDenomSlice extracts the path and base denom from a full denom slice.
 func extractPathAndBaseFromFullDenomSlice(fullDenomItems []string) []string {
 	var pathSlice []string
-
 	length := len(fullDenomItems)
 	for i := 0; i < length; i += 2 {
-		// The IBC specification does not guarantee the expected format of the
-		// destination port or destination channel identifier. A short term solution
-		// to determine base denomination is to expect the channel identifier to be the
-		// one ibc-go specifies. A longer term solution is to separate the path and base
-		// denomination in the ICS20 packet. If an intermediate hop prefixes the full denom
-		// with a channel identifier format different from our own, the base denomination
-		// will be incorrectly parsed, but the token will continue to be treated correctly
-		// as an IBC denomination. The hash used to store the token internally on our chain
-		// will be the same value as the base denomination being correctly parsed.
 		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(fullDenomItems[i+1]) {
 			pathSlice = append(pathSlice, fullDenomItems[i], fullDenomItems[i+1])
 		} else {
-			break
+			return pathSlice
 		}
 	}
 	return pathSlice

@@ -84,6 +84,12 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				}, sender, receiver, ""),
 			false,
 		},
+		{
+			"failure: panics with empty denom",
+			v1types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
+			v3types.FungibleTokenPacketData{},
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
