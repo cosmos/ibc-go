@@ -96,13 +96,10 @@ func (msg MsgTransfer) ValidateBasic() error {
 	}
 
 	for _, token := range msg.GetTokens() {
-		if !token.IsValid() {
+		if !isValidToken(token) {
 			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.String())
 		}
-		if !token.IsPositive() {
-			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, token.String())
-		}
-		if err := ValidateIBCDenom(token.Denom); err != nil {
+		if err := ValidateIBCDenom(token.GetDenom()); err != nil {
 			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.Denom)
 		}
 	}
