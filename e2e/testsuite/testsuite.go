@@ -21,6 +21,7 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
@@ -87,9 +88,9 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 
 	// If no path is provided, use the default (e2e/diagnostics/genesis.json).
 	if exportPath == "" {
-		e2eDir, err := diagnostics.GetE2EDir(s.T())
+		e2eDir, err := directories.E2E(s.T())
 		s.Require().NoError(err, "can't get e2edir")
-		exportPath = gopath.Join(e2eDir, defaultGenesisExportPath)
+		exportPath = gopath.Join(e2eDir, directories.DefaultGenesisExportPath)
 	}
 
 	if !gopath.IsAbs(exportPath) {
@@ -98,6 +99,8 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 		exportPath = gopath.Join(wd, exportPath)
 	}
 
+	// This env variables are set by the interchain test code:
+	// https://github.com/strangelove-ventures/interchaintest/blob/7aa0fd6487f76238ab44231fdaebc34627bc5990/chain/cosmos/cosmos_chain.go#L1007-L1008
 	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
 
 	chainName := tc.GetGenesisChainName()

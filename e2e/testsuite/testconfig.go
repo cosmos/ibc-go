@@ -68,9 +68,6 @@ const (
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
-
-	// defaultGenesisExportPath is the default path to which Genesis debug files will be exported to.
-	defaultGenesisExportPath = "diagnostics/genesis.json"
 )
 
 // defaultChainNames contains the default name for chainA and chainB.
