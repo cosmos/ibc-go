@@ -7,11 +7,15 @@ import (
 	"sync"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -195,7 +199,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		transferAmount := testvalues.DefaultTransferAmount(chainA.Config().Denom)
 
 		msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.FormattedAddress(), nil)
-		msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
+		msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, sdk.NewCoins(transferAmount), chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
 		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 		s.AssertTxSuccess(resp)
 	})
