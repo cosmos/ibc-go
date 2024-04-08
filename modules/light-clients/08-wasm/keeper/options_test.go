@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := k.GetQueryPlugins().(keeper.QueryPlugins)
+				plugins := k.GetQueryPlugins()
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
@@ -71,7 +71,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := k.GetQueryPlugins().(keeper.QueryPlugins)
+				plugins := k.GetQueryPlugins()
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")
@@ -97,7 +97,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := k.GetQueryPlugins().(keeper.QueryPlugins)
+				plugins := k.GetQueryPlugins()
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				)
 			},
 			func(k keeper.Keeper) {
-				plugins := k.GetQueryPlugins().(keeper.QueryPlugins)
+				plugins := k.GetQueryPlugins()
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
 				suite.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")

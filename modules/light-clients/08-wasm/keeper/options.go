@@ -1,9 +1,5 @@
 package keeper
 
-import (
-	"errors"
-)
-
 // Option is an extension point to instantiate keeper with non default values
 type Option interface {
 	apply(*Keeper)
@@ -19,11 +15,9 @@ func (f optsFn) apply(keeper *Keeper) {
 // Missing fields will be filled with default queriers.
 func WithQueryPlugins(plugins *QueryPlugins) Option {
 	return optsFn(func(k *Keeper) {
-		currentPlugins, ok := k.GetQueryPlugins().(QueryPlugins)
-		if !ok {
-			panic(errors.New("invalid query plugins type"))
-		}
+		currentPlugins := k.GetQueryPlugins()
 		newPlugins := currentPlugins.Merge(plugins)
+
 		k.SetQueryPlugins(newPlugins)
 	})
 }

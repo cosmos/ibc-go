@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 					Stargate: keeper.AcceptListStargateQuerier([]string{typeURL}, GetSimApp(suite.chainA).GRPCQueryRouter()),
 				}
 
-				k.SetQueryPlugins(&querierPlugin)
+				k.SetQueryPlugins(querierPlugin)
 
 				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
@@ -205,7 +205,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 					Stargate: keeper.AcceptListStargateQuerier([]string{""}, GetSimApp(suite.chainA).GRPCQueryRouter()),
 				}
 
-				k.SetQueryPlugins(&querierPlugin)
+				k.SetQueryPlugins(querierPlugin)
 
 				store := suite.chainA.GetContext().KVStore(GetSimApp(suite.chainA).GetKey(exported.StoreKey))
 				store.Set(proofKey, value)

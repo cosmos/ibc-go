@@ -29,10 +29,7 @@ to `baseapp.GRPCQueryRouter`.
 This design is based on wasmd's (v0.50.0) querier plugin design.
 */
 
-var (
-	_ wasmvmtypes.Querier   = (*QueryHandler)(nil)
-	_ ibcwasm.QueryPluginsI = (*QueryPlugins)(nil)
-)
+var _ wasmvmtypes.Querier = (*QueryHandler)(nil)
 
 // defaultAcceptList defines a set of default allowed queries made available to the Querier.
 var defaultAcceptList = []string{
@@ -43,13 +40,13 @@ var defaultAcceptList = []string{
 // into the query plugins.
 type QueryHandler struct {
 	Ctx      sdk.Context
-	Plugins  ibcwasm.QueryPluginsI
+	Plugins  QueryPlugins
 	CallerID string
 }
 
 // NewQueryHandler returns a default querier that can be used in the contract.
 // TODO(jim): Make private and use export_test?
-func NewQueryHandler(ctx sdk.Context, plugins ibcwasm.QueryPluginsI, callerID string) *QueryHandler {
+func NewQueryHandler(ctx sdk.Context, plugins QueryPlugins, callerID string) *QueryHandler {
 	return &QueryHandler{
 		Ctx:      ctx,
 		Plugins:  plugins,

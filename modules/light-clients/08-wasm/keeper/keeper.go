@@ -36,7 +36,7 @@ type Keeper struct {
 
 	// handling queries
 	// TODO(jim): We had a reason we didn't call this interface QueryHanlder or something? Should we rename it to QueryHandler?
-	queryPlugins ibcwasm.QueryPluginsI
+	queryPlugins QueryPlugins
 
 	clientKeeper types.ClientKeeper
 
@@ -73,12 +73,12 @@ func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
 }
 
 // TODO(jim): Docu!
-func (k Keeper) GetQueryPlugins() ibcwasm.QueryPluginsI {
+func (k Keeper) GetQueryPlugins() QueryPlugins {
 	return k.queryPlugins
 }
 
 // TODO(jim): Docu!
-func (k *Keeper) SetQueryPlugins(plugins ibcwasm.QueryPluginsI) {
+func (k *Keeper) SetQueryPlugins(plugins QueryPlugins) {
 	k.queryPlugins = plugins
 }
 
