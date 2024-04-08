@@ -28,7 +28,7 @@ type Keeper struct {
 
 	cdc codec.BinaryCodec
 
-	ClientKeeper     clientkeeper.Keeper
+	ClientKeeper     *clientkeeper.Keeper
 	ConnectionKeeper connectionkeeper.Keeper
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       *portkeeper.Keeper
@@ -40,13 +40,14 @@ type Keeper struct {
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace,
-	stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
+	consensusHost clienttypes.ConsensusHost, upgradeKeeper clienttypes.UpgradeKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
 ) *Keeper {
 	// panic if any of the keepers passed in is empty
-	if isEmpty(stakingKeeper) {
-		panic(errors.New("cannot initialize IBC keeper: empty staking keeper"))
+	if isEmpty(consensusHost) {
+		panic(errors.New("cannot initialize IBC keeper: empty consensus host"))
 	}
+
 	if isEmpty(upgradeKeeper) {
 		panic(errors.New("cannot initialize IBC keeper: empty upgrade keeper"))
 	}
@@ -59,14 +60,14 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, consensusHost, upgradeKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, &clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
-	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, &portKeeper, scopedKeeper)
+	channelKeeper := channelkeeper.NewKeeper(cdc, key, &clientKeeper, &connectionKeeper, &portKeeper, scopedKeeper)
 
 	return &Keeper{
 		cdc:              cdc,
-		ClientKeeper:     clientKeeper,
+		ClientKeeper:     &clientKeeper,
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
 		PortKeeper:       &portKeeper,
