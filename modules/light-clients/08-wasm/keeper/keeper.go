@@ -139,8 +139,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wa
 	return checksum, nil
 }
 
-// TODO(jim): Use an export_test.go here too and make private again.
-func (k Keeper) MigrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
+func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
 	wasmClientState, err := k.GetWasmClientState(ctx, clientID)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to retrieve wasm client state")

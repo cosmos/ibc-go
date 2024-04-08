@@ -11,13 +11,6 @@ import (
 // MaxWasmSize is the maximum size of a wasm code in bytes.
 const MaxWasmSize = maxWasmSize
 
-// NewMigrateProposalWrappedStore is a wrapper around newMigrateProposalWrappedStore to allow the function to be directly called in tests.
-//
-//nolint:revive // Returning unexported type for testing purposes.
-func NewMigrateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore) MigrateClientWrappedStore {
-	return NewMigrateClientWrappedStore(subjectStore, substituteStore)
-}
-
 // GetStore is a wrapper around getStore to allow the function to be directly called in tests.
 func (ws MigrateClientWrappedStore) GetStore(key []byte) (storetypes.KVStore, bool) {
 	return ws.getStore(key)

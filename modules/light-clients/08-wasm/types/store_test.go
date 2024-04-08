@@ -45,7 +45,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			store, found := wrappedStore.GetStore(tc.prefix)
 
@@ -137,7 +137,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -182,7 +182,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 		suite.Run(tc.name, func() {
 			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -233,7 +233,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 		suite.Run(tc.name, func() {
 			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -305,7 +305,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKeyStart := tc.prefixStart
 			prefixedKeyStart = append(prefixedKeyStart, tc.start...)
@@ -362,11 +362,11 @@ func (suite *TypesTestSuite) TestNewMigrateClientWrappedStore() {
 			expPass := !tc.expPanic
 			if expPass {
 				suite.Require().NotPanics(func() {
-					types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+					types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 				})
 			} else {
 				suite.Require().Panics(func() {
-					types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+					types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 				})
 			}
 		})
