@@ -60,7 +60,7 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 			return errorsmod.Wrapf(types.ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
 		}
 
-		//TODO: check denom validation here: should use ValidatePrefixedDenom? potentially linked to: https://github.com/cosmos/ibc-go/issues/6124
+		// TODO: check denom validation here: should use ValidatePrefixedDenom? potentially linked to: https://github.com/cosmos/ibc-go/issues/6124
 		if err := sdk.ValidateDenom(token.Denom); err != nil {
 			return errorsmod.Wrap(types.ErrInvalidDenomForTransfer, err.Error())
 		}

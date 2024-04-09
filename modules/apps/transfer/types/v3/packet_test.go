@@ -2,16 +2,17 @@ package v3
 
 import (
 	"encoding/json"
-	fmt "fmt"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cometbft/cometbft/crypto/secp256k1"
+
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-
-	"github.com/cometbft/cometbft/crypto/secp256k1"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -28,7 +29,6 @@ var (
 
 // TestFungibleTokenPacketDataValidateBasic tests ValidateBasic for FungibleTokenPacketData
 func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
-
 	testCases := []struct {
 		name       string
 		packetData FungibleTokenPacketData
