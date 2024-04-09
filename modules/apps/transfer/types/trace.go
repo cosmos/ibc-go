@@ -14,7 +14,6 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
 	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
@@ -39,7 +38,7 @@ func ParseDenomTrace(rawDenom string) DenomTrace {
 		}
 	}
 
-	pathSlice, baseDenom := denom.ExtractPathAndBaseFromFullDenom(denomSplit)
+	pathSlice, baseDenom := denominternal.ExtractPathAndBaseFromFullDenom(denomSplit)
 	return DenomTrace{
 		Path:      strings.Join(pathSlice, "/"),
 		BaseDenom: baseDenom,

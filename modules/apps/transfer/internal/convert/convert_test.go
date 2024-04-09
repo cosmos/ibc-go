@@ -49,7 +49,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 		},
 		// TODO: this test should pass, but v1 packet data validation is failing with this denom.
 		// https://github.com/cosmos/ibc-go/issues/6124
-		//{
+		// {
 		//	"success: base denom with '/' at the end",
 		//	v1types.NewFungibleTokenPacketData("transfer/channel-0/atom/", "1000", sender, receiver, ""),
 		//	v3types.NewFungibleTokenPacketData(
@@ -61,7 +61,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 		//			},
 		//		}, sender, receiver, ""),
 		//	false,
-		//},
+		// },
 		{
 			"success: longer trace base denom with '/'",
 			v1types.NewFungibleTokenPacketData("transfer/channel-0/transfer/channel-1/atom/pool", "1000", sender, receiver, ""),
