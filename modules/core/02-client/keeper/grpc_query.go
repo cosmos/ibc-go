@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -341,6 +342,16 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	clientType, _, err := types.ParseClientIdentifier(req.ClientId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	denyClients := []string{exported.Localhost, exported.Solomachine}
+	if slices.Contains(denyClients, clientType) {
+		return nil, status.Error(codes.InvalidArgument, errorsmod.Wrapf(types.ErrInvalidClientType, "verify membership is disabled for client types %s", denyClients).Error())
+	}
+
 	if len(req.Proof) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "empty proof")
 	}
@@ -358,6 +369,7 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+
 	// cache the context to ensure clientState.VerifyMembership does not change state
 	cachedCtx, _ := ctx.CacheContext()
 
@@ -374,6 +386,13 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 	if clientStatus := k.GetClientStatus(ctx, clientState, req.ClientId); clientStatus != exported.Active {
 		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
 	}
+
+	// consume flat gas fee for proof verification queries.
+	// NOTE: consuming gas prior to method invocation also provides protection against recursive calls reaching stack overflow
+	ctx.GasMeter().ConsumeGas(
+		3*ctx.KVGasConfig().ReadCostPerByte*uint64(len(req.Proof)),
+		"verify membership query",
+	)
 
 	if err := clientState.VerifyMembership(cachedCtx, k.ClientStore(cachedCtx, req.ClientId), k.cdc, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
 		k.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
