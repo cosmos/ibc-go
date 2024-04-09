@@ -422,7 +422,12 @@ func (k Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.He
 		return types.ZeroHeight()
 	}
 
-	return clientModule.LatestHeight(ctx, clientID).(types.Height)
+	var latestHeight types.Height
+	latestHeight, ok := clientModule.LatestHeight(ctx, clientID).(types.Height)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T to %T", clientModule.LatestHeight, latestHeight))
+	}
+	return latestHeight
 }
 
 // GetClientTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
