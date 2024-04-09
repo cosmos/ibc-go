@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -34,7 +33,7 @@ var (
 )
 
 // instantiateContract calls vm.Instantiate with appropriate arguments.
-func (k Keeper) instantiateContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
+func (k Keeper) instantiateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, types.VMGasRegister)
 	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
@@ -47,7 +46,7 @@ func (k Keeper) instantiateContract(ctx sdk.Context, vm ibcwasm.WasmEngine, clie
 	}
 
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: instantiate")
-	resp, gasUsed, err := vm.Instantiate(checksum, env, msgInfo, msg, types.NewStoreAdapter(clientStore), wasmvmAPI, k.newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
+	resp, gasUsed, err := k.GetVM().Instantiate(checksum, env, msgInfo, msg, types.NewStoreAdapter(clientStore), wasmvmAPI, k.newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
 	types.VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -104,7 +103,7 @@ func (k Keeper) WasmInstantiate(ctx sdk.Context, clientID string, clientStore st
 	}
 
 	checksum := cs.Checksum
-	res, err := k.instantiateContract(ctx, k.GetVM(), clientID, clientStore, checksum, encodedData)
+	res, err := k.instantiateContract(ctx, clientID, clientStore, checksum, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrVMError, err.Error())
 	}

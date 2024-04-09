@@ -13,13 +13,13 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
-func MockErrorCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
+func mockErrorCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 	return func(_ sdk.Context, _ json.RawMessage) ([]byte, error) {
 		return nil, errors.New("custom querier error for TestNewKeeperWithOptions")
 	}
 }
 
-func MockErrorStargateQuerier() func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+func mockErrorStargateQuerier() func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(_ sdk.Context, _ *wasmvmtypes.StargateQuery) ([]byte, error) {
 		return nil, errors.New("stargate querier error for TestNewKeeperWithOptions")
 	}
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 			"success: custom querier",
 			func() {
 				querierOption := keeper.WithQueryPlugins(&keeper.QueryPlugins{
-					Custom: MockErrorCustomQuerier(),
+					Custom: mockErrorCustomQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 			"success: stargate querier",
 			func() {
 				querierOption := keeper.WithQueryPlugins(&keeper.QueryPlugins{
-					Stargate: MockErrorStargateQuerier(),
+					Stargate: mockErrorStargateQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
@@ -110,8 +110,8 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 			"success: both queriers",
 			func() {
 				querierOption := keeper.WithQueryPlugins(&keeper.QueryPlugins{
-					Custom:   MockErrorCustomQuerier(),
-					Stargate: MockErrorStargateQuerier(),
+					Custom:   mockErrorCustomQuerier(),
+					Stargate: mockErrorStargateQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),

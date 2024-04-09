@@ -27,7 +27,7 @@ type QueryEcho struct {
 	Data string `json:"data"`
 }
 
-func MockCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
+func mockCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
 		var customQuery CustomQuery
 		err := json.Unmarshal([]byte(request), &customQuery)
@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 			"success: custom query",
 			func(k *keeper.Keeper) {
 				querierPlugin := keeper.QueryPlugins{
-					Custom: MockCustomQuerier(),
+					Custom: mockCustomQuerier(),
 				}
 
 				k.SetQueryPlugins(querierPlugin)
