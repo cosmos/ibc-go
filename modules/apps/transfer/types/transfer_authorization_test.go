@@ -15,7 +15,7 @@ const testMemo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	var (
-		msgTransfer   types.MsgTransfer
+		msgTransfer   *types.MsgTransfer
 		transferAuthz types.TransferAuthorization
 	)
 
@@ -247,18 +247,20 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				},
 			}
 
-			msgTransfer = types.MsgTransfer{
-				SourcePort:    path.EndpointA.ChannelConfig.PortID,
-				SourceChannel: path.EndpointA.ChannelID,
-				Token:         ibctesting.TestCoin,
-				Sender:        suite.chainA.SenderAccount.GetAddress().String(),
-				Receiver:      ibctesting.TestAccAddress,
-				TimeoutHeight: suite.chainB.GetTimeoutHeight(),
-			}
+			msgTransfer = types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				sdk.NewCoins(ibctesting.TestCoin),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				ibctesting.TestAccAddress,
+				suite.chainB.GetTimeoutHeight(),
+				0,
+				"",
+			)
 
 			tc.malleate()
 
-			res, err := transferAuthz.Accept(suite.chainA.GetContext(), &msgTransfer)
+			res, err := transferAuthz.Accept(suite.chainA.GetContext(), msgTransfer)
 			tc.assertResult(res, err)
 		})
 	}

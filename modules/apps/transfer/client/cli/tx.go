@@ -107,7 +107,7 @@ Relative timeout timestamp is added to the value of the user's local system cloc
 			}
 
 			msg := types.NewMsgTransfer(
-				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp, memo,
+				srcPort, srcChannel, sdk.NewCoins(coin), sender, receiver, timeoutHeight, timeoutTimestamp, memo,
 			)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
