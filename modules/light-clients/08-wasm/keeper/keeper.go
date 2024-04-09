@@ -32,7 +32,6 @@ type Keeper struct {
 	checksums    collections.KeySet[[]byte]
 	storeService store.KVStoreService
 	// handling queries
-	// TODO(jim): We had a reason we didn't call this interface QueryHanlder or something? Should we rename it to QueryHandler?
 	queryPlugins QueryPlugins
 	cdc          codec.BinaryCodec
 	clientKeeper types.ClientKeeper
