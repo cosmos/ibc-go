@@ -78,8 +78,11 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
-	polkadotChain := chainA.(*polkadot.PolkadotChain)
-	cosmosChain := chainB.(*cosmos.CosmosChain)
+	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
+	s.Require().True(ok)
+
+	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
+	s.Require().True(ok)
 
 	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
 	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
@@ -230,8 +233,11 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
-	polkadotChain := chainA.(*polkadot.PolkadotChain)
-	cosmosChain := chainB.(*cosmos.CosmosChain)
+	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
+	s.Require().True(ok)
+
+	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
+	s.Require().True(ok)
 
 	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
 	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
@@ -344,8 +350,11 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
-	polkadotChain := chainA.(*polkadot.PolkadotChain)
-	cosmosChain := chainB.(*cosmos.CosmosChain)
+	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
+	s.Require().True(ok)
+
+	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
+	s.Require().True(ok)
 
 	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
 	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
@@ -431,8 +440,11 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
-	polkadotChain := chainA.(*polkadot.PolkadotChain)
-	cosmosChain := chainB.(*cosmos.CosmosChain)
+	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
+	s.Require().True(ok)
+
+	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
+	s.Require().True(ok)
 
 	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
 	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
@@ -523,8 +535,11 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
-	polkadotChain := chainA.(*polkadot.PolkadotChain)
-	cosmosChain := chainB.(*cosmos.CosmosChain)
+	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
+	s.Require().True(ok)
+
+	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
+	s.Require().True(ok)
 
 	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
 	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
