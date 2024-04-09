@@ -152,7 +152,9 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			timeoutHeight = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			var ok bool
+			timeoutHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			suite.Require().True(ok)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"timeout timestamp passed", func() {
