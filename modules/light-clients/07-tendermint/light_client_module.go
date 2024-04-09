@@ -1,7 +1,7 @@
 package tendermint
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 

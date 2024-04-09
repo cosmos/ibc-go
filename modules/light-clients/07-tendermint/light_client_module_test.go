@@ -67,7 +67,7 @@ func (suite *TendermintTestSuite) TestStatus() {
 			exported.Expired,
 		},
 		{
-			"client state not found for height",
+			"client state not found",
 			func() {
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
