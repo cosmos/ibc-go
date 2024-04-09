@@ -1,7 +1,7 @@
 package exported
 
 import (
-	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	storetypes "cosmossdk.io/store/types"
 

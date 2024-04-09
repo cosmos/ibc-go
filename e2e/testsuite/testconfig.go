@@ -62,7 +62,7 @@ const (
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
 	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "luca_joss-channel-upgrade-authority"
+	defaultHermesTag = "sean-channel-upgradability"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
@@ -740,8 +740,12 @@ func modifyChannelGenesisAppState(ibcAppState []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	var channelGenesis map[string]interface{}
 	// be ashamed, be very ashamed
-	channelGenesis := ibcGenesisMap["channel_genesis"].(map[string]interface{})
+	channelGenesis, ok := ibcGenesisMap["channel_genesis"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("can't convert IBC genesis map entry into type %T", &channelGenesis)
+	}
 	delete(channelGenesis, "params")
 
 	return json.Marshal(ibcGenesisMap)
