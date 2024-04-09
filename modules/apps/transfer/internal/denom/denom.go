@@ -3,8 +3,6 @@ package denom
 import (
 	"strings"
 
-	"strings"
-
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
