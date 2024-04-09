@@ -43,6 +43,10 @@ func DefaultTransferAmount(denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
 }
 
+func DefaultTransferCoins(denom string) sdk.Coins {
+	return sdk.NewCoins(DefaultTransferAmount(denom))
+}
+
 func TransferAmount(amount int64, denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(amount)}
 }

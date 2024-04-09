@@ -348,7 +348,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,
-							sdk.NewCoin(denom, amount),
+							sdk.NewCoins(sdk.NewCoin(denom, amount)),
 							sender.String(),
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height

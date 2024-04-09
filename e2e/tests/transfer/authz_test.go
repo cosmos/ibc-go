@@ -104,16 +104,18 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t.Run("broadcast MsgGrant", createMsgGrantFn)
 
 	t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
-		transferMsg := transfertypes.MsgTransfer{
-			SourcePort:    channelA.PortID,
-			SourceChannel: channelA.ChannelID,
-			Token:         testvalues.DefaultTransferAmount(chainADenom),
-			Sender:        granterAddress,
-			Receiver:      receiverWalletAddress,
-			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
-		}
+		transferMsg := transfertypes.NewMsgTransfer(
+			channelA.PortID,
+			channelA.ChannelID,
+			testvalues.DefaultTransferCoins(chainADenom),
+			granterAddress,
+			receiverWalletAddress,
+			suite.GetTimeoutHeight(ctx, chainB),
+			0,
+			"",
+		)
 
-		protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
+		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
 		suite.Require().NoError(err)
 
 		msgExec := &authz.MsgExec{
@@ -161,16 +163,18 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	})
 
 	t.Run("exec unauthorized MsgTransfer", func(t *testing.T) {
-		transferMsg := transfertypes.MsgTransfer{
-			SourcePort:    channelA.PortID,
-			SourceChannel: channelA.ChannelID,
-			Token:         testvalues.DefaultTransferAmount(chainADenom),
-			Sender:        granterAddress,
-			Receiver:      receiverWalletAddress,
-			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
-		}
+		transferMsg := transfertypes.NewMsgTransfer(
+			channelA.PortID,
+			channelA.ChannelID,
+			testvalues.DefaultTransferCoins(chainADenom),
+			granterAddress,
+			receiverWalletAddress,
+			suite.GetTimeoutHeight(ctx, chainB),
+			0,
+			"",
+		)
 
-		protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
+		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
 		suite.Require().NoError(err)
 
 		msgExec := &authz.MsgExec{
@@ -241,16 +245,18 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		const invalidSpendAmount = spendLimit + 1
 
 		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
-			transferMsg := transfertypes.MsgTransfer{
-				SourcePort:    channelA.PortID,
-				SourceChannel: channelA.ChannelID,
-				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)},
-				Sender:        granterAddress,
-				Receiver:      receiverWalletAddress,
-				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
-			}
+			transferMsg := transfertypes.NewMsgTransfer(
+				channelA.PortID,
+				channelA.ChannelID,
+				sdk.NewCoins(sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)}),
+				granterAddress,
+				receiverWalletAddress,
+				suite.GetTimeoutHeight(ctx, chainB),
+				0,
+				"",
+			)
 
-			protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
+			protoAny, err := codectypes.NewAnyWithValue(transferMsg)
 			suite.Require().NoError(err)
 
 			msgExec := &authz.MsgExec{
@@ -298,16 +304,18 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		invalidWalletAddress := invalidWallet.FormattedAddress()
 
 		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
-			transferMsg := transfertypes.MsgTransfer{
-				SourcePort:    channelA.PortID,
-				SourceChannel: channelA.ChannelID,
-				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)},
-				Sender:        granterAddress,
-				Receiver:      invalidWalletAddress,
-				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
-			}
+			transferMsg := transfertypes.NewMsgTransfer(
+				channelA.PortID,
+				channelA.ChannelID,
+				sdk.NewCoins(sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)}),
+				granterAddress,
+				invalidWalletAddress,
+				suite.GetTimeoutHeight(ctx, chainB),
+				0,
+				"",
+			)
 
-			protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
+			protoAny, err := codectypes.NewAnyWithValue(transferMsg)
 			suite.Require().NoError(err)
 
 			msgExec := &authz.MsgExec{
