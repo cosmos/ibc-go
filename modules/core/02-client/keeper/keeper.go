@@ -424,7 +424,7 @@ func (k Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.He
 
 	clientModuleHeight, ok := clientModule.LatestHeight(ctx, clientID).(types.Height)
 	if !ok {
-		panic("can't convert clientModule.LatestHeight to types.Height")
+		panic(fmt.Errorf("cannot convert %T to %T", clientModule.LatestHeight, &types.Height")
 	}
 	return clientModuleHeight
 }
