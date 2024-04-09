@@ -1,10 +1,12 @@
 package convert
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
 	v1types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
-	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestConvertPacketV1ToPacketV2(t *testing.T) {
@@ -26,7 +28,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				[]*v3types.Token{
 					{
 						Denom:  "atom",
-						Amount: 1000,
+						Amount: "1000",
 						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
@@ -39,7 +41,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				[]*v3types.Token{
 					{
 						Denom:  "atom/withslash",
-						Amount: 1000,
+						Amount: "1000",
 						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
@@ -52,7 +54,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				[]*v3types.Token{
 					{
 						Denom:  "atom/",
-						Amount: 1000,
+						Amount: "1000",
 						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
@@ -65,7 +67,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				[]*v3types.Token{
 					{
 						Denom:  "atom/pool",
-						Amount: 1000,
+						Amount: "1000",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				}, sender, receiver, ""),
@@ -78,7 +80,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				[]*v3types.Token{
 					{
 						Denom:  "atom",
-						Amount: 1000,
+						Amount: "1000",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
 				}, sender, receiver, ""),
