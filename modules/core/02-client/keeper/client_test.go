@@ -216,13 +216,15 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, updateHeader.GetHeight(), conflictConsState)
 		}, true, true},
 		{"misbehaviour detection: monotonic time violation", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientID := path.EndpointA.ClientID
 			trustedHeight := clientState.LatestHeight
 
 			// store intermediate consensus state at a time greater than updateHeader time
 			// this will break time monotonicity
-			incrementedClientHeight := clientState.LatestHeight.Increment().(clienttypes.Height)
+			incrementedClientHeight, ok := clientState.LatestHeight.Increment().(clienttypes.Height)
+			suite.Require().True(ok)
 			intermediateConsState := &ibctm.ConsensusState{
 				Timestamp:          suite.coordinator.CurrentTime.Add(2 * time.Hour),
 				NextValidatorsHash: suite.chainB.Vals.Hash(),
@@ -238,7 +240,8 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			updateHeader = createFutureUpdateFn(trustedHeight)
 		}, true, true},
 		{"client state not found", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			updateHeader = createFutureUpdateFn(clientState.LatestHeight)
 
 			path.EndpointA.ClientID = ibctesting.InvalidID
@@ -247,21 +250,25 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			clientState := path.EndpointA.GetClientState()
 			tmClient, ok := clientState.(*ibctm.ClientState)
 			suite.Require().True(ok)
-			tmClient.LatestHeight = tmClient.LatestHeight.Increment().(clienttypes.Height)
+			tmClient.LatestHeight, ok = tmClient.LatestHeight.Increment().(clienttypes.Height)
+			suite.Require().True(ok)
 
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientState)
 			updateHeader = createFutureUpdateFn(tmClient.LatestHeight)
 		}, false, false},
 		{"client is not active", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(1, 1)
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientState)
 			updateHeader = createFutureUpdateFn(clientState.LatestHeight)
 		}, false, false},
 		{"invalid header", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			updateHeader = createFutureUpdateFn(clientState.LatestHeight)
-			updateHeader.TrustedHeight = updateHeader.TrustedHeight.Increment().(clienttypes.Height)
+			updateHeader.TrustedHeight, ok = updateHeader.TrustedHeight.Increment().(clienttypes.Height)
+			suite.Require().True(ok)
 		}, false, false},
 	}
 
@@ -275,8 +282,10 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			tc.malleate()
 
 			var clientState *ibctm.ClientState
+			var ok bool
 			if tc.expPass {
-				clientState = path.EndpointA.GetClientState().(*ibctm.ClientState)
+				clientState, ok = path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 			}
 
 			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.UpdateClient(suite.chainA.GetContext(), path.EndpointA.ClientID, updateHeader)
@@ -284,7 +293,8 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			if tc.expPass {
 				suite.Require().NoError(err, err)
 
-				newClientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				newClientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 
 				if tc.expFreeze {
 					suite.Require().True(!newClientState.FrozenHeight.IsZero(), "client did not freeze after conflicting header was submitted to UpdateClient")
@@ -463,7 +473,8 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
 			newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
@@ -589,7 +600,8 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			func() {
 				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
-				tmClientState.LatestHeight = substituteClientState.(*ibctm.ClientState).LatestHeight.Increment().(clienttypes.Height)
+				tmClientState.LatestHeight, ok = substituteClientState.(*ibctm.ClientState).LatestHeight.Increment().(clienttypes.Height)
+				suite.Require().True(ok)
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
 			},
 			clienttypes.ErrInvalidHeight,
@@ -665,7 +677,8 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 
 				// Assert that client status is now Active
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
-				tmClientState := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				tmClientState, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
 
 			} else {
