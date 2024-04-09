@@ -513,7 +513,7 @@ func NewSimApp(
 	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	transferICS4Wrapper, ok := transferStack.(porttypes.ICS4Wrapper)
 	if !ok {
-		panic("Can't convert transferStack to ICS4Wrapper")
+		panic(fmt.Errorf("cannot convert %T to %T", transferStack, porttypes.ICS4Wrapper))
 	}
 
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
