@@ -291,7 +291,7 @@ func newModuleQuerySafeAllowList() []string {
 			if ext := proto.GetExtension(sd.Options(), msgv1.E_Service); ext != nil {
 				val, ok := ext.(bool)
 				if !ok {
-					panic("can't convert extension to boolean")
+					panic(fmt.Errorf("cannot convert %T to %T", ext, ok))
 				}
 				if val {
 					continue

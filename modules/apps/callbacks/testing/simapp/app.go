@@ -511,9 +511,10 @@ func NewSimApp(
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+	var transferICS4Wrapper porttypes.ICS4Wrapper
 	transferICS4Wrapper, ok := transferStack.(porttypes.ICS4Wrapper)
 	if !ok {
-		panic(fmt.Errorf("cannot convert %T to %T", transferStack, porttypes.ICS4Wrapper))
+		panic(fmt.Errorf("cannot convert %T to %T", transferStack, transferICS4Wrapper))
 	}
 
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
@@ -532,13 +533,14 @@ func NewSimApp(
 	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
 	app.ICAAuthModule, ok = icaControllerStack.(ibcmock.IBCModule)
 	if !ok {
-		panic("Can't convert icaControllerStack to IBCModule")
+		panic(fmt.Errorf("cannot convert %T to %T", icaControllerStack, app.ICAAuthModule))
 	}
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
-	icaICS4Wrapper, ok := icaControllerStack.(porttypes.ICS4Wrapper)
+	var icaICS4Wrapper porttypes.ICS4Wrapper
+	icaICS4Wrapper, ok = icaControllerStack.(porttypes.ICS4Wrapper)
 	if !ok {
-		panic("Can't convert icaControllerStack to ICS4Wrapper")
+		panic(fmt.Errorf("cannot convert %T to %T", icaControllerStack, icaICS4Wrapper))
 	}
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
