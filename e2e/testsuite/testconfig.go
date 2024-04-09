@@ -743,7 +743,7 @@ func modifyChannelGenesisAppState(ibcAppState []byte) ([]byte, error) {
 	// be ashamed, be very ashamed
 	channelGenesis, ok := ibcGenesisMap["channel_genesis"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("can't convert ibcGenesisMap entry into map[string]interface{} type")
+		return nil, fmt.Errorf("can't convert IBC genesis map entry into type %T", &map[string]interface{})
 	}
 	delete(channelGenesis, "params")
 
