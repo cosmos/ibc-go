@@ -33,7 +33,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, consensusHost types.ConsensusHost, uk types.UpgradeKeeper) Keeper {
 	router := types.NewRouter(key)
 	localhostModule := localhost.NewLightClientModule(cdc, key)
 	router.AddRoute(exported.Localhost, localhostModule)
@@ -42,7 +42,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace ty
 		storeKey:       key,
 		cdc:            cdc,
 		router:         router,
-		consensusHost:  ibctm.NewConsensusHost(sk),
+		consensusHost:  consensusHost,
 		legacySubspace: legacySubspace,
 		upgradeKeeper:  uk,
 	}
@@ -422,7 +422,12 @@ func (k Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.He
 		return types.ZeroHeight()
 	}
 
-	return clientModule.LatestHeight(ctx, clientID).(types.Height)
+	var latestHeight types.Height
+	latestHeight, ok := clientModule.LatestHeight(ctx, clientID).(types.Height)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T to %T", clientModule.LatestHeight, latestHeight))
+	}
+	return latestHeight
 }
 
 // GetClientTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.

@@ -12,9 +12,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
+	"github.com/cosmos/ibc-go/v8/internal/validate"
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -75,7 +75,7 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -270,7 +270,7 @@ func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnab
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -288,16 +288,4 @@ func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnab
 	return &types.QueryFeeEnabledChannelResponse{
 		FeeEnabled: isFeeEnabled,
 	}, nil
-}
-
-func validategRPCRequest(portID, channelID string) error {
-	if err := host.PortIdentifierValidator(portID); err != nil {
-		return status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	if err := host.ChannelIdentifierValidator(channelID); err != nil {
-		return status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	return nil
 }
