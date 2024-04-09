@@ -24,13 +24,13 @@ func NewMigrator(keeper Keeper) Migrator {
 // - removes the localhost client
 // - asserts that existing tendermint clients are properly registered on the chain codec
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
-	return v7.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, &m.keeper)
+	return v7.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, m.keeper)
 }
 
 // Migrate3to4 migrates from consensus version 3 to 4.
 // This migration enables the localhost client.
 func (m Migrator) Migrate3to4(ctx sdk.Context) error {
-	return v7.MigrateLocalhostClient(ctx, &m.keeper)
+	return v7.MigrateLocalhostClient(ctx, m.keeper)
 }
 
 // MigrateParams migrates from consensus version 4 to 5.
