@@ -69,6 +69,10 @@ func (k Keeper) SendPacket(
 	}
 
 	latestHeight := k.clientKeeper.GetClientLatestHeight(ctx, connectionEnd.ClientId)
+	if latestHeight.IsZero() {
+		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", connectionEnd.ClientId)
+	}
+
 	latestTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)
 	if err != nil {
 		return 0, err
