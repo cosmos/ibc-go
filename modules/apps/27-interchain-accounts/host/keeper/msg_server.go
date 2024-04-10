@@ -24,6 +24,9 @@ type msgServer struct {
 // NewMsgServerImpl returns an implementation of the ICS27 host MsgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
+	if keeper.queryRouter == nil {
+		panic("query router must not be nil")
+	}
 	return &msgServer{Keeper: keeper}
 }
 
