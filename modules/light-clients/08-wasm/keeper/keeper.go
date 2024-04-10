@@ -25,17 +25,19 @@ import (
 type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
-	// vm contains an implementation of the WasmEngine
+
+	cdc          codec.BinaryCodec
+	clientKeeper types.ClientKeeper
+
 	vm ibcwasm.WasmEngine
-	// state management
+
 	schema       collections.Schema
 	checksums    collections.KeySet[[]byte]
 	storeService store.KVStoreService
-	// handling queries
+
 	queryPlugins QueryPlugins
-	cdc          codec.BinaryCodec
-	clientKeeper types.ClientKeeper
-	authority    string
+
+	authority string
 }
 
 // Codec returns the 08-wasm module's codec.
@@ -63,7 +65,6 @@ func (k Keeper) GetVM() ibcwasm.WasmEngine {
 }
 
 // GetChecksums returns the stored checksums.
-// TODO(jim): Need a better name here, this + grpc query meth + GetAllChecksums are all too similar.
 func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
 	return k.checksums
 }
