@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (cli) [\#5610](https://github.com/cosmos/ibc-go/pull/5610) Register wasm tx cli.
+
 <!-- markdown-link-check-disable-next-line -->
 ## [v0.1.0+ibc-go-v7.3-wasmvm-v1.5](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.1.0%2Bibc-go-v8.0-wasmvm-v1.5) - 2023-12-18
 
