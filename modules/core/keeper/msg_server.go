@@ -214,7 +214,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	}
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel open init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -262,7 +262,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	}
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -309,7 +309,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	}
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel open ack failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -351,7 +351,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 	}
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel open confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -389,7 +389,7 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel close init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -423,7 +423,7 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -463,7 +463,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -544,7 +544,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -616,7 +616,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -691,7 +691,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -753,7 +753,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -801,7 +801,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -862,7 +862,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", err)
@@ -928,7 +928,7 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade confirm failed", "port-id", msg.PortId, "error", err)
@@ -989,7 +989,7 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.GetRoute(module)
 	if !ok {
 		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade open failed", "port-id", msg.PortId, "error", err)
