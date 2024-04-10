@@ -1,4 +1,4 @@
-package types
+package keeper
 
 import (
 	"encoding/json"
@@ -29,10 +29,7 @@ to `baseapp.GRPCQueryRouter`.
 This design is based on wasmd's (v0.50.0) querier plugin design.
 */
 
-var (
-	_ wasmvmtypes.Querier   = (*queryHandler)(nil)
-	_ ibcwasm.QueryPluginsI = (*QueryPlugins)(nil)
-)
+var _ wasmvmtypes.Querier = (*queryHandler)(nil)
 
 // defaultAcceptList defines a set of default allowed queries made available to the Querier.
 var defaultAcceptList = []string{
@@ -43,13 +40,16 @@ var defaultAcceptList = []string{
 // into the query plugins.
 type queryHandler struct {
 	Ctx      sdk.Context
+	Plugins  QueryPlugins
 	CallerID string
 }
 
 // newQueryHandler returns a default querier that can be used in the contract.
-func newQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
+// TODO(jim): Make private and use export_test?
+func newQueryHandler(ctx sdk.Context, plugins QueryPlugins, callerID string) *queryHandler {
 	return &queryHandler{
 		Ctx:      ctx,
+		Plugins:  plugins,
 		CallerID: callerID,
 	}
 }
@@ -71,12 +71,12 @@ func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) 
 		q.Ctx.GasMeter().ConsumeGas(subCtx.GasMeter().GasConsumed(), "contract sub-query")
 	}()
 
-	res, err := ibcwasm.GetQueryPlugins().HandleQuery(subCtx, q.CallerID, request)
+	res, err := q.Plugins.HandleQuery(subCtx, q.CallerID, request)
 	if err == nil {
 		return res, nil
 	}
 
-	Logger(q.Ctx).Debug("Redacting query error", "cause", err)
+	moduleLogger(q.Ctx).Debug("Redacting query error", "cause", err)
 	return nil, redactError(err)
 }
 
@@ -123,16 +123,16 @@ func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvm
 }
 
 // NewDefaultQueryPlugins returns the default set of query plugins
-func NewDefaultQueryPlugins() *QueryPlugins {
-	return &QueryPlugins{
+func NewDefaultQueryPlugins(queryRouter ibcwasm.QueryRouter) QueryPlugins {
+	return QueryPlugins{
 		Custom:   RejectCustomQuerier(),
-		Stargate: AcceptListStargateQuerier([]string{}),
+		Stargate: AcceptListStargateQuerier([]string{}, queryRouter),
 	}
 }
 
 // AcceptListStargateQuerier allows all queries that are in the provided accept list.
 // This function returns protobuf encoded responses in bytes.
-func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+func AcceptListStargateQuerier(acceptedQueries []string, queryRouter ibcwasm.QueryRouter) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// append user defined accepted queries to default list defined above.
 		acceptedQueries = append(defaultAcceptList, acceptedQueries...)
@@ -142,7 +142,7 @@ func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasm
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("'%s' path is not allowed from the contract", request.Path)}
 		}
 
-		route := ibcwasm.GetQueryRouter().Route(request.Path)
+		route := queryRouter.Route(request.Path)
 		if route == nil {
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
 		}

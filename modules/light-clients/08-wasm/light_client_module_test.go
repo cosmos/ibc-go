@@ -11,7 +11,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -79,7 +78,8 @@ func (suite *WasmTestSuite) TestStatus() {
 		{
 			"client status is unauthorized: checksum is not stored",
 			func() {
-				err := ibcwasm.Checksums.Remove(suite.chainA.GetContext(), suite.checksum)
+				wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+				err := wasmClientKeeper.GetChecksums().Remove(suite.chainA.GetContext(), suite.checksum)
 				suite.Require().NoError(err)
 			},
 			exported.Unauthorized,
@@ -88,6 +88,15 @@ func (suite *WasmTestSuite) TestStatus() {
 			"failure: cannot find client state",
 			func() {
 				clientID = unusedWasmClientID
+			},
+			exported.Unknown,
+		},
+		{
+			"failure: response fails to unmarshal",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+					return &wasmvmtypes.QueryResult{Ok: []byte("invalid json")}, wasmtesting.DefaultGasUsed, nil
+				})
 			},
 			exported.Unknown,
 		},
@@ -179,6 +188,15 @@ func (suite *WasmTestSuite) TestTimestampAtHeight() {
 				clientID = unusedWasmClientID
 			},
 			clienttypes.ErrClientNotFound,
+		},
+		{
+			"failure: response fails to unmarshal",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+					return &wasmvmtypes.QueryResult{Ok: []byte("invalid json")}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			types.ErrWasmInvalidResponseData,
 		},
 	}
 
@@ -1009,6 +1027,16 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 			false, // not applicable
 			fmt.Errorf("%s: %s", unusedWasmClientID, clienttypes.ErrClientNotFound),
 		},
+		{
+			"failure: response fails to unmarshal",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+					return &wasmvmtypes.QueryResult{Ok: []byte("invalid json")}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			false,
+			nil,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1149,6 +1177,16 @@ func (suite *WasmTestSuite) TestUpdateState() {
 				})
 			},
 			errorsmod.Wrap(types.ErrVMError, wasmtesting.ErrMockVM.Error()),
+			nil,
+		},
+		{
+			"failure: response fails to unmarshal",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: []byte("invalid json")}}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			fmt.Errorf("invalid character 'i' looking for beginning of value: %s", types.ErrWasmInvalidResponseData),
 			nil,
 		},
 		{
