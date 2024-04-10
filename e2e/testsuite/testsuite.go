@@ -90,7 +90,7 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 	if exportPath == "" {
 		e2eDir, err := directories.E2E(t)
 		s.Require().NoError(err, "can't get e2edir")
-		exportPath = gopath.Join(e2eDir, directories.DefaultGenesisExportPath)
+		exportPath = path.Join(e2eDir, directories.DefaultGenesisExportPath)
 	}
 
 	if !path.IsAbs(exportPath) {
