@@ -328,13 +328,14 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			// NOTE: we register query callbacks against: types.TimestampAtHeightMsg{}
 			// in practise, this can against any client state msg, however registering against types.StatusMsg{} introduces recursive loops
 			// due to test case: "success: verify membership query"
-			// TODO(Jim): Sanity check that it unmarshals correctly?
-			_, err = wasmClientKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, payload)
+			res, err := wasmClientKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
 			} else {
+				suite.Require().Nil(res)
 				// use error contains as wasmvm errors do not implement errors.Is method
 				suite.Require().ErrorContains(err, tc.expError.Error())
 			}

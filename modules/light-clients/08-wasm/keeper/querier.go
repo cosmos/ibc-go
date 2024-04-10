@@ -45,7 +45,6 @@ type queryHandler struct {
 }
 
 // newQueryHandler returns a default querier that can be used in the contract.
-// TODO(jim): Make private and use export_test?
 func newQueryHandler(ctx sdk.Context, plugins QueryPlugins, callerID string) *queryHandler {
 	return &queryHandler{
 		Ctx:      ctx,

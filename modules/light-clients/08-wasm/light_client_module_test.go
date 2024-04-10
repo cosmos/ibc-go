@@ -854,7 +854,9 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			},
 			clienttypes.ErrClientNotFound,
 		},
-		/* TODO(jim): Get back to these.
+		/* NOTE(jim): This can't fail on unmarshalling, it appears. Any consensus type
+					  we attempt to unmarshal just creates a Wasm ConsensusState that has a
+					  Data field empty.
 		{
 			"failure: upgraded consensus state is not wasm consensus state",
 			func() {
@@ -1422,8 +1424,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 						bz, err := json.Marshal(types.EmptyResult{})
 						suite.Require().NoError(err)
 
-						// TODO(jim): re-arrange export_test.go contents
-						prefixedKey := []byte("subject/")
+						prefixedKey := types.SubjectPrefix
 						prefixedKey = append(prefixedKey, host.ClientStateKey()...)
 						expectedClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
 						store.Set(prefixedKey, expectedClientStateBz)
@@ -1462,24 +1463,20 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 			},
 			clienttypes.ErrClientNotFound,
 		},
-		/* TODO(jim): We don't pass a client state directly now so we need to modify how this is tested.
-		{
-			"failure: invalid substitute client state",
-			func() {
-				substituteClientState = &ibctm.ClientState{}
-			},
-			clienttypes.ErrInvalidClient,
-		},
 		{
 			"failure: checksums do not match",
 			func() {
-				substituteClientState = &types.ClientState{
-					Checksum: []byte("invalid"),
-				}
+				substituteClientState, found := GetSimApp(suite.chainA).IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), substituteClientID)
+				suite.Require().True(found)
+
+				wasmSubstituteClientState, ok := substituteClientState.(*types.ClientState)
+				suite.Require().True(ok)
+
+				wasmSubstituteClientState.Checksum = []byte("invalid")
+				GetSimApp(suite.chainA).IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), substituteClientID, wasmSubstituteClientState)
 			},
 			clienttypes.ErrInvalidClient,
 		},
-		*/
 		{
 			"failure: vm returns error",
 			func() {

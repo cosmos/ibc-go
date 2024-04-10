@@ -438,12 +438,10 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 	}
 
 	substituteClientStore := l.storeProvider.ClientStore(ctx, substituteClientID)
-	substituteClient, found := types.GetClientState(substituteClientStore, cdc)
+	substituteClientState, found := types.GetClientState(substituteClientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
 	}
-
-	substituteClientState := substituteClient
 
 	// check that checksums of subject client state and substitute client state match
 	// changing the checksum is only allowed through the migrate contract RPC endpoint
