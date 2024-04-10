@@ -153,12 +153,14 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 		},
 		{
 			"valid misbehaviour at a future revision", func() {
-				trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
 				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight))
 				suite.Require().NoError(err)
 
-				height := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				height, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
 				futureRevision := fmt.Sprintf("%s-%d", strings.TrimSuffix(suite.chainB.ChainID, fmt.Sprintf("-%d", clienttypes.ParseChainID(suite.chainB.ChainID))), height.GetRevisionNumber()+1)
 
@@ -450,7 +452,8 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 		},
 		{
 			"valid time misbehaviour, header 1 time strictly less than header 2 time", func() {
-				trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
 				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight))
 				suite.Require().NoError(err)
@@ -502,7 +505,8 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 		},
 		{
 			"consensus state's valset hash different from misbehaviour should still pass", func() {
-				trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
 				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight))
 				suite.Require().NoError(err)
@@ -510,7 +514,8 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				height := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				height, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
 				// Create bothValSet with both suite validator and altVal
 				bothValSet := cmttypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altValSet.Proposer))

@@ -43,7 +43,7 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 		}, false},
 		{"trusted height is equal to header height", func() {
 			var ok bool
-			header.TrustedHeight = header.GetHeight().(clienttypes.Height)
+			header.TrustedHeight, ok = header.GetHeight().(clienttypes.Height)
 			suite.Require().True(ok)
 		}, false},
 		{"validator set nil", func() {
