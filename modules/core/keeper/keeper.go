@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -78,6 +79,15 @@ func NewKeeper(
 // Codec returns the IBC module codec.
 func (k Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
+}
+
+// SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
+func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
+	if consensusHost == nil {
+		panic(fmt.Errorf("cannot set a nil self consensus host"))
+	}
+
+	k.ClientKeeper.SetConsensusHost(consensusHost)
 }
 
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if
