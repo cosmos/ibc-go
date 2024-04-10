@@ -89,6 +89,7 @@ func GetConsensusState(store storetypes.KVStore, cdc codec.BinaryCodec, height e
 	if !ok {
 		panic(fmt.Errorf("cannot convert %T into %T", consensusStateI, consensusState))
 	}
+
 	return consensusState, true
 }
 

@@ -25,5 +25,6 @@ func getClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientSta
 	if !ok {
 		panic(fmt.Errorf("cannot convert %T into %T", clientStateI, clientState))
 	}
+
 	return clientState, true
 }
