@@ -296,8 +296,7 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	// test if the ics4 wrapper is the channel keeper initially
 	ics4Wrapper := suite.chainA.GetSimApp().IBCFeeKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
-	suite.Require().True(isChannelKeeper)
+	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 	_, isFeeKeeper := ics4Wrapper.(keeper.Keeper)
 	suite.Require().False(isFeeKeeper)
 
@@ -307,6 +306,6 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 
 	_, isFeeKeeper = ics4Wrapper.(keeper.Keeper)
 	suite.Require().True(isFeeKeeper)
-	_, isChannelKeeper = ics4Wrapper.(*channelkeeper.Keeper)
+	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
 	suite.Require().False(isChannelKeeper)
 }
