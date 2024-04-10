@@ -82,7 +82,8 @@ func (k *Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *ca
 	return types.GetModuleOwner(modules), capability, nil
 }
 
-// GetRoute() returns a IBCModule for a given module.
+// GetRoute returns a IBCModule for a given module, and a boolean indicating
+// whether or not the route is present.
 func (k Keeper) GetRoute(module string) (types.IBCModule, bool) {
 	return k.Router.GetRoute(module)
 }
