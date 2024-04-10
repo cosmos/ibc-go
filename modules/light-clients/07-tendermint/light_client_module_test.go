@@ -1026,7 +1026,6 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 	}
 }
 
-
 func (suite *TendermintTestSuite) TestRecoverClient() {
 	var (
 		subjectClientID, substituteClientID string

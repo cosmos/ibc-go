@@ -825,7 +825,7 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 			suite.Require().NoError(err)
 
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)	
+			suite.Require().True(found)
 
 			tc.malleate()
 
