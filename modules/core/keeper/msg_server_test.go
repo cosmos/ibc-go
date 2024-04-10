@@ -1077,8 +1077,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.Require().Equal(channeltypes.FLUSHING, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				upgrade := path.EndpointB.GetChannelUpgrade()
-
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeTry,
@@ -1264,7 +1262,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				upgrade := path.EndpointA.GetChannelUpgrade()
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeAck,
@@ -1298,8 +1295,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.FLUSHING, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
-
-				upgrade := path.EndpointA.GetChannelUpgrade()
 
 				expEvents := sdk.Events{
 					sdk.NewEvent(
@@ -2047,8 +2042,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should be changed to match sequence on error receipt.
 				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeCancel,
@@ -2095,8 +2088,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should be changed to match initial upgrade sequence.
 				suite.Require().Equal(uint64(3), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeCancel,
@@ -2141,8 +2132,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should be changed to match initial upgrade sequence.
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeCancel,
@@ -2191,8 +2180,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should be changed to match initial upgrade sequence.
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeCancel,
@@ -2240,8 +2227,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should not be changed.
 				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeCancel,

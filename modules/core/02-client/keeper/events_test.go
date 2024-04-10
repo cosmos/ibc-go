@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"github.com/stretchr/testify/require"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -62,7 +60,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateClientEvents() {
 
 	clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
 	suite.Require().True(ok)
-  
+
 	trustedHeight := clientState.LatestHeight
 	header, err := suite.chainB.IBCClientHeader(suite.chainB.LatestCommittedHeader, trustedHeight)
 	suite.Require().NoError(err)
