@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	gopath "path"
+	"path"
 	"strings"
 
 	dockerclient "github.com/docker/docker/client"
@@ -93,10 +93,10 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 		exportPath = gopath.Join(e2eDir, directories.DefaultGenesisExportPath)
 	}
 
-	if !gopath.IsAbs(exportPath) {
+	if !path.IsAbs(exportPath) {
 		wd, err := os.Getwd()
 		s.Require().NoError(err, "can't get working directory")
-		exportPath = gopath.Join(wd, exportPath)
+		exportPath = path.Join(wd, exportPath)
 	}
 
 	// This env variables are set by the interchain test code:
@@ -219,9 +219,9 @@ func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
 
 // generatePathName generates the path name using the test suites name
 func (s *E2ETestSuite) generatePathName() string {
-	path := s.GetPathName(s.pathNameIndex)
+	pathName := s.GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
-	return path
+	return pathName
 }
 
 // GetPathName returns the name of a path at a specific index. This can be used in tests
@@ -265,9 +265,9 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 		s.paths = map[string]pathPair{}
 	}
 
-	path, ok := s.paths[s.T().Name()]
+	suitePath, ok := s.paths[s.T().Name()]
 	if ok {
-		return path.chainA, path.chainB
+		return suitePath.chainA, suitePath.chainB
 	}
 
 	chainOptions := DefaultChainOptions()
@@ -276,8 +276,8 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 	}
 
 	chainA, chainB := s.createChains(chainOptions)
-	path = newPath(chainA, chainB)
-	s.paths[s.T().Name()] = path
+	suitePath = newPath(chainA, chainB)
+	s.paths[s.T().Name()] = suitePath
 
 	if s.proposalIDs == nil {
 		s.proposalIDs = map[string]uint64{}
@@ -286,7 +286,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 	s.proposalIDs[chainA.Config().ChainID] = 1
 	s.proposalIDs[chainB.Config().ChainID] = 1
 
-	return path.chainA, path.chainB
+	return suitePath.chainA, suitePath.chainB
 }
 
 // GetRelayerWallets returns the ibcrelayer wallets associated with the chains.
