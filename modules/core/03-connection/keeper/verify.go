@@ -17,7 +17,7 @@ import (
 
 // VerifyClientState verifies a proof of a client state of the running machine
 // stored on the target machine
-func (k Keeper) VerifyClientState(
+func (k *Keeper) VerifyClientState(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	height exported.Height,
@@ -58,7 +58,7 @@ func (k Keeper) VerifyClientState(
 
 // VerifyClientConsensusState verifies a proof of the consensus state of the
 // specified client stored on the target machine.
-func (k Keeper) VerifyClientConsensusState(
+func (k *Keeper) VerifyClientConsensusState(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	height exported.Height,
@@ -100,7 +100,7 @@ func (k Keeper) VerifyClientConsensusState(
 
 // VerifyConnectionState verifies a proof of the connection state of the
 // specified connection end stored on the target machine.
-func (k Keeper) VerifyConnectionState(
+func (k *Keeper) VerifyConnectionState(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	height exported.Height,
@@ -142,7 +142,7 @@ func (k Keeper) VerifyConnectionState(
 
 // VerifyChannelState verifies a proof of the channel state of the specified
 // channel end, under the specified port, stored on the target machine.
-func (k Keeper) VerifyChannelState(
+func (k *Keeper) VerifyChannelState(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	height exported.Height,
@@ -185,7 +185,7 @@ func (k Keeper) VerifyChannelState(
 
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
-func (k Keeper) VerifyPacketCommitment(
+func (k *Keeper) VerifyPacketCommitment(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	height exported.Height,
@@ -226,7 +226,7 @@ func (k Keeper) VerifyPacketCommitment(
 
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
 // acknowledgement at the specified port, specified channel, and specified sequence.
-func (k Keeper) VerifyPacketAcknowledgement(
+func (k *Keeper) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	height exported.Height,
@@ -269,7 +269,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 // VerifyPacketReceiptAbsence verifies a proof of the absence of an
 // incoming packet receipt at the specified port, specified channel, and
 // specified sequence.
-func (k Keeper) VerifyPacketReceiptAbsence(
+func (k *Keeper) VerifyPacketReceiptAbsence(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	height exported.Height,
@@ -314,7 +314,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 
 // VerifyNextSequenceRecv verifies a proof of the next sequence number to be
 // received of the specified channel at the specified port.
-func (k Keeper) VerifyNextSequenceRecv(
+func (k *Keeper) VerifyNextSequenceRecv(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	height exported.Height,
@@ -355,7 +355,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 }
 
 // VerifyChannelUpgradeError verifies a proof of the provided upgrade error receipt.
-func (k Keeper) VerifyChannelUpgradeError(
+func (k *Keeper) VerifyChannelUpgradeError(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	height exported.Height,
@@ -397,7 +397,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 }
 
 // VerifyChannelUpgrade verifies the proof that a particular proposed upgrade has been stored in the upgrade path.
-func (k Keeper) VerifyChannelUpgrade(
+func (k *Keeper) VerifyChannelUpgrade(
 	ctx sdk.Context,
 	connection types.ConnectionEnd,
 	proofHeight exported.Height,
@@ -440,7 +440,7 @@ func (k Keeper) VerifyChannelUpgrade(
 
 // getBlockDelay calculates the block delay period from the time delay of the connection
 // and the maximum expected time per block.
-func (k Keeper) getBlockDelay(ctx sdk.Context, connection types.ConnectionEnd) uint64 {
+func (k *Keeper) getBlockDelay(ctx sdk.Context, connection types.ConnectionEnd) uint64 {
 	// expectedTimePerBlock should never be zero, however if it is then return a 0 block delay for safety
 	// as the expectedTimePerBlock parameter was not set.
 	expectedTimePerBlock := k.GetParams(ctx).MaxExpectedTimePerBlock
