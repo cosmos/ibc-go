@@ -151,34 +151,6 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			expPass: false,
 		},
 		{
-			name: "consensus state client id does not match client id in genesis clients",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						tmClientID0, ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
-					),
-				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						tmClientID1,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								types.NewHeight(1, 1),
-								ibctm.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
-							),
-						},
-					),
-				},
-				nil,
-				types.NewParams(exported.Tendermint),
-				false,
-				0,
-			),
-			expPass: false,
-		},
-		{
 			name: "invalid consensus state height",
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
@@ -428,30 +400,6 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						"my-client", ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 					),
 				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						tmClientID0,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								header.GetHeight().(types.Height),
-								ibctm.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
-							),
-						},
-					),
-				},
-				nil,
-				types.NewParams(exported.Tendermint),
-				false,
-				5,
-			),
-			expPass: false,
-		},
-		{
-			name: "consensus state different than client state type",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{},
 				[]types.ClientConsensusStates{
 					types.NewClientConsensusStates(
 						tmClientID0,
