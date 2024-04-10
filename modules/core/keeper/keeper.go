@@ -92,13 +92,12 @@ func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *porttypes.Router) {
-	if k.Router != nil && k.Router.Sealed() {
+	if k.PortKeeper.Router != nil && k.PortKeeper.Router.Sealed() {
 		panic(errors.New("cannot reset a sealed router"))
 	}
 
 	k.PortKeeper.Router = rtr
-	k.Router = rtr
-	k.Router.Seal()
+	k.PortKeeper.Router.Seal()
 }
 
 // GetAuthority returns the ibc module's authority.

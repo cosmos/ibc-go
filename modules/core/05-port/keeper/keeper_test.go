@@ -1,14 +1,23 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/05-port/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
@@ -73,4 +82,42 @@ func (suite *KeeperTestSuite) TestAuthenticate() {
 	capKey2 := suite.keeper.BindPort(suite.ctx, "otherportid")
 	auth = suite.keeper.Authenticate(suite.ctx, capKey2, validPort)
 	require.False(suite.T(), auth, "invalid authentication for different capKey failed")
+}
+
+func (suite *KeeperTestSuite) TestGetRoute() {
+	testCases := []struct {
+		msg     string
+		module  string
+		expPass bool
+	}{
+		{
+			"success",
+			fmt.Sprintf("%s-%d", exported.Tendermint, 0),
+			true,
+		},
+		{
+			"failure - route does not exist",
+			"invalid-route",
+			false,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.msg, func() {
+			cdc := suite.chainA.App.AppCodec()
+			storeKey := storetypes.NewKVStoreKey("store-key")
+			tmLightClientModule := ibctm.NewLightClientModule(cdc, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+			router := clienttypes.NewRouter(storeKey)
+			router.AddRoute(exported.Tendermint, &tmLightClientModule)
+
+			route, ok := suite.keeper.GetRoute(tc.module)
+			if tc.expPass {
+				suite.Require().True(ok)
+				suite.Require().NotNil(route)
+				suite.Require().IsType(&ibctm.LightClientModule{}, route)
+			} else {
+				suite.Require().False(ok)
+				suite.Require().Nil(route)
+			}
+		})
+	}
 }
