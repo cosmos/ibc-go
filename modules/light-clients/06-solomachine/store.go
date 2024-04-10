@@ -18,5 +18,5 @@ func getClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientSta
 	}
 
 	clientStateI := clienttypes.MustUnmarshalClientState(cdc, bz)
-	return clientStateI.(*ClientState)
+	return clientStateI.(*ClientState), true
 }
