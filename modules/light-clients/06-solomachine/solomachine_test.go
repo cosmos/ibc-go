@@ -145,8 +145,7 @@ func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 	err := suite.chainA.Codec.UnmarshalInterface(bz, &clientState)
 	suite.Require().NoError(err)
 
-	smClientState, ok := clientState.(*solomachine.ClientState)
-	suite.Require().True(ok)
+	smClientState := clientState.(*solomachine.ClientState)
 
 	return smClientState.Sequence
 }
