@@ -22,7 +22,7 @@ import (
 // packet can no longer be executed and to allow the calling module to safely
 // perform appropriate state transitions. Its intended usage is within the
 // ante handler.
-func (k Keeper) TimeoutPacket(
+func (k *Keeper) TimeoutPacket(
 	ctx sdk.Context,
 	packet types.Packet,
 	proof []byte,
@@ -130,7 +130,7 @@ func (k Keeper) TimeoutPacket(
 // then the channel will be set to the FLUSHCOMPLETE state.
 //
 // CONTRACT: this function must be called in the IBC handler
-func (k Keeper) TimeoutExecuted(
+func (k *Keeper) TimeoutExecuted(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
@@ -208,7 +208,7 @@ func (k Keeper) TimeoutExecuted(
 // TimeoutOnClose is called by a module in order to prove that the channel to
 // which an unreceived packet was addressed has been closed, so the packet will
 // never be received (even if the timeoutHeight has not yet been reached).
-func (k Keeper) TimeoutOnClose(
+func (k *Keeper) TimeoutOnClose(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	packet types.Packet,

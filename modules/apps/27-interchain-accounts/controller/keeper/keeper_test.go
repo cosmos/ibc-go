@@ -354,7 +354,7 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	// test if the ics4 wrapper is the channel keeper initially
 	ics4Wrapper := suite.chainA.GetSimApp().ICAControllerKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
 	suite.Require().False(isChannelKeeper)
 
 	// set the ics4 wrapper to the channel keeper

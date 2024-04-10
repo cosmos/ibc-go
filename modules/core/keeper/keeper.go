@@ -77,7 +77,7 @@ func NewKeeper(
 }
 
 // Codec returns the IBC module codec.
-func (k Keeper) Codec() codec.BinaryCodec {
+func (k *Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
 
@@ -103,7 +103,7 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 }
 
 // GetAuthority returns the ibc module's authority.
-func (k Keeper) GetAuthority() string {
+func (k *Keeper) GetAuthority() string {
 	return k.authority
 }
 
