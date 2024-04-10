@@ -411,15 +411,15 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 
 	_, isFeeKeeper := ics4Wrapper.(ibcfeekeeper.Keeper)
 	suite.Require().True(isFeeKeeper)
-	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
 	suite.Require().False(isChannelKeeper)
 
 	// set the ics4 wrapper to the channel keeper
 	suite.chainA.GetSimApp().ICAHostKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 	ics4Wrapper = suite.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
-	suite.Require().True(isChannelKeeper)
+	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
+
 	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
 	suite.Require().False(isFeeKeeper)
 }
