@@ -13,7 +13,6 @@ import (
 
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	types "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -114,7 +113,7 @@ func (suite *TendermintTestSuite) TestLatestHeight() {
 		{
 			"success",
 			func() {},
-			types.Height(types.Height{RevisionNumber: 0x1, RevisionHeight: 0x4}),
+			clienttypes.Height{RevisionNumber: 0x1, RevisionHeight: 0x4},
 		},
 		{
 			"client state not found",
