@@ -233,7 +233,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 				},
 			}
 
-			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(&mockValidator)
+			suite.chainB.App.GetIBCKeeper().SetConsensusHost(&mockValidator)
 		}, false},
 	}
 
