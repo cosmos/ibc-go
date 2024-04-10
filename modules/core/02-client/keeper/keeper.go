@@ -83,8 +83,8 @@ func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.Clie
 	return clientModule.UpdateState(ctx, exported.LocalhostClientID, nil)
 }
 
-// SetSelfConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
-func (k *Keeper) SetSelfConsensusHost(consensusHost types.ConsensusHost) {
+// SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
+func (k *Keeper) SetConsensusHost(consensusHost types.ConsensusHost) {
 	if consensusHost == nil {
 		panic(fmt.Errorf("cannot set a nil self consensus host"))
 	}
@@ -422,7 +422,12 @@ func (k Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.He
 		return types.ZeroHeight()
 	}
 
-	return clientModule.LatestHeight(ctx, clientID).(types.Height)
+	var latestHeight types.Height
+	latestHeight, ok := clientModule.LatestHeight(ctx, clientID).(types.Height)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T to %T", clientModule.LatestHeight, latestHeight))
+	}
+	return latestHeight
 }
 
 // GetClientTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
