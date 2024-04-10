@@ -76,9 +76,12 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule is the application module for the celestia client module
 type AppModule struct {
 	AppModuleBasic
+	lightClientModule LightClientModule
 }
 
 // NewAppModule creates a new celestia client module
-func NewAppModule() AppModule {
-	return AppModule{}
+func NewAppModule(lightClientModule LightClientModule) AppModule {
+	return AppModule{
+		lightClientModule: lightClientModule,
+	}
 }

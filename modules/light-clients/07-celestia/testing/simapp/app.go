@@ -106,6 +106,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibccelestia "github.com/cosmos/ibc-go/modules/light-clients/07-celestia"
 	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
@@ -566,6 +567,9 @@ func NewSimApp(
 	tmLightClientModule := ibctm.NewLightClientModule(appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
+	celestiaLightClientModule := ibccelestia.NewLightClientModule(appCodec)
+	clientRouter.AddRoute(ibccelestia.ModuleName, &celestiaLightClientModule)
+
 	smLightClientModule := solomachine.NewLightClientModule(appCodec)
 	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
@@ -618,6 +622,7 @@ func NewSimApp(
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
+		ibccelestia.NewAppModule(celestiaLightClientModule),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,

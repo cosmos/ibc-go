@@ -25,8 +25,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// ClientState from Tendermint tracks the current validator set, latest height,
-// and a possible frozen height.
+// ClientState from Celestia tracks the current validator set, latest height,
+// and a possible frozen height of Tendermint consensus.
 type ClientState struct {
 	BaseClient *_07_tendermint.ClientState `protobuf:"bytes,1,opt,name=base_client,json=baseClient,proto3" json:"base_client,omitempty"`
 }
