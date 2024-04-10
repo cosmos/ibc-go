@@ -146,7 +146,6 @@ func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 	suite.Require().NoError(err)
 
 	smClientState := clientState.(*solomachine.ClientState)
-
 	return smClientState.Sequence
 }
 
