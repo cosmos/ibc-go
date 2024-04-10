@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -12,6 +13,7 @@ import (
 
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	types "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -98,6 +100,51 @@ func (suite *TendermintTestSuite) TestStatus() {
 	}
 }
 
+func (suite *TendermintTestSuite) TestLatestHeight() {
+	var (
+		path   *ibctesting.Path
+		height exported.Height
+	)
+
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expHeight exported.Height
+	}{
+		{
+			"success",
+			func() {},
+			types.Height(types.Height{RevisionNumber: 0x1, RevisionHeight: 0x4}),
+		},
+		{
+			"client state not found",
+			func() {
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				store.Delete(host.ClientStateKey())
+			},
+			clienttypes.ZeroHeight(),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
+			tc.malleate()
+
+			height = lightClientModule.LatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().Equal(tc.expHeight, height)
+		})
+	}
+}
+
 func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 	var (
 		path   *ibctesting.Path
@@ -116,7 +163,7 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 			nil,
 		},
 		{
-			"failure: client state not found for height",
+			"failure: client state not found",
 			func() {
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
@@ -256,6 +303,232 @@ func (suite *TendermintTestSuite) TestInitialize() {
 				suite.Require().ErrorContains(err, tc.expErr.Error())
 				suite.Require().False(store.Has(host.ClientStateKey()))
 				suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LatestCommittedHeader.GetHeight())))
+			}
+		})
+	}
+}
+
+func (suite *TendermintTestSuite) TestVerifyClientMessage() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: client state not found",
+			func() {
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				store.Delete(host.ClientStateKey())
+			},
+			clienttypes.ErrClientNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
+			// ensure counterparty state is committed
+			suite.coordinator.CommitBlock(suite.chainB)
+			trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
+func (suite *TendermintTestSuite) TestLCMCheckForMisbehaviour() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPanic bool
+	}{
+		{
+			"success",
+			func() {},
+			false,
+		},
+		{
+			"failure: client state not found",
+			func() {
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				store.Delete(host.ClientStateKey())
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
+			// ensure counterparty state is committed
+			suite.coordinator.CommitBlock(suite.chainB)
+			trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			if !tc.expPanic {
+				misbehaviour := lightClientModule.CheckForMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+				suite.Require().False(misbehaviour)
+			} else {
+				suite.Require().PanicsWithError(errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
+					func() {
+						lightClientModule.CheckForMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+					})
+			}
+		})
+	}
+}
+
+func (suite *TendermintTestSuite) TestLCMUpdateStateOnMisbehaviour() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPanic bool
+	}{
+		{
+			"success",
+			func() {},
+			false,
+		},
+		{
+			"failure: client state not found",
+			func() {
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				store.Delete(host.ClientStateKey())
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
+			// ensure counterparty state is committed
+			suite.coordinator.CommitBlock(suite.chainB)
+			trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			if !tc.expPanic {
+				suite.Require().NotPanics(
+					func() {
+						lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+					})
+			} else {
+				suite.Require().PanicsWithError(
+					errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
+					func() {
+						lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+					},
+				)
+			}
+		})
+	}
+}
+
+func (suite *TendermintTestSuite) TestLCMUpdateState() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPanic bool
+	}{
+		{
+			"success",
+			func() {},
+			false,
+		},
+		{
+			"failure: client state not found",
+			func() {
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				store.Delete(host.ClientStateKey())
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
+			// ensure counterparty state is committed
+			suite.coordinator.CommitBlock(suite.chainB)
+			trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			if !tc.expPanic {
+				height := lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+				h := header.GetHeight().(clienttypes.Height)
+				suite.Require().Equal([]exported.Height{h}, height)
+			} else {
+				suite.Require().PanicsWithError(
+					errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
+					func() {
+						lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+					},
+				)
 			}
 		})
 	}
@@ -729,7 +1002,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			commitmenttypes.ErrInvalidMerkleProof,
 		},
 		{
-			"client state not found for height",
+			"client state not found",
 			func() {
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
@@ -957,7 +1230,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			commitmenttypes.ErrInvalidMerkleProof,
 		},
 		{
-			"client state not found for height",
+			"client state not found",
 			func() {
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
