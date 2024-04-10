@@ -1155,7 +1155,9 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	controllerStack := cbs.(porttypes.ICS4Wrapper)
+	controllerStack, ok := cbs.(porttypes.ICS4Wrapper)
+	suite.Require().True(ok)
+
 	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
