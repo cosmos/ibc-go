@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (apps/27-interchain-accounts) [\#6144](https://github.com/cosmos/ibc-go/pull/6144) Emit an event signalling that the host submodule is disabled.
+
 ### Features
 
 ### Bug Fixes
