@@ -211,7 +211,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			chanCap, err := suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			version, err := cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.ConnectionHops,
@@ -315,7 +315,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			err = cbs.OnChanOpenConfirm(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -340,7 +340,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 	suite.Require().NoError(err)
 
-	cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+	cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 	suite.Require().True(ok)
 
 	err = cbs.OnChanCloseInit(
@@ -379,7 +379,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			err = cbs.OnChanCloseConfirm(
@@ -488,7 +488,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			ctx := suite.chainB.GetContext()
@@ -560,7 +560,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			packet := channeltypes.NewPacket(
@@ -613,7 +613,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointB.ChannelConfig.PortID)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			packet := channeltypes.NewPacket(
@@ -650,7 +650,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 	suite.Require().NoError(err)
 
-	app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+	app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 	suite.Require().True(ok)
 	cbs, ok := app.(porttypes.UpgradableModule)
 	suite.Require().True(ok)
@@ -709,7 +709,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 			suite.Require().NoError(err)
 
-			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 			cbs, ok := app.(porttypes.UpgradableModule)
 			suite.Require().True(ok)
@@ -745,7 +745,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 	suite.Require().NoError(err)
 
-	app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.GetRoute(module)
+	app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 	suite.Require().True(ok)
 	cbs, ok := app.(porttypes.UpgradableModule)
 	suite.Require().True(ok)
