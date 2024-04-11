@@ -20,7 +20,7 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // Connection implements the Query/Connection gRPC method
-func (k Keeper) Connection(c context.Context, req *types.QueryConnectionRequest) (*types.QueryConnectionResponse, error) {
+func (k *Keeper) Connection(c context.Context, req *types.QueryConnectionRequest) (*types.QueryConnectionResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -45,7 +45,7 @@ func (k Keeper) Connection(c context.Context, req *types.QueryConnectionRequest)
 }
 
 // Connections implements the Query/Connections gRPC method
-func (k Keeper) Connections(c context.Context, req *types.QueryConnectionsRequest) (*types.QueryConnectionsResponse, error) {
+func (k *Keeper) Connections(c context.Context, req *types.QueryConnectionsRequest) (*types.QueryConnectionsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -82,7 +82,7 @@ func (k Keeper) Connections(c context.Context, req *types.QueryConnectionsReques
 }
 
 // ClientConnections implements the Query/ClientConnections gRPC method
-func (k Keeper) ClientConnections(c context.Context, req *types.QueryClientConnectionsRequest) (*types.QueryClientConnectionsResponse, error) {
+func (k *Keeper) ClientConnections(c context.Context, req *types.QueryClientConnectionsRequest) (*types.QueryClientConnectionsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -107,7 +107,7 @@ func (k Keeper) ClientConnections(c context.Context, req *types.QueryClientConne
 }
 
 // ConnectionClientState implements the Query/ConnectionClientState gRPC method
-func (k Keeper) ConnectionClientState(c context.Context, req *types.QueryConnectionClientStateRequest) (*types.QueryConnectionClientStateResponse, error) {
+func (k *Keeper) ConnectionClientState(c context.Context, req *types.QueryConnectionClientStateRequest) (*types.QueryConnectionClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -141,7 +141,7 @@ func (k Keeper) ConnectionClientState(c context.Context, req *types.QueryConnect
 }
 
 // ConnectionConsensusState implements the Query/ConnectionConsensusState gRPC method
-func (k Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConnectionConsensusStateRequest) (*types.QueryConnectionConsensusStateResponse, error) {
+func (k *Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConnectionConsensusStateRequest) (*types.QueryConnectionConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -179,7 +179,7 @@ func (k Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConn
 }
 
 // ConnectionParams implements the Query/ConnectionParams gRPC method.
-func (k Keeper) ConnectionParams(c context.Context, req *types.QueryConnectionParamsRequest) (*types.QueryConnectionParamsResponse, error) {
+func (k *Keeper) ConnectionParams(c context.Context, req *types.QueryConnectionParamsRequest) (*types.QueryConnectionParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := k.GetParams(ctx)
 

@@ -51,7 +51,7 @@ func (suite *TendermintTestSuite) TestGetSelfConsensusState() {
 						return nil, mock.MockApplicationCallbackError
 					},
 				}
-				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(consensusHost)
+				suite.chainA.GetSimApp().GetIBCKeeper().SetConsensusHost(consensusHost)
 			},
 			expError: mock.MockApplicationCallbackError,
 		},
@@ -63,7 +63,7 @@ func (suite *TendermintTestSuite) TestGetSelfConsensusState() {
 						return &solomachine.ConsensusState{}, nil
 					},
 				}
-				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(consensusHost)
+				suite.chainA.GetSimApp().GetIBCKeeper().SetConsensusHost(consensusHost)
 			},
 			expError: nil,
 		},
@@ -153,7 +153,7 @@ func (suite *TendermintTestSuite) TestValidateSelfClient() {
 				}
 
 				// add mock validation logic
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(smConsensusHost)
+				suite.chainA.App.GetIBCKeeper().SetConsensusHost(smConsensusHost)
 			},
 			expError: nil,
 		},
