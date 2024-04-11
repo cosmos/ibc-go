@@ -8,8 +8,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -60,9 +58,8 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 			return errorsmod.Wrapf(types.ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
 		}
 
-		// TODO: check denom validation here: should use ValidatePrefixedDenom? potentially linked to: https://github.com/cosmos/ibc-go/issues/6124
-		if err := sdk.ValidateDenom(token.Denom); err != nil {
-			return errorsmod.Wrap(types.ErrInvalidDenomForTransfer, err.Error())
+		if err := ValidateToken(*token); err != nil {
+			return err
 		}
 	}
 
@@ -77,7 +74,7 @@ func (t *Token) GetFullDenomPath() string {
 	if len(t.Trace) == 0 {
 		return t.Denom
 	}
-	return strings.Join(t.Trace, "/") + "/" + t.Denom
+	return strings.Join(append(t.Trace, t.Denom), "/")
 }
 
 // GetBytes is a helper for serialising
