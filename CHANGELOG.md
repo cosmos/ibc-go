@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* [\#5837](https://github.com/cosmos/ibc-go/pull/5837) Move 02-client legacy v1beta gov types deprecation message to constructor functions.
+
 ## [v8.2.0](https://github.com/cosmos/ibc-go/releases/tag/v8.2.0) - 2024-04-05
 
 ### Dependencies
