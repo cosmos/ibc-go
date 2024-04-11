@@ -342,15 +342,16 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				msg := &transfertypes.MsgTransfer{
-					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
-					SourceChannel:    transferPath.EndpointA.ChannelID,
-					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
-					Sender:           interchainAccountAddr,
-					Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
-					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
-					TimeoutTimestamp: uint64(0),
-				}
+				msg := transfertypes.NewMsgTransfer(
+					transferPath.EndpointA.ChannelConfig.PortID,
+					transferPath.EndpointA.ChannelID,
+					sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					interchainAccountAddr,
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 				suite.Require().NoError(err)
@@ -376,15 +377,16 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				msg := &transfertypes.MsgTransfer{
-					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
-					SourceChannel:    transferPath.EndpointA.ChannelID,
-					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
-					Sender:           interchainAccountAddr,
-					Receiver:         "",
-					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
-					TimeoutTimestamp: uint64(0),
-				}
+				msg := transfertypes.NewMsgTransfer(
+					transferPath.EndpointA.ChannelConfig.PortID,
+					transferPath.EndpointA.ChannelID,
+					sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					interchainAccountAddr,
+					"",
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 				suite.Require().NoError(err)
