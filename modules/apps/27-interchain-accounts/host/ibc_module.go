@@ -119,6 +119,7 @@ func (im IBCModule) OnRecvPacket(
 	logger := im.keeper.Logger(ctx)
 	if !im.keeper.GetParams(ctx).HostEnabled {
 		logger.Info("host submodule is disabled")
+		keeper.EmitHostDisabledEvent(ctx, packet)
 		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 
