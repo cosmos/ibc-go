@@ -71,11 +71,11 @@ func newPath(chainA, chainB ibc.Chain) pathPair {
 }
 
 func (s *E2ETestSuite) SetupTest() {
-	s.ConfigureGenesisDebugExport()
+	s.configureGenesisDebugExport()
 }
 
-// ConfigureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
-func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
+// configureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
+func (s *E2ETestSuite) configureGenesisDebugExport() {
 	tc := LoadConfig()
 	t := s.T()
 	cfg := tc.DebugConfig.GenesisDebug
