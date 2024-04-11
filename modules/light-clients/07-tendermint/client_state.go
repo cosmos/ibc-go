@@ -123,7 +123,7 @@ func (cs ClientState) Validate() error {
 	}
 
 	if err := light.ValidateTrustLevel(cs.TrustLevel.ToTendermint()); err != nil {
-		return errorsmod.Wrapf(ErrInvalidTrustLevel, "%s", err)
+		return errorsmod.Wrapf(ErrInvalidTrustLevel, err.Error())
 	}
 	if cs.TrustingPeriod <= 0 {
 		return errorsmod.Wrap(ErrInvalidTrustingPeriod, "trusting period must be greater than zero")

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -29,8 +30,8 @@ type Keeper struct {
 	cdc codec.BinaryCodec
 
 	ClientKeeper     *clientkeeper.Keeper
-	ConnectionKeeper connectionkeeper.Keeper
-	ChannelKeeper    channelkeeper.Keeper
+	ConnectionKeeper *connectionkeeper.Keeper
+	ChannelKeeper    *channelkeeper.Keeper
 	PortKeeper       *portkeeper.Keeper
 	Router           *porttypes.Router
 
@@ -61,23 +62,32 @@ func NewKeeper(
 	}
 
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, consensusHost, upgradeKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, &clientKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
-	channelKeeper := channelkeeper.NewKeeper(cdc, key, &clientKeeper, &connectionKeeper, &portKeeper, scopedKeeper)
+	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
 
 	return &Keeper{
 		cdc:              cdc,
-		ClientKeeper:     &clientKeeper,
+		ClientKeeper:     clientKeeper,
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
-		PortKeeper:       &portKeeper,
+		PortKeeper:       portKeeper,
 		authority:        authority,
 	}
 }
 
 // Codec returns the IBC module codec.
-func (k Keeper) Codec() codec.BinaryCodec {
+func (k *Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
+}
+
+// SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
+func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
+	if consensusHost == nil {
+		panic(fmt.Errorf("cannot set a nil self consensus host"))
+	}
+
+	k.ClientKeeper.SetConsensusHost(consensusHost)
 }
 
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if
@@ -93,7 +103,7 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 }
 
 // GetAuthority returns the ibc module's authority.
-func (k Keeper) GetAuthority() string {
+func (k *Keeper) GetAuthority() string {
 	return k.authority
 }
 
