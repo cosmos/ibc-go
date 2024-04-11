@@ -536,7 +536,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 			suite.Require().NoError(err)
 
 			upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
-			upgradedClient = upgradedClient.(*ibctm.ClientState).ZeroCustomFields()
+
+			if upgraded, ok := upgradedClient.(*ibctm.ClientState); ok {
+				upgradedClient = upgraded.ZeroCustomFields()
+			}
+
 			upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 			suite.Require().NoError(err)
 
