@@ -31,7 +31,6 @@ type Keeper struct {
 
 	vm ibcwasm.WasmEngine
 
-	schema       collections.Schema
 	checksums    collections.KeySet[[]byte]
 	storeService store.KVStoreService
 

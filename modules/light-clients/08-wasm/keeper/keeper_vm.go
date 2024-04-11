@@ -61,13 +61,10 @@ func NewKeeperWithVM(
 		authority:    authority,
 	}
 
-	schema, err := sb.Build()
+	_, err := sb.Build()
 	if err != nil {
 		panic(err)
 	}
-
-	// TODO(jim): Is this needed? wasmd doesn't hold ref, sdk docs/code do.
-	keeper.schema = schema
 
 	// set query plugins to ensure there is a non-nil query plugin
 	// regardless of what options the user provides
