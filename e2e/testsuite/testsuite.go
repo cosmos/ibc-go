@@ -107,7 +107,7 @@ func (s *E2ETestSuite) ConfigureGenesisDebugExport() {
 	chainIdx, err := tc.GetChainIndex(chainName)
 	s.Require().NoError(err)
 
-	// Interchaintest adds a suffix (https://github.com/strangelove-ven pftures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
+	// Interchaintest adds a suffix (https://github.com/strangelove-ventures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
 	// to the chain name, so we need to do the same.
 	genesisChainName := fmt.Sprintf("%s-%d", chainName, chainIdx+1)
 	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
