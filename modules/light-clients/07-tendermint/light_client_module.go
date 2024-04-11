@@ -1,6 +1,8 @@
 package tendermint
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -41,7 +43,7 @@ func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientS
 func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState ClientState
 	if err := l.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal client state bytes into client state: %w", err)
 	}
 
 	if err := clientState.Validate(); err != nil {
@@ -50,7 +52,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 
 	var consensusState ConsensusState
 	if err := l.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal consensus state bytes into consensus state: %w", err)
 	}
 
 	if err := consensusState.ValidateBasic(); err != nil {
