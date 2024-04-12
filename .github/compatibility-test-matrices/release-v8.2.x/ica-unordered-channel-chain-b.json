@@ -1,5 +1,6 @@
 {
   "chain-a": [
+    "v8.2.0",
     "release-v8.2.x"
   ],
   "chain-b": [
