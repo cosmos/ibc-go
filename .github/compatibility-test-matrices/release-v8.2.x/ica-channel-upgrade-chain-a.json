@@ -4,7 +4,6 @@
   ],
   "chain-b": [
     "v8.2.0",
-    "v8.1.0",
     "release-v8.2.x"
   ],
   "entrypoint": [

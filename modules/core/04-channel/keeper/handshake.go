@@ -20,7 +20,7 @@ import (
 // ChanOpenInit is called by a module to initiate a channel opening handshake with
 // a module on another chain. The counterparty channel identifier is validated to be
 // empty in msg validation.
-func (k Keeper) ChanOpenInit(
+func (k *Keeper) ChanOpenInit(
 	ctx sdk.Context,
 	order types.Order,
 	connectionHops []string,
@@ -73,7 +73,7 @@ func (k Keeper) ChanOpenInit(
 // WriteOpenInitChannel writes a channel which has successfully passed the OpenInit handshake step.
 // The channel is set in state and all the associated Send and Recv sequences are set to 1.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteOpenInitChannel(
+func (k *Keeper) WriteOpenInitChannel(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -98,7 +98,7 @@ func (k Keeper) WriteOpenInitChannel(
 
 // ChanOpenTry is called by a module to accept the first step of a channel opening
 // handshake initiated by a module on another chain.
-func (k Keeper) ChanOpenTry(
+func (k *Keeper) ChanOpenTry(
 	ctx sdk.Context,
 	order types.Order,
 	connectionHops []string,
@@ -180,7 +180,7 @@ func (k Keeper) ChanOpenTry(
 // WriteOpenTryChannel writes a channel which has successfully passed the OpenTry handshake step.
 // The channel is set in state. If a previous channel state did not exist, all the Send and Recv
 // sequences are set to 1. An event is emitted for the handshake step.
-func (k Keeper) WriteOpenTryChannel(
+func (k *Keeper) WriteOpenTryChannel(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -206,7 +206,7 @@ func (k Keeper) WriteOpenTryChannel(
 
 // ChanOpenAck is called by the handshake-originating module to acknowledge the
 // acceptance of the initial request by the counterparty module on the other chain.
-func (k Keeper) ChanOpenAck(
+func (k *Keeper) ChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -255,7 +255,7 @@ func (k Keeper) ChanOpenAck(
 
 // WriteOpenAckChannel writes an updated channel state for the successful OpenAck handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteOpenAckChannel(
+func (k *Keeper) WriteOpenAckChannel(
 	ctx sdk.Context,
 	portID,
 	channelID,
@@ -281,7 +281,7 @@ func (k Keeper) WriteOpenAckChannel(
 
 // ChanOpenConfirm is called by the handshake-accepting module to confirm the acknowledgement
 // of the handshake-originating module on the other chain and finish the channel opening handshake.
-func (k Keeper) ChanOpenConfirm(
+func (k *Keeper) ChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -332,7 +332,7 @@ func (k Keeper) ChanOpenConfirm(
 
 // WriteOpenConfirmChannel writes an updated channel state for the successful OpenConfirm handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteOpenConfirmChannel(
+func (k *Keeper) WriteOpenConfirmChannel(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -358,7 +358,7 @@ func (k Keeper) WriteOpenConfirmChannel(
 //
 // ChanCloseInit is called by either module to close their end of the channel. Once
 // closed, channels cannot be reopened.
-func (k Keeper) ChanCloseInit(
+func (k *Keeper) ChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -404,7 +404,7 @@ func (k Keeper) ChanCloseInit(
 
 // ChanCloseConfirm is called by the counterparty module to close their end of the
 // channel, since the other end has been closed.
-func (k Keeper) ChanCloseConfirm(
+func (k *Keeper) ChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,

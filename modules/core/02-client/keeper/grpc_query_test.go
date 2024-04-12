@@ -344,7 +344,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				height1 := path.EndpointA.GetClientLatestHeight().(types.Height)
+				height1, ok := path.EndpointA.GetClientLatestHeight().(types.Height)
+				suite.Require().True(ok)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -354,8 +355,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
-
-				height2 := path.EndpointA.GetClientLatestHeight().(types.Height)
+				height2, ok := path.EndpointA.GetClientLatestHeight().(types.Height)
+				suite.Require().True(ok)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -548,10 +549,12 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 
 				// increment latest height so no consensus state is stored
-				clientState.LatestHeight = clientState.LatestHeight.Increment().(types.Height)
+				clientState.LatestHeight, ok = clientState.LatestHeight.Increment().(types.Height)
+				suite.Require().True(ok)
 				path.EndpointA.SetClientState(clientState)
 
 				req = &types.QueryClientStatusRequest{
@@ -565,7 +568,8 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 
 				clientState.FrozenHeight = types.NewHeight(0, 1)
 				path.EndpointA.SetClientState(clientState)
@@ -636,7 +640,9 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(resp)
 
-				expClientState = clientState.(*ibctm.ClientState)
+				var ok bool
+				expClientState, ok = clientState.(*ibctm.ClientState)
+				suite.Require().True(ok)
 			},
 			nil,
 		},
