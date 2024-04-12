@@ -38,6 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#6149](https://github.com/cosmos/ibc-go/pull/6149) Bump wasmvm to v1.5.2.
+
 ### API Breaking
 
 ### State Machine Breaking
