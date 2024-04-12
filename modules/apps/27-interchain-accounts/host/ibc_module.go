@@ -106,6 +106,7 @@ func (im IBCModule) OnRecvPacket(
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	if !im.keeper.IsHostEnabled(ctx) {
+		keeper.EmitHostDisabledEvent(ctx, packet)
 		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 
