@@ -36,12 +36,14 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 			heightDiff = 5
 		}, false},
 		{"verification failed", func() {
-			counterpartyClient := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			counterpartyClient, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			counterpartyClient.ChainId = "wrongChainID"
 			path.EndpointB.SetClientState(counterpartyClient)
 		}, false},
 		{"client status is not active - client is expired", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, false},
@@ -99,8 +101,6 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			heightDiff = 5
 		}, false},
 		{"verification failed", func() {
-			clientState := suite.chainB.GetClientState(path.EndpointB.ClientID)
-
 			// give chainB wrong consensus state for chainA
 			consState, found := suite.chainB.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID)
 			suite.Require().True(found)
@@ -109,12 +109,13 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			suite.Require().True(ok)
 
 			tmConsState.Timestamp = time.Now()
-			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, clientState.GetLatestHeight(), tmConsState)
+			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, path.EndpointB.GetClientLatestHeight(), tmConsState)
 
 			suite.coordinator.CommitBlock(suite.chainB)
 		}, false},
 		{"client status is not active - client is expired", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, false},
@@ -174,7 +175,8 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.State = types.TRYOPEN })
 		}, false},
 		{"client status is not active - client is expired", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, false},
@@ -232,12 +234,11 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 			heightDiff = 5
 		}, false},
 		{"verification failed - changed channel state", func() {
-			channel := path.EndpointA.GetChannel()
-			channel.State = channeltypes.TRYOPEN
-			path.EndpointA.SetChannel(channel)
+			path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.TRYOPEN })
 		}, false},
 		{"client status is not active - client is expired", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, false},
@@ -313,7 +314,8 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			packet.Data = []byte(ibctesting.InvalidID)
 		}, false},
 		{"client status is not active - client is expired", func() {
-			clientState := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointB.SetClientState(clientState)
 		}, false},
@@ -403,7 +405,8 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			ack = ibcmock.MockFailAcknowledgement
 		}, false},
 		{"client status is not active - client is expired", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, false},
@@ -507,7 +510,8 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			suite.Require().NoError(err)
 		}, false},
 		{"client status is not active - client is expired", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, false},
@@ -536,7 +540,8 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			connection := path.EndpointA.GetConnection()
 			connection.DelayPeriod = delayTimePeriod
 
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			if clientState.FrozenHeight.IsZero() {
 				// need to update height to prove absence or receipt
 				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
@@ -606,7 +611,8 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			offsetSeq = 1
 		}, false},
 		{"client status is not active - client is expired", func() {
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, false},
@@ -682,7 +688,8 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 		{
 			name: "fails when client state is frozen",
 			malleate: func() {
-				clientState := path.EndpointB.GetClientState().(*ibctm.ClientState)
+				clientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 				path.EndpointB.SetClientState(clientState)
 			},
@@ -763,7 +770,8 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 		{
 			name: "fails when client state is frozen",
 			malleate: func() {
-				clientState := path.EndpointB.GetClientState().(*ibctm.ClientState)
+				clientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 				path.EndpointB.SetClientState(clientState)
 			},

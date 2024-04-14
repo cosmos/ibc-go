@@ -31,11 +31,6 @@ func (ClientState) ClientType() string {
 	return Wasm
 }
 
-// GetLatestHeight returns latest block height.
-func (cs ClientState) GetLatestHeight() exported.Height {
-	return cs.LatestHeight
-}
-
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if len(cs.Data) == 0 {
@@ -71,12 +66,6 @@ func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ 
 	}
 
 	return exported.Status(result.Status)
-}
-
-// ZeroCustomFields returns a ClientState that is a copy of the current ClientState
-// with all client customizable fields zeroed out
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
-	return &cs
 }
 
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
@@ -148,10 +137,10 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
 	}
 
-	if cs.GetLatestHeight().LT(height) {
+	if cs.LatestHeight.LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.LatestHeight, height,
 		)
 	}
 
@@ -192,10 +181,10 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
 	}
 
-	if cs.GetLatestHeight().LT(height) {
+	if cs.LatestHeight.LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.LatestHeight, height,
 		)
 	}
 

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path"
 	"strings"
 
 	dockerclient "github.com/docker/docker/client"
@@ -18,6 +20,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
@@ -64,6 +68,49 @@ func newPath(chainA, chainB ibc.Chain) pathPair {
 		chainA: chainA,
 		chainB: chainB,
 	}
+}
+
+func (s *E2ETestSuite) SetupTest() {
+	s.configureGenesisDebugExport()
+}
+
+// configureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
+func (s *E2ETestSuite) configureGenesisDebugExport() {
+	tc := LoadConfig()
+	t := s.T()
+	cfg := tc.DebugConfig.GenesisDebug
+	if !cfg.DumpGenesisDebugInfo {
+		return
+	}
+
+	// Set the export path.
+	exportPath := cfg.ExportFilePath
+
+	// If no path is provided, use the default (e2e/diagnostics/genesis.json).
+	if exportPath == "" {
+		e2eDir, err := directories.E2E(t)
+		s.Require().NoError(err, "can't get e2edir")
+		exportPath = path.Join(e2eDir, directories.DefaultGenesisExportPath)
+	}
+
+	if !path.IsAbs(exportPath) {
+		wd, err := os.Getwd()
+		s.Require().NoError(err, "can't get working directory")
+		exportPath = path.Join(wd, exportPath)
+	}
+
+	// This env variables are set by the interchain test code:
+	// https://github.com/strangelove-ventures/interchaintest/blob/7aa0fd6487f76238ab44231fdaebc34627bc5990/chain/cosmos/cosmos_chain.go#L1007-L1008
+	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
+
+	chainName := tc.GetGenesisChainName()
+	chainIdx, err := tc.GetChainIndex(chainName)
+	s.Require().NoError(err)
+
+	// Interchaintest adds a suffix (https://github.com/strangelove-ventures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
+	// to the chain name, so we need to do the same.
+	genesisChainName := fmt.Sprintf("%s-%d", chainName, chainIdx+1)
+	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
@@ -172,9 +219,9 @@ func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
 
 // generatePathName generates the path name using the test suites name
 func (s *E2ETestSuite) generatePathName() string {
-	path := s.GetPathName(s.pathNameIndex)
+	pathName := s.GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
-	return path
+	return pathName
 }
 
 // GetPathName returns the name of a path at a specific index. This can be used in tests
@@ -218,9 +265,9 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 		s.paths = map[string]pathPair{}
 	}
 
-	path, ok := s.paths[s.T().Name()]
+	suitePath, ok := s.paths[s.T().Name()]
 	if ok {
-		return path.chainA, path.chainB
+		return suitePath.chainA, suitePath.chainB
 	}
 
 	chainOptions := DefaultChainOptions()
@@ -229,8 +276,8 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 	}
 
 	chainA, chainB := s.createChains(chainOptions)
-	path = newPath(chainA, chainB)
-	s.paths[s.T().Name()] = path
+	suitePath = newPath(chainA, chainB)
+	s.paths[s.T().Name()] = suitePath
 
 	if s.proposalIDs == nil {
 		s.proposalIDs = map[string]uint64{}
@@ -239,7 +286,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 	s.proposalIDs[chainA.Config().ChainID] = 1
 	s.proposalIDs[chainB.Config().ChainID] = 1
 
-	return path.chainA, path.chainB
+	return suitePath.chainA, suitePath.chainB
 }
 
 // GetRelayerWallets returns the ibcrelayer wallets associated with the chains.
@@ -423,7 +470,7 @@ func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateCha
 func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain ibc.Chain) clienttypes.Height {
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err)
-	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), height+1000)
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
 }
 
 // CreateUpgradeFields creates upgrade fields for channel with fee middleware

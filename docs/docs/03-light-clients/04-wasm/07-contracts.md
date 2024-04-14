@@ -34,7 +34,6 @@ The Wasm light client contract is expected to store the client and consensus sta
 ```go
 type QueryMsg struct {
   Status               *StatusMsg               `json:"status,omitempty"`
-  ExportMetadata       *ExportMetadataMsg       `json:"export_metadata,omitempty"`
   TimestampAtHeight    *TimestampAtHeightMsg    `json:"timestamp_at_height,omitempty"`
   VerifyClientMessage  *VerifyClientMessageMsg  `json:"verify_client_message,omitempty"`
   CheckForMisbehaviour *CheckForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
@@ -45,7 +44,6 @@ type QueryMsg struct {
 #[cw_serde]
 pub enum QueryMsg {
   Status(StatusMsg),
-  ExportMetadata(ExportMetadataMsg),
   TimestampAtHeight(TimestampAtHeightMsg),
   VerifyClientMessage(VerifyClientMessageRaw),
   CheckForMisbehaviour(CheckForMisbehaviourMsgRaw),
@@ -54,11 +52,10 @@ pub enum QueryMsg {
 
 To learn what it is expected from the Wasm light client contract when processing each message, please read the corresponding section of the [Light client developer guide](../01-developer-guide/01-overview.md):
 
-- For `StatusMsg`, see the section [`Status` method](../01-developer-guide/02-client-state.md#status-method).
-- For `ExportMetadataMsg`, see the section [Genesis metadata](../01-developer-guide/08-genesis.md#genesis-metadata).
-- For `TimestampAtHeightMsg`, see the section [`GetTimestampAtHeight` method](../01-developer-guide/02-client-state.md#gettimestampatheight-method).
-- For `VerifyClientMessageMsg`, see the section [`VerifyClientMessage`](../01-developer-guide/04-updates-and-misbehaviour.md#verifyclientmessage).
-- For `CheckForMisbehaviourMsg`, see the section [`CheckForMisbehaviour` method](../01-developer-guide/02-client-state.md#checkformisbehaviour-method).
+- For `StatusMsg`, see the section [`Status` method](../01-developer-guide/03-client-state.md#status-method).
+- For `TimestampAtHeightMsg`, see the section [`GetTimestampAtHeight` method](../01-developer-guide/03-client-state.md#gettimestampatheight-method).
+- For `VerifyClientMessageMsg`, see the section [`VerifyClientMessage`](../01-developer-guide/05-updates-and-misbehaviour.md#verifyclientmessage).
+- For `CheckForMisbehaviourMsg`, see the section [`CheckForMisbehaviour` method](../01-developer-guide/03-client-state.md#checkformisbehaviour-method).
 
 ## `SudoMsg`
 
@@ -91,12 +88,12 @@ pub enum SudoMsg {
 
 To learn what it is expected from the Wasm light client contract when processing each message, please read the corresponding section of the [Light client developer guide](../01-developer-guide/01-overview.md):
 
-- For `UpdateStateMsg`, see the section [`UpdateState`](../01-developer-guide/04-updates-and-misbehaviour.md#updatestate).
-- For `UpdateStateOnMisbehaviourMsg`, see the section [`UpdateStateOnMisbehaviour`](../01-developer-guide/04-updates-and-misbehaviour.md#updatestateonmisbehaviour).
-- For `VerifyUpgradeAndUpdateStateMsg`, see the section [`GetTimestampAtHeight` method](../01-developer-guide/05-upgrades.md#implementing-verifyupgradeandupdatestate).
-- For `VerifyMembershipMsg`, see the section [`VerifyMembership` method](../01-developer-guide/02-client-state.md#verifymembership-method).
-- For `VerifyNonMembershipMsg`, see the section [`VerifyNonMembership` method](../01-developer-guide/02-client-state.md#verifynonmembership-method).
-- For `MigrateClientStoreMsg`, see the section [Implementing `CheckSubstituteAndUpdateState`](../01-developer-guide/07-proposals.md#implementing-checksubstituteandupdatestate).
+- For `UpdateStateMsg`, see the section [`UpdateState`](../01-developer-guide/05-updates-and-misbehaviour.md#updatestate).
+- For `UpdateStateOnMisbehaviourMsg`, see the section [`UpdateStateOnMisbehaviour`](../01-developer-guide/05-updates-and-misbehaviour.md#updatestateonmisbehaviour).
+- For `VerifyUpgradeAndUpdateStateMsg`, see the section [`GetTimestampAtHeight` method](../01-developer-guide/06-upgrades.md#implementing-verifyupgradeandupdatestate).
+- For `VerifyMembershipMsg`, see the section [`VerifyMembership` method](../01-developer-guide/03-client-state.md#verifymembership-method).
+- For `VerifyNonMembershipMsg`, see the section [`VerifyNonMembership` method](../01-developer-guide/03-client-state.md#verifynonmembership-method).
+- For `MigrateClientStoreMsg`, see the section [Implementing `CheckSubstituteAndUpdateState`](../01-developer-guide/08-proposals.md#implementing-checksubstituteandupdatestate).
 
 ### Migration
 

@@ -65,11 +65,10 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 // QueryProof queries proof associated with this endpoint using the latest client state
 // height on the counterparty chain.
 func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
-	// obtain the counterparty client representing the chain associated with the endpoint
-	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
-
+	// obtain the counterparty client height.
+	latestCounterpartyHeight := endpoint.Counterparty.GetClientLatestHeight()
 	// query proof on the counterparty using the latest height of the IBC client
-	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
+	return endpoint.QueryProofAtHeight(key, latestCounterpartyHeight.GetRevisionHeight())
 }
 
 // QueryProofAtHeight queries proof associated with this endpoint using the proof height
@@ -139,7 +138,8 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		trustedHeight := endpoint.GetClientLatestHeight().(clienttypes.Height)
+		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -199,7 +199,10 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LatestCommittedHeader.Header.GetAppHash()),
 		NextValidatorsHash: endpoint.Chain.LatestCommittedHeader.Header.NextValidatorsHash,
 	}
-	endpoint.Counterparty.SetConsensusState(tmConsensusState, clientState.GetLatestHeight())
+
+	latestHeight := endpoint.Counterparty.GetClientLatestHeight()
+
+	endpoint.Counterparty.SetConsensusState(tmConsensusState, latestHeight)
 
 	// ensure the next update isn't identical to the one set in state
 	endpoint.Chain.Coordinator.IncrementTime()
@@ -294,7 +297,7 @@ func (endpoint *Endpoint) ConnOpenConfirm() error {
 func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	clientState exported.ClientState, clientProof,
 	consensusProof []byte, consensusHeight clienttypes.Height,
-	connectioProof []byte, proofHeight clienttypes.Height,
+	connectionProof []byte, proofHeight clienttypes.Height,
 ) {
 	// obtain the client state on the counterparty chain
 	clientState = endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
@@ -303,17 +306,16 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	clientKey := host.FullClientStateKey(endpoint.Counterparty.ClientID)
 	clientProof, proofHeight = endpoint.Counterparty.QueryProof(clientKey)
 
-	consensusHeight = clientState.GetLatestHeight().(clienttypes.Height)
-
+	consensusHeight = endpoint.Counterparty.GetClientLatestHeight().(clienttypes.Height)
 	// query proof for the consensus state on the counterparty
 	consensusKey := host.FullConsensusStateKey(endpoint.Counterparty.ClientID, consensusHeight)
 	consensusProof, _ = endpoint.Counterparty.QueryProofAtHeight(consensusKey, proofHeight.GetRevisionHeight())
 
 	// query proof for the connection on the counterparty
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
-	connectioProof, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
+	connectionProof, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
 
-	return clientState, clientProof, consensusProof, consensusHeight, connectioProof, proofHeight
+	return clientState, clientProof, consensusProof, consensusHeight, connectionProof, proofHeight
 }
 
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
@@ -760,6 +762,7 @@ func (endpoint *Endpoint) ChanUpgradeCancel() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// Deprecated: usage of this function should be replaced by `UpdateChannelState`
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()
@@ -772,7 +775,26 @@ func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	return endpoint.Counterparty.UpdateClient()
 }
 
-// GetClientState retrieves the Client State for this endpoint. The
+// UpdateChannel updates the channel associated with the given endpoint. It accepts a
+// closure which takes a channel allowing the caller to modify its fields.
+func (endpoint *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) {
+	channel := endpoint.GetChannel()
+	updater(&channel)
+	endpoint.SetChannel(channel)
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	err := endpoint.Counterparty.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
+}
+
+// GetClientLatestHeight returns the latest height for the client state for this endpoint.
+// The client state is expected to exist otherwise testing will fail.
+func (endpoint *Endpoint) GetClientLatestHeight() exported.Height {
+	return endpoint.Chain.GetClientLatestHeight(endpoint.ClientID)
+}
+
+// GetClientState retrieves the client state for this endpoint. The
 // client state is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetClientState() exported.ClientState {
 	return endpoint.Chain.GetClientState(endpoint.ClientID)

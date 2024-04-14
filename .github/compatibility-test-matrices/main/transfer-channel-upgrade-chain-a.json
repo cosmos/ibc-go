@@ -4,7 +4,7 @@
   ],
   "chain-b": [
     "main",
-    "v8.1.0"
+    "v8.2.0"
   ],
   "entrypoint": [
     "TestTransferChannelUpgradesTestSuite"
