@@ -50,7 +50,7 @@ type ModuleOutputs struct {
 	Module    appmodule.AppModule
 }
 
-// ProvideModule returns the  29-fee module outputs for dependency injection
+// ProvideModule returns the 29-fee module outputs for dependency injection
 func ProvideModule(in ModuleInputs) ModuleOutputs {
 	feeKeeper := keeper.NewKeeper(
 		in.Cdc,
