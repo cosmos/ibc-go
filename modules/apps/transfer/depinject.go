@@ -12,7 +12,7 @@ import (
 
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/applications/transfer/module/v1"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	transferKeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 )
@@ -51,10 +51,11 @@ type ModuleInputs struct {
 type ModuleOutputs struct {
 	depinject.Out
 
-	TransferKeeper *transferKeeper.Keeper
+	TransferKeeper *keeper.Keeper
 	Module         appmodule.AppModule
 }
 
+// ProvideModule returns the transfer module outputs for dependency injection
 func ProvideModule(in ModuleInputs) ModuleOutputs {
 	// default to governance authority if not provided
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
@@ -62,7 +63,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
 	}
 
-	keeper := transferKeeper.NewKeeper(
+	keeper := keeper.NewKeeper(
 		in.Cdc,
 		in.Key,
 		in.LegacySubspace,
