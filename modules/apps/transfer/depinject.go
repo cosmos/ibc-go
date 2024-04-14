@@ -63,7 +63,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
 	}
 
-	keeper := keeper.NewKeeper(
+	transferKeeper := keeper.NewKeeper(
 		in.Cdc,
 		in.Key,
 		in.LegacySubspace,
@@ -75,7 +75,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.ScopedKeeper,
 		authority.String(),
 	)
-	m := NewAppModule(keeper)
+	m := NewAppModule(transferKeeper)
 
-	return ModuleOutputs{TransferKeeper: &keeper, Module: m}
+	return ModuleOutputs{TransferKeeper: &transferKeeper, Module: m}
 }
