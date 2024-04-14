@@ -57,6 +57,7 @@ type ModuleOutputs struct {
 	Module           appmodule.AppModule
 }
 
+// ProvideModule returns the 27-interchain-accounts outputs for dependency injection
 func ProvideModule(in ModuleInputs) ModuleOutputs {
 	// default to governance authority if not provided
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
