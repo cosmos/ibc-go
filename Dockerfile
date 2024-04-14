@@ -20,6 +20,7 @@ COPY Makefile .
 
 COPY go.mod .
 COPY go.sum .
+COPY ./api /go/api
 
 RUN go mod download
 

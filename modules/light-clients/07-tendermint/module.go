@@ -35,9 +35,6 @@ func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (AppModule) IsOnePerModuleType() {}
-
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
 
