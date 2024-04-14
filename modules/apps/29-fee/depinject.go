@@ -6,7 +6,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/applications/fee/module/v1"
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
@@ -38,9 +37,6 @@ type ModuleInputs struct {
 	PortKeeper    types.PortKeeper
 	AuthKeeper    types.AccountKeeper
 	BankKeeper    types.BankKeeper
-
-	// LegacySubspace is used solely for migration of x/params managed parameters
-	LegacySubspace paramtypes.Subspace `optional:"true"`
 }
 
 type ModuleOutputs struct {
