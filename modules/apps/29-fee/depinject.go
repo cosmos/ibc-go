@@ -9,7 +9,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/applications/fee/module/v1"
-	keeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 )
