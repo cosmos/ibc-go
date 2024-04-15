@@ -10,6 +10,6 @@ message Module {
     go_import: "github.com/cosmos/ibc-go/modules/capability"
   };
 
-  // sealKeeper is a flag to seal the capability keeper.
+  // seal_keeper is a flag to seal the capability keeper.
   bool seal_keeper = 1;
 }
