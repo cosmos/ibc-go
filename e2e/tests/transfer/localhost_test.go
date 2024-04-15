@@ -57,7 +57,8 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		cs, err := query.ClientState(ctx, chainA, exported.LocalhostClientID)
 		s.Require().NoError(err)
 
-		localhostClientState := cs.(*localhost.ClientState)
+		localhostClientState, ok := cs.(*localhost.ClientState)
+		s.Require().True(ok)
 		originalHeight := localhostClientState.LatestHeight
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")

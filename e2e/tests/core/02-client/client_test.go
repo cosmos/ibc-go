@@ -88,7 +88,8 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 		s.Require().NotEqual(originalChainID, newChainID)
 
-		upgradedClientState := clientState.(*ibctm.ClientState)
+		upgradedClientState, ok := clientState.(*ibctm.ClientState)
+		s.Require().True(ok)
 		upgradedClientState.ChainId = newChainID
 
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(

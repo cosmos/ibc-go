@@ -19,4 +19,5 @@ var (
 	ErrUnbondingPeriodExpired  = errorsmod.Register(ModuleName, 12, "time since latest trusted state has passed the unbonding period")
 	ErrInvalidProofSpecs       = errorsmod.Register(ModuleName, 13, "invalid proof specs")
 	ErrInvalidValidatorSet     = errorsmod.Register(ModuleName, 14, "invalid validator set")
+	ErrInvalidTrustLevel       = errorsmod.Register(ModuleName, 15, "invalid trust level")
 )

@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"

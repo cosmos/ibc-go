@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/interchaintest/v8"
-	cosmos "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/suite"
