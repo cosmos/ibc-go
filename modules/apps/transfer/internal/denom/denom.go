@@ -43,7 +43,6 @@ func ExtractPathAndBaseFromFullDenom(fullDenomItems []string) ([]string, string)
 }
 
 func ValidateTraceIdentifiers(identifiers []string) error {
-	fmt.Printf("identifiers: %v\n", identifiers)
 	if len(identifiers) == 0 || len(identifiers)%2 != 0 {
 		return fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: %s", identifiers)
 	}
