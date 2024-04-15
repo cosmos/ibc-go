@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
@@ -208,6 +209,11 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 
 // TestMigrateClientWrappedStoreDelete tests the Delete method of the migrateClientWrappedStore.
 func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
+	var (
+		mockStoreKey   = []byte("mock-key")
+		mockStoreValue = []byte("mock-value")
+	)
+
 	testCases := []struct {
 		name      string
 		prefix    []byte
@@ -217,13 +223,13 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 		{
 			"success: subject store Delete",
 			types.SubjectPrefix,
-			host.ClientStateKey(),
+			mockStoreKey,
 			true,
 		},
 		{
 			"failure: cannot Delete on substitute store",
 			types.SubstitutePrefix,
-			host.ClientStateKey(),
+			mockStoreKey,
 			false,
 		},
 	}
@@ -233,6 +239,11 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 		suite.Run(tc.name, func() {
 			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
+
+			// Set values under the mock key:
+			subjectStore.Set(mockStoreKey, mockStoreValue)
+			substituteStore.Set(mockStoreKey, mockStoreValue)
+
 			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
@@ -373,21 +384,15 @@ func (suite *TypesTestSuite) TestNewMigrateClientWrappedStore() {
 	}
 }
 
-// GetSubjectAndSubstituteStore returns a subject and substitute store for testing.
+// GetSubjectAndSubstituteStore returns two dummy KVStores for testing the migrate client wrapping store.
 func (suite *TypesTestSuite) GetSubjectAndSubstituteStore() (storetypes.KVStore, storetypes.KVStore) {
-	suite.SetupWasmWithMockVM()
+	suite.SetupTest()
 
-	endpointA := wasmtesting.NewWasmEndpoint(suite.chainA)
-	err := endpointA.CreateClient()
-	suite.Require().NoError(err)
+	ctx := suite.chainA.GetContext()
+	storeKey := GetSimApp(suite.chainA).GetKey(types.StoreKey)
 
-	subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpointA.ClientID)
-
-	substituteEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
-	err = substituteEndpoint.CreateClient()
-	suite.Require().NoError(err)
-
-	substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substituteEndpoint.ClientID)
+	subjectClientStore := prefix.NewStore(ctx.KVStore(storeKey), []byte("client1"))
+	substituteClientStore := prefix.NewStore(ctx.KVStore(storeKey), []byte("client2"))
 
 	return subjectClientStore, substituteClientStore
 }
