@@ -1024,6 +1024,15 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 			}, nil,
 		},
 		{
+			"middleware disabled", func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
+					return ibcmock.MockApplicationCallbackError
+				}
+			},
+			nil,
+		},
+		{
 			"failure: upgrade route not found",
 			func() {},
 			errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"),
@@ -1034,15 +1043,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				path.EndpointA.ChannelID = "invalid-channel"
 			},
 			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", TestPortID, "invalid-channel"),
-		},
-		{
-			"middleware disabled", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
-					return ibcmock.MockApplicationCallbackError
-				}
-			},
-			nil,
 		},
 	}
 
@@ -1071,25 +1071,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 			cbs, ok := app.(porttypes.UpgradableModule)
 			suite.Require().True(ok)
 
-			if tc.expPanic != nil {
-				mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
-				mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
-				cbs = controller.NewIBCMiddleware(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
-				suite.Require().PanicsWithError(tc.expPanic.Error(), func() {
-					cbs.OnChanUpgradeOpen(
-						suite.chainA.GetContext(),
-						path.EndpointA.ChannelConfig.PortID,
-						path.EndpointA.ChannelID,
-						channelOrder,
-						[]string{path.EndpointA.ConnectionID},
-						counterpartyVersion,
-					)
-				})
-			} else {
-				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
-				}
-
+			upgradeOpenCb := func(cbs porttypes.UpgradableModule) {
 				cbs.OnChanUpgradeOpen(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
@@ -1098,6 +1080,20 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 					[]string{path.EndpointA.ConnectionID},
 					counterpartyVersion,
 				)
+			}
+
+			if tc.expPanic != nil {
+				mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
+				mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
+				cbs = controller.NewIBCMiddleware(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
+
+				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { upgradeOpenCb(cbs) })
+			} else {
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
+				upgradeOpenCb(cbs)
 			}
 		})
 	}
