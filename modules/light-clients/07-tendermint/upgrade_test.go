@@ -320,7 +320,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 
 				// SetClientState with empty upgrade path
-				tmClient, _ := cs.(*ibctm.ClientState)
+				tmClient, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 				tmClient.UpgradePath = []string{""}
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
 			},
@@ -469,7 +470,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 			path.SetupClients()
 
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
 			var err error
@@ -489,7 +491,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 			tc.setup()
 
-			cs := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)
+			cs, ok := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
@@ -508,7 +511,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 			if tc.expPass {
 				suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
 
-				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)
+				clientState, ok := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)
+				suite.Require().True(ok)
 				suite.Require().NotNil(clientState, "verify upgrade failed on valid case: %s", tc.name)
 
 				consensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.LatestHeight)
