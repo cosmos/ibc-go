@@ -341,7 +341,8 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 
 				// assert that status of subject client is now Active
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, subjectClientID)
-				tmClientState := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				tmClientState, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				suite.Require().Equal(exported.Active, tmClientState.Status(ctx, clientStore, suite.chainA.App.AppCodec()))
 			} else {
 				suite.Require().Error(err)
@@ -435,12 +436,14 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 				suite.Require().NoError(err)
 
 				// change upgraded client state height to be lower than current client state height
-				tmClient := upgradedClientState.(*ibctm.ClientState)
+				tmClient, ok := upgradedClientState.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
 				newLatestheight, ok := path.EndpointA.GetClientLatestHeight().Decrement()
 				suite.Require().True(ok)
 
-				tmClient.LatestHeight = newLatestheight.(clienttypes.Height)
+				tmClient.LatestHeight, ok = newLatestheight.(clienttypes.Height)
+				suite.Require().True(ok)
 				upgradedClientStateAny, err = codectypes.NewAnyWithValue(tmClient)
 				suite.Require().NoError(err)
 
@@ -464,7 +467,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			path.SetupClients()
 
 			clientID = path.EndpointA.ClientID
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
 			newUnbondindPeriod := ubdPeriod + trustingPeriod
