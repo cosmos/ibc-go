@@ -8,9 +8,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
-var (
-	_ sdk.Msg = (*MsgModuleQuerySafe)(nil)
-)
+var _ sdk.Msg = (*MsgModuleQuerySafe)(nil)
 
 // NewMsgModuleQuerySafe creates a new MsgModuleQuerySafe instance
 func NewMsgModuleQuerySafe(signer string, requests []*QueryRequest) *MsgModuleQuerySafe {
