@@ -3,6 +3,7 @@ module github.com/cosmos/ibc-go/api
 go 1.21
 
 require (
+	cosmossdk.io/api v0.7.2
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/cometbft/cometbft v0.38.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
@@ -15,7 +16,6 @@ require (
 )
 
 require (
-	cosmossdk.io/api v0.7.2 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.11.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
