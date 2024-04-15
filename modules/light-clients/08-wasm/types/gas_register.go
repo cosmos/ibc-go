@@ -68,6 +68,7 @@ var (
 		Numerator:   15,
 		Denominator: 100,
 	}
+	
 	VMGasRegister = NewDefaultWasmGasRegister()
 )
 
