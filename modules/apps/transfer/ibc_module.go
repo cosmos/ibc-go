@@ -86,11 +86,11 @@ func (im IBCModule) OnChanOpenInit(
 	}
 
 	if strings.TrimSpace(version) == "" {
-		version = types.CurrentVersion
+		version = types.Version
 	}
 
-	if version != types.CurrentVersion {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.CurrentVersion, version)
+	if version != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, version)
 	}
 
 	// Claim channel capability passed back by IBC module
@@ -116,8 +116,8 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if counterpartyVersion != types.CurrentVersion {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.CurrentVersion, counterpartyVersion)
+	if counterpartyVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
@@ -125,7 +125,7 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	return types.CurrentVersion, nil
+	return types.Version, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -136,8 +136,8 @@ func (IBCModule) OnChanOpenAck(
 	_ string,
 	counterpartyVersion string,
 ) error {
-	if counterpartyVersion != types.CurrentVersion {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.CurrentVersion, counterpartyVersion)
+	if counterpartyVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
 	}
 	return nil
 }
@@ -315,8 +315,8 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string,
 		return "", err
 	}
 
-	if proposedVersion != types.CurrentVersion {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.CurrentVersion, proposedVersion)
+	if proposedVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, proposedVersion)
 	}
 
 	return proposedVersion, nil
@@ -328,8 +328,8 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 		return "", err
 	}
 
-	if counterpartyVersion != types.CurrentVersion {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.CurrentVersion, counterpartyVersion)
+	if counterpartyVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
 	}
 
 	return counterpartyVersion, nil
@@ -337,8 +337,8 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 
 // OnChanUpgradeAck implements the IBCModule interface
 func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	if counterpartyVersion != types.CurrentVersion {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.CurrentVersion, counterpartyVersion)
+	if counterpartyVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
 	}
 
 	return nil

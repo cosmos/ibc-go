@@ -47,8 +47,8 @@ func NewTransferPath(chainA, chainB *TestChain) *Path {
 	path := NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = TransferPort
 	path.EndpointB.ChannelConfig.PortID = TransferPort
-	path.EndpointA.ChannelConfig.Version = transfertypes.CurrentVersion
-	path.EndpointB.ChannelConfig.Version = transfertypes.CurrentVersion
+	path.EndpointA.ChannelConfig.Version = transfertypes.Version
+	path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
 	return path
 }

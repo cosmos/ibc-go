@@ -37,13 +37,13 @@ const (
 const (
 	// Version defines the current version the IBC transfer
 	// module supports
-	CurrentVersion = "ics20-2"
+	Version = "ics20-2"
 
-	// Version defines first version of the IBC transfer module
+	// Version1 defines first version of the IBC transfer module
 	Version1 = "ics20-1"
 
-	// EscrowAddressVersion should remain as ics20-1 to avoid the address changing.
-	EscrowAddressVersion = "ics20-1"
+	// escrowAddressVersion should remain as ics20-1 to avoid the address changing.
+	escrowAddressVersion = "ics20-1"
 )
 
 var (
@@ -62,7 +62,7 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	contents := fmt.Sprintf("%s/%s", portID, channelID)
 
 	// ADR 028 AddressHash construction
-	preImage := []byte(EscrowAddressVersion)
+	preImage := []byte(escrowAddressVersion)
 	preImage = append(preImage, 0)
 	preImage = append(preImage, contents...)
 	hash := sha256.Sum256(preImage)
