@@ -1,6 +1,11 @@
 package wasm
 
 import (
+	"bytes"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,6 +13,7 @@ import (
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
@@ -34,8 +40,9 @@ func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientS
 	l.storeProvider = storeProvider
 }
 
-// Initialize unmarshals the provided client and consensus states and performs basic validation. It calls into the
-// clientState.Initialize method.
+// Initialize unmarshals the provided client and consensus states and performs basic validation. It sets the client
+// state and consensus state in the client store.
+// It also initializes the wasm contract for the client.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
@@ -58,12 +65,26 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
 
-	return clientState.Initialize(ctx, cdc, clientStore, &consensusState)
+	// Do not allow initialization of a client with a checksum that hasn't been previously stored via storeWasmCode.
+	if !l.keeper.HasChecksum(ctx, clientState.Checksum) {
+		return errorsmod.Wrapf(types.ErrInvalidChecksum, "checksum (%s) has not been previously stored", hex.EncodeToString(clientState.Checksum))
+	}
+
+	payload := types.InstantiateMessage{
+		ClientState:    clientState.Data,
+		ConsensusState: consensusState.Data,
+		Checksum:       clientState.Checksum,
+	}
+
+	return l.keeper.WasmInstantiate(ctx, clientID, clientStore, &clientState, payload)
 }
 
-// VerifyClientMessage obtains the client state associated with the client identifier and calls into the clientState.VerifyClientMessage method.
+// VerifyClientMessage obtains the client state associated with the client identifier, it then must verify the ClientMessage.
+// A ClientMessage could be a Header, Misbehaviour, or batch update.
+// It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
+// will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
+// if the ClientMessage fails to verify.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
@@ -75,10 +96,20 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyClientMessage(ctx, l.keeper.Codec(), clientStore, clientMsg)
+	clientMessage, ok := clientMsg.(*types.ClientMessage)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", &types.ClientMessage{}, clientMsg)
+	}
+
+	payload := types.QueryMsg{
+		VerifyClientMessage: &types.VerifyClientMessageMsg{ClientMessage: clientMessage.Data},
+	}
+	_, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
+	return err
 }
 
-// CheckForMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.CheckForMisbehaviour method.
+// CheckForMisbehaviour obtains the client state associated with the client identifier, it detects misbehaviour in a submitted Header
+// message and verifies the correctness of a submitted Misbehaviour ClientMessage.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
@@ -90,10 +121,31 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	return clientState.CheckForMisbehaviour(ctx, cdc, clientStore, clientMsg)
+	clientMessage, ok := clientMsg.(*types.ClientMessage)
+	if !ok {
+		return false
+	}
+
+	payload := types.QueryMsg{
+		CheckForMisbehaviour: &types.CheckForMisbehaviourMsg{ClientMessage: clientMessage.Data},
+	}
+
+	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
+	if err != nil {
+		return false
+	}
+
+	var result types.CheckForMisbehaviourResult
+	if err := json.Unmarshal(res, &result); err != nil {
+		return false
+	}
+
+	return result.FoundMisbehaviour
 }
 
-// UpdateStateOnMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.UpdateStateOnMisbehaviour method.
+// UpdateStateOnMisbehaviour obtains the client state associated with the client identifier performs appropriate state changes on
+// a client state given that misbehaviour has been detected and verified.
+// Client state is updated in the store by the contract.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
@@ -105,10 +157,23 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	clientState.UpdateStateOnMisbehaviour(ctx, cdc, clientStore, clientMsg)
+	clientMessage, ok := clientMsg.(*types.ClientMessage)
+	if !ok {
+		panic(fmt.Errorf("expected type %T, got %T", &types.ClientMessage{}, clientMsg))
+	}
+
+	payload := types.SudoMsg{
+		UpdateStateOnMisbehaviour: &types.UpdateStateOnMisbehaviourMsg{ClientMessage: clientMessage.Data},
+	}
+
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	if err != nil {
+		panic(err)
+	}
 }
 
-// UpdateState obtains the client state associated with the client identifier and calls into the clientState.UpdateState method.
+// UpdateState obtains the client state associated with the client identifier and calls into the appropriate
+// contract endpoint. Client state and new consensus states are updated in the store by the contract.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
@@ -120,10 +185,37 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
+	clientMessage, ok := clientMsg.(*types.ClientMessage)
+	if !ok {
+		panic(fmt.Errorf("expected type %T, got %T", &types.ClientMessage{}, clientMsg))
+	}
+
+	payload := types.SudoMsg{
+		UpdateState: &types.UpdateStateMsg{ClientMessage: clientMessage.Data},
+	}
+
+	res, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	if err != nil {
+		panic(err)
+	}
+
+	var result types.UpdateStateResult
+	if err := json.Unmarshal(res, &result); err != nil {
+		panic(errorsmod.Wrap(types.ErrWasmInvalidResponseData, err.Error()))
+	}
+
+	heights := []exported.Height{}
+	for _, height := range result.Heights {
+		heights = append(heights, height)
+	}
+
+	return heights
 }
 
-// VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyMembership method.
+// VerifyMembership obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
+// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyMembership(
@@ -144,10 +236,41 @@ func (l LightClientModule) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
+	if clientState.LatestHeight.LT(height) {
+		return errorsmod.Wrapf(
+			ibcerrors.ErrInvalidHeight,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", clientState.LatestHeight, height,
+		)
+	}
+
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	payload := types.SudoMsg{
+		VerifyMembership: &types.VerifyMembershipMsg{
+			Height:           proofHeight,
+			DelayTimePeriod:  delayTimePeriod,
+			DelayBlockPeriod: delayBlockPeriod,
+			Proof:            proof,
+			Path:             merklePath,
+			Value:            value,
+		},
+	}
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	return err
 }
 
-// VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyNonMembership method.
+// VerifyNonMembership obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
+// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyNonMembership(
@@ -167,10 +290,46 @@ func (l LightClientModule) VerifyNonMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyNonMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
+	if clientState.LatestHeight.LT(height) {
+		return errorsmod.Wrapf(
+			ibcerrors.ErrInvalidHeight,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", clientState.LatestHeight, height,
+		)
+	}
+
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	payload := types.SudoMsg{
+		VerifyNonMembership: &types.VerifyNonMembershipMsg{
+			Height:           proofHeight,
+			DelayTimePeriod:  delayTimePeriod,
+			DelayBlockPeriod: delayBlockPeriod,
+			Proof:            proof,
+			Path:             merklePath,
+		},
+	}
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	return err
 }
 
-// Status obtains the client state associated with the client identifier and calls into the clientState.Status method.
+// Status obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
+// It returns the status of the wasm client.
+// The client may be:
+// - Active: frozen height is zero and client is not expired
+// - Frozen: frozen height is not zero
+// - Expired: the latest consensus state timestamp + trusting period <= current time
+// - Unauthorized: the client type is not registered as an allowed client type
+//
+// A frozen client will become expired, so the Frozen status
+// has higher precedence.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
@@ -182,7 +341,23 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 		return exported.Unknown
 	}
 
-	return clientState.Status(ctx, clientStore, cdc)
+	// Return unauthorized if the checksum hasn't been previously stored via storeWasmCode.
+	if !l.keeper.HasChecksum(ctx, clientState.Checksum) {
+		return exported.Unauthorized
+	}
+
+	payload := types.QueryMsg{Status: &types.StatusMsg{}}
+	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
+	if err != nil {
+		return exported.Unknown
+	}
+
+	var result types.StatusResult
+	if err := json.Unmarshal(res, &result); err != nil {
+		return exported.Unknown
+	}
+
+	return exported.Status(result.Status)
 }
 
 // LatestHeight returns the latest height for the client state for the given client identifier.
@@ -201,7 +376,8 @@ func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) export
 	return clientState.LatestHeight
 }
 
-// TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.GetTimestampAtHeight method.
+// TimestampAtHeight obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
+// It returns the timestamp in nanoseconds of the consensus state at the given height.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
@@ -213,11 +389,34 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 		return 0, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.GetTimestampAtHeight(ctx, clientStore, cdc, height)
+	timestampHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
+	payload := types.QueryMsg{
+		TimestampAtHeight: &types.TimestampAtHeightMsg{
+			Height: timestampHeight,
+		},
+	}
+
+	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
+	if err != nil {
+		return 0, errorsmod.Wrapf(err, "height (%s)", height)
+	}
+
+	var result types.TimestampAtHeightResult
+	if err := json.Unmarshal(res, &result); err != nil {
+		return 0, errorsmod.Wrapf(types.ErrWasmInvalidResponseData, "failed to unmarshal result of wasm query: %v", err)
+	}
+
+	return result.Timestamp, nil
 }
 
 // RecoverClient asserts that the substitute client is a wasm client. It obtains the client state associated with the
-// subject client and calls into the subjectClientState.CheckSubstituteAndUpdateState method.
+// subject client and calls into the appropriate contract endpoint.
+// It will verify that a substitute client state is valid and update the subject client state.
+// Note that this method is used only for recovery and will not allow changes to the checksum.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
@@ -239,17 +438,30 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 	}
 
 	substituteClientStore := l.storeProvider.ClientStore(ctx, substituteClientID)
-	substituteClient, found := types.GetClientState(substituteClientStore, cdc)
+	substituteClientState, found := types.GetClientState(substituteClientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
 	}
 
-	return clientState.CheckSubstituteAndUpdateState(ctx, cdc, clientStore, substituteClientStore, substituteClient)
+	// check that checksums of subject client state and substitute client state match
+	// changing the checksum is only allowed through the migrate contract RPC endpoint
+	if !bytes.Equal(clientState.Checksum, substituteClientState.Checksum) {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected checksums to be equal: expected %s, got %s", hex.EncodeToString(clientState.Checksum), hex.EncodeToString(substituteClientState.Checksum))
+	}
+
+	store := types.NewMigrateClientWrappedStore(clientStore, substituteClientStore)
+
+	payload := types.SudoMsg{
+		MigrateClientStore: &types.MigrateClientStoreMsg{},
+	}
+
+	_, err = l.keeper.WasmSudo(ctx, clientID, store, clientState, payload)
+	return err
 }
 
-// VerifyUpgradeAndUpdateState obtains the client state associated with the client identifier and calls into the clientState.VerifyUpgradeAndUpdateState method.
+// VerifyUpgradeAndUpdateState obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
 // The new client and consensus states will be unmarshaled and an error is returned if the new client state is not at a height greater
-// than the existing client.
+// than the existing client. On a successful verification, it expects the contract to update the new client state, consensus state, and any other client metadata.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyUpgradeAndUpdateState(
@@ -284,5 +496,15 @@ func (l LightClientModule) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.LatestHeight, lastHeight)
 	}
 
-	return clientState.VerifyUpgradeAndUpdateState(ctx, cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)
+	payload := types.SudoMsg{
+		VerifyUpgradeAndUpdateState: &types.VerifyUpgradeAndUpdateStateMsg{
+			UpgradeClientState:         newClientState.Data,
+			UpgradeConsensusState:      newConsensusState.Data,
+			ProofUpgradeClient:         upgradeClientProof,
+			ProofUpgradeConsensusState: upgradeConsensusStateProof,
+		},
+	}
+
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	return err
 }
