@@ -10,8 +10,8 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 var _ types.MsgServer = (*msgServer)(nil)
@@ -43,7 +43,7 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no route to query: %s", query.Path)
 		}
 
-		res, err := route(ctx, &abci.RequestQuery{
+		res, err := route(ctx, abci.RequestQuery{
 			Path: query.Path,
 			Data: query.Data,
 		})
@@ -51,7 +51,7 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 			m.Logger(ctx).Debug("query failed", "path", query.Path, "error", err)
 			return nil, err
 		}
-		if res == nil || res.Value == nil {
+		if res.Value == nil {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no response for query: %s", query.Path)
 		}
 
@@ -59,16 +59,4 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 	}
 
 	return &types.MsgModuleQuerySafeResponse{Responses: responses, Height: uint64(ctx.BlockHeight())}, nil
-}
-
-// UpdateParams updates the host submodule's params.
-func (m msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
-	if m.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", m.GetAuthority(), msg.Signer)
-	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.SetParams(ctx, msg.Params)
-
-	return &types.MsgUpdateParamsResponse{}, nil
 }

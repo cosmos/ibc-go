@@ -5,10 +5,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 func (suite *KeeperTestSuite) TestModuleQuerySafe() {
@@ -32,7 +32,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 					Data: balanceQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq})
+				msg = types.NewMsgModuleQuerySafe(string(suite.chainA.SenderAccount.GetAddress()), []*types.QueryRequest{&queryReq})
 
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 					Data: paramsQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq, &paramsQueryReq})
+				msg = types.NewMsgModuleQuerySafe(string(suite.chainA.SenderAccount.GetAddress()), []*types.QueryRequest{&queryReq, &paramsQueryReq})
 
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 				expRespBz, err := expResp.Marshal()
 				suite.Require().NoError(err)
 
-				params, err := suite.chainA.GetSimApp().StakingKeeper.GetParams(suite.chainA.GetContext())
+				params := suite.chainA.GetSimApp().StakingKeeper.GetParams(suite.chainA.GetContext())
 				suite.Require().NoError(err)
 				expParamsResp := stakingtypes.QueryParamsResponse{Params: params}
 				expParamsRespBz, err := expParamsResp.Marshal()
@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 					Data: paramsQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq, &paramsQueryReq})
+				msg = types.NewMsgModuleQuerySafe(string(suite.chainA.SenderAccount.GetAddress()), []*types.QueryRequest{&queryReq, &paramsQueryReq})
 			},
 			ibcerrors.ErrInvalidRequest,
 		},
@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 					Data: balanceQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq})
+				msg = types.NewMsgModuleQuerySafe(string(suite.chainA.SenderAccount.GetAddress()), []*types.QueryRequest{&queryReq})
 			},
 			ibcerrors.ErrInvalidRequest,
 		},
@@ -146,45 +146,6 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 				suite.Require().ElementsMatch(expResponses, res.Responses)
 			} else {
 				suite.Require().ErrorIs(err, tc.expErr)
-				suite.Require().Nil(res)
-			}
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestUpdateParams() {
-	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
-	}{
-		{
-			"success",
-			types.NewMsgUpdateParams(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), types.DefaultParams()),
-			true,
-		},
-		{
-			"invalid signer address",
-			types.NewMsgUpdateParams("signer", types.DefaultParams()),
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			ctx := suite.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAHostKeeper)
-			res, err := msgServer.UpdateParams(ctx, tc.msg)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-			} else {
-				suite.Require().Error(err)
 				suite.Require().Nil(res)
 			}
 		})
