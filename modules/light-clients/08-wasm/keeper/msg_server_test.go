@@ -12,7 +12,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -358,7 +357,8 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 					checksum, err := types.CreateChecksum(mockCode)
 					suite.Require().NoError(err)
 
-					err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum)
+					keeper := GetSimApp(suite.chainA).WasmClientKeeper
+					err = keeper.GetChecksums().Set(suite.chainA.GetContext(), checksum)
 					suite.Require().NoError(err)
 
 					expChecksums = append(expChecksums, checksum)
@@ -413,7 +413,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
-				checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
+				checksums, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
 				suite.Require().NoError(err)
 
 				// Check equality of checksums up to order

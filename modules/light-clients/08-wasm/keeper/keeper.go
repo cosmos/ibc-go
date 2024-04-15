@@ -2,12 +2,15 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,6 +18,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Keeper defines the 08-wasm keeper
@@ -22,11 +26,15 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc codec.BinaryCodec
+	cdc          codec.BinaryCodec
+	clientKeeper types.ClientKeeper
 
+	vm ibcwasm.WasmEngine
+
+	checksums    collections.KeySet[[]byte]
 	storeService store.KVStoreService
 
-	clientKeeper types.ClientKeeper
+	queryPlugins QueryPlugins
 
 	authority string
 }
@@ -41,7 +49,40 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
+// Logger returns a module-specific logger.
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
+	return moduleLogger(ctx)
+}
+
+func moduleLogger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
+}
+
+// GetVM returns the keeper's vm engine.
+func (k Keeper) GetVM() ibcwasm.WasmEngine {
+	return k.vm
+}
+
+// GetChecksums returns the stored checksums.
+func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
+	return k.checksums
+}
+
+// GetQueryPlugins returns the set query plugins.
+func (k Keeper) GetQueryPlugins() QueryPlugins {
+	return k.queryPlugins
+}
+
+// SetQueryPlugins sets the plugins.
+func (k *Keeper) SetQueryPlugins(plugins QueryPlugins) {
+	k.queryPlugins = plugins
+}
+
+func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
+	return newQueryHandler(ctx, k.GetQueryPlugins(), callerID)
+}
+
+func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
@@ -62,7 +103,7 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 		return nil, errorsmod.Wrap(err, "wasm bytecode checksum failed")
 	}
 
-	if types.HasChecksum(ctx, checksum) {
+	if k.HasChecksum(ctx, checksum) {
 		return nil, types.ErrWasmCodeExists
 	}
 
@@ -80,12 +121,12 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 	}
 
 	// pin the code to the vm in-memory cache
-	if err := ibcwasm.GetVM().Pin(vmChecksum); err != nil {
+	if err := k.GetVM().Pin(vmChecksum); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to pin contract with checksum (%s) to vm cache", hex.EncodeToString(vmChecksum))
 	}
 
 	// store the checksum
-	err = ibcwasm.Checksums.Set(ctx, checksum)
+	err = k.GetChecksums().Set(ctx, checksum)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store checksum")
 	}
@@ -101,10 +142,27 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksu
 	oldChecksum := wasmClientState.Checksum
 
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
+	clientState, found := types.GetClientState(clientStore, k.cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
 
-	err = wasmClientState.MigrateContract(ctx, k.cdc, clientStore, clientID, newChecksum, migrateMsg)
+	if !k.HasChecksum(ctx, newChecksum) {
+		return types.ErrWasmChecksumNotFound
+	}
+
+	if bytes.Equal(clientState.Checksum, newChecksum) {
+		return errorsmod.Wrapf(types.ErrWasmCodeExists, "new checksum (%s) is the same as current checksum (%s)", hex.EncodeToString(newChecksum), hex.EncodeToString(clientState.Checksum))
+	}
+
+	// update the checksum, this needs to be done before the contract migration
+	// so that wasmMigrate can call the right code. Note that this is not
+	// persisted to the client store.
+	clientState.Checksum = newChecksum
+
+	err = k.WasmMigrate(ctx, clientStore, clientState, clientID, migrateMsg)
 	if err != nil {
-		return errorsmod.Wrap(err, "contract migration failed")
+		return err
 	}
 
 	// client state may be updated by the contract migration
@@ -140,15 +198,47 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 	return wasmClientState, nil
 }
 
+// GetAllChecksums is a helper to get all checksums from the store.
+// It returns an empty slice if no checksums are found
+func (k Keeper) GetAllChecksums(ctx context.Context) ([]types.Checksum, error) {
+	iterator, err := k.GetChecksums().Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	keys, err := iterator.Keys()
+	if err != nil {
+		return nil, err
+	}
+
+	checksums := []types.Checksum{}
+	for _, key := range keys {
+		checksums = append(checksums, key)
+	}
+
+	return checksums, nil
+}
+
+// HasChecksum returns true if the given checksum exists in the store and
+// false otherwise.
+func (k Keeper) HasChecksum(ctx context.Context, checksum types.Checksum) bool {
+	found, err := k.GetChecksums().Has(ctx, checksum)
+	if err != nil {
+		return false
+	}
+
+	return found
+}
+
 // InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
-func InitializePinnedCodes(ctx sdk.Context) error {
-	checksums, err := types.GetAllChecksums(ctx)
+func (k Keeper) InitializePinnedCodes(ctx sdk.Context) error {
+	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
 		return err
 	}
 
 	for _, checksum := range checksums {
-		if err := ibcwasm.GetVM().Pin(checksum); err != nil {
+		if err := k.GetVM().Pin(checksum); err != nil {
 			return err
 		}
 	}
