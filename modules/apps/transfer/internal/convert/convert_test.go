@@ -9,7 +9,7 @@ import (
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 )
 
-func TestConvertPacketV1ToPacketV3(t *testing.T) {
+func TestConvertICS20V1ToV2(t *testing.T) {
 	const (
 		sender   = "sender"
 		receiver = "receiver"
@@ -91,7 +91,15 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 		{
 			"failure: panics with empty denom",
 			v1types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
-			v3types.FungibleTokenPacketData{},
+			v3types.FungibleTokenPacketData{
+				Tokens: []*v3types.Token{
+					{
+						Denom:  "",
+						Amount: "1000",
+						Trace:  nil,
+					},
+				},
+			},
 			true,
 		},
 	}
@@ -101,11 +109,11 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 
 		shouldPanic := tc.shouldPanic
 		if !shouldPanic {
-			v3Data := PacketDataV1ToV3(tc.v1Data)
+			v3Data := ICS20V1ToV2(tc.v1Data)
 			require.Equal(t, tc.v3Data, v3Data)
 		} else {
 			require.Panicsf(t, func() {
-				PacketDataV1ToV3(tc.v1Data)
+				ICS20V1ToV2(tc.v1Data)
 			}, tc.name)
 		}
 	}

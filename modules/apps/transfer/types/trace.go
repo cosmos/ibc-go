@@ -15,7 +15,6 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // ParseDenomTrace parses a string with the ibc prefix (denom trace) and the base denomination
@@ -82,23 +81,6 @@ func (dt DenomTrace) IsNativeDenom() bool {
 	return dt.Path == ""
 }
 
-func validateTraceIdentifiers(identifiers []string) error {
-	if len(identifiers) == 0 || len(identifiers)%2 != 0 {
-		return fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: %s", identifiers)
-	}
-
-	// validate correctness of port and channel identifiers
-	for i := 0; i < len(identifiers); i += 2 {
-		if err := host.PortIdentifierValidator(identifiers[i]); err != nil {
-			return errorsmod.Wrapf(err, "invalid port ID at position %d", i)
-		}
-		if err := host.ChannelIdentifierValidator(identifiers[i+1]); err != nil {
-			return errorsmod.Wrapf(err, "invalid channel ID at position %d", i)
-		}
-	}
-	return nil
-}
-
 // Validate performs a basic validation of the DenomTrace fields.
 func (dt DenomTrace) Validate() error {
 	// empty trace is accepted when token lives on the original chain
@@ -112,7 +94,7 @@ func (dt DenomTrace) Validate() error {
 	// NOTE: no base denomination validation
 
 	identifiers := strings.Split(dt.Path, "/")
-	return validateTraceIdentifiers(identifiers)
+	return denominternal.ValidateTraceIdentifiers(identifiers)
 }
 
 // Traces defines a wrapper type for a slice of DenomTrace.
@@ -178,7 +160,7 @@ func ValidatePrefixedDenom(denom string) error {
 	}
 
 	identifiers := strings.Split(path, "/")
-	return validateTraceIdentifiers(identifiers)
+	return denominternal.ValidateTraceIdentifiers(identifiers)
 }
 
 // ValidateIBCDenom validates that the given denomination is either:

@@ -8,6 +8,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -58,7 +61,7 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 			return errorsmod.Wrapf(types.ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
 		}
 
-		if err := ValidateToken(*token); err != nil {
+		if err := token.Validate(); err != nil {
 			return err
 		}
 	}
@@ -68,6 +71,18 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// ValidateToken validates a token denomination and trace identifiers.
+func (t *Token) Validate() error {
+	if err := sdk.ValidateDenom(t.Denom); err != nil {
+		return errorsmod.Wrap(types.ErrInvalidDenomForTransfer, err.Error())
+	}
+
+	trace := strings.Join(t.Trace, "/")
+	identifiers := strings.Split(trace, "/")
+
+	return denominternal.ValidateTraceIdentifiers(identifiers)
 }
 
 func (t *Token) GetFullDenomPath() string {

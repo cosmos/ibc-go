@@ -424,3 +424,59 @@ func TestGetFullDenomPath(t *testing.T) {
 
 	}
 }
+
+func TestValidate(t *testing.T) {
+	testCases := []struct {
+		name     string
+		token    Token
+		expError bool
+	}{
+		{
+			"multiple port channel pair denom",
+			Token{
+				Denom:  "atom",
+				Amount: "1000",
+				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+			},
+			false,
+		},
+		{
+			"one port channel pair denom",
+			Token{
+				Denom:  "uatom",
+				Amount: "1000",
+				Trace:  []string{"transfer/channel-1"},
+			},
+			false,
+		},
+		{
+			"non transfer port trace",
+			Token{
+				Denom:  "uatom",
+				Amount: "1000",
+				Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
+			},
+			false,
+		},
+		{
+			"failure: panics with empty denom",
+			Token{
+				Denom:  "",
+				Amount: "1000",
+				Trace:  nil,
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		err := tc.token.Validate()
+		if tc.expError {
+			require.Error(t, err, tc.name)
+			continue
+		}
+		require.NoError(t, err, tc.name)
+	}
+}
