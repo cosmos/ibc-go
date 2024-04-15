@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -28,6 +29,7 @@ var (
 	_ module.HasName             = (*AppModule)(nil)
 	_ module.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasServices         = (*AppModule)(nil)
+	_ appmodule.AppModule        = (*AppModule)(nil)
 )
 
 // AppModuleBasic is the 29-fee AppModuleBasic
