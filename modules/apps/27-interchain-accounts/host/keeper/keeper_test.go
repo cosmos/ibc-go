@@ -179,19 +179,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 			)
 		}, false},
-		{"failure: empty mock staking keeper", func() {
-			keeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				suite.chainA.GetSimApp().GetKey(types.StoreKey),
-				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				&suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
-				suite.chainA.GetSimApp().AccountKeeper,
-				suite.chainA.GetSimApp().ScopedICAHostKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-			)
-		}, false},
 	}
 
 	for _, tc := range testCases {
@@ -226,11 +213,8 @@ func (suite *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
 	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/AllBalances")
 	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validator")
 	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validators")
-	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/Account")
-	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/DisabledList")
 	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/Accounts")
 	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/ModuleAccountByName")
-	suite.Require().Contains(allowList, "/ibc.core.client.v1.Query/VerifyMembership")
 	suite.Require().NotContains(allowList, "/cosmos.gov.v1beta1.Query/Proposals")
 	suite.Require().NotContains(allowList, "/cosmos.gov.v1.Query/Proposals")
 	suite.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/Params")

@@ -286,7 +286,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					},
 				})
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg})
+				data, err := icatypes.SerializeCosmosTxWithEncoding(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 				suite.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{

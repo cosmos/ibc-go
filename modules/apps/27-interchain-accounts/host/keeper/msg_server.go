@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -33,7 +32,12 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 
 	responses := make([][]byte, len(msg.Requests))
 	for i, query := range msg.Requests {
-		isModuleQuerySafe := slices.Contains(m.mqsAllowList, query.Path)
+		var isModuleQuerySafe bool
+		for _, allowedQueryPath := range m.mqsAllowList {
+			if allowedQueryPath == query.Path {
+				isModuleQuerySafe = true
+			}
+		}
 		if !isModuleQuerySafe {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
 		}
