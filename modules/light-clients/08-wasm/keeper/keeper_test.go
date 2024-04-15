@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[
 }
 
 // storeWasmCode stores the wasm code on chain and returns the checksum.
-func storeWasmCode(suite *KeeperTestSuite, wasmCode []byte) []byte {
+func (suite *KeeperTestSuite) storeWasmCode(wasmCode []byte) []byte {
 	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmCode)
@@ -402,7 +402,7 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
-			storeWasmCode(suite, wasmtesting.Code)
+			suite.storeWasmCode(wasmtesting.Code)
 
 			var err error
 			oldHash, err = types.CreateChecksum(wasmtesting.Code)
@@ -459,7 +459,7 @@ func (suite *KeeperTestSuite) TestGetChecksums() {
 			"success: default mock vm contract stored.",
 			func() {
 				suite.SetupWasmWithMockVM()
-				storeWasmCode(suite, wasmtesting.Code)
+				suite.storeWasmCode(wasmtesting.Code)
 			},
 			func(checksums []types.Checksum) {
 				suite.Require().Len(checksums, 1)
@@ -472,7 +472,7 @@ func (suite *KeeperTestSuite) TestGetChecksums() {
 			"success: non-empty checksums",
 			func() {
 				suite.SetupWasmWithMockVM()
-				storeWasmCode(suite, wasmtesting.Code)
+				suite.storeWasmCode(wasmtesting.Code)
 
 				err := GetSimApp(suite.chainA).WasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), types.Checksum("checksum"))
 				suite.Require().NoError(err)
@@ -498,7 +498,7 @@ func (suite *KeeperTestSuite) TestGetChecksums() {
 
 func (suite *KeeperTestSuite) TestAddChecksum() {
 	suite.SetupWasmWithMockVM()
-	storeWasmCode(suite, wasmtesting.Code)
+	suite.storeWasmCode(wasmtesting.Code)
 
 	wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 
