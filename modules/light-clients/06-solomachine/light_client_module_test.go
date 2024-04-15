@@ -683,7 +683,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					// Grab fresh client state after updates.
 					cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
 					suite.Require().True(found)
-					clientState = cs.(*solomachine.ClientState)
+					clientState, ok = cs.(*solomachine.ClientState)
+					suite.Require().True(ok)
 
 					suite.Require().NoError(err)
 					// clientState.Sequence is the most recent view of state.
@@ -907,7 +908,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					// Grab fresh client state after updates.
 					cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
 					suite.Require().True(found)
-					clientState = cs.(*solomachine.ClientState)
+					clientState, ok = cs.(*solomachine.ClientState)
+					suite.Require().True(ok)
 
 					suite.Require().NoError(err)
 					suite.Require().Equal(expSeq, clientState.Sequence)
@@ -1005,7 +1007,8 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 				// assert that status of subject client is now Active
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, subjectClientID)
 				bz = clientStore.Get(host.ClientStateKey())
-				smClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, bz).(*solomachine.ClientState)
+				smClientState, ok := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, bz).(*solomachine.ClientState)
+				suite.Require().True(ok)
 
 				suite.Require().Equal(substituteClientState.ConsensusState, smClientState.ConsensusState)
 				suite.Require().Equal(substituteClientState.Sequence, smClientState.Sequence)

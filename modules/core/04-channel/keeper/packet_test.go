@@ -145,7 +145,24 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
+		{"client state zero height", func() {
+			path.Setup()
+			sourceChannel = path.EndpointA.ChannelID
 
+			connection := path.EndpointA.GetConnection()
+			clientState := path.EndpointA.GetClientState()
+			cs, ok := clientState.(*ibctm.ClientState)
+			suite.Require().True(ok)
+
+			// force a consensus state into the store at height zero to allow client status check to pass.
+			consensusState := path.EndpointA.GetConsensusState(cs.LatestHeight)
+			path.EndpointA.SetConsensusState(consensusState, clienttypes.ZeroHeight())
+
+			cs.LatestHeight = clienttypes.ZeroHeight()
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), connection.ClientId, cs)
+
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+		}, false},
 		{"timeout height passed", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID

@@ -33,21 +33,21 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			nil,
 		},
 		{
 			"panics with nil underlying app",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(nil, channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(nil, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
 		},
 		{
 			"panics with nil contract keeper",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, nil, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, nil, maxCallbackGas)
 			},
 			fmt.Errorf("contract keeper cannot be nil"),
 		},
@@ -61,7 +61,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"panics with zero maxCallbackGas",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
 			},
 			fmt.Errorf("maxCallbackGas cannot be zero"),
 		},
@@ -89,7 +89,7 @@ func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 	cbsMiddleware.WithICS4Wrapper(s.chainA.App.GetIBCKeeper().ChannelKeeper)
 	ics4Wrapper := cbsMiddleware.GetICS4Wrapper()
 
-	s.Require().IsType(channelkeeper.Keeper{}, ics4Wrapper)
+	s.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 }
 
 func (s *CallbacksTestSuite) TestSendPacket() {
@@ -322,7 +322,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onAcknowledgementPacket := func() error {
@@ -485,7 +485,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onTimeoutPacket := func() error {
@@ -645,7 +645,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			transferStack, ok := s.chainB.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onRecvPacket := func() ibcexported.Acknowledgement {
@@ -913,7 +913,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 
 			module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
 			s.Require().NoError(err)
-			cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			s.Require().True(ok)
 			mockCallbackStack, ok := cbs.(ibccallbacks.IBCMiddleware)
 			s.Require().True(ok)
@@ -944,7 +944,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
 	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
@@ -970,7 +970,7 @@ func (s *CallbacksTestSuite) TestGetAppVersion() {
 	// Obtain an IBC stack for testing. The function call will use the top of the stack which calls
 	// directly to the channel keeper. Calling from a further down module in the stack is not necessary
 	// for this test.
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
 	controllerStack, ok := icaControllerStack.(porttypes.ICS4Wrapper)
@@ -985,7 +985,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack OnChanCloseInit call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
 	controllerStack, ok := icaControllerStack.(porttypes.Middleware)
@@ -1000,7 +1000,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack OnChanCloseConfirm call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
 	controllerStack, ok := icaControllerStack.(porttypes.Middleware)
@@ -1015,7 +1015,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 
 	module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
 	s.Require().NoError(err)
-	cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 	s.Require().True(ok)
 	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
 	s.Require().True(ok)
