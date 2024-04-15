@@ -1,133 +1,14 @@
 package types_test
 
 import (
-	prefixstore "cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 var invalidPrefix = []byte("invalid/")
-
-func (suite *TypesTestSuite) TestGetChecksums() {
-	testCases := []struct {
-		name      string
-		malleate  func()
-		expResult func(checksums []types.Checksum)
-	}{
-		{
-			"success: no contract stored.",
-			func() {},
-			func(checksums []types.Checksum) {
-				suite.Require().Len(checksums, 0)
-			},
-		},
-		{
-			"success: default mock vm contract stored.",
-			func() {
-				suite.SetupWasmWithMockVM()
-			},
-			func(checksums []types.Checksum) {
-				suite.Require().Len(checksums, 1)
-				expectedChecksum, err := types.CreateChecksum(wasmtesting.Code)
-				suite.Require().NoError(err)
-				suite.Require().Equal(expectedChecksum, checksums[0])
-			},
-		},
-		{
-			"success: non-empty checksums",
-			func() {
-				suite.SetupWasmWithMockVM()
-
-				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), types.Checksum("checksum"))
-				suite.Require().NoError(err)
-			},
-			func(checksums []types.Checksum) {
-				suite.Require().Len(checksums, 2)
-				suite.Require().Contains(checksums, types.Checksum("checksum"))
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			tc.malleate()
-
-			checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
-			suite.Require().NoError(err)
-			tc.expResult(checksums)
-		})
-	}
-}
-
-func (suite *TypesTestSuite) TestAddChecksum() {
-	suite.SetupWasmWithMockVM()
-
-	checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
-	suite.Require().NoError(err)
-	// default mock vm contract is stored
-	suite.Require().Len(checksums, 1)
-
-	checksum1 := types.Checksum("checksum1")
-	checksum2 := types.Checksum("checksum2")
-	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
-	suite.Require().NoError(err)
-	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum2)
-	suite.Require().NoError(err)
-
-	// Test adding the same checksum twice
-	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
-	suite.Require().NoError(err)
-
-	checksums, err = types.GetAllChecksums(suite.chainA.GetContext())
-	suite.Require().NoError(err)
-	suite.Require().Len(checksums, 3)
-	suite.Require().Contains(checksums, checksum1)
-	suite.Require().Contains(checksums, checksum2)
-}
-
-func (suite *TypesTestSuite) TestHasChecksum() {
-	var checksum types.Checksum
-
-	testCases := []struct {
-		name       string
-		malleate   func()
-		exprResult bool
-	}{
-		{
-			"success: checksum exists",
-			func() {
-				checksum = types.Checksum("checksum")
-				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum)
-				suite.Require().NoError(err)
-			},
-			true,
-		},
-		{
-			"success: checksum does not exist",
-			func() {
-				checksum = types.Checksum("non-existent-checksum")
-			},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
-
-			tc.malleate()
-
-			result := types.HasChecksum(suite.chainA.GetContext(), checksum)
-			suite.Require().Equal(tc.exprResult, result)
-		})
-	}
-}
 
 // TestMigrateClientWrappedStoreGetStore tests the getStore method of the migrateClientWrappedStore.
 func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
@@ -164,7 +45,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			store, found := wrappedStore.GetStore(tc.prefix)
 
@@ -256,7 +137,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -301,7 +182,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 		suite.Run(tc.name, func() {
 			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -352,7 +233,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 		suite.Run(tc.name, func() {
 			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -424,7 +305,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKeyStart := tc.prefixStart
 			prefixedKeyStart = append(prefixedKeyStart, tc.start...)
@@ -481,85 +362,12 @@ func (suite *TypesTestSuite) TestNewMigrateClientWrappedStore() {
 			expPass := !tc.expPanic
 			if expPass {
 				suite.Require().NotPanics(func() {
-					types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+					types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 				})
 			} else {
 				suite.Require().Panics(func() {
-					types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+					types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 				})
-			}
-		})
-	}
-}
-
-func (suite *TypesTestSuite) TestGetClientID() {
-	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success: clientID retrieved",
-			func() {},
-			nil,
-		},
-		{
-			"success: clientID retrieved from migrateClientWrappedStore",
-			func() {
-				// substituteStore is ignored.
-				clientStore = types.NewMigrateProposalWrappedStore(clientStore, clientStore)
-			},
-			nil,
-		},
-		{
-			"failure: clientStore is nil",
-			func() {
-				clientStore = nil
-			},
-			types.ErrRetrieveClientID,
-		},
-		{
-			"failure: prefix store does not contain prefix",
-			func() {
-				clientStore = prefixstore.NewStore(nil, nil)
-			},
-			types.ErrRetrieveClientID,
-		},
-		{
-			"failure: prefix does not contain slash separated path",
-			func() {
-				clientStore = prefixstore.NewStore(nil, []byte("not-a-slash-separated-path"))
-			},
-			types.ErrRetrieveClientID,
-		},
-		{
-			"failure: prefix only contains one slash",
-			func() {
-				clientStore = prefixstore.NewStore(nil, []byte("only-one-slash/"))
-			},
-			types.ErrRetrieveClientID,
-		},
-		{
-			"failure: prefix does not contain a wasm clientID",
-			func() {
-				clientStore = prefixstore.NewStore(nil, []byte("/not-client-id/"))
-			},
-			types.ErrRetrieveClientID,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			tc.malleate()
-			clientID, err := types.GetClientID(clientStore)
-
-			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(defaultWasmClientID, clientID)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
