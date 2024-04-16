@@ -25,6 +25,7 @@ func init() {
 	)
 }
 
+// ModuleInputs defines the 29-fee module inputs for depinject.
 type ModuleInputs struct {
 	depinject.In
 
@@ -39,6 +40,7 @@ type ModuleInputs struct {
 	BankKeeper    types.BankKeeper
 }
 
+// ModuleOutputs defines the 29-fee module outputs for depinject.
 type ModuleOutputs struct {
 	depinject.Out
 
