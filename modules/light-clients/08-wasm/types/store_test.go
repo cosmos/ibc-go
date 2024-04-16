@@ -384,7 +384,7 @@ func (suite *TypesTestSuite) TestNewMigrateClientWrappedStore() {
 	}
 }
 
-// GetSubjectAndSubstituteStore returns two dummy KVStores for testing the migrate client wrapping store.
+// GetSubjectAndSubstituteStore returns two KVStores for testing the migrate client wrapping store.
 func (suite *TypesTestSuite) GetSubjectAndSubstituteStore() (storetypes.KVStore, storetypes.KVStore) {
 	suite.SetupTest()
 
