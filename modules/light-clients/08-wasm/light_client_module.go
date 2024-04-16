@@ -431,8 +431,8 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 
 	cdc := l.keeper.Codec()
 
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	clientState, found := types.GetClientState(clientStore, cdc)
+	subjectClientStore := l.storeProvider.ClientStore(ctx, clientID)
+	subjectClientState, found := types.GetClientState(subjectClientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
@@ -445,17 +445,17 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 
 	// check that checksums of subject client state and substitute client state match
 	// changing the checksum is only allowed through the migrate contract RPC endpoint
-	if !bytes.Equal(clientState.Checksum, substituteClientState.Checksum) {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected checksums to be equal: expected %s, got %s", hex.EncodeToString(clientState.Checksum), hex.EncodeToString(substituteClientState.Checksum))
+	if !bytes.Equal(subjectClientState.Checksum, substituteClientState.Checksum) {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected checksums to be equal: expected %s, got %s", hex.EncodeToString(subjectClientState.Checksum), hex.EncodeToString(substituteClientState.Checksum))
 	}
 
-	store := types.NewMigrateClientWrappedStore(clientStore, substituteClientStore)
+	store := types.NewMigrateClientWrappedStore(subjectClientStore, substituteClientStore)
 
 	payload := types.SudoMsg{
 		MigrateClientStore: &types.MigrateClientStoreMsg{},
 	}
 
-	_, err = l.keeper.WasmSudo(ctx, clientID, store, clientState, payload)
+	_, err = l.keeper.WasmSudo(ctx, clientID, store, subjectClientState, payload)
 	return err
 }
 
