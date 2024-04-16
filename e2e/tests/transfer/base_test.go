@@ -19,6 +19,7 @@ import (
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -34,8 +35,7 @@ type TransferTestSuite struct {
 
 // QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
 func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
-	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
-	res, err := queryClient.Params(ctx, &transfertypes.QueryParamsRequest{})
+	res, err := query.GRPCQuery[transfertypes.QueryParamsResponse](ctx, chain, &transfertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	return *res.Params
 }
@@ -64,7 +64,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().NoError(chainA.(*cosmos.CosmosChain).StopAllNodes(ctx))
 		s.Require().NoError(chainA.(*cosmos.CosmosChain).StartAllNodes(ctx))
 		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
-		s.InitGRPCClients(chainA)
 	})
 
 	chainAVersion := chainA.Config().Images[0].Version
@@ -83,7 +82,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance)
 
 		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainAVersion) {
-			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
 			s.Require().NoError(err)
 
 			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
@@ -100,7 +99,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -119,13 +118,13 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
-		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		s.Require().Equal(sdkmath.ZeroInt(), actualBalance)
 
 		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainBVersion) {
-			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
 			s.Require().NoError(err)
 			s.Require().Equal(sdk.NewCoin(chainBIBCToken.IBCDenom(), sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
 		}
@@ -145,7 +144,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 	if testvalues.TotalEscrowFeatureReleases.IsSupported(chainAVersion) {
 		t.Run("tokens are un-escrowed", func(t *testing.T) {
-			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
 			s.Require().NoError(err)
 			s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
 		})
@@ -264,7 +263,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainAVersion := chainA.Config().Images[0].Version
 	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -327,7 +326,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	chainAVersion := chainA.Config().Images[0].Version
 	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -358,7 +357,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 
 		t.Run("packets are relayed", func(t *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
-			actualBalance, err := s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+			actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 
 			s.Require().NoError(err)
 
@@ -463,7 +462,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 	t.Run("packets relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
-		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
