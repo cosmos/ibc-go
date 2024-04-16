@@ -83,7 +83,7 @@ func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler 
 }
 
 // storeWasmCode stores the contract to the VM, pins the checksum in the VM's in memory cache and stores the checksum
-// in store. The checksum identifying it is returned if successful. The following checks are made to the
+// in the 08-wasm store. The checksum identifying it is returned if successful. The following checks are made to the
 // contract code before storing:
 // - Size bounds are checked. Contract length must not be 0 or exceed a specific size (maxWasmSize).
 // - The contract must not have already been stored in store.
