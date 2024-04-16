@@ -29,6 +29,7 @@ func init() {
 	)
 }
 
+// ModuleInputs defines the transfer module inputs for depinject.
 type ModuleInputs struct {
 	depinject.In
 
@@ -48,6 +49,7 @@ type ModuleInputs struct {
 	LegacySubspace paramtypes.Subspace `optional:"true"`
 }
 
+// ModuleOutputs defines the transfer module outputs for depinject.
 type ModuleOutputs struct {
 	depinject.Out
 
