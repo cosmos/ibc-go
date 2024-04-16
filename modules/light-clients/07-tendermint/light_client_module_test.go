@@ -54,7 +54,9 @@ func (suite *TendermintTestSuite) TestStatus() {
 		{
 			"client status without consensus state",
 			func() {
-				clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
+				var ok bool
+				clientState.LatestHeight, ok = clientState.LatestHeight.Increment().(clienttypes.Height)
+				suite.Require().True(ok)
 				path.EndpointA.SetClientState(clientState)
 			},
 			exported.Expired,
@@ -87,7 +89,9 @@ func (suite *TendermintTestSuite) TestStatus() {
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
 			suite.Require().True(found)
 
-			clientState = path.EndpointA.GetClientState().(*ibctm.ClientState)
+			var ok bool
+			clientState, ok = path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 
 			tc.malleate()
 
@@ -126,7 +130,8 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 		{
 			"failure: consensus state not found for height",
 			func() {
-				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				height = clientState.LatestHeight.Increment()
 			},
 			clienttypes.ErrConsensusStateNotFound,
@@ -141,7 +146,8 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			height = clientState.LatestHeight
 
 			// grab consensusState from store and update with a predefined timestamp
@@ -555,7 +561,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
 
-				consensusState := testingpath.EndpointB.GetConsensusState(latestHeight).(*ibctm.ConsensusState)
+				consensusState, ok := testingpath.EndpointB.GetConsensusState(latestHeight).(*ibctm.ConsensusState)
+				suite.Require().True(ok)
 				value, err = suite.chainB.Codec.MarshalInterface(consensusState)
 				suite.Require().NoError(err)
 			},
@@ -764,7 +771,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 			proof, proofHeight = suite.chainB.QueryProof(key)
 
-			clientState := testingpath.EndpointB.GetClientState().(*ibctm.ClientState)
+			clientState, ok := testingpath.EndpointB.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			value, err = suite.chainB.Codec.MarshalInterface(clientState)
 			suite.Require().NoError(err)
 

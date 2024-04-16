@@ -175,7 +175,9 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					// the checksum written in the client state will later be overwritten by the message server.
 					expClientStateBz := wasmtesting.CreateMockClientStateBz(suite.chainA.App.AppCodec(), []byte("invalid checksum"))
-					expClientState = clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expClientStateBz).(*types.ClientState)
+					var ok bool
+					expClientState, ok = clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expClientStateBz).(*types.ClientState)
+					suite.Require().True(ok)
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					data, err := json.Marshal(types.EmptyResult{})
@@ -266,8 +268,8 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			var ok bool
 			suite.SetupWasmWithMockVM()
 
-			storeWasmCode(suite, wasmtesting.Code)
-			newChecksum = storeWasmCode(suite, newByteCode)
+			_ = suite.storeWasmCode(wasmtesting.Code)
+			newChecksum = suite.storeWasmCode(newByteCode)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -397,7 +399,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			storeWasmCode(suite, wasmtesting.Code)
+			_ = suite.storeWasmCode(wasmtesting.Code)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()

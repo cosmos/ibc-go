@@ -8,6 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -247,7 +249,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		msg       string
 		malleate  func()
 		expResult func(packetCommitment []byte, err error)
-		expEvents func(path *ibctesting.Path) map[string]map[string]string
+		expEvents func(path *ibctesting.Path) []abci.Event
 	}{
 		{
 			"success ORDERED",
@@ -333,19 +335,21 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State, "channel state should still be set to FLUSHCOMPLETE")
 			},
-			func(path *ibctesting.Path) map[string]map[string]string {
-				return ibctesting.EventsMap{
-					types.EventTypeChannelFlushComplete: {
-						types.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						types.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						types.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						types.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						types.AttributeKeyChannelState:       path.EndpointA.GetChannel().State.String(),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: types.AttributeValueCategory,
-					},
-				}
+			func(path *ibctesting.Path) []abci.Event {
+				return sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeChannelFlushComplete,
+						sdk.NewAttribute(types.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(types.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(types.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(types.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(types.AttributeKeyChannelState, path.EndpointA.GetChannel().State.String()),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
 			},
 		},
 		{
@@ -523,7 +527,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 				expEvents := tc.expEvents(path)
 
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			}
 		})
 	}
