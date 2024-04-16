@@ -7,7 +7,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	v1types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 )
@@ -106,7 +105,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 			"failure: panics with empty denom",
 			v1types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
 			v3types.FungibleTokenPacketData{},
-			errorsmod.Wrap(types.ErrInvalidDenomForTransfer, "base denomination cannot be blank"),
+			errorsmod.Wrap(v1types.ErrInvalidDenomForTransfer, "base denomination cannot be blank"),
 		},
 	}
 
