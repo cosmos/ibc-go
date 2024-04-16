@@ -26,9 +26,10 @@ func init() {
 type ModuleInputs struct {
 	depinject.In
 
-	Config *modulev1.Module
-	Cdc    codec.Codec
-	Key    *storetypes.KVStoreKey
+	Config      *modulev1.Module
+	Cdc         codec.Codec
+	Key         *storetypes.KVStoreKey
+	MemStoreKey *storetypes.MemoryStoreKey
 }
 
 type ModuleOutputs struct {
@@ -43,7 +44,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 	capabilityKeeper := keeper.NewKeeper(
 		in.Cdc,
 		in.Key,
-		in.Key, // TODO: where do we get mem key from?
+		in.MemStoreKey,
 	)
 	m := NewAppModule(in.Cdc, *capabilityKeeper, in.Config.SealKeeper)
 
