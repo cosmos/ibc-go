@@ -10,6 +10,7 @@ RUN test -n "${IBC_GO_VERSION}"
 
 # Copy relevant files before go mod download. Replace directives to local paths break if local
 # files are not copied before go mod download.
+ADD api api
 ADD internal internal
 ADD testing testing
 ADD modules modules
@@ -20,7 +21,6 @@ COPY Makefile .
 
 COPY go.mod .
 COPY go.sum .
-COPY ./api /go/api
 
 RUN go mod download
 

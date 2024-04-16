@@ -30,6 +30,7 @@ func init() {
 	)
 }
 
+// ModuleInputs defines the 27-interchain-accounts module inputs for depinject.
 type ModuleInputs struct {
 	depinject.In
 
@@ -49,6 +50,7 @@ type ModuleInputs struct {
 	LegacySubspace paramtypes.Subspace `optional:"true"`
 }
 
+// ModuleOutputs defines the 27-interchain-accounts module outputs for depinject.
 type ModuleOutputs struct {
 	depinject.Out
 
