@@ -19,11 +19,13 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -45,7 +47,6 @@ type E2ETestSuite struct {
 
 	// proposalIDs keeps track of the active proposal ID for each chain.
 	proposalIDs    map[string]uint64
-	grpcClients    map[string]GRPCClients
 	paths          map[string]pathPair
 	relayers       relayer.Map
 	logger         *zap.Logger
@@ -142,8 +143,6 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains(chainSpecOpts...)
 	r := s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
-	s.InitGRPCClients(chainA)
-	s.InitGRPCClients(chainB)
 	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 	s.Require().NoError(err)
 	return r, chainAChannels[len(chainAChannels)-1]
@@ -210,9 +209,6 @@ func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
 		NetworkID:        s.network,
 		SkipPathCreation: true,
 	}))
-
-	s.InitGRPCClients(chainA)
-	s.InitGRPCClients(chainB)
 
 	return chainA
 }
@@ -360,43 +356,53 @@ func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc
 func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	chainA, _ := s.GetChains()
 
-	balance, err := s.QueryBalance(ctx, chainA, user.FormattedAddress(), chainA.Config().Denom)
+	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainA, &banktypes.QueryBalanceRequest{
+		Address: user.FormattedAddress(),
+		Denom:   chainA.Config().Denom,
+	})
 	if err != nil {
 		return 0, err
 	}
-	return balance.Int64(), nil
+
+	return balanceResp.Balance.Amount.Int64(), nil
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
 func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	_, chainB := s.GetChains()
-	balance, err := s.QueryBalance(ctx, chainB, user.FormattedAddress(), chainB.Config().Denom)
-	if err != nil {
-		return -1, err
-	}
-	return balance.Int64(), nil
-}
 
-// GetChainGRCPClients gets the GRPC clients associated with the given chain.
-func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
-	cs, ok := s.grpcClients[chain.Config().ChainID]
-	s.Require().True(ok, "chain %s does not have GRPC clients", chain.Config().ChainID)
-	return cs
+	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainB, &banktypes.QueryBalanceRequest{
+		Address: user.FormattedAddress(),
+		Denom:   chainB.Config().Denom,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return balanceResp.Balance.Amount.Int64(), nil
 }
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
 // The packet commitment will be deleted upon a packet acknowledgement or timeout.
 func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) {
-	commitment, _ := s.QueryPacketCommitment(ctx, chain, portID, channelID, sequence)
-	s.Require().Empty(commitment)
+	_, err := query.GRPCQuery[channeltypes.QueryPacketCommitmentResponse](ctx, chain, &channeltypes.QueryPacketCommitmentRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+		Sequence:  sequence,
+	})
+	s.Require().ErrorContains(err, "packet commitment hash not found")
 }
 
 // AssertHumanReadableDenom asserts that a human readable denom is present for a given chain.
 func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.Chain, counterpartyNativeDenom string, counterpartyChannel ibc.ChannelOutput) {
 	chainIBCDenom := GetIBCToken(counterpartyNativeDenom, counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID)
 
-	denomMetadata, err := s.QueryDenomMetadata(ctx, chain, chainIBCDenom.IBCDenom())
+	denomMetadataResp, err := query.GRPCQuery[banktypes.QueryDenomMetadataResponse](ctx, chain, &banktypes.QueryDenomMetadataRequest{
+		Denom: chainIBCDenom.IBCDenom(),
+	})
 	s.Require().NoError(err)
+
+	denomMetadata := denomMetadataResp.Metadata
 
 	s.Require().Equal(chainIBCDenom.IBCDenom(), denomMetadata.Base, "denom metadata base does not match expected %s: got %s", chainIBCDenom.IBCDenom(), denomMetadata.Base)
 	expectedName := fmt.Sprintf("%s/%s/%s IBC token", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom)
@@ -488,7 +494,7 @@ func (s *E2ETestSuite) CreateUpgradeFields(channel channeltypes.Channel) channel
 // SetUpgradeTimeoutParam creates and submits a governance proposal to execute the message to update 04-channel params with a timeout of 1s
 func (s *E2ETestSuite) SetUpgradeTimeoutParam(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet) {
 	const timeoutDelta = 1000000000 // use 1 second as relative timeout to force upgrade timeout on the counterparty
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -499,7 +505,7 @@ func (s *E2ETestSuite) SetUpgradeTimeoutParam(ctx context.Context, chain ibc.Cha
 
 // InitiateChannelUpgrade creates and submits a governance proposal to execute the message to initiate a channel upgrade
 func (s *E2ETestSuite) InitiateChannelUpgrade(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, portID, channelID string, upgradeFields channeltypes.UpgradeFields) {
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
