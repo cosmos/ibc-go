@@ -10,6 +10,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -53,7 +54,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
 	t.Run("verify begin blocker was executed", func(t *testing.T) {
-		cs, err := s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
+		cs, err := query.ClientState(ctx, chainA, exported.LocalhostClientID)
 		s.Require().NoError(err)
 
 		localhostClientState, ok := cs.(*localhost.ClientState)
@@ -62,7 +63,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
-		cs, err = s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
+		cs, err = query.ClientState(ctx, chainA, exported.LocalhostClientID)
 		s.Require().NoError(err)
 		s.Require().True(cs.(*localhost.ClientState).LatestHeight.GT(originalHeight), "client state height was not incremented")
 	})
@@ -118,11 +119,11 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("query localhost transfer channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.ChannelId)
+		channelEndA, err := query.Channel(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenTryRes.ChannelId)
+		channelEndB, err := query.Channel(ctx, chainA, transfertypes.PortID, msgChanOpenTryRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
@@ -170,7 +171,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.ChannelId, 1)
 
 		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, msgChanOpenTryRes.ChannelId)
-		actualBalance, err := s.QueryBalance(ctx, chainA, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainA, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
 
 		s.Require().NoError(err)
 
