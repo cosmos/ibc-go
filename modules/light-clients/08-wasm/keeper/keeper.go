@@ -82,6 +82,11 @@ func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler 
 	return newQueryHandler(ctx, k.GetQueryPlugins(), callerID)
 }
 
+// storeWasmCode stores the contract to the VM, pins the checksum in the VM's in memory cache and stores the checksum
+// in the 08-wasm store. The checksum identifying it is returned if successful. The following checks are made to the
+// contract code before storing:
+// - Size bounds are checked. Contract length must not be 0 or exceed a specific size (maxWasmSize).
+// - The contract must not have already been stored in store.
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
@@ -134,6 +139,8 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wa
 	return checksum, nil
 }
 
+// migrateContractCode migrates the contract for a given light client to one denoted by the given new checksum. The checksum we
+// are migrating to must first be stored using storeWasmCode and must not match the checksum currently stored for this light client.
 func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
 	wasmClientState, err := k.GetWasmClientState(ctx, clientID)
 	if err != nil {
