@@ -6,7 +6,9 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var invalidPrefix = []byte("invalid/")
@@ -96,9 +98,9 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			prefix, key := types.SplitPrefix(tc.prefix)
+			keyPrefix, key := types.SplitPrefix(tc.prefix)
 
-			suite.Require().Equal(tc.expValues[0], prefix)
+			suite.Require().Equal(tc.expValues[0], keyPrefix)
 			suite.Require().Equal(tc.expValues[1], key)
 		})
 	}
@@ -389,10 +391,10 @@ func (suite *TypesTestSuite) GetSubjectAndSubstituteStore() (storetypes.KVStore,
 	suite.SetupTest()
 
 	ctx := suite.chainA.GetContext()
-	storeKey := GetSimApp(suite.chainA).GetKey(types.StoreKey)
+	storeKey := GetSimApp(suite.chainA).GetKey(ibcexported.StoreKey)
 
-	subjectClientStore := prefix.NewStore(ctx.KVStore(storeKey), []byte("client1"))
-	substituteClientStore := prefix.NewStore(ctx.KVStore(storeKey), []byte("client2"))
+	subjectClientStore := prefix.NewStore(ctx.KVStore(storeKey), []byte(clienttypes.FormatClientIdentifier(types.Wasm, 0)))
+	substituteClientStore := prefix.NewStore(ctx.KVStore(storeKey), []byte(clienttypes.FormatClientIdentifier(types.Wasm, 1)))
 
 	return subjectClientStore, substituteClientStore
 }
