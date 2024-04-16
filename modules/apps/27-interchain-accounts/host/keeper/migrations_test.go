@@ -9,9 +9,10 @@ import (
 
 func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	testCases := []struct {
-		msg            string
-		malleate       func()
-		expectedParams icahosttypes.Params
+		msg              string
+		malleate         func()
+		expectedParams   icahosttypes.Params
+		useDefaultParams bool
 	}{
 		{
 			"success: default params",
@@ -21,11 +22,13 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 				subspace.SetParamSet(suite.chainA.GetContext(), &params)                     // set params
 			},
 			icahosttypes.DefaultParams(),
+			false,
 		},
 		{
 			"success: no params",
 			func() {},
 			icahosttypes.DefaultParams(),
+			true,
 		},
 	}
 
@@ -38,6 +41,9 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			tc.malleate() // explicitly set params
 
 			migrator := icahostkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAHostKeeper)
+			if tc.useDefaultParams {
+				migrator.SetLegacySubspace(nil)
+			}
 			err := migrator.MigrateParams(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 

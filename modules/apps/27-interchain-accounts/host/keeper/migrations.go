@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 )
 
 // Migrator is a struct for handling in-place state migrations.
@@ -18,29 +19,22 @@ func NewMigrator(k *Keeper) Migrator {
 	}
 }
 
+// SetLegacySubspace sets the legacy parameter subspace for the Migrator.
+func (m Migrator) SetLegacySubspace(legacySubspace icatypes.ParamSubspace) {
+	m.keeper.legacySubspace = legacySubspace
+}
+
 // MigrateParams migrates the host submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	if m.keeper != nil {
-		defaultParams := types.DefaultParams()
 		var params types.Params
-		ps := &params
-		for _, pair := range ps.ParamSetPairs() {
-			if !m.keeper.legacySubspace.Has(ctx, pair.Key) {
-				var value interface{}
-				switch string(pair.Key) {
-				case "HostEnabled":
-					value = defaultParams.HostEnabled
-				case "AllowMessages":
-					value = defaultParams.AllowMessages
-				default:
-					continue
-				}
-				m.keeper.legacySubspace.Set(ctx, pair.Key, value)
+		if m.keeper.legacySubspace == nil {
+			params = types.DefaultParams()
+		} else {
+			m.keeper.legacySubspace.GetParamSet(ctx, &params)
+			if err := params.Validate(); err != nil {
+				return err
 			}
-			m.keeper.legacySubspace.Get(ctx, pair.Key, pair.Value)
-		}
-		if err := params.Validate(); err != nil {
-			return err
 		}
 		m.keeper.SetParams(ctx, params)
 		m.keeper.Logger(ctx).Info("successfully migrated ica/host submodule to self-manage params")
