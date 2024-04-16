@@ -21,8 +21,23 @@ func NewMigrator(k *Keeper) Migrator {
 // MigrateParams migrates the host submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	if m.keeper != nil {
+		defaultParams := types.DefaultParams()
 		var params types.Params
-		m.keeper.legacySubspace.GetParamSetIfExists(ctx, &params)
+		ps := &params
+		for _, pair := range ps.ParamSetPairs() {
+			if !m.keeper.legacySubspace.Has(ctx, pair.Key) {
+				var value interface{}
+				if string(pair.Key) == "HostEnabled" {
+					value = defaultParams.HostEnabled
+				} else if string(pair.Key) == "AllowMessages" {
+					value = defaultParams.AllowMessages
+				} else {
+					continue
+				}
+				m.keeper.legacySubspace.Set(ctx, pair.Key, value)
+			}
+			m.keeper.legacySubspace.Get(ctx, pair.Key, pair.Value)
+		}
 		if err := params.Validate(); err != nil {
 			return err
 		}

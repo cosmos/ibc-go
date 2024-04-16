@@ -25,7 +25,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 		{
 			"success: no params",
 			func() {},
-			icahosttypes.Params{HostEnabled: false},
+			icahosttypes.DefaultParams(),
 		},
 	}
 
