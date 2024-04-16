@@ -34,7 +34,8 @@ func (suite *KeeperTestSuite) TestWasmInstantiate() {
 					err := json.Unmarshal(initMsg, &payload)
 					suite.Require().NoError(err)
 
-					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
+					wrappedClientState, ok := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
+					suite.Require().True(ok)
 
 					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.LatestHeight)
 					clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
@@ -147,7 +148,8 @@ func (suite *KeeperTestSuite) TestWasmInstantiate() {
 					suite.Require().NoError(err)
 
 					// Change the checksum to something else.
-					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
+					wrappedClientState, ok := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
+					suite.Require().True(ok)
 					clientState := types.NewClientState(payload.ClientState, []byte("new checksum"), wrappedClientState.LatestHeight)
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
 

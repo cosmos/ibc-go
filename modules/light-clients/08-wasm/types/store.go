@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
@@ -35,7 +36,12 @@ func GetClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientSta
 	}
 
 	clientStateI := clienttypes.MustUnmarshalClientState(cdc, bz)
-	return clientStateI.(*ClientState), true
+	var clientState *ClientState
+	clientState, ok := clientStateI.(*ClientState)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T into %T", clientStateI, clientState))
+	}
+	return clientState, ok
 }
 
 // Checksum is a type alias used for wasm byte code checksums.

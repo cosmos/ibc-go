@@ -260,7 +260,8 @@ func (suite *WasmTestSuite) TestInitialize() {
 
 					suite.Require().Equal(env.Contract.Address, wasmClientID)
 
-					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
+					wrappedClientState, ok := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
+					suite.Require().True(ok)
 
 					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.LatestHeight)
 					clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
@@ -824,7 +825,8 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 					suite.Require().NoError(err)
 
 					// set new client state and consensus state
-					wrappedUpgradedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data).(*ibctm.ClientState)
+					wrappedUpgradedClient, ok := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data).(*ibctm.ClientState)
+					suite.Require().True(ok)
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), upgradedClient))
 					store.Set(host.ConsensusStateKey(wrappedUpgradedClient.LatestHeight), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState))
 
