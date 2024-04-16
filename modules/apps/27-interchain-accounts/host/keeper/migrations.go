@@ -22,8 +22,7 @@ func NewMigrator(k *Keeper) Migrator {
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	if m.keeper != nil {
 		var params types.Params
-		m.keeper.legacySubspace.GetParamSet(ctx, &params)
-
+		m.keeper.legacySubspace.GetParamSetIfExists(ctx, &params)
 		if err := params.Validate(); err != nil {
 			return err
 		}
