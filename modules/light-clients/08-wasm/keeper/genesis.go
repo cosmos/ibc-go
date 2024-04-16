@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -13,7 +12,7 @@ import (
 // state.
 func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 	storeFn := func(code wasmvm.WasmCode, _ uint64) (wasmvm.Checksum, uint64, error) {
-		checksum, err := ibcwasm.GetVM().StoreCodeUnchecked(code)
+		checksum, err := k.GetVM().StoreCodeUnchecked(code)
 		return checksum, 0, err
 	}
 
@@ -28,8 +27,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 
 // ExportGenesis returns the 08-wasm module's exported genesis. This includes the code
 // for all contracts previously stored.
-func (Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
-	checksums, err := types.GetAllChecksums(ctx)
+func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
+	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +36,7 @@ func (Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	// Grab code from wasmVM and add to genesis state.
 	var genesisState types.GenesisState
 	for _, checksum := range checksums {
-		code, err := ibcwasm.GetVM().GetCode(checksum)
+		code, err := k.GetVM().GetCode(checksum)
 		if err != nil {
 			panic(err)
 		}
