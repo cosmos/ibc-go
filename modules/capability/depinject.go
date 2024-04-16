@@ -23,6 +23,7 @@ func init() {
 	)
 }
 
+// ModuleInputs defines the capability module inputs for depinject.
 type ModuleInputs struct {
 	depinject.In
 
@@ -32,6 +33,7 @@ type ModuleInputs struct {
 	MemStoreKey *storetypes.MemoryStoreKey
 }
 
+// ModuleOutputs defines the capability module outputs for depinject.
 type ModuleOutputs struct {
 	depinject.Out
 
