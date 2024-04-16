@@ -22,6 +22,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		path         *ibctesting.Path
 		chanCap      *capabilitytypes.Capability
 		counterparty channeltypes.Counterparty
+		v1           bool
 	)
 
 	testCases := []struct {
@@ -42,6 +43,12 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		{
 			"empty version string", func() {
 				channel.Version = ""
+			}, true,
+		},
+		{
+			"ics20-1 version string", func() {
+				v1 = true
+				channel.Version = "ics20-1"
 			}, true,
 		},
 		{
@@ -89,6 +96,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
 				Version:        types.Version,
 			}
+			v1 = false
 
 			var err error
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
@@ -103,7 +111,11 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(types.Version, version)
+				if v1 {
+					suite.Require().Equal("ics20-1", version)
+				} else {
+					suite.Require().Equal(types.Version, version)
+				}
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal(version, "")
@@ -119,6 +131,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		path                *ibctesting.Path
 		counterparty        channeltypes.Counterparty
 		counterpartyVersion string
+		v1                  bool
 	)
 
 	testCases := []struct {
@@ -128,6 +141,12 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 	}{
 		{
 			"success", func() {}, true,
+		},
+		{
+			"counterparty version is ics20-1", func() {
+				v1 = true
+				counterpartyVersion = "ics20-1"
+			}, true,
 		},
 		{
 			"max channels reached", func() {
@@ -176,6 +195,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				Version:        types.Version,
 			}
 			counterpartyVersion = types.Version
+			v1 = false
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
@@ -194,7 +214,11 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(types.Version, version)
+				if v1 {
+					suite.Require().Equal("ics20-1", version)
+				} else {
+					suite.Require().Equal(types.Version, version)
+				}
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal("", version)
