@@ -165,7 +165,7 @@ func (suite *KeeperTestSuite) TestWasmInstantiate() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
-			checksum := storeWasmCode(suite, wasmtesting.Code)
+			checksum := suite.storeWasmCode(wasmtesting.Code)
 
 			tc.malleate()
 
@@ -307,7 +307,7 @@ func (suite *KeeperTestSuite) TestWasmMigrate() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
-			_ = storeWasmCode(suite, wasmtesting.Code)
+			_ = suite.storeWasmCode(wasmtesting.Code)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -378,7 +378,7 @@ func (suite *KeeperTestSuite) TestWasmQuery() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
-			_ = storeWasmCode(suite, wasmtesting.Code)
+			_ = suite.storeWasmCode(wasmtesting.Code)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -549,7 +549,7 @@ func (suite *KeeperTestSuite) TestWasmSudo() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
-			_ = storeWasmCode(suite, wasmtesting.Code)
+			_ = suite.storeWasmCode(wasmtesting.Code)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
