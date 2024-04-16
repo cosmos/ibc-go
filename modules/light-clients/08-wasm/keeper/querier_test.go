@@ -47,17 +47,17 @@ func mockCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 func (suite *KeeperTestSuite) TestCustomQuery() {
 	testCases := []struct {
 		name     string
-		malleate func(k *keeper.Keeper)
+		malleate func()
 		expError error
 	}{
 		{
 			"success: custom query",
-			func(k *keeper.Keeper) {
+			func() {
 				querierPlugin := keeper.QueryPlugins{
 					Custom: mockCustomQuerier(),
 				}
 
-				k.SetQueryPlugins(querierPlugin)
+				GetSimApp(suite.chainA).WasmClientKeeper.SetQueryPlugins(querierPlugin)
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					echo := CustomQuery{
 						Echo: &QueryEcho{
@@ -87,7 +87,7 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 		},
 		{
 			"failure: default query",
-			func(k *keeper.Keeper) {
+			func() {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					resp, err := querier.Query(wasmvmtypes.QueryRequest{Custom: json.RawMessage("{}")}, math.MaxUint64)
 					suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
@@ -109,9 +109,9 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+			tc.malleate()
 
-			tc.malleate(&wasmClientKeeper)
+			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState, ok := endpoint.GetClientState().(*types.ClientState)
@@ -148,17 +148,17 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 
 	testCases := []struct {
 		name     string
-		malleate func(k *keeper.Keeper)
+		malleate func()
 		expError error
 	}{
 		{
 			"success: custom query",
-			func(k *keeper.Keeper) {
+			func() {
 				querierPlugin := keeper.QueryPlugins{
 					Stargate: keeper.AcceptListStargateQuerier([]string{typeURL}, GetSimApp(suite.chainA).GRPCQueryRouter()),
 				}
 
-				k.SetQueryPlugins(querierPlugin)
+				GetSimApp(suite.chainA).WasmClientKeeper.SetQueryPlugins(querierPlugin)
 
 				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
@@ -200,12 +200,12 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			// This exercises the full flow through the grpc handler and into the light client for verification, handling encoding and routing.
 			// Furthermore we write a test key and assert that the state changes made by this handler were discarded by the cachedCtx at the grpc handler.
 			"success: verify membership query",
-			func(k *keeper.Keeper) {
+			func() {
 				querierPlugin := keeper.QueryPlugins{
 					Stargate: keeper.AcceptListStargateQuerier([]string{""}, GetSimApp(suite.chainA).GRPCQueryRouter()),
 				}
 
-				k.SetQueryPlugins(querierPlugin)
+				GetSimApp(suite.chainA).WasmClientKeeper.SetQueryPlugins(querierPlugin)
 
 				store := suite.chainA.GetContext().KVStore(GetSimApp(suite.chainA).GetKey(exported.StoreKey))
 				store.Set(proofKey, value)
@@ -277,7 +277,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 		},
 		{
 			"failure: default querier",
-			func(k *keeper.Keeper) {
+			func() {
 				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
 					bz, err := queryRequest.Marshal()
@@ -311,9 +311,9 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+			tc.malleate()
 
-			tc.malleate(&wasmClientKeeper)
+			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 
 			payload := types.QueryMsg{
 				TimestampAtHeight: &types.TimestampAtHeightMsg{
