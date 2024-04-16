@@ -3,7 +3,6 @@ package convert
 import (
 	"strings"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
 	v1types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 )
@@ -33,24 +32,23 @@ func ICS20V1ToV2(packetData v1types.FungibleTokenPacketData) v3types.FungibleTok
 func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 	v1DenomTrace := v1types.ParseDenomTrace(v1Denom)
 
-	splitPath := strings.Split(v1Denom, "/")
-	pathSlice, _ := denom.ExtractPathAndBaseFromFullDenom(splitPath)
+	splitPath := strings.Split(v1DenomTrace.Path, "/")
 
 	// if the path slice is empty, then the base denom is the full native denom.
-	if len(pathSlice) == 0 {
+	if len(splitPath) == 0 {
 		return v1DenomTrace.BaseDenom, nil
 	}
 
 	// this condition should never be reached.
-	if len(pathSlice)%2 != 0 {
+	if len(splitPath)%2 != 0 {
 		panic("pathSlice length is not even")
 	}
 
 	// the path slices consists of entries of ports and channel ids separately,
 	// we need to combine them to form the trace.
 	var trace []string
-	for i := 0; i < len(pathSlice); i += 2 {
-		trace = append(trace, strings.Join(pathSlice[i:i+2], "/"))
+	for i := 0; i < len(splitPath); i += 2 {
+		trace = append(trace, strings.Join(splitPath[i:i+2], "/"))
 	}
 
 	return v1DenomTrace.BaseDenom, trace
