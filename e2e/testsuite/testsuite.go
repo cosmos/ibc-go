@@ -113,6 +113,10 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 		channelOpts(&channelOptions)
 	}
 
+	// TODO: better way to do this.
+	// For now, set the version to the latest transfer module version
+	channelOptions.Version = transfertypes.Version
+
 	ic := interchaintest.NewInterchain().
 		AddChain(chainA).
 		AddChain(chainB).
