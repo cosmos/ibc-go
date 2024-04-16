@@ -1,17 +1,68 @@
 package types_test
 
 import (
+	"encoding/json"
+	"errors"
+	"testing"
+
+	dbm "github.com/cosmos/cosmos-db"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/log"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+
+	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var invalidPrefix = []byte("invalid/")
+
+type TypesTestSuite struct {
+	testifysuite.Suite
+	coordinator *ibctesting.Coordinator
+	chainA      *ibctesting.TestChain
+}
+
+func TestWasmTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(TypesTestSuite))
+}
+
+func (suite *TypesTestSuite) SetupTest() {
+	ibctesting.DefaultTestingAppInit = setupTestingApp
+
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+}
+
+func init() {
+	ibctesting.DefaultTestingAppInit = setupTestingApp
+}
+
+// GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
+// This must be used instead of chain.GetSimApp() for tests within this directory.
+func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
+	app, ok := chain.App.(*simapp.SimApp)
+	if !ok {
+		panic(errors.New("chain is not a simapp.SimApp"))
+	}
+	return app
+}
+
+// setupTestingApp provides the duplicated simapp which is specific to the 08-wasm module on chain creation.
+func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	db := dbm.NewMemDB()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
+	return app, app.DefaultGenesis()
+}
 
 // TestMigrateClientWrappedStoreGetStore tests the getStore method of the migrateClientWrappedStore.
 func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
@@ -25,12 +76,12 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 	}{
 		{
 			"success: subject store",
-			types.SubjectPrefix,
+			internaltypes.SubjectPrefix,
 			subjectStore,
 		},
 		{
 			"success: substitute store",
-			types.SubstitutePrefix,
+			internaltypes.SubstitutePrefix,
 			substituteStore,
 		},
 		{
@@ -40,7 +91,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 		},
 		{
 			"failure: invalid prefix contains both subject/ and substitute/",
-			append(types.SubjectPrefix, types.SubstitutePrefix...),
+			append(internaltypes.SubjectPrefix, internaltypes.SubstitutePrefix...),
 			nil,
 		},
 	}
@@ -48,7 +99,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			store, found := wrappedStore.GetStore(tc.prefix)
 
@@ -64,7 +115,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 	}
 }
 
-// TestSplitPrefix tests the splitPrefix function.
+// TestSplitPrefix tests the SplitPrefix function.
 func (suite *TypesTestSuite) TestSplitPrefix() {
 	clientStateKey := host.ClientStateKey()
 
@@ -75,13 +126,13 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 	}{
 		{
 			"success: subject prefix",
-			append(types.SubjectPrefix, clientStateKey...),
-			[][]byte{types.SubjectPrefix, clientStateKey},
+			append(internaltypes.SubjectPrefix, clientStateKey...),
+			[][]byte{internaltypes.SubjectPrefix, clientStateKey},
 		},
 		{
 			"success: substitute prefix",
-			append(types.SubstitutePrefix, clientStateKey...),
-			[][]byte{types.SubstitutePrefix, clientStateKey},
+			append(internaltypes.SubstitutePrefix, clientStateKey...),
+			[][]byte{internaltypes.SubstitutePrefix, clientStateKey},
 		},
 		{
 			"success: nil prefix returned",
@@ -90,15 +141,15 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 		},
 		{
 			"success: invalid prefix contains both subject/ and substitute/",
-			append(types.SubjectPrefix, types.SubstitutePrefix...),
-			[][]byte{types.SubjectPrefix, types.SubstitutePrefix},
+			append(internaltypes.SubjectPrefix, internaltypes.SubstitutePrefix...),
+			[][]byte{internaltypes.SubjectPrefix, internaltypes.SubstitutePrefix},
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			keyPrefix, key := types.SplitPrefix(tc.prefix)
+			keyPrefix, key := internaltypes.SplitPrefix(tc.prefix)
 
 			suite.Require().Equal(tc.expValues[0], keyPrefix)
 			suite.Require().Equal(tc.expValues[1], key)
@@ -119,13 +170,13 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 	}{
 		{
 			"success: subject store Get",
-			types.SubjectPrefix,
+			internaltypes.SubjectPrefix,
 			host.ClientStateKey(),
 			subjectStore,
 		},
 		{
 			"success: substitute store Get",
-			types.SubstitutePrefix,
+			internaltypes.SubstitutePrefix,
 			host.ClientStateKey(),
 			substituteStore,
 		},
@@ -140,7 +191,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -151,7 +202,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 
 				suite.Require().Equal(expValue, wrappedStore.Get(prefixedKey))
 			} else {
-				// expected value when store is not found is an empty byte slice
+				// expected value when types is not found is an empty byte slice
 				suite.Require().Equal([]byte(nil), wrappedStore.Get(prefixedKey))
 			}
 		})
@@ -168,13 +219,13 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 	}{
 		{
 			"success: subject store Set",
-			types.SubjectPrefix,
+			internaltypes.SubjectPrefix,
 			host.ClientStateKey(),
 			true,
 		},
 		{
 			"failure: cannot Set on substitute store",
-			types.SubstitutePrefix,
+			internaltypes.SubstitutePrefix,
 			host.ClientStateKey(),
 			false,
 		},
@@ -185,7 +236,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 		suite.Run(tc.name, func() {
 			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
-			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -201,7 +252,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 
 				suite.Require().Equal(wasmtesting.MockClientStateBz, value)
 			} else {
-				// Assert that no writes happened to subject or substitute store
+				// Assert that no writes happened to subject or substitute types
 				suite.Require().NotEqual(wasmtesting.MockClientStateBz, subjectStore.Get(tc.key))
 				suite.Require().NotEqual(wasmtesting.MockClientStateBz, substituteStore.Get(tc.key))
 			}
@@ -224,13 +275,13 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 	}{
 		{
 			"success: subject store Delete",
-			types.SubjectPrefix,
+			internaltypes.SubjectPrefix,
 			mockStoreKey,
 			true,
 		},
 		{
 			"failure: cannot Delete on substitute store",
-			types.SubstitutePrefix,
+			internaltypes.SubstitutePrefix,
 			mockStoreKey,
 			false,
 		},
@@ -246,7 +297,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 			subjectStore.Set(mockStoreKey, mockStoreValue)
 			substituteStore.Set(mockStoreKey, mockStoreValue)
 
-			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -260,7 +311,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 
 				suite.Require().False(store.Has(tc.key))
 			} else {
-				// Assert that no deletions happened to subject or substitute store
+				// Assert that no deletions happened to subject or substitute types
 				suite.Require().True(subjectStore.Has(tc.key))
 				suite.Require().True(substituteStore.Has(tc.key))
 			}
@@ -283,16 +334,16 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 	}{
 		{
 			"success: subject store Iterate",
-			types.SubjectPrefix,
-			types.SubjectPrefix,
+			internaltypes.SubjectPrefix,
+			internaltypes.SubjectPrefix,
 			[]byte("start"),
 			[]byte("end"),
 			true,
 		},
 		{
 			"success: substitute store Iterate",
-			types.SubstitutePrefix,
-			types.SubstitutePrefix,
+			internaltypes.SubstitutePrefix,
+			internaltypes.SubstitutePrefix,
 			[]byte("start"),
 			[]byte("end"),
 			true,
@@ -307,8 +358,8 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 		},
 		{
 			"failure: start and end keys not prefixed with same prefix",
-			types.SubjectPrefix,
-			types.SubstitutePrefix,
+			internaltypes.SubjectPrefix,
+			internaltypes.SubstitutePrefix,
 			[]byte("start"),
 			[]byte("end"),
 			false,
@@ -318,7 +369,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 
 			prefixedKeyStart := tc.prefixStart
 			prefixedKeyStart = append(prefixedKeyStart, tc.start...)
@@ -375,18 +426,18 @@ func (suite *TypesTestSuite) TestNewMigrateClientWrappedStore() {
 			expPass := !tc.expPanic
 			if expPass {
 				suite.Require().NotPanics(func() {
-					types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+					internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 				})
 			} else {
 				suite.Require().Panics(func() {
-					types.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+					internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
 				})
 			}
 		})
 	}
 }
 
-// GetSubjectAndSubstituteStore returns two KVStores for testing the migrate client wrapping store.
+// GetSubjectAndSubstituteStore returns two KVStores for testing the migrate client wrapping types.
 func (suite *TypesTestSuite) GetSubjectAndSubstituteStore() (storetypes.KVStore, storetypes.KVStore) {
 	suite.SetupTest()
 
