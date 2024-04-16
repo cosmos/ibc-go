@@ -19,10 +19,12 @@ func init() {
 	)
 }
 
+// ModuleInputs defines the 06-solomachine module inputs for depinject.
 type ModuleInputs struct {
 	depinject.In
 }
 
+// ModuleOutputs defines the 06-solomachine module outputs for depinject.
 type ModuleOutputs struct {
 	depinject.Out
 
