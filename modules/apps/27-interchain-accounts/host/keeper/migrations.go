@@ -27,11 +27,12 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 		for _, pair := range ps.ParamSetPairs() {
 			if !m.keeper.legacySubspace.Has(ctx, pair.Key) {
 				var value interface{}
-				if string(pair.Key) == "HostEnabled" {
+				switch string(pair.Key) {
+				case "HostEnabled":
 					value = defaultParams.HostEnabled
-				} else if string(pair.Key) == "AllowMessages" {
+				case "AllowMessages":
 					value = defaultParams.AllowMessages
-				} else {
+				default:
 					continue
 				}
 				m.keeper.legacySubspace.Set(ctx, pair.Key, value)
