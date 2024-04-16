@@ -28,6 +28,7 @@ func init() {
 	)
 }
 
+// ModuleInputs defines the core module inputs for depinject.
 type ModuleInputs struct {
 	depinject.In
 
@@ -43,6 +44,7 @@ type ModuleInputs struct {
 	LegacySubspace paramtypes.Subspace `optional:"true"`
 }
 
+// ModuleOutputs defines the core module outputs for depinject.
 type ModuleOutputs struct {
 	depinject.Out
 
