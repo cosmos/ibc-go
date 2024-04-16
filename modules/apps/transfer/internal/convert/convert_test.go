@@ -50,21 +50,19 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 				}, sender, receiver, ""),
 			nil,
 		},
-		// TODO: this test should pass, but v1 packet data validation is failing with this denom.
-		// https://github.com/cosmos/ibc-go/issues/6124
-		// {
-		//	"success: base denom with '/' at the end",
-		//	v1types.NewFungibleTokenPacketData("transfer/channel-0/atom/", "1000", sender, receiver, ""),
-		//	v3types.NewFungibleTokenPacketData(
-		//		[]*v3types.Token{
-		//			{
-		//				Denom:  "atom/",
-		//				Amount: "1000",
-		//				Trace:  []string{"transfer/channel-0"},
-		//			},
-		//		}, sender, receiver, ""),
-		//	false,
-		// },
+		{
+			"success: base denom with '/' at the end",
+			v1types.NewFungibleTokenPacketData("transfer/channel-0/atom/", "1000", sender, receiver, ""),
+			v3types.NewFungibleTokenPacketData(
+				[]*v3types.Token{
+					{
+						Denom:  "atom/",
+						Amount: "1000",
+						Trace:  []string{"transfer/channel-0"},
+					},
+				}, sender, receiver, ""),
+			nil,
+		},
 		{
 			"success: longer trace base denom with '/'",
 			v1types.NewFungibleTokenPacketData("transfer/channel-0/transfer/channel-1/atom/pool", "1000", sender, receiver, ""),
@@ -85,6 +83,19 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 				[]*v3types.Token{
 					{
 						Denom:  "atom",
+						Amount: "1000",
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
+					},
+				}, sender, receiver, ""),
+			nil,
+		},
+		{
+			"success: base denom with slash, trace with non transfer port",
+			v1types.NewFungibleTokenPacketData("transfer/channel-0/transfer/channel-1/transfer-custom/channel-2/atom/pool", "1000", sender, receiver, ""),
+			v3types.NewFungibleTokenPacketData(
+				[]*v3types.Token{
+					{
+						Denom:  "atom/pool",
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},

@@ -166,11 +166,12 @@ func ValidatePrefixedDenom(denom string) error {
 		return nil
 	}
 
-	path, baseDenom := denominternal.ExtractPathAndBaseFromFullDenom(denomSplit)
+	pathSlice, baseDenom := denominternal.ExtractPathAndBaseFromFullDenom(denomSplit)
 	if strings.TrimSpace(baseDenom) == "" {
 		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
 	}
 
+	path := strings.Join(pathSlice, "/")
 	if path == "" {
 		// NOTE: base denom contains slashes, so no base denomination validation
 		return nil
