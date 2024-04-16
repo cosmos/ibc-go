@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
-			_ = storeWasmCode(suite, wasmtesting.Code)
+			_ = suite.storeWasmCode(wasmtesting.Code)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -305,7 +305,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 		suite.Run(tc.name, func() {
 			expDiscardedState = false
 			suite.SetupWasmWithMockVM()
-			checksum = storeWasmCode(suite, wasmtesting.Code)
+			checksum = suite.storeWasmCode(wasmtesting.Code)
 
 			endpoint = wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
