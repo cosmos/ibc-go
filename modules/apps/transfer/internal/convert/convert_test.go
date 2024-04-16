@@ -11,7 +11,7 @@ import (
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 )
 
-func TestConvertICS20V1ToV2(t *testing.T) {
+func TestConvertPacketV1ToPacketV3(t *testing.T) {
 	const (
 		sender   = "sender"
 		receiver = "receiver"
@@ -112,11 +112,11 @@ func TestConvertICS20V1ToV2(t *testing.T) {
 	for _, tc := range testCases {
 		expPass := tc.expPanic == nil
 		if expPass {
-			v3Data := ICS20V1ToV2(tc.v1Data)
+			v3Data := PacketDataV1ToV3(tc.v1Data)
 			require.Equal(t, tc.v3Data, v3Data)
 		} else {
 			require.PanicsWithError(t, tc.expPanic.Error(), func() {
-				ICS20V1ToV2(tc.v1Data)
+				PacketDataV1ToV3(tc.v1Data)
 			})
 		}
 	}

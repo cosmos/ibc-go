@@ -11,10 +11,6 @@ const (
 	// ModuleName defines the IBC transfer name
 	ModuleName = "transfer"
 
-	// Version defines the current version the IBC transfer
-	// module supports
-	Version = "ics20-1"
-
 	// PortID is the default port id that transfer module binds to
 	PortID = "transfer"
 
@@ -38,6 +34,18 @@ const (
 	ParamsKey = "params"
 )
 
+const (
+	// Version defines the current version the IBC transfer
+	// module supports
+	Version = "ics20-2"
+
+	// Version1 defines first version of the IBC transfer module
+	Version1 = "ics20-1"
+
+	// escrowAddressVersion should remain as ics20-1 to avoid the address changing.
+	escrowAddressVersion = "ics20-1"
+)
+
 var (
 	// PortKey defines the key to store the port ID in store
 	PortKey = []byte{0x01}
@@ -54,7 +62,7 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	contents := fmt.Sprintf("%s/%s", portID, channelID)
 
 	// ADR 028 AddressHash construction
-	preImage := []byte(Version)
+	preImage := []byte(escrowAddressVersion)
 	preImage = append(preImage, 0)
 	preImage = append(preImage, contents...)
 	hash := sha256.Sum256(preImage)
