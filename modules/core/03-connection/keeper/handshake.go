@@ -18,7 +18,7 @@ import (
 //
 // NOTE: Msg validation verifies the supplied identifiers and ensures that the counterparty
 // connection identifier is empty.
-func (k Keeper) ConnOpenInit(
+func (k *Keeper) ConnOpenInit(
 	ctx sdk.Context,
 	clientID string,
 	counterparty types.Counterparty, // counterpartyPrefix, counterpartyClientIdentifier
@@ -34,12 +34,7 @@ func (k Keeper) ConnOpenInit(
 		versions = []*types.Version{version}
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
-	if !found {
-		return "", errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", clientID)
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
 		return "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
@@ -67,7 +62,7 @@ func (k Keeper) ConnOpenInit(
 // NOTE:
 //   - Here chain A acts as the counterparty
 //   - Identifiers are checked on msg validation
-func (k Keeper) ConnOpenTry(
+func (k *Keeper) ConnOpenTry(
 	ctx sdk.Context,
 	counterparty types.Counterparty, // counterpartyConnectionIdentifier, counterpartyPrefix and counterpartyClientIdentifier
 	delayPeriod uint64,
@@ -160,7 +155,7 @@ func (k Keeper) ConnOpenTry(
 // to chain A (this code is executed on chain A).
 //
 // NOTE: Identifiers are checked on msg validation.
-func (k Keeper) ConnOpenAck(
+func (k *Keeper) ConnOpenAck(
 	ctx sdk.Context,
 	connectionID string,
 	clientState exported.ClientState, // client state for chainA on chainB
@@ -258,7 +253,7 @@ func (k Keeper) ConnOpenAck(
 // which the connection is open on both chains (this code is executed on chain B).
 //
 // NOTE: Identifiers are checked on msg validation.
-func (k Keeper) ConnOpenConfirm(
+func (k *Keeper) ConnOpenConfirm(
 	ctx sdk.Context,
 	connectionID string,
 	ackProof []byte, // proof that connection opened on ChainA during ConnOpenAck

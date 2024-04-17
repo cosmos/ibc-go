@@ -25,7 +25,7 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // ClientState implements the Query/ClientState gRPC method
-func (k Keeper) ClientState(c context.Context, req *types.QueryClientStateRequest) (*types.QueryClientStateResponse, error) {
+func (k *Keeper) ClientState(c context.Context, req *types.QueryClientStateRequest) (*types.QueryClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -56,7 +56,7 @@ func (k Keeper) ClientState(c context.Context, req *types.QueryClientStateReques
 }
 
 // ClientStates implements the Query/ClientStates gRPC method
-func (k Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequest) (*types.QueryClientStatesResponse, error) {
+func (k *Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequest) (*types.QueryClientStatesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -100,7 +100,7 @@ func (k Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 }
 
 // ConsensusState implements the Query/ConsensusState gRPC method
-func (k Keeper) ConsensusState(c context.Context, req *types.QueryConsensusStateRequest) (*types.QueryConsensusStateResponse, error) {
+func (k *Keeper) ConsensusState(c context.Context, req *types.QueryConsensusStateRequest) (*types.QueryConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -147,7 +147,7 @@ func (k Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 }
 
 // ConsensusStates implements the Query/ConsensusStates gRPC method
-func (k Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStatesRequest) (*types.QueryConsensusStatesResponse, error) {
+func (k *Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStatesRequest) (*types.QueryConsensusStatesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -191,7 +191,7 @@ func (k Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 }
 
 // ConsensusStateHeights implements the Query/ConsensusStateHeights gRPC method
-func (k Keeper) ConsensusStateHeights(c context.Context, req *types.QueryConsensusStateHeightsRequest) (*types.QueryConsensusStateHeightsResponse, error) {
+func (k *Keeper) ConsensusStateHeights(c context.Context, req *types.QueryConsensusStateHeightsRequest) (*types.QueryConsensusStateHeightsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -230,7 +230,7 @@ func (k Keeper) ConsensusStateHeights(c context.Context, req *types.QueryConsens
 }
 
 // ClientStatus implements the Query/ClientStatus gRPC method
-func (k Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequest) (*types.QueryClientStatusResponse, error) {
+func (k *Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequest) (*types.QueryClientStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -240,15 +240,7 @@ func (k Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	clientState, found := k.GetClientState(ctx, req.ClientId)
-	if !found {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
-		)
-	}
-
-	clientStatus := k.GetClientStatus(ctx, clientState, req.ClientId)
+	clientStatus := k.GetClientStatus(ctx, req.ClientId)
 
 	return &types.QueryClientStatusResponse{
 		Status: clientStatus.String(),
@@ -256,7 +248,7 @@ func (k Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 }
 
 // ClientParams implements the Query/ClientParams gRPC method
-func (k Keeper) ClientParams(c context.Context, _ *types.QueryClientParamsRequest) (*types.QueryClientParamsResponse, error) {
+func (k *Keeper) ClientParams(c context.Context, _ *types.QueryClientParamsRequest) (*types.QueryClientParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := k.GetParams(ctx)
 
@@ -266,7 +258,7 @@ func (k Keeper) ClientParams(c context.Context, _ *types.QueryClientParamsReques
 }
 
 // UpgradedClientState implements the Query/UpgradedClientState gRPC method
-func (k Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedClientStateRequest) (*types.QueryUpgradedClientStateResponse, error) {
+func (k *Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedClientStateRequest) (*types.QueryUpgradedClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -301,7 +293,7 @@ func (k Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedC
 }
 
 // UpgradedConsensusState implements the Query/UpgradedConsensusState gRPC method
-func (k Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
+func (k *Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -333,7 +325,7 @@ func (k Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 // VerifyMembership implements the Query/VerifyMembership gRPC method
 // NOTE: Any state changes made within this handler are discarded by leveraging a cached context. Gas is consumed for underlying state access.
 // This gRPC method is intended to be used within the context of the state machine and delegates to light clients to verify proofs.
-func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMembershipRequest) (*types.QueryVerifyMembershipResponse, error) {
+func (k *Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMembershipRequest) (*types.QueryVerifyMembershipResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -369,6 +361,7 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+
 	// cache the context to ensure clientState.VerifyMembership does not change state
 	cachedCtx, _ := ctx.CacheContext()
 
@@ -377,16 +370,23 @@ func (k Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMember
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
 	}()
 
-	clientState, found := k.GetClientState(cachedCtx, req.ClientId)
+	clientModule, found := k.Route(req.ClientId)
 	if !found {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error())
+		return nil, status.Error(codes.NotFound, req.ClientId)
 	}
 
-	if clientStatus := k.GetClientStatus(ctx, clientState, req.ClientId); clientStatus != exported.Active {
+	if clientStatus := k.GetClientStatus(ctx, req.ClientId); clientStatus != exported.Active {
 		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
 	}
 
-	if err := clientState.VerifyMembership(cachedCtx, k.ClientStore(cachedCtx, req.ClientId), k.cdc, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
+	// consume flat gas fee for proof verification queries.
+	// NOTE: consuming gas prior to method invocation also provides protection against recursive calls reaching stack overflow
+	ctx.GasMeter().ConsumeGas(
+		3*ctx.KVGasConfig().ReadCostPerByte*uint64(len(req.Proof)),
+		"verify membership query",
+	)
+
+	if err := clientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
 		k.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
 		return &types.QueryVerifyMembershipResponse{
 			Success: false,

@@ -24,6 +24,11 @@ func TestCodecTypeRegistration(t *testing.T) {
 			true,
 		},
 		{
+			"success: MsgModuleQuerySafe",
+			sdk.MsgTypeURL(&types.MsgModuleQuerySafe{}),
+			true,
+		},
+		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
 			false,

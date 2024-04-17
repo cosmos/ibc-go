@@ -3,17 +3,17 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v7 "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
-	keeper Keeper
+	keeper *Keeper
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper) Migrator {
+func NewMigrator(keeper *Keeper) Migrator {
 	return Migrator{keeper: keeper}
 }
 

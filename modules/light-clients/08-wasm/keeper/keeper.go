@@ -3,13 +3,10 @@ package keeper
 import (
 	"bytes"
 	"encoding/hex"
-	"errors"
-	"fmt"
-	"strings"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
-	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,81 +22,18 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc          codec.BinaryCodec
-	storeService storetypes.KVStoreService
+	cdc codec.BinaryCodec
+
+	storeService store.KVStoreService
 
 	clientKeeper types.ClientKeeper
 
 	authority string
 }
 
-// NewKeeperWithVM creates a new Keeper instance with the provided Wasm VM.
-// This constructor function is meant to be used when the chain uses x/wasm
-// and the same Wasm VM instance should be shared with it.
-func NewKeeperWithVM(
-	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
-	clientKeeper types.ClientKeeper,
-	authority string,
-	vm ibcwasm.WasmEngine,
-	queryRouter ibcwasm.QueryRouter,
-	opts ...Option,
-) Keeper {
-	if clientKeeper == nil {
-		panic(errors.New("client keeper must be not nil"))
-	}
-
-	if vm == nil {
-		panic(errors.New("wasm VM must be not nil"))
-	}
-
-	if storeService == nil {
-		panic(errors.New("store service must be not nil"))
-	}
-
-	if strings.TrimSpace(authority) == "" {
-		panic(errors.New("authority must be non-empty"))
-	}
-
-	keeper := &Keeper{
-		cdc:          cdc,
-		storeService: storeService,
-		clientKeeper: clientKeeper,
-		authority:    authority,
-	}
-
-	// set query plugins to ensure there is a non-nil query plugin
-	// regardless of what options the user provides
-	ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
-	for _, opt := range opts {
-		opt.apply(keeper)
-	}
-
-	ibcwasm.SetVM(vm)
-	ibcwasm.SetQueryRouter(queryRouter)
-	ibcwasm.SetupWasmStoreService(storeService)
-
-	return *keeper
-}
-
-// NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
-// This constructor function is meant to be used when the chain does not use x/wasm
-// and a Wasm VM needs to be instantiated using the provided parameters.
-func NewKeeperWithConfig(
-	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
-	clientKeeper types.ClientKeeper,
-	authority string,
-	wasmConfig types.WasmConfig,
-	queryRouter ibcwasm.QueryRouter,
-	opts ...Option,
-) Keeper {
-	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
-	if err != nil {
-		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
-	}
-
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, queryRouter, opts...)
+// Codec returns the 08-wasm module's codec.
+func (k Keeper) Codec() codec.BinaryCodec {
+	return k.cdc
 }
 
 // GetAuthority returns the 08-wasm module's authority.
@@ -107,7 +41,7 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
+func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
@@ -133,8 +67,9 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 	}
 
 	// create the code in the vm
-	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
-	vmChecksum, err := storeFn(code)
+	gasLeft := types.VMGasRegister.RuntimeGasForContract(ctx)
+	vmChecksum, gasUsed, err := storeFn(code, gasLeft)
+	types.VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}

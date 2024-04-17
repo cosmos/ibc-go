@@ -25,7 +25,11 @@ rm -rf github.com
 
 go mod tidy
 
-./scripts/protocgen-pulsar.sh
+echo "Cleaning API directory"
+(cd api; find ./ -type f \( -iname \*.pulsar.go -o -iname \*.pb.go -o -iname \*.pb.gw.go \) -delete; find . -empty -type d -delete; cd ..)
+
+echo "Generating API module"
+(cd proto; buf generate --template buf.gen.pulsar.yaml)
 
 # move pulsar files to the right places
 cp -r api/github.com/cosmos/ibc-go/api/* api/

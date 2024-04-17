@@ -45,16 +45,18 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: true,
 		},
 		{
 			name: "successful upgrade to same revision",
 			setup: func() {
-				upgradedClient = ibctm.NewClientState(suite.chainB.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), upgradedClient.GetLatestHeight().GetRevisionHeight()+10), commitmenttypes.GetSDKSpecs(), upgradePath)
+				upgradedClient = ibctm.NewClientState(suite.chainB.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), upgradedClient.LatestHeight.GetRevisionHeight()+10), commitmenttypes.GetSDKSpecs(), upgradePath)
 				upgradedClient = upgradedClient.ZeroCustomFields()
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
@@ -74,9 +76,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: true,
 		},
@@ -99,9 +103,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -128,9 +134,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -153,9 +161,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -175,9 +185,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -204,9 +216,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -217,8 +231,10 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 
 				upgradedClientProof = []byte("proof")
 			},
@@ -231,8 +247,10 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 
 				upgradedConsensusStateProof = []byte("proof")
 			},
@@ -250,9 +268,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -268,9 +288,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -291,12 +313,15 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 
 				// SetClientState with empty upgrade path
-				tmClient, _ := cs.(*ibctm.ClientState)
+				tmClient, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 				tmClient.UpgradePath = []string{""}
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
 			},
@@ -319,9 +344,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -342,9 +369,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -365,9 +394,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -388,9 +419,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -417,9 +450,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 
-				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
 			expPass: false,
 		},
@@ -435,14 +470,15 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 			path.SetupClients()
 
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
 			var err error
 			newChainID, err = clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
 			suite.Require().NoError(err)
 
-			upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
+			upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
 			upgradedClient = upgradedClient.ZeroCustomFields()
 			upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 			suite.Require().NoError(err)
@@ -455,7 +491,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 			tc.setup()
 
-			cs := suite.chainA.GetClientState(path.EndpointA.ClientID)
+			cs, ok := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			// Call ZeroCustomFields on upgraded clients to clear any client-chosen parameters in test-case upgradedClient
@@ -474,10 +511,11 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 			if tc.expPass {
 				suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
 
-				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
+				clientState, ok := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)
+				suite.Require().True(ok)
 				suite.Require().NotNil(clientState, "verify upgrade failed on valid case: %s", tc.name)
 
-				consensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+				consensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.LatestHeight)
 				suite.Require().NotNil(consensusState, "verify upgrade failed on valid case: %s", tc.name)
 				suite.Require().True(found)
 			} else {
