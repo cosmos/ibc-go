@@ -218,7 +218,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, ibctesting.InvalidID, newChecksum, []byte("{}"))
 			},
-			clienttypes.ErrClientTypeNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
 			"failure: vm returns error",
