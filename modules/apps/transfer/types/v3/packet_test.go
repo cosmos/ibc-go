@@ -35,7 +35,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		expErr     error
 	}{
 		{
-			"valid packet",
+			"success: valid packet",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -51,7 +51,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			nil,
 		},
 		{
-			"valid packet with memo",
+			"success: valid packet with memo",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -67,7 +67,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			nil,
 		},
 		{
-			"valid packet with large amount",
+			"success: valid packet with large amount",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -83,7 +83,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			nil,
 		},
 		{
-			"invalid denom",
+			"failure: invalid denom",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -99,7 +99,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			types.ErrInvalidDenomForTransfer,
 		},
 		{
-			"invalid empty amount",
+			"failure: invalid empty amount",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -115,7 +115,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			types.ErrInvalidAmount,
 		},
 		{
-			"invalid empty token array",
+			"failure: invalid empty token array",
 			NewFungibleTokenPacketData(
 				[]*Token{},
 				sender,
@@ -125,7 +125,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			types.ErrInvalidAmount,
 		},
 		{
-			"invalid zero amount",
+			"failure: invalid zero amount",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -141,7 +141,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			types.ErrInvalidAmount,
 		},
 		{
-			"invalid negative amount",
+			"failure: invalid negative amount",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -157,7 +157,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			types.ErrInvalidAmount,
 		},
 		{
-			"invalid large amount",
+			"failure: invalid large amount",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -173,7 +173,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			types.ErrInvalidAmount,
 		},
 		{
-			"missing sender address",
+			"failure: missing sender address",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -189,7 +189,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
-			"missing recipient address",
+			"failure: missing recipient address",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -206,20 +206,62 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		},
 	}
 
-	for i, tc := range testCases {
-
+	for _, tc := range testCases {
 		err := tc.packetData.ValidateBasic()
 
 		expPass := tc.expErr == nil
 		if expPass {
-			require.NoError(t, err, "valid test case %d failed: %v", i, err)
+			require.NoError(t, err, tc.name)
 		} else {
-			require.ErrorContains(t, err, tc.expErr.Error(), "invalid test case %d passed: %s", i, tc.name)
+			require.ErrorContains(t, err, tc.expErr.Error(), tc.name)
 		}
 	}
 }
 
 func TestGetPacketSender(t *testing.T) {
+	testCases := []struct {
+		name       string
+		packetData FungibleTokenPacketData
+		expSender  string
+	}{
+		{
+			"non-empty sender field",
+			NewFungibleTokenPacketData(
+				[]*Token{
+					{
+						Denom:  "atom/pool",
+						Amount: "1000",
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			sender,
+		},
+		{
+			"empty sender field",
+			NewFungibleTokenPacketData(
+				[]*Token{
+					{
+						Denom:  "atom/pool",
+						Amount: "1000",
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				"",
+				receiver,
+				"abc",
+			),
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		require.Equal(t, tc.expSender, tc.packetData.GetPacketSender(types.PortID))
+	}
+
 	packetData := NewFungibleTokenPacketData(
 		[]*Token{
 			{
@@ -348,32 +390,57 @@ func TestPacketDataProvider(t *testing.T) {
 }
 
 func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
-	// check that omitempty is present for the memo field
-	packetData := NewFungibleTokenPacketData(
-		[]*Token{
-			{
-				Denom:  "atom/pool",
-				Amount: "1000",
-				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
-			},
+	testCases := []struct {
+		name       string
+		packetData FungibleTokenPacketData
+		expMemo    bool
+	}{
+		{
+			"empty memo field, resulting marshalled bytes should not contain the memo field",
+			NewFungibleTokenPacketData(
+				[]*Token{
+					{
+						Denom:  "atom/pool",
+						Amount: "1000",
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			false,
 		},
-		sender,
-		receiver,
-		"",
-	)
+		{
+			"non-empty memo field, resulting marshalled bytes should contain the memo field",
+			NewFungibleTokenPacketData(
+				[]*Token{
+					{
+						Denom:  "atom/pool",
+						Amount: "1000",
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"abc",
+			),
+			true,
+		},
+	}
 
-	bz, err := json.Marshal(packetData)
-	require.NoError(t, err)
-
-	// check that the memo field is not present in the marshalled bytes
-	require.NotContains(t, string(bz), "memo")
-
-	packetData.Memo = "abc"
-	bz, err = json.Marshal(packetData)
-	require.NoError(t, err)
-
-	// check that the memo field is present in the marshalled bytes
-	require.Contains(t, string(bz), "memo")
+	for _, tc := range testCases {
+		bz, err := json.Marshal(tc.packetData)
+		if tc.expMemo {
+			require.NoError(t, err, tc.name)
+			// check that the memo field is present in the marshalled bytes
+			require.Contains(t, string(bz), "memo")
+		} else {
+			require.NoError(t, err, tc.name)
+			// check that the memo field is not present in the marshalled bytes
+			require.NotContains(t, string(bz), "memo")
+		}
+	}
 }
 
 func TestGetFullDenomPath(t *testing.T) {
@@ -399,7 +466,7 @@ func TestGetFullDenomPath(t *testing.T) {
 			"transfer/channel-0/transfer/channel-1/atom/pool",
 		},
 		{
-			"no trace",
+			"nil trace",
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
@@ -414,14 +481,28 @@ func TestGetFullDenomPath(t *testing.T) {
 			),
 			"atom/pool",
 		},
+		{
+			"empty string trace",
+			NewFungibleTokenPacketData(
+				[]*Token{
+					{
+						Denom:  "atom/pool",
+						Amount: "1000",
+						Trace:  []string{""},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			"atom/pool",
+		},
 	}
 
 	for _, tc := range testCases {
-
 		path := tc.packetData.Tokens[0].GetFullDenomPath()
 
 		require.Equal(t, tc.expPath, path)
-
 	}
 }
 
@@ -429,54 +510,62 @@ func TestValidate(t *testing.T) {
 	testCases := []struct {
 		name     string
 		token    Token
-		expError bool
+		expError error
 	}{
 		{
-			"multiple port channel pair denom",
+			"success: multiple port channel pair denom",
 			Token{
 				Denom:  "atom",
 				Amount: "1000",
 				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 			},
-			false,
+			nil,
 		},
 		{
-			"one port channel pair denom",
+			"success: one port channel pair denom",
 			Token{
 				Denom:  "uatom",
 				Amount: "1000",
 				Trace:  []string{"transfer/channel-1"},
 			},
-			false,
+			nil,
 		},
 		{
-			"non transfer port trace",
+			"success: non transfer port trace",
 			Token{
 				Denom:  "uatom",
 				Amount: "1000",
 				Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 			},
-			false,
+			nil,
 		},
 		{
-			"failure: panics with empty denom",
+			"failure: empty denom",
 			Token{
 				Denom:  "",
 				Amount: "1000",
 				Trace:  nil,
 			},
-			true,
+			types.ErrInvalidDenomForTransfer,
+		},
+		{
+			"failure: invalid identifier in trace",
+			Token{
+				Denom:  "uatom",
+				Amount: "1000",
+				Trace:  []string{"transfer/channel-1", "randomport"},
+			},
+			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: randomport"),
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		err := tc.token.Validate()
-		if tc.expError {
-			require.Error(t, err, tc.name)
-			continue
+		expPass := tc.expError == nil
+		if expPass {
+			require.NoError(t, err, tc.name)
+		} else {
+			require.ErrorContains(t, err, tc.expError.Error(), tc.name)
 		}
-		require.NoError(t, err, tc.name)
 	}
 }

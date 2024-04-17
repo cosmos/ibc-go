@@ -85,10 +85,15 @@ func (t *Token) Validate() error {
 	return denominternal.ValidateTraceIdentifiers(identifiers)
 }
 
+// GetFullDenomPath returns the full denomination according to the ICS20 specification:
+// tracePath + "/" + baseDenom
+// If there exists no trace then the base denomination is returned.
 func (t *Token) GetFullDenomPath() string {
-	if len(t.Trace) == 0 {
+	trace := strings.Join(t.Trace, "/")
+	if len(trace) == 0 {
 		return t.Denom
 	}
+
 	return strings.Join(append(t.Trace, t.Denom), "/")
 }
 
