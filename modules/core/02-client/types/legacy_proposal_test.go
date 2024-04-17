@@ -74,7 +74,8 @@ func (suite *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
 	cdc := codec.NewProtoCodec(ir)
 
 	// marshal message
-	content := proposal.(*types.ClientUpdateProposal)
+	content, ok := proposal.(*types.ClientUpdateProposal)
+	suite.Require().True(ok)
 	bz, err := cdc.MarshalJSON(content)
 	suite.Require().NoError(err)
 

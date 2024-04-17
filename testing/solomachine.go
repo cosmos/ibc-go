@@ -298,7 +298,7 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
 		connectionID, connectionIDSolomachine, clientState,
 		tryProof, clientProof, consensusProof,
-		clienttypes.ZeroHeight(), clientState.GetLatestHeight().(clienttypes.Height),
+		clienttypes.ZeroHeight(), clientState.LatestHeight,
 		ConnectionVersion,
 		chain.SenderAccount.GetAddress().String(),
 	)

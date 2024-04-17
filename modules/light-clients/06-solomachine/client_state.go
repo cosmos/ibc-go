@@ -1,8 +1,6 @@
 package solomachine
 
 import (
-	"reflect"
-
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -32,13 +30,6 @@ func NewClientState(latestSequence uint64, consensusState *ConsensusState) *Clie
 // ClientType is Solo Machine.
 func (ClientState) ClientType() string {
 	return exported.Solomachine
-}
-
-// GetLatestHeight returns the latest sequence number.
-// Return exported.Height to satisfy ClientState interface
-// Revision number is always 0 for a solo-machine.
-func (cs ClientState) GetLatestHeight() exported.Height {
-	return clienttypes.NewHeight(0, cs.Sequence)
 }
 
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
@@ -72,27 +63,6 @@ func (cs ClientState) Validate() error {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be nil")
 	}
 	return cs.ConsensusState.ValidateBasic()
-}
-
-// Initialize checks that the initial consensus state is equal to the latest consensus state of the initial client and
-// sets the client state in the provided client store.
-func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
-	if !reflect.DeepEqual(cs.ConsensusState, consState) {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
-			cs.ConsensusState, consState)
-	}
-
-	setClientState(clientStore, cdc, &cs)
-
-	return nil
-}
-
-// VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
-func (ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
-	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
-) error {
-	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
@@ -239,7 +209,7 @@ func produceVerificationArgs(
 		return nil, nil, 0, 0, errorsmod.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
 	}
 
-	sequence := cs.GetLatestHeight().GetRevisionHeight()
+	sequence := cs.Sequence
 	publicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
 		return nil, nil, 0, 0, err

@@ -49,30 +49,30 @@ const config = {
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
           // Select the latest version
-          lastVersion: "v8.1.x",
+          lastVersion: "v8.2.x",
           // Assign banners to specific versions
           versions: {
             current: {
               path: "main",
               banner: "unreleased",
             },
-            "v8.1.x": {
+            "v8.2.x": {
               path: "v8",
               banner: "none",
             },
-            "v7.3.x": {
+            "v7.4.x": {
               path: "v7",
               banner: "none",
             },
-            "v6.2.x": {
+            "v6.3.x": {
               path: "v6",
               banner: "none",
             },
-            "v5.3.x": {
+            "v5.4.x": {
               path: "v5",
               banner: "none",
             },
-            "v4.5.x": {
+            "v4.6.x": {
               path: "v4",
               banner: "none",
             },
@@ -172,7 +172,7 @@ const config = {
             items: [
               {
                 label: "Discord",
-                href: "https://discord.gg/Wtmk6ZNa8G",
+                href: "https://discord.com/invite/interchain",
               },
               {
                 label: "Twitter",
