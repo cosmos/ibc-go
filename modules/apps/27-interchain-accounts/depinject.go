@@ -44,7 +44,8 @@ type ModuleInputs struct {
 	ScopedKeeper  capabilitykeeper.ScopedKeeper
 	AccountKeeper types.AccountKeeper
 
-	MsgRouter types.MessageRouter
+	MsgRouter   types.MessageRouter
+	QueryRouter types.QueryRouter
 
 	// LegacySubspace is used solely for migration of x/params managed parameters
 	LegacySubspace paramtypes.Subspace `optional:"true"`
@@ -88,6 +89,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.AccountKeeper,
 		in.ScopedKeeper,
 		in.MsgRouter,
+		in.QueryRouter,
 		authority.String(),
 	)
 	m := NewAppModule(&controllerkeeper, &hostkeeper)
