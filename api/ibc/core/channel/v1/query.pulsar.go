@@ -2,10 +2,10 @@
 package channelv1
 
 import (
+	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
-	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/client/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -1238,7 +1238,7 @@ func (x *fastReflection_QueryChannelsRequest) Get(descriptor protoreflect.FieldD
 func (x *fastReflection_QueryChannelsRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.core.channel.v1.QueryChannelsRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.core.channel.v1.QueryChannelsRequest"))
@@ -1261,7 +1261,7 @@ func (x *fastReflection_QueryChannelsRequest) Mutable(fd protoreflect.FieldDescr
 	switch fd.FullName() {
 	case "ibc.core.channel.v1.QueryChannelsRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	default:
@@ -1278,7 +1278,7 @@ func (x *fastReflection_QueryChannelsRequest) Mutable(fd protoreflect.FieldDescr
 func (x *fastReflection_QueryChannelsRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.core.channel.v1.QueryChannelsRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -1475,7 +1475,7 @@ func (x *fastReflection_QueryChannelsRequest) ProtoMethods() *protoiface.Methods
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -1761,7 +1761,7 @@ func (x *fastReflection_QueryChannelsResponse) Set(fd protoreflect.FieldDescript
 		clv := lv.(*_QueryChannelsResponse_1_list)
 		x.Channels = *clv.list
 	case "ibc.core.channel.v1.QueryChannelsResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	case "ibc.core.channel.v1.QueryChannelsResponse.height":
 		x.Height = value.Message().Interface().(*v1.Height)
 	default:
@@ -1792,7 +1792,7 @@ func (x *fastReflection_QueryChannelsResponse) Mutable(fd protoreflect.FieldDesc
 		return protoreflect.ValueOfList(value)
 	case "ibc.core.channel.v1.QueryChannelsResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.core.channel.v1.QueryChannelsResponse.height":
@@ -1817,7 +1817,7 @@ func (x *fastReflection_QueryChannelsResponse) NewField(fd protoreflect.FieldDes
 		list := []*IdentifiedChannel{}
 		return protoreflect.ValueOfList(&_QueryChannelsResponse_1_list{list: &list})
 	case "ibc.core.channel.v1.QueryChannelsResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.channel.v1.QueryChannelsResponse.height":
 		m := new(v1.Height)
@@ -2091,7 +2091,7 @@ func (x *fastReflection_QueryChannelsResponse) ProtoMethods() *protoiface.Method
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -2342,7 +2342,7 @@ func (x *fastReflection_QueryConnectionChannelsRequest) Set(fd protoreflect.Fiel
 	case "ibc.core.channel.v1.QueryConnectionChannelsRequest.connection":
 		x.Connection = value.Interface().(string)
 	case "ibc.core.channel.v1.QueryConnectionChannelsRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.core.channel.v1.QueryConnectionChannelsRequest"))
@@ -2365,7 +2365,7 @@ func (x *fastReflection_QueryConnectionChannelsRequest) Mutable(fd protoreflect.
 	switch fd.FullName() {
 	case "ibc.core.channel.v1.QueryConnectionChannelsRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.core.channel.v1.QueryConnectionChannelsRequest.connection":
@@ -2386,7 +2386,7 @@ func (x *fastReflection_QueryConnectionChannelsRequest) NewField(fd protoreflect
 	case "ibc.core.channel.v1.QueryConnectionChannelsRequest.connection":
 		return protoreflect.ValueOfString("")
 	case "ibc.core.channel.v1.QueryConnectionChannelsRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -2626,7 +2626,7 @@ func (x *fastReflection_QueryConnectionChannelsRequest) ProtoMethods() *protoifa
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -2912,7 +2912,7 @@ func (x *fastReflection_QueryConnectionChannelsResponse) Set(fd protoreflect.Fie
 		clv := lv.(*_QueryConnectionChannelsResponse_1_list)
 		x.Channels = *clv.list
 	case "ibc.core.channel.v1.QueryConnectionChannelsResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	case "ibc.core.channel.v1.QueryConnectionChannelsResponse.height":
 		x.Height = value.Message().Interface().(*v1.Height)
 	default:
@@ -2943,7 +2943,7 @@ func (x *fastReflection_QueryConnectionChannelsResponse) Mutable(fd protoreflect
 		return protoreflect.ValueOfList(value)
 	case "ibc.core.channel.v1.QueryConnectionChannelsResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.core.channel.v1.QueryConnectionChannelsResponse.height":
@@ -2968,7 +2968,7 @@ func (x *fastReflection_QueryConnectionChannelsResponse) NewField(fd protoreflec
 		list := []*IdentifiedChannel{}
 		return protoreflect.ValueOfList(&_QueryConnectionChannelsResponse_1_list{list: &list})
 	case "ibc.core.channel.v1.QueryConnectionChannelsResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.channel.v1.QueryConnectionChannelsResponse.height":
 		m := new(v1.Height)
@@ -3242,7 +3242,7 @@ func (x *fastReflection_QueryConnectionChannelsResponse) ProtoMethods() *protoif
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -6897,7 +6897,7 @@ func (x *fastReflection_QueryPacketCommitmentsRequest) Set(fd protoreflect.Field
 	case "ibc.core.channel.v1.QueryPacketCommitmentsRequest.channel_id":
 		x.ChannelId = value.Interface().(string)
 	case "ibc.core.channel.v1.QueryPacketCommitmentsRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.core.channel.v1.QueryPacketCommitmentsRequest"))
@@ -6920,7 +6920,7 @@ func (x *fastReflection_QueryPacketCommitmentsRequest) Mutable(fd protoreflect.F
 	switch fd.FullName() {
 	case "ibc.core.channel.v1.QueryPacketCommitmentsRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.core.channel.v1.QueryPacketCommitmentsRequest.port_id":
@@ -6945,7 +6945,7 @@ func (x *fastReflection_QueryPacketCommitmentsRequest) NewField(fd protoreflect.
 	case "ibc.core.channel.v1.QueryPacketCommitmentsRequest.channel_id":
 		return protoreflect.ValueOfString("")
 	case "ibc.core.channel.v1.QueryPacketCommitmentsRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -7228,7 +7228,7 @@ func (x *fastReflection_QueryPacketCommitmentsRequest) ProtoMethods() *protoifac
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -7514,7 +7514,7 @@ func (x *fastReflection_QueryPacketCommitmentsResponse) Set(fd protoreflect.Fiel
 		clv := lv.(*_QueryPacketCommitmentsResponse_1_list)
 		x.Commitments = *clv.list
 	case "ibc.core.channel.v1.QueryPacketCommitmentsResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	case "ibc.core.channel.v1.QueryPacketCommitmentsResponse.height":
 		x.Height = value.Message().Interface().(*v1.Height)
 	default:
@@ -7545,7 +7545,7 @@ func (x *fastReflection_QueryPacketCommitmentsResponse) Mutable(fd protoreflect.
 		return protoreflect.ValueOfList(value)
 	case "ibc.core.channel.v1.QueryPacketCommitmentsResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.core.channel.v1.QueryPacketCommitmentsResponse.height":
@@ -7570,7 +7570,7 @@ func (x *fastReflection_QueryPacketCommitmentsResponse) NewField(fd protoreflect
 		list := []*PacketState{}
 		return protoreflect.ValueOfList(&_QueryPacketCommitmentsResponse_1_list{list: &list})
 	case "ibc.core.channel.v1.QueryPacketCommitmentsResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.channel.v1.QueryPacketCommitmentsResponse.height":
 		m := new(v1.Height)
@@ -7844,7 +7844,7 @@ func (x *fastReflection_QueryPacketCommitmentsResponse) ProtoMethods() *protoifa
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -10362,7 +10362,7 @@ func (x *fastReflection_QueryPacketAcknowledgementsRequest) Set(fd protoreflect.
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsRequest.channel_id":
 		x.ChannelId = value.Interface().(string)
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsRequest.packet_commitment_sequences":
 		lv := value.List()
 		clv := lv.(*_QueryPacketAcknowledgementsRequest_4_list)
@@ -10389,7 +10389,7 @@ func (x *fastReflection_QueryPacketAcknowledgementsRequest) Mutable(fd protorefl
 	switch fd.FullName() {
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsRequest.packet_commitment_sequences":
@@ -10420,7 +10420,7 @@ func (x *fastReflection_QueryPacketAcknowledgementsRequest) NewField(fd protoref
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsRequest.channel_id":
 		return protoreflect.ValueOfString("")
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsRequest.packet_commitment_sequences":
 		list := []uint64{}
@@ -10733,7 +10733,7 @@ func (x *fastReflection_QueryPacketAcknowledgementsRequest) ProtoMethods() *prot
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -11095,7 +11095,7 @@ func (x *fastReflection_QueryPacketAcknowledgementsResponse) Set(fd protoreflect
 		clv := lv.(*_QueryPacketAcknowledgementsResponse_1_list)
 		x.Acknowledgements = *clv.list
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsResponse.height":
 		x.Height = value.Message().Interface().(*v1.Height)
 	default:
@@ -11126,7 +11126,7 @@ func (x *fastReflection_QueryPacketAcknowledgementsResponse) Mutable(fd protoref
 		return protoreflect.ValueOfList(value)
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsResponse.height":
@@ -11151,7 +11151,7 @@ func (x *fastReflection_QueryPacketAcknowledgementsResponse) NewField(fd protore
 		list := []*PacketState{}
 		return protoreflect.ValueOfList(&_QueryPacketAcknowledgementsResponse_1_list{list: &list})
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.channel.v1.QueryPacketAcknowledgementsResponse.height":
 		m := new(v1.Height)
@@ -11425,7 +11425,7 @@ func (x *fastReflection_QueryPacketAcknowledgementsResponse) ProtoMethods() *pro
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -19168,7 +19168,7 @@ type QueryChannelsRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// pagination request
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryChannelsRequest) Reset() {
@@ -19191,7 +19191,7 @@ func (*QueryChannelsRequest) Descriptor() ([]byte, []int) {
 	return file_ibc_core_channel_v1_query_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *QueryChannelsRequest) GetPagination() *query.PageRequest {
+func (x *QueryChannelsRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -19207,7 +19207,7 @@ type QueryChannelsResponse struct {
 	// list of stored channels of the chain.
 	Channels []*IdentifiedChannel `protobuf:"bytes,1,rep,name=channels,proto3" json:"channels,omitempty"`
 	// pagination response
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// query block height
 	Height *v1.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height,omitempty"`
 }
@@ -19239,7 +19239,7 @@ func (x *QueryChannelsResponse) GetChannels() []*IdentifiedChannel {
 	return nil
 }
 
-func (x *QueryChannelsResponse) GetPagination() *query.PageResponse {
+func (x *QueryChannelsResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -19263,7 +19263,7 @@ type QueryConnectionChannelsRequest struct {
 	// connection unique identifier
 	Connection string `protobuf:"bytes,1,opt,name=connection,proto3" json:"connection,omitempty"`
 	// pagination request
-	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryConnectionChannelsRequest) Reset() {
@@ -19293,7 +19293,7 @@ func (x *QueryConnectionChannelsRequest) GetConnection() string {
 	return ""
 }
 
-func (x *QueryConnectionChannelsRequest) GetPagination() *query.PageRequest {
+func (x *QueryConnectionChannelsRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -19310,7 +19310,7 @@ type QueryConnectionChannelsResponse struct {
 	// list of channels associated with a connection.
 	Channels []*IdentifiedChannel `protobuf:"bytes,1,rep,name=channels,proto3" json:"channels,omitempty"`
 	// pagination response
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// query block height
 	Height *v1.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height,omitempty"`
 }
@@ -19342,7 +19342,7 @@ func (x *QueryConnectionChannelsResponse) GetChannels() []*IdentifiedChannel {
 	return nil
 }
 
-func (x *QueryConnectionChannelsResponse) GetPagination() *query.PageResponse {
+func (x *QueryConnectionChannelsResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -19714,7 +19714,7 @@ type QueryPacketCommitmentsRequest struct {
 	// channel unique identifier
 	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 	// pagination request
-	Pagination *query.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryPacketCommitmentsRequest) Reset() {
@@ -19751,7 +19751,7 @@ func (x *QueryPacketCommitmentsRequest) GetChannelId() string {
 	return ""
 }
 
-func (x *QueryPacketCommitmentsRequest) GetPagination() *query.PageRequest {
+func (x *QueryPacketCommitmentsRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -19767,7 +19767,7 @@ type QueryPacketCommitmentsResponse struct {
 
 	Commitments []*PacketState `protobuf:"bytes,1,rep,name=commitments,proto3" json:"commitments,omitempty"`
 	// pagination response
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// query block height
 	Height *v1.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height,omitempty"`
 }
@@ -19799,7 +19799,7 @@ func (x *QueryPacketCommitmentsResponse) GetCommitments() []*PacketState {
 	return nil
 }
 
-func (x *QueryPacketCommitmentsResponse) GetPagination() *query.PageResponse {
+func (x *QueryPacketCommitmentsResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -20051,7 +20051,7 @@ type QueryPacketAcknowledgementsRequest struct {
 	// channel unique identifier
 	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 	// pagination request
-	Pagination *query.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// list of packet sequences
 	PacketCommitmentSequences []uint64 `protobuf:"varint,4,rep,packed,name=packet_commitment_sequences,json=packetCommitmentSequences,proto3" json:"packet_commitment_sequences,omitempty"`
 }
@@ -20090,7 +20090,7 @@ func (x *QueryPacketAcknowledgementsRequest) GetChannelId() string {
 	return ""
 }
 
-func (x *QueryPacketAcknowledgementsRequest) GetPagination() *query.PageRequest {
+func (x *QueryPacketAcknowledgementsRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -20113,7 +20113,7 @@ type QueryPacketAcknowledgementsResponse struct {
 
 	Acknowledgements []*PacketState `protobuf:"bytes,1,rep,name=acknowledgements,proto3" json:"acknowledgements,omitempty"`
 	// pagination response
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// query block height
 	Height *v1.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height,omitempty"`
 }
@@ -20145,7 +20145,7 @@ func (x *QueryPacketAcknowledgementsResponse) GetAcknowledgements() []*PacketSta
 	return nil
 }
 
-func (x *QueryPacketAcknowledgementsResponse) GetPagination() *query.PageResponse {
+func (x *QueryPacketAcknowledgementsResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -21458,9 +21458,9 @@ var file_ibc_core_channel_v1_query_proto_goTypes = []interface{}{
 	(*QueryChannelParamsResponse)(nil),          // 33: ibc.core.channel.v1.QueryChannelParamsResponse
 	(*Channel)(nil),                             // 34: ibc.core.channel.v1.Channel
 	(*v1.Height)(nil),                           // 35: ibc.core.client.v1.Height
-	(*query.PageRequest)(nil),                   // 36: cosmos.base.query.v1beta1.PageRequest
+	(*v1beta1.PageRequest)(nil),                 // 36: cosmos.base.query.v1beta1.PageRequest
 	(*IdentifiedChannel)(nil),                   // 37: ibc.core.channel.v1.IdentifiedChannel
-	(*query.PageResponse)(nil),                  // 38: cosmos.base.query.v1beta1.PageResponse
+	(*v1beta1.PageResponse)(nil),                // 38: cosmos.base.query.v1beta1.PageResponse
 	(*v1.IdentifiedClientState)(nil),            // 39: ibc.core.client.v1.IdentifiedClientState
 	(*types.Any)(nil),                           // 40: google.protobuf.Any
 	(*PacketState)(nil),                         // 41: ibc.core.channel.v1.PacketState

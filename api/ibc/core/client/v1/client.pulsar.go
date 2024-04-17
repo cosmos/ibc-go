@@ -2,7 +2,7 @@
 package clientv1
 
 import (
-	types1 "cosmossdk.io/x/upgrade/types"
+	v1beta1 "cosmossdk.io/api/cosmos/upgrade/v1beta1"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
@@ -3337,7 +3337,7 @@ func (x *fastReflection_UpgradeProposal) Set(fd protoreflect.FieldDescriptor, va
 	case "ibc.core.client.v1.UpgradeProposal.description":
 		x.Description = value.Interface().(string)
 	case "ibc.core.client.v1.UpgradeProposal.plan":
-		x.Plan = value.Message().Interface().(*types1.Plan)
+		x.Plan = value.Message().Interface().(*v1beta1.Plan)
 	case "ibc.core.client.v1.UpgradeProposal.upgraded_client_state":
 		x.UpgradedClientState = value.Message().Interface().(*types.Any)
 	default:
@@ -3362,7 +3362,7 @@ func (x *fastReflection_UpgradeProposal) Mutable(fd protoreflect.FieldDescriptor
 	switch fd.FullName() {
 	case "ibc.core.client.v1.UpgradeProposal.plan":
 		if x.Plan == nil {
-			x.Plan = new(types1.Plan)
+			x.Plan = new(v1beta1.Plan)
 		}
 		return protoreflect.ValueOfMessage(x.Plan.ProtoReflect())
 	case "ibc.core.client.v1.UpgradeProposal.upgraded_client_state":
@@ -3392,7 +3392,7 @@ func (x *fastReflection_UpgradeProposal) NewField(fd protoreflect.FieldDescripto
 	case "ibc.core.client.v1.UpgradeProposal.description":
 		return protoreflect.ValueOfString("")
 	case "ibc.core.client.v1.UpgradeProposal.plan":
-		m := new(types1.Plan)
+		m := new(v1beta1.Plan)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.UpgradeProposal.upgraded_client_state":
 		m := new(types.Any)
@@ -3696,7 +3696,7 @@ func (x *fastReflection_UpgradeProposal) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Plan == nil {
-					x.Plan = &types1.Plan{}
+					x.Plan = &v1beta1.Plan{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Plan); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -4104,9 +4104,9 @@ type UpgradeProposal struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Title       string       `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Description string       `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Plan        *types1.Plan `protobuf:"bytes,3,opt,name=plan,proto3" json:"plan,omitempty"`
+	Title       string        `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Description string        `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Plan        *v1beta1.Plan `protobuf:"bytes,3,opt,name=plan,proto3" json:"plan,omitempty"`
 	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
 	// This will make the chain commit to the correct upgraded (self) client state
 	// before the upgrade occurs, so that connecting chains can verify that the
@@ -4150,7 +4150,7 @@ func (x *UpgradeProposal) GetDescription() string {
 	return ""
 }
 
-func (x *UpgradeProposal) GetPlan() *types1.Plan {
+func (x *UpgradeProposal) GetPlan() *v1beta1.Plan {
 	if x != nil {
 		return x.Plan
 	}
@@ -4286,7 +4286,7 @@ var file_ibc_core_client_v1_client_proto_goTypes = []interface{}{
 	(*ClientUpdateProposal)(nil),     // 5: ibc.core.client.v1.ClientUpdateProposal
 	(*UpgradeProposal)(nil),          // 6: ibc.core.client.v1.UpgradeProposal
 	(*types.Any)(nil),                // 7: google.protobuf.Any
-	(*types1.Plan)(nil),              // 8: cosmos.upgrade.v1beta1.Plan
+	(*v1beta1.Plan)(nil),             // 8: cosmos.upgrade.v1beta1.Plan
 }
 var file_ibc_core_client_v1_client_proto_depIdxs = []int32{
 	7, // 0: ibc.core.client.v1.IdentifiedClientState.client_state:type_name -> google.protobuf.Any

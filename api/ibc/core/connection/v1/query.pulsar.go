@@ -2,10 +2,10 @@
 package connectionv1
 
 import (
+	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
-	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/client/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -1174,7 +1174,7 @@ func (x *fastReflection_QueryConnectionsRequest) Get(descriptor protoreflect.Fie
 func (x *fastReflection_QueryConnectionsRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.core.connection.v1.QueryConnectionsRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.core.connection.v1.QueryConnectionsRequest"))
@@ -1197,7 +1197,7 @@ func (x *fastReflection_QueryConnectionsRequest) Mutable(fd protoreflect.FieldDe
 	switch fd.FullName() {
 	case "ibc.core.connection.v1.QueryConnectionsRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	default:
@@ -1214,7 +1214,7 @@ func (x *fastReflection_QueryConnectionsRequest) Mutable(fd protoreflect.FieldDe
 func (x *fastReflection_QueryConnectionsRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.core.connection.v1.QueryConnectionsRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -1411,7 +1411,7 @@ func (x *fastReflection_QueryConnectionsRequest) ProtoMethods() *protoiface.Meth
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -1697,7 +1697,7 @@ func (x *fastReflection_QueryConnectionsResponse) Set(fd protoreflect.FieldDescr
 		clv := lv.(*_QueryConnectionsResponse_1_list)
 		x.Connections = *clv.list
 	case "ibc.core.connection.v1.QueryConnectionsResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	case "ibc.core.connection.v1.QueryConnectionsResponse.height":
 		x.Height = value.Message().Interface().(*v1.Height)
 	default:
@@ -1728,7 +1728,7 @@ func (x *fastReflection_QueryConnectionsResponse) Mutable(fd protoreflect.FieldD
 		return protoreflect.ValueOfList(value)
 	case "ibc.core.connection.v1.QueryConnectionsResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.core.connection.v1.QueryConnectionsResponse.height":
@@ -1753,7 +1753,7 @@ func (x *fastReflection_QueryConnectionsResponse) NewField(fd protoreflect.Field
 		list := []*IdentifiedConnection{}
 		return protoreflect.ValueOfList(&_QueryConnectionsResponse_1_list{list: &list})
 	case "ibc.core.connection.v1.QueryConnectionsResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.connection.v1.QueryConnectionsResponse.height":
 		m := new(v1.Height)
@@ -2027,7 +2027,7 @@ func (x *fastReflection_QueryConnectionsResponse) ProtoMethods() *protoiface.Met
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -6215,7 +6215,7 @@ type QueryConnectionsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryConnectionsRequest) Reset() {
@@ -6238,7 +6238,7 @@ func (*QueryConnectionsRequest) Descriptor() ([]byte, []int) {
 	return file_ibc_core_connection_v1_query_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *QueryConnectionsRequest) GetPagination() *query.PageRequest {
+func (x *QueryConnectionsRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -6255,7 +6255,7 @@ type QueryConnectionsResponse struct {
 	// list of stored connections of the chain.
 	Connections []*IdentifiedConnection `protobuf:"bytes,1,rep,name=connections,proto3" json:"connections,omitempty"`
 	// pagination response
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// query block height
 	Height *v1.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height,omitempty"`
 }
@@ -6287,7 +6287,7 @@ func (x *QueryConnectionsResponse) GetConnections() []*IdentifiedConnection {
 	return nil
 }
 
-func (x *QueryConnectionsResponse) GetPagination() *query.PageResponse {
+func (x *QueryConnectionsResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -6914,9 +6914,9 @@ var file_ibc_core_connection_v1_query_proto_goTypes = []interface{}{
 	(*QueryConnectionParamsResponse)(nil),         // 11: ibc.core.connection.v1.QueryConnectionParamsResponse
 	(*ConnectionEnd)(nil),                         // 12: ibc.core.connection.v1.ConnectionEnd
 	(*v1.Height)(nil),                             // 13: ibc.core.client.v1.Height
-	(*query.PageRequest)(nil),                     // 14: cosmos.base.query.v1beta1.PageRequest
+	(*v1beta1.PageRequest)(nil),                   // 14: cosmos.base.query.v1beta1.PageRequest
 	(*IdentifiedConnection)(nil),                  // 15: ibc.core.connection.v1.IdentifiedConnection
-	(*query.PageResponse)(nil),                    // 16: cosmos.base.query.v1beta1.PageResponse
+	(*v1beta1.PageResponse)(nil),                  // 16: cosmos.base.query.v1beta1.PageResponse
 	(*v1.IdentifiedClientState)(nil),              // 17: ibc.core.client.v1.IdentifiedClientState
 	(*types.Any)(nil),                             // 18: google.protobuf.Any
 	(*Params)(nil),                                // 19: ibc.core.connection.v1.Params

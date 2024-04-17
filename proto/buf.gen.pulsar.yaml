@@ -7,9 +7,9 @@ managed:
       - buf.build/googleapis/googleapis
       - buf.build/cosmos/gogo-proto
       - buf.build/cosmos/cosmos-proto
-      - buf.build/cosmos/cosmos-sdk
       - buf.build/cosmos/ics23
     override:
+      buf.build/cosmos/cosmos-sdk: cosmossdk.io/api
 plugins:
   - name: go-pulsar
     out: ../api

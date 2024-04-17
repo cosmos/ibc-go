@@ -2,10 +2,10 @@
 package interchain_accountsv1
 
 import (
+	v1beta1 "cosmossdk.io/api/cosmos/auth/v1beta1"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/x/auth/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
@@ -187,7 +187,7 @@ func (x *fastReflection_InterchainAccount) Get(descriptor protoreflect.FieldDesc
 func (x *fastReflection_InterchainAccount) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.applications.interchain_accounts.v1.InterchainAccount.base_account":
-		x.BaseAccount = value.Message().Interface().(*types.BaseAccount)
+		x.BaseAccount = value.Message().Interface().(*v1beta1.BaseAccount)
 	case "ibc.applications.interchain_accounts.v1.InterchainAccount.account_owner":
 		x.AccountOwner = value.Interface().(string)
 	default:
@@ -212,7 +212,7 @@ func (x *fastReflection_InterchainAccount) Mutable(fd protoreflect.FieldDescript
 	switch fd.FullName() {
 	case "ibc.applications.interchain_accounts.v1.InterchainAccount.base_account":
 		if x.BaseAccount == nil {
-			x.BaseAccount = new(types.BaseAccount)
+			x.BaseAccount = new(v1beta1.BaseAccount)
 		}
 		return protoreflect.ValueOfMessage(x.BaseAccount.ProtoReflect())
 	case "ibc.applications.interchain_accounts.v1.InterchainAccount.account_owner":
@@ -231,7 +231,7 @@ func (x *fastReflection_InterchainAccount) Mutable(fd protoreflect.FieldDescript
 func (x *fastReflection_InterchainAccount) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.interchain_accounts.v1.InterchainAccount.base_account":
-		m := new(types.BaseAccount)
+		m := new(v1beta1.BaseAccount)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.applications.interchain_accounts.v1.InterchainAccount.account_owner":
 		return protoreflect.ValueOfString("")
@@ -441,7 +441,7 @@ func (x *fastReflection_InterchainAccount) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.BaseAccount == nil {
-					x.BaseAccount = &types.BaseAccount{}
+					x.BaseAccount = &v1beta1.BaseAccount{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.BaseAccount); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -533,8 +533,8 @@ type InterchainAccount struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	BaseAccount  *types.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3" json:"base_account,omitempty"`
-	AccountOwner string             `protobuf:"bytes,2,opt,name=account_owner,json=accountOwner,proto3" json:"account_owner,omitempty"`
+	BaseAccount  *v1beta1.BaseAccount `protobuf:"bytes,1,opt,name=base_account,json=baseAccount,proto3" json:"base_account,omitempty"`
+	AccountOwner string               `protobuf:"bytes,2,opt,name=account_owner,json=accountOwner,proto3" json:"account_owner,omitempty"`
 }
 
 func (x *InterchainAccount) Reset() {
@@ -557,7 +557,7 @@ func (*InterchainAccount) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_interchain_accounts_v1_account_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *InterchainAccount) GetBaseAccount() *types.BaseAccount {
+func (x *InterchainAccount) GetBaseAccount() *v1beta1.BaseAccount {
 	if x != nil {
 		return x.BaseAccount
 	}
@@ -636,8 +636,8 @@ func file_ibc_applications_interchain_accounts_v1_account_proto_rawDescGZIP() []
 
 var file_ibc_applications_interchain_accounts_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_ibc_applications_interchain_accounts_v1_account_proto_goTypes = []interface{}{
-	(*InterchainAccount)(nil), // 0: ibc.applications.interchain_accounts.v1.InterchainAccount
-	(*types.BaseAccount)(nil), // 1: cosmos.auth.v1beta1.BaseAccount
+	(*InterchainAccount)(nil),   // 0: ibc.applications.interchain_accounts.v1.InterchainAccount
+	(*v1beta1.BaseAccount)(nil), // 1: cosmos.auth.v1beta1.BaseAccount
 }
 var file_ibc_applications_interchain_accounts_v1_account_proto_depIdxs = []int32{
 	1, // 0: ibc.applications.interchain_accounts.v1.InterchainAccount.base_account:type_name -> cosmos.auth.v1beta1.BaseAccount
