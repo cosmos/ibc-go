@@ -35,7 +35,7 @@ func TestMsgStoreCodeValidateBasic(t *testing.T) {
 		},
 		{
 			"failure: code is too large",
-			types.NewMsgStoreCode(signer, make([]byte, types.MaxWasmByteSize()+1)),
+			types.NewMsgStoreCode(signer, make([]byte, types.MaxWasmSize+1)),
 			types.ErrWasmCodeTooLarge,
 		},
 		{
