@@ -13,11 +13,11 @@ import (
 	dockerclient "github.com/docker/docker/client"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
+	"github.com/cosmos/ibc-go/e2e/internal/directories"
 )
 
 const (
 	dockerInspectFileName = "docker-inspect.json"
-	e2eDir                = "e2e"
 	defaultFilePerm       = 0o750
 )
 
@@ -37,7 +37,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chain
 	t.Logf("writing logs for test: %s", t.Name())
 
 	ctx := context.TODO()
-	e2eDir, err := getE2EDir(t)
+	e2eDir, err := directories.E2E(t)
 	if err != nil {
 		t.Logf("failed finding log directory: %s", err)
 		return
@@ -160,28 +160,4 @@ func relayerDiagnosticAbsoluteFilePaths() []string {
 	return []string{
 		"/home/hermes/.hermes/config.toml",
 	}
-}
-
-// getE2EDir finds the e2e directory above the test.
-func getE2EDir(t *testing.T) (string, error) {
-	t.Helper()
-
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	const maxAttempts = 100
-	count := 0
-	for ; !strings.HasSuffix(wd, e2eDir) || count > maxAttempts; wd = ospath.Dir(wd) {
-		count++
-	}
-
-	// arbitrary value to avoid getting stuck in an infinite loop if this is called
-	// in a context where the e2e directory does not exist.
-	if count > maxAttempts {
-		return "", fmt.Errorf("unable to find e2e directory after %d tries", maxAttempts)
-	}
-
-	return wd, nil
 }

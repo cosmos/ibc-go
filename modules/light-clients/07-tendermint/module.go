@@ -76,9 +76,12 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule is the application module for the Tendermint client module
 type AppModule struct {
 	AppModuleBasic
+	lightClientModule LightClientModule
 }
 
 // NewAppModule creates a new Tendermint client module
-func NewAppModule() AppModule {
-	return AppModule{}
+func NewAppModule(lightClientModule LightClientModule) AppModule {
+	return AppModule{
+		lightClientModule: lightClientModule,
+	}
 }
