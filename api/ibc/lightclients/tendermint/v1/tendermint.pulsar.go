@@ -8,7 +8,7 @@ import (
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/client/v1"
 	v11 "github.com/cosmos/ibc-go/api/ibc/core/commitment/v1"
-	_go "github.com/cosmos/ics23/go"
+	api "github.com/cosmos/ics23/go/api"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -22,7 +22,7 @@ import (
 var _ protoreflect.List = (*_ClientState_8_list)(nil)
 
 type _ClientState_8_list struct {
-	list *[]*_go.ProofSpec
+	list *[]*api.ProofSpec
 }
 
 func (x *_ClientState_8_list) Len() int {
@@ -38,18 +38,18 @@ func (x *_ClientState_8_list) Get(i int) protoreflect.Value {
 
 func (x *_ClientState_8_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*_go.ProofSpec)
+	concreteValue := valueUnwrapped.Interface().(*api.ProofSpec)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_ClientState_8_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*_go.ProofSpec)
+	concreteValue := valueUnwrapped.Interface().(*api.ProofSpec)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_ClientState_8_list) AppendMutable() protoreflect.Value {
-	v := new(_go.ProofSpec)
+	v := new(api.ProofSpec)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -62,7 +62,7 @@ func (x *_ClientState_8_list) Truncate(n int) {
 }
 
 func (x *_ClientState_8_list) NewElement() protoreflect.Value {
-	v := new(_go.ProofSpec)
+	v := new(api.ProofSpec)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -506,7 +506,7 @@ func (x *fastReflection_ClientState) Mutable(fd protoreflect.FieldDescriptor) pr
 		return protoreflect.ValueOfMessage(x.LatestHeight.ProtoReflect())
 	case "ibc.lightclients.tendermint.v1.ClientState.proof_specs":
 		if x.ProofSpecs == nil {
-			x.ProofSpecs = []*_go.ProofSpec{}
+			x.ProofSpecs = []*api.ProofSpec{}
 		}
 		value := &_ClientState_8_list{list: &x.ProofSpecs}
 		return protoreflect.ValueOfList(value)
@@ -556,7 +556,7 @@ func (x *fastReflection_ClientState) NewField(fd protoreflect.FieldDescriptor) p
 		m := new(v1.Height)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.lightclients.tendermint.v1.ClientState.proof_specs":
-		list := []*_go.ProofSpec{}
+		list := []*api.ProofSpec{}
 		return protoreflect.ValueOfList(&_ClientState_8_list{list: &list})
 	case "ibc.lightclients.tendermint.v1.ClientState.upgrade_path":
 		list := []string{}
@@ -1171,7 +1171,7 @@ func (x *fastReflection_ClientState) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.ProofSpecs = append(x.ProofSpecs, &_go.ProofSpec{})
+				x.ProofSpecs = append(x.ProofSpecs, &api.ProofSpec{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ProofSpecs[len(x.ProofSpecs)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -3599,7 +3599,7 @@ type ClientState struct {
 	// Latest height the client was updated to
 	LatestHeight *v1.Height `protobuf:"bytes,7,opt,name=latest_height,json=latestHeight,proto3" json:"latest_height,omitempty"`
 	// Proof specifications used in verifying counterparty state
-	ProofSpecs []*_go.ProofSpec `protobuf:"bytes,8,rep,name=proof_specs,json=proofSpecs,proto3" json:"proof_specs,omitempty"`
+	ProofSpecs []*api.ProofSpec `protobuf:"bytes,8,rep,name=proof_specs,json=proofSpecs,proto3" json:"proof_specs,omitempty"`
 	// Path at which next upgraded client will be committed.
 	// Each element corresponds to the key for a single CommitmentProof in the
 	// chained proof. NOTE: ClientState must stored under
@@ -3687,7 +3687,7 @@ func (x *ClientState) GetLatestHeight() *v1.Height {
 	return nil
 }
 
-func (x *ClientState) GetProofSpecs() []*_go.ProofSpec {
+func (x *ClientState) GetProofSpecs() []*api.ProofSpec {
 	if x != nil {
 		return x.ProofSpecs
 	}
@@ -4111,7 +4111,7 @@ var file_ibc_lightclients_tendermint_v1_tendermint_proto_goTypes = []interface{}
 	(*Fraction)(nil),              // 4: ibc.lightclients.tendermint.v1.Fraction
 	(*durationpb.Duration)(nil),   // 5: google.protobuf.Duration
 	(*v1.Height)(nil),             // 6: ibc.core.client.v1.Height
-	(*_go.ProofSpec)(nil),         // 7: cosmos.ics23.v1.ProofSpec
+	(*api.ProofSpec)(nil),         // 7: cosmos.ics23.v1.ProofSpec
 	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 	(*v11.MerkleRoot)(nil),        // 9: ibc.core.commitment.v1.MerkleRoot
 	(*types.SignedHeader)(nil),    // 10: tendermint.types.SignedHeader
