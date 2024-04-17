@@ -4,6 +4,8 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/solomachine/module/v1"
 )
 
@@ -22,17 +24,21 @@ func init() {
 // ModuleInputs defines the 06-solomachine module inputs for depinject.
 type ModuleInputs struct {
 	depinject.In
+
+	Cdc codec.Codec
 }
 
 // ModuleOutputs defines the 06-solomachine module outputs for depinject.
 type ModuleOutputs struct {
 	depinject.Out
 
-	Module appmodule.AppModule
+	LightClientModule *LightClientModule
+	Module            appmodule.AppModule
 }
 
 // ProvideModule returns the 06-solomachine module outputs for dependency injection
 func ProvideModule(in ModuleInputs) ModuleOutputs {
-	m := NewAppModule()
-	return ModuleOutputs{Module: m}
+	lightClientModule := NewLightClientModule(in.Cdc)
+	m := NewAppModule(lightClientModule)
+	return ModuleOutputs{LightClientModule: &lightClientModule, Module: m}
 }
