@@ -101,7 +101,8 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 		s.Require().NotEqual(originalChainID, newChainID)
 
-		upgradedClientState := clientState.(*ibctm.ClientState)
+		upgradedClientState, ok := clientState.(*ibctm.ClientState)
+		s.Require().True(ok)
 		upgradedClientState.ChainId = newChainID
 
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
@@ -361,8 +362,8 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		s.Require().True(ok)
 
-		trustedHeight, ok = tmClientState.GetLatestHeight().(clienttypes.Height)
-		s.Require().True(ok)
+		trustedHeight = tmClientState.LatestHeight
+		s.Require().True(trustedHeight.GT(clienttypes.ZeroHeight()))
 	})
 
 	t.Run("update clients", func(t *testing.T) {
@@ -377,8 +378,8 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		s.Require().True(ok)
 
-		latestHeight, ok = tmClientState.GetLatestHeight().(clienttypes.Height)
-		s.Require().True(ok)
+		latestHeight = tmClientState.LatestHeight
+		s.Require().True(latestHeight.GT(clienttypes.ZeroHeight()))
 	})
 
 	t.Run("create validator set", func(t *testing.T) {
