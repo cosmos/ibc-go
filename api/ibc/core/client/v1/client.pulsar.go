@@ -6,11 +6,11 @@ import (
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
@@ -190,7 +190,7 @@ func (x *fastReflection_IdentifiedClientState) Set(fd protoreflect.FieldDescript
 	case "ibc.core.client.v1.IdentifiedClientState.client_id":
 		x.ClientId = value.Interface().(string)
 	case "ibc.core.client.v1.IdentifiedClientState.client_state":
-		x.ClientState = value.Message().Interface().(*types.Any)
+		x.ClientState = value.Message().Interface().(*anypb.Any)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.core.client.v1.IdentifiedClientState"))
@@ -213,7 +213,7 @@ func (x *fastReflection_IdentifiedClientState) Mutable(fd protoreflect.FieldDesc
 	switch fd.FullName() {
 	case "ibc.core.client.v1.IdentifiedClientState.client_state":
 		if x.ClientState == nil {
-			x.ClientState = new(types.Any)
+			x.ClientState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ClientState.ProtoReflect())
 	case "ibc.core.client.v1.IdentifiedClientState.client_id":
@@ -234,7 +234,7 @@ func (x *fastReflection_IdentifiedClientState) NewField(fd protoreflect.FieldDes
 	case "ibc.core.client.v1.IdentifiedClientState.client_id":
 		return protoreflect.ValueOfString("")
 	case "ibc.core.client.v1.IdentifiedClientState.client_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -474,7 +474,7 @@ func (x *fastReflection_IdentifiedClientState) ProtoMethods() *protoiface.Method
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ClientState == nil {
-					x.ClientState = &types.Any{}
+					x.ClientState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ClientState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -689,7 +689,7 @@ func (x *fastReflection_ConsensusStateWithHeight) Set(fd protoreflect.FieldDescr
 	case "ibc.core.client.v1.ConsensusStateWithHeight.height":
 		x.Height = value.Message().Interface().(*Height)
 	case "ibc.core.client.v1.ConsensusStateWithHeight.consensus_state":
-		x.ConsensusState = value.Message().Interface().(*types.Any)
+		x.ConsensusState = value.Message().Interface().(*anypb.Any)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.core.client.v1.ConsensusStateWithHeight"))
@@ -717,7 +717,7 @@ func (x *fastReflection_ConsensusStateWithHeight) Mutable(fd protoreflect.FieldD
 		return protoreflect.ValueOfMessage(x.Height.ProtoReflect())
 	case "ibc.core.client.v1.ConsensusStateWithHeight.consensus_state":
 		if x.ConsensusState == nil {
-			x.ConsensusState = new(types.Any)
+			x.ConsensusState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ConsensusState.ProtoReflect())
 	default:
@@ -737,7 +737,7 @@ func (x *fastReflection_ConsensusStateWithHeight) NewField(fd protoreflect.Field
 		m := new(Height)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.ConsensusStateWithHeight.consensus_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -988,7 +988,7 @@ func (x *fastReflection_ConsensusStateWithHeight) ProtoMethods() *protoiface.Met
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ConsensusState == nil {
-					x.ConsensusState = &types.Any{}
+					x.ConsensusState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ConsensusState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -3339,7 +3339,7 @@ func (x *fastReflection_UpgradeProposal) Set(fd protoreflect.FieldDescriptor, va
 	case "ibc.core.client.v1.UpgradeProposal.plan":
 		x.Plan = value.Message().Interface().(*v1beta1.Plan)
 	case "ibc.core.client.v1.UpgradeProposal.upgraded_client_state":
-		x.UpgradedClientState = value.Message().Interface().(*types.Any)
+		x.UpgradedClientState = value.Message().Interface().(*anypb.Any)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.core.client.v1.UpgradeProposal"))
@@ -3367,7 +3367,7 @@ func (x *fastReflection_UpgradeProposal) Mutable(fd protoreflect.FieldDescriptor
 		return protoreflect.ValueOfMessage(x.Plan.ProtoReflect())
 	case "ibc.core.client.v1.UpgradeProposal.upgraded_client_state":
 		if x.UpgradedClientState == nil {
-			x.UpgradedClientState = new(types.Any)
+			x.UpgradedClientState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.UpgradedClientState.ProtoReflect())
 	case "ibc.core.client.v1.UpgradeProposal.title":
@@ -3395,7 +3395,7 @@ func (x *fastReflection_UpgradeProposal) NewField(fd protoreflect.FieldDescripto
 		m := new(v1beta1.Plan)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.UpgradeProposal.upgraded_client_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -3732,7 +3732,7 @@ func (x *fastReflection_UpgradeProposal) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.UpgradedClientState == nil {
-					x.UpgradedClientState = &types.Any{}
+					x.UpgradedClientState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.UpgradedClientState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -3796,7 +3796,7 @@ type IdentifiedClientState struct {
 	// client identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// client state
-	ClientState *types.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState *anypb.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 }
 
 func (x *IdentifiedClientState) Reset() {
@@ -3826,7 +3826,7 @@ func (x *IdentifiedClientState) GetClientId() string {
 	return ""
 }
 
-func (x *IdentifiedClientState) GetClientState() *types.Any {
+func (x *IdentifiedClientState) GetClientState() *anypb.Any {
 	if x != nil {
 		return x.ClientState
 	}
@@ -3843,7 +3843,7 @@ type ConsensusStateWithHeight struct {
 	// consensus state height
 	Height *Height `protobuf:"bytes,1,opt,name=height,proto3" json:"height,omitempty"`
 	// consensus state
-	ConsensusState *types.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *anypb.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 }
 
 func (x *ConsensusStateWithHeight) Reset() {
@@ -3873,7 +3873,7 @@ func (x *ConsensusStateWithHeight) GetHeight() *Height {
 	return nil
 }
 
-func (x *ConsensusStateWithHeight) GetConsensusState() *types.Any {
+func (x *ConsensusStateWithHeight) GetConsensusState() *anypb.Any {
 	if x != nil {
 		return x.ConsensusState
 	}
@@ -4113,7 +4113,7 @@ type UpgradeProposal struct {
 	// new upgraded client is valid by verifying a proof on the previous version
 	// of the chain. This will allow IBC connections to persist smoothly across
 	// planned chain upgrades
-	UpgradedClientState *types.Any `protobuf:"bytes,4,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
+	UpgradedClientState *anypb.Any `protobuf:"bytes,4,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
 }
 
 func (x *UpgradeProposal) Reset() {
@@ -4157,7 +4157,7 @@ func (x *UpgradeProposal) GetPlan() *v1beta1.Plan {
 	return nil
 }
 
-func (x *UpgradeProposal) GetUpgradedClientState() *types.Any {
+func (x *UpgradeProposal) GetUpgradedClientState() *anypb.Any {
 	if x != nil {
 		return x.UpgradedClientState
 	}
@@ -4285,7 +4285,7 @@ var file_ibc_core_client_v1_client_proto_goTypes = []interface{}{
 	(*Params)(nil),                   // 4: ibc.core.client.v1.Params
 	(*ClientUpdateProposal)(nil),     // 5: ibc.core.client.v1.ClientUpdateProposal
 	(*UpgradeProposal)(nil),          // 6: ibc.core.client.v1.UpgradeProposal
-	(*types.Any)(nil),                // 7: google.protobuf.Any
+	(*anypb.Any)(nil),                // 7: google.protobuf.Any
 	(*v1beta1.Plan)(nil),             // 8: cosmos.upgrade.v1beta1.Plan
 }
 var file_ibc_core_client_v1_client_proto_depIdxs = []int32{

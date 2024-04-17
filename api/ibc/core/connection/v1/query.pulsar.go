@@ -5,13 +5,13 @@ import (
 	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/client/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
@@ -4867,7 +4867,7 @@ func (x *fastReflection_QueryConnectionConsensusStateResponse) Get(descriptor pr
 func (x *fastReflection_QueryConnectionConsensusStateResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.core.connection.v1.QueryConnectionConsensusStateResponse.consensus_state":
-		x.ConsensusState = value.Message().Interface().(*types.Any)
+		x.ConsensusState = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.connection.v1.QueryConnectionConsensusStateResponse.client_id":
 		x.ClientId = value.Interface().(string)
 	case "ibc.core.connection.v1.QueryConnectionConsensusStateResponse.proof":
@@ -4896,7 +4896,7 @@ func (x *fastReflection_QueryConnectionConsensusStateResponse) Mutable(fd protor
 	switch fd.FullName() {
 	case "ibc.core.connection.v1.QueryConnectionConsensusStateResponse.consensus_state":
 		if x.ConsensusState == nil {
-			x.ConsensusState = new(types.Any)
+			x.ConsensusState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ConsensusState.ProtoReflect())
 	case "ibc.core.connection.v1.QueryConnectionConsensusStateResponse.proof_height":
@@ -4922,7 +4922,7 @@ func (x *fastReflection_QueryConnectionConsensusStateResponse) Mutable(fd protor
 func (x *fastReflection_QueryConnectionConsensusStateResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.core.connection.v1.QueryConnectionConsensusStateResponse.consensus_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.connection.v1.QueryConnectionConsensusStateResponse.client_id":
 		return protoreflect.ValueOfString("")
@@ -5166,7 +5166,7 @@ func (x *fastReflection_QueryConnectionConsensusStateResponse) ProtoMethods() *p
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ConsensusState == nil {
-					x.ConsensusState = &types.Any{}
+					x.ConsensusState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ConsensusState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -6551,7 +6551,7 @@ type QueryConnectionConsensusStateResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	// consensus state associated with the channel
-	ConsensusState *types.Any `protobuf:"bytes,1,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *anypb.Any `protobuf:"bytes,1,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 	// client ID associated with the consensus state
 	ClientId string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// merkle proof of existence
@@ -6580,7 +6580,7 @@ func (*QueryConnectionConsensusStateResponse) Descriptor() ([]byte, []int) {
 	return file_ibc_core_connection_v1_query_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *QueryConnectionConsensusStateResponse) GetConsensusState() *types.Any {
+func (x *QueryConnectionConsensusStateResponse) GetConsensusState() *anypb.Any {
 	if x != nil {
 		return x.ConsensusState
 	}
@@ -6918,7 +6918,7 @@ var file_ibc_core_connection_v1_query_proto_goTypes = []interface{}{
 	(*IdentifiedConnection)(nil),                  // 15: ibc.core.connection.v1.IdentifiedConnection
 	(*v1beta1.PageResponse)(nil),                  // 16: cosmos.base.query.v1beta1.PageResponse
 	(*v1.IdentifiedClientState)(nil),              // 17: ibc.core.client.v1.IdentifiedClientState
-	(*types.Any)(nil),                             // 18: google.protobuf.Any
+	(*anypb.Any)(nil),                             // 18: google.protobuf.Any
 	(*Params)(nil),                                // 19: ibc.core.connection.v1.Params
 }
 var file_ibc_core_connection_v1_query_proto_depIdxs = []int32{

@@ -5,13 +5,13 @@ import (
 	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/client/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
@@ -5165,7 +5165,7 @@ func (x *fastReflection_QueryChannelConsensusStateResponse) Get(descriptor proto
 func (x *fastReflection_QueryChannelConsensusStateResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.core.channel.v1.QueryChannelConsensusStateResponse.consensus_state":
-		x.ConsensusState = value.Message().Interface().(*types.Any)
+		x.ConsensusState = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.channel.v1.QueryChannelConsensusStateResponse.client_id":
 		x.ClientId = value.Interface().(string)
 	case "ibc.core.channel.v1.QueryChannelConsensusStateResponse.proof":
@@ -5194,7 +5194,7 @@ func (x *fastReflection_QueryChannelConsensusStateResponse) Mutable(fd protorefl
 	switch fd.FullName() {
 	case "ibc.core.channel.v1.QueryChannelConsensusStateResponse.consensus_state":
 		if x.ConsensusState == nil {
-			x.ConsensusState = new(types.Any)
+			x.ConsensusState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ConsensusState.ProtoReflect())
 	case "ibc.core.channel.v1.QueryChannelConsensusStateResponse.proof_height":
@@ -5220,7 +5220,7 @@ func (x *fastReflection_QueryChannelConsensusStateResponse) Mutable(fd protorefl
 func (x *fastReflection_QueryChannelConsensusStateResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.core.channel.v1.QueryChannelConsensusStateResponse.consensus_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.channel.v1.QueryChannelConsensusStateResponse.client_id":
 		return protoreflect.ValueOfString("")
@@ -5464,7 +5464,7 @@ func (x *fastReflection_QueryChannelConsensusStateResponse) ProtoMethods() *prot
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ConsensusState == nil {
-					x.ConsensusState = &types.Any{}
+					x.ConsensusState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ConsensusState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -19532,7 +19532,7 @@ type QueryChannelConsensusStateResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	// consensus state associated with the channel
-	ConsensusState *types.Any `protobuf:"bytes,1,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *anypb.Any `protobuf:"bytes,1,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 	// client ID associated with the consensus state
 	ClientId string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// merkle proof of existence
@@ -19561,7 +19561,7 @@ func (*QueryChannelConsensusStateResponse) Descriptor() ([]byte, []int) {
 	return file_ibc_core_channel_v1_query_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *QueryChannelConsensusStateResponse) GetConsensusState() *types.Any {
+func (x *QueryChannelConsensusStateResponse) GetConsensusState() *anypb.Any {
 	if x != nil {
 		return x.ConsensusState
 	}
@@ -21462,7 +21462,7 @@ var file_ibc_core_channel_v1_query_proto_goTypes = []interface{}{
 	(*IdentifiedChannel)(nil),                   // 37: ibc.core.channel.v1.IdentifiedChannel
 	(*v1beta1.PageResponse)(nil),                // 38: cosmos.base.query.v1beta1.PageResponse
 	(*v1.IdentifiedClientState)(nil),            // 39: ibc.core.client.v1.IdentifiedClientState
-	(*types.Any)(nil),                           // 40: google.protobuf.Any
+	(*anypb.Any)(nil),                           // 40: google.protobuf.Any
 	(*PacketState)(nil),                         // 41: ibc.core.channel.v1.PacketState
 	(*ErrorReceipt)(nil),                        // 42: ibc.core.channel.v1.ErrorReceipt
 	(*Upgrade)(nil),                             // 43: ibc.core.channel.v1.Upgrade
