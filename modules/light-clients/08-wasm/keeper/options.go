@@ -15,9 +15,9 @@ func (f optsFn) apply(keeper *Keeper) {
 // Missing fields will be filled with default queriers.
 func WithQueryPlugins(plugins *QueryPlugins) Option {
 	return optsFn(func(k *Keeper) {
-		currentPlugins := k.GetQueryPlugins()
+		currentPlugins := k.getQueryPlugins()
 		newPlugins := currentPlugins.Merge(plugins)
 
-		k.SetQueryPlugins(newPlugins)
+		k.setQueryPlugins(newPlugins)
 	})
 }

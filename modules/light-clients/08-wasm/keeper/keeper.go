@@ -68,18 +68,18 @@ func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
 	return k.checksums
 }
 
-// GetQueryPlugins returns the set query plugins.
-func (k Keeper) GetQueryPlugins() QueryPlugins {
+// getQueryPlugins returns the set query plugins.
+func (k Keeper) getQueryPlugins() QueryPlugins {
 	return k.queryPlugins
 }
 
 // SetQueryPlugins sets the plugins.
-func (k *Keeper) SetQueryPlugins(plugins QueryPlugins) {
+func (k *Keeper) setQueryPlugins(plugins QueryPlugins) {
 	k.queryPlugins = plugins
 }
 
 func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
-	return newQueryHandler(ctx, k.GetQueryPlugins(), callerID)
+	return newQueryHandler(ctx, k.getQueryPlugins(), callerID)
 }
 
 // storeWasmCode stores the contract to the VM, pins the checksum in the VM's in memory cache and stores the checksum
@@ -142,32 +142,27 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wa
 // migrateContractCode migrates the contract for a given light client to one denoted by the given new checksum. The checksum we
 // are migrating to must first be stored using storeWasmCode and must not match the checksum currently stored for this light client.
 func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
-	wasmClientState, err := k.GetWasmClientState(ctx, clientID)
-	if err != nil {
-		return errorsmod.Wrap(err, "failed to retrieve wasm client state")
-	}
-	oldChecksum := wasmClientState.Checksum
-
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
-	clientState, found := types.GetClientState(clientStore, k.cdc)
+	wasmClientState, found := types.GetClientState(clientStore, k.cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
+	oldChecksum := wasmClientState.Checksum
 
 	if !k.HasChecksum(ctx, newChecksum) {
 		return types.ErrWasmChecksumNotFound
 	}
 
-	if bytes.Equal(clientState.Checksum, newChecksum) {
-		return errorsmod.Wrapf(types.ErrWasmCodeExists, "new checksum (%s) is the same as current checksum (%s)", hex.EncodeToString(newChecksum), hex.EncodeToString(clientState.Checksum))
+	if bytes.Equal(wasmClientState.Checksum, newChecksum) {
+		return errorsmod.Wrapf(types.ErrWasmCodeExists, "new checksum (%s) is the same as current checksum (%s)", hex.EncodeToString(newChecksum), hex.EncodeToString(wasmClientState.Checksum))
 	}
 
 	// update the checksum, this needs to be done before the contract migration
 	// so that wasmMigrate can call the right code. Note that this is not
 	// persisted to the client store.
-	clientState.Checksum = newChecksum
+	wasmClientState.Checksum = newChecksum
 
-	err = k.WasmMigrate(ctx, clientStore, clientState, clientID, migrateMsg)
+	err := k.WasmMigrate(ctx, clientStore, wasmClientState, clientID, migrateMsg)
 	if err != nil {
 		return err
 	}
