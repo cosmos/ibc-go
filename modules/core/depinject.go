@@ -36,7 +36,7 @@ type ModuleInputs struct {
 	Cdc    codec.Codec
 	Key    *storetypes.KVStoreKey
 
-	StakingKeeper clienttypes.StakingKeeper
+	ConsensusHost clienttypes.ConsensusHost
 	UpgradeKeeper clienttypes.UpgradeKeeper
 	ScopedKeeper  capabilitykeeper.ScopedKeeper
 
@@ -63,7 +63,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.Cdc,
 		in.Key,
 		in.LegacySubspace,
-		in.StakingKeeper,
+		in.ConsensusHost,
 		in.UpgradeKeeper,
 		in.ScopedKeeper,
 		authority.String(),
