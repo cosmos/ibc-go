@@ -65,7 +65,7 @@ func SetupPath(path *ibctesting.Path, owner string) error {
 	return path.EndpointB.ChanOpenConfirm()
 }
 
-// RegisterInterchainAccount invokes the the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,
+// RegisterInterchainAccount invokes the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,
 // commits state changes and updates the testing endpoint accordingly
 func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	portID, err := icatypes.NewControllerPortID(owner)

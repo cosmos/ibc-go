@@ -3,8 +3,8 @@ package types_test
 import (
 	"encoding/json"
 
-	cosmwasm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	cosmwasm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -28,7 +28,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			func() {
 				suite.mockVM.RegisterSudoCallback(
 					types.MigrateClientStoreMsg{},
-					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 						var payload types.SudoMsg
 						err := json.Unmarshal(sudoMsg, &payload)
 						suite.Require().NoError(err)
@@ -48,7 +48,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 						expectedClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
 						store.Set(prefixedKey, expectedClientStateBz)
 
-						return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
+						return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: bz}}, wasmtesting.DefaultGasUsed, nil
 					},
 				)
 			},
@@ -71,12 +71,24 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			clienttypes.ErrInvalidClient,
 		},
 		{
+			"failure: vm returns error",
+			func() {
+				suite.mockVM.RegisterSudoCallback(
+					types.MigrateClientStoreMsg{},
+					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, _ []byte, _ cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+						return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockVM
+					},
+				)
+			},
+			types.ErrVMError,
+		},
+		{
 			"failure: contract returns error",
 			func() {
 				suite.mockVM.RegisterSudoCallback(
 					types.MigrateClientStoreMsg{},
-					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, _ []byte, _ cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-						return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockContract
+					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, _ []byte, _ cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+						return &wasmvmtypes.ContractResult{Err: wasmtesting.ErrMockContract.Error()}, wasmtesting.DefaultGasUsed, nil
 					},
 				)
 			},
@@ -95,7 +107,8 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			suite.Require().NoError(err)
 
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpointA.ClientID)
-			subjectClientState := endpointA.GetClientState()
+			subjectClientState, ok := endpointA.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
 
 			substituteEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err = substituteEndpoint.CreateClient()
