@@ -39,6 +39,7 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 		for _, allowedQueryPath := range m.mqsAllowList {
 			if allowedQueryPath == query.Path {
 				isModuleQuerySafe = true
+				break
 			}
 		}
 		if !isModuleQuerySafe {
