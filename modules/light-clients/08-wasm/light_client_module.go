@@ -450,7 +450,7 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected checksums to be equal: expected %s, got %s", hex.EncodeToString(clientState.Checksum), hex.EncodeToString(substituteClientState.Checksum))
 	}
 
-	store := internaltypes.NewMigrateClientWrappedStore(clientStore, substituteClientStore)
+	store := internaltypes.NewMergedClientStore(clientStore, substituteClientStore)
 
 	payload := types.SudoMsg{
 		MigrateClientStore: &types.MigrateClientStoreMsg{},

@@ -24,6 +24,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+func init() {
+	ibctesting.DefaultTestingAppInit = setupTestingApp
+}
+
 var invalidPrefix = []byte("invalid/")
 
 type TypesTestSuite struct {
@@ -43,10 +47,6 @@ func (suite *TypesTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 }
 
-func init() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-}
-
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
 // This must be used instead of chain.GetSimApp() for tests within this directory.
 func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
@@ -64,9 +64,8 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return app, app.DefaultGenesis()
 }
 
-// TestMigrateClientWrappedStoreGetStore tests the getStore method of the migrateClientWrappedStore.
-func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
-	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
+// TestMergedClientStoreGetStore tests the GetStore method of the MergedClientStore.
+func (suite *TypesTestSuite) TestMergedClientStoreGetStore() {
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
@@ -99,7 +98,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
 
 			store, found := wrappedStore.GetStore(tc.prefix)
 
@@ -157,9 +156,8 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 	}
 }
 
-// TestMigrateClientWrappedStoreGet tests the Get method of the migrateClientWrappedStore.
-func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
-	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
+// TestMergedClientStoreGet tests the Get method of the MergedClientStore.
+func (suite *TypesTestSuite) TestMergedClientStoreGet() {
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
@@ -191,7 +189,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -209,8 +207,8 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 	}
 }
 
-// TestMigrateClientWrappedStoreSet tests the Set method of the migrateClientWrappedStore.
-func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
+// TestMergedClientStoreSet tests the Set method of the MergedClientStore.
+func (suite *TypesTestSuite) TestMergedClientStoreSet() {
 	testCases := []struct {
 		name   string
 		prefix []byte
@@ -234,9 +232,8 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
-			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -260,8 +257,8 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 	}
 }
 
-// TestMigrateClientWrappedStoreDelete tests the Delete method of the migrateClientWrappedStore.
-func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
+// TestMergedClientStoreDelete tests the Delete method of the MergedClientStore.
+func (suite *TypesTestSuite) TestMergedClientStoreDelete() {
 	var (
 		mockStoreKey   = []byte("mock-key")
 		mockStoreValue = []byte("mock-value")
@@ -290,14 +287,13 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
 			// Set values under the mock key:
 			subjectStore.Set(mockStoreKey, mockStoreValue)
 			substituteStore.Set(mockStoreKey, mockStoreValue)
 
-			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -319,9 +315,8 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 	}
 }
 
-// TestMigrateClientWrappedStoreIterators tests the Iterator/ReverseIterator methods of the migrateClientWrappedStore.
-func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
-	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
+// TestMergedClientStoreIterators tests the Iterator/ReverseIterator methods of the MergedClientStore.
+func (suite *TypesTestSuite) TestMergedClientStoreIterators() {
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
@@ -369,7 +364,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
 
 			prefixedKeyStart := tc.prefixStart
 			prefixedKeyStart = append(prefixedKeyStart, tc.start...)
@@ -388,8 +383,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 	}
 }
 
-func (suite *TypesTestSuite) TestNewMigrateClientWrappedStore() {
-	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
+func (suite *TypesTestSuite) TestNewMergedClientStore() {
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
@@ -426,11 +420,11 @@ func (suite *TypesTestSuite) TestNewMigrateClientWrappedStore() {
 			expPass := !tc.expPanic
 			if expPass {
 				suite.Require().NotPanics(func() {
-					internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+					internaltypes.NewMergedClientStore(subjectStore, substituteStore)
 				})
 			} else {
 				suite.Require().Panics(func() {
-					internaltypes.NewMigrateClientWrappedStore(subjectStore, substituteStore)
+					internaltypes.NewMergedClientStore(subjectStore, substituteStore)
 				})
 			}
 		})

@@ -14,23 +14,24 @@ import (
 
 var (
 	_ wasmvmtypes.KVStore = &StoreAdapter{}
-	_ storetypes.KVStore  = &MigrateClientWrappedStore{}
+	_ storetypes.KVStore  = &MergedClientStore{}
 
 	SubjectPrefix    = []byte("subject/")
 	SubstitutePrefix = []byte("substitute/")
 )
 
-// MigrateClientWrappedStore combines two KVStores into one.
+// MergedClientStore combines two KVStores into one.
 //
 // Both stores are used for reads, but only the subjectStore is used for writes. For all operations, the key
 // is checked to determine which types to use and must be prefixed with either "subject/" or "substitute/" accordingly.
 // If the key is not prefixed with either "subject/" or "substitute/", a default action is taken (e.g. no-op for Set/Delete).
-type MigrateClientWrappedStore struct {
+type MergedClientStore struct {
 	subjectStore    storetypes.KVStore
 	substituteStore storetypes.KVStore
 }
 
-func NewMigrateClientWrappedStore(subjectStore, substituteStore storetypes.KVStore) MigrateClientWrappedStore {
+// NewMergedClientStore retusn a new instance of a MergedClientStore
+func NewMergedClientStore(subjectStore, substituteStore storetypes.KVStore) MergedClientStore {
 	if subjectStore == nil {
 		panic(errors.New("subjectStore must not be nil"))
 	}
@@ -38,7 +39,7 @@ func NewMigrateClientWrappedStore(subjectStore, substituteStore storetypes.KVSto
 		panic(errors.New("substituteStore must not be nil"))
 	}
 
-	return MigrateClientWrappedStore{
+	return MergedClientStore{
 		subjectStore:    subjectStore,
 		substituteStore: substituteStore,
 	}
@@ -47,7 +48,7 @@ func NewMigrateClientWrappedStore(subjectStore, substituteStore storetypes.KVSto
 // Get implements the storetypes.KVStore interface. It allows reads from both the subjectStore and substituteStore.
 //
 // Get will return an empty byte slice if the key is not prefixed with either "subject/" or "substitute/".
-func (ws MigrateClientWrappedStore) Get(key []byte) []byte {
+func (ws MergedClientStore) Get(key []byte) []byte {
 	prefix, key := SplitPrefix(key)
 
 	store, found := ws.GetStore(prefix)
@@ -62,7 +63,7 @@ func (ws MigrateClientWrappedStore) Get(key []byte) []byte {
 // Has implements the storetypes.KVStore interface. It allows reads from both the subjectStore and substituteStore.
 //
 // Note: contracts do not have access to the Has method, it is only implemented here to satisfy the storetypes.KVStore interface.
-func (ws MigrateClientWrappedStore) Has(key []byte) bool {
+func (ws MergedClientStore) Has(key []byte) bool {
 	prefix, key := SplitPrefix(key)
 
 	store, found := ws.GetStore(prefix)
@@ -77,7 +78,7 @@ func (ws MigrateClientWrappedStore) Has(key []byte) bool {
 // Set implements the storetypes.KVStore interface. It allows writes solely to the subjectStore.
 //
 // Set will no-op if the key is not prefixed with "subject/".
-func (ws MigrateClientWrappedStore) Set(key, value []byte) {
+func (ws MergedClientStore) Set(key, value []byte) {
 	prefix, key := SplitPrefix(key)
 	if !bytes.Equal(prefix, SubjectPrefix) {
 		return // no-op
@@ -88,7 +89,7 @@ func (ws MigrateClientWrappedStore) Set(key, value []byte) {
 // Delete implements the storetypes.KVStore interface. It allows deletions solely to the subjectStore.
 //
 // Delete will no-op if the key is not prefixed with "subject/".
-func (ws MigrateClientWrappedStore) Delete(key []byte) {
+func (ws MergedClientStore) Delete(key []byte) {
 	prefix, key := SplitPrefix(key)
 	if !bytes.Equal(prefix, SubjectPrefix) {
 		return // no-op
@@ -100,7 +101,7 @@ func (ws MigrateClientWrappedStore) Delete(key []byte) {
 // Iterator implements the storetypes.KVStore interface. It allows iteration over both the subjectStore and substituteStore.
 //
 // Iterator will return a closed iterator if the start or end keys are not prefixed with either "subject/" or "substitute/".
-func (ws MigrateClientWrappedStore) Iterator(start, end []byte) storetypes.Iterator {
+func (ws MergedClientStore) Iterator(start, end []byte) storetypes.Iterator {
 	prefixStart, start := SplitPrefix(start)
 	prefixEnd, end := SplitPrefix(end)
 
@@ -119,7 +120,7 @@ func (ws MigrateClientWrappedStore) Iterator(start, end []byte) storetypes.Itera
 // ReverseIterator implements the storetypes.KVStore interface. It allows iteration over both the subjectStore and substituteStore.
 //
 // ReverseIterator will return a closed iterator if the start or end keys are not prefixed with either "subject/" or "substitute/".
-func (ws MigrateClientWrappedStore) ReverseIterator(start, end []byte) storetypes.Iterator {
+func (ws MergedClientStore) ReverseIterator(start, end []byte) storetypes.Iterator {
 	prefixStart, start := SplitPrefix(start)
 	prefixEnd, end := SplitPrefix(end)
 
@@ -136,17 +137,17 @@ func (ws MigrateClientWrappedStore) ReverseIterator(start, end []byte) storetype
 }
 
 // GetStoreType implements the storetypes.KVStore interface, it is implemented solely to satisfy the interface.
-func (ws MigrateClientWrappedStore) GetStoreType() storetypes.StoreType {
+func (ws MergedClientStore) GetStoreType() storetypes.StoreType {
 	return ws.substituteStore.GetStoreType()
 }
 
 // CacheWrap implements the storetypes.KVStore interface, it is implemented solely to satisfy the interface.
-func (ws MigrateClientWrappedStore) CacheWrap() storetypes.CacheWrap {
+func (ws MergedClientStore) CacheWrap() storetypes.CacheWrap {
 	return cachekv.NewStore(ws)
 }
 
 // CacheWrapWithTrace implements the storetypes.KVStore interface, it is implemented solely to satisfy the interface.
-func (ws MigrateClientWrappedStore) CacheWrapWithTrace(w io.Writer, tc storetypes.TraceContext) storetypes.CacheWrap {
+func (ws MergedClientStore) CacheWrapWithTrace(w io.Writer, tc storetypes.TraceContext) storetypes.CacheWrap {
 	return cachekv.NewStore(tracekv.NewStore(ws, w, tc))
 }
 
@@ -155,7 +156,7 @@ func (ws MigrateClientWrappedStore) CacheWrapWithTrace(w io.Writer, tc storetype
 // the substituteStore is returned.
 //
 // If the key is not prefixed with either "subject/" or "substitute/", a nil types is returned and the boolean flag is false.
-func (ws MigrateClientWrappedStore) GetStore(prefix []byte) (storetypes.KVStore, bool) {
+func (ws MergedClientStore) GetStore(prefix []byte) (storetypes.KVStore, bool) {
 	if bytes.Equal(prefix, SubjectPrefix) {
 		return ws.subjectStore, true
 	} else if bytes.Equal(prefix, SubstitutePrefix) {
@@ -167,7 +168,7 @@ func (ws MigrateClientWrappedStore) GetStore(prefix []byte) (storetypes.KVStore,
 
 // closedIterator returns an iterator that is always closed, used when Iterator() or ReverseIterator() is called
 // with an invalid prefix or start/end key.
-func (ws MigrateClientWrappedStore) closedIterator() storetypes.Iterator {
+func (ws MergedClientStore) closedIterator() storetypes.Iterator {
 	// Create a dummy iterator that is always closed right away.
 	it := ws.subjectStore.Iterator([]byte{0}, []byte{1})
 	it.Close()

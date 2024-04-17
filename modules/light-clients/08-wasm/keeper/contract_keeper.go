@@ -216,7 +216,7 @@ func (k Keeper) WasmQuery(ctx sdk.Context, clientID string, clientStore storetyp
 // - the client state is of type *ClientState
 func validatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*types.ClientState, error) {
 	key := host.ClientStateKey()
-	_, ok := clientStore.(internaltypes.MigrateClientWrappedStore)
+	_, ok := clientStore.(internaltypes.MergedClientStore)
 	if ok {
 		key = append(internaltypes.SubjectPrefix, key...)
 	}
