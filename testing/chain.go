@@ -276,9 +276,7 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 // QueryConsensusStateProof performs an abci query for a consensus state
 // stored on the given clientID. The proof and consensusHeight are returned.
 func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clienttypes.Height) {
-	clientState := chain.GetClientState(clientID)
-
-	consensusHeight := clientState.GetLatestHeight().(clienttypes.Height)
+	consensusHeight := chain.GetClientLatestHeight(clientID).(clienttypes.Height)
 	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
 	consensusProof, _ := chain.QueryProof(consensusKey)
 
@@ -611,6 +609,14 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 	require.True(chain.TB, ok)
 
 	return capability
+}
+
+// GetClientLatestHeight returns the latest height for the client state with the given client identifier.
+// If an invalid client identifier is provided then a zero value height will be returned and testing wil fail.
+func (chain *TestChain) GetClientLatestHeight(clientID string) exported.Height {
+	latestHeight := chain.App.GetIBCKeeper().ClientKeeper.GetClientLatestHeight(chain.GetContext(), clientID)
+	require.False(chain.TB, latestHeight.IsZero())
+	return latestHeight
 }
 
 // GetTimeoutHeight is a convenience function which returns a IBC packet timeout height

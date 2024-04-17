@@ -53,11 +53,6 @@ func (ClientState) ClientType() string {
 	return exported.Tendermint
 }
 
-// GetLatestHeight returns latest block height.
-func (cs ClientState) GetLatestHeight() exported.Height {
-	return cs.LatestHeight
-}
-
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (ClientState) GetTimestampAtHeight(
 	ctx sdk.Context,
@@ -91,7 +86,7 @@ func (cs ClientState) Status(
 	}
 
 	// get latest consensus state from clientStore to check for expiry
-	consState, found := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
+	consState, found := GetConsensusState(clientStore, cdc, cs.LatestHeight)
 	if !found {
 		// if the client state does not have an associated consensus state for its latest height
 		// then it must be expired
@@ -128,7 +123,7 @@ func (cs ClientState) Validate() error {
 	}
 
 	if err := light.ValidateTrustLevel(cs.TrustLevel.ToTendermint()); err != nil {
-		return err
+		return errorsmod.Wrapf(ErrInvalidTrustLevel, err.Error())
 	}
 	if cs.TrustingPeriod <= 0 {
 		return errorsmod.Wrap(ErrInvalidTrustingPeriod, "trusting period must be greater than zero")
@@ -199,8 +194,8 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	setClientState(clientStore, cdc, &cs)
-	setConsensusState(clientStore, cdc, consensusState, cs.GetLatestHeight())
-	setConsensusMetadata(ctx, clientStore, cs.GetLatestHeight())
+	setConsensusState(clientStore, cdc, consensusState, cs.LatestHeight)
+	setConsensusMetadata(ctx, clientStore, cs.LatestHeight)
 
 	return nil
 }
@@ -219,10 +214,10 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	if cs.GetLatestHeight().LT(height) {
+	if cs.LatestHeight.LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.LatestHeight, height,
 		)
 	}
 
@@ -261,10 +256,10 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	if cs.GetLatestHeight().LT(height) {
+	if cs.LatestHeight.LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.LatestHeight, height,
 		)
 	}
 
@@ -308,7 +303,6 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHei
 			return errorsmod.Wrapf(ErrDelayPeriodNotPassed, "cannot verify packet until time: %d, current time: %d",
 				validTime, currentTimestamp)
 		}
-
 	}
 
 	if delayBlockPeriod != 0 {

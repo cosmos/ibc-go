@@ -145,7 +145,10 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		return []exported.Height{header.GetHeight()}
 	}
 
-	height := header.GetHeight().(clienttypes.Height)
+	height, ok := header.GetHeight().(clienttypes.Height)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T to %T", header.GetHeight(), &clienttypes.Height{}))
+	}
 	if height.GT(cs.LatestHeight) {
 		cs.LatestHeight = height
 	}

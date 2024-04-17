@@ -39,7 +39,7 @@ func GetVM() WasmEngine {
 // Panics if the queryRouter is nil.
 func SetQueryRouter(router QueryRouter) {
 	if router == nil {
-		panic(errors.New("query router must be not nil"))
+		panic(errors.New("query router must not be nil"))
 	}
 	queryRouter = router
 }
@@ -52,7 +52,7 @@ func GetQueryRouter() QueryRouter {
 // SetQueryPlugins sets the current query plugins
 func SetQueryPlugins(plugins QueryPluginsI) {
 	if plugins == nil {
-		panic(errors.New("query plugins must be not nil"))
+		panic(errors.New("query plugins must not be nil"))
 	}
 	queryPlugins = plugins
 }
