@@ -38,6 +38,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [#\5909](https://github.com/cosmos/ibc-go/pull/5909) Update wasmvm to v2.0.0.
+* [#\6097](https://github.com/cosmos/ibc-go/pull/6097) Update wasmvm to v2.0.1.
+
 ### API Breaking
 
 ### State Machine Breaking

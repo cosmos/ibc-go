@@ -135,6 +135,12 @@ clean:
 
 .PHONY: distclean clean
 
+#? build-docker-wasm: Build wasm simapp with specified tag.
+build-docker-wasm:
+	./scripts/build-wasm-simapp-docker.sh $(tag)
+
+.PHONY: build-docker-wasm
+
 ###############################################################################
 ###                          Tools & Dependencies                           ###
 ###############################################################################
@@ -337,7 +343,7 @@ docs-lint:
 
 #? docs-lint-fix: Lint markdown documentation files and fix
 docs-lint-fix:
-	markdownlint-cli2-fix "**.md"
+	markdownlint-cli2 "**.md" --fix
 
 #? docs-link-check: Run markdown-link-check
 docs-link-check:
@@ -384,7 +390,6 @@ proto-update-deps:
 	$(DOCKER) run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps
-
 
 #? help: Get more info on make commands
 help: Makefile
