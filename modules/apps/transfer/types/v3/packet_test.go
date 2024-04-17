@@ -555,7 +555,7 @@ func TestValidate(t *testing.T) {
 				Amount: "1000",
 				Trace:  []string{"transfer/channel-1", "randomport"},
 			},
-			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: randomport"),
+			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: [transfer channel-1 randomport]"),
 		},
 	}
 
