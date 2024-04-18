@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/api
 
-go 1.22.0
+go 1.21
 
 // NOTE: This replace points the ics23 code deps used by 23-commitment to a branch using pulsar codegen (i.e. protov2 compatible encoding interfaces)
 // This should be removed and reverted when depinject supports protov1 with gogoproto.
