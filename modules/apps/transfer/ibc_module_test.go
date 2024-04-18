@@ -48,7 +48,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		{
 			"ics20-1 version string", func() {
 				v1 = true
-				channel.Version = "ics20-1"
+				channel.Version = types.Version1
 			}, true,
 		},
 		{
@@ -96,7 +96,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
 				Version:        types.Version,
 			}
-			v1 = false
 
 			var err error
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
@@ -112,7 +111,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				if v1 {
-					suite.Require().Equal("ics20-1", version)
+					suite.Require().Equal(types.Version1, version)
 				} else {
 					suite.Require().Equal(types.Version, version)
 				}
@@ -195,7 +194,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				Version:        types.Version,
 			}
 			counterpartyVersion = types.Version
-			v1 = false
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
