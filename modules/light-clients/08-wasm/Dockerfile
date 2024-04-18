@@ -17,6 +17,7 @@ RUN cp /lib/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
 
 # Copy relevant files before go mod download. Replace directives to local paths break if local
 # files are not copied before go mod download.
+ADD api api
 ADD internal internal
 ADD testing testing
 ADD modules modules

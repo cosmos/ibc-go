@@ -6,6 +6,8 @@ toolchain go1.21.0
 
 replace github.com/cosmos/ibc-go/v8 => ../../../
 
+replace github.com/cosmos/ibc-go/api => ../../../api
+
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
@@ -69,6 +71,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.0.1 // indirect
+	github.com/cosmos/ibc-go/api v0.0.0-00010101000000-000000000000 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/creachadair/atomicfile v0.3.1 // indirect
