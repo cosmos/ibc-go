@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/modules/capability
 
-go 1.22.0
+go 1.21
 
 replace github.com/cosmos/ibc-go/api => ../../api
 
