@@ -442,7 +442,7 @@ type Module struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// sealKeeper is a flag to seal the capability keeper.
+	// seal_keeper is a flag to seal the capability keeper.
 	SealKeeper bool `protobuf:"varint,1,opt,name=seal_keeper,json=sealKeeper,proto3" json:"seal_keeper,omitempty"`
 }
 
