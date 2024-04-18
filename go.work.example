@@ -1,9 +1,10 @@
-go 1.21
+go 1.22
 
 use (
 	./
-	./modules/capability
-	./modules/apps/callbacks
-	./modules/light-clients/08-wasm
+	./api
 	./e2e
+	./modules/apps/callbacks
+	./modules/capability
+	./modules/light-clients/08-wasm
 )
