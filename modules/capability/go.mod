@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/modules/capability
 
-go 1.21
+go 1.22.0
 
 replace github.com/cosmos/ibc-go/api => ../../api
 
@@ -26,7 +26,6 @@ require (
 require (
 	cosmossdk.io/api v0.7.3 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/x/tx v0.13.1 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
