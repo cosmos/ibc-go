@@ -2,9 +2,9 @@
 package wasmv1
 
 import (
+	_ "cosmossdk.io/api/cosmos/msg/v1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

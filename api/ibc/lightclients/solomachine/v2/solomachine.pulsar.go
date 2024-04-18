@@ -4,13 +4,13 @@ package solomachinev2
 import (
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v11 "github.com/cosmos/ibc-go/api/ibc/core/channel/v1"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/connection/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
@@ -794,7 +794,7 @@ func (x *fastReflection_ConsensusState) Get(descriptor protoreflect.FieldDescrip
 func (x *fastReflection_ConsensusState) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.lightclients.solomachine.v2.ConsensusState.public_key":
-		x.PublicKey = value.Message().Interface().(*types.Any)
+		x.PublicKey = value.Message().Interface().(*anypb.Any)
 	case "ibc.lightclients.solomachine.v2.ConsensusState.diversifier":
 		x.Diversifier = value.Interface().(string)
 	case "ibc.lightclients.solomachine.v2.ConsensusState.timestamp":
@@ -821,7 +821,7 @@ func (x *fastReflection_ConsensusState) Mutable(fd protoreflect.FieldDescriptor)
 	switch fd.FullName() {
 	case "ibc.lightclients.solomachine.v2.ConsensusState.public_key":
 		if x.PublicKey == nil {
-			x.PublicKey = new(types.Any)
+			x.PublicKey = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.PublicKey.ProtoReflect())
 	case "ibc.lightclients.solomachine.v2.ConsensusState.diversifier":
@@ -842,7 +842,7 @@ func (x *fastReflection_ConsensusState) Mutable(fd protoreflect.FieldDescriptor)
 func (x *fastReflection_ConsensusState) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.lightclients.solomachine.v2.ConsensusState.public_key":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.lightclients.solomachine.v2.ConsensusState.diversifier":
 		return protoreflect.ValueOfString("")
@@ -1062,7 +1062,7 @@ func (x *fastReflection_ConsensusState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.PublicKey == nil {
-					x.PublicKey = &types.Any{}
+					x.PublicKey = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.PublicKey); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -1377,7 +1377,7 @@ func (x *fastReflection_Header) Set(fd protoreflect.FieldDescriptor, value proto
 	case "ibc.lightclients.solomachine.v2.Header.signature":
 		x.Signature = value.Bytes()
 	case "ibc.lightclients.solomachine.v2.Header.new_public_key":
-		x.NewPublicKey = value.Message().Interface().(*types.Any)
+		x.NewPublicKey = value.Message().Interface().(*anypb.Any)
 	case "ibc.lightclients.solomachine.v2.Header.new_diversifier":
 		x.NewDiversifier = value.Interface().(string)
 	default:
@@ -1402,7 +1402,7 @@ func (x *fastReflection_Header) Mutable(fd protoreflect.FieldDescriptor) protore
 	switch fd.FullName() {
 	case "ibc.lightclients.solomachine.v2.Header.new_public_key":
 		if x.NewPublicKey == nil {
-			x.NewPublicKey = new(types.Any)
+			x.NewPublicKey = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.NewPublicKey.ProtoReflect())
 	case "ibc.lightclients.solomachine.v2.Header.sequence":
@@ -1433,7 +1433,7 @@ func (x *fastReflection_Header) NewField(fd protoreflect.FieldDescriptor) protor
 	case "ibc.lightclients.solomachine.v2.Header.signature":
 		return protoreflect.ValueOfBytes(nil)
 	case "ibc.lightclients.solomachine.v2.Header.new_public_key":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.lightclients.solomachine.v2.Header.new_diversifier":
 		return protoreflect.ValueOfString("")
@@ -1742,7 +1742,7 @@ func (x *fastReflection_Header) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.NewPublicKey == nil {
-					x.NewPublicKey = &types.Any{}
+					x.NewPublicKey = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.NewPublicKey); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -4297,7 +4297,7 @@ func (x *fastReflection_HeaderData) Get(descriptor protoreflect.FieldDescriptor)
 func (x *fastReflection_HeaderData) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.lightclients.solomachine.v2.HeaderData.new_pub_key":
-		x.NewPubKey = value.Message().Interface().(*types.Any)
+		x.NewPubKey = value.Message().Interface().(*anypb.Any)
 	case "ibc.lightclients.solomachine.v2.HeaderData.new_diversifier":
 		x.NewDiversifier = value.Interface().(string)
 	default:
@@ -4322,7 +4322,7 @@ func (x *fastReflection_HeaderData) Mutable(fd protoreflect.FieldDescriptor) pro
 	switch fd.FullName() {
 	case "ibc.lightclients.solomachine.v2.HeaderData.new_pub_key":
 		if x.NewPubKey == nil {
-			x.NewPubKey = new(types.Any)
+			x.NewPubKey = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.NewPubKey.ProtoReflect())
 	case "ibc.lightclients.solomachine.v2.HeaderData.new_diversifier":
@@ -4341,7 +4341,7 @@ func (x *fastReflection_HeaderData) Mutable(fd protoreflect.FieldDescriptor) pro
 func (x *fastReflection_HeaderData) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.lightclients.solomachine.v2.HeaderData.new_pub_key":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.lightclients.solomachine.v2.HeaderData.new_diversifier":
 		return protoreflect.ValueOfString("")
@@ -4551,7 +4551,7 @@ func (x *fastReflection_HeaderData) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.NewPubKey == nil {
-					x.NewPubKey = &types.Any{}
+					x.NewPubKey = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.NewPubKey); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -4798,7 +4798,7 @@ func (x *fastReflection_ClientStateData) Set(fd protoreflect.FieldDescriptor, va
 	case "ibc.lightclients.solomachine.v2.ClientStateData.path":
 		x.Path = value.Bytes()
 	case "ibc.lightclients.solomachine.v2.ClientStateData.client_state":
-		x.ClientState = value.Message().Interface().(*types.Any)
+		x.ClientState = value.Message().Interface().(*anypb.Any)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.lightclients.solomachine.v2.ClientStateData"))
@@ -4821,7 +4821,7 @@ func (x *fastReflection_ClientStateData) Mutable(fd protoreflect.FieldDescriptor
 	switch fd.FullName() {
 	case "ibc.lightclients.solomachine.v2.ClientStateData.client_state":
 		if x.ClientState == nil {
-			x.ClientState = new(types.Any)
+			x.ClientState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ClientState.ProtoReflect())
 	case "ibc.lightclients.solomachine.v2.ClientStateData.path":
@@ -4842,7 +4842,7 @@ func (x *fastReflection_ClientStateData) NewField(fd protoreflect.FieldDescripto
 	case "ibc.lightclients.solomachine.v2.ClientStateData.path":
 		return protoreflect.ValueOfBytes(nil)
 	case "ibc.lightclients.solomachine.v2.ClientStateData.client_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -5084,7 +5084,7 @@ func (x *fastReflection_ClientStateData) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ClientState == nil {
-					x.ClientState = &types.Any{}
+					x.ClientState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ClientState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -5299,7 +5299,7 @@ func (x *fastReflection_ConsensusStateData) Set(fd protoreflect.FieldDescriptor,
 	case "ibc.lightclients.solomachine.v2.ConsensusStateData.path":
 		x.Path = value.Bytes()
 	case "ibc.lightclients.solomachine.v2.ConsensusStateData.consensus_state":
-		x.ConsensusState = value.Message().Interface().(*types.Any)
+		x.ConsensusState = value.Message().Interface().(*anypb.Any)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.lightclients.solomachine.v2.ConsensusStateData"))
@@ -5322,7 +5322,7 @@ func (x *fastReflection_ConsensusStateData) Mutable(fd protoreflect.FieldDescrip
 	switch fd.FullName() {
 	case "ibc.lightclients.solomachine.v2.ConsensusStateData.consensus_state":
 		if x.ConsensusState == nil {
-			x.ConsensusState = new(types.Any)
+			x.ConsensusState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ConsensusState.ProtoReflect())
 	case "ibc.lightclients.solomachine.v2.ConsensusStateData.path":
@@ -5343,7 +5343,7 @@ func (x *fastReflection_ConsensusStateData) NewField(fd protoreflect.FieldDescri
 	case "ibc.lightclients.solomachine.v2.ConsensusStateData.path":
 		return protoreflect.ValueOfBytes(nil)
 	case "ibc.lightclients.solomachine.v2.ConsensusStateData.consensus_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -5585,7 +5585,7 @@ func (x *fastReflection_ConsensusStateData) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ConsensusState == nil {
-					x.ConsensusState = &types.Any{}
+					x.ConsensusState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ConsensusState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -8665,7 +8665,7 @@ type ConsensusState struct {
 	unknownFields protoimpl.UnknownFields
 
 	// public key of the solo machine
-	PublicKey *types.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	PublicKey *anypb.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
 	// diversifier allows the same public key to be re-used across different solo
 	// machine clients (potentially on different chains) without being considered
 	// misbehaviour.
@@ -8693,7 +8693,7 @@ func (*ConsensusState) Descriptor() ([]byte, []int) {
 	return file_ibc_lightclients_solomachine_v2_solomachine_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ConsensusState) GetPublicKey() *types.Any {
+func (x *ConsensusState) GetPublicKey() *anypb.Any {
 	if x != nil {
 		return x.PublicKey
 	}
@@ -8724,7 +8724,7 @@ type Header struct {
 	Sequence       uint64     `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
 	Timestamp      uint64     `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	Signature      []byte     `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
-	NewPublicKey   *types.Any `protobuf:"bytes,4,opt,name=new_public_key,json=newPublicKey,proto3" json:"new_public_key,omitempty"`
+	NewPublicKey   *anypb.Any `protobuf:"bytes,4,opt,name=new_public_key,json=newPublicKey,proto3" json:"new_public_key,omitempty"`
 	NewDiversifier string     `protobuf:"bytes,5,opt,name=new_diversifier,json=newDiversifier,proto3" json:"new_diversifier,omitempty"`
 }
 
@@ -8769,7 +8769,7 @@ func (x *Header) GetSignature() []byte {
 	return nil
 }
 
-func (x *Header) GetNewPublicKey() *types.Any {
+func (x *Header) GetNewPublicKey() *anypb.Any {
 	if x != nil {
 		return x.NewPublicKey
 	}
@@ -9027,7 +9027,7 @@ type HeaderData struct {
 	unknownFields protoimpl.UnknownFields
 
 	// header public key
-	NewPubKey *types.Any `protobuf:"bytes,1,opt,name=new_pub_key,json=newPubKey,proto3" json:"new_pub_key,omitempty"`
+	NewPubKey *anypb.Any `protobuf:"bytes,1,opt,name=new_pub_key,json=newPubKey,proto3" json:"new_pub_key,omitempty"`
 	// header diversifier
 	NewDiversifier string `protobuf:"bytes,2,opt,name=new_diversifier,json=newDiversifier,proto3" json:"new_diversifier,omitempty"`
 }
@@ -9052,7 +9052,7 @@ func (*HeaderData) Descriptor() ([]byte, []int) {
 	return file_ibc_lightclients_solomachine_v2_solomachine_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *HeaderData) GetNewPubKey() *types.Any {
+func (x *HeaderData) GetNewPubKey() *anypb.Any {
 	if x != nil {
 		return x.NewPubKey
 	}
@@ -9073,7 +9073,7 @@ type ClientStateData struct {
 	unknownFields protoimpl.UnknownFields
 
 	Path        []byte     `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	ClientState *types.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState *anypb.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 }
 
 func (x *ClientStateData) Reset() {
@@ -9103,7 +9103,7 @@ func (x *ClientStateData) GetPath() []byte {
 	return nil
 }
 
-func (x *ClientStateData) GetClientState() *types.Any {
+func (x *ClientStateData) GetClientState() *anypb.Any {
 	if x != nil {
 		return x.ClientState
 	}
@@ -9118,7 +9118,7 @@ type ConsensusStateData struct {
 	unknownFields protoimpl.UnknownFields
 
 	Path           []byte     `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	ConsensusState *types.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *anypb.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 }
 
 func (x *ConsensusStateData) Reset() {
@@ -9148,7 +9148,7 @@ func (x *ConsensusStateData) GetPath() []byte {
 	return nil
 }
 
-func (x *ConsensusStateData) GetConsensusState() *types.Any {
+func (x *ConsensusStateData) GetConsensusState() *anypb.Any {
 	if x != nil {
 		return x.ConsensusState
 	}
@@ -9655,7 +9655,7 @@ var file_ibc_lightclients_solomachine_v2_solomachine_proto_goTypes = []interface
 	(*PacketAcknowledgementData)(nil), // 14: ibc.lightclients.solomachine.v2.PacketAcknowledgementData
 	(*PacketReceiptAbsenceData)(nil),  // 15: ibc.lightclients.solomachine.v2.PacketReceiptAbsenceData
 	(*NextSequenceRecvData)(nil),      // 16: ibc.lightclients.solomachine.v2.NextSequenceRecvData
-	(*types.Any)(nil),                 // 17: google.protobuf.Any
+	(*anypb.Any)(nil),                 // 17: google.protobuf.Any
 	(*v1.ConnectionEnd)(nil),          // 18: ibc.core.connection.v1.ConnectionEnd
 	(*v11.Channel)(nil),               // 19: ibc.core.channel.v1.Channel
 }

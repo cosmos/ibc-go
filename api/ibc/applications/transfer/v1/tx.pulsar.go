@@ -2,11 +2,11 @@
 package transferv1
 
 import (
+	_ "cosmossdk.io/api/amino"
+	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
+	_ "cosmossdk.io/api/cosmos/msg/v1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
-	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/client/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -283,7 +283,7 @@ func (x *fastReflection_MsgTransfer) Set(fd protoreflect.FieldDescriptor, value 
 	case "ibc.applications.transfer.v1.MsgTransfer.source_channel":
 		x.SourceChannel = value.Interface().(string)
 	case "ibc.applications.transfer.v1.MsgTransfer.token":
-		x.Token = value.Message().Interface().(*types.Coin)
+		x.Token = value.Message().Interface().(*v1beta1.Coin)
 	case "ibc.applications.transfer.v1.MsgTransfer.sender":
 		x.Sender = value.Interface().(string)
 	case "ibc.applications.transfer.v1.MsgTransfer.receiver":
@@ -316,7 +316,7 @@ func (x *fastReflection_MsgTransfer) Mutable(fd protoreflect.FieldDescriptor) pr
 	switch fd.FullName() {
 	case "ibc.applications.transfer.v1.MsgTransfer.token":
 		if x.Token == nil {
-			x.Token = new(types.Coin)
+			x.Token = new(v1beta1.Coin)
 		}
 		return protoreflect.ValueOfMessage(x.Token.ProtoReflect())
 	case "ibc.applications.transfer.v1.MsgTransfer.timeout_height":
@@ -354,7 +354,7 @@ func (x *fastReflection_MsgTransfer) NewField(fd protoreflect.FieldDescriptor) p
 	case "ibc.applications.transfer.v1.MsgTransfer.source_channel":
 		return protoreflect.ValueOfString("")
 	case "ibc.applications.transfer.v1.MsgTransfer.token":
-		m := new(types.Coin)
+		m := new(v1beta1.Coin)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.applications.transfer.v1.MsgTransfer.sender":
 		return protoreflect.ValueOfString("")
@@ -707,7 +707,7 @@ func (x *fastReflection_MsgTransfer) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Token == nil {
-					x.Token = &types.Coin{}
+					x.Token = &v1beta1.Coin{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Token); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -2184,7 +2184,7 @@ type MsgTransfer struct {
 	// the channel by which the packet will be sent
 	SourceChannel string `protobuf:"bytes,2,opt,name=source_channel,json=sourceChannel,proto3" json:"source_channel,omitempty"`
 	// the tokens to be transferred
-	Token *types.Coin `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
+	Token *v1beta1.Coin `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
 	// the sender address
 	Sender string `protobuf:"bytes,4,opt,name=sender,proto3" json:"sender,omitempty"`
 	// the recipient address on the destination chain
@@ -2233,7 +2233,7 @@ func (x *MsgTransfer) GetSourceChannel() string {
 	return ""
 }
 
-func (x *MsgTransfer) GetToken() *types.Coin {
+func (x *MsgTransfer) GetToken() *v1beta1.Coin {
 	if x != nil {
 		return x.Token
 	}
@@ -2496,7 +2496,7 @@ var file_ibc_applications_transfer_v1_tx_proto_goTypes = []interface{}{
 	(*MsgTransferResponse)(nil),     // 1: ibc.applications.transfer.v1.MsgTransferResponse
 	(*MsgUpdateParams)(nil),         // 2: ibc.applications.transfer.v1.MsgUpdateParams
 	(*MsgUpdateParamsResponse)(nil), // 3: ibc.applications.transfer.v1.MsgUpdateParamsResponse
-	(*types.Coin)(nil),              // 4: cosmos.base.v1beta1.Coin
+	(*v1beta1.Coin)(nil),            // 4: cosmos.base.v1beta1.Coin
 	(*v1.Height)(nil),               // 5: ibc.core.client.v1.Height
 	(*Params)(nil),                  // 6: ibc.applications.transfer.v1.Params
 }

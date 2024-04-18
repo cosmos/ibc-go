@@ -2,10 +2,10 @@
 package transferv1
 
 import (
+	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
+	v1beta11 "cosmossdk.io/api/cosmos/base/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/types"
-	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -1028,7 +1028,7 @@ func (x *fastReflection_QueryDenomTracesRequest) Get(descriptor protoreflect.Fie
 func (x *fastReflection_QueryDenomTracesRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.applications.transfer.v1.QueryDenomTracesRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.transfer.v1.QueryDenomTracesRequest"))
@@ -1051,7 +1051,7 @@ func (x *fastReflection_QueryDenomTracesRequest) Mutable(fd protoreflect.FieldDe
 	switch fd.FullName() {
 	case "ibc.applications.transfer.v1.QueryDenomTracesRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	default:
@@ -1068,7 +1068,7 @@ func (x *fastReflection_QueryDenomTracesRequest) Mutable(fd protoreflect.FieldDe
 func (x *fastReflection_QueryDenomTracesRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.transfer.v1.QueryDenomTracesRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -1265,7 +1265,7 @@ func (x *fastReflection_QueryDenomTracesRequest) ProtoMethods() *protoiface.Meth
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -1536,7 +1536,7 @@ func (x *fastReflection_QueryDenomTracesResponse) Set(fd protoreflect.FieldDescr
 		clv := lv.(*_QueryDenomTracesResponse_1_list)
 		x.DenomTraces = *clv.list
 	case "ibc.applications.transfer.v1.QueryDenomTracesResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.transfer.v1.QueryDenomTracesResponse"))
@@ -1565,7 +1565,7 @@ func (x *fastReflection_QueryDenomTracesResponse) Mutable(fd protoreflect.FieldD
 		return protoreflect.ValueOfList(value)
 	case "ibc.applications.transfer.v1.QueryDenomTracesResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	default:
@@ -1585,7 +1585,7 @@ func (x *fastReflection_QueryDenomTracesResponse) NewField(fd protoreflect.Field
 		list := []*DenomTrace{}
 		return protoreflect.ValueOfList(&_QueryDenomTracesResponse_1_list{list: &list})
 	case "ibc.applications.transfer.v1.QueryDenomTracesResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -1838,7 +1838,7 @@ func (x *fastReflection_QueryDenomTracesResponse) ProtoMethods() *protoiface.Met
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -4991,7 +4991,7 @@ func (x *fastReflection_QueryTotalEscrowForDenomResponse) Get(descriptor protore
 func (x *fastReflection_QueryTotalEscrowForDenomResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.applications.transfer.v1.QueryTotalEscrowForDenomResponse.amount":
-		x.Amount = value.Message().Interface().(*types.Coin)
+		x.Amount = value.Message().Interface().(*v1beta11.Coin)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.transfer.v1.QueryTotalEscrowForDenomResponse"))
@@ -5014,7 +5014,7 @@ func (x *fastReflection_QueryTotalEscrowForDenomResponse) Mutable(fd protoreflec
 	switch fd.FullName() {
 	case "ibc.applications.transfer.v1.QueryTotalEscrowForDenomResponse.amount":
 		if x.Amount == nil {
-			x.Amount = new(types.Coin)
+			x.Amount = new(v1beta11.Coin)
 		}
 		return protoreflect.ValueOfMessage(x.Amount.ProtoReflect())
 	default:
@@ -5031,7 +5031,7 @@ func (x *fastReflection_QueryTotalEscrowForDenomResponse) Mutable(fd protoreflec
 func (x *fastReflection_QueryTotalEscrowForDenomResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.transfer.v1.QueryTotalEscrowForDenomResponse.amount":
-		m := new(types.Coin)
+		m := new(v1beta11.Coin)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -5228,7 +5228,7 @@ func (x *fastReflection_QueryTotalEscrowForDenomResponse) ProtoMethods() *protoi
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Amount == nil {
-					x.Amount = &types.Coin{}
+					x.Amount = &v1beta11.Coin{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Amount); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -5366,7 +5366,7 @@ type QueryDenomTracesRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// pagination defines an optional pagination for the request.
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryDenomTracesRequest) Reset() {
@@ -5389,7 +5389,7 @@ func (*QueryDenomTracesRequest) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_transfer_v1_query_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *QueryDenomTracesRequest) GetPagination() *query.PageRequest {
+func (x *QueryDenomTracesRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -5406,7 +5406,7 @@ type QueryDenomTracesResponse struct {
 	// denom_traces returns all denominations trace information.
 	DenomTraces []*DenomTrace `protobuf:"bytes,1,rep,name=denom_traces,json=denomTraces,proto3" json:"denom_traces,omitempty"`
 	// pagination defines the pagination in the response.
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryDenomTracesResponse) Reset() {
@@ -5436,7 +5436,7 @@ func (x *QueryDenomTracesResponse) GetDenomTraces() []*DenomTrace {
 	return nil
 }
 
-func (x *QueryDenomTracesResponse) GetPagination() *query.PageResponse {
+func (x *QueryDenomTracesResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -5708,7 +5708,7 @@ type QueryTotalEscrowForDenomResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Amount *types.Coin `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Amount *v1beta11.Coin `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
 }
 
 func (x *QueryTotalEscrowForDenomResponse) Reset() {
@@ -5731,7 +5731,7 @@ func (*QueryTotalEscrowForDenomResponse) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_transfer_v1_query_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *QueryTotalEscrowForDenomResponse) GetAmount() *types.Coin {
+func (x *QueryTotalEscrowForDenomResponse) GetAmount() *v1beta11.Coin {
 	if x != nil {
 		return x.Amount
 	}
@@ -5932,10 +5932,10 @@ var file_ibc_applications_transfer_v1_query_proto_goTypes = []interface{}{
 	(*QueryTotalEscrowForDenomRequest)(nil),  // 10: ibc.applications.transfer.v1.QueryTotalEscrowForDenomRequest
 	(*QueryTotalEscrowForDenomResponse)(nil), // 11: ibc.applications.transfer.v1.QueryTotalEscrowForDenomResponse
 	(*DenomTrace)(nil),                       // 12: ibc.applications.transfer.v1.DenomTrace
-	(*query.PageRequest)(nil),                // 13: cosmos.base.query.v1beta1.PageRequest
-	(*query.PageResponse)(nil),               // 14: cosmos.base.query.v1beta1.PageResponse
+	(*v1beta1.PageRequest)(nil),              // 13: cosmos.base.query.v1beta1.PageRequest
+	(*v1beta1.PageResponse)(nil),             // 14: cosmos.base.query.v1beta1.PageResponse
 	(*Params)(nil),                           // 15: ibc.applications.transfer.v1.Params
-	(*types.Coin)(nil),                       // 16: cosmos.base.v1beta1.Coin
+	(*v1beta11.Coin)(nil),                    // 16: cosmos.base.v1beta1.Coin
 }
 var file_ibc_applications_transfer_v1_query_proto_depIdxs = []int32{
 	12, // 0: ibc.applications.transfer.v1.QueryDenomTraceResponse.denom_trace:type_name -> ibc.applications.transfer.v1.DenomTrace

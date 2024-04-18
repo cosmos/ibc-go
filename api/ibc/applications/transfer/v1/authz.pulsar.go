@@ -2,10 +2,10 @@
 package transferv1
 
 import (
+	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
@@ -18,7 +18,7 @@ import (
 var _ protoreflect.List = (*_Allocation_3_list)(nil)
 
 type _Allocation_3_list struct {
-	list *[]*types.Coin
+	list *[]*v1beta1.Coin
 }
 
 func (x *_Allocation_3_list) Len() int {
@@ -34,18 +34,18 @@ func (x *_Allocation_3_list) Get(i int) protoreflect.Value {
 
 func (x *_Allocation_3_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_Allocation_3_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_Allocation_3_list) AppendMutable() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -58,7 +58,7 @@ func (x *_Allocation_3_list) Truncate(n int) {
 }
 
 func (x *_Allocation_3_list) NewElement() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -421,7 +421,7 @@ func (x *fastReflection_Allocation) Mutable(fd protoreflect.FieldDescriptor) pro
 	switch fd.FullName() {
 	case "ibc.applications.transfer.v1.Allocation.spend_limit":
 		if x.SpendLimit == nil {
-			x.SpendLimit = []*types.Coin{}
+			x.SpendLimit = []*v1beta1.Coin{}
 		}
 		value := &_Allocation_3_list{list: &x.SpendLimit}
 		return protoreflect.ValueOfList(value)
@@ -459,7 +459,7 @@ func (x *fastReflection_Allocation) NewField(fd protoreflect.FieldDescriptor) pr
 	case "ibc.applications.transfer.v1.Allocation.source_channel":
 		return protoreflect.ValueOfString("")
 	case "ibc.applications.transfer.v1.Allocation.spend_limit":
-		list := []*types.Coin{}
+		list := []*v1beta1.Coin{}
 		return protoreflect.ValueOfList(&_Allocation_3_list{list: &list})
 	case "ibc.applications.transfer.v1.Allocation.allow_list":
 		list := []string{}
@@ -781,7 +781,7 @@ func (x *fastReflection_Allocation) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.SpendLimit = append(x.SpendLimit, &types.Coin{})
+				x.SpendLimit = append(x.SpendLimit, &v1beta1.Coin{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.SpendLimit[len(x.SpendLimit)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -1403,7 +1403,7 @@ type Allocation struct {
 	// the channel by which the packet will be sent
 	SourceChannel string `protobuf:"bytes,2,opt,name=source_channel,json=sourceChannel,proto3" json:"source_channel,omitempty"`
 	// spend limitation on the channel
-	SpendLimit []*types.Coin `protobuf:"bytes,3,rep,name=spend_limit,json=spendLimit,proto3" json:"spend_limit,omitempty"`
+	SpendLimit []*v1beta1.Coin `protobuf:"bytes,3,rep,name=spend_limit,json=spendLimit,proto3" json:"spend_limit,omitempty"`
 	// allow list of receivers, an empty allow list permits any receiver address
 	AllowList []string `protobuf:"bytes,4,rep,name=allow_list,json=allowList,proto3" json:"allow_list,omitempty"`
 	// allow list of packet data keys, an empty list prohibits all packet data keys;
@@ -1445,7 +1445,7 @@ func (x *Allocation) GetSourceChannel() string {
 	return ""
 }
 
-func (x *Allocation) GetSpendLimit() []*types.Coin {
+func (x *Allocation) GetSpendLimit() []*v1beta1.Coin {
 	if x != nil {
 		return x.SpendLimit
 	}
@@ -1579,7 +1579,7 @@ var file_ibc_applications_transfer_v1_authz_proto_msgTypes = make([]protoimpl.Me
 var file_ibc_applications_transfer_v1_authz_proto_goTypes = []interface{}{
 	(*Allocation)(nil),            // 0: ibc.applications.transfer.v1.Allocation
 	(*TransferAuthorization)(nil), // 1: ibc.applications.transfer.v1.TransferAuthorization
-	(*types.Coin)(nil),            // 2: cosmos.base.v1beta1.Coin
+	(*v1beta1.Coin)(nil),          // 2: cosmos.base.v1beta1.Coin
 }
 var file_ibc_applications_transfer_v1_authz_proto_depIdxs = []int32{
 	2, // 0: ibc.applications.transfer.v1.Allocation.spend_limit:type_name -> cosmos.base.v1beta1.Coin
