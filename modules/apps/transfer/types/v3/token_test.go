@@ -4,8 +4,9 @@ import (
 	fmt "fmt"
 	"testing"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 func TestGetFullDenomPath(t *testing.T) {

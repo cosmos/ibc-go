@@ -4,7 +4,9 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
