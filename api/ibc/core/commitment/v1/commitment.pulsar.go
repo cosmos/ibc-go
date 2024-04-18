@@ -5,7 +5,7 @@ import (
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
-	_go "github.com/cosmos/ics23/go"
+	api "github.com/cosmos/ics23/go/api"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -1341,7 +1341,7 @@ func (x *fastReflection_MerklePath) ProtoMethods() *protoiface.Methods {
 var _ protoreflect.List = (*_MerkleProof_1_list)(nil)
 
 type _MerkleProof_1_list struct {
-	list *[]*_go.CommitmentProof
+	list *[]*api.CommitmentProof
 }
 
 func (x *_MerkleProof_1_list) Len() int {
@@ -1357,18 +1357,18 @@ func (x *_MerkleProof_1_list) Get(i int) protoreflect.Value {
 
 func (x *_MerkleProof_1_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*_go.CommitmentProof)
+	concreteValue := valueUnwrapped.Interface().(*api.CommitmentProof)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_MerkleProof_1_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*_go.CommitmentProof)
+	concreteValue := valueUnwrapped.Interface().(*api.CommitmentProof)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_MerkleProof_1_list) AppendMutable() protoreflect.Value {
-	v := new(_go.CommitmentProof)
+	v := new(api.CommitmentProof)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -1381,7 +1381,7 @@ func (x *_MerkleProof_1_list) Truncate(n int) {
 }
 
 func (x *_MerkleProof_1_list) NewElement() protoreflect.Value {
-	v := new(_go.CommitmentProof)
+	v := new(api.CommitmentProof)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -1574,7 +1574,7 @@ func (x *fastReflection_MerkleProof) Mutable(fd protoreflect.FieldDescriptor) pr
 	switch fd.FullName() {
 	case "ibc.core.commitment.v1.MerkleProof.proofs":
 		if x.Proofs == nil {
-			x.Proofs = []*_go.CommitmentProof{}
+			x.Proofs = []*api.CommitmentProof{}
 		}
 		value := &_MerkleProof_1_list{list: &x.Proofs}
 		return protoreflect.ValueOfList(value)
@@ -1592,7 +1592,7 @@ func (x *fastReflection_MerkleProof) Mutable(fd protoreflect.FieldDescriptor) pr
 func (x *fastReflection_MerkleProof) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.core.commitment.v1.MerkleProof.proofs":
-		list := []*_go.CommitmentProof{}
+		list := []*api.CommitmentProof{}
 		return protoreflect.ValueOfList(&_MerkleProof_1_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -1792,7 +1792,7 @@ func (x *fastReflection_MerkleProof) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Proofs = append(x.Proofs, &_go.CommitmentProof{})
+				x.Proofs = append(x.Proofs, &api.CommitmentProof{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Proofs[len(x.Proofs)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -1968,7 +1968,7 @@ type MerkleProof struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Proofs []*_go.CommitmentProof `protobuf:"bytes,1,rep,name=proofs,proto3" json:"proofs,omitempty"`
+	Proofs []*api.CommitmentProof `protobuf:"bytes,1,rep,name=proofs,proto3" json:"proofs,omitempty"`
 }
 
 func (x *MerkleProof) Reset() {
@@ -1991,7 +1991,7 @@ func (*MerkleProof) Descriptor() ([]byte, []int) {
 	return file_ibc_core_commitment_v1_commitment_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *MerkleProof) GetProofs() []*_go.CommitmentProof {
+func (x *MerkleProof) GetProofs() []*api.CommitmentProof {
 	if x != nil {
 		return x.Proofs
 	}
@@ -2057,7 +2057,7 @@ var file_ibc_core_commitment_v1_commitment_proto_goTypes = []interface{}{
 	(*MerklePrefix)(nil),        // 1: ibc.core.commitment.v1.MerklePrefix
 	(*MerklePath)(nil),          // 2: ibc.core.commitment.v1.MerklePath
 	(*MerkleProof)(nil),         // 3: ibc.core.commitment.v1.MerkleProof
-	(*_go.CommitmentProof)(nil), // 4: cosmos.ics23.v1.CommitmentProof
+	(*api.CommitmentProof)(nil), // 4: cosmos.ics23.v1.CommitmentProof
 }
 var file_ibc_core_commitment_v1_commitment_proto_depIdxs = []int32{
 	4, // 0: ibc.core.commitment.v1.MerkleProof.proofs:type_name -> cosmos.ics23.v1.CommitmentProof

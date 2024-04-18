@@ -4,11 +4,11 @@ package interchain_accountsv1
 import (
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
@@ -551,7 +551,7 @@ func (x *fastReflection_InterchainAccountPacketData) ProtoMethods() *protoiface.
 var _ protoreflect.List = (*_CosmosTx_1_list)(nil)
 
 type _CosmosTx_1_list struct {
-	list *[]*types.Any
+	list *[]*anypb.Any
 }
 
 func (x *_CosmosTx_1_list) Len() int {
@@ -567,18 +567,18 @@ func (x *_CosmosTx_1_list) Get(i int) protoreflect.Value {
 
 func (x *_CosmosTx_1_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Any)
+	concreteValue := valueUnwrapped.Interface().(*anypb.Any)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_CosmosTx_1_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Any)
+	concreteValue := valueUnwrapped.Interface().(*anypb.Any)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_CosmosTx_1_list) AppendMutable() protoreflect.Value {
-	v := new(types.Any)
+	v := new(anypb.Any)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -591,7 +591,7 @@ func (x *_CosmosTx_1_list) Truncate(n int) {
 }
 
 func (x *_CosmosTx_1_list) NewElement() protoreflect.Value {
-	v := new(types.Any)
+	v := new(anypb.Any)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -784,7 +784,7 @@ func (x *fastReflection_CosmosTx) Mutable(fd protoreflect.FieldDescriptor) proto
 	switch fd.FullName() {
 	case "ibc.applications.interchain_accounts.v1.CosmosTx.messages":
 		if x.Messages == nil {
-			x.Messages = []*types.Any{}
+			x.Messages = []*anypb.Any{}
 		}
 		value := &_CosmosTx_1_list{list: &x.Messages}
 		return protoreflect.ValueOfList(value)
@@ -802,7 +802,7 @@ func (x *fastReflection_CosmosTx) Mutable(fd protoreflect.FieldDescriptor) proto
 func (x *fastReflection_CosmosTx) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.interchain_accounts.v1.CosmosTx.messages":
-		list := []*types.Any{}
+		list := []*anypb.Any{}
 		return protoreflect.ValueOfList(&_CosmosTx_1_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -1002,7 +1002,7 @@ func (x *fastReflection_CosmosTx) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Messages = append(x.Messages, &types.Any{})
+				x.Messages = append(x.Messages, &anypb.Any{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Messages[len(x.Messages)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -1163,7 +1163,7 @@ type CosmosTx struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Messages []*types.Any `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	Messages []*anypb.Any `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
 }
 
 func (x *CosmosTx) Reset() {
@@ -1186,7 +1186,7 @@ func (*CosmosTx) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_interchain_accounts_v1_packet_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CosmosTx) GetMessages() []*types.Any {
+func (x *CosmosTx) GetMessages() []*anypb.Any {
 	if x != nil {
 		return x.Messages
 	}
@@ -1265,7 +1265,7 @@ var file_ibc_applications_interchain_accounts_v1_packet_proto_goTypes = []interf
 	(Type)(0),                           // 0: ibc.applications.interchain_accounts.v1.Type
 	(*InterchainAccountPacketData)(nil), // 1: ibc.applications.interchain_accounts.v1.InterchainAccountPacketData
 	(*CosmosTx)(nil),                    // 2: ibc.applications.interchain_accounts.v1.CosmosTx
-	(*types.Any)(nil),                   // 3: google.protobuf.Any
+	(*anypb.Any)(nil),                   // 3: google.protobuf.Any
 }
 var file_ibc_applications_interchain_accounts_v1_packet_proto_depIdxs = []int32{
 	0, // 0: ibc.applications.interchain_accounts.v1.InterchainAccountPacketData.type:type_name -> ibc.applications.interchain_accounts.v1.Type

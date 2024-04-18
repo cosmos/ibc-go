@@ -2,15 +2,15 @@
 package clientv1
 
 import (
-	types1 "cosmossdk.io/x/upgrade/types"
+	_ "cosmossdk.io/api/cosmos/msg/v1"
+	v1beta1 "cosmossdk.io/api/cosmos/upgrade/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
-	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
@@ -203,9 +203,9 @@ func (x *fastReflection_MsgCreateClient) Get(descriptor protoreflect.FieldDescri
 func (x *fastReflection_MsgCreateClient) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.core.client.v1.MsgCreateClient.client_state":
-		x.ClientState = value.Message().Interface().(*types.Any)
+		x.ClientState = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.client.v1.MsgCreateClient.consensus_state":
-		x.ConsensusState = value.Message().Interface().(*types.Any)
+		x.ConsensusState = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.client.v1.MsgCreateClient.signer":
 		x.Signer = value.Interface().(string)
 	default:
@@ -230,12 +230,12 @@ func (x *fastReflection_MsgCreateClient) Mutable(fd protoreflect.FieldDescriptor
 	switch fd.FullName() {
 	case "ibc.core.client.v1.MsgCreateClient.client_state":
 		if x.ClientState == nil {
-			x.ClientState = new(types.Any)
+			x.ClientState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ClientState.ProtoReflect())
 	case "ibc.core.client.v1.MsgCreateClient.consensus_state":
 		if x.ConsensusState == nil {
-			x.ConsensusState = new(types.Any)
+			x.ConsensusState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ConsensusState.ProtoReflect())
 	case "ibc.core.client.v1.MsgCreateClient.signer":
@@ -254,10 +254,10 @@ func (x *fastReflection_MsgCreateClient) Mutable(fd protoreflect.FieldDescriptor
 func (x *fastReflection_MsgCreateClient) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.core.client.v1.MsgCreateClient.client_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.MsgCreateClient.consensus_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.MsgCreateClient.signer":
 		return protoreflect.ValueOfString("")
@@ -485,7 +485,7 @@ func (x *fastReflection_MsgCreateClient) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ClientState == nil {
-					x.ClientState = &types.Any{}
+					x.ClientState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ClientState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -521,7 +521,7 @@ func (x *fastReflection_MsgCreateClient) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ConsensusState == nil {
-					x.ConsensusState = &types.Any{}
+					x.ConsensusState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ConsensusState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -1139,7 +1139,7 @@ func (x *fastReflection_MsgUpdateClient) Set(fd protoreflect.FieldDescriptor, va
 	case "ibc.core.client.v1.MsgUpdateClient.client_id":
 		x.ClientId = value.Interface().(string)
 	case "ibc.core.client.v1.MsgUpdateClient.client_message":
-		x.ClientMessage = value.Message().Interface().(*types.Any)
+		x.ClientMessage = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.client.v1.MsgUpdateClient.signer":
 		x.Signer = value.Interface().(string)
 	default:
@@ -1164,7 +1164,7 @@ func (x *fastReflection_MsgUpdateClient) Mutable(fd protoreflect.FieldDescriptor
 	switch fd.FullName() {
 	case "ibc.core.client.v1.MsgUpdateClient.client_message":
 		if x.ClientMessage == nil {
-			x.ClientMessage = new(types.Any)
+			x.ClientMessage = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ClientMessage.ProtoReflect())
 	case "ibc.core.client.v1.MsgUpdateClient.client_id":
@@ -1187,7 +1187,7 @@ func (x *fastReflection_MsgUpdateClient) NewField(fd protoreflect.FieldDescripto
 	case "ibc.core.client.v1.MsgUpdateClient.client_id":
 		return protoreflect.ValueOfString("")
 	case "ibc.core.client.v1.MsgUpdateClient.client_message":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.MsgUpdateClient.signer":
 		return protoreflect.ValueOfString("")
@@ -1440,7 +1440,7 @@ func (x *fastReflection_MsgUpdateClient) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ClientMessage == nil {
-					x.ClientMessage = &types.Any{}
+					x.ClientMessage = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ClientMessage); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -2103,9 +2103,9 @@ func (x *fastReflection_MsgUpgradeClient) Set(fd protoreflect.FieldDescriptor, v
 	case "ibc.core.client.v1.MsgUpgradeClient.client_id":
 		x.ClientId = value.Interface().(string)
 	case "ibc.core.client.v1.MsgUpgradeClient.client_state":
-		x.ClientState = value.Message().Interface().(*types.Any)
+		x.ClientState = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.client.v1.MsgUpgradeClient.consensus_state":
-		x.ConsensusState = value.Message().Interface().(*types.Any)
+		x.ConsensusState = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.client.v1.MsgUpgradeClient.proof_upgrade_client":
 		x.ProofUpgradeClient = value.Bytes()
 	case "ibc.core.client.v1.MsgUpgradeClient.proof_upgrade_consensus_state":
@@ -2134,12 +2134,12 @@ func (x *fastReflection_MsgUpgradeClient) Mutable(fd protoreflect.FieldDescripto
 	switch fd.FullName() {
 	case "ibc.core.client.v1.MsgUpgradeClient.client_state":
 		if x.ClientState == nil {
-			x.ClientState = new(types.Any)
+			x.ClientState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ClientState.ProtoReflect())
 	case "ibc.core.client.v1.MsgUpgradeClient.consensus_state":
 		if x.ConsensusState == nil {
-			x.ConsensusState = new(types.Any)
+			x.ConsensusState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ConsensusState.ProtoReflect())
 	case "ibc.core.client.v1.MsgUpgradeClient.client_id":
@@ -2166,10 +2166,10 @@ func (x *fastReflection_MsgUpgradeClient) NewField(fd protoreflect.FieldDescript
 	case "ibc.core.client.v1.MsgUpgradeClient.client_id":
 		return protoreflect.ValueOfString("")
 	case "ibc.core.client.v1.MsgUpgradeClient.client_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.MsgUpgradeClient.consensus_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.MsgUpgradeClient.proof_upgrade_client":
 		return protoreflect.ValueOfBytes(nil)
@@ -2466,7 +2466,7 @@ func (x *fastReflection_MsgUpgradeClient) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ClientState == nil {
-					x.ClientState = &types.Any{}
+					x.ClientState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ClientState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -2502,7 +2502,7 @@ func (x *fastReflection_MsgUpgradeClient) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ConsensusState == nil {
-					x.ConsensusState = &types.Any{}
+					x.ConsensusState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ConsensusState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -3188,7 +3188,7 @@ func (x *fastReflection_MsgSubmitMisbehaviour) Set(fd protoreflect.FieldDescript
 	case "ibc.core.client.v1.MsgSubmitMisbehaviour.client_id":
 		x.ClientId = value.Interface().(string)
 	case "ibc.core.client.v1.MsgSubmitMisbehaviour.misbehaviour":
-		x.Misbehaviour = value.Message().Interface().(*types.Any)
+		x.Misbehaviour = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.client.v1.MsgSubmitMisbehaviour.signer":
 		x.Signer = value.Interface().(string)
 	default:
@@ -3213,7 +3213,7 @@ func (x *fastReflection_MsgSubmitMisbehaviour) Mutable(fd protoreflect.FieldDesc
 	switch fd.FullName() {
 	case "ibc.core.client.v1.MsgSubmitMisbehaviour.misbehaviour":
 		if x.Misbehaviour == nil {
-			x.Misbehaviour = new(types.Any)
+			x.Misbehaviour = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.Misbehaviour.ProtoReflect())
 	case "ibc.core.client.v1.MsgSubmitMisbehaviour.client_id":
@@ -3236,7 +3236,7 @@ func (x *fastReflection_MsgSubmitMisbehaviour) NewField(fd protoreflect.FieldDes
 	case "ibc.core.client.v1.MsgSubmitMisbehaviour.client_id":
 		return protoreflect.ValueOfString("")
 	case "ibc.core.client.v1.MsgSubmitMisbehaviour.misbehaviour":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.MsgSubmitMisbehaviour.signer":
 		return protoreflect.ValueOfString("")
@@ -3489,7 +3489,7 @@ func (x *fastReflection_MsgSubmitMisbehaviour) ProtoMethods() *protoiface.Method
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Misbehaviour == nil {
-					x.Misbehaviour = &types.Any{}
+					x.Misbehaviour = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Misbehaviour); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -5009,9 +5009,9 @@ func (x *fastReflection_MsgIBCSoftwareUpgrade) Get(descriptor protoreflect.Field
 func (x *fastReflection_MsgIBCSoftwareUpgrade) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.core.client.v1.MsgIBCSoftwareUpgrade.plan":
-		x.Plan = value.Message().Interface().(*types1.Plan)
+		x.Plan = value.Message().Interface().(*v1beta1.Plan)
 	case "ibc.core.client.v1.MsgIBCSoftwareUpgrade.upgraded_client_state":
-		x.UpgradedClientState = value.Message().Interface().(*types.Any)
+		x.UpgradedClientState = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.client.v1.MsgIBCSoftwareUpgrade.signer":
 		x.Signer = value.Interface().(string)
 	default:
@@ -5036,12 +5036,12 @@ func (x *fastReflection_MsgIBCSoftwareUpgrade) Mutable(fd protoreflect.FieldDesc
 	switch fd.FullName() {
 	case "ibc.core.client.v1.MsgIBCSoftwareUpgrade.plan":
 		if x.Plan == nil {
-			x.Plan = new(types1.Plan)
+			x.Plan = new(v1beta1.Plan)
 		}
 		return protoreflect.ValueOfMessage(x.Plan.ProtoReflect())
 	case "ibc.core.client.v1.MsgIBCSoftwareUpgrade.upgraded_client_state":
 		if x.UpgradedClientState == nil {
-			x.UpgradedClientState = new(types.Any)
+			x.UpgradedClientState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.UpgradedClientState.ProtoReflect())
 	case "ibc.core.client.v1.MsgIBCSoftwareUpgrade.signer":
@@ -5060,10 +5060,10 @@ func (x *fastReflection_MsgIBCSoftwareUpgrade) Mutable(fd protoreflect.FieldDesc
 func (x *fastReflection_MsgIBCSoftwareUpgrade) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.core.client.v1.MsgIBCSoftwareUpgrade.plan":
-		m := new(types1.Plan)
+		m := new(v1beta1.Plan)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.MsgIBCSoftwareUpgrade.upgraded_client_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.client.v1.MsgIBCSoftwareUpgrade.signer":
 		return protoreflect.ValueOfString("")
@@ -5291,7 +5291,7 @@ func (x *fastReflection_MsgIBCSoftwareUpgrade) ProtoMethods() *protoiface.Method
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Plan == nil {
-					x.Plan = &types1.Plan{}
+					x.Plan = &v1beta1.Plan{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Plan); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -5327,7 +5327,7 @@ func (x *fastReflection_MsgIBCSoftwareUpgrade) ProtoMethods() *protoiface.Method
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.UpgradedClientState == nil {
-					x.UpgradedClientState = &types.Any{}
+					x.UpgradedClientState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.UpgradedClientState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -6631,10 +6631,10 @@ type MsgCreateClient struct {
 	unknownFields protoimpl.UnknownFields
 
 	// light client state
-	ClientState *types.Any `protobuf:"bytes,1,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState *anypb.Any `protobuf:"bytes,1,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	// consensus state associated with the client that corresponds to a given
 	// height.
-	ConsensusState *types.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *anypb.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
@@ -6659,14 +6659,14 @@ func (*MsgCreateClient) Descriptor() ([]byte, []int) {
 	return file_ibc_core_client_v1_tx_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *MsgCreateClient) GetClientState() *types.Any {
+func (x *MsgCreateClient) GetClientState() *anypb.Any {
 	if x != nil {
 		return x.ClientState
 	}
 	return nil
 }
 
-func (x *MsgCreateClient) GetConsensusState() *types.Any {
+func (x *MsgCreateClient) GetConsensusState() *anypb.Any {
 	if x != nil {
 		return x.ConsensusState
 	}
@@ -6717,7 +6717,7 @@ type MsgUpdateClient struct {
 	// client unique identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// client message to update the light client
-	ClientMessage *types.Any `protobuf:"bytes,2,opt,name=client_message,json=clientMessage,proto3" json:"client_message,omitempty"`
+	ClientMessage *anypb.Any `protobuf:"bytes,2,opt,name=client_message,json=clientMessage,proto3" json:"client_message,omitempty"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
@@ -6749,7 +6749,7 @@ func (x *MsgUpdateClient) GetClientId() string {
 	return ""
 }
 
-func (x *MsgUpdateClient) GetClientMessage() *types.Any {
+func (x *MsgUpdateClient) GetClientMessage() *anypb.Any {
 	if x != nil {
 		return x.ClientMessage
 	}
@@ -6800,10 +6800,10 @@ type MsgUpgradeClient struct {
 	// client unique identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// upgraded client state
-	ClientState *types.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState *anypb.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	// upgraded consensus state, only contains enough information to serve as a
 	// basis of trust in update logic
-	ConsensusState *types.Any `protobuf:"bytes,3,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *anypb.Any `protobuf:"bytes,3,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 	// proof that old chain committed to new client
 	ProofUpgradeClient []byte `protobuf:"bytes,4,opt,name=proof_upgrade_client,json=proofUpgradeClient,proto3" json:"proof_upgrade_client,omitempty"`
 	// proof that old chain committed to new consensus state
@@ -6839,14 +6839,14 @@ func (x *MsgUpgradeClient) GetClientId() string {
 	return ""
 }
 
-func (x *MsgUpgradeClient) GetClientState() *types.Any {
+func (x *MsgUpgradeClient) GetClientState() *anypb.Any {
 	if x != nil {
 		return x.ClientState
 	}
 	return nil
 }
 
-func (x *MsgUpgradeClient) GetConsensusState() *types.Any {
+func (x *MsgUpgradeClient) GetConsensusState() *anypb.Any {
 	if x != nil {
 		return x.ConsensusState
 	}
@@ -6914,7 +6914,7 @@ type MsgSubmitMisbehaviour struct {
 	// client unique identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// misbehaviour used for freezing the light client
-	Misbehaviour *types.Any `protobuf:"bytes,2,opt,name=misbehaviour,proto3" json:"misbehaviour,omitempty"`
+	Misbehaviour *anypb.Any `protobuf:"bytes,2,opt,name=misbehaviour,proto3" json:"misbehaviour,omitempty"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
@@ -6946,7 +6946,7 @@ func (x *MsgSubmitMisbehaviour) GetClientId() string {
 	return ""
 }
 
-func (x *MsgSubmitMisbehaviour) GetMisbehaviour() *types.Any {
+func (x *MsgSubmitMisbehaviour) GetMisbehaviour() *anypb.Any {
 	if x != nil {
 		return x.Misbehaviour
 	}
@@ -7077,7 +7077,7 @@ type MsgIBCSoftwareUpgrade struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Plan *types1.Plan `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan,omitempty"`
+	Plan *v1beta1.Plan `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan,omitempty"`
 	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
 	// This will make the chain commit to the correct upgraded (self) client state
 	// before the upgrade occurs, so that connecting chains can verify that the
@@ -7086,7 +7086,7 @@ type MsgIBCSoftwareUpgrade struct {
 	// planned chain upgrades. Correspondingly, the UpgradedClientState field has been
 	// deprecated in the Cosmos SDK to allow for this logic to exist solely in
 	// the 02-client module.
-	UpgradedClientState *types.Any `protobuf:"bytes,2,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
+	UpgradedClientState *anypb.Any `protobuf:"bytes,2,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
@@ -7111,14 +7111,14 @@ func (*MsgIBCSoftwareUpgrade) Descriptor() ([]byte, []int) {
 	return file_ibc_core_client_v1_tx_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *MsgIBCSoftwareUpgrade) GetPlan() *types1.Plan {
+func (x *MsgIBCSoftwareUpgrade) GetPlan() *v1beta1.Plan {
 	if x != nil {
 		return x.Plan
 	}
 	return nil
 }
 
-func (x *MsgIBCSoftwareUpgrade) GetUpgradedClientState() *types.Any {
+func (x *MsgIBCSoftwareUpgrade) GetUpgradedClientState() *anypb.Any {
 	if x != nil {
 		return x.UpgradedClientState
 	}
@@ -7432,8 +7432,8 @@ var file_ibc_core_client_v1_tx_proto_goTypes = []interface{}{
 	(*MsgIBCSoftwareUpgradeResponse)(nil), // 11: ibc.core.client.v1.MsgIBCSoftwareUpgradeResponse
 	(*MsgUpdateParams)(nil),               // 12: ibc.core.client.v1.MsgUpdateParams
 	(*MsgUpdateParamsResponse)(nil),       // 13: ibc.core.client.v1.MsgUpdateParamsResponse
-	(*types.Any)(nil),                     // 14: google.protobuf.Any
-	(*types1.Plan)(nil),                   // 15: cosmos.upgrade.v1beta1.Plan
+	(*anypb.Any)(nil),                     // 14: google.protobuf.Any
+	(*v1beta1.Plan)(nil),                  // 15: cosmos.upgrade.v1beta1.Plan
 	(*Params)(nil),                        // 16: ibc.core.client.v1.Params
 }
 var file_ibc_core_client_v1_tx_proto_depIdxs = []int32{

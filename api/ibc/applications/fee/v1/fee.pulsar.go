@@ -2,11 +2,11 @@
 package feev1
 
 import (
+	_ "cosmossdk.io/api/amino"
+	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
+	_ "cosmossdk.io/api/cosmos/msg/v1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
-	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/channel/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -20,7 +20,7 @@ import (
 var _ protoreflect.List = (*_Fee_1_list)(nil)
 
 type _Fee_1_list struct {
-	list *[]*types.Coin
+	list *[]*v1beta1.Coin
 }
 
 func (x *_Fee_1_list) Len() int {
@@ -36,18 +36,18 @@ func (x *_Fee_1_list) Get(i int) protoreflect.Value {
 
 func (x *_Fee_1_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_Fee_1_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_Fee_1_list) AppendMutable() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -60,7 +60,7 @@ func (x *_Fee_1_list) Truncate(n int) {
 }
 
 func (x *_Fee_1_list) NewElement() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -71,7 +71,7 @@ func (x *_Fee_1_list) IsValid() bool {
 var _ protoreflect.List = (*_Fee_2_list)(nil)
 
 type _Fee_2_list struct {
-	list *[]*types.Coin
+	list *[]*v1beta1.Coin
 }
 
 func (x *_Fee_2_list) Len() int {
@@ -87,18 +87,18 @@ func (x *_Fee_2_list) Get(i int) protoreflect.Value {
 
 func (x *_Fee_2_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_Fee_2_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_Fee_2_list) AppendMutable() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -111,7 +111,7 @@ func (x *_Fee_2_list) Truncate(n int) {
 }
 
 func (x *_Fee_2_list) NewElement() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -122,7 +122,7 @@ func (x *_Fee_2_list) IsValid() bool {
 var _ protoreflect.List = (*_Fee_3_list)(nil)
 
 type _Fee_3_list struct {
-	list *[]*types.Coin
+	list *[]*v1beta1.Coin
 }
 
 func (x *_Fee_3_list) Len() int {
@@ -138,18 +138,18 @@ func (x *_Fee_3_list) Get(i int) protoreflect.Value {
 
 func (x *_Fee_3_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_Fee_3_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_Fee_3_list) AppendMutable() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -162,7 +162,7 @@ func (x *_Fee_3_list) Truncate(n int) {
 }
 
 func (x *_Fee_3_list) NewElement() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -399,19 +399,19 @@ func (x *fastReflection_Fee) Mutable(fd protoreflect.FieldDescriptor) protorefle
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.Fee.recv_fee":
 		if x.RecvFee == nil {
-			x.RecvFee = []*types.Coin{}
+			x.RecvFee = []*v1beta1.Coin{}
 		}
 		value := &_Fee_1_list{list: &x.RecvFee}
 		return protoreflect.ValueOfList(value)
 	case "ibc.applications.fee.v1.Fee.ack_fee":
 		if x.AckFee == nil {
-			x.AckFee = []*types.Coin{}
+			x.AckFee = []*v1beta1.Coin{}
 		}
 		value := &_Fee_2_list{list: &x.AckFee}
 		return protoreflect.ValueOfList(value)
 	case "ibc.applications.fee.v1.Fee.timeout_fee":
 		if x.TimeoutFee == nil {
-			x.TimeoutFee = []*types.Coin{}
+			x.TimeoutFee = []*v1beta1.Coin{}
 		}
 		value := &_Fee_3_list{list: &x.TimeoutFee}
 		return protoreflect.ValueOfList(value)
@@ -429,13 +429,13 @@ func (x *fastReflection_Fee) Mutable(fd protoreflect.FieldDescriptor) protorefle
 func (x *fastReflection_Fee) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.Fee.recv_fee":
-		list := []*types.Coin{}
+		list := []*v1beta1.Coin{}
 		return protoreflect.ValueOfList(&_Fee_1_list{list: &list})
 	case "ibc.applications.fee.v1.Fee.ack_fee":
-		list := []*types.Coin{}
+		list := []*v1beta1.Coin{}
 		return protoreflect.ValueOfList(&_Fee_2_list{list: &list})
 	case "ibc.applications.fee.v1.Fee.timeout_fee":
-		list := []*types.Coin{}
+		list := []*v1beta1.Coin{}
 		return protoreflect.ValueOfList(&_Fee_3_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -679,7 +679,7 @@ func (x *fastReflection_Fee) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.RecvFee = append(x.RecvFee, &types.Coin{})
+				x.RecvFee = append(x.RecvFee, &v1beta1.Coin{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.RecvFee[len(x.RecvFee)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -713,7 +713,7 @@ func (x *fastReflection_Fee) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.AckFee = append(x.AckFee, &types.Coin{})
+				x.AckFee = append(x.AckFee, &v1beta1.Coin{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.AckFee[len(x.AckFee)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -747,7 +747,7 @@ func (x *fastReflection_Fee) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.TimeoutFee = append(x.TimeoutFee, &types.Coin{})
+				x.TimeoutFee = append(x.TimeoutFee, &v1beta1.Coin{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.TimeoutFee[len(x.TimeoutFee)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -2497,11 +2497,11 @@ type Fee struct {
 	unknownFields protoimpl.UnknownFields
 
 	// the packet receive fee
-	RecvFee []*types.Coin `protobuf:"bytes,1,rep,name=recv_fee,json=recvFee,proto3" json:"recv_fee,omitempty"`
+	RecvFee []*v1beta1.Coin `protobuf:"bytes,1,rep,name=recv_fee,json=recvFee,proto3" json:"recv_fee,omitempty"`
 	// the packet acknowledgement fee
-	AckFee []*types.Coin `protobuf:"bytes,2,rep,name=ack_fee,json=ackFee,proto3" json:"ack_fee,omitempty"`
+	AckFee []*v1beta1.Coin `protobuf:"bytes,2,rep,name=ack_fee,json=ackFee,proto3" json:"ack_fee,omitempty"`
 	// the packet timeout fee
-	TimeoutFee []*types.Coin `protobuf:"bytes,3,rep,name=timeout_fee,json=timeoutFee,proto3" json:"timeout_fee,omitempty"`
+	TimeoutFee []*v1beta1.Coin `protobuf:"bytes,3,rep,name=timeout_fee,json=timeoutFee,proto3" json:"timeout_fee,omitempty"`
 }
 
 func (x *Fee) Reset() {
@@ -2524,21 +2524,21 @@ func (*Fee) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_fee_v1_fee_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Fee) GetRecvFee() []*types.Coin {
+func (x *Fee) GetRecvFee() []*v1beta1.Coin {
 	if x != nil {
 		return x.RecvFee
 	}
 	return nil
 }
 
-func (x *Fee) GetAckFee() []*types.Coin {
+func (x *Fee) GetAckFee() []*v1beta1.Coin {
 	if x != nil {
 		return x.AckFee
 	}
 	return nil
 }
 
-func (x *Fee) GetTimeoutFee() []*types.Coin {
+func (x *Fee) GetTimeoutFee() []*v1beta1.Coin {
 	if x != nil {
 		return x.TimeoutFee
 	}
@@ -2782,7 +2782,7 @@ var file_ibc_applications_fee_v1_fee_proto_goTypes = []interface{}{
 	(*PacketFee)(nil),            // 1: ibc.applications.fee.v1.PacketFee
 	(*PacketFees)(nil),           // 2: ibc.applications.fee.v1.PacketFees
 	(*IdentifiedPacketFees)(nil), // 3: ibc.applications.fee.v1.IdentifiedPacketFees
-	(*types.Coin)(nil),           // 4: cosmos.base.v1beta1.Coin
+	(*v1beta1.Coin)(nil),         // 4: cosmos.base.v1beta1.Coin
 	(*v1.PacketId)(nil),          // 5: ibc.core.channel.v1.PacketId
 }
 var file_ibc_applications_fee_v1_fee_proto_depIdxs = []int32{
