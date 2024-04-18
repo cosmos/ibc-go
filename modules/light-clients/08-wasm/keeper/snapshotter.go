@@ -106,7 +106,7 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(types.ErrInvalidData, "expected wasm code is not gzip format")
 	}
 
-	wasmCode, err := types.Uncompress(compressedCode, types.MaxWasmByteSize())
+	wasmCode, err := types.Uncompress(compressedCode, types.MaxWasmSize)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
