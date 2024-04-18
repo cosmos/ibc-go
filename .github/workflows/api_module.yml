@@ -1,0 +1,23 @@
+name: API module
+# This workflow runs when a PR is opened that modifies code in the api module.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/api_module.yml'
+      - 'api/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-arch: ['amd64', 'arm', 'arm64']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: Build api module
+        run: |
+          cd api 
+          GOARCH=${{ matrix.go-arch }} go build ./...

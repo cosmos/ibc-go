@@ -2,9 +2,9 @@
 package wasmv1
 
 import (
+	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
@@ -171,7 +171,7 @@ func (x *fastReflection_QueryChecksumsRequest) Get(descriptor protoreflect.Field
 func (x *fastReflection_QueryChecksumsRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.lightclients.wasm.v1.QueryChecksumsRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.lightclients.wasm.v1.QueryChecksumsRequest"))
@@ -194,7 +194,7 @@ func (x *fastReflection_QueryChecksumsRequest) Mutable(fd protoreflect.FieldDesc
 	switch fd.FullName() {
 	case "ibc.lightclients.wasm.v1.QueryChecksumsRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	default:
@@ -211,7 +211,7 @@ func (x *fastReflection_QueryChecksumsRequest) Mutable(fd protoreflect.FieldDesc
 func (x *fastReflection_QueryChecksumsRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.lightclients.wasm.v1.QueryChecksumsRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -408,7 +408,7 @@ func (x *fastReflection_QueryChecksumsRequest) ProtoMethods() *protoiface.Method
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -674,7 +674,7 @@ func (x *fastReflection_QueryChecksumsResponse) Set(fd protoreflect.FieldDescrip
 		clv := lv.(*_QueryChecksumsResponse_1_list)
 		x.Checksums = *clv.list
 	case "ibc.lightclients.wasm.v1.QueryChecksumsResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.lightclients.wasm.v1.QueryChecksumsResponse"))
@@ -703,7 +703,7 @@ func (x *fastReflection_QueryChecksumsResponse) Mutable(fd protoreflect.FieldDes
 		return protoreflect.ValueOfList(value)
 	case "ibc.lightclients.wasm.v1.QueryChecksumsResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	default:
@@ -723,7 +723,7 @@ func (x *fastReflection_QueryChecksumsResponse) NewField(fd protoreflect.FieldDe
 		list := []string{}
 		return protoreflect.ValueOfList(&_QueryChecksumsResponse_1_list{list: &list})
 	case "ibc.lightclients.wasm.v1.QueryChecksumsResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -967,7 +967,7 @@ func (x *fastReflection_QueryChecksumsResponse) ProtoMethods() *protoiface.Metho
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -1870,7 +1870,7 @@ type QueryChecksumsRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// pagination defines an optional pagination for the request.
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryChecksumsRequest) Reset() {
@@ -1893,7 +1893,7 @@ func (*QueryChecksumsRequest) Descriptor() ([]byte, []int) {
 	return file_ibc_lightclients_wasm_v1_query_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *QueryChecksumsRequest) GetPagination() *query.PageRequest {
+func (x *QueryChecksumsRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -1909,7 +1909,7 @@ type QueryChecksumsResponse struct {
 	// checksums is a list of the hex encoded checksums of all wasm codes stored.
 	Checksums []string `protobuf:"bytes,1,rep,name=checksums,proto3" json:"checksums,omitempty"`
 	// pagination defines the pagination in the response.
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryChecksumsResponse) Reset() {
@@ -1939,7 +1939,7 @@ func (x *QueryChecksumsResponse) GetChecksums() []string {
 	return nil
 }
 
-func (x *QueryChecksumsResponse) GetPagination() *query.PageResponse {
+func (x *QueryChecksumsResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -2107,8 +2107,8 @@ var file_ibc_lightclients_wasm_v1_query_proto_goTypes = []interface{}{
 	(*QueryChecksumsResponse)(nil), // 1: ibc.lightclients.wasm.v1.QueryChecksumsResponse
 	(*QueryCodeRequest)(nil),       // 2: ibc.lightclients.wasm.v1.QueryCodeRequest
 	(*QueryCodeResponse)(nil),      // 3: ibc.lightclients.wasm.v1.QueryCodeResponse
-	(*query.PageRequest)(nil),      // 4: cosmos.base.query.v1beta1.PageRequest
-	(*query.PageResponse)(nil),     // 5: cosmos.base.query.v1beta1.PageResponse
+	(*v1beta1.PageRequest)(nil),    // 4: cosmos.base.query.v1beta1.PageRequest
+	(*v1beta1.PageResponse)(nil),   // 5: cosmos.base.query.v1beta1.PageResponse
 }
 var file_ibc_lightclients_wasm_v1_query_proto_depIdxs = []int32{
 	4, // 0: ibc.lightclients.wasm.v1.QueryChecksumsRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
