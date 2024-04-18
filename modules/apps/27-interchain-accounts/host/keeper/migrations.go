@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 )
 
 // Migrator is a struct for handling in-place state migrations.
@@ -17,11 +16,6 @@ func NewMigrator(k *Keeper) Migrator {
 	return Migrator{
 		keeper: k,
 	}
-}
-
-// SetLegacySubspace sets the legacy parameter subspace for the Migrator.
-func (m Migrator) SetLegacySubspace(legacySubspace icatypes.ParamSubspace) {
-	m.keeper.legacySubspace = legacySubspace
 }
 
 // MigrateParams migrates the host submodule's parameters from the x/params to self store.
