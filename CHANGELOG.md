@@ -62,7 +62,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/27-interchain-accounts) [\#6167](https://github.com/cosmos/ibc-go/pull/6167) Avoid panic when migrate param for newly added host.
 
-
 ## [v8.2.0](https://github.com/cosmos/ibc-go/releases/tag/v8.2.0) - 2024-04-05
 
 ### Dependencies
