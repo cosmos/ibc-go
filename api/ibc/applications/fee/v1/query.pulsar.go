@@ -2,10 +2,10 @@
 package feev1
 
 import (
+	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
+	v1beta11 "cosmossdk.io/api/cosmos/base/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/types"
-	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/channel/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -189,7 +189,7 @@ func (x *fastReflection_QueryIncentivizedPacketsRequest) Get(descriptor protoref
 func (x *fastReflection_QueryIncentivizedPacketsRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsRequest.query_height":
 		x.QueryHeight = value.Uint()
 	default:
@@ -214,7 +214,7 @@ func (x *fastReflection_QueryIncentivizedPacketsRequest) Mutable(fd protoreflect
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsRequest.query_height":
@@ -233,7 +233,7 @@ func (x *fastReflection_QueryIncentivizedPacketsRequest) Mutable(fd protoreflect
 func (x *fastReflection_QueryIncentivizedPacketsRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsRequest.query_height":
 		return protoreflect.ValueOfUint64(uint64(0))
@@ -440,7 +440,7 @@ func (x *fastReflection_QueryIncentivizedPacketsRequest) ProtoMethods() *protoif
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -730,7 +730,7 @@ func (x *fastReflection_QueryIncentivizedPacketsResponse) Set(fd protoreflect.Fi
 		clv := lv.(*_QueryIncentivizedPacketsResponse_1_list)
 		x.IncentivizedPackets = *clv.list
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.fee.v1.QueryIncentivizedPacketsResponse"))
@@ -759,7 +759,7 @@ func (x *fastReflection_QueryIncentivizedPacketsResponse) Mutable(fd protoreflec
 		return protoreflect.ValueOfList(value)
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	default:
@@ -779,7 +779,7 @@ func (x *fastReflection_QueryIncentivizedPacketsResponse) NewField(fd protorefle
 		list := []*IdentifiedPacketFees{}
 		return protoreflect.ValueOfList(&_QueryIncentivizedPacketsResponse_1_list{list: &list})
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -1032,7 +1032,7 @@ func (x *fastReflection_QueryIncentivizedPacketsResponse) ProtoMethods() *protoi
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -2193,7 +2193,7 @@ func (x *fastReflection_QueryIncentivizedPacketsForChannelRequest) Get(descripto
 func (x *fastReflection_QueryIncentivizedPacketsForChannelRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest.port_id":
 		x.PortId = value.Interface().(string)
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest.channel_id":
@@ -2222,7 +2222,7 @@ func (x *fastReflection_QueryIncentivizedPacketsForChannelRequest) Mutable(fd pr
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest.port_id":
@@ -2245,7 +2245,7 @@ func (x *fastReflection_QueryIncentivizedPacketsForChannelRequest) Mutable(fd pr
 func (x *fastReflection_QueryIncentivizedPacketsForChannelRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest.port_id":
 		return protoreflect.ValueOfString("")
@@ -2478,7 +2478,7 @@ func (x *fastReflection_QueryIncentivizedPacketsForChannelRequest) ProtoMethods(
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -2832,7 +2832,7 @@ func (x *fastReflection_QueryIncentivizedPacketsForChannelResponse) Set(fd proto
 		clv := lv.(*_QueryIncentivizedPacketsForChannelResponse_1_list)
 		x.IncentivizedPackets = *clv.list
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse"))
@@ -2861,7 +2861,7 @@ func (x *fastReflection_QueryIncentivizedPacketsForChannelResponse) Mutable(fd p
 		return protoreflect.ValueOfList(value)
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	default:
@@ -2881,7 +2881,7 @@ func (x *fastReflection_QueryIncentivizedPacketsForChannelResponse) NewField(fd 
 		list := []*IdentifiedPacketFees{}
 		return protoreflect.ValueOfList(&_QueryIncentivizedPacketsForChannelResponse_1_list{list: &list})
 	case "ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -3134,7 +3134,7 @@ func (x *fastReflection_QueryIncentivizedPacketsForChannelResponse) ProtoMethods
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -3613,7 +3613,7 @@ func (x *fastReflection_QueryTotalRecvFeesRequest) ProtoMethods() *protoiface.Me
 var _ protoreflect.List = (*_QueryTotalRecvFeesResponse_1_list)(nil)
 
 type _QueryTotalRecvFeesResponse_1_list struct {
-	list *[]*types.Coin
+	list *[]*v1beta11.Coin
 }
 
 func (x *_QueryTotalRecvFeesResponse_1_list) Len() int {
@@ -3629,18 +3629,18 @@ func (x *_QueryTotalRecvFeesResponse_1_list) Get(i int) protoreflect.Value {
 
 func (x *_QueryTotalRecvFeesResponse_1_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_QueryTotalRecvFeesResponse_1_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_QueryTotalRecvFeesResponse_1_list) AppendMutable() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta11.Coin)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -3653,7 +3653,7 @@ func (x *_QueryTotalRecvFeesResponse_1_list) Truncate(n int) {
 }
 
 func (x *_QueryTotalRecvFeesResponse_1_list) NewElement() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta11.Coin)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -3846,7 +3846,7 @@ func (x *fastReflection_QueryTotalRecvFeesResponse) Mutable(fd protoreflect.Fiel
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryTotalRecvFeesResponse.recv_fees":
 		if x.RecvFees == nil {
-			x.RecvFees = []*types.Coin{}
+			x.RecvFees = []*v1beta11.Coin{}
 		}
 		value := &_QueryTotalRecvFeesResponse_1_list{list: &x.RecvFees}
 		return protoreflect.ValueOfList(value)
@@ -3864,7 +3864,7 @@ func (x *fastReflection_QueryTotalRecvFeesResponse) Mutable(fd protoreflect.Fiel
 func (x *fastReflection_QueryTotalRecvFeesResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryTotalRecvFeesResponse.recv_fees":
-		list := []*types.Coin{}
+		list := []*v1beta11.Coin{}
 		return protoreflect.ValueOfList(&_QueryTotalRecvFeesResponse_1_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -4064,7 +4064,7 @@ func (x *fastReflection_QueryTotalRecvFeesResponse) ProtoMethods() *protoiface.M
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.RecvFees = append(x.RecvFees, &types.Coin{})
+				x.RecvFees = append(x.RecvFees, &v1beta11.Coin{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.RecvFees[len(x.RecvFees)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -4542,7 +4542,7 @@ func (x *fastReflection_QueryTotalAckFeesRequest) ProtoMethods() *protoiface.Met
 var _ protoreflect.List = (*_QueryTotalAckFeesResponse_1_list)(nil)
 
 type _QueryTotalAckFeesResponse_1_list struct {
-	list *[]*types.Coin
+	list *[]*v1beta11.Coin
 }
 
 func (x *_QueryTotalAckFeesResponse_1_list) Len() int {
@@ -4558,18 +4558,18 @@ func (x *_QueryTotalAckFeesResponse_1_list) Get(i int) protoreflect.Value {
 
 func (x *_QueryTotalAckFeesResponse_1_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_QueryTotalAckFeesResponse_1_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_QueryTotalAckFeesResponse_1_list) AppendMutable() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta11.Coin)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -4582,7 +4582,7 @@ func (x *_QueryTotalAckFeesResponse_1_list) Truncate(n int) {
 }
 
 func (x *_QueryTotalAckFeesResponse_1_list) NewElement() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta11.Coin)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -4775,7 +4775,7 @@ func (x *fastReflection_QueryTotalAckFeesResponse) Mutable(fd protoreflect.Field
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryTotalAckFeesResponse.ack_fees":
 		if x.AckFees == nil {
-			x.AckFees = []*types.Coin{}
+			x.AckFees = []*v1beta11.Coin{}
 		}
 		value := &_QueryTotalAckFeesResponse_1_list{list: &x.AckFees}
 		return protoreflect.ValueOfList(value)
@@ -4793,7 +4793,7 @@ func (x *fastReflection_QueryTotalAckFeesResponse) Mutable(fd protoreflect.Field
 func (x *fastReflection_QueryTotalAckFeesResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryTotalAckFeesResponse.ack_fees":
-		list := []*types.Coin{}
+		list := []*v1beta11.Coin{}
 		return protoreflect.ValueOfList(&_QueryTotalAckFeesResponse_1_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -4993,7 +4993,7 @@ func (x *fastReflection_QueryTotalAckFeesResponse) ProtoMethods() *protoiface.Me
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.AckFees = append(x.AckFees, &types.Coin{})
+				x.AckFees = append(x.AckFees, &v1beta11.Coin{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.AckFees[len(x.AckFees)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -5471,7 +5471,7 @@ func (x *fastReflection_QueryTotalTimeoutFeesRequest) ProtoMethods() *protoiface
 var _ protoreflect.List = (*_QueryTotalTimeoutFeesResponse_1_list)(nil)
 
 type _QueryTotalTimeoutFeesResponse_1_list struct {
-	list *[]*types.Coin
+	list *[]*v1beta11.Coin
 }
 
 func (x *_QueryTotalTimeoutFeesResponse_1_list) Len() int {
@@ -5487,18 +5487,18 @@ func (x *_QueryTotalTimeoutFeesResponse_1_list) Get(i int) protoreflect.Value {
 
 func (x *_QueryTotalTimeoutFeesResponse_1_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_QueryTotalTimeoutFeesResponse_1_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_QueryTotalTimeoutFeesResponse_1_list) AppendMutable() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta11.Coin)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -5511,7 +5511,7 @@ func (x *_QueryTotalTimeoutFeesResponse_1_list) Truncate(n int) {
 }
 
 func (x *_QueryTotalTimeoutFeesResponse_1_list) NewElement() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta11.Coin)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -5704,7 +5704,7 @@ func (x *fastReflection_QueryTotalTimeoutFeesResponse) Mutable(fd protoreflect.F
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse.timeout_fees":
 		if x.TimeoutFees == nil {
-			x.TimeoutFees = []*types.Coin{}
+			x.TimeoutFees = []*v1beta11.Coin{}
 		}
 		value := &_QueryTotalTimeoutFeesResponse_1_list{list: &x.TimeoutFees}
 		return protoreflect.ValueOfList(value)
@@ -5722,7 +5722,7 @@ func (x *fastReflection_QueryTotalTimeoutFeesResponse) Mutable(fd protoreflect.F
 func (x *fastReflection_QueryTotalTimeoutFeesResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse.timeout_fees":
-		list := []*types.Coin{}
+		list := []*v1beta11.Coin{}
 		return protoreflect.ValueOfList(&_QueryTotalTimeoutFeesResponse_1_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -5922,7 +5922,7 @@ func (x *fastReflection_QueryTotalTimeoutFeesResponse) ProtoMethods() *protoifac
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.TimeoutFees = append(x.TimeoutFees, &types.Coin{})
+				x.TimeoutFees = append(x.TimeoutFees, &v1beta11.Coin{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.TimeoutFees[len(x.TimeoutFees)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -7942,7 +7942,7 @@ func (x *fastReflection_QueryFeeEnabledChannelsRequest) Get(descriptor protorefl
 func (x *fastReflection_QueryFeeEnabledChannelsRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageRequest)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	case "ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest.query_height":
 		x.QueryHeight = value.Uint()
 	default:
@@ -7967,7 +7967,7 @@ func (x *fastReflection_QueryFeeEnabledChannelsRequest) Mutable(fd protoreflect.
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageRequest)
+			x.Pagination = new(v1beta1.PageRequest)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest.query_height":
@@ -7986,7 +7986,7 @@ func (x *fastReflection_QueryFeeEnabledChannelsRequest) Mutable(fd protoreflect.
 func (x *fastReflection_QueryFeeEnabledChannelsRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest.pagination":
-		m := new(query.PageRequest)
+		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest.query_height":
 		return protoreflect.ValueOfUint64(uint64(0))
@@ -8193,7 +8193,7 @@ func (x *fastReflection_QueryFeeEnabledChannelsRequest) ProtoMethods() *protoifa
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageRequest{}
+					x.Pagination = &v1beta1.PageRequest{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -8483,7 +8483,7 @@ func (x *fastReflection_QueryFeeEnabledChannelsResponse) Set(fd protoreflect.Fie
 		clv := lv.(*_QueryFeeEnabledChannelsResponse_1_list)
 		x.FeeEnabledChannels = *clv.list
 	case "ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse.pagination":
-		x.Pagination = value.Message().Interface().(*query.PageResponse)
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse"))
@@ -8512,7 +8512,7 @@ func (x *fastReflection_QueryFeeEnabledChannelsResponse) Mutable(fd protoreflect
 		return protoreflect.ValueOfList(value)
 	case "ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse.pagination":
 		if x.Pagination == nil {
-			x.Pagination = new(query.PageResponse)
+			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	default:
@@ -8532,7 +8532,7 @@ func (x *fastReflection_QueryFeeEnabledChannelsResponse) NewField(fd protoreflec
 		list := []*FeeEnabledChannel{}
 		return protoreflect.ValueOfList(&_QueryFeeEnabledChannelsResponse_1_list{list: &list})
 	case "ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse.pagination":
-		m := new(query.PageResponse)
+		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
@@ -8785,7 +8785,7 @@ func (x *fastReflection_QueryFeeEnabledChannelsResponse) ProtoMethods() *protoif
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Pagination == nil {
-					x.Pagination = &query.PageResponse{}
+					x.Pagination = &v1beta1.PageResponse{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -9740,7 +9740,7 @@ type QueryIncentivizedPacketsRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// pagination defines an optional pagination for the request.
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// block height at which to query
 	QueryHeight uint64 `protobuf:"varint,2,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty"`
 }
@@ -9765,7 +9765,7 @@ func (*QueryIncentivizedPacketsRequest) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_fee_v1_query_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *QueryIncentivizedPacketsRequest) GetPagination() *query.PageRequest {
+func (x *QueryIncentivizedPacketsRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -9788,7 +9788,7 @@ type QueryIncentivizedPacketsResponse struct {
 	// list of identified fees for incentivized packets
 	IncentivizedPackets []*IdentifiedPacketFees `protobuf:"bytes,1,rep,name=incentivized_packets,json=incentivizedPackets,proto3" json:"incentivized_packets,omitempty"`
 	// pagination defines the pagination in the response.
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryIncentivizedPacketsResponse) Reset() {
@@ -9818,7 +9818,7 @@ func (x *QueryIncentivizedPacketsResponse) GetIncentivizedPackets() []*Identifie
 	return nil
 }
 
-func (x *QueryIncentivizedPacketsResponse) GetPagination() *query.PageResponse {
+func (x *QueryIncentivizedPacketsResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -9916,9 +9916,9 @@ type QueryIncentivizedPacketsForChannelRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// pagination defines an optional pagination for the request.
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	PortId     string             `protobuf:"bytes,2,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
-	ChannelId  string             `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	PortId     string               `protobuf:"bytes,2,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
+	ChannelId  string               `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 	// Height to query at
 	QueryHeight uint64 `protobuf:"varint,4,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty"`
 }
@@ -9943,7 +9943,7 @@ func (*QueryIncentivizedPacketsForChannelRequest) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_fee_v1_query_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *QueryIncentivizedPacketsForChannelRequest) GetPagination() *query.PageRequest {
+func (x *QueryIncentivizedPacketsForChannelRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -9980,7 +9980,7 @@ type QueryIncentivizedPacketsForChannelResponse struct {
 	// Map of all incentivized_packets
 	IncentivizedPackets []*IdentifiedPacketFees `protobuf:"bytes,1,rep,name=incentivized_packets,json=incentivizedPackets,proto3" json:"incentivized_packets,omitempty"`
 	// pagination defines the pagination in the response.
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryIncentivizedPacketsForChannelResponse) Reset() {
@@ -10010,7 +10010,7 @@ func (x *QueryIncentivizedPacketsForChannelResponse) GetIncentivizedPackets() []
 	return nil
 }
 
-func (x *QueryIncentivizedPacketsForChannelResponse) GetPagination() *query.PageResponse {
+func (x *QueryIncentivizedPacketsForChannelResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -10061,7 +10061,7 @@ type QueryTotalRecvFeesResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	// the total packet receive fees
-	RecvFees []*types.Coin `protobuf:"bytes,1,rep,name=recv_fees,json=recvFees,proto3" json:"recv_fees,omitempty"`
+	RecvFees []*v1beta11.Coin `protobuf:"bytes,1,rep,name=recv_fees,json=recvFees,proto3" json:"recv_fees,omitempty"`
 }
 
 func (x *QueryTotalRecvFeesResponse) Reset() {
@@ -10084,7 +10084,7 @@ func (*QueryTotalRecvFeesResponse) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_fee_v1_query_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *QueryTotalRecvFeesResponse) GetRecvFees() []*types.Coin {
+func (x *QueryTotalRecvFeesResponse) GetRecvFees() []*v1beta11.Coin {
 	if x != nil {
 		return x.RecvFees
 	}
@@ -10135,7 +10135,7 @@ type QueryTotalAckFeesResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	// the total packet acknowledgement fees
-	AckFees []*types.Coin `protobuf:"bytes,1,rep,name=ack_fees,json=ackFees,proto3" json:"ack_fees,omitempty"`
+	AckFees []*v1beta11.Coin `protobuf:"bytes,1,rep,name=ack_fees,json=ackFees,proto3" json:"ack_fees,omitempty"`
 }
 
 func (x *QueryTotalAckFeesResponse) Reset() {
@@ -10158,7 +10158,7 @@ func (*QueryTotalAckFeesResponse) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_fee_v1_query_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *QueryTotalAckFeesResponse) GetAckFees() []*types.Coin {
+func (x *QueryTotalAckFeesResponse) GetAckFees() []*v1beta11.Coin {
 	if x != nil {
 		return x.AckFees
 	}
@@ -10209,7 +10209,7 @@ type QueryTotalTimeoutFeesResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	// the total packet timeout fees
-	TimeoutFees []*types.Coin `protobuf:"bytes,1,rep,name=timeout_fees,json=timeoutFees,proto3" json:"timeout_fees,omitempty"`
+	TimeoutFees []*v1beta11.Coin `protobuf:"bytes,1,rep,name=timeout_fees,json=timeoutFees,proto3" json:"timeout_fees,omitempty"`
 }
 
 func (x *QueryTotalTimeoutFeesResponse) Reset() {
@@ -10232,7 +10232,7 @@ func (*QueryTotalTimeoutFeesResponse) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_fee_v1_query_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *QueryTotalTimeoutFeesResponse) GetTimeoutFees() []*types.Coin {
+func (x *QueryTotalTimeoutFeesResponse) GetTimeoutFees() []*v1beta11.Coin {
 	if x != nil {
 		return x.TimeoutFees
 	}
@@ -10412,7 +10412,7 @@ type QueryFeeEnabledChannelsRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// pagination defines an optional pagination for the request.
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// block height at which to query
 	QueryHeight uint64 `protobuf:"varint,2,opt,name=query_height,json=queryHeight,proto3" json:"query_height,omitempty"`
 }
@@ -10437,7 +10437,7 @@ func (*QueryFeeEnabledChannelsRequest) Descriptor() ([]byte, []int) {
 	return file_ibc_applications_fee_v1_query_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *QueryFeeEnabledChannelsRequest) GetPagination() *query.PageRequest {
+func (x *QueryFeeEnabledChannelsRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
 	}
@@ -10460,7 +10460,7 @@ type QueryFeeEnabledChannelsResponse struct {
 	// list of fee enabled channels
 	FeeEnabledChannels []*FeeEnabledChannel `protobuf:"bytes,1,rep,name=fee_enabled_channels,json=feeEnabledChannels,proto3" json:"fee_enabled_channels,omitempty"`
 	// pagination defines the pagination in the response.
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryFeeEnabledChannelsResponse) Reset() {
@@ -10490,7 +10490,7 @@ func (x *QueryFeeEnabledChannelsResponse) GetFeeEnabledChannels() []*FeeEnabledC
 	return nil
 }
 
-func (x *QueryFeeEnabledChannelsResponse) GetPagination() *query.PageResponse {
+func (x *QueryFeeEnabledChannelsResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
 	}
@@ -10957,11 +10957,11 @@ var file_ibc_applications_fee_v1_query_proto_goTypes = []interface{}{
 	(*QueryFeeEnabledChannelsResponse)(nil),            // 17: ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse
 	(*QueryFeeEnabledChannelRequest)(nil),              // 18: ibc.applications.fee.v1.QueryFeeEnabledChannelRequest
 	(*QueryFeeEnabledChannelResponse)(nil),             // 19: ibc.applications.fee.v1.QueryFeeEnabledChannelResponse
-	(*query.PageRequest)(nil),                          // 20: cosmos.base.query.v1beta1.PageRequest
+	(*v1beta1.PageRequest)(nil),                        // 20: cosmos.base.query.v1beta1.PageRequest
 	(*IdentifiedPacketFees)(nil),                       // 21: ibc.applications.fee.v1.IdentifiedPacketFees
-	(*query.PageResponse)(nil),                         // 22: cosmos.base.query.v1beta1.PageResponse
+	(*v1beta1.PageResponse)(nil),                       // 22: cosmos.base.query.v1beta1.PageResponse
 	(*v1.PacketId)(nil),                                // 23: ibc.core.channel.v1.PacketId
-	(*types.Coin)(nil),                                 // 24: cosmos.base.v1beta1.Coin
+	(*v1beta11.Coin)(nil),                              // 24: cosmos.base.v1beta1.Coin
 	(*FeeEnabledChannel)(nil),                          // 25: ibc.applications.fee.v1.FeeEnabledChannel
 }
 var file_ibc_applications_fee_v1_query_proto_depIdxs = []int32{

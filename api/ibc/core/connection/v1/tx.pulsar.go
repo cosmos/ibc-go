@@ -2,15 +2,15 @@
 package connectionv1
 
 import (
+	_ "cosmossdk.io/api/cosmos/msg/v1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
-	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/client/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	io "io"
 	reflect "reflect"
 	sync "sync"
@@ -1457,7 +1457,7 @@ func (x *fastReflection_MsgConnectionOpenTry) Set(fd protoreflect.FieldDescripto
 	case "ibc.core.connection.v1.MsgConnectionOpenTry.previous_connection_id":
 		x.PreviousConnectionId = value.Interface().(string)
 	case "ibc.core.connection.v1.MsgConnectionOpenTry.client_state":
-		x.ClientState = value.Message().Interface().(*types.Any)
+		x.ClientState = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.connection.v1.MsgConnectionOpenTry.counterparty":
 		x.Counterparty = value.Message().Interface().(*Counterparty)
 	case "ibc.core.connection.v1.MsgConnectionOpenTry.delay_period":
@@ -1502,7 +1502,7 @@ func (x *fastReflection_MsgConnectionOpenTry) Mutable(fd protoreflect.FieldDescr
 	switch fd.FullName() {
 	case "ibc.core.connection.v1.MsgConnectionOpenTry.client_state":
 		if x.ClientState == nil {
-			x.ClientState = new(types.Any)
+			x.ClientState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ClientState.ProtoReflect())
 	case "ibc.core.connection.v1.MsgConnectionOpenTry.counterparty":
@@ -1560,7 +1560,7 @@ func (x *fastReflection_MsgConnectionOpenTry) NewField(fd protoreflect.FieldDesc
 	case "ibc.core.connection.v1.MsgConnectionOpenTry.previous_connection_id":
 		return protoreflect.ValueOfString("")
 	case "ibc.core.connection.v1.MsgConnectionOpenTry.client_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.connection.v1.MsgConnectionOpenTry.counterparty":
 		m := new(Counterparty)
@@ -2006,7 +2006,7 @@ func (x *fastReflection_MsgConnectionOpenTry) ProtoMethods() *protoiface.Methods
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ClientState == nil {
-					x.ClientState = &types.Any{}
+					x.ClientState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ClientState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -3045,7 +3045,7 @@ func (x *fastReflection_MsgConnectionOpenAck) Set(fd protoreflect.FieldDescripto
 	case "ibc.core.connection.v1.MsgConnectionOpenAck.version":
 		x.Version = value.Message().Interface().(*Version)
 	case "ibc.core.connection.v1.MsgConnectionOpenAck.client_state":
-		x.ClientState = value.Message().Interface().(*types.Any)
+		x.ClientState = value.Message().Interface().(*anypb.Any)
 	case "ibc.core.connection.v1.MsgConnectionOpenAck.proof_height":
 		x.ProofHeight = value.Message().Interface().(*v1.Height)
 	case "ibc.core.connection.v1.MsgConnectionOpenAck.proof_try":
@@ -3087,7 +3087,7 @@ func (x *fastReflection_MsgConnectionOpenAck) Mutable(fd protoreflect.FieldDescr
 		return protoreflect.ValueOfMessage(x.Version.ProtoReflect())
 	case "ibc.core.connection.v1.MsgConnectionOpenAck.client_state":
 		if x.ClientState == nil {
-			x.ClientState = new(types.Any)
+			x.ClientState = new(anypb.Any)
 		}
 		return protoreflect.ValueOfMessage(x.ClientState.ProtoReflect())
 	case "ibc.core.connection.v1.MsgConnectionOpenAck.proof_height":
@@ -3135,7 +3135,7 @@ func (x *fastReflection_MsgConnectionOpenAck) NewField(fd protoreflect.FieldDesc
 		m := new(Version)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.connection.v1.MsgConnectionOpenAck.client_state":
-		m := new(types.Any)
+		m := new(anypb.Any)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.core.connection.v1.MsgConnectionOpenAck.proof_height":
 		m := new(v1.Height)
@@ -3579,7 +3579,7 @@ func (x *fastReflection_MsgConnectionOpenAck) ProtoMethods() *protoiface.Methods
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.ClientState == nil {
-					x.ClientState = &types.Any{}
+					x.ClientState = &anypb.Any{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ClientState); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -6178,7 +6178,7 @@ type MsgConnectionOpenTry struct {
 	//
 	// Deprecated: Do not use.
 	PreviousConnectionId string        `protobuf:"bytes,2,opt,name=previous_connection_id,json=previousConnectionId,proto3" json:"previous_connection_id,omitempty"`
-	ClientState          *types.Any    `protobuf:"bytes,3,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState          *anypb.Any    `protobuf:"bytes,3,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	Counterparty         *Counterparty `protobuf:"bytes,4,opt,name=counterparty,proto3" json:"counterparty,omitempty"`
 	DelayPeriod          uint64        `protobuf:"varint,5,opt,name=delay_period,json=delayPeriod,proto3" json:"delay_period,omitempty"`
 	CounterpartyVersions []*Version    `protobuf:"bytes,6,rep,name=counterparty_versions,json=counterpartyVersions,proto3" json:"counterparty_versions,omitempty"`
@@ -6231,7 +6231,7 @@ func (x *MsgConnectionOpenTry) GetPreviousConnectionId() string {
 	return ""
 }
 
-func (x *MsgConnectionOpenTry) GetClientState() *types.Any {
+func (x *MsgConnectionOpenTry) GetClientState() *anypb.Any {
 	if x != nil {
 		return x.ClientState
 	}
@@ -6345,7 +6345,7 @@ type MsgConnectionOpenAck struct {
 	ConnectionId             string     `protobuf:"bytes,1,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
 	CounterpartyConnectionId string     `protobuf:"bytes,2,opt,name=counterparty_connection_id,json=counterpartyConnectionId,proto3" json:"counterparty_connection_id,omitempty"`
 	Version                  *Version   `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
-	ClientState              *types.Any `protobuf:"bytes,4,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState              *anypb.Any `protobuf:"bytes,4,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	ProofHeight              *v1.Height `protobuf:"bytes,5,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height,omitempty"`
 	// proof of the initialization the connection on Chain B: `UNINITIALIZED ->
 	// TRYOPEN`
@@ -6401,7 +6401,7 @@ func (x *MsgConnectionOpenAck) GetVersion() *Version {
 	return nil
 }
 
-func (x *MsgConnectionOpenAck) GetClientState() *types.Any {
+func (x *MsgConnectionOpenAck) GetClientState() *anypb.Any {
 	if x != nil {
 		return x.ClientState
 	}
@@ -6877,7 +6877,7 @@ var file_ibc_core_connection_v1_tx_proto_goTypes = []interface{}{
 	(*MsgUpdateParamsResponse)(nil),          // 9: ibc.core.connection.v1.MsgUpdateParamsResponse
 	(*Counterparty)(nil),                     // 10: ibc.core.connection.v1.Counterparty
 	(*Version)(nil),                          // 11: ibc.core.connection.v1.Version
-	(*types.Any)(nil),                        // 12: google.protobuf.Any
+	(*anypb.Any)(nil),                        // 12: google.protobuf.Any
 	(*v1.Height)(nil),                        // 13: ibc.core.client.v1.Height
 	(*Params)(nil),                           // 14: ibc.core.connection.v1.Params
 }

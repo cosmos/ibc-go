@@ -2,9 +2,9 @@
 package controllerv1
 
 import (
+	_ "cosmossdk.io/api/cosmos/msg/v1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	v11 "github.com/cosmos/ibc-go/api/ibc/applications/interchain_accounts/v1"
 	v1 "github.com/cosmos/ibc-go/api/ibc/core/channel/v1"
