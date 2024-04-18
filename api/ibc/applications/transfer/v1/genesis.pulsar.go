@@ -2,9 +2,9 @@
 package transferv1
 
 import (
+	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
-	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
@@ -68,7 +68,7 @@ func (x *_GenesisState_2_list) IsValid() bool {
 var _ protoreflect.List = (*_GenesisState_4_list)(nil)
 
 type _GenesisState_4_list struct {
-	list *[]*types.Coin
+	list *[]*v1beta1.Coin
 }
 
 func (x *_GenesisState_4_list) Len() int {
@@ -84,18 +84,18 @@ func (x *_GenesisState_4_list) Get(i int) protoreflect.Value {
 
 func (x *_GenesisState_4_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_GenesisState_4_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*types.Coin)
+	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_GenesisState_4_list) AppendMutable() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -108,7 +108,7 @@ func (x *_GenesisState_4_list) Truncate(n int) {
 }
 
 func (x *_GenesisState_4_list) NewElement() protoreflect.Value {
-	v := new(types.Coin)
+	v := new(v1beta1.Coin)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -368,7 +368,7 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 		return protoreflect.ValueOfMessage(x.Params.ProtoReflect())
 	case "ibc.applications.transfer.v1.GenesisState.total_escrowed":
 		if x.TotalEscrowed == nil {
-			x.TotalEscrowed = []*types.Coin{}
+			x.TotalEscrowed = []*v1beta1.Coin{}
 		}
 		value := &_GenesisState_4_list{list: &x.TotalEscrowed}
 		return protoreflect.ValueOfList(value)
@@ -396,7 +396,7 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 		m := new(Params)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "ibc.applications.transfer.v1.GenesisState.total_escrowed":
-		list := []*types.Coin{}
+		list := []*v1beta1.Coin{}
 		return protoreflect.ValueOfList(&_GenesisState_4_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -749,7 +749,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.TotalEscrowed = append(x.TotalEscrowed, &types.Coin{})
+				x.TotalEscrowed = append(x.TotalEscrowed, &v1beta1.Coin{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.TotalEscrowed[len(x.TotalEscrowed)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -813,7 +813,7 @@ type GenesisState struct {
 	Params      *Params       `protobuf:"bytes,3,opt,name=params,proto3" json:"params,omitempty"`
 	// total_escrowed contains the total amount of tokens escrowed
 	// by the transfer module
-	TotalEscrowed []*types.Coin `protobuf:"bytes,4,rep,name=total_escrowed,json=totalEscrowed,proto3" json:"total_escrowed,omitempty"`
+	TotalEscrowed []*v1beta1.Coin `protobuf:"bytes,4,rep,name=total_escrowed,json=totalEscrowed,proto3" json:"total_escrowed,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -857,7 +857,7 @@ func (x *GenesisState) GetParams() *Params {
 	return nil
 }
 
-func (x *GenesisState) GetTotalEscrowed() []*types.Coin {
+func (x *GenesisState) GetTotalEscrowed() []*v1beta1.Coin {
 	if x != nil {
 		return x.TotalEscrowed
 	}
@@ -934,7 +934,7 @@ var file_ibc_applications_transfer_v1_genesis_proto_goTypes = []interface{}{
 	(*GenesisState)(nil), // 0: ibc.applications.transfer.v1.GenesisState
 	(*DenomTrace)(nil),   // 1: ibc.applications.transfer.v1.DenomTrace
 	(*Params)(nil),       // 2: ibc.applications.transfer.v1.Params
-	(*types.Coin)(nil),   // 3: cosmos.base.v1beta1.Coin
+	(*v1beta1.Coin)(nil), // 3: cosmos.base.v1beta1.Coin
 }
 var file_ibc_applications_transfer_v1_genesis_proto_depIdxs = []int32{
 	1, // 0: ibc.applications.transfer.v1.GenesisState.denom_traces:type_name -> ibc.applications.transfer.v1.DenomTrace
