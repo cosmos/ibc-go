@@ -21,6 +21,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
@@ -61,6 +62,10 @@ func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 // of one consensus engine unit (10^6) in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
 func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction math.Int, balances ...banktypes.Balance) TestingApp {
+	return SetupWithGenesisValSetAndConsensusParams(t, simapp.DefaultConsensusParams, valSet, genAccs, chainID, powerReduction, balances...)
+}
+
+func SetupWithGenesisValSetAndConsensusParams(t *testing.T, consensusParams *abci.ConsensusParams, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction math.Int, balances ...banktypes.Balance) TestingApp {
 	app, genesisState := DefaultTestingAppInit()
 
 	// set genesis accounts
@@ -133,6 +138,9 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	app.BeginBlock(
 		abci.RequestBeginBlock{
 			Header: tmproto.Header{
+				Version: tmprotoversion.Consensus{
+					App: consensusParams.Version.AppVersion,
+				},
 				ChainID:            chainID,
 				Height:             app.LastBlockHeight() + 1,
 				AppHash:            app.LastCommitID().Hash,

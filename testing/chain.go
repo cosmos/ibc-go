@@ -124,6 +124,9 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 
 	// create current header and call begin block
 	header := tmproto.Header{
+		Version: tmprotoversion.Consensus{
+			App: simapp.DefaultAppVersion,
+		},
 		ChainID: chainID,
 		Height:  1,
 		Time:    coord.CurrentTime.UTC(),
@@ -285,6 +288,7 @@ func (chain *TestChain) NextBlock() {
 	chain.CurrentHeader = tmproto.Header{
 		ChainID: chain.ChainID,
 		Height:  chain.App.LastBlockHeight() + 1,
+		Version: chain.CurrentHeader.Version,
 		AppHash: chain.App.LastCommitID().Hash,
 		// NOTE: the time is increased by the coordinator to maintain time synchrony amongst
 		// chains.
@@ -456,7 +460,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 	nextValHash := nextVals.Hash()
 
 	tmHeader := tmtypes.Header{
-		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
+		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: simapp.DefaultAppVersion},
 		ChainID:            chainID,
 		Height:             blockHeight,
 		Time:               timestamp,
