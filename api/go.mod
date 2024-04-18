@@ -2,13 +2,15 @@ module github.com/cosmos/ibc-go/api
 
 go 1.22.0
 
-// replace github.com/cosmos/ics23/go/api => ../../ics23/go/api
+// NOTE: This replaces points the ics23 dependency to a protov2 compatible encoding format which also uses pulsar.
+// This should be removed and reverted when depinject supports protov1 with gogoproto.
+replace github.com/cosmos/ics23/go/api => github.com/cosmos/ics23/go/api v0.0.0-20240417162222-d137921f67b6
 
 require (
 	cosmossdk.io/api v0.7.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
 	github.com/cosmos/gogoproto v1.4.11
-	// github.com/cosmos/ics23/go/api v0.0.0
+	github.com/cosmos/ics23/go/api v0.0.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231012201019-e917dd12ba7a
 	google.golang.org/protobuf v1.33.0
 )
