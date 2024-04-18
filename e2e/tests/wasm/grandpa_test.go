@@ -625,7 +625,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 
 // extractChecksumFromGzippedContent takes a gzipped wasm contract and returns the checksum.
 func (s *GrandpaTestSuite) extractChecksumFromGzippedContent(zippedContent []byte) string {
-	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
+	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmSize)
 	s.Require().NoError(err)
 
 	checksum32 := sha256.Sum256(content)
