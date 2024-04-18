@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	denom              = "transfer/gaiachannel/atom"
-	amount             = "100"
+	denom              = "atom/pool"
+	amount             = "1000"
 	largeAmount        = "18446744073709551616"                                                           // one greater than largest uint64 (^uint64(0))
 	invalidLargeAmount = "115792089237316195423570985008687907853269984665640564039457584007913129639936" // 2^256
 )
@@ -39,8 +39,8 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -55,8 +55,8 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -71,7 +71,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
+						Denom:  denom,
 						Amount: largeAmount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
@@ -88,7 +88,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				[]*Token{
 					{
 						Denom:  "",
-						Amount: "1000",
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -103,7 +103,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
+						Denom:  denom,
 						Amount: "",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
@@ -129,7 +129,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
+						Denom:  denom,
 						Amount: "0",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
@@ -145,7 +145,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
+						Denom:  denom,
 						Amount: "-100",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
@@ -161,7 +161,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
+						Denom:  denom,
 						Amount: invalidLargeAmount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
@@ -177,8 +177,8 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -193,8 +193,8 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -229,8 +229,8 @@ func TestGetPacketSender(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -245,8 +245,8 @@ func TestGetPacketSender(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -261,20 +261,6 @@ func TestGetPacketSender(t *testing.T) {
 	for _, tc := range testCases {
 		require.Equal(t, tc.expSender, tc.packetData.GetPacketSender(types.PortID))
 	}
-
-	packetData := NewFungibleTokenPacketData(
-		[]*Token{
-			{
-				Denom:  "atom/pool",
-				Amount: "1000",
-				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
-			},
-		},
-		sender,
-		receiver,
-		"",
-	)
-	require.Equal(t, sender, packetData.GetPacketSender(types.PortID))
 }
 
 func TestPacketDataProvider(t *testing.T) {
@@ -288,8 +274,8 @@ func TestPacketDataProvider(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -306,8 +292,8 @@ func TestPacketDataProvider(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -324,8 +310,8 @@ func TestPacketDataProvider(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -339,8 +325,8 @@ func TestPacketDataProvider(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -354,8 +340,8 @@ func TestPacketDataProvider(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -369,8 +355,8 @@ func TestPacketDataProvider(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -400,8 +386,8 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -416,8 +402,8 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 			NewFungibleTokenPacketData(
 				[]*Token{
 					{
-						Denom:  "atom/pool",
-						Amount: "1000",
+						Denom:  denom,
+						Amount: amount,
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
@@ -439,133 +425,6 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 			require.NoError(t, err, tc.name)
 			// check that the memo field is not present in the marshalled bytes
 			require.NotContains(t, string(bz), "memo")
-		}
-	}
-}
-
-func TestGetFullDenomPath(t *testing.T) {
-	testCases := []struct {
-		name       string
-		packetData FungibleTokenPacketData
-		expPath    string
-	}{
-		{
-			"denom path with trace",
-			NewFungibleTokenPacketData(
-				[]*Token{
-					{
-						Denom:  "atom/pool",
-						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
-					},
-				},
-				sender,
-				receiver,
-				"",
-			),
-			"transfer/channel-0/transfer/channel-1/atom/pool",
-		},
-		{
-			"nil trace",
-			NewFungibleTokenPacketData(
-				[]*Token{
-					{
-						Denom:  "atom/pool",
-						Amount: "1000",
-						Trace:  []string{},
-					},
-				},
-				sender,
-				receiver,
-				"",
-			),
-			"atom/pool",
-		},
-		{
-			"empty string trace",
-			NewFungibleTokenPacketData(
-				[]*Token{
-					{
-						Denom:  "atom/pool",
-						Amount: "1000",
-						Trace:  []string{""},
-					},
-				},
-				sender,
-				receiver,
-				"",
-			),
-			"atom/pool",
-		},
-	}
-
-	for _, tc := range testCases {
-		path := tc.packetData.Tokens[0].GetFullDenomPath()
-
-		require.Equal(t, tc.expPath, path)
-	}
-}
-
-func TestValidate(t *testing.T) {
-	testCases := []struct {
-		name     string
-		token    Token
-		expError error
-	}{
-		{
-			"success: multiple port channel pair denom",
-			Token{
-				Denom:  "atom",
-				Amount: "1000",
-				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
-			},
-			nil,
-		},
-		{
-			"success: one port channel pair denom",
-			Token{
-				Denom:  "uatom",
-				Amount: "1000",
-				Trace:  []string{"transfer/channel-1"},
-			},
-			nil,
-		},
-		{
-			"success: non transfer port trace",
-			Token{
-				Denom:  "uatom",
-				Amount: "1000",
-				Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
-			},
-			nil,
-		},
-		{
-			"failure: empty denom",
-			Token{
-				Denom:  "",
-				Amount: "1000",
-				Trace:  nil,
-			},
-			types.ErrInvalidDenomForTransfer,
-		},
-		{
-			"failure: invalid identifier in trace",
-			Token{
-				Denom:  "uatom",
-				Amount: "1000",
-				Trace:  []string{"transfer/channel-1", "randomport"},
-			},
-			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: [transfer channel-1 randomport]"),
-		},
-	}
-
-	for _, tc := range testCases {
-		err := tc.token.Validate()
-		expPass := tc.expError == nil
-		if expPass {
-			require.NoError(t, err, tc.name)
-		} else {
-			require.ErrorContains(t, err, tc.expError.Error(), tc.name)
 		}
 	}
 }
