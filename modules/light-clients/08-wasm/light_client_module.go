@@ -10,6 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -449,7 +450,7 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected checksums to be equal: expected %s, got %s", hex.EncodeToString(subjectClientState.Checksum), hex.EncodeToString(substituteClientState.Checksum))
 	}
 
-	store := types.NewMigrateClientWrappedStore(subjectClientStore, substituteClientStore)
+	store := internaltypes.NewMergedClientStore(subjectClientStore, substituteClientStore)
 
 	payload := types.SudoMsg{
 		MigrateClientStore: &types.MigrateClientStoreMsg{},
