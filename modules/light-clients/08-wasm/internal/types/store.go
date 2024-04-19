@@ -143,12 +143,12 @@ func (s ClientRecoveryStore) GetStoreType() storetypes.StoreType {
 
 // CacheWrap implements the storetypes.KVStore interface, it is implemented solely to satisfy the interface.
 func (s ClientRecoveryStore) CacheWrap() storetypes.CacheWrap {
-	return cachekv.NewStore(ws)
+	return cachekv.NewStore(s)
 }
 
 // CacheWrapWithTrace implements the storetypes.KVStore interface, it is implemented solely to satisfy the interface.
 func (s ClientRecoveryStore) CacheWrapWithTrace(w io.Writer, tc storetypes.TraceContext) storetypes.CacheWrap {
-	return cachekv.NewStore(tracekv.NewStore(ws, w, tc))
+	return cachekv.NewStore(tracekv.NewStore(s, w, tc))
 }
 
 // getStore returns the types to be used for the given key and a boolean flag indicating if that types was found.
