@@ -30,7 +30,7 @@ type ClientRecoveryStore struct {
 	substituteStore storetypes.KVStore
 }
 
-// NewClientRecoveryStore retusn a new instance of a ClientRecoveryStore
+// NewClientRecoveryStore returns a new instance of a ClientRecoveryStore
 func NewClientRecoveryStore(subjectStore, substituteStore storetypes.KVStore) ClientRecoveryStore {
 	if subjectStore == nil {
 		panic(errors.New("subjectStore must not be nil"))
