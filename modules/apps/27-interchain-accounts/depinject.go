@@ -34,9 +34,10 @@ func init() {
 type ModuleInputs struct {
 	depinject.In
 
-	Config *modulev1.Module
-	Cdc    codec.Codec
-	Key    *storetypes.KVStoreKey
+	Config        *modulev1.Module
+	Cdc           codec.Codec
+	ControllerKey *storetypes.KVStoreKey
+	HostKey       *storetypes.KVStoreKey
 
 	Ics4Wrapper   porttypes.ICS4Wrapper
 	ChannelKeeper types.ChannelKeeper
@@ -70,7 +71,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 
 	controllerkeeper := controllerKeeper.NewKeeper(
 		in.Cdc,
-		in.Key,
+		in.ControllerKey,
 		in.LegacySubspace,
 		in.Ics4Wrapper,
 		in.ChannelKeeper,
@@ -81,7 +82,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 	)
 	hostkeeper := hostKeeper.NewKeeper(
 		in.Cdc,
-		in.Key,
+		in.HostKey,
 		in.LegacySubspace,
 		in.Ics4Wrapper,
 		in.ChannelKeeper,
