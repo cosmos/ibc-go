@@ -51,7 +51,7 @@ func NewClientRecoveryStore(subjectStore, substituteStore storetypes.KVStore) Cl
 func (s ClientRecoveryStore) Get(key []byte) []byte {
 	prefix, key := SplitPrefix(key)
 
-	store, found := ws.GetStore(prefix)
+	store, found := s.GetStore(prefix)
 	if !found {
 		// return a nil byte slice as KVStore.Get() does by default
 		return []byte(nil)
@@ -66,7 +66,7 @@ func (s ClientRecoveryStore) Get(key []byte) []byte {
 func (s ClientRecoveryStore) Has(key []byte) bool {
 	prefix, key := SplitPrefix(key)
 
-	store, found := ws.GetStore(prefix)
+	store, found := s.GetStore(prefix)
 	if !found {
 		// return false as value when types is not found
 		return false
@@ -83,7 +83,7 @@ func (s ClientRecoveryStore) Set(key, value []byte) {
 	if !bytes.Equal(prefix, SubjectPrefix) {
 		return // no-op
 	}
-	ws.subjectStore.Set(key, value)
+	s.subjectStore.Set(key, value)
 }
 
 // Delete implements the storetypes.KVStore interface. It allows deletions solely to the subjectStore.
@@ -95,7 +95,7 @@ func (s ClientRecoveryStore) Delete(key []byte) {
 		return // no-op
 	}
 
-	ws.subjectStore.Delete(key)
+	s.subjectStore.Delete(key)
 }
 
 // Iterator implements the storetypes.KVStore interface. It allows iteration over both the subjectStore and substituteStore.
@@ -106,12 +106,12 @@ func (s ClientRecoveryStore) Iterator(start, end []byte) storetypes.Iterator {
 	prefixEnd, end := SplitPrefix(end)
 
 	if !bytes.Equal(prefixStart, prefixEnd) {
-		return ws.closedIterator()
+		return s.closedIterator()
 	}
 
-	store, found := ws.GetStore(prefixStart)
+	store, found := s.GetStore(prefixStart)
 	if !found {
-		return ws.closedIterator()
+		return s.closedIterator()
 	}
 
 	return store.Iterator(start, end)
@@ -125,12 +125,12 @@ func (s ClientRecoveryStore) ReverseIterator(start, end []byte) storetypes.Itera
 	prefixEnd, end := SplitPrefix(end)
 
 	if !bytes.Equal(prefixStart, prefixEnd) {
-		return ws.closedIterator()
+		return s.closedIterator()
 	}
 
-	store, found := ws.GetStore(prefixStart)
+	store, found := s.GetStore(prefixStart)
 	if !found {
-		return ws.closedIterator()
+		return s.closedIterator()
 	}
 
 	return store.ReverseIterator(start, end)
@@ -138,7 +138,7 @@ func (s ClientRecoveryStore) ReverseIterator(start, end []byte) storetypes.Itera
 
 // GetStoreType implements the storetypes.KVStore interface, it is implemented solely to satisfy the interface.
 func (s ClientRecoveryStore) GetStoreType() storetypes.StoreType {
-	return ws.substituteStore.GetStoreType()
+	return s.substituteStore.GetStoreType()
 }
 
 // CacheWrap implements the storetypes.KVStore interface, it is implemented solely to satisfy the interface.
@@ -158,9 +158,9 @@ func (s ClientRecoveryStore) CacheWrapWithTrace(w io.Writer, tc storetypes.Trace
 // If the key is not prefixed with either "subject/" or "substitute/", a nil types is returned and the boolean flag is false.
 func (s ClientRecoveryStore) GetStore(prefix []byte) (storetypes.KVStore, bool) {
 	if bytes.Equal(prefix, SubjectPrefix) {
-		return ws.subjectStore, true
+		return s.subjectStore, true
 	} else if bytes.Equal(prefix, SubstitutePrefix) {
-		return ws.substituteStore, true
+		return s.substituteStore, true
 	}
 
 	return nil, false
@@ -170,7 +170,7 @@ func (s ClientRecoveryStore) GetStore(prefix []byte) (storetypes.KVStore, bool) 
 // with an invalid prefix or start/end key.
 func (s ClientRecoveryStore) closedIterator() storetypes.Iterator {
 	// Create a dummy iterator that is always closed right away.
-	it := ws.subjectStore.Iterator([]byte{0}, []byte{1})
+	it := s.subjectStore.Iterator([]byte{0}, []byte{1})
 	it.Close()
 
 	return it
