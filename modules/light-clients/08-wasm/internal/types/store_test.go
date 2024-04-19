@@ -64,8 +64,8 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return app, app.DefaultGenesis()
 }
 
-// TestMergedClientStoreGetStore tests the GetStore method of the MergedClientStore.
-func (suite *TypesTestSuite) TestMergedClientStoreGetStore() {
+// TestClientRecoveryStoreGetStore tests the GetStore method of the ClientRecoveryStore.
+func (suite *TypesTestSuite) TestClientRecoveryStoreGetStore() {
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
@@ -98,7 +98,7 @@ func (suite *TypesTestSuite) TestMergedClientStoreGetStore() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
 			store, found := wrappedStore.GetStore(tc.prefix)
 
@@ -156,8 +156,8 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 	}
 }
 
-// TestMergedClientStoreGet tests the Get method of the MergedClientStore.
-func (suite *TypesTestSuite) TestMergedClientStoreGet() {
+// TestClientRecoveryStoreGet tests the Get method of the ClientRecoveryStore.
+func (suite *TypesTestSuite) TestClientRecoveryStoreGet() {
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
@@ -189,7 +189,7 @@ func (suite *TypesTestSuite) TestMergedClientStoreGet() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -207,8 +207,8 @@ func (suite *TypesTestSuite) TestMergedClientStoreGet() {
 	}
 }
 
-// TestMergedClientStoreSet tests the Set method of the MergedClientStore.
-func (suite *TypesTestSuite) TestMergedClientStoreSet() {
+// TestClientRecoveryStoreSet tests the Set method of the ClientRecoveryStore.
+func (suite *TypesTestSuite) TestClientRecoveryStoreSet() {
 	testCases := []struct {
 		name   string
 		prefix []byte
@@ -233,7 +233,7 @@ func (suite *TypesTestSuite) TestMergedClientStoreSet() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
-			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -257,8 +257,8 @@ func (suite *TypesTestSuite) TestMergedClientStoreSet() {
 	}
 }
 
-// TestMergedClientStoreDelete tests the Delete method of the MergedClientStore.
-func (suite *TypesTestSuite) TestMergedClientStoreDelete() {
+// TestClientRecoveryStoreDelete tests the Delete method of the ClientRecoveryStore.
+func (suite *TypesTestSuite) TestClientRecoveryStoreDelete() {
 	var (
 		mockStoreKey   = []byte("mock-key")
 		mockStoreValue = []byte("mock-value")
@@ -293,7 +293,7 @@ func (suite *TypesTestSuite) TestMergedClientStoreDelete() {
 			subjectStore.Set(mockStoreKey, mockStoreValue)
 			substituteStore.Set(mockStoreKey, mockStoreValue)
 
-			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -315,8 +315,8 @@ func (suite *TypesTestSuite) TestMergedClientStoreDelete() {
 	}
 }
 
-// TestMergedClientStoreIterators tests the Iterator/ReverseIterator methods of the MergedClientStore.
-func (suite *TypesTestSuite) TestMergedClientStoreIterators() {
+// TestClientRecoveryStoreIterators tests the Iterator/ReverseIterator methods of the ClientRecoveryStore.
+func (suite *TypesTestSuite) TestClientRecoveryStoreIterators() {
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
@@ -364,7 +364,7 @@ func (suite *TypesTestSuite) TestMergedClientStoreIterators() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := internaltypes.NewMergedClientStore(subjectStore, substituteStore)
+			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
 			prefixedKeyStart := tc.prefixStart
 			prefixedKeyStart = append(prefixedKeyStart, tc.start...)
@@ -383,7 +383,7 @@ func (suite *TypesTestSuite) TestMergedClientStoreIterators() {
 	}
 }
 
-func (suite *TypesTestSuite) TestNewMergedClientStore() {
+func (suite *TypesTestSuite) TestNewClientRecoveryStore() {
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
@@ -420,11 +420,11 @@ func (suite *TypesTestSuite) TestNewMergedClientStore() {
 			expPass := !tc.expPanic
 			if expPass {
 				suite.Require().NotPanics(func() {
-					internaltypes.NewMergedClientStore(subjectStore, substituteStore)
+					internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 				})
 			} else {
 				suite.Require().Panics(func() {
-					internaltypes.NewMergedClientStore(subjectStore, substituteStore)
+					internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 				})
 			}
 		})
