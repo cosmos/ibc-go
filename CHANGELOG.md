@@ -38,6 +38,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.6.
+* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
+
 ### API Breaking
 
 * (core/02-client, light-clients) [\#5806](https://github.com/cosmos/ibc-go/pull/5806) Decouple light client routing from their encoding structure.
@@ -59,6 +62,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#6055](https://github.com/cosmos/ibc-go/pull/6055) Introduce a new interface `ConsensusHost` used to validate an IBC `ClientState` and `ConsensusState` against the host chain's underlying consensus parameters.
 
 ### Bug Fixes
+
+* (apps/27-interchain-accounts) [\#6167](https://github.com/cosmos/ibc-go/pull/6167) Fixed an edge case bug where migrating params for a pre-existing ica module which implemented controller functionality only could panic when migrating params for newly added host, and align controller param migration with host.
 
 ## [v8.2.0](https://github.com/cosmos/ibc-go/releases/tag/v8.2.0) - 2024-04-05
 
