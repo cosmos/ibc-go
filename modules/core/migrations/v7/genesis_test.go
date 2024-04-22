@@ -14,7 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	v7 "github.com/cosmos/ibc-go/v8/modules/core/migrations/v7"
+	"github.com/cosmos/ibc-go/v8/modules/core/migrations/v7"
 	"github.com/cosmos/ibc-go/v8/modules/core/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -61,7 +61,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1)
 	solomachineMulti := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4)
 
-	clientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	clientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
 	// manually generate old proto buf definitions and set in genesis
 	// NOTE: we cannot use 'ExportGenesis' for the solo machines since we are
@@ -94,7 +94,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 
 		// set in store for ease of determining expected genesis
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
-		cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		suite.Require().True(ok)
 		clientv7.RegisterInterfaces(cdc.InterfaceRegistry())
 
 		bz, err := cdc.MarshalInterface(legacyClientState)
@@ -135,9 +136,10 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// NOTE: tendermint clients are not pruned in genesis so the test should not have expired tendermint clients
 	err := clientv7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
-	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
-	cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+	cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+	suite.Require().True(ok)
 
 	// NOTE: these lines are added in comparison to 02-client/migrations/v7/genesis_test.go
 	// generate appState with old ibc genesis state

@@ -3,6 +3,7 @@ package tendermint
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
@@ -59,7 +60,12 @@ func getClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientSta
 	}
 
 	clientStateI := clienttypes.MustUnmarshalClientState(cdc, bz)
-	return clientStateI.(*ClientState), true
+	var clientState *ClientState
+	clientState, ok := clientStateI.(*ClientState)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T into %T", clientStateI, clientState))
+	}
+	return clientState, true
 }
 
 // setConsensusState stores the consensus state at the given height.
@@ -78,7 +84,13 @@ func GetConsensusState(store storetypes.KVStore, cdc codec.BinaryCodec, height e
 	}
 
 	consensusStateI := clienttypes.MustUnmarshalConsensusState(cdc, bz)
-	return consensusStateI.(*ConsensusState), true
+	var consensusState *ConsensusState
+	consensusState, ok := consensusStateI.(*ConsensusState)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T into %T", consensusStateI, consensusState))
+	}
+
+	return consensusState, true
 }
 
 // deleteConsensusState deletes the consensus state at the given height

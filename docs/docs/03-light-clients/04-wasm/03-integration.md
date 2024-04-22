@@ -134,7 +134,7 @@ When it comes to instantiating `08-wasm`'s keeper, there are two recommended way
 
 ### If `x/wasm` is present
 
-If the chain where the module is integrated uses `x/wasm` then we recommend that both `08-wasm` and `x/wasm` share the same Wasm VM instance. Having two separate Wasm VM instances is still possible, but care should be taken to make sure that both instances do not share the directory when the VM stores blobs and various caches, otherwise unexpected behaviour is likely to happen (from `x/wasm` v0.51 and `08-wasm` v0.2.0.0+ibc-go-v8.2-wasmvm-v2.0 this will be forbidden anyway, since wasmvm v2.0.0 and above will not allow two different Wasm VM instances to shared the same data folder).
+If the chain where the module is integrated uses `x/wasm` then we recommend that both `08-wasm` and `x/wasm` share the same Wasm VM instance. Having two separate Wasm VM instances is still possible, but care should be taken to make sure that both instances do not share the directory when the VM stores blobs and various caches, otherwise unexpected behaviour is likely to happen (from `x/wasm` v0.51 and `08-wasm` v0.2.0+ibc-go-v8.3-wasmvm-v2.0 this will be forbidden anyway, since wasmvm v2.0.0 and above will not allow two different Wasm VM instances to shared the same data folder).
 
 In order to share the Wasm VM instance, please follow the guideline below. Please note that this requires `x/wasm` v0.41 or above.
 

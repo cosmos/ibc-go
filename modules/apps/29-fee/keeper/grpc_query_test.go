@@ -180,8 +180,15 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		{
 			"empty pagination",
 			func() {
+				path := ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
+				path.Setup()
 				expIdentifiedPacketFees = nil
-				req = &types.QueryIncentivizedPacketsForChannelRequest{}
+				req = &types.QueryIncentivizedPacketsForChannelRequest{
+					Pagination:  &query.PageRequest{},
+					PortId:      path.EndpointA.ChannelConfig.PortID,
+					ChannelId:   path.EndpointA.ChannelID,
+					QueryHeight: 0,
+				}
 			},
 			true,
 		},
@@ -210,18 +217,40 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 		{
 			"no packets for specified channel",
 			func() {
+				path := ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
+				path.Setup()
 				expIdentifiedPacketFees = nil
 				req = &types.QueryIncentivizedPacketsForChannelRequest{
 					Pagination: &query.PageRequest{
 						Limit:      5,
 						CountTotal: false,
 					},
-					PortId:      ibctesting.MockFeePort,
-					ChannelId:   "channel-10",
+					PortId:      path.EndpointA.ChannelConfig.PortID,
+					ChannelId:   path.EndpointA.ChannelID,
 					QueryHeight: 0,
 				}
 			},
 			true,
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryIncentivizedPacketsForChannelRequest{
+					PortId:    ibctesting.MockFeePort,
+					ChannelId: ibctesting.InvalidID,
+				}
+			},
+			false,
+		},
+		{
+			"invalid ID",
+			func() {
+				req = &types.QueryIncentivizedPacketsForChannelRequest{
+					PortId:    "",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
 		},
 	}
 
@@ -246,6 +275,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			for _, identifiedPacketFees := range expIdentifiedPacketFees {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
 			}
+
+			path := ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
+			path.Setup()
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
@@ -731,6 +763,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 	var (
 		req        *types.QueryFeeEnabledChannelRequest
 		expEnabled bool
+		path       *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -754,11 +787,33 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 		{
 			"fee not enabled on channel",
 			func() {
-				req.ChannelId = "invalid-channel-id"
-				req.PortId = "invalid-port-id"
 				expEnabled = false
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.Setup()
+
+				req = &types.QueryFeeEnabledChannelRequest{
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
+				}
 			},
 			true,
+		},
+		{
+			"channel not found",
+			func() {
+				req.ChannelId = ibctesting.InvalidID
+			},
+			false,
+		},
+		{
+			"invalid ID",
+			func() {
+				req = &types.QueryFeeEnabledChannelRequest{
+					PortId:    "",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
 		},
 	}
 
@@ -769,11 +824,12 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			suite.SetupTest() // reset
 			expEnabled = true
 
-			suite.path.Setup()
+			path = ibctesting.NewPathWithFeeEnabled(suite.chainA, suite.chainB)
+			path.Setup()
 
 			req = &types.QueryFeeEnabledChannelRequest{
-				PortId:    suite.path.EndpointA.ChannelConfig.PortID,
-				ChannelId: suite.path.EndpointA.ChannelID,
+				PortId:    path.EndpointA.ChannelConfig.PortID,
+				ChannelId: path.EndpointA.ChannelID,
 			}
 
 			tc.malleate()

@@ -12,7 +12,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -68,7 +67,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 		{
 			"fails with wasm code too large",
 			func() {
-				msg = types.NewMsgStoreCode(signer, wasmtesting.CreateMockContract([]byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))))
+				msg = types.NewMsgStoreCode(signer, wasmtesting.CreateMockContract([]byte(ibctesting.GenerateString(uint(types.MaxWasmSize)))))
 			},
 			types.ErrWasmCodeTooLarge,
 		},
@@ -176,7 +175,9 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					// the checksum written in the client state will later be overwritten by the message server.
 					expClientStateBz := wasmtesting.CreateMockClientStateBz(suite.chainA.App.AppCodec(), []byte("invalid checksum"))
-					expClientState = clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expClientStateBz).(*types.ClientState)
+					var ok bool
+					expClientState, ok = clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expClientStateBz).(*types.ClientState)
+					suite.Require().True(ok)
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					data, err := json.Marshal(types.EmptyResult{})
@@ -217,7 +218,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, ibctesting.InvalidID, newChecksum, []byte("{}"))
 			},
-			clienttypes.ErrClientTypeNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
 			"failure: vm returns error",
@@ -267,8 +268,8 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			var ok bool
 			suite.SetupWasmWithMockVM()
 
-			storeWasmCode(suite, wasmtesting.Code)
-			newChecksum = storeWasmCode(suite, newByteCode)
+			_ = suite.storeWasmCode(wasmtesting.Code)
+			newChecksum = suite.storeWasmCode(newByteCode)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -358,7 +359,8 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 					checksum, err := types.CreateChecksum(mockCode)
 					suite.Require().NoError(err)
 
-					err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum)
+					keeper := GetSimApp(suite.chainA).WasmClientKeeper
+					err = keeper.GetChecksums().Set(suite.chainA.GetContext(), checksum)
 					suite.Require().NoError(err)
 
 					expChecksums = append(expChecksums, checksum)
@@ -397,7 +399,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			storeWasmCode(suite, wasmtesting.Code)
+			_ = suite.storeWasmCode(wasmtesting.Code)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -413,7 +415,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
-				checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
+				checksums, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
 				suite.Require().NoError(err)
 
 				// Check equality of checksums up to order

@@ -27,5 +27,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v4.0.0
         with:
-          version: v1.54.2
+          version: v1.57.2
           args: --timeout 10m
