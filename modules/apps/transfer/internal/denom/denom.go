@@ -42,6 +42,7 @@ func ExtractPathAndBaseFromFullDenom(fullDenomItems []string) ([]string, string)
 	return pathSlice, baseDenom
 }
 
+// ValidateTraceIdentifiers validates the correctness of the trace associated with a particular base denom.
 func ValidateTraceIdentifiers(identifiers []string) error {
 	if len(identifiers) == 0 || len(identifiers)%2 != 0 {
 		return fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: %s", identifiers)

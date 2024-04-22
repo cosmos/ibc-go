@@ -8,9 +8,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -71,25 +68,6 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// ValidateToken validates a token denomination and trace identifiers.
-func (t *Token) Validate() error {
-	if err := sdk.ValidateDenom(t.Denom); err != nil {
-		return errorsmod.Wrap(types.ErrInvalidDenomForTransfer, err.Error())
-	}
-
-	trace := strings.Join(t.Trace, "/")
-	identifiers := strings.Split(trace, "/")
-
-	return denominternal.ValidateTraceIdentifiers(identifiers)
-}
-
-func (t *Token) GetFullDenomPath() string {
-	if len(t.Trace) == 0 {
-		return t.Denom
-	}
-	return strings.Join(append(t.Trace, t.Denom), "/")
 }
 
 // GetBytes is a helper for serialising
