@@ -95,7 +95,8 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
 		require.True(endpoint.Chain.TB, ok)
 
-		height := endpoint.Counterparty.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
+		height, ok := endpoint.Counterparty.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
+		require.True(endpoint.Chain.TB, ok)
 		clientState = ibctm.NewClientState(
 			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
@@ -138,7 +139,8 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		trustedHeight := endpoint.GetClientLatestHeight().(clienttypes.Height)
+		trustedHeight, ok := endpoint.GetClientLatestHeight().(clienttypes.Height)
+		require.True(endpoint.Chain.TB, ok)
 		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
@@ -168,7 +170,8 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	}
 
 	clientState := endpoint.Counterparty.GetClientState()
-	tmClientState := clientState.(*ibctm.ClientState)
+	tmClientState, ok := clientState.(*ibctm.ClientState)
+	require.True(endpoint.Chain.TB, ok)
 
 	// increment revision number in chainID
 	oldChainID := tmClientState.ChainId
@@ -306,7 +309,9 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	clientKey := host.FullClientStateKey(endpoint.Counterparty.ClientID)
 	clientProof, proofHeight = endpoint.Counterparty.QueryProof(clientKey)
 
-	consensusHeight = endpoint.Counterparty.GetClientLatestHeight().(clienttypes.Height)
+	var ok bool
+	consensusHeight, ok = endpoint.Counterparty.GetClientLatestHeight().(clienttypes.Height)
+	require.True(endpoint.Chain.TB, ok)
 	// query proof for the consensus state on the counterparty
 	consensusKey := host.FullConsensusStateKey(endpoint.Counterparty.ClientID, consensusHeight)
 	consensusProof, _ = endpoint.Counterparty.QueryProofAtHeight(consensusKey, proofHeight.GetRevisionHeight())
