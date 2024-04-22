@@ -26,11 +26,14 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	// TODO: replace with correct usage.
-	token := msg.GetTokens()[0]
+	// tokens will always be an array, but may contain a single element
+	// if the ics20-1 token field is populated, and the ics20-2 array is empty.
+	tokens := msg.GetTokens()
 
-	if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
-		return nil, errorsmod.Wrapf(types.ErrSendDisabled, "%s transfers are currently disabled", token.Denom)
+	for _, token := range tokens {
+		if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
+			return nil, errorsmod.Wrapf(types.ErrSendDisabled, "transfers are currently disabled for %s", token.Denom)
+		}
 	}
 
 	if k.bankKeeper.BlockedAddr(sender) {
@@ -38,28 +41,29 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
+		ctx, msg.SourcePort, msg.SourceChannel, tokens, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
 		msg.Memo)
 	if err != nil {
 		return nil, err
 	}
 
-	k.Logger(ctx).Info("IBC fungible token transfer", "token", token.Denom, "amount", token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeTransfer,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyAmount, token.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, token.Denom),
-			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+	for _, token := range tokens {
+		k.Logger(ctx).Info("IBC fungible token transfer", "token", token.Denom, "amount", token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeTransfer,
+				sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
+				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+				sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+				sdk.NewAttribute(types.AttributeKeyDenom, token.Denom),
+				sdk.NewAttribute(types.AttributeKeyAmount, token.Amount.String()),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			),
+		})
+	}
 
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }

@@ -12,7 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	v3 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -56,7 +58,7 @@ func (k Keeper) sendTransfer(
 	ctx sdk.Context,
 	sourcePort,
 	sourceChannel string,
-	token sdk.Coin,
+	coins sdk.Coins,
 	sender sdk.AccAddress,
 	receiver string,
 	timeoutHeight clienttypes.Height,
@@ -71,6 +73,11 @@ func (k Keeper) sendTransfer(
 	destinationPort := channel.Counterparty.PortId
 	destinationChannel := channel.Counterparty.ChannelId
 
+	labels := []metrics.Label{
+		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
+		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
+	}
+
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
@@ -78,61 +85,66 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
-	fullDenomPath := token.Denom
+	var tokens []*v3.Token
 
-	var err error
+	for _, coin := range coins {
+		// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
+		fullDenomPath := coin.Denom
 
-	// deconstruct the token denomination into the denomination trace info
-	// to determine if the sender is the source chain
-	if strings.HasPrefix(token.Denom, "ibc/") {
-		fullDenomPath, err = k.DenomPathFromHash(ctx, token.Denom)
-		if err != nil {
-			return 0, err
+		var err error
+
+		// deconstruct the token denomination into the denomination trace info
+		// to determine if the sender is the source chain
+		if strings.HasPrefix(coin.Denom, "ibc/") {
+			fullDenomPath, err = k.DenomPathFromHash(ctx, coin.Denom)
+			if err != nil {
+				return 0, err
+			}
 		}
+
+		// NOTE: SendTransfer simply sends the denomination as it exists on its own
+		// chain inside the packet data. The receiving chain will perform denom
+		// prefixing as necessary.
+
+		if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
+			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
+
+			// obtain the escrow address for the source channel end
+			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+			if err := k.escrowToken(ctx, sender, escrowAddress, coin); err != nil {
+				return 0, err
+			}
+
+		} else {
+			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
+
+			// transfer the coins to the module account and burn them
+			if err := k.bankKeeper.SendCoinsFromAccountToModule(
+				ctx, sender, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				return 0, err
+			}
+
+			if err := k.bankKeeper.BurnCoins(
+				ctx, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				// NOTE: should not happen as the module account was
+				// retrieved on the step above and it has enough balance
+				// to burn.
+				panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
+			}
+		}
+
+		denom, trace := convert.ExtractDenomAndTraceFromV1Denom(fullDenomPath)
+		token := &v3.Token{
+			Denom:  denom,
+			Amount: coin.Amount.String(),
+			Trace:  trace,
+		}
+		tokens = append(tokens, token)
 	}
 
-	labels := []metrics.Label{
-		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
-		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
-	}
-
-	// NOTE: SendTransfer simply sends the denomination as it exists on its own
-	// chain inside the packet data. The receiving chain will perform denom
-	// prefixing as necessary.
-
-	if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
-
-		// obtain the escrow address for the source channel end
-		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-		if err := k.escrowToken(ctx, sender, escrowAddress, token); err != nil {
-			return 0, err
-		}
-
-	} else {
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
-
-		// transfer the coins to the module account and burn them
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(
-			ctx, sender, types.ModuleName, sdk.NewCoins(token),
-		); err != nil {
-			return 0, err
-		}
-
-		if err := k.bankKeeper.BurnCoins(
-			ctx, types.ModuleName, sdk.NewCoins(token),
-		); err != nil {
-			// NOTE: should not happen as the module account was
-			// retrieved on the step above and it has enough balance
-			// to burn.
-			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
-		}
-	}
-
-	packetData := types.NewFungibleTokenPacketData(
-		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
-	)
+	packetData := v3.NewFungibleTokenPacketData(tokens, sender.String(), receiver, memo)
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
 	if err != nil {
@@ -140,12 +152,15 @@ func (k Keeper) sendTransfer(
 	}
 
 	defer func() {
-		if token.Amount.IsInt64() {
-			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", "ibc", "transfer"},
-				float32(token.Amount.Int64()),
-				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullDenomPath)},
-			)
+		for _, token := range tokens {
+			amount, ok := sdkmath.NewIntFromString(token.Amount)
+			if ok && amount.IsInt64() {
+				telemetry.SetGaugeWithLabels(
+					[]string{"tx", "msg", "ibc", "transfer"},
+					float32(amount.Int64()),
+					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.GetFullDenomPath())},
+				)
+			}
 		}
 
 		telemetry.IncrCounterWithLabels(

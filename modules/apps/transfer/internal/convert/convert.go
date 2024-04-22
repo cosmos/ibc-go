@@ -13,7 +13,7 @@ func PacketDataV1ToV3(packetData v1types.FungibleTokenPacketData) v3types.Fungib
 		panic(err)
 	}
 
-	v2Denom, trace := extractDenomAndTraceFromV1Denom(packetData.Denom)
+	v2Denom, trace := ExtractDenomAndTraceFromV1Denom(packetData.Denom)
 	return v3types.FungibleTokenPacketData{
 		Tokens: []*v3types.Token{
 			{
@@ -29,15 +29,15 @@ func PacketDataV1ToV3(packetData v1types.FungibleTokenPacketData) v3types.Fungib
 }
 
 // extractDenomAndTraceFromV1Denom extracts the base denom and remaining trace from a v1 IBC denom.
-func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
+func ExtractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 	v1DenomTrace := v1types.ParseDenomTrace(v1Denom)
 
-	splitPath := strings.Split(v1DenomTrace.Path, "/")
-
 	// if the path slice is empty, then the base denom is the full native denom.
-	if len(splitPath) == 0 {
+	if v1DenomTrace.IsNativeDenom() {
 		return v1DenomTrace.BaseDenom, nil
 	}
+
+	splitPath := strings.Split(v1DenomTrace.Path, "/")
 
 	// this condition should never be reached.
 	if len(splitPath)%2 != 0 {
