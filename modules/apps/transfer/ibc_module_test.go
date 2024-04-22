@@ -94,9 +94,10 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
+			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper, types.Version)
+
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
 			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
 			)

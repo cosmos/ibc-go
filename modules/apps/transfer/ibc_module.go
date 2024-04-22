@@ -30,13 +30,15 @@ var (
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
-	keeper keeper.Keeper
+	keeper     keeper.Keeper
+	appVersion string
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
+func NewIBCModule(k keeper.Keeper, version string) IBCModule {
 	return IBCModule{
-		keeper: k,
+		keeper:     k,
+		appVersion: version,
 	}
 }
 
@@ -173,19 +175,15 @@ func (IBCModule) OnChanCloseConfirm(
 }
 
 func (im IBCModule) getFungibleTokenPacketDataV2(ctx sdk.Context, portID, channelID string, bz []byte) (multidenom.FungibleTokenPacketData, error) {
-	version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
-	if !found {
-		return multidenom.FungibleTokenPacketData{}, errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "cannot get app version")
-	}
 
-	if version == "ics20-1" {
+	if im.appVersion == types.Version1 {
 		var data types.FungibleTokenPacketData
 		if err := types.ModuleCdc.UnmarshalJSON(bz, &data); err == nil {
-			return convertinternal.ICS20V1ToV2(data), nil
+			return convertinternal.PacketDataV1ToV3(data), nil
 		}
 	}
 
-	if version == "ics20-2" {
+	if im.appVersion == types.Version {
 		var data multidenom.FungibleTokenPacketData
 		if err := types.ModuleCdc.UnmarshalJSON(bz, &data); err == nil {
 			return data, nil
@@ -377,12 +375,14 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	ics4 := im.keeper.GetICS4Wrapper()
-	ics4.GetAppVersion()
+	im.appVersion
+	// ics4 := im.keeper.GetICS4Wrapper()
+	// ics4.GetAppVersion()
 
 	ftpd, err := im.getFungibleTokenPacketDataV2(bz)
 	if err != nil {
 		return nil, err
 	}
 	return ftpd, nil
+	// return nil, nil
 }
