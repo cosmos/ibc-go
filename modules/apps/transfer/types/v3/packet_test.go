@@ -207,14 +207,16 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := tc.packetData.ValidateBasic()
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.packetData.ValidateBasic()
 
-		expPass := tc.expErr == nil
-		if expPass {
-			require.NoError(t, err, tc.name)
-		} else {
-			require.ErrorContains(t, err, tc.expErr.Error(), tc.name)
-		}
+			expPass := tc.expErr == nil
+			if expPass {
+				require.NoError(t, err, tc.name)
+			} else {
+				require.ErrorContains(t, err, tc.expErr.Error(), tc.name)
+			}
+		})
 	}
 }
 
@@ -259,7 +261,9 @@ func TestGetPacketSender(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expSender, tc.packetData.GetPacketSender(types.PortID))
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expSender, tc.packetData.GetPacketSender(types.PortID))
+		})
 	}
 }
 
@@ -368,10 +372,10 @@ func TestPacketDataProvider(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
-		customData := tc.packetData.GetCustomPacketData("src_callback")
-		require.Equal(t, tc.expCustomData, customData)
+		t.Run(tc.name, func(t *testing.T) {
+			customData := tc.packetData.GetCustomPacketData("src_callback")
+			require.Equal(t, tc.expCustomData, customData)
+		})
 	}
 }
 
@@ -416,15 +420,17 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		bz, err := json.Marshal(tc.packetData)
-		if tc.expMemo {
-			require.NoError(t, err, tc.name)
-			// check that the memo field is present in the marshalled bytes
-			require.Contains(t, string(bz), "memo")
-		} else {
-			require.NoError(t, err, tc.name)
-			// check that the memo field is not present in the marshalled bytes
-			require.NotContains(t, string(bz), "memo")
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			bz, err := json.Marshal(tc.packetData)
+			if tc.expMemo {
+				require.NoError(t, err, tc.name)
+				// check that the memo field is present in the marshalled bytes
+				require.Contains(t, string(bz), "memo")
+			} else {
+				require.NoError(t, err, tc.name)
+				// check that the memo field is not present in the marshalled bytes
+				require.NotContains(t, string(bz), "memo")
+			}
+		})
 	}
 }
