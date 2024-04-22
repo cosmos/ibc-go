@@ -38,7 +38,6 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 					suite.chainA.GetSimApp().AccountKeeper,
 					suite.chainA.GetSimApp().ScopedICAHostKeeper,
 					suite.chainA.GetSimApp().MsgServiceRouter(),
-					suite.chainA.GetSimApp().GRPCQueryRouter(),
 					authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 				)
 			},
