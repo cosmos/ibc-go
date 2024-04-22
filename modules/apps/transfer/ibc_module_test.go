@@ -144,7 +144,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		{
 			"counterparty version is ics20-1", func() {
 				v1 = true
-				counterpartyVersion = "ics20-1"
+				counterpartyVersion = types.Version1
 			}, true,
 		},
 		{
@@ -213,7 +213,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				if v1 {
-					suite.Require().Equal("ics20-1", version)
+					suite.Require().Equal(types.Version1, version)
 				} else {
 					suite.Require().Equal(types.Version, version)
 				}

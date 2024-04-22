@@ -86,12 +86,13 @@ func (im IBCModule) OnChanOpenInit(
 		return "", err
 	}
 
+	// default to latest supported version
 	if strings.TrimSpace(version) == "" {
 		version = types.Version
 	}
 
 	if !slices.Contains(types.SupportedVersions, version) {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected one of [%s, %s], got %s", types.Version1, types.Version, version)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected one of %s, got %s", types.SupportedVersions, version)
 	}
 
 	// Claim channel capability passed back by IBC module
@@ -103,8 +104,7 @@ func (im IBCModule) OnChanOpenInit(
 		return types.Version1, nil
 	}
 
-	// default to latest supported version
-	return types.Version, nil
+	return version, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface.
@@ -123,7 +123,7 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.Version, counterpartyVersion)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected one of %s, got %s", types.SupportedVersions, counterpartyVersion)
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
@@ -143,7 +143,7 @@ func (IBCModule) OnChanOpenAck(
 	counterpartyVersion string,
 ) error {
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected one of [%s, %s], got %s", types.Version1, types.Version, counterpartyVersion)
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected one of %s, got %s", types.SupportedVersions, counterpartyVersion)
 	}
 
 	return nil
