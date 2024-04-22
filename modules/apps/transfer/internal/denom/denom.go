@@ -1,9 +1,13 @@
 package denom
 
 import (
+	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
+
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // ExtractPathAndBaseFromFullDenom returns the trace path and the base denom from
@@ -36,4 +40,22 @@ func ExtractPathAndBaseFromFullDenom(fullDenomItems []string) ([]string, string)
 	baseDenom := strings.Join(baseDenomSlice, "/")
 
 	return pathSlice, baseDenom
+}
+
+// ValidateTraceIdentifiers validates the correctness of the trace associated with a particular base denom.
+func ValidateTraceIdentifiers(identifiers []string) error {
+	if len(identifiers) == 0 || len(identifiers)%2 != 0 {
+		return fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: %s", identifiers)
+	}
+
+	// validate correctness of port and channel identifiers
+	for i := 0; i < len(identifiers); i += 2 {
+		if err := host.PortIdentifierValidator(identifiers[i]); err != nil {
+			return errorsmod.Wrapf(err, "invalid port ID at position %d", i)
+		}
+		if err := host.ChannelIdentifierValidator(identifiers[i+1]); err != nil {
+			return errorsmod.Wrapf(err, "invalid channel ID at position %d", i)
+		}
+	}
+	return nil
 }
