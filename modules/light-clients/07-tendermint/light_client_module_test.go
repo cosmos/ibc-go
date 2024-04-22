@@ -171,176 +171,84 @@ func (suite *TendermintTestSuite) TestVerifyClientMessage() {
 	}
 }
 
-func (suite *TendermintTestSuite) TestLCMCheckForMisbehaviour() {
-	var path *ibctesting.Path
+func (suite *TendermintTestSuite) TestCheckForMisbehaviourPanicsOnClientStateNotFound() {
+	suite.SetupTest()
 
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPanic bool
-	}{
-		{
-			"success",
-			func() {},
-			false,
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupClients()
+
+	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+	suite.Require().True(found)
+
+	// ensure counterparty state is committed
+	suite.coordinator.CommitBlock(suite.chainB)
+	trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
+	suite.Require().NoError(err)
+
+	// delete client state
+	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store.Delete(host.ClientStateKey())
+
+	suite.Require().PanicsWithError(errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
+		func() {
+			lightClientModule.CheckForMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
 		},
-		{
-			"failure: client state not found",
-			func() {
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				store.Delete(host.ClientStateKey())
-			},
-			true,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupClients()
-
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
-
-			// ensure counterparty state is committed
-			suite.coordinator.CommitBlock(suite.chainB)
-			trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
-			header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
-			suite.Require().NoError(err)
-
-			tc.malleate()
-
-			if !tc.expPanic {
-				misbehaviour := lightClientModule.CheckForMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
-				suite.Require().False(misbehaviour)
-			} else {
-				suite.Require().PanicsWithError(errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
-					func() {
-						lightClientModule.CheckForMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
-					})
-			}
-		})
-	}
+	)
 }
 
-func (suite *TendermintTestSuite) TestLCMUpdateStateOnMisbehaviour() {
-	var path *ibctesting.Path
+func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviourPanicsOnClientStateNotFound() {
+	suite.SetupTest()
 
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPanic bool
-	}{
-		{
-			"success",
-			func() {},
-			false,
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupClients()
+
+	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+	suite.Require().True(found)
+
+	// ensure counterparty state is committed
+	suite.coordinator.CommitBlock(suite.chainB)
+	trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
+	suite.Require().NoError(err)
+
+	// delete client state
+	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store.Delete(host.ClientStateKey())
+
+	suite.Require().PanicsWithError(
+		errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
+		func() {
+			lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
 		},
-		{
-			"failure: client state not found",
-			func() {
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				store.Delete(host.ClientStateKey())
-			},
-			true,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupClients()
-
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
-
-			// ensure counterparty state is committed
-			suite.coordinator.CommitBlock(suite.chainB)
-			trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
-			header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
-			suite.Require().NoError(err)
-
-			tc.malleate()
-
-			if !tc.expPanic {
-				suite.Require().NotPanics(
-					func() {
-						lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
-					})
-			} else {
-				suite.Require().PanicsWithError(
-					errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
-					func() {
-						lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
-					},
-				)
-			}
-		})
-	}
+	)
 }
 
-func (suite *TendermintTestSuite) TestLCMUpdateState() {
-	var path *ibctesting.Path
+func (suite *TendermintTestSuite) TestUpdateStatePanicsOnClientStateNotFound() {
+	suite.SetupTest()
 
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPanic bool
-	}{
-		{
-			"success",
-			func() {},
-			false,
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupClients()
+
+	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+	suite.Require().True(found)
+
+	// ensure counterparty state is committed
+	suite.coordinator.CommitBlock(suite.chainB)
+	trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
+	suite.Require().NoError(err)
+
+	// delete client state
+	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store.Delete(host.ClientStateKey())
+
+	suite.Require().PanicsWithError(
+		errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
+		func() {
+			lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
 		},
-		{
-			"failure: client state not found",
-			func() {
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				store.Delete(host.ClientStateKey())
-			},
-			true,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupClients()
-
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
-
-			// ensure counterparty state is committed
-			suite.coordinator.CommitBlock(suite.chainB)
-			trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
-			header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
-			suite.Require().NoError(err)
-
-			tc.malleate()
-
-			if !tc.expPanic {
-				height := lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
-				h := header.GetHeight().(clienttypes.Height)
-				suite.Require().Equal([]exported.Height{h}, height)
-			} else {
-				suite.Require().PanicsWithError(
-					errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
-					func() {
-						lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
-					},
-				)
-			}
-		})
-	}
+	)
 }
 
 func (suite *TendermintTestSuite) TestVerifyMembership() {

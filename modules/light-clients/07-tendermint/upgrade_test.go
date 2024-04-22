@@ -26,9 +26,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 	)
 
 	testCases := []struct {
-		name  string
-		setup func()
-		// expPass bool
+		name   string
+		setup  func()
 		expErr error
 	}{
 		{
