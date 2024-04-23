@@ -35,9 +35,12 @@ type ModuleInputs struct {
 	Cdc          codec.Codec
 	StoreService store.KVStoreService
 	ClientKeeper wasmtypes.ClientKeeper
-	Vm           ibcwasm.WasmEngine
-	QueryRouter  ibcwasm.QueryRouter
-	Opts         []wasmkeeper.Option
+
+	QueryRouter ibcwasm.QueryRouter
+	Opts        []wasmkeeper.Option
+
+	VM       ibcwasm.WasmEngine   `optional:"true"`
+	VMConfig wasmtypes.WasmConfig `optional:"true"`
 }
 
 // ModuleOutputs defines the 08-wasm module outputs for depinject.
@@ -56,15 +59,17 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
 	}
 
-	keeper := wasmkeeper.NewKeeperWithVM(
-		in.Cdc,
-		in.StoreService,
-		in.ClientKeeper,
-		authority.String(),
-		in.Vm,
-		in.QueryRouter,
-		in.Opts...,
-	)
+	var keeper wasmkeeper.Keeper
+	if in.VM != nil {
+		keeper = wasmkeeper.NewKeeperWithVM(
+			in.Cdc, in.StoreService, in.ClientKeeper, authority.String(), in.VM, in.QueryRouter, in.Opts...,
+		)
+	} else {
+		// TODO(jim): Check that config is non-nil and panic?
+		keeper = wasmkeeper.NewKeeperWithConfig(
+			in.Cdc, in.StoreService, in.ClientKeeper, authority.String(), in.VMConfig, in.QueryRouter, in.Opts...,
+		)
+	}
 
 	lightClientModule := NewLightClientModule(keeper)
 	m := NewAppModule(lightClientModule)
