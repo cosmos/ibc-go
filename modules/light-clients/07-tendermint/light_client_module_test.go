@@ -812,7 +812,9 @@ func (suite *TendermintTestSuite) TestStatus() {
 			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
 			suite.Require().True(found)
 
-			clientState = path.EndpointA.GetClientState().(*ibctm.ClientState)
+			var ok bool
+			clientState, ok = path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 
 			tc.malleate()
 

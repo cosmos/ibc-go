@@ -346,7 +346,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 
 				// SetClientState with empty string upgrade path
-				tmClient, _ := cs.(*ibctm.ClientState)
+				tmClient, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
 				tmClient.UpgradePath = []string{""}
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
 			},
