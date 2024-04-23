@@ -153,7 +153,8 @@ func (suite *TendermintTestSuite) TestVerifyClientMessage() {
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
-			trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			suite.Require().True(ok)
 			header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
@@ -182,7 +183,8 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviourPanicsOnClientStateNot
 
 	// ensure counterparty state is committed
 	suite.coordinator.CommitBlock(suite.chainB)
-	trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	suite.Require().True(ok)
 	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	suite.Require().NoError(err)
 
@@ -208,7 +210,8 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviourPanicsOnClientSta
 
 	// ensure counterparty state is committed
 	suite.coordinator.CommitBlock(suite.chainB)
-	trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	suite.Require().True(ok)
 	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	suite.Require().NoError(err)
 
@@ -235,7 +238,8 @@ func (suite *TendermintTestSuite) TestUpdateStatePanicsOnClientStateNotFound() {
 
 	// ensure counterparty state is committed
 	suite.coordinator.CommitBlock(suite.chainB)
-	trustedHeight := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	suite.Require().True(ok)
 	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	suite.Require().NoError(err)
 
@@ -773,7 +777,9 @@ func (suite *TendermintTestSuite) TestStatus() {
 		{
 			"client status without consensus state",
 			func() {
-				clientState.LatestHeight = clientState.LatestHeight.Increment().(clienttypes.Height)
+				newLatestHeight, ok := clientState.LatestHeight.Increment().(clienttypes.Height)
+				suite.Require().True(ok)
+				clientState.LatestHeight = newLatestHeight
 				path.EndpointA.SetClientState(clientState)
 			},
 			exported.Expired,
@@ -890,7 +896,8 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 		{
 			"failure: consensus state not found for height",
 			func() {
-				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				height = clientState.LatestHeight.Increment()
 			},
 			clienttypes.ErrConsensusStateNotFound,
@@ -905,7 +912,8 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			height = clientState.LatestHeight
 
 			// grab consensusState from store and update with a predefined timestamp
