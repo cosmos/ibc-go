@@ -18,7 +18,7 @@ import (
 func (app *SimApp) registerUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V5,
-		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
+		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.Configurator()),
 	)
 
 	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
@@ -28,9 +28,9 @@ func (app *SimApp) registerUpgradeHandlers() {
 		upgrades.V6,
 		upgrades.CreateV6UpgradeHandler(
 			app.ModuleManager,
-			app.configurator,
+			app.Configurator(),
 			app.appCodec,
-			app.keys[capabilitytypes.ModuleName],
+			app.GetKey(capabilitytypes.ModuleName),
 			app.CapabilityKeeper,
 			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
 		),
@@ -40,7 +40,7 @@ func (app *SimApp) registerUpgradeHandlers() {
 		upgrades.V7,
 		upgrades.CreateV7UpgradeHandler(
 			app.ModuleManager,
-			app.configurator,
+			app.Configurator(),
 			app.appCodec,
 			*app.IBCKeeper.ClientKeeper,
 			app.ConsensusParamsKeeper,
@@ -50,14 +50,14 @@ func (app *SimApp) registerUpgradeHandlers() {
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V7_1,
-		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, *app.IBCKeeper.ClientKeeper),
+		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.Configurator(), *app.IBCKeeper.ClientKeeper),
 	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V8,
 		upgrades.CreateDefaultUpgradeHandler(
 			app.ModuleManager,
-			app.configurator,
+			app.Configurator(),
 		),
 	)
 
@@ -65,7 +65,7 @@ func (app *SimApp) registerUpgradeHandlers() {
 		upgrades.V8_1,
 		upgrades.CreateDefaultUpgradeHandler(
 			app.ModuleManager,
-			app.configurator,
+			app.Configurator(),
 		),
 	)
 
