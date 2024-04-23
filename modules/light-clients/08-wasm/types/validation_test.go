@@ -39,7 +39,7 @@ func TestValidateWasmCode(t *testing.T) {
 		{
 			"failure: byte slice too large",
 			func() {
-				expLength := types.MaxWasmByteSize() + 1
+				expLength := types.MaxWasmSize + 1
 				code = make([]byte, expLength)
 				length, err := rand.Read(code)
 				require.NoError(t, err, t.Name())

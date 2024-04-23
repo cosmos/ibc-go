@@ -286,7 +286,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 				proof, proofHeight = suite.chainB.QueryProof(key)
 
-				consensusState := testingpath.EndpointB.GetConsensusState(latestHeight).(*ibctm.ConsensusState)
+				consensusState, ok := testingpath.EndpointB.GetConsensusState(latestHeight).(*ibctm.ConsensusState)
+				suite.Require().True(ok)
 				value, err = suite.chainB.Codec.MarshalInterface(consensusState)
 				suite.Require().NoError(err)
 			},
@@ -495,7 +496,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 			proof, proofHeight = suite.chainB.QueryProof(key)
 
-			clientState := testingpath.EndpointB.GetClientState().(*ibctm.ClientState)
+			clientState, ok := testingpath.EndpointB.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			value, err = suite.chainB.Codec.MarshalInterface(clientState)
 			suite.Require().NoError(err)
 

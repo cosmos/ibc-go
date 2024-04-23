@@ -79,6 +79,7 @@ func (suite *TypesTestSuite) TestGetSelfConsensusState() {
 
 func (suite *TypesTestSuite) TestValidateSelfClient() {
 	var (
+		mockChecksum  = []byte("checksum")
 		clientState   exported.ClientState
 		consensusHost clienttypes.ConsensusHost
 	)
@@ -123,7 +124,7 @@ func (suite *TypesTestSuite) TestValidateSelfClient() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			clientState = types.NewClientState(wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum), wasmtesting.Code, clienttypes.ZeroHeight())
+			clientState = types.NewClientState(wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, mockChecksum), wasmtesting.Code, clienttypes.ZeroHeight())
 			consensusHost = &mock.ConsensusHost{}
 
 			tc.malleate()
