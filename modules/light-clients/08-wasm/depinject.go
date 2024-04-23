@@ -4,7 +4,6 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -65,7 +64,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 			in.Cdc, in.StoreService, in.ClientKeeper, authority.String(), in.VM, in.QueryRouter, in.Opts...,
 		)
 	} else {
-		// TODO(jim): Check that config is non-nil and panic?
+		// TODO(jim): If missing, its default value is used. This could very well be surprising and cause misconfiguration
 		keeper = wasmkeeper.NewKeeperWithConfig(
 			in.Cdc, in.StoreService, in.ClientKeeper, authority.String(), in.VMConfig, in.QueryRouter, in.Opts...,
 		)

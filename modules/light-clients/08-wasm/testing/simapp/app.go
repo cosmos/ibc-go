@@ -662,7 +662,7 @@ func NewSimApp(
 		mockModule,
 
 		// IBC light clients
-		wasm.NewAppModule(wasmLightClientModule), // TODO(damian): see if we want to pass the lightclient module here, keeper is used in AppModule.RegisterServices etc
+		wasm.NewAppModule(wasmLightClientModule),
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
 	)
