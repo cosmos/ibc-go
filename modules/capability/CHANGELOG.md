@@ -31,6 +31,23 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.6.
+* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
+## [v1.0.0]
+
+### Dependencies
+
 * [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Upgrade capability module to cosmos-sdk v0.50
 
 ### API Breaking

@@ -18,7 +18,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	simapp "github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
@@ -27,7 +27,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const maxCallbackGas = uint64(1000000)
@@ -82,7 +81,7 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 	s.path.EndpointA.ChannelConfig.Version = transfertypes.Version
 	s.path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
-	s.coordinator.Setup(s.path)
+	s.path.Setup()
 }
 
 // SetupFeeTransferTest sets up a fee middleware enabled transfer channel between chainA and chainB
@@ -95,24 +94,20 @@ func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 	s.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	s.path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	s.coordinator.Setup(s.path)
+	s.path.Setup()
 }
 
 func (s *CallbacksTestSuite) SetupMockFeeTest() {
 	s.setupChains()
 
-	mockFeeVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: ibcmock.Version}))
-	s.path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	s.path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	s.path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	s.path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	ibctesting.EnableFeeOnPath(s.path)
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
 // It funds and returns the interchain account address owned by chainA's SenderAccount.
 func (s *CallbacksTestSuite) SetupICATest() string {
 	s.setupChains()
-	s.coordinator.SetupConnections(s.path)
+	s.path.SetupConnections()
 
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	// ICAVersion defines a interchain accounts version string

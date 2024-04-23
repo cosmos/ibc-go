@@ -4,7 +4,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authz "github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -233,8 +233,8 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
 
 			transferAuthz = types.TransferAuthorization{
 				Allocations: []types.Allocation{

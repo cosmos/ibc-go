@@ -298,7 +298,7 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
 		connectionID, connectionIDSolomachine, clientState,
 		tryProof, clientProof, consensusProof,
-		clienttypes.ZeroHeight(), clientState.GetLatestHeight().(clienttypes.Height),
+		clienttypes.ZeroHeight(), clientState.LatestHeight,
 		ConnectionVersion,
 		chain.SenderAccount.GetAddress().String(),
 	)
@@ -439,7 +439,7 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 	require.NotNil(solo.t, res)
 }
 
-// TimeoutPacket creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
+// TimeoutPacketOnClose creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
 func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
 	closedProof := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.Version, channelID)
 	unreceivedProof := solo.GenerateReceiptAbsenceProof(packet)

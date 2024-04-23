@@ -72,6 +72,11 @@ func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	k.ics4Wrapper = wrapper
 }
 
+// GetICS4Wrapper returns the ICS4Wrapper.
+func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
+	return k.ics4Wrapper
+}
+
 // Logger returns the application logger, scoped to the associated module
 func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
@@ -150,7 +155,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 
-	if found && channel.IsOpen() {
+	if found && channel.State == channeltypes.OPEN {
 		return channelID, true
 	}
 
@@ -165,7 +170,7 @@ func (k Keeper) IsActiveChannelClosed(ctx sdk.Context, connectionID, portID stri
 	}
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	return found && channel.IsClosed()
+	return found && channel.State == channeltypes.CLOSED
 }
 
 // GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated connection and port identifiers

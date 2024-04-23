@@ -275,6 +275,38 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			nil,
 		},
 		{
+			"interchain account successfully executes icahosttypes.MsgModuleQuerySafe",
+			func(encoding string) {
+				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
+
+				balanceQuery := banktypes.NewQueryBalanceRequest(suite.chainB.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+				queryBz, err := balanceQuery.Marshal()
+				suite.Require().NoError(err)
+
+				msg := types.NewMsgModuleQuerySafe(interchainAccountAddr, []*types.QueryRequest{
+					{
+						Path: "/cosmos.bank.v1beta1.Query/Balance",
+						Data: queryBz,
+					},
+				})
+
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				suite.Require().NoError(err)
+
+				icaPacketData := icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
+					Data: data,
+				}
+
+				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+			},
+			nil,
+		},
+		{
 			"interchain account successfully executes disttypes.MsgSetWithdrawAddress",
 			func(encoding string) {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
@@ -305,7 +337,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			func(encoding string) {
 				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 
-				suite.coordinator.Setup(transferPath)
+				transferPath.Setup()
 
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
@@ -339,7 +371,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"Msg fails its ValidateBasic: MsgTransfer has an empty receiver",
 			func(encoding string) {
 				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-				suite.coordinator.Setup(transferPath)
+				transferPath.Setup()
 
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
@@ -497,7 +529,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.SetupTest() // reset
 
 				path = NewICAPath(suite.chainA, suite.chainB, encoding)
-				suite.coordinator.SetupConnections(path)
+				path.SetupConnections()
 
 				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
@@ -744,7 +776,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			func(icaAddress string) {
 				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 
-				suite.coordinator.Setup(transferPath)
+				transferPath.Setup()
 
 				msgBytes := []byte(`{
 					"messages": [
@@ -847,7 +879,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)

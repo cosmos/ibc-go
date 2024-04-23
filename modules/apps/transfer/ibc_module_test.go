@@ -78,7 +78,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			counterparty = channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -97,8 +97,8 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
-			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.GetVersion(),
+			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
 			)
 
 			if tc.expPass {
@@ -164,7 +164,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			counterparty = channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -183,12 +183,12 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, counterpartyVersion,
 			)
 
@@ -228,14 +228,14 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			suite.SetupTest() // reset
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.Version
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
@@ -295,12 +295,12 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
 			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(upgradePath)
+			upgradePath.SetupConnections()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
@@ -359,12 +359,12 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
 			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(upgradePath)
+			upgradePath.SetupConnections()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
@@ -379,7 +379,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), types.PortID)
 			suite.Require().NoError(err)
 
-			app, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -429,12 +429,12 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
 			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(upgradePath)
+			upgradePath.SetupConnections()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
@@ -450,7 +450,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
 			suite.Require().NoError(err)
 
-			app, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)

@@ -22,9 +22,9 @@ import (
 // packet can no longer be executed and to allow the calling module to safely
 // perform appropriate state transitions. Its intended usage is within the
 // ante handler.
-func (k Keeper) TimeoutPacket(
+func (k *Keeper) TimeoutPacket(
 	ctx sdk.Context,
-	packet exported.PacketI,
+	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
@@ -63,7 +63,7 @@ func (k Keeper) TimeoutPacket(
 	}
 
 	// check that timeout height or timeout timestamp has passed on the other end
-	proofTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, proofHeight)
+	proofTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, proofHeight)
 	if err != nil {
 		return err
 	}
@@ -130,10 +130,10 @@ func (k Keeper) TimeoutPacket(
 // then the channel will be set to the FLUSHCOMPLETE state.
 //
 // CONTRACT: this function must be called in the IBC handler
-func (k Keeper) TimeoutExecuted(
+func (k *Keeper) TimeoutExecuted(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
@@ -174,10 +174,15 @@ func (k Keeper) TimeoutExecuted(
 
 	if channel.Ordering == types.ORDERED {
 		// NOTE: if the channel is ORDERED and a packet is timed out in FLUSHING state then
-		// the upgrade is aborted and the channel is set to CLOSED.
+		// all upgrade information is deleted and the channel is set to CLOSED.
 		if channel.State == types.FLUSHING {
-			// an error receipt is written to state and the channel is restored to OPEN
-			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), errorsmod.Wrap(types.ErrTimeoutElapsed, "packet timeout elapsed on ORDERED channel"))
+			k.deleteUpgradeInfo(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+			k.Logger(ctx).Info(
+				"upgrade info deleted",
+				"port_id", packet.GetSourcePort(),
+				"channel_id", packet.GetSourceChannel(),
+				"upgrade_sequence", channel.UpgradeSequence,
+			)
 		}
 
 		channel.State = types.CLOSED
@@ -203,10 +208,10 @@ func (k Keeper) TimeoutExecuted(
 // TimeoutOnClose is called by a module in order to prove that the channel to
 // which an unreceived packet was addressed has been closed, so the packet will
 // never be received (even if the timeoutHeight has not yet been reached).
-func (k Keeper) TimeoutOnClose(
+func (k *Keeper) TimeoutOnClose(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 	proof,
 	closedProof []byte,
 	proofHeight exported.Height,
@@ -263,7 +268,7 @@ func (k Keeper) TimeoutOnClose(
 		return errorsmod.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	counterparty := types.NewCounterparty(packet.GetSourcePort(), packet.GetSourceChannel())
 	expectedChannel := types.Channel{

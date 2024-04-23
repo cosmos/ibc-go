@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			suite.SetupTest()
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 			msg = types.NewMsgTransfer(
@@ -106,26 +106,27 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
 
 			// Verify events
-			events := ctx.EventManager().Events().ToABCIEvents()
-			expEvents := ibctesting.EventsMap{
-				"ibc_transfer": {
-					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
-					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
-					"amount":   coin.Amount.String(),
-					"denom":    coin.Denom,
-					"memo":     "memo",
-				},
-			}
+			actualEvents := ctx.EventManager().Events().ToABCIEvents()
+			expectedEvents := sdk.Events{
+				sdk.NewEvent(
+					types.EventTypeTransfer,
+					sdk.NewAttribute(sdk.AttributeKeySender, suite.chainA.SenderAccount.GetAddress().String()),
+					sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainB.SenderAccount.GetAddress().String()),
+					sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
+					sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+					sdk.NewAttribute(types.AttributeKeyMemo, "memo"),
+				),
+			}.ToABCIEvents()
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, actualEvents)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
-				suite.Require().Len(events, 0)
+				suite.Require().Len(actualEvents, 0)
 			}
 		})
 	}

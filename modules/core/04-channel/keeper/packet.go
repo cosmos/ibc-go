@@ -20,7 +20,7 @@ import (
 // SendPacket is called by a module in order to send an IBC packet on a channel.
 // The packet sequence generated for the packet to be sent is returned. An error
 // is returned if one occurs.
-func (k Keeper) SendPacket(
+func (k *Keeper) SendPacket(
 	ctx sdk.Context,
 	channelCap *capabilitytypes.Capability,
 	sourcePort string,
@@ -63,26 +63,25 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
-	if !found {
-		return 0, clienttypes.ErrClientNotFound
-	}
-
 	// prevent accidental sends with clients that cannot be updated
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.GetClientID()); status != exported.Active {
-		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
+	if status := k.clientKeeper.GetClientStatus(ctx, connectionEnd.ClientId); status != exported.Active {
+		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.ClientId, status)
 	}
 
-	latestHeight := clientState.GetLatestHeight()
-	latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
+	latestHeight := k.clientKeeper.GetClientLatestHeight(ctx, connectionEnd.ClientId)
+	if latestHeight.IsZero() {
+		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", connectionEnd.ClientId)
+	}
+
+	latestTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)
 	if err != nil {
 		return 0, err
 	}
 
 	// check if packet is timed out on the receiving chain
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
-	if timeout.Elapsed(latestHeight.(clienttypes.Height), latestTimestamp) {
-		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight.(clienttypes.Height), latestTimestamp), "invalid packet timeout")
+	if timeout.Elapsed(latestHeight, latestTimestamp) {
+		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
@@ -106,10 +105,10 @@ func (k Keeper) SendPacket(
 
 // RecvPacket is called by a module in order to receive & process an IBC packet
 // sent on the corresponding channel end on the counterparty chain.
-func (k Keeper) RecvPacket(
+func (k *Keeper) RecvPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
@@ -123,20 +122,15 @@ func (k Keeper) RecvPacket(
 	}
 
 	// If counterpartyUpgrade is stored we need to ensure that the
-	// packet sequence is < counterparty next sequence send. This is a defensive
-	// check and if the counterparty is implemented correctly, this should never abort.
+	// packet sequence is < counterparty next sequence send. If the
+	// counterparty is implemented correctly, this may only occur
+	// when we are in FLUSHCOMPLETE and the counterparty has already
+	// completed the channel upgrade.
 	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if found {
-		// only error if the counterparty next sequence send is set (> 0)
-		// this error should never be reached, as under normal circumstances the counterparty
-		// should not send any packets after the upgrade has been started.
 		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
 		if packet.GetSequence() >= counterpartyNextSequenceSend {
-			return errorsmod.Wrapf(
-				types.ErrInvalidPacket,
-				"failed to receive packet, cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d). UNEXPECTED BEHAVIOUR ON COUNTERPARTY, PLEASE REPORT ISSUE TO RELEVANT CHAIN DEVELOPERS",
-				packet.GetSequence(), counterpartyNextSequenceSend,
-			)
+			return errorsmod.Wrapf(types.ErrInvalidPacket, "cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d).", packet.GetSequence(), counterpartyNextSequenceSend)
 		}
 	}
 
@@ -172,11 +166,8 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
@@ -289,7 +280,7 @@ func (k Keeper) RecvPacket(
 //
 // 2) Assumes that packet receipt has been written (unordered), or nextSeqRecv was incremented (ordered)
 // previously by RecvPacket.
-func (k Keeper) WriteAcknowledgement(
+func (k *Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
@@ -311,6 +302,16 @@ func (k Keeper) WriteAcknowledgement(
 			types.ErrInvalidChannelCapability,
 			"channel capability failed authentication for capability name %s", capName,
 		)
+	}
+
+	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
+	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
+	// upgrade all packets under the recvStartSequence will have been processed and thus should be
+	// rejected. Any asynchronous acknowledgement writes from packets processed in a previous lifecycle of a channel
+	// will also be rejected.
+	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if packet.GetSequence() < recvStartSequence {
+		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
@@ -345,7 +346,7 @@ func (k Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	emitWriteAcknowledgementEvent(ctx, packet, channel, bz)
+	emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
 
 	return nil
 }
@@ -356,10 +357,10 @@ func (k Keeper) WriteAcknowledgement(
 // handler. AcknowledgePacket will clean up the packet commitment,
 // which is no longer necessary since the packet has been received and acted upon.
 // It will also increment NextSequenceAck in case of ORDERED channels.
-func (k Keeper) AcknowledgePacket(
+func (k *Keeper) AcknowledgePacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 	acknowledgement []byte,
 	proof []byte,
 	proofHeight exported.Height,
@@ -405,11 +406,8 @@ func (k Keeper) AcknowledgePacket(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())

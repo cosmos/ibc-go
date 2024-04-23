@@ -37,7 +37,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 }
 
 // TestAnteTestSuite runs all the tests within this package.
@@ -128,8 +128,7 @@ func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Ms
 
 	sequence, err := suite.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
-	err = suite.path.EndpointA.SetChannelState(channeltypes.CLOSED)
-	suite.Require().NoError(err)
+	suite.path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 
 	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence,
 		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
@@ -160,7 +159,8 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, _ = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		trustedHeight := endpoint.GetClientLatestHeight()
+		header, _ = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight.(clienttypes.Height))
 
 	default:
 	}

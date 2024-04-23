@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *TendermintTestSuite) TestVerifyHeader() {
@@ -23,7 +22,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 	)
 
 	// Setup different validators and signers for testing different types of updates
-	altPrivVal := ibctestingmock.NewPV()
+	altPrivVal := cmttypes.NewMockPV()
 	altPubKey, err := altPrivVal.GetPubKey()
 	suite.Require().NoError(err)
 
@@ -48,10 +47,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "successful verify header for header with a previous height",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				// passing the ProposedHeader.Height as the block height as it will become a previous height once we commit N blocks
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
@@ -67,10 +67,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "successful verify header: header with future height and different validator set",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				// Create bothValSet with both suite validator and altVal
 				bothValSet := cmttypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
@@ -84,10 +85,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "successful verify header: header with next height and different validator set",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				// Create bothValSet with both suite validator and altVal
 				bothValSet := cmttypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
@@ -101,7 +103,8 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful updates, passed in incorrect trusted validators for given consensus state",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
 				// Create bothValSet with both suite validator and altVal
 				bothValSet := cmttypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
@@ -115,10 +118,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful verify header with next height: update header mismatches nextValSetHash",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				// this will err as altValSet.Hash() != consState.NextValidatorsHash
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, altValSet, altValSet, trustedVals, altSigners)
@@ -128,10 +132,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful update with future height: too much change in validator set",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, altValSet, altValSet, trustedVals, altSigners)
 			},
@@ -140,9 +145,10 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful verify header: header height revision and trusted height revision mismatch",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				header = suite.chainB.CreateTMClientHeader(chainIDRevision1, 3, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
@@ -151,10 +157,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful verify header: header height < consensus height",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				heightMinus1 := clienttypes.NewHeight(trustedHeight.RevisionNumber, trustedHeight.RevisionHeight-1)
 
@@ -174,10 +181,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful verify header: header timestamp is not past last client timestamp",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight))
+				suite.Require().NoError(err)
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time.Add(-time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
@@ -186,10 +194,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful verify header: header with incorrect header chain-id",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight))
+				suite.Require().NoError(err)
 
 				header = suite.chainB.CreateTMClientHeader(chainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
@@ -198,10 +207,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful update: trusting period has passed since last client timestamp",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight))
+				suite.Require().NoError(err)
 
 				header = suite.chainA.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 
@@ -212,10 +222,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful update for a previous revision",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				// passing the ProposedHeader.Height as the block height as it will become an update to previous revision once we upgrade the client
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
@@ -229,10 +240,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "successful update with identical header to a previous update",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				// passing the ProposedHeader.Height as the block height as it will become a previous height once we commit N blocks
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
@@ -247,10 +259,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful update to a future revision",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID+"-1", suite.chainB.ProposedHeader.Height+5, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
@@ -260,10 +273,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 		{
 			name: "unsuccessful update: header height revision and trusted height revision mismatch",
 			malleate: func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				// increment the revision of the chain
 				err = path.EndpointB.UpgradeChain()
@@ -286,12 +300,15 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
-			header, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			suite.Require().True(ok)
+			header, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
@@ -327,15 +344,16 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 			"success with height later than latest height", func() {
 				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
-				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(tmHeader.GetHeight()))
+				suite.Require().True(path.EndpointA.GetClientLatestHeight().(clienttypes.Height).LT(tmHeader.GetHeight()))
 			},
 			func() {
 				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 
-				clientState := path.EndpointA.GetClientState()
-				suite.Require().True(clientState.GetLatestHeight().EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
-				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
+				suite.Require().True(clientState.LatestHeight.EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
+				suite.Require().True(clientState.LatestHeight.EQ(consensusHeights[0]))
 			}, true,
 		},
 		{
@@ -348,14 +366,15 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 
 				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
-				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().GT(tmHeader.GetHeight()))
+				suite.Require().True(path.EndpointA.GetClientLatestHeight().(clienttypes.Height).GT(tmHeader.GetHeight()))
 
 				prevClientState = path.EndpointA.GetClientState()
 			},
 			func() {
-				clientState := path.EndpointA.GetClientState()
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				suite.Require().Equal(clientState, prevClientState) // fill in height, no change to client state
-				suite.Require().True(clientState.GetLatestHeight().GT(consensusHeights[0]))
+				suite.Require().True(clientState.LatestHeight.GT(consensusHeights[0]))
 			}, true,
 		},
 		{
@@ -365,20 +384,23 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 
 				// use the same header which just updated the client
-				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
+				clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 
 				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
-				suite.Require().Equal(path.EndpointA.GetClientState().GetLatestHeight(), tmHeader.GetHeight())
+				suite.Require().Equal(path.EndpointA.GetClientLatestHeight().(clienttypes.Height), tmHeader.GetHeight())
 
 				prevClientState = path.EndpointA.GetClientState()
 				prevConsensusState = path.EndpointA.GetConsensusState(tmHeader.GetHeight())
 			},
 			func() {
-				clientState := path.EndpointA.GetClientState()
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				suite.Require().Equal(clientState, prevClientState)
-				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
+				suite.Require().True(clientState.LatestHeight.EQ(consensusHeights[0]))
 
 				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
@@ -390,7 +412,9 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				// this height will be expired and pruned
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
-				pruneHeight = path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				var ok bool
+				pruneHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
 				// Increment the time by a week
 				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
@@ -407,16 +431,19 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 
 				// ensure counterparty state is committed
 				suite.coordinator.CommitBlock(suite.chainB)
-				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
+				clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 			},
 			func() {
 				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 
-				clientState := path.EndpointA.GetClientState()
-				suite.Require().True(clientState.GetLatestHeight().EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
-				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
+				suite.Require().True(clientState.LatestHeight.EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
+				suite.Require().True(clientState.LatestHeight.EQ(consensusHeights[0]))
 
 				// ensure consensus state was pruned
 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
@@ -428,7 +455,9 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				// this height will be expired and pruned
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
-				pruneHeight = path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				var ok bool
+				pruneHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
 				// assert that a consensus state exists at the prune height
 				consensusState, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
@@ -449,16 +478,19 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().NoError(err)
 
 				// use the same header which just updated the client
-				clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
+				clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 			},
 			func() {
 				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 
-				clientState := path.EndpointA.GetClientState()
-				suite.Require().True(clientState.GetLatestHeight().EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
-				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
+				suite.Require().True(clientState.LatestHeight.EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
+				suite.Require().True(clientState.LatestHeight.EQ(consensusHeights[0]))
 
 				// ensure consensus state was pruned
 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
@@ -485,18 +517,23 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
-			clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			suite.Require().True(ok)
+			clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			if tc.expPass {
 				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
 
-				header := clientMessage.(*ibctm.Header)
+				header, ok := clientMessage.(*ibctm.Header)
+				suite.Require().True(ok)
+
 				expConsensusState := &ibctm.ConsensusState{
 					Timestamp:          header.GetTime(),
 					Root:               commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
@@ -523,7 +560,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	// create path and setup clients
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	// get the first height as it will be pruned first.
 	var pruneHeight exported.Height
@@ -538,7 +575,8 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	// this height will be expired but not pruned
 	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
-	expiredHeight := path.EndpointA.GetClientState().GetLatestHeight()
+	expiredHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+	suite.Require().True(ok)
 
 	// expected values that must still remain in store after pruning
 	expectedConsState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, expiredHeight)
@@ -640,15 +678,17 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		},
 		{
 			"invalid fork misbehaviour: identical headers", func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
-
-				err := path.EndpointA.UpdateClient()
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
 				suite.Require().NoError(err)
 
-				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				height, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
 				misbehaviourHeader := suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.ProposedHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 				clientMessage = &ibctm.Misbehaviour{
@@ -659,10 +699,11 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		},
 		{
 			"invalid time misbehaviour: monotonically increasing time", func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				clientMessage = &ibctm.Misbehaviour{
 					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+3, trustedHeight, suite.chainB.ProposedHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
@@ -718,7 +759,9 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		{
 			"valid fork misbehaviour returns true",
 			func() {
-				header1, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
+				header1, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 
 				// commit block and update client
@@ -726,7 +769,9 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				header2, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				trustedHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
+				header2, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 				suite.Require().NoError(err)
 
 				// assign the same height, each header will have a different commit hash
@@ -742,10 +787,11 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 		},
 		{
 			"valid time misbehaviour: not monotonically increasing time", func() {
-				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+				trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+				suite.Require().True(ok)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
-				suite.Require().True(found)
+				trustedVals, err := suite.chainB.GetTrustedValidators(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().NoError(err)
 
 				clientMessage = &ibctm.Misbehaviour{
 					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+3, trustedHeight, suite.chainB.ProposedHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
@@ -767,12 +813,15 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
-			clientMessage, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			suite.Require().True(ok)
+			clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			foundMisbehaviour := clientState.CheckForMisbehaviour(
@@ -819,7 +868,8 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, nil)

@@ -30,6 +30,7 @@ import (
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -275,9 +276,8 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 // QueryConsensusStateProof performs an abci query for a consensus state
 // stored on the given clientID. The proof and consensusHeight are returned.
 func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clienttypes.Height) {
-	clientState := chain.GetClientState(clientID)
-
-	consensusHeight := clientState.GetLatestHeight().(clienttypes.Height)
+	consensusHeight, ok := chain.GetClientLatestHeight(clientID).(clienttypes.Height)
+	require.True(chain.TB, ok)
 	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
 	consensusProof, _ := chain.QueryProof(consensusKey)
 
@@ -398,9 +398,9 @@ func (chain *TestChain) GetConsensusState(clientID string, height exported.Heigh
 	return chain.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
 }
 
-// GetValsAtHeight will return the trusted validator set of the chain for the given trusted height. It will return
-// a success boolean depending on if the validator set exists or not at that height.
-func (chain *TestChain) GetValsAtHeight(trustedHeight int64) (*cmttypes.ValidatorSet, bool) {
+// GetTrustedValidators will return the trusted validator set of the chain for the given trusted height. Otherwise
+// it will return an error.
+func (chain *TestChain) GetTrustedValidators(trustedHeight int64) (*cmttypes.ValidatorSet, error) {
 	// historical information does not store the validator set which committed the header at
 	// height h. During BeginBlock, it stores the last updated validator set. This is equivalent to
 	// the next validator set at height h. This is because cometbft processes the validator set
@@ -417,7 +417,7 @@ func (chain *TestChain) GetValsAtHeight(trustedHeight int64) (*cmttypes.Validato
 	// for height h, we can simply query using the trusted height.
 	histInfo, err := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), trustedHeight)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 
 	valSet := stakingtypes.Validators{
@@ -426,14 +426,14 @@ func (chain *TestChain) GetValsAtHeight(trustedHeight int64) (*cmttypes.Validato
 
 	tmValidators, err := testutil.ToCmtValidators(valSet, sdk.DefaultPowerReduction)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return cmttypes.NewValidatorSet(tmValidators), true
+	return cmttypes.NewValidatorSet(tmValidators), nil
 }
 
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
 // acknowledgement does not exist then testing will fail.
-func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
+func (chain *TestChain) GetAcknowledgement(packet channeltypes.Packet) []byte {
 	ack, found := chain.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	require.True(chain.TB, found)
 
@@ -443,44 +443,6 @@ func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
 // GetPrefix returns the prefix for used by a chain in connection creation
 func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 	return commitmenttypes.NewMerklePrefix(chain.App.GetIBCKeeper().ConnectionKeeper.GetCommitmentPrefix().Bytes())
-}
-
-// ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
-// light client on the source chain.
-func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, clientID string) (*ibctm.Header, error) {
-	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
-}
-
-// ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
-// light client on the source chain.
-func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
-	header := counterparty.LatestCommittedHeader
-	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
-	if trustedHeight.IsZero() {
-		trustedHeight = chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
-	}
-	var (
-		cmtTrustedVals *cmttypes.ValidatorSet
-		ok             bool
-	)
-
-	cmtTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-	if !ok {
-		return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
-	}
-
-	// inject trusted fields into last header
-	// for now assume revision number is 0
-	header.TrustedHeight = trustedHeight
-
-	trustedVals, err := cmtTrustedVals.ToProto()
-	if err != nil {
-		return nil, err
-	}
-	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
-	header.TrustedValidators = trustedVals
-
-	return header, nil
 }
 
 // ExpireClient fast forwards the chain's block time by the provided amount of time which will
@@ -504,6 +466,35 @@ func (chain *TestChain) CurrentTMClientHeader() *ibctm.Header {
 	)
 }
 
+// CommitHeader takes in a proposed header and returns a signed cometbft header.
+// The signers passed in must match the validator set provided. The signers will
+// be used to sign over the proposed header.
+func CommitHeader(proposedHeader cmttypes.Header, valSet *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) (*cmtproto.SignedHeader, error) {
+	hhash := proposedHeader.Hash()
+	blockID := MakeBlockID(hhash, 3, unusedHash)
+	voteSet := cmttypes.NewVoteSet(proposedHeader.ChainID, proposedHeader.Height, 1, cmtproto.PrecommitType, valSet)
+
+	// MakeExtCommit expects a signer array in the same order as the validator array.
+	// Thus we iterate over the ordered validator set and construct a signer array
+	// from the signer map in the same order.
+	signerArr := make([]cmttypes.PrivValidator, len(valSet.Validators))
+	for i, v := range valSet.Validators { //nolint:staticcheck // need to check for nil validator set
+		signerArr[i] = signers[v.Address.String()]
+	}
+
+	extCommit, err := cmttypes.MakeExtCommit(blockID, proposedHeader.Height, 1, voteSet, signerArr, proposedHeader.Time, false)
+	if err != nil {
+		return nil, err
+	}
+
+	signedHeader := &cmtproto.SignedHeader{
+		Header: proposedHeader.ToProto(),
+		Commit: extCommit.ToCommit().ToProto(),
+	}
+
+	return signedHeader, nil
+}
+
 // CreateTMClientHeader creates a TM header to update the TM client. Args are passed in to allow
 // caller flexibility to use params that differ from the chain.
 func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, cmtValSet, nextVals, cmtTrustedVals *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) *ibctm.Header {
@@ -513,42 +504,25 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 	)
 	require.NotNil(chain.TB, cmtValSet)
 
-	cmtHeader := cmttypes.Header{
+	proposedHeader := cmttypes.Header{
 		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
 		Height:             blockHeight,
 		Time:               timestamp,
 		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
 		LastCommitHash:     chain.App.LastCommitID().Hash,
-		DataHash:           tmhash.Sum([]byte("data_hash")),
+		DataHash:           unusedHash,
 		ValidatorsHash:     cmtValSet.Hash(),
 		NextValidatorsHash: nextVals.Hash(),
-		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
+		ConsensusHash:      unusedHash,
 		AppHash:            chain.ProposedHeader.AppHash,
-		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
-		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
+		LastResultsHash:    unusedHash,
+		EvidenceHash:       unusedHash,
 		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck
 	}
 
-	hhash := cmtHeader.Hash()
-	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
-	voteSet := cmttypes.NewVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, cmtValSet)
-
-	// MakeCommit expects a signer array in the same order as the validator array.
-	// Thus we iterate over the ordered validator set and construct a signer array
-	// from the signer map in the same order.
-	var signerArr []cmttypes.PrivValidator   //nolint:prealloc // using prealloc here would be needlessly complex
-	for _, v := range cmtValSet.Validators { //nolint:staticcheck // need to check for nil validator set
-		signerArr = append(signerArr, signers[v.Address.String()])
-	}
-
-	extCommit, err := cmttypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signerArr, timestamp, false)
+	signedHeader, err := CommitHeader(proposedHeader, cmtValSet, signers)
 	require.NoError(chain.TB, err)
-
-	signedHeader := &cmtproto.SignedHeader{
-		Header: cmtHeader.ToProto(),
-		Commit: extCommit.ToCommit().ToProto(),
-	}
 
 	if cmtValSet != nil { //nolint:staticcheck
 		valSet, err = cmtValSet.ToProto()
@@ -638,6 +612,14 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 	return capability
 }
 
+// GetClientLatestHeight returns the latest height for the client state with the given client identifier.
+// If an invalid client identifier is provided then a zero value height will be returned and testing wil fail.
+func (chain *TestChain) GetClientLatestHeight(clientID string) exported.Height {
+	latestHeight := chain.App.GetIBCKeeper().ClientKeeper.GetClientLatestHeight(chain.GetContext(), clientID)
+	require.False(chain.TB, latestHeight.IsZero())
+	return latestHeight
+}
+
 // GetTimeoutHeight is a convenience function which returns a IBC packet timeout height
 // to be used for testing. It returns the current IBC height + 100 blocks
 func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {
@@ -649,4 +631,28 @@ func (chain *TestChain) DeleteKey(key []byte) {
 	storeKey := chain.GetSimApp().GetKey(exported.StoreKey)
 	kvStore := chain.GetContext().KVStore(storeKey)
 	kvStore.Delete(key)
+}
+
+// IBCClientHeader will construct a 07-tendermint Header to update the light client
+// on the counterparty chain. The trustedHeight must be passed in as a non-zero height.
+func (chain *TestChain) IBCClientHeader(header *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
+	if trustedHeight.IsZero() {
+		return nil, errorsmod.Wrap(ibctm.ErrInvalidHeaderHeight, "trustedHeight must be a non-zero height")
+	}
+
+	cmtTrustedVals, err := chain.GetTrustedValidators(int64(trustedHeight.RevisionHeight))
+	if err != nil {
+		return nil, err
+	}
+
+	trustedVals, err := cmtTrustedVals.ToProto()
+	if err != nil {
+		return nil, err
+	}
+
+	header.TrustedHeight = trustedHeight
+	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
+	header.TrustedValidators = trustedVals
+
+	return header, nil
 }

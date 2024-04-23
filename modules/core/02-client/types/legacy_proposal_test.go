@@ -11,11 +11,11 @@ import (
 
 func (suite *TypesTestSuite) TestValidateBasic() {
 	subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(subjectPath)
+	subjectPath.SetupClients()
 	subject := subjectPath.EndpointA.ClientID
 
 	substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(substitutePath)
+	substitutePath.SetupClients()
 	substitute := substitutePath.EndpointA.ClientID
 
 	testCases := []struct {
@@ -74,7 +74,8 @@ func (suite *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
 	cdc := codec.NewProtoCodec(ir)
 
 	// marshal message
-	content := proposal.(*types.ClientUpdateProposal)
+	content, ok := proposal.(*types.ClientUpdateProposal)
+	suite.Require().True(ok)
 	bz, err := cdc.MarshalJSON(content)
 	suite.Require().NoError(err)
 

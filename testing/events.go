@@ -14,8 +14,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
-type EventsMap map[string]map[string]string
-
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
 // client identifier.
 func ParseClientIDFromEvents(events []abci.Event) (string, error) {
@@ -167,36 +165,6 @@ func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 	return 0, fmt.Errorf("proposalID event attribute not found")
 }
 
-// AssertEventsLegacy asserts that expected events are present in the actual events.
-// Expected map needs to be a subset of actual events to pass.
-func AssertEventsLegacy(
-	suite *testifysuite.Suite,
-	expected EventsMap,
-	actual []abci.Event,
-) {
-	hasEvents := make(map[string]bool)
-	for eventType := range expected {
-		hasEvents[eventType] = false
-	}
-
-	for _, event := range actual {
-		expEvent, eventFound := expected[event.Type]
-		if eventFound {
-			hasEvents[event.Type] = true
-			suite.Require().Len(event.Attributes, len(expEvent))
-			for _, attr := range event.Attributes {
-				expValue, found := expEvent[attr.Key]
-				suite.Require().True(found)
-				suite.Require().Equal(expValue, attr.Value)
-			}
-		}
-	}
-
-	for eventName, hasEvent := range hasEvents {
-		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
-	}
-}
-
 // AssertEvents asserts that expected events are present in the actual events.
 func AssertEvents(
 	suite *testifysuite.Suite,
@@ -207,17 +175,12 @@ func AssertEvents(
 
 	for i, expectedEvent := range expected {
 		for _, actualEvent := range actual {
-			// the actual event will have an extra attribute added automatically
-			// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
-			// with the number of attributes in the expected event.
-			if expectedEvent.Type == actualEvent.Type && (len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1) {
-				// multiple events with the same type may be emitted, only mark the expected event as found
-				// if all of the attributes match
+			if shouldProcessEvent(expectedEvent, actualEvent) {
 				attributeMatch := true
 				for _, expectedAttr := range expectedEvent.Attributes {
 					// any expected attributes that are not contained in the actual events will cause this event
 					// not to match
-					attributeMatch = attributeMatch && slices.Contains(actualEvent.Attributes, expectedAttr)
+					attributeMatch = attributeMatch && containsAttribute(actualEvent.Attributes, expectedAttr.Key, expectedAttr.Value)
 				}
 
 				if attributeMatch {
@@ -230,4 +193,34 @@ func AssertEvents(
 	for i, expectedEvent := range expected {
 		suite.Require().True(foundEvents[i], "event: %s was not found in events", expectedEvent.Type)
 	}
+}
+
+// shouldProcessEvent returns true if the given expected event should be processed based on event type.
+func shouldProcessEvent(expectedEvent abci.Event, actualEvent abci.Event) bool {
+	if expectedEvent.Type != actualEvent.Type {
+		return false
+	}
+	// the actual event will have an extra attribute added automatically
+	// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
+	// with the number of attributes in the expected event.
+	if containsAttributeKey(actualEvent.Attributes, "msg_index") {
+		return len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1
+	}
+
+	return len(expectedEvent.Attributes) == len(actualEvent.Attributes)
+}
+
+// containsAttribute returns true if the given key/value pair is contained in the given attributes.
+// NOTE: this ignores the indexed field, which can be set or unset depending on how the events are retrieved.
+func containsAttribute(attrs []abci.EventAttribute, key, value string) bool {
+	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
+		return attr.Key == key && attr.Value == value
+	})
+}
+
+// containsAttributeKey returns true if the given key is contained in the given attributes.
+func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
+	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
+		return attr.Key == key
+	})
 }

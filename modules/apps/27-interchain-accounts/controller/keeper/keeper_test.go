@@ -164,7 +164,7 @@ func (suite *KeeperTestSuite) TestGetAllPorts() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -180,7 +180,7 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -205,7 +205,7 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -241,7 +241,7 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -274,7 +274,7 @@ func (suite *KeeperTestSuite) TestIsActiveChannel() {
 
 	path := NewICAPath(suite.chainA, suite.chainB)
 	owner := TestOwnerAddress
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, owner)
 	suite.Require().NoError(err)
@@ -354,13 +354,12 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	// test if the ics4 wrapper is the channel keeper initially
 	ics4Wrapper := suite.chainA.GetSimApp().ICAControllerKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
 	suite.Require().False(isChannelKeeper)
 
 	// set the ics4 wrapper to the channel keeper
 	suite.chainA.GetSimApp().ICAControllerKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 	ics4Wrapper = suite.chainA.GetSimApp().ICAControllerKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
-	suite.Require().True(isChannelKeeper)
+	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 }

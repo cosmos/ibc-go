@@ -7,7 +7,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
-	v7 "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -19,7 +19,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	for i := 0; i < 3; i++ {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 
 		err := path.EndpointA.UpdateClient()
 		suite.Require().NoError(err)
@@ -67,7 +67,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 		// set in store for ease of determining expected genesis
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
 
-		cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		suite.Require().True(ok)
 		v7.RegisterInterfaces(cdc.InterfaceRegistry())
 
 		bz, err := cdc.MarshalInterface(legacyClientState)

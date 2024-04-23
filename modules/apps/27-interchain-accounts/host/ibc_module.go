@@ -78,7 +78,7 @@ func (IBCModule) OnChanOpenAck(
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
-// OnChanOpenAck implements the IBCModule interface
+// OnChanOpenConfirm implements the IBCModule interface
 func (im IBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
@@ -119,6 +119,7 @@ func (im IBCModule) OnRecvPacket(
 	logger := im.keeper.Logger(ctx)
 	if !im.keeper.GetParams(ctx).HostEnabled {
 		logger.Info("host submodule is disabled")
+		keeper.EmitHostDisabledEvent(ctx, packet)
 		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 
@@ -179,9 +180,6 @@ func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpar
 // OnChanUpgradeOpen implements the IBCModule interface
 func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 }
-
-// OnChanUpgradeRestore implements the IBCModule interface
-func (IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {}
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into an InterchainAccountPacketData. This function implements the optional

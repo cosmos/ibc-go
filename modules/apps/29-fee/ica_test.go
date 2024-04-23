@@ -65,7 +65,7 @@ func SetupPath(path *ibctesting.Path, owner string) error {
 	return path.EndpointB.ChanOpenConfirm()
 }
 
-// RegisterInterchainAccount invokes the the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,
+// RegisterInterchainAccount invokes the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,
 // commits state changes and updates the testing endpoint accordingly
 func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	portID, err := icatypes.NewControllerPortID(owner)
@@ -92,7 +92,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 // TestFeeInterchainAccounts Integration test to ensure ics29 works with ics27
 func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	path := NewIncentivizedICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupPath(path, defaultOwnerAddress)
 	suite.Require().NoError(err)

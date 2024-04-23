@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			coin = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 			sender = suite.chainA.SenderAccount.GetAddress()
@@ -196,10 +196,10 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 	// set up
 	// 2 transfer channels between chain A and chain B
 	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path1)
+	path1.Setup()
 
 	path2 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path2)
+	path2.Setup()
 
 	// create IBC token on chain B with denom trace "transfer/channel-0/stake"
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
@@ -337,6 +337,15 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				expEscrowAmount = sdkmath.NewInt(100)
 			}, true, false,
 		},
+		{
+			"failure: receive is disabled",
+			func() {
+				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(),
+					types.Params{
+						ReceiveEnabled: false,
+					})
+			}, false, false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -346,7 +355,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			suite.SetupTest() // reset
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 			receiver = suite.chainB.SenderAccount.GetAddress().String() // must be explicitly changed in malleate
 
 			memo = ""                           // can be explicitly changed in malleate
@@ -464,10 +473,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	// setup
 	// 2 transfer channels between chain A and chain B
 	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path1)
+	path1.Setup()
 
 	path2 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path2)
+	path2.Setup()
 
 	// denomTrace path: {transfer/channel-1/transfer/channel-0}
 	denomTrace := types.DenomTrace{
@@ -592,7 +601,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 			amount = sdkmath.NewInt(100) // must be explicitly changed
 			expEscrowAmount = sdkmath.ZeroInt()
 
@@ -661,10 +670,10 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	// set up
 	// 2 transfer channels between chain A and chain B
 	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path1)
+	path1.Setup()
 
 	path2 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path2)
+	path2.Setup()
 
 	// fund escrow account for transfer and channel-1 on chain B
 	// denomTrace path = transfer/channel-0
@@ -792,7 +801,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 			amount = sdkmath.NewInt(100) // must be explicitly changed
 			sender = suite.chainA.SenderAccount.GetAddress().String()
 			expEscrowAmount = sdkmath.ZeroInt()
@@ -856,10 +865,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	// set up
 	// 2 transfer channels between chain A and chain B
 	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path1)
+	path1.Setup()
 
 	path2 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path2)
+	path2.Setup()
 
 	// fund escrow account for transfer and channel-1 on chain B
 	denomTrace := types.DenomTrace{

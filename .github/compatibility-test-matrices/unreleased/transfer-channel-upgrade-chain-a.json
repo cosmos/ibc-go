@@ -1,0 +1,19 @@
+{
+  "chain-a": [
+    "release-v8.2.x"
+  ],
+  "chain-b": [
+    "release-v8.2.x"
+  ],
+  "entrypoint": [
+    "TestTransferChannelUpgradesTestSuite"
+  ],
+  "test": [
+    "TestChannelUpgrade_WithFeeMiddleware_Succeeds",
+    "TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds",
+    "TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

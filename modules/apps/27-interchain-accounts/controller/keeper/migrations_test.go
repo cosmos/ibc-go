@@ -50,7 +50,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			suite.SetupTest()
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, ibctesting.TestAccAddress)
 			suite.Require().NoError(err)
@@ -89,6 +89,23 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 				params := icacontrollertypes.DefaultParams()
 				subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
 				subspace.SetParamSet(suite.chainA.GetContext(), &params)                           // set params
+			},
+			icacontrollertypes.DefaultParams(),
+		},
+		{
+			"success: no legacy params pre-migration",
+			func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
+					suite.chainA.Codec,
+					suite.chainA.GetSimApp().GetKey(icacontrollertypes.StoreKey),
+					nil, // assign a nil legacy param subspace
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+					suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+					suite.chainA.GetSimApp().ScopedICAControllerKeeper,
+					suite.chainA.GetSimApp().MsgServiceRouter(),
+					suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
+				)
 			},
 			icacontrollertypes.DefaultParams(),
 		},

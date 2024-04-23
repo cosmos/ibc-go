@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	v7 "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -50,7 +50,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 
 	// create tendermint clients
 	for _, path := range paths {
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 	}
 
 	solomachines := []*ibctesting.Solomachine{
@@ -104,7 +104,8 @@ func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibc
 			AllowUpdateAfterProposal: true,
 		}
 
-		cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		suite.Require().True(ok)
 		v7.RegisterInterfaces(cdc.InterfaceRegistry())
 
 		bz, err := cdc.MarshalInterface(legacyClientState)

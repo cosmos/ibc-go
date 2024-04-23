@@ -16,10 +16,11 @@ const (
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	var (
-		channel  *channeltypes.Channel
-		path     *ibctesting.Path
-		chanCap  *capabilitytypes.Capability
-		metadata icatypes.Metadata
+		channel         *channeltypes.Channel
+		path            *ibctesting.Path
+		chanCap         *capabilitytypes.Capability
+		metadata        icatypes.Metadata
+		expectedVersion string
 	)
 
 	testCases := []struct {
@@ -54,6 +55,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			"success: empty channel version returns default metadata JSON string",
 			func() {
 				channel.Version = ""
+				expectedVersion = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			},
 			nil,
 		},
@@ -63,11 +65,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
-				suite.Require().NoError(err)
-
-				err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
-				suite.Require().NoError(err)
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 
 				path.EndpointA.ChannelID = ""
 				path.EndpointB.ChannelID = ""
@@ -263,7 +262,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			// mock init interchain account
 			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
@@ -277,6 +276,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			metadata = icatypes.NewMetadata(icatypes.Version, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
 			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
+
+			expectedVersion = string(versionBytes)
 
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
@@ -292,14 +293,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 
 			tc.malleate() // malleate mutates test data
 
-			version, err := suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
 			)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(string(versionBytes), version)
+				suite.Require().Equal(expectedVersion, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
@@ -423,7 +424,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -485,7 +486,7 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -579,9 +580,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
-				ch := path.EndpointA.GetChannel()
-				ch.Version = invalidVersion
-				path.EndpointA.SetChannel(ch)
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
 			expError: icatypes.ErrUnknownDataType,
 		},
@@ -648,7 +647,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -739,9 +738,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.Version = invalidVersion
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
 			expError: icatypes.ErrUnknownDataType,
 		},
@@ -816,7 +813,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)

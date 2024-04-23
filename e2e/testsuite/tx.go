@@ -16,6 +16,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -23,6 +24,9 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
@@ -179,16 +183,18 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 
 // waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
 // if the proposal has not passed within the duration of the voting period, an error is returned.
-func (s *E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
-	var govProposal govtypesv1.Proposal
+func (*E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
+	var govProposal *govtypesv1.Proposal
 	// poll for the query for the entire voting period to see if the proposal has passed.
 	err := test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
-		proposal, err := s.QueryProposalV1(ctx, chain, proposalID)
+		proposalResp, err := query.GRPCQuery[govtypesv1.QueryProposalResponse](ctx, chain, &govtypesv1.QueryProposalRequest{
+			ProposalId: proposalID,
+		})
 		if err != nil {
 			return false, err
 		}
 
-		govProposal = proposal
+		govProposal = proposalResp.Proposal
 		return govProposal.Status == govtypesv1.StatusPassed, nil
 	})
 
@@ -218,16 +224,24 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
 
-	proposal, err := s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
+	proposalResp, err := query.GRPCQuery[govtypesv1beta1.QueryProposalResponse](ctx, cosmosChain, &govtypesv1beta1.QueryProposalRequest{
+		ProposalId: proposalID,
+	})
 	s.Require().NoError(err)
+
+	proposal := proposalResp.Proposal
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
 	err = cosmosChain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
 	s.Require().NoError(err)
 
 	// ensure voting period has not passed before validators finished voting
-	proposal, err = s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
+	proposalResp, err = query.GRPCQuery[govtypesv1beta1.QueryProposalResponse](ctx, cosmosChain, &govtypesv1beta1.QueryProposalRequest{
+		ProposalId: proposalID,
+	})
 	s.Require().NoError(err)
+
+	proposal = proposalResp.Proposal
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
 	err = s.waitForGovV1Beta1ProposalToPass(ctx, cosmosChain, proposalID)
@@ -236,13 +250,17 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 
 // waitForGovV1Beta1ProposalToPass polls for the entire voting period to see if the proposal has passed.
 // if the proposal has not passed within the duration of the voting period, an error is returned.
-func (s *E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
+func (*E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
 	// poll for the query for the entire voting period to see if the proposal has passed.
 	return test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
-		proposal, err := s.QueryProposalV1Beta1(ctx, chain, proposalID)
+		proposalResp, err := query.GRPCQuery[govtypesv1beta1.QueryProposalResponse](ctx, chain, &govtypesv1beta1.QueryProposalRequest{
+			ProposalId: proposalID,
+		})
 		if err != nil {
 			return false, err
 		}
+
+		proposal := proposalResp.Proposal
 		return proposal.Status == govtypesv1beta1.StatusPassed, nil
 	})
 }
@@ -296,4 +314,61 @@ func (s *E2ETestSuite) PruneAcknowledgements(
 ) sdk.TxResponse {
 	msg := channeltypes.NewMsgPruneAcknowledgements(portID, channelID, limit, user.FormattedAddress())
 	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
+// QueryTxsByEvents runs the QueryTxsByEvents command on the given chain.
+// https://github.com/cosmos/cosmos-sdk/blob/65ab2530cc654fd9e252b124ed24cbaa18023b2b/x/auth/client/cli/query.go#L33
+func (*E2ETestSuite) QueryTxsByEvents(
+	ctx context.Context, chain ibc.Chain,
+	page, limit int, queryReq, orderBy string,
+) (*sdk.SearchTxsResult, error) {
+	cosmosChain, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		return nil, fmt.Errorf("QueryTxsByEvents must be passed a cosmos.CosmosChain")
+	}
+
+	cmd := []string{"txs", "--query", queryReq}
+	if orderBy != "" {
+		cmd = append(cmd, "--order_by", orderBy)
+	}
+	if page != 0 {
+		cmd = append(cmd, "--"+flags.FlagPage, strconv.Itoa(page))
+	}
+	if limit != 0 {
+		cmd = append(cmd, "--"+flags.FlagLimit, strconv.Itoa(limit))
+	}
+
+	stdout, _, err := cosmosChain.GetNode().ExecQuery(ctx, cmd...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &sdk.SearchTxsResult{}
+	err = Codec().UnmarshalJSON(stdout, result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// ExtractValueFromEvents extracts the value of an attribute from a list of events.
+// If the attribute is not found, the function returns an empty string and false.
+// If the attribute is found, the function returns the value and true.
+func (*E2ETestSuite) ExtractValueFromEvents(events []abci.Event, eventType, attrKey string) (string, bool) {
+	for _, event := range events {
+		if event.Type != eventType {
+			continue
+		}
+
+		for _, attr := range event.Attributes {
+			if attr.Key != attrKey {
+				continue
+			}
+
+			return attr.Value, true
+		}
+	}
+
+	return "", false
 }

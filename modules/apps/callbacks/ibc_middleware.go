@@ -76,6 +76,11 @@ func (im *IBCMiddleware) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	im.ics4Wrapper = wrapper
 }
 
+// GetICS4Wrapper returns the ICS4Wrapper.
+func (im *IBCMiddleware) GetICS4Wrapper() porttypes.ICS4Wrapper {
+	return im.ics4Wrapper
+}
+
 // SendPacket implements source callbacks for sending packets.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback returns an error, panics, or runs out of gas, then
@@ -402,16 +407,6 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 	}
 
 	cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-}
-
-// OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
-	}
-
-	cbs.OnChanUpgradeRestore(ctx, portID, channelID)
 }
 
 // GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,
