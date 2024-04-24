@@ -17,7 +17,7 @@ const dataHash string = "694F52677DDA82F3148D0A170ECC2A6A74A72563CC3F042BA7277AF
 
 // shareProofJSON for shares [0,1] queried at height=10000
 // https://public-celestia-rpc.numia.xyz/prove_shares?height=10000&startShare=0&endShare=1
-var shareProofJSON string = `{
+var shareProofJSON = `{
     "data": [
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAAAENAAAACbsAgrAAQq9AQopL2liYy5hcHBsaWNhdGlvbnMudHJhbnNmZXIudjEuTXNnVHJhbnNmZXISjwEKCHRyYW5zZmVyEgljaGFubmVsLTIaEQoEdXRpYRIJMjU3MDAwMDAwIi9jZWxlc3RpYTF3ZWU2MjRscG53Y2NkcHB5dDJrZGZ5czZydnI5eHl2dThmbWVhZSorb3NtbzF3ZWU2MjRscG53Y2NkcHB5dDJrZGZ5czZydnI5eHl2dTdjZWUzeDIHCAEQ+p3mBRJlCk4KRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDQTeSPV//mL4658YJPa9fwwXHbo0zygD9Q0FWgyFN/QwSBAoCCH8SEwoNCgR1dGlhEgUyNzYyORCftwgaQBQg6ZFAoqJz3duveBY3NuDk7llRaGu/e6PQPTaoz4ZGNW5qZkFjgYhkglPXMEdKdktaNO/VEU+RZztQcIwE49DRAgqlAQqiAQojL2Nvc21vcy5zdGFraW5nLnYxYmV0YTEuTXNnRGVsZWdhdGUSewovY2VsZXN0aWExemVnN2xycXNjNjh5NW1nZHBnbnp5ZGUza3E3eDJ0cnE3NnZraDkSNmNlbGVzdGlhdmE="
     ],
