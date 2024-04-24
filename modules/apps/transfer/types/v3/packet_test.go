@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/gogoproto/jsonpb"
 	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/stretchr/testify/require"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -116,7 +115,7 @@ func TestUnmarshalPacketDataJSON(t *testing.T) {
 
 func TestUnmarshalPacketDataProtoJSON(t *testing.T) {
 	// NOTE: copied from versinos of ibc-go where we use a custom json marshal
-	var mustProtoMarshalJSON = func(msg proto.Message) []byte {
+	mustProtoMarshalJSON := func(msg proto.Message) []byte {
 		anyResolver := codectypes.NewInterfaceRegistry()
 
 		// EmitDefaults is set to false to prevent marshalling of unpopulated fields (memo)
