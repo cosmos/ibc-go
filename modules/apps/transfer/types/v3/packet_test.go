@@ -68,6 +68,47 @@ func TestUnmarshalPacketData(t *testing.T) {
 	t.Logf("successfully unmarshalled to packet data v1: %+v", packetDataV1)
 }
 
+func TestUnmarshalPacketDataJSON(t *testing.T) {
+	packetDataV1 := types.FungibleTokenPacketData{
+		Sender:   "sender",
+		Receiver: "recv",
+		Memo:     "memo",
+		Amount:   "10000",
+		Denom:    "uatom",
+	}
+
+	bz, err := json.Marshal(&packetDataV1)
+	require.NoError(t, err)
+
+	var packetDataV2 FungibleTokenPacketData
+	err = json.Unmarshal(bz, &packetDataV2)
+	require.NoError(t, err)
+
+	t.Logf("successfully unmarshalled to packet data v2: %+v", packetDataV2)
+
+	packetDataV2 = FungibleTokenPacketData{
+		Sender:   "sender",
+		Receiver: "recv",
+		Memo:     "memo",
+		Tokens: []*Token{
+			{
+				Denom:  "uatom",
+				Amount: "10000",
+				Trace:  []string{"transfer/channel-100"},
+			},
+		},
+	}
+
+	bz, err = json.Marshal(&packetDataV2)
+	require.NoError(t, err)
+
+	packetDataV1 = types.FungibleTokenPacketData{}
+	err = json.Unmarshal(bz, &packetDataV1)
+	require.NoError(t, err)
+
+	t.Logf("successfully unmarshalled to packet data v1: %+v", packetDataV1)
+}
+
 // TestFungibleTokenPacketDataValidateBasic tests ValidateBasic for FungibleTokenPacketData
 func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	testCases := []struct {
