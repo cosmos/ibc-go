@@ -27,48 +27,48 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			// connection hops is not used in the transfer application callback,
 			// it is already validated in the core OnChanUpgradeInit.
 			"success: invalid connection hops", func() {
 				path.EndpointA.ConnectionID = "invalid-connection-id"
-			}, true,
+			}, nil,
 		},
 		{
 			"empty version string", func() {
 				channel.Version = ""
-			}, true,
+			}, nil,
 		},
 		{
 			"max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
-			}, false,
+			}, types.ErrMaxTransferChannels,
 		},
 		{
 			"invalid order - ORDERED", func() {
 				channel.Ordering = channeltypes.ORDERED
-			}, false,
+			}, channeltypes.ErrInvalidChannelOrdering,
 		},
 		{
 			"invalid port ID", func() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
-			}, false,
+			}, porttypes.ErrInvalidPort,
 		},
 		{
 			"invalid version", func() {
 				channel.Version = "version" //nolint:goconst
-			}, false,
+			}, types.ErrInvalidVersion,
 		},
 		{
 			"capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
-			}, false,
+			}, capabilitytypes.ErrOwnerClaimed,
 		},
 	}
 
@@ -101,12 +101,13 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
 			)
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal(version, "")
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
