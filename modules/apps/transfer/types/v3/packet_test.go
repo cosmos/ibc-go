@@ -1,12 +1,17 @@
 package v3
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/gogoproto/jsonpb"
+	proto "github.com/cosmos/gogoproto/proto"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
@@ -104,6 +109,73 @@ func TestUnmarshalPacketDataJSON(t *testing.T) {
 
 	packetDataV1 = types.FungibleTokenPacketData{}
 	err = json.Unmarshal(bz, &packetDataV1)
+	require.NoError(t, err)
+
+	t.Logf("successfully unmarshalled to packet data v1: %+v", packetDataV1)
+}
+
+func TestUnmarshalPacketDataProtoJSON(t *testing.T) {
+	// NOTE: copied from versinos of ibc-go where we use a custom json marshal
+	var mustProtoMarshalJSON = func(msg proto.Message) []byte {
+		anyResolver := codectypes.NewInterfaceRegistry()
+
+		// EmitDefaults is set to false to prevent marshalling of unpopulated fields (memo)
+		// OrigName and the anyResovler match the fields the original SDK function would expect
+		// in order to minimize changes.
+
+		// OrigName is true since there is no particular reason to use camel case
+		// The any resolver is empty, but provided anyways.
+		jm := &jsonpb.Marshaler{OrigName: true, EmitDefaults: false, AnyResolver: anyResolver}
+
+		err := codectypes.UnpackInterfaces(msg, codectypes.ProtoJSONPacker{JSONPBMarshaler: jm})
+		if err != nil {
+			panic(err)
+		}
+
+		buf := new(bytes.Buffer)
+		if err := jm.Marshal(buf, msg); err != nil {
+			panic(err)
+		}
+
+		// sort JSON used in packetData.GetBytes()
+		return sdk.MustSortJSON(buf.Bytes())
+	}
+
+	packetDataV1 := types.FungibleTokenPacketData{
+		Sender:   "sender",
+		Receiver: "recv",
+		Memo:     "memo",
+		// Amount:   "10000", // fails if amount is filled
+		// Denom: "uatom", // fails if denom is filled
+	}
+
+	bz := mustProtoMarshalJSON(&packetDataV1)
+
+	var packetDataV2 FungibleTokenPacketData
+	err := types.ModuleCdc.UnmarshalJSON(bz, &packetDataV2)
+	require.NoError(t, err)
+
+	t.Logf("successfully unmarshalled to packet data v2: %+v", packetDataV2)
+
+	packetDataV2 = FungibleTokenPacketData{
+		Sender:   "sender",
+		Receiver: "recv",
+		Memo:     "memo",
+		// fails if tokens are filled
+		// Tokens: []*Token{
+		// 	{
+		// 		Denom:  "uatom",
+		// 		Amount: "10000",
+		// 		Trace:  []string{"transfer/channel-100"},
+		// 	},
+		// },
+	}
+
+	bz = mustProtoMarshalJSON(&packetDataV2)
+	require.NoError(t, err)
+
+	packetDataV1 = types.FungibleTokenPacketData{}
+	err = types.ModuleCdc.UnmarshalJSON(bz, &packetDataV1)
 	require.NoError(t, err)
 
 	t.Logf("successfully unmarshalled to packet data v1: %+v", packetDataV1)
