@@ -27,6 +27,47 @@ var (
 	receiver = sdk.AccAddress("testaddr2").String()
 )
 
+func TestUnmarshalPacketData(t *testing.T) {
+	packetDataV1 := types.FungibleTokenPacketData{
+		Sender:   "sender",
+		Receiver: "recv",
+		Memo:     "memo",
+		Amount:   "10000",
+		Denom:    "uatom",
+	}
+
+	bz, err := types.ModuleCdc.Marshal(&packetDataV1)
+	require.NoError(t, err)
+
+	var packetDataV2 FungibleTokenPacketData
+	err = types.ModuleCdc.Unmarshal(bz, &packetDataV2)
+	require.NoError(t, err)
+
+	t.Logf("successfully unmarshalled to packet data v2: %+v", packetDataV2)
+
+	packetDataV2 = FungibleTokenPacketData{
+		Sender:   "sender",
+		Receiver: "recv",
+		Memo:     "memo",
+		Tokens: []*Token{
+			{
+				Denom:  "uatom",
+				Amount: "10000",
+				Trace:  []string{"transfer/channel-100"},
+			},
+		},
+	}
+
+	bz, err = types.ModuleCdc.Marshal(&packetDataV2)
+	require.NoError(t, err)
+
+	packetDataV1 = types.FungibleTokenPacketData{}
+	err = types.ModuleCdc.Unmarshal(bz, &packetDataV1)
+	require.NoError(t, err)
+
+	t.Logf("successfully unmarshalled to packet data v1: %+v", packetDataV1)
+}
+
 // TestFungibleTokenPacketDataValidateBasic tests ValidateBasic for FungibleTokenPacketData
 func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	testCases := []struct {
