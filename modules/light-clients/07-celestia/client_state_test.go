@@ -95,13 +95,13 @@ func (suite *CelestiaTestSuite) TestVerifyMembership() {
 			},
 			nil,
 		},
-		{
-			"failure: with proofs from celestia-node blob.GetProof api",
-			func() {
-				// TODO: query blob.Proof from celestia-node API and plug in here
-			},
-			nil,
-		},
+		// TODO: query blob.Proof from celestia-node API and plug in here
+		// {
+		// 	"failure: with proofs from celestia-node blob.GetProof api",
+		// 	func() {
+		// 	},
+		// 	nil,
+		// },
 	}
 
 	for _, tc := range testCases {
