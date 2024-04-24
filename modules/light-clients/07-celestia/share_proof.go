@@ -13,7 +13,7 @@ import (
 
 // ShareProof is an NMT proof that a set of shares exist in a set of rows and a
 // Merkle proof that those rows exist in a Merkle tree with a given data root.
-type shareProof struct {
+type ShareProofInternal struct {
 	// Data are the raw shares that are being proven.
 	Data [][]byte `json:"data"`
 	// ShareProofs are NMT proofs that the shares in Data exist in a set of
@@ -22,12 +22,12 @@ type shareProof struct {
 	// NamespaceID is the namespace id of the shares being proven. This
 	// namespace id is used when verifying the proof. If the namespace id doesn't
 	// match the namespace of the shares, the proof will fail verification.
-	NamespaceID      []byte   `json:"namespace_id"`
-	RowProof         rowProof `json:"row_proof"`
-	NamespaceVersion uint32   `json:"namespace_version"`
+	NamespaceID      []byte           `json:"namespace_id"`
+	RowProof         RowProofInternal `json:"row_proof"`
+	NamespaceVersion uint32           `json:"namespace_version"`
 }
 
-func (sp shareProof) ToProto() ShareProof {
+func (sp ShareProofInternal) ToProto() ShareProof {
 	// TODO consider extracting a ToProto function for RowProof
 	rowRoots := make([][]byte, len(sp.RowProof.RowRoots))
 	rowProofs := make([]*crypto.Proof, len(sp.RowProof.Proofs))
@@ -51,15 +51,15 @@ func (sp shareProof) ToProto() ShareProof {
 	return pbtp
 }
 
-// shareProofFromProto creates a ShareProof from a proto message.
+// ShareProofFromProto creates a ShareProof from a proto message.
 // Expects the proof to be pre-validated.
-func shareProofFromProto(pb *ShareProof) (shareProof, error) {
+func ShareProofFromProto(pb *ShareProof) (ShareProofInternal, error) {
 	if pb == nil {
-		return shareProof{}, fmt.Errorf("nil share proof protobuf")
+		return ShareProofInternal{}, fmt.Errorf("nil share proof protobuf")
 	}
 
-	return shareProof{
-		RowProof:         rowProofFromProto(pb.RowProof),
+	return ShareProofInternal{
+		RowProof:         RowProofFromProto(pb.RowProof),
 		Data:             pb.Data,
 		ShareProofs:      pb.ShareProofs,
 		NamespaceID:      pb.NamespaceId,
@@ -71,7 +71,7 @@ func shareProofFromProto(pb *ShareProof) (shareProof, error) {
 // It returns nil if the proof is valid. Otherwise, it returns a sensible error.
 // The `root` is the block data root that the shares to be proven belong to.
 // Note: these proofs are tested on the app side.
-func (sp shareProof) Validate(root []byte) error {
+func (sp ShareProofInternal) Validate(root []byte) error {
 	numberOfSharesInProofs := int32(0)
 	for _, proof := range sp.ShareProofs {
 		// the range is not inclusive from the left.
@@ -105,7 +105,7 @@ func (sp shareProof) Validate(root []byte) error {
 	return nil
 }
 
-func (sp shareProof) VerifyProof() bool {
+func (sp ShareProofInternal) VerifyProof() bool {
 	cursor := int32(0)
 	for i, proof := range sp.ShareProofs {
 		nmtProof := nmt.NewInclusionProof(

@@ -10,7 +10,7 @@ import (
 
 // RowProof is a Merkle proof that a set of rows exist in a Merkle tree with a
 // given data root.
-type rowProof struct {
+type RowProofInternal struct {
 	// RowRoots are the roots of the rows being proven.
 	RowRoots []tmbytes.HexBytes `json:"row_roots"`
 	// Proofs is a list of Merkle proofs where each proof proves that a row
@@ -23,7 +23,7 @@ type rowProof struct {
 // Validate performs checks on the fields of this RowProof. Returns an error if
 // the proof fails validation. If the proof passes validation, this function
 // attempts to verify the proof. It returns nil if the proof is valid.
-func (rp rowProof) Validate(root []byte) error {
+func (rp RowProofInternal) Validate(root []byte) error {
 	// HACKHACK performing subtraction with unsigned integers is unsafe.
 	if int(rp.EndRow-rp.StartRow+1) != len(rp.RowRoots) {
 		return fmt.Errorf("the number of rows %d must equal the number of row roots %d", int(rp.EndRow-rp.StartRow+1), len(rp.RowRoots))
@@ -40,7 +40,7 @@ func (rp rowProof) Validate(root []byte) error {
 
 // VerifyProof verifies that all the row roots in this RowProof exist in a
 // Merkle tree with the given root. Returns true if all proofs are valid.
-func (rp rowProof) VerifyProof(root []byte) bool {
+func (rp RowProofInternal) VerifyProof(root []byte) bool {
 	for i, proof := range rp.Proofs {
 		err := proof.Verify(root, rp.RowRoots[i])
 		if err != nil {
@@ -50,9 +50,9 @@ func (rp rowProof) VerifyProof(root []byte) bool {
 	return true
 }
 
-func rowProofFromProto(p *RowProof) rowProof {
+func RowProofFromProto(p *RowProof) RowProofInternal {
 	if p == nil {
-		return rowProof{}
+		return RowProofInternal{}
 	}
 	rowRoots := make([]tmbytes.HexBytes, len(p.RowRoots))
 	rowProofs := make([]*merkle.Proof, len(p.Proofs))
@@ -66,7 +66,7 @@ func rowProofFromProto(p *RowProof) rowProof {
 		}
 	}
 
-	return rowProof{
+	return RowProofInternal{
 		RowRoots: rowRoots,
 		Proofs:   rowProofs,
 		StartRow: p.StartRow,

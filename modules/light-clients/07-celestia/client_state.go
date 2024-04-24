@@ -48,7 +48,7 @@ func (cs *ClientState) VerifyMembership(ctx sdk.Context, clientStore storetypes.
 		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "could not unmarshal share proof: %v", err)
 	}
 
-	shareProof, err := shareProofFromProto(&shareProofProto)
+	shareProof, err := ShareProofFromProto(&shareProofProto)
 	if err != nil {
 		return err
 	}

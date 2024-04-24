@@ -427,9 +427,9 @@ func (suite *CelestiaTestSuite) TestUpdateStateOnMisbehaviour() {
 	}
 }
 
-func (*CelestiaTestSuite) TestVerifyMembership() {
-	// TODO
-}
+// func (*CelestiaTestSuite) TestVerifyMembership() {
+// 	// TODO
+// }
 
 func (suite *CelestiaTestSuite) TestRecoverClient() {
 	var subjectClientID, substituteClientID string
