@@ -326,10 +326,12 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string,
 		return "", err
 	}
 
-	im.keeper.GetICS4Wrapper().GetAppVersion()
-
 	if !slices.Contains(types.SupportedVersions, proposedVersion) {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected one of %s, got %s", types.SupportedVersions, proposedVersion)
+		version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
+		if !found {
+			return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected one of %s, got %s", types.SupportedVersions, version)
+		}
+		return version, nil
 	}
 
 	return proposedVersion, nil
