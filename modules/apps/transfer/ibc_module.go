@@ -122,12 +122,18 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
+	var (
+		version string
+		found   bool
+	)
+
+	version = counterpartyVersion
+
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
+		version, found = im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
 		if !found {
-			return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected one of %s, got %s", types.SupportedVersions, version)
+			return "", channeltypes.ErrChannelNotFound
 		}
-		return version, nil
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
@@ -135,7 +141,7 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	return counterpartyVersion, nil
+	return version, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -327,11 +333,7 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string,
 	}
 
 	if !slices.Contains(types.SupportedVersions, proposedVersion) {
-		version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
-		if !found {
-			return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected one of %s, got %s", types.SupportedVersions, version)
-		}
-		return version, nil
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected one of %s, got %s", types.SupportedVersions, proposedVersion)
 	}
 
 	return proposedVersion, nil
@@ -343,15 +345,21 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 		return "", err
 	}
 
+	var (
+		version string
+		found   bool
+	)
+
+	version = counterpartyVersion
+
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
+		version, found = im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
 		if !found {
-			return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected one of %s, got %s", types.SupportedVersions, version)
+			return "", channeltypes.ErrChannelNotFound
 		}
-		return version, nil
 	}
 
-	return counterpartyVersion, nil
+	return version, nil
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
