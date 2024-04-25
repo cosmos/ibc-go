@@ -117,7 +117,6 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 		channelOpts(&channelOptions)
 	}
 
-
 	ic := interchaintest.NewInterchain().
 		AddChain(chainA).
 		AddChain(chainB).
