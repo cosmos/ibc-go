@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	multidenom "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
@@ -30,15 +29,13 @@ var (
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
-	keeper     keeper.Keeper
-	appVersion string
+	keeper keeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
 func NewIBCModule(k keeper.Keeper, version string) IBCModule {
 	return IBCModule{
-		keeper:     k,
-		appVersion: version,
+		keeper: k,
 	}
 }
 
@@ -174,18 +171,22 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
-func (im IBCModule) getFungibleTokenPacketDataV2(ctx sdk.Context, portID, channelID string, bz []byte) (multidenom.FungibleTokenPacketData, error) {
+func (im IBCModule) getMultiDenomFungibleTokenPacketData(bz []byte) (multidenom.FungibleTokenPacketData, error) {
+	// TODO: remove support for this function parsing v1 packet data
+	// TODO: explicit check for packet data type against app version
 
-	if im.appVersion == types.Version1 {
-		var data types.FungibleTokenPacketData
-		if err := types.ModuleCdc.UnmarshalJSON(bz, &data); err == nil {
-			return convertinternal.PacketDataV1ToV3(data), nil
-		}
-	}
+	// var datav1 types.FungibleTokenPacketData
+	// if err := json.Unmarshal(bz, &datav1); err == nil {
+	// 	fmt.Printf("datav1: %v\n", datav1.Denom)
+	// 	if len(datav1.Amount) != 0 {
+	// 		return convertinternal.PacketDataV1ToV3(datav1), nil
+	// 	}
+	// }
 
-	if im.appVersion == types.Version {
-		var data multidenom.FungibleTokenPacketData
-		if err := types.ModuleCdc.UnmarshalJSON(bz, &data); err == nil {
+	var data multidenom.FungibleTokenPacketData
+	if err := json.Unmarshal(bz, &data); err == nil {
+		if len(data.Tokens) != 0 {
+			fmt.Printf("data: %v\n", data)
 			return data, nil
 		}
 	}
@@ -375,14 +376,10 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	im.appVersion
-	// ics4 := im.keeper.GetICS4Wrapper()
-	// ics4.GetAppVersion()
-
-	ftpd, err := im.getFungibleTokenPacketDataV2(bz)
+	ftpd, err := im.getMultiDenomFungibleTokenPacketData(bz)
 	if err != nil {
 		return nil, err
 	}
+
 	return ftpd, nil
-	// return nil, nil
 }
