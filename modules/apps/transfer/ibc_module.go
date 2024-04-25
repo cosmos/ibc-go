@@ -172,7 +172,7 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
-func (im IBCModule) getMultiDenomFungibleTokenPacketData(bz []byte) (multidenom.FungibleTokenPacketData, error) {
+func (IBCModule) getMultiDenomFungibleTokenPacketData(bz []byte) (multidenom.FungibleTokenPacketData, error) {
 	// TODO: remove support for this function parsing v1 packet data
 	// TODO: explicit check for packet data type against app version
 
