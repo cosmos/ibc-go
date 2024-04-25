@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	multidenom "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
@@ -175,18 +176,16 @@ func (im IBCModule) getMultiDenomFungibleTokenPacketData(bz []byte) (multidenom.
 	// TODO: remove support for this function parsing v1 packet data
 	// TODO: explicit check for packet data type against app version
 
-	// var datav1 types.FungibleTokenPacketData
-	// if err := json.Unmarshal(bz, &datav1); err == nil {
-	// 	fmt.Printf("datav1: %v\n", datav1.Denom)
-	// 	if len(datav1.Amount) != 0 {
-	// 		return convertinternal.PacketDataV1ToV3(datav1), nil
-	// 	}
-	// }
+	var datav1 types.FungibleTokenPacketData
+	if err := json.Unmarshal(bz, &datav1); err == nil {
+		if len(datav1.Denom) != 0 {
+			return convertinternal.PacketDataV1ToV3(datav1), nil
+		}
+	}
 
 	var data multidenom.FungibleTokenPacketData
 	if err := json.Unmarshal(bz, &data); err == nil {
 		if len(data.Tokens) != 0 {
-			fmt.Printf("data: %v\n", data)
 			return data, nil
 		}
 	}

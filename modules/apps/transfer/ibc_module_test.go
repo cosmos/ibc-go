@@ -496,19 +496,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					Memo:     "some memo",
 				}
 
-				expPacketData := multidenom.FungibleTokenPacketData{
-					Tokens: []*multidenom.Token{
-						{
-							Denom:  ibctesting.TestCoin.Denom,
-							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  []string{""},
-						},
-					},
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     "some memo",
-				}
-				data = expPacketData.GetBytes()
+				data = initialPacketData.(types.FungibleTokenPacketData).GetBytes()
 			},
 			true,
 		},
@@ -522,19 +510,8 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					Receiver: receiver,
 					Memo:     "",
 				}
-				expPacketData := multidenom.FungibleTokenPacketData{
-					Tokens: []*multidenom.Token{
-						{
-							Denom:  ibctesting.TestCoin.Denom,
-							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  []string{""},
-						},
-					},
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     "",
-				}
-				data = expPacketData.GetBytes()
+
+				data = initialPacketData.(types.FungibleTokenPacketData).GetBytes()
 			},
 			true,
 		},
@@ -549,19 +526,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					Memo:     "",
 				}
 
-				expPacketData := multidenom.FungibleTokenPacketData{
-					Tokens: []*multidenom.Token{
-						{
-							Denom:  "atom",
-							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  []string{"transfer/channel-0"},
-						},
-					},
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     "",
-				}
-				data = expPacketData.GetBytes()
+				data = initialPacketData.(types.FungibleTokenPacketData).GetBytes()
 			},
 			true,
 		},
@@ -571,9 +536,9 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = multidenom.FungibleTokenPacketData{
 					Tokens: []*multidenom.Token{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom:  "atom",
 							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  []string{""},
+							Trace:  []string{"transfer/channel-0"},
 						},
 					},
 					Sender:   sender,
