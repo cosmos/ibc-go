@@ -74,12 +74,12 @@ func (cs *ClientState) verifyHeader(
 	}
 
 	// assert header height is newer than consensus state
-	if header.SubnetHeader.Height.LTE(*header.PchainHeader.Height) {
-		return errorsmod.Wrapf(
-			clienttypes.ErrInvalidHeader,
-			"PchainHeader height ≤ consensus state height (%s < %s)", header.SubnetHeader.Height, header.PchainHeader.Height,
-		)
-	}
+	//if header.SubnetHeader.Height.LTE(*header.PchainHeader.Height) {
+	//	return errorsmod.Wrapf(
+	//		clienttypes.ErrInvalidHeader,
+	//		"PchainHeader height ≤ consensus state height (%s < %s)", header.SubnetHeader.Height, header.PchainHeader.Height,
+	//	)
+	//}
 
 	uniqVdrs, uniqWeight, err := ValidateValidatorSet(ctx, header.SubnetHeader.PchainVdrs)
 	if err != nil {
@@ -96,7 +96,7 @@ func (cs *ClientState) verifyHeader(
 	}
 
 	if headerTotalWeight != consensusTotalWeight || headerTotalWeight != uniqWeight {
-		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "failed to verify header")
+		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "failed to verify header.")
 	}
 
 	if len(headerUniqVdrs) != len(consensusUniqVdrs) || len(headerUniqVdrs) != len(uniqVdrs) {
