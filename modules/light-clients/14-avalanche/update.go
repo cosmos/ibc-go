@@ -42,7 +42,7 @@ func (cs *ClientState) verifyHeader(
 	header *Header,
 ) error {
 	// Retrieve trusted consensus states for each Header in misbehaviour
-	consState, found := GetConsensusState(clientStore, cdc, header.SubnetHeader.Height)
+	consState, found := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
 	if !found {
 		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header at TrustedHeight: %s", header.SubnetHeader.Height)
 	}
@@ -66,7 +66,7 @@ func (cs *ClientState) verifyHeader(
 	}
 
 	// assert header height is newer than consensus state
-	if header.SubnetHeader.Height.LTE(*header.SubnetHeader.Height) {
+	if header.SubnetHeader.Height.LTE(cs.LatestHeight) {
 		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"SubnetHeader height ≤ consensus state height (%s < %s)", header.SubnetHeader.Height, header.SubnetHeader.Height,
