@@ -47,7 +47,7 @@ jobs:
       - name: Go Test
         run: |
           cd modules/apps/callbacks
-          go test -v -mod=readonly ./...
+          go test -v -mod=readonly ./... -coverprofile=coverage.out
 
   code-analysis:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
