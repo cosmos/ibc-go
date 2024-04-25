@@ -36,7 +36,7 @@ func (h *VoteExtensionHandler) SetHandlers(bApp *baseapp.BaseApp) {
 	bApp.SetVerifyVoteExtensionHandler(h.VerifyVoteExtension())
 }
 
-func (h *VoteExtensionHandler) ExtendVote() sdk.ExtendVoteHandler {
+func (*VoteExtensionHandler) ExtendVote() sdk.ExtendVoteHandler {
 	return func(_ sdk.Context, req *abci.RequestExtendVote) (*abci.ResponseExtendVote, error) {
 		buf := make([]byte, 1024)
 
@@ -60,7 +60,7 @@ func (h *VoteExtensionHandler) ExtendVote() sdk.ExtendVoteHandler {
 	}
 }
 
-func (h *VoteExtensionHandler) VerifyVoteExtension() sdk.VerifyVoteExtensionHandler {
+func (*VoteExtensionHandler) VerifyVoteExtension() sdk.VerifyVoteExtensionHandler {
 	return func(ctx sdk.Context, req *abci.RequestVerifyVoteExtension) (*abci.ResponseVerifyVoteExtension, error) {
 		var ve VoteExtension
 

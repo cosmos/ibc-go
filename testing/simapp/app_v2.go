@@ -1,4 +1,4 @@
-//go:build !app_v1
+//go:build app_v2
 
 package simapp
 
@@ -257,8 +257,7 @@ func NewSimApp(
 		panic(err)
 	}
 
-	/****  Module Options ****/
-
+	// === Module Options ===
 	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
