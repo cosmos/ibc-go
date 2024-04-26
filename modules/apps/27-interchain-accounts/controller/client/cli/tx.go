@@ -49,12 +49,12 @@ the associated capability.`),
 				return err
 			}
 
-			order, err := parseOrder(cmd)
+			ordering, err := parseOrdering(cmd)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgRegisterInterchainAccountWithOrdering(connectionID, owner, version, order)
+			msg := types.NewMsgRegisterInterchainAccountWithOrdering(connectionID, owner, version, ordering)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -118,8 +118,8 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 	return cmd
 }
 
-// parseOrder gets the channel ordering from the flags.
-func parseOrder(cmd *cobra.Command) (channeltypes.Order, error) {
+// parseOrdering gets the channel ordering from the flags.
+func parseOrdering(cmd *cobra.Command) (channeltypes.Order, error) {
 	orderString, err := cmd.Flags().GetString(flagOrdering)
 	if err != nil {
 		return channeltypes.NONE, err
