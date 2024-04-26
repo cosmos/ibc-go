@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (apps/27-interchain-accounts) [\#5633](https://github.com/cosmos/ibc-go/pull/5633) Allow new ICA channels to use unordered ordering.
+
 ### Bug Fixes
 
 ## [v7.4.0](https://github.com/cosmos/ibc-go/releases/tag/v7.4.0) - 2024-04-05
