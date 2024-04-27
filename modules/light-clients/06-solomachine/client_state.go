@@ -32,16 +32,6 @@ func (ClientState) ClientType() string {
 	return exported.Solomachine
 }
 
-// GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
-func (cs ClientState) GetTimestampAtHeight(
-	_ sdk.Context,
-	clientStore storetypes.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-) (uint64, error) {
-	return cs.ConsensusState.Timestamp, nil
-}
-
 // Status returns the status of the solo machine client.
 // The client may be:
 // - Active: if frozen sequence is 0

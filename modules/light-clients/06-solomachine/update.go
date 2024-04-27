@@ -99,11 +99,3 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	return []exported.Height{clienttypes.NewHeight(0, cs.Sequence)}
 }
-
-// UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
-// as it does not perform any misbehaviour checks.
-func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, _ exported.ClientMessage) {
-	cs.IsFrozen = true
-
-	setClientState(clientStore, cdc, &cs)
-}
