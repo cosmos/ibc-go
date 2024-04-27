@@ -96,9 +96,9 @@ func InvokeAddAppRoutes(keeper *ibckeeper.Keeper, appRoutes []porttypes.IBCModul
 // InvokeAddClientRoutes defines a depinject Invoker for registering ibc light client modules on the core ibc client router.
 // TODO: Maybe this should align with app router. i.e. create router here, add routes, and set on ibc keeper.
 // For app_v1 this would be the same approach, just create clientRouter in app.go instead of implicit creation inside of ibc.NewKeeper()
-func InvokeAddClientRoutes(keeper *ibckeeper.Keeper, clientRoutes map[string]exported.LightClientModule) {
+func InvokeAddClientRoutes(keeper *ibckeeper.Keeper, clientRoutes map[string]clienttypes.LightClientModuleWrapper) {
 	router := keeper.ClientKeeper.GetRouter()
 	for modName, route := range clientRoutes {
-		router.AddRoute(modName, route)
+		router.AddRoute(modName, route.LightClientModule)
 	}
 }

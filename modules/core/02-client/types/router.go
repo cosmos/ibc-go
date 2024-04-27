@@ -64,3 +64,13 @@ func (rtr *Router) GetRoute(clientID string) (exported.LightClientModule, bool) 
 	}
 	return rtr.routes[clientType], true
 }
+
+type LightClientModuleWrapper struct{ exported.LightClientModule }
+
+func NewLightClientModuleWrapper(clientModule exported.LightClientModule) LightClientModuleWrapper {
+	return LightClientModuleWrapper{
+		clientModule,
+	}
+}
+
+func (LightClientModuleWrapper) IsOnePerModuleType() {}

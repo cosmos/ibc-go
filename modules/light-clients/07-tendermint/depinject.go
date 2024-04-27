@@ -9,6 +9,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/tendermint/module/v1"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 var (
@@ -41,8 +43,8 @@ type ModuleInputs struct {
 type ModuleOutputs struct {
 	depinject.Out
 
-	LightClientModule *LightClientModule
-	Module            appmodule.AppModule
+	LightClientModuleWrapper clienttypes.LightClientModuleWrapper
+	Module                   appmodule.AppModule
 }
 
 // ProvideModule returns the 07-tendermint module outputs for dependency injection
@@ -55,5 +57,5 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 
 	lightClientModule := NewLightClientModule(in.Cdc, authority.String())
 	m := NewAppModule(lightClientModule)
-	return ModuleOutputs{LightClientModule: &lightClientModule, Module: m}
+	return ModuleOutputs{LightClientModuleWrapper: clienttypes.NewLightClientModuleWrapper(&lightClientModule), Module: m}
 }
