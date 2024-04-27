@@ -9,10 +9,16 @@ import (
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/solomachine/module/v1"
 )
 
-var _ depinject.OnePerModuleType = AppModule{}
+var (
+	_ depinject.OnePerModuleType = AppModule{}
+	_ depinject.OnePerModuleType = LightClientModule{}
+)
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (AppModule) IsOnePerModuleType() {}
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (LightClientModule) IsOnePerModuleType() {}
 
 func init() {
 	appmodule.Register(

@@ -13,7 +13,10 @@ import (
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/core/module/v1"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 var _ depinject.OnePerModuleType = AppModule{}
@@ -25,6 +28,7 @@ func init() {
 	appmodule.Register(
 		&modulev1.Module{},
 		appmodule.Provide(ProvideModule),
+		appmodule.Invoke(InvokeAddAppRoutes, InvokeAddClientRoutes),
 	)
 }
 
@@ -36,9 +40,9 @@ type ModuleInputs struct {
 	Cdc    codec.Codec
 	Key    *storetypes.KVStoreKey
 
-	ConsensusHost clienttypes.ConsensusHost
-	UpgradeKeeper clienttypes.UpgradeKeeper
-	ScopedKeeper  capabilitykeeper.ScopedKeeper
+	CapabilityKeeper *capabilitykeeper.Keeper
+	StakingKeeper    clienttypes.StakingKeeper
+	UpgradeKeeper    clienttypes.UpgradeKeeper
 
 	// LegacySubspace is used solely for migration of x/params managed parameters
 	LegacySubspace paramtypes.Subspace `optional:"true"`
@@ -48,10 +52,13 @@ type ModuleInputs struct {
 type ModuleOutputs struct {
 	depinject.Out
 
-	IbcKeeper *ibckeeper.Keeper
-	Module    appmodule.AppModule
+	Module appmodule.AppModule
+
+	IBCKeeper    *ibckeeper.Keeper
+	ScopedKeeper capabilitykeeper.ScopedKeeper
 }
 
+// ProvideModule defines a depinject provider function to supply the module dependencies and return its outputs.
 func ProvideModule(in ModuleInputs) ModuleOutputs {
 	// default to governance authority if not provided
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
@@ -59,16 +66,39 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
 	}
 
+	scopedKeeper := in.CapabilityKeeper.ScopeToModule(exported.ModuleName)
+
 	keeper := ibckeeper.NewKeeper(
 		in.Cdc,
 		in.Key,
 		in.LegacySubspace,
-		in.ConsensusHost,
+		ibctm.NewConsensusHost(in.StakingKeeper), // NOTE: need to find a way to inject a ConsensusHost into DI container created outside context of app module.
 		in.UpgradeKeeper,
-		in.ScopedKeeper,
+		scopedKeeper,
 		authority.String(),
 	)
 	m := NewAppModule(keeper)
 
-	return ModuleOutputs{IbcKeeper: keeper, Module: m}
+	return ModuleOutputs{Module: m, IBCKeeper: keeper, ScopedKeeper: scopedKeeper}
+}
+
+// InvokeAddAppRoutes defines a depinject Invoker for registering ibc application modules on the core ibc application router.
+func InvokeAddAppRoutes(keeper *ibckeeper.Keeper, appRoutes []porttypes.IBCModuleRoute) {
+	ibcRouter := porttypes.NewRouter()
+
+	for _, route := range appRoutes {
+		ibcRouter.AddRoute(route.Name, route.IBCModule)
+	}
+
+	ibcRouter.Seal()
+}
+
+// InvokeAddClientRoutes defines a depinject Invoker for registering ibc light client modules on the core ibc client router.
+// TODO: Maybe this should align with app router. i.e. create router here, add routes, and set on ibc keeper.
+// For app_v1 this would be the same approach, just create clientRouter in app.go instead of implicit creation inside of ibc.NewKeeper()
+func InvokeAddClientRoutes(keeper *ibckeeper.Keeper, clientRoutes map[string]exported.LightClientModule) {
+	router := keeper.ClientKeeper.GetRouter()
+	for modName, route := range clientRoutes {
+		router.AddRoute(modName, route)
+	}
 }

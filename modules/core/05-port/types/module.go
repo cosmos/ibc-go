@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/depinject"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -8,6 +9,18 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
+
+var _ depinject.ManyPerContainerType = (*IBCModuleRoute)(nil)
+
+// IBCModule defines a wrapper struct for depinject. This allows cosmos-sdk modules to output multiple IBCModules associated with a
+// specific name used for a routing key. An example of this is 27-interchain-accounts which defines two IBCModules under a single cosmos-sdk module.
+type IBCModuleRoute struct {
+	Name      string
+	IBCModule IBCModule
+}
+
+// IsManyPerContainerType implements the depinject.ManyPerContainerType interface.
+func (IBCModuleRoute) IsManyPerContainerType() {}
 
 // IBCModule defines an interface that implements all the callbacks
 // that modules must define as specified in ICS-26
