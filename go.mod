@@ -2,6 +2,9 @@ go 1.21
 
 module github.com/cosmos/ibc-go/v8
 
+// Replace to local pin of capability to pick up depinject 
+replace github.com/cosmos/ibc-go/modules/capability => ./modules/capability
+
 require (
 	cosmossdk.io/api v0.7.3
 	cosmossdk.io/client/v2 v2.0.0-beta.1
@@ -87,6 +90,7 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect

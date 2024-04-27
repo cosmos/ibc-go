@@ -29,6 +29,7 @@ import (
 	testdata_pulsar "github.com/cosmos/cosmos-sdk/testutil/testdata/testpb"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -213,6 +214,9 @@ func NewSimApp(
 		&app.GroupKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.CircuitBreakerKeeper,
+		&app.CapabilityKeeper,
+		&app.ScopedIBCKeeper,
+		&app.IBCKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -257,6 +261,8 @@ func NewSimApp(
 		panic(err)
 	}
 
+	app.setAnteHandler(app.GetTxConfig())
+
 	// === Module Options ===
 	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
@@ -293,6 +299,28 @@ func NewSimApp(
 	}
 
 	return app
+}
+
+func (app *SimApp) setAnteHandler(txConfig client.TxConfig) {
+	anteHandler, err := NewAnteHandler(
+		HandlerOptions{
+			ante.HandlerOptions{
+				AccountKeeper:   app.AccountKeeper,
+				BankKeeper:      app.BankKeeper,
+				SignModeHandler: txConfig.SignModeHandler(),
+				FeegrantKeeper:  app.FeeGrantKeeper,
+				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+			},
+			&app.CircuitBreakerKeeper,
+			app.IBCKeeper,
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the AnteHandler for the app
+	app.SetAnteHandler(anteHandler)
 }
 
 // LegacyAmino returns SimApp's amino codec.

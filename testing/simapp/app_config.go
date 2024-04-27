@@ -21,6 +21,8 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/params"         // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/slashing"       // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/staking"        // import for side-effects
+	_ "github.com/cosmos/ibc-go/modules/capability"   // import for side-effects
+	_ "github.com/cosmos/ibc-go/v8/modules/core"      // import for side-effects
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
@@ -70,6 +72,15 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	capabilitymodulev1 "github.com/cosmos/ibc-go/api/capability/module/v1"
+	ibcmodulev1 "github.com/cosmos/ibc-go/api/ibc/core/module/v1"
+	solomachinemodulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/solomachine/module/v1"
+	ibctmmodulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/tendermint/module/v1"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 var (
@@ -110,19 +121,23 @@ var (
 					// CanWithdrawInvariant invariant.
 					// NOTE: staking module is required if HistoricalEntries param > 0
 					BeginBlockers: []string{
+						capabilitytypes.ModuleName,
 						minttypes.ModuleName,
 						distrtypes.ModuleName,
 						slashingtypes.ModuleName,
 						evidencetypes.ModuleName,
 						stakingtypes.ModuleName,
 						authz.ModuleName,
+						ibcexported.ModuleName,
 					},
 					EndBlockers: []string{
+						capabilitytypes.ModuleName,
 						crisistypes.ModuleName,
 						govtypes.ModuleName,
 						stakingtypes.ModuleName,
 						feegrant.ModuleName,
 						group.ModuleName,
+						ibcexported.ModuleName,
 					},
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
 						{
@@ -138,6 +153,7 @@ var (
 						banktypes.ModuleName,
 						distrtypes.ModuleName,
 						stakingtypes.ModuleName,
+						capabilitytypes.ModuleName,
 						slashingtypes.ModuleName,
 						govtypes.ModuleName,
 						minttypes.ModuleName,
@@ -151,6 +167,7 @@ var (
 						upgradetypes.ModuleName,
 						vestingtypes.ModuleName,
 						circuittypes.ModuleName,
+						ibcexported.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis module order
 					// is equal to the init genesis order
@@ -250,6 +267,22 @@ var (
 			{
 				Name:   circuittypes.ModuleName,
 				Config: appconfig.WrapAny(&circuitmodulev1.Module{}),
+			},
+			{
+				Name:   capabilitytypes.ModuleName,
+				Config: appconfig.WrapAny(&capabilitymodulev1.Module{SealKeeper: false}),
+			},
+			{
+				Name:   ibcexported.ModuleName,
+				Config: appconfig.WrapAny(&ibcmodulev1.Module{}),
+			},
+			{
+				Name:   ibctm.ModuleName,
+				Config: appconfig.WrapAny(&ibctmmodulev1.Module{}),
+			},
+			{
+				Name:   solomachine.ModuleName,
+				Config: appconfig.WrapAny(&solomachinemodulev1.Module{}),
 			},
 		},
 	}),
