@@ -98,14 +98,14 @@ func newMigrateContractCmd() *cobra.Command {
 
 			clientId := args[0]
 			checksum := args[1]
-			newCodeMsg := args[2]
+			migrateMsg := args[2]
 
 			// Construct the message
 			msg := &types.MsgMigrateContract{
 				Signer:   clientCtx.GetFromAddress().String(),
 				ClientId: clientId,
 				Checksum: []byte(checksum),
-				Msg:      []byte(newCodeMsg),
+				Msg:      []byte(migrateMsg),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
