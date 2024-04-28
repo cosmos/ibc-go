@@ -82,3 +82,48 @@ func newSubmitStoreCodeProposalCmd() *cobra.Command {
 
 	return cmd
 }
+
+func newMigrateContractCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "migrate-contract [client-id] [checksum] [new-code-msg]",
+		Short: "Migrates a contract to a new code version",
+		Long:  `Migrates a contract to a new code version using the specified client ID, checksum, and new code message.`,
+		Args:  cobra.ExactArgs(3), // Ensure exactly three arguments are passed
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			clientId := args[0]
+			checksum := args[1]
+			newCodeMsg := args[2]
+
+			// Construct the message
+			msg := &types.MsgMigrateContract{
+				Signer:   clientCtx.GetFromAddress().String(),
+				ClientId: clientId,
+				Checksum: []byte(checksum),
+				Msg:      []byte(newCodeMsg),
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			// Generate or broadcast the transaction
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagAuthority, "", "The address of the wasm client module authority (defaults to gov)")
+
+	flags.AddTxFlagsToCmd(cmd)
+	govcli.AddGovPropFlagsToCmd(cmd)
+	err := cmd.MarkFlagRequired(govcli.FlagTitle)
+	if err != nil {
+		panic(err)
+	}
+
+	return cmd
+}
