@@ -27,7 +27,7 @@ func newSubmitStoreCodeProposalCmd() *cobra.Command {
 		Use:     "store-code [path/to/wasm-file]",
 		Short:   "Reads wasm code from the file and creates a proposal to store the wasm code",
 		Long:    "Reads wasm code from the file and creates a proposal to store the wasm code",
-		Example: fmt.Sprintf("%s tx %s wasm [path/to/wasm_file]", version.AppName, ibcexported.ModuleName),
+		Example: fmt.Sprintf("%s tx %s-wasm store-code [path/to/wasm_file]", version.AppName, ibcexported.ModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -85,10 +85,11 @@ func newSubmitStoreCodeProposalCmd() *cobra.Command {
 
 func newMigrateContractCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "migrate-contract [client-id] [checksum] [new-code-msg]",
-		Short: "Migrates a contract to a new code version",
-		Long:  `Migrates a contract to a new code version using the specified client ID, checksum, and new code message.`,
-		Args:  cobra.ExactArgs(3), // Ensure exactly three arguments are passed
+		Use:     "migrate-contract [client-id] [checksum] [migrate-msg]",
+		Short:   "Migrates a contract to a new byte code",
+		Long:    `Migrates the contract for the specified client ID to the byte code corresponding to checksum, passing the JSON-encoded migrate message to the contract`,
+		Example: fmt.Sprintf("%s tx %s migrate-contract 08-wasm-0 b3a49b2914f5e6a673215e74325c1d153bb6776e079774e52c5b7e674d9ad3ab {}", version.AppName, ibcexported.ModuleName),
+		Args:    cobra.ExactArgs(3), // Ensure exactly three arguments are passed
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
