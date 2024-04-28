@@ -95,8 +95,9 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 	return clientState.CheckForMisbehaviour(ctx, l.cdc, clientStore, clientMsg)
 }
 
-// UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
-// as it does not perform any misbehaviour checks.UpdateStateOnMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.UpdateStateOnMisbehaviour method.
+// UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState.
+// This method should only be called when misbehaviour is detected as it does not perform
+// any misbehaviour checks.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
 func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
@@ -105,6 +106,7 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 	if !found {
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
+
 	clientState.IsFrozen = true
 	setClientState(clientStore, l.cdc, clientState)
 }
@@ -177,6 +179,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 	if !found {
 		return exported.Unknown
 	}
+
 	if clientState.IsFrozen {
 		return exported.Frozen
 	}

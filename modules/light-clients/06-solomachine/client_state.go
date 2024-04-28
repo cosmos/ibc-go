@@ -32,18 +32,6 @@ func (ClientState) ClientType() string {
 	return exported.Solomachine
 }
 
-// Status returns the status of the solo machine client.
-// The client may be:
-// - Active: if frozen sequence is 0
-// - Frozen: otherwise solo machine is frozen
-func (cs ClientState) Status(_ sdk.Context, _ storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
-	if cs.IsFrozen {
-		return exported.Frozen
-	}
-
-	return exported.Active
-}
-
 // Validate performs basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if cs.Sequence == 0 {
