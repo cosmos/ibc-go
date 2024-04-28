@@ -100,10 +100,6 @@ func (im IBCModule) OnChanOpenInit(
 		return "", err
 	}
 
-	if version == types.Version1 {
-		return types.Version1, nil
-	}
-
 	return version, nil
 }
 
