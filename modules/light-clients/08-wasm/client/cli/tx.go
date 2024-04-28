@@ -117,14 +117,6 @@ func newMigrateContractCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagAuthority, "", "The address of the wasm client module authority (defaults to gov)")
-
 	flags.AddTxFlagsToCmd(cmd)
-	govcli.AddGovPropFlagsToCmd(cmd)
-	err := cmd.MarkFlagRequired(govcli.FlagTitle)
-	if err != nil {
-		panic(err)
-	}
-
 	return cmd
 }
