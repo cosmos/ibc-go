@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"cosmossdk.io/depinject"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -65,12 +66,17 @@ func (rtr *Router) GetRoute(clientID string) (exported.LightClientModule, bool) 
 	return rtr.routes[clientType], true
 }
 
+var _ depinject.OnePerModuleType = (*LightClientModuleWrapper)(nil)
+
+// LightClientModuleWrapper is a wrapper struct used for depinject to register client modules on the router.
 type LightClientModuleWrapper struct{ exported.LightClientModule }
 
+// NewLightClientModuleWrapper creates and returns a new LightClientModuleWrapper used for depinject.
 func NewLightClientModuleWrapper(clientModule exported.LightClientModule) LightClientModuleWrapper {
 	return LightClientModuleWrapper{
 		clientModule,
 	}
 }
 
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (LightClientModuleWrapper) IsOnePerModuleType() {}

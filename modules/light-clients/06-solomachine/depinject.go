@@ -7,20 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/solomachine/module/v1"
-
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
-var (
-	_ depinject.OnePerModuleType = AppModule{}
-	_ depinject.OnePerModuleType = LightClientModule{}
-)
+var _ depinject.OnePerModuleType = AppModule{}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (AppModule) IsOnePerModuleType() {}
-
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (LightClientModule) IsOnePerModuleType() {}
 
 func init() {
 	appmodule.Register(
