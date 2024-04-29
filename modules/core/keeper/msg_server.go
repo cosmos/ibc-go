@@ -63,6 +63,25 @@ func (k *Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateC
 	return &clienttypes.MsgUpdateClientResponse{}, nil
 }
 
+// UpdateClient defines a rpc handler method for MsgUpdateClient.
+func (k *Keeper) CheckTxUpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if !(ctx.IsCheckTx() || ctx.IsReCheckTx()) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "CheckTxUpdateClient should only be ran in CheckTx")
+	}
+
+	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = k.ClientKeeper.CheckTxUpdateClient(ctx, msg.ClientId, clientMsg); err != nil {
+		return nil, err
+	}
+
+	return &clienttypes.MsgUpdateClientResponse{}, nil
+}
+
 // UpgradeClient defines a rpc handler method for MsgUpgradeClient.
 // NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
 // The 02-client handler will route to the appropriate light client module based on client identifier and it is the responsibility

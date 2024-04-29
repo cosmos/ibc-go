@@ -70,7 +70,7 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 				packetMsgs++
 
 			case *clienttypes.MsgUpdateClient:
-				_, err := rrd.k.UpdateClient(ctx, msg)
+				_, err := rrd.k.CheckTxUpdateClient(ctx, msg)
 				if err != nil {
 					return ctx, err
 				}

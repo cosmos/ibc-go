@@ -59,20 +59,28 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 	return clientID, nil
 }
 
+func (k *Keeper) getClientTypeAndModule(ctx sdk.Context, clientID string) (clientType string, clientModule exported.LightClientModule, err error) {
+	clientType, _, err = types.ParseClientIdentifier(clientID)
+	if err != nil {
+		return clientType, clientModule, errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
+	}
+
+	clientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return "", clientModule, errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	}
+	return clientType, clientModule, nil
+}
+
 // UpdateClient updates the consensus state and the state root from a provided header.
 func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
-	clientType, _, err := types.ParseClientIdentifier(clientID)
+	clientType, clientModule, err := k.getClientTypeAndModule(ctx, clientID)
 	if err != nil {
-		return errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
-	}
-
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
-		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+		return err
 	}
 
 	if err := clientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
@@ -116,6 +124,27 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 
 	// emitting events in the keeper emits for both begin block and handler client updates
 	emitUpdateClientEvent(ctx, clientID, clientType, consensusHeights, k.cdc, clientMsg)
+
+	return nil
+}
+
+func (k *Keeper) CheckTxUpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
+	}
+
+	_, clientModule, err := k.getClientTypeAndModule(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if !ctx.IsReCheckTx() {
+		if err := clientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
+			return err
+		}
+	}
+
+	_ = clientModule.UpdateState(ctx, clientID, clientMsg)
 
 	return nil
 }
