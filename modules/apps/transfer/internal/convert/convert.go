@@ -32,7 +32,7 @@ func PacketDataV1ToV3(packetData v1types.FungibleTokenPacketData) v3types.Fungib
 func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 	v1DenomTrace := v1types.ParseDenomTrace(v1Denom)
 
-	// if the path slice is empty, then the base denom is the full native denom.
+	// if the path string is empty, then the base denom is the full native denom.
 	if v1DenomTrace.Path == "" {
 		return v1DenomTrace.BaseDenom, []string{""}
 	}
