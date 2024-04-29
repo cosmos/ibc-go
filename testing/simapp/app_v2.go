@@ -52,6 +52,7 @@ import (
 	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 )
@@ -93,12 +94,12 @@ type SimApp struct {
 	CircuitBreakerKeeper  circuitkeeper.Keeper
 
 	CapabilityKeeper          *capabilitykeeper.Keeper
-	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
+	ScopedIBCKeeper           ibctypes.ScopedIBCKeeper
+	ScopedIBCMockKeeper       ibcmock.ScopedMockKeeper
 	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
 	ScopedFeeMockKeeper       capabilitykeeper.ScopedKeeper
 	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
-	ScopedIBCMockKeeper       capabilitykeeper.ScopedKeeper
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
 
 	IBCKeeper *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
@@ -215,8 +216,10 @@ func NewSimApp(
 		&app.ConsensusParamsKeeper,
 		&app.CircuitBreakerKeeper,
 		&app.CapabilityKeeper,
-		&app.ScopedIBCKeeper,
 		&app.IBCKeeper,
+		&app.ScopedIBCKeeper,
+		&app.IBCMockModule,
+		&app.ScopedIBCMockKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -443,7 +446,7 @@ func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 
 // GetScopedIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
-	return app.ScopedIBCKeeper
+	return capabilitykeeper.ScopedKeeper(app.ScopedIBCKeeper)
 }
 
 // GetTxConfig implements the TestingApp interface.

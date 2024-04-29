@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -47,6 +48,9 @@ type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
 	IsBound(ctx sdk.Context, portID string) bool
 }
+
+// ScopedMockKeeper is a type alias of x/capability's ScopedKeeper used for depinject module outputs.
+type ScopedMockKeeper capabilitykeeper.ScopedKeeper
 
 var _ exported.Acknowledgement = (*EmptyAcknowledgement)(nil)
 

@@ -8,6 +8,7 @@ import (
 	modulev1 "github.com/cosmos/ibc-go/api/mock/module/v1"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 )
 
 func init() {
@@ -33,23 +34,29 @@ type ModuleInputs struct {
 	Key *storetypes.MemoryStoreKey
 
 	CapabilityKeeper *capabilitykeeper.Keeper
-	PortKeeper       PortKeeper
+	IBCKeeper        *ibckeeper.Keeper
 }
 
 // ModuleOutputs defines the core module outputs for depinject.
 type ModuleOutputs struct {
 	depinject.Out
 
-	Module       appmodule.AppModule
-	IBCModule    porttypes.IBCModuleRoute
-	ScopedKeeper capabilitykeeper.ScopedKeeper
+	Module         appmodule.AppModule
+	IBCModule      IBCModule
+	IBCModuleRoute porttypes.IBCModuleRoute
+	ScopedKeeper   ScopedMockKeeper
 }
 
 // ProvideModule defines a depinject provider function to supply the module dependencies and return its outputs.
 func ProvideModule(in ModuleInputs) ModuleOutputs {
 	scopedKeeper := in.CapabilityKeeper.ScopeToModule(ModuleName)
-	m := NewAppModule(in.PortKeeper)
+	m := NewAppModule(in.IBCKeeper.PortKeeper)
 	ibcModule := NewIBCModule(&m, NewIBCApp(ModuleName, scopedKeeper))
 
-	return ModuleOutputs{Module: m, IBCModule: porttypes.IBCModuleRoute{Name: ModuleName, IBCModule: ibcModule}, ScopedKeeper: scopedKeeper}
+	return ModuleOutputs{
+		Module:         m,
+		IBCModule:      ibcModule,
+		IBCModuleRoute: porttypes.IBCModuleRoute{Name: ModuleName, IBCModule: ibcModule},
+		ScopedKeeper:   ScopedMockKeeper(scopedKeeper),
+	}
 }

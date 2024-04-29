@@ -77,10 +77,12 @@ import (
 	ibcmodulev1 "github.com/cosmos/ibc-go/api/ibc/core/module/v1"
 	solomachinemodulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/solomachine/module/v1"
 	ibctmmodulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/tendermint/module/v1"
+	ibcmockmodulev1 "github.com/cosmos/ibc-go/api/mock/module/v1"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 var (
@@ -168,6 +170,7 @@ var (
 						vestingtypes.ModuleName,
 						circuittypes.ModuleName,
 						ibcexported.ModuleName,
+						ibcmock.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis module order
 					// is equal to the init genesis order
@@ -283,6 +286,10 @@ var (
 			{
 				Name:   solomachine.ModuleName,
 				Config: appconfig.WrapAny(&solomachinemodulev1.Module{}),
+			},
+			{
+				Name:   ibcmock.ModuleName,
+				Config: appconfig.WrapAny(&ibcmockmodulev1.Module{}),
 			},
 		},
 	}),
