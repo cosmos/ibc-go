@@ -172,7 +172,7 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
-func (IBCModule) getMultiDenomFungibleTokenPacketData(bz []byte) (multidenom.FungibleTokenPacketData, error) {
+func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte) (multidenom.FungibleTokenPacketData, error) {
 	// TODO: remove support for this function parsing v1 packet data
 	// TODO: explicit check for packet data type against app version
 
@@ -375,7 +375,7 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	ftpd, err := im.getMultiDenomFungibleTokenPacketData(bz)
+	ftpd, err := im.unmarshalPacketDataBytesToICS20V2(bz)
 	if err != nil {
 		return nil, err
 	}
