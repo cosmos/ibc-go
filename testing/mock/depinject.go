@@ -5,9 +5,8 @@ import (
 	"cosmossdk.io/depinject"
 	storetypes "cosmossdk.io/store/types"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-
 	modulev1 "github.com/cosmos/ibc-go/api/mock/module/v1"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 )
 
