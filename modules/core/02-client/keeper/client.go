@@ -59,7 +59,7 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 	return clientID, nil
 }
 
-func (k *Keeper) getClientTypeAndModule(ctx sdk.Context, clientID string) (clientType string, clientModule exported.LightClientModule, err error) {
+func (k *Keeper) getClientTypeAndModule(clientID string) (clientType string, clientModule exported.LightClientModule, err error) {
 	clientType, _, err = types.ParseClientIdentifier(clientID)
 	if err != nil {
 		return clientType, clientModule, errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
@@ -78,7 +78,7 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
-	clientType, clientModule, err := k.getClientTypeAndModule(ctx, clientID)
+	clientType, clientModule, err := k.getClientTypeAndModule(clientID)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (k *Keeper) CheckTxUpdateClient(ctx sdk.Context, clientID string, clientMsg
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
-	_, clientModule, err := k.getClientTypeAndModule(ctx, clientID)
+	_, clientModule, err := k.getClientTypeAndModule(clientID)
 	if err != nil {
 		return err
 	}
