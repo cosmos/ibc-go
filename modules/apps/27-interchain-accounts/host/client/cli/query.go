@@ -85,7 +85,7 @@ func GetCmdPacketEvents() *cobra.Command {
 				return err
 			}
 
-			var resEvents []abci.Event
+			resEvents := make([]abci.Event, 0, len(result.Txs))
 			for _, r := range result.Txs {
 				resEvents = append(resEvents, r.Events...)
 			}
