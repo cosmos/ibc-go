@@ -31,10 +31,10 @@ simd tx ibc-wasm store-code [path/to/wasm-file] [flags]
 
 #### `migrate-contract`
 
-The `migration-contract` command allows users to broadcast a transaction with a `MsgMigrateContract` to migrate the contract for a given light client to a new byte code denoted by the given checksum.
+The `migrate-contract` command allows users to broadcast a transaction with a `MsgMigrateContract` to migrate the contract for a given light client to a new byte code denoted by the given checksum.
 
 ```shell
-simd tx ibc-wasm migration-contract [client-id] [checksum] [migrate-msg]
+simd tx ibc-wasm migrate-contract [client-id] [checksum] [migrate-msg]
 ```
 
 The migrate message must not be emptied and is expected to be a JSON-encoded string.
