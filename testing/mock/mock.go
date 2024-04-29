@@ -49,8 +49,8 @@ type PortKeeper interface {
 	IsBound(ctx sdk.Context, portID string) bool
 }
 
-// ScopedMockKeeper is a type alias of x/capability's ScopedKeeper used for depinject module outputs.
-type ScopedMockKeeper capabilitykeeper.ScopedKeeper
+// ScopedMockKeeper embeds x/capability's ScopedKeeper used for depinject module outputs.
+type ScopedMockKeeper struct{ capabilitykeeper.ScopedKeeper }
 
 var _ exported.Acknowledgement = (*EmptyAcknowledgement)(nil)
 

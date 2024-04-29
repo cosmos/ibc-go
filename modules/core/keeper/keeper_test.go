@@ -133,7 +133,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 			consensusHost = ibctm.NewConsensusHost(suite.chainA.GetSimApp().StakingKeeper)
 			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
-			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper
+			scopedKeeper = suite.chainA.GetSimApp().GetScopedIBCKeeper()
 
 			tc.malleate()
 

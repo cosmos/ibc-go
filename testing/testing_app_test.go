@@ -3,8 +3,9 @@ package ibctesting_test
 import (
 	"testing"
 
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/stretchr/testify/require"
+
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // TODO: Remove this before merging.

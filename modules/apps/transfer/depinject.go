@@ -37,13 +37,13 @@ type ModuleInputs struct {
 	Cdc    codec.Codec
 	Key    *storetypes.KVStoreKey
 
-	Ics4Wrapper   porttypes.ICS4Wrapper
 	ChannelKeeper types.ChannelKeeper
+	Ics4Wrapper   porttypes.ICS4Wrapper
 	PortKeeper    types.PortKeeper
 
-	AuthKeeper   types.AccountKeeper
-	BankKeeper   types.BankKeeper
-	ScopedKeeper capabilitykeeper.ScopedKeeper
+	AuthKeeper       types.AccountKeeper
+	BankKeeper       types.BankKeeper
+	CapabilityKeeper *capabilitykeeper.Keeper
 
 	// LegacySubspace is used solely for migration of x/params managed parameters
 	LegacySubspace paramtypes.Subspace `optional:"true"`
@@ -53,8 +53,10 @@ type ModuleInputs struct {
 type ModuleOutputs struct {
 	depinject.Out
 
-	TransferKeeper *keeper.Keeper
+	ScopedKeeper   types.ScopedTransferKeeper
+	TransferKeeper keeper.Keeper
 	Module         appmodule.AppModule
+	IBCModuleRoute porttypes.IBCModuleRoute
 }
 
 // ProvideModule returns the transfer module outputs for dependency injection
@@ -65,6 +67,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
 	}
 
+	scopedKeeper := in.CapabilityKeeper.ScopeToModule(types.ModuleName)
 	transferKeeper := keeper.NewKeeper(
 		in.Cdc,
 		in.Key,
@@ -74,10 +77,17 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.PortKeeper,
 		in.AuthKeeper,
 		in.BankKeeper,
-		in.ScopedKeeper,
+		scopedKeeper,
 		authority.String(),
 	)
-	m := NewAppModule(transferKeeper)
 
-	return ModuleOutputs{TransferKeeper: &transferKeeper, Module: m}
+	m := NewAppModule(transferKeeper)
+	ibcModule := NewIBCModule(transferKeeper)
+
+	return ModuleOutputs{
+		ScopedKeeper:   types.ScopedTransferKeeper{ScopedKeeper: scopedKeeper},
+		TransferKeeper: transferKeeper,
+		Module:         m,
+		IBCModuleRoute: porttypes.IBCModuleRoute{Name: types.ModuleName, IBCModule: ibcModule},
+	}
 }

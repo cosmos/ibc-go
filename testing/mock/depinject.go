@@ -57,6 +57,6 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		Module:         m,
 		IBCModule:      ibcModule,
 		IBCModuleRoute: porttypes.IBCModuleRoute{Name: ModuleName, IBCModule: ibcModule},
-		ScopedKeeper:   ScopedMockKeeper(scopedKeeper),
+		ScopedKeeper:   ScopedMockKeeper{ScopedKeeper: scopedKeeper},
 	}
 }

@@ -13,6 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -62,7 +64,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
-				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
+				authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			)
 		}, true},
 		{"failure: transfer module account does not exist", func() {
@@ -76,7 +78,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				authkeeper.AccountKeeper{}, // empty account keeper
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
-				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
+				authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			)
 		}, false},
 		{"failure: empty authority", func() {

@@ -7,6 +7,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -61,3 +62,6 @@ type PortKeeper interface {
 type ParamSubspace interface {
 	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
 }
+
+// ScopedTranferKeeper embeds x/capability's ScopedKeeper used for depinject module outputs.
+type ScopedTransferKeeper struct{ capabilitykeeper.ScopedKeeper }

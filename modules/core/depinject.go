@@ -13,6 +13,8 @@ import (
 	modulev1 "github.com/cosmos/ibc-go/api/ibc/core/module/v1"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
+	portkeeper "github.com/cosmos/ibc-go/v8/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -57,6 +59,9 @@ type ModuleOutputs struct {
 
 	IBCKeeper       *ibckeeper.Keeper
 	ScopedIBCKeeper types.ScopedIBCKeeper
+
+	ChannelKeeper *channelkeeper.Keeper
+	PortKeeper    *portkeeper.Keeper
 }
 
 // ProvideModule defines a depinject provider function to supply the module dependencies and return its outputs.
@@ -80,7 +85,13 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 	)
 	m := NewAppModule(keeper)
 
-	return ModuleOutputs{Module: m, IBCKeeper: keeper, ScopedIBCKeeper: types.ScopedIBCKeeper(scopedKeeper)}
+	return ModuleOutputs{
+		Module:          m,
+		IBCKeeper:       keeper,
+		ChannelKeeper:   keeper.ChannelKeeper,
+		PortKeeper:      keeper.PortKeeper,
+		ScopedIBCKeeper: types.ScopedIBCKeeper{ScopedKeeper: scopedKeeper},
+	}
 }
 
 // InvokeAddAppRoutes defines a depinject Invoker for registering ibc application modules on the core ibc application router.

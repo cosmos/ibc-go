@@ -27,7 +27,6 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/version"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -37,6 +36,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/types"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
+	testingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 )
 
 var MaxAccounts = 10
@@ -560,7 +560,7 @@ func MakeBlockID(hash []byte, partSetSize uint32, partSetHash []byte) cmttypes.B
 // already exist. This function will fail testing on any resulting error.
 // NOTE: only creation of a capability for a transfer or mock port is supported
 // Other applications must bind to the port in InitGenesis or modify this code.
-func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.ScopedKeeper, portID string) {
+func (chain *TestChain) CreatePortCapability(scopedKeeper testingtypes.ScopedKeeper, portID string) {
 	// check if the portId is already binded, if not bind it
 	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
 	if !ok {
@@ -588,7 +588,7 @@ func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capabi
 // CreateChannelCapability binds and claims a capability for the given portID and channelID
 // if it does not already exist. This function will fail testing on any resulting error. The
 // scoped keeper passed in will claim the new capability.
-func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.ScopedKeeper, portID, channelID string) {
+func (chain *TestChain) CreateChannelCapability(scopedKeeper testingtypes.ScopedKeeper, portID, channelID string) {
 	capName := host.ChannelCapabilityPath(portID, channelID)
 	// check if the portId is already binded, if not bind it
 	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), capName)

@@ -51,6 +51,7 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -96,7 +97,7 @@ type SimApp struct {
 	CapabilityKeeper          *capabilitykeeper.Keeper
 	ScopedIBCKeeper           ibctypes.ScopedIBCKeeper
 	ScopedIBCMockKeeper       ibcmock.ScopedMockKeeper
-	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper      ibctransfertypes.ScopedTransferKeeper
 	ScopedFeeMockKeeper       capabilitykeeper.ScopedKeeper
 	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
@@ -220,6 +221,8 @@ func NewSimApp(
 		&app.ScopedIBCKeeper,
 		&app.IBCMockModule,
 		&app.ScopedIBCMockKeeper,
+		&app.TransferKeeper,
+		&app.ScopedTransferKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -446,7 +449,7 @@ func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 
 // GetScopedIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
-	return capabilitykeeper.ScopedKeeper(app.ScopedIBCKeeper)
+	return app.ScopedIBCKeeper.ScopedKeeper
 }
 
 // GetTxConfig implements the TestingApp interface.

@@ -12,5 +12,5 @@ type ParamSubspace interface {
 	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
 }
 
-// ScopedIBCKeeper is a type alias of x/capability's ScopedKeeper used for depinject module outputs.
-type ScopedIBCKeeper capabilitykeeper.ScopedKeeper
+// ScopedIBCKeeper embeds x/capability's ScopedKeeper used for depinject module outputs.
+type ScopedIBCKeeper struct{ capabilitykeeper.ScopedKeeper }
