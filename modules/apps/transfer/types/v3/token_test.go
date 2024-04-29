@@ -66,9 +66,10 @@ func TestGetFullDenomPath(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		path := tc.packetData.Tokens[0].GetFullDenomPath()
-
-		require.Equal(t, tc.expPath, path)
+		t.Run(tc.name, func(t *testing.T) {
+			path := tc.packetData.Tokens[0].GetFullDenomPath()
+			require.Equal(t, tc.expPath, path)
+		})
 	}
 }
 
@@ -126,12 +127,14 @@ func TestValidate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := tc.token.Validate()
-		expPass := tc.expError == nil
-		if expPass {
-			require.NoError(t, err, tc.name)
-		} else {
-			require.ErrorContains(t, err, tc.expError.Error(), tc.name)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.token.Validate()
+			expPass := tc.expError == nil
+			if expPass {
+				require.NoError(t, err, tc.name)
+			} else {
+				require.ErrorContains(t, err, tc.expError.Error(), tc.name)
+			}
+		})
 	}
 }

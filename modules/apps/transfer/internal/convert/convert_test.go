@@ -37,6 +37,19 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 			nil,
 		},
 		{
+			"success with empty trace",
+			v1types.NewFungibleTokenPacketData("atom", "1000", sender, receiver, ""),
+			v3types.NewFungibleTokenPacketData(
+				[]*v3types.Token{
+					{
+						Denom:  "atom",
+						Amount: "1000",
+						Trace:  []string{""},
+					},
+				}, sender, receiver, ""),
+			nil,
+		},
+		{
 			"success: base denom with '/'",
 			v1types.NewFungibleTokenPacketData("transfer/channel-0/atom/withslash", "1000", sender, receiver, ""),
 			v3types.NewFungibleTokenPacketData(

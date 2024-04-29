@@ -9,6 +9,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	multidenom "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -474,8 +475,8 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
-		data          []byte
-		expPacketData types.FungibleTokenPacketData
+		data              []byte
+		initialPacketData interface{}
 	)
 
 	testCases := []struct {
@@ -484,30 +485,87 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		expPass  bool
 	}{
 		{
-			"success: valid packet data with memo",
+			"success: valid packet data single denom -> multidenom conversion with memo",
 			func() {
-				expPacketData = types.FungibleTokenPacketData{
+				initialPacketData = types.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
 					Sender:   sender,
 					Receiver: receiver,
 					Memo:     "some memo",
 				}
-				data = expPacketData.GetBytes()
+
+				data = initialPacketData.(types.FungibleTokenPacketData).GetBytes()
 			},
 			true,
 		},
 		{
-			"success: valid packet data without memo",
+			"success: valid packet data single denom -> multidenom conversion without memo",
 			func() {
-				expPacketData = types.FungibleTokenPacketData{
+				initialPacketData = types.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
 					Sender:   sender,
 					Receiver: receiver,
 					Memo:     "",
 				}
-				data = expPacketData.GetBytes()
+
+				data = initialPacketData.(types.FungibleTokenPacketData).GetBytes()
+			},
+			true,
+		},
+		{
+			"success: valid packet data single denom with trace -> multidenom conversion with trace",
+			func() {
+				initialPacketData = types.FungibleTokenPacketData{
+					Denom:    "transfer/channel-0/atom",
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
+				}
+
+				data = initialPacketData.(types.FungibleTokenPacketData).GetBytes()
+			},
+			true,
+		},
+		{
+			"success: valid packet data multidenom with memo",
+			func() {
+				initialPacketData = multidenom.FungibleTokenPacketData{
+					Tokens: []*multidenom.Token{
+						{
+							Denom:  "atom",
+							Amount: ibctesting.TestCoin.Amount.String(),
+							Trace:  []string{"transfer/channel-0"},
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "some memo",
+				}
+
+				data = initialPacketData.(multidenom.FungibleTokenPacketData).GetBytes()
+			},
+			true,
+		},
+		{
+			"success: valid packet data multidenom without memo",
+			func() {
+				initialPacketData = multidenom.FungibleTokenPacketData{
+					Tokens: []*multidenom.Token{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+							Trace:  []string{""},
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
+				}
+
+				data = initialPacketData.(multidenom.FungibleTokenPacketData).GetBytes()
 			},
 			true,
 		},
@@ -529,7 +587,19 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(expPacketData, packetData)
+
+				v3PacketData, ok := packetData.(multidenom.FungibleTokenPacketData)
+				suite.Require().True(ok)
+
+				if v1PacketData, ok := initialPacketData.(types.FungibleTokenPacketData); ok {
+					// Note: testing of the denom trace parsing/conversion should be done as part of testing internal conversion functions
+					suite.Require().Equal(v1PacketData.Amount, v3PacketData.Tokens[0].Amount)
+					suite.Require().Equal(v1PacketData.Sender, v3PacketData.Sender)
+					suite.Require().Equal(v1PacketData.Receiver, v3PacketData.Receiver)
+					suite.Require().Equal(v1PacketData.Memo, v3PacketData.Memo)
+				} else {
+					suite.Require().Equal(initialPacketData.(multidenom.FungibleTokenPacketData), v3PacketData)
+				}
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(packetData)
