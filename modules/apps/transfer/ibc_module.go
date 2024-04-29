@@ -11,8 +11,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	multidenom "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -168,6 +170,27 @@ func (IBCModule) OnChanCloseConfirm(
 	channelID string,
 ) error {
 	return nil
+}
+
+func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte) (multidenom.FungibleTokenPacketData, error) {
+	// TODO: remove support for this function parsing v1 packet data
+	// TODO: explicit check for packet data type against app version
+
+	var datav1 types.FungibleTokenPacketData
+	if err := json.Unmarshal(bz, &datav1); err == nil {
+		if len(datav1.Denom) != 0 {
+			return convertinternal.PacketDataV1ToV3(datav1), nil
+		}
+	}
+
+	var data multidenom.FungibleTokenPacketData
+	if err := json.Unmarshal(bz, &data); err == nil {
+		if len(data.Tokens) != 0 {
+			return data, nil
+		}
+	}
+
+	return multidenom.FungibleTokenPacketData{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
@@ -351,11 +374,11 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	var packetData types.FungibleTokenPacketData
-	if err := json.Unmarshal(bz, &packetData); err != nil {
+func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
+	ftpd, err := im.unmarshalPacketDataBytesToICS20V2(bz)
+	if err != nil {
 		return nil, err
 	}
 
-	return packetData, nil
+	return ftpd, nil
 }

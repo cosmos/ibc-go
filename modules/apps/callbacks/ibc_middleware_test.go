@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	multidenom "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -950,14 +951,27 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
 	s.Require().True(ok)
 
-	expPacketData := transfertypes.FungibleTokenPacketData{
+	initialPacketData := transfertypes.FungibleTokenPacketData{
 		Denom:    ibctesting.TestCoin.Denom,
 		Amount:   ibctesting.TestCoin.Amount.String(),
 		Sender:   ibctesting.TestAccAddress,
 		Receiver: ibctesting.TestAccAddress,
 		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
 	}
-	data := expPacketData.GetBytes()
+	data := initialPacketData.GetBytes()
+
+	expPacketData := multidenom.FungibleTokenPacketData{
+		Tokens: []*multidenom.Token{
+			{
+				Denom:  initialPacketData.Denom,
+				Amount: initialPacketData.Amount,
+				Trace:  []string{""},
+			},
+		},
+		Sender:   initialPacketData.Sender,
+		Receiver: initialPacketData.Receiver,
+		Memo:     initialPacketData.Memo,
+	}
 
 	packetData, err := unmarshalerStack.UnmarshalPacketData(data)
 	s.Require().NoError(err)
