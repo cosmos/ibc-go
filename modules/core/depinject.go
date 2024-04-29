@@ -16,6 +16,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/types"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
@@ -54,8 +55,8 @@ type ModuleOutputs struct {
 
 	Module appmodule.AppModule
 
-	IBCKeeper    *ibckeeper.Keeper
-	ScopedKeeper capabilitykeeper.ScopedKeeper
+	IBCKeeper       *ibckeeper.Keeper
+	ScopedIBCKeeper types.ScopedIBCKeeper
 }
 
 // ProvideModule defines a depinject provider function to supply the module dependencies and return its outputs.
@@ -79,18 +80,17 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 	)
 	m := NewAppModule(keeper)
 
-	return ModuleOutputs{Module: m, IBCKeeper: keeper, ScopedKeeper: scopedKeeper}
+	return ModuleOutputs{Module: m, IBCKeeper: keeper, ScopedIBCKeeper: types.ScopedIBCKeeper(scopedKeeper)}
 }
 
 // InvokeAddAppRoutes defines a depinject Invoker for registering ibc application modules on the core ibc application router.
 func InvokeAddAppRoutes(keeper *ibckeeper.Keeper, appRoutes []porttypes.IBCModuleRoute) {
 	ibcRouter := porttypes.NewRouter()
-
 	for _, route := range appRoutes {
 		ibcRouter.AddRoute(route.Name, route.IBCModule)
 	}
 
-	ibcRouter.Seal()
+	keeper.SetRouter(ibcRouter)
 }
 
 // InvokeAddClientRoutes defines a depinject Invoker for registering ibc light client modules on the core ibc client router.
