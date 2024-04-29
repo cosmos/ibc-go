@@ -587,14 +587,18 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				if _, ok := initialPacketData.(types.FungibleTokenPacketData); ok {
+
+				v3PacketData, ok := packetData.(multidenom.FungibleTokenPacketData)
+				suite.Require().True(ok)
+
+				if v1PacketData, ok := initialPacketData.(types.FungibleTokenPacketData); ok {
 					// Note: testing of the denom trace parsing/conversion should be done as part of testing internal conversion functions
-					suite.Require().Equal(initialPacketData.(types.FungibleTokenPacketData).Amount, packetData.(multidenom.FungibleTokenPacketData).Tokens[0].Amount)
-					suite.Require().Equal(initialPacketData.(types.FungibleTokenPacketData).Sender, packetData.(multidenom.FungibleTokenPacketData).Sender)
-					suite.Require().Equal(initialPacketData.(types.FungibleTokenPacketData).Receiver, packetData.(multidenom.FungibleTokenPacketData).Receiver)
-					suite.Require().Equal(initialPacketData.(types.FungibleTokenPacketData).Memo, packetData.(multidenom.FungibleTokenPacketData).Memo)
+					suite.Require().Equal(v1PacketData.Amount, v3PacketData.Tokens[0].Amount)
+					suite.Require().Equal(v1PacketData.Sender, v3PacketData.Sender)
+					suite.Require().Equal(v1PacketData.Receiver, v3PacketData.Receiver)
+					suite.Require().Equal(v1PacketData.Memo, v3PacketData.Memo)
 				} else {
-					suite.Require().Equal(initialPacketData.(multidenom.FungibleTokenPacketData), packetData.(multidenom.FungibleTokenPacketData))
+					suite.Require().Equal(initialPacketData.(multidenom.FungibleTokenPacketData), v3PacketData)
 				}
 			} else {
 				suite.Require().Error(err)
