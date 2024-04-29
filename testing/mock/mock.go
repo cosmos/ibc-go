@@ -1,27 +1,13 @@
 package mock
 
 import (
-	"encoding/json"
 	"fmt"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-
-	"cosmossdk.io/core/appmodule"
-
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -56,112 +42,35 @@ var (
 	TestValue = []byte("test-value")
 )
 
-var (
-	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
-	_ appmodule.AppModule   = (*AppModule)(nil)
-
-	_ porttypes.IBCModule = (*IBCModule)(nil)
-)
-
-// Expected Interface
-// PortKeeper defines the expected IBC port keeper
+// PortKeeper defines the expected IBC PortKeeper interface.
 type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
 	IsBound(ctx sdk.Context, portID string) bool
 }
 
-// AppModuleBasic is the mock AppModuleBasic.
-type AppModuleBasic struct{}
+var _ exported.Acknowledgement = (*EmptyAcknowledgement)(nil)
 
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (AppModuleBasic) IsOnePerModuleType() {}
-
-// IsAppModule implements the appmodule.AppModule interface.
-func (AppModuleBasic) IsAppModule() {}
-
-// Name implements AppModuleBasic interface.
-func (AppModuleBasic) Name() string {
-	return ModuleName
+// EmptyAcknowledgement implements the exported.Acknowledgement interface and always returns an empty byte string as Response
+type EmptyAcknowledgement struct {
+	Response []byte
 }
 
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (AppModule) IsOnePerModuleType() {}
-
-// IsAppModule implements the appmodule.AppModule interface.
-func (AppModule) IsAppModule() {}
-
-// RegisterLegacyAminoCodec implements AppModuleBasic interface.
-func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
-
-// RegisterInterfaces implements AppModuleBasic interface.
-func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {}
-
-// DefaultGenesis implements AppModuleBasic interface.
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return nil
-}
-
-// ValidateGenesis implements the AppModuleBasic interface.
-func (AppModuleBasic) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, json.RawMessage) error {
-	return nil
-}
-
-// RegisterGRPCGatewayRoutes implements AppModuleBasic interface.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
-
-// GetTxCmd implements AppModuleBasic interface.
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
-}
-
-// GetQueryCmd implements AppModuleBasic interface.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
-}
-
-// AppModule represents the AppModule for the mock module.
-type AppModule struct {
-	AppModuleBasic
-	ibcApps    []*IBCApp
-	portKeeper PortKeeper
-}
-
-// NewAppModule returns a mock AppModule instance.
-func NewAppModule(pk PortKeeper) AppModule {
-	return AppModule{
-		portKeeper: pk,
+// NewEmptyAcknowledgement returns a new instance of EmptyAcknowledgement
+func NewEmptyAcknowledgement() EmptyAcknowledgement {
+	return EmptyAcknowledgement{
+		Response: []byte{},
 	}
 }
 
-// RegisterInvariants implements the AppModule interface.
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
-
-// RegisterServices implements the AppModule interface.
-func (AppModule) RegisterServices(module.Configurator) {}
-
-// InitGenesis implements the AppModule interface.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	for _, ibcApp := range am.ibcApps {
-		if ibcApp.PortID != "" && !am.portKeeper.IsBound(ctx, ibcApp.PortID) {
-			// bind mock portID
-			capability := am.portKeeper.BindPort(ctx, ibcApp.PortID)
-			err := ibcApp.ScopedKeeper.ClaimCapability(ctx, capability, host.PortPath(ibcApp.PortID))
-			if err != nil {
-				panic(err)
-			}
-		}
-	}
-
-	return []abci.ValidatorUpdate{}
+// Success implements the Acknowledgement interface
+func (EmptyAcknowledgement) Success() bool {
+	return true
 }
 
-// ExportGenesis implements the AppModule interface.
-func (AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	return nil
+// Acknowledgement implements the Acknowledgement interface
+func (EmptyAcknowledgement) Acknowledgement() []byte {
+	return []byte{}
 }
-
-// ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 var _ exported.Path = KeyPath{}
 

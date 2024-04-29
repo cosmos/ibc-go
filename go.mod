@@ -2,7 +2,7 @@ go 1.21
 
 module github.com/cosmos/ibc-go/v8
 
-// Replace to local pin of capability to pick up depinject 
+// Replace to local pin of capability to pick up depinject
 replace github.com/cosmos/ibc-go/modules/capability => ./modules/capability
 
 require (
