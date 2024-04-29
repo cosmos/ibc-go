@@ -34,9 +34,6 @@ var (
 	_ appmodule.AppModule        = (*AppModule)(nil)
 )
 
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (AppModule) IsOnePerModuleType() {}
-
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
 
@@ -97,22 +94,22 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	lightClientModule LightClientModule
 }
 
 // NewAppModule creates a new 08-wasm module
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(l LightClientModule) AppModule {
 	return AppModule{
-		keeper: k,
+		lightClientModule: l,
 	}
 }
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterMsgServer(cfg.MsgServer(), am.lightClientModule.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), am.lightClientModule.keeper)
 
-	wasmMigrator := keeper.NewMigrator(am.keeper)
+	wasmMigrator := keeper.NewMigrator(am.lightClientModule.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, wasmMigrator.MigrateChecksums); err != nil {
 		panic(fmt.Errorf("failed to migrate 08-wasm module from version 1 to 2 (checksums migration to collections): %v", err))
 	}
@@ -132,13 +129,13 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.Ra
 	if err != nil {
 		panic(fmt.Errorf("failed to unmarshal %s genesis state: %s", am.Name(), err))
 	}
-	err = am.keeper.InitGenesis(ctx, gs)
+	err = am.lightClientModule.keeper.InitGenesis(ctx, gs)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := am.keeper.ExportGenesis(ctx)
+	gs := am.lightClientModule.keeper.ExportGenesis(ctx)
 	return cdc.MustMarshalJSON(&gs)
 }
