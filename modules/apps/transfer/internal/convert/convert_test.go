@@ -44,7 +44,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 					{
 						Denom:  "atom",
 						Amount: "1000",
-						Trace:  []string{},
+						Trace:  nil,
 					},
 				}, sender, receiver, ""),
 			nil,

@@ -34,7 +34,7 @@ func ExtractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 
 	// if the path string is empty, then the base denom is the full native denom.
 	if v1DenomTrace.Path == "" {
-		return v1DenomTrace.BaseDenom, []string{}
+		return v1DenomTrace.BaseDenom, nil
 	}
 
 	splitPath := strings.Split(v1DenomTrace.Path, "/")
