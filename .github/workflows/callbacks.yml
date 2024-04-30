@@ -16,7 +16,7 @@ jobs:
         with:
           go-version: '1.21'
       - uses: actions/checkout@v4
-      - uses: golangci/golangci-lint-action@v4.0.0
+      - uses: golangci/golangci-lint-action@v5.0.0
         with:
           version: v1.57.2
           args: --timeout 5m
@@ -47,7 +47,7 @@ jobs:
       - name: Go Test
         run: |
           cd modules/apps/callbacks
-          go test -v -mod=readonly ./...
+          go test -v -mod=readonly ./... -coverprofile=coverage.out
 
   code-analysis:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
