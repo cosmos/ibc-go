@@ -39,7 +39,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 
 	k.SetMiddlewareEnabled(ctx, portID, connectionID)
 
-	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version)
+	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version, channeltypes.ORDERED)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 
 // registerInterchainAccount registers an interchain account, returning the channel id of the MsgChannelOpenInitResponse
 // and an error if one occurred.
-func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string) (string, error) {
+func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string, ordering channeltypes.Order) (string, error) {
 	// if there is an active channel for this portID / connectionID return an error
 	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
 	if found {
@@ -66,7 +66,7 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 		}
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, version, channeltypes.ORDERED, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
+	msg := channeltypes.NewMsgChannelOpenInit(portID, version, ordering, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 	handler := k.msgRouter.Handler(msg)
 	res, err := handler(ctx, msg)
 	if err != nil {

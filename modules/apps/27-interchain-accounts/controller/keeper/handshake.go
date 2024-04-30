@@ -13,8 +13,7 @@ import (
 )
 
 // OnChanOpenInit performs basic validation of channel initialization.
-// The channel order must be ORDERED, the counterparty port identifier
-// must be the host chain representation as defined in the types package,
+// The counterparty port identifier must be the host chain representation as defined in the types package,
 // the channel version must be equal to the version in the types package,
 // there must not be an active channel for the specfied port identifier,
 // and the interchain accounts module must be able to claim the channel
@@ -29,10 +28,6 @@ func (k Keeper) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	if order != channeltypes.ORDERED {
-		return "", sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
 	if !strings.HasPrefix(portID, icatypes.ControllerPortPrefix) {
 		return "", sdkerrors.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.ControllerPortPrefix, portID)
 	}
@@ -66,8 +61,12 @@ func (k Keeper) OnChanOpenInit(
 			panic(fmt.Sprintf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.State == channeltypes.OPEN {
-			return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
+		if channel.State != channeltypes.CLOSED {
+			return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s must be %s", activeChannelID, portID, channeltypes.CLOSED)
+		}
+
+		if channel.Ordering != order {
+			return "", sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "order cannot change when reopening a channel expected %s, got %s", channel.Ordering, order)
 		}
 
 		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)

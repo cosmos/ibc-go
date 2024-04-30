@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -26,10 +27,6 @@ func (k Keeper) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if order != channeltypes.ORDERED {
-		return "", sdkerrors.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
 	if portID != icatypes.HostPortID {
 		return "", sdkerrors.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
@@ -50,18 +47,13 @@ func (k Keeper) OnChanOpenTry(
 			panic(fmt.Sprintf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.State == channeltypes.OPEN {
-			return "", sdkerrors.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
+		if channel.State != channeltypes.CLOSED {
+			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s must be %s", activeChannelID, portID, channeltypes.CLOSED)
 		}
 
-		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
-		if !found {
-			panic(fmt.Sprintf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
-		}
-
-		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {
-			return "", sdkerrors.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
-		}
+		// if a channel is being reopened, we allow the controller to propose new fields
+		// which are not exactly the same as the previous. The provided address will
+		// be overwritten with the correct one before the metadata is returned.
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
