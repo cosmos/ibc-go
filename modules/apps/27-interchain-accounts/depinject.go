@@ -39,19 +39,22 @@ type ModuleInputs struct {
 	depinject.In
 
 	// TODO: Config should define `controller_enabled` and `host_enabled` vars for keeper/module setup
-	Config        *modulev1.Module
-	Cdc           codec.Codec
+	Config *modulev1.Module
+	Cdc    codec.Codec
+
+	// TODO: runtime seems to expect that a module contains a single kvstore key.
 	ControllerKey *storetypes.KVStoreKey
 	HostKey       *storetypes.KVStoreKey
 
 	Ics4Wrapper      porttypes.ICS4Wrapper
 	ChannelKeeper    types.ChannelKeeper
 	PortKeeper       types.PortKeeper
-	CapabilityKeeper capabilitykeeper.Keeper
+	CapabilityKeeper *capabilitykeeper.Keeper
 	AccountKeeper    types.AccountKeeper
 
-	MsgRouter   types.MessageRouter
-	QueryRouter types.QueryRouter
+	MsgRouter types.MessageRouter
+	// TODO(remove optional): GRCPQueryRouter is not outputted into DI container on v0.50. It is on main.
+	QueryRouter types.QueryRouter `optional:"true"`
 
 	// LegacySubspace is used solely for migration of x/params managed parameters
 	LegacySubspace paramtypes.Subspace `optional:"true"`

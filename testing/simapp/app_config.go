@@ -5,25 +5,26 @@ import (
 
 	"google.golang.org/protobuf/types/known/durationpb"
 
-	_ "cosmossdk.io/x/circuit"                            // import for side-effects
-	_ "cosmossdk.io/x/evidence"                           // import for side-effects
-	_ "cosmossdk.io/x/feegrant/module"                    // import for side-effects
-	_ "cosmossdk.io/x/upgrade"                            // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config"     // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting"       // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/authz/module"       // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/bank"               // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/consensus"          // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/crisis"             // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/distribution"       // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/group/module"       // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/mint"               // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/params"             // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/slashing"           // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/staking"            // import for side-effects
-	_ "github.com/cosmos/ibc-go/modules/capability"       // import for side-effects
-	_ "github.com/cosmos/ibc-go/v8/modules/apps/transfer" // import for side-effects
-	_ "github.com/cosmos/ibc-go/v8/modules/core"          // import for side-effects
+	_ "cosmossdk.io/x/circuit"                                          // import for side-effects
+	_ "cosmossdk.io/x/evidence"                                         // import for side-effects
+	_ "cosmossdk.io/x/feegrant/module"                                  // import for side-effects
+	_ "cosmossdk.io/x/upgrade"                                          // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config"                   // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting"                     // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/authz/module"                     // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/bank"                             // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/consensus"                        // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/crisis"                           // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/distribution"                     // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/group/module"                     // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/mint"                             // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/params"                           // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/slashing"                         // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/staking"                          // import for side-effects
+	_ "github.com/cosmos/ibc-go/modules/capability"                     // import for side-effects
+	_ "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts" // import for side-effects
+	_ "github.com/cosmos/ibc-go/v8/modules/apps/transfer"               // import for side-effects
+	_ "github.com/cosmos/ibc-go/v8/modules/core"                        // import for side-effects
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
@@ -75,12 +76,14 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	capabilitymodulev1 "github.com/cosmos/ibc-go/api/capability/module/v1"
+	icamodulev1 "github.com/cosmos/ibc-go/api/ibc/applications/interchain_accounts/module/v1"
 	ibctransfermodulev1 "github.com/cosmos/ibc-go/api/ibc/applications/transfer/module/v1"
 	ibcmodulev1 "github.com/cosmos/ibc-go/api/ibc/core/module/v1"
 	solomachinemodulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/solomachine/module/v1"
 	ibctmmodulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/tendermint/module/v1"
 	ibcmockmodulev1 "github.com/cosmos/ibc-go/api/mock/module/v1"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
@@ -98,6 +101,7 @@ var (
 		{Account: stakingtypes.NotBondedPoolName, Permissions: []string{authtypes.Burner, stakingtypes.ModuleName}},
 		{Account: govtypes.ModuleName, Permissions: []string{authtypes.Burner}},
 		{Account: ibctransfertypes.ModuleName, Permissions: []string{authtypes.Minter, authtypes.Burner}},
+		{Account: icatypes.ModuleName},
 	}
 
 	// blocked account addresses
@@ -176,6 +180,7 @@ var (
 						ibcexported.ModuleName,
 						ibcmock.ModuleName,
 						ibctransfertypes.ModuleName,
+						icatypes.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis module order
 					// is equal to the init genesis order
@@ -299,6 +304,10 @@ var (
 			{
 				Name:   ibctransfertypes.ModuleName,
 				Config: appconfig.WrapAny(&ibctransfermodulev1.Module{}),
+			},
+			{
+				Name:   icatypes.ModuleName,
+				Config: appconfig.WrapAny(&icamodulev1.Module{}),
 			},
 		},
 	}),
