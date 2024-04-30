@@ -44,7 +44,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 					{
 						Denom:  "atom",
 						Amount: "1000",
-						Trace:  []string{""},
+						Trace:  []string{},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -126,11 +126,11 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 		expPass := tc.expPanic == nil
 		if expPass {
 			v3Data := PacketDataV1ToV3(tc.v1Data)
-			require.Equal(t, tc.v3Data, v3Data)
+			require.Equal(t, tc.v3Data, v3Data, "test case: %s", tc.name)
 		} else {
 			require.PanicsWithError(t, tc.expPanic.Error(), func() {
 				PacketDataV1ToV3(tc.v1Data)
-			})
+			}, "test case: %s", tc.name)
 		}
 	}
 }

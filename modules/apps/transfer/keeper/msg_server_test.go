@@ -43,8 +43,8 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				coins := sdk.NewCoins(coin1, coin2)
 
 				// send some coins of the second denom from bank module to the sender account as well
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin1)))
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin1)))
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2)))
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin2)))
 
 				msg = types.NewMsgTransfer(
 					path.EndpointA.ChannelConfig.PortID,
@@ -128,8 +128,8 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				coins := sdk.NewCoins(coin1, coin2)
 
 				// send some coins of the second denom from bank module to the sender account as well
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin1)))
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin1)))
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2)))
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin2)))
 
 				msg = types.NewMsgTransfer(
 					path.EndpointA.ChannelConfig.PortID,
@@ -157,10 +157,10 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			coin1 := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+			coin1 = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 			msg = types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
