@@ -200,8 +200,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 }
 
 func (suite *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
-	// Currently, all queries in bank, staking, auth and distribution are marked safe
-	// Notably, the gov module are not marked safe
+	// Currently, all queries in bank, staking and auth are marked safe
+	// Notably, the gov and distribution modules are not marked safe
 
 	var allowList []string
 	suite.Require().NotPanics(func() {
