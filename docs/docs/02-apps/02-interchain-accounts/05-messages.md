@@ -78,7 +78,7 @@ It is possible to use [`MsgModuleQuerySafe`](https://github.com/cosmos/ibc-go/bl
  
 The queries available from Cosmos SDK are:
 
-```
+```plaintext
 /cosmos.auth.v1beta1.Query/Accounts
 /cosmos.auth.v1beta1.Query/Account
 /cosmos.auth.v1beta1.Query/AccountAddressByID
@@ -119,7 +119,7 @@ The queries available from Cosmos SDK are:
 
 And the query available from ibc-go is:
 
-```
+```plaintext
 /ibc.core.client.v1.Query/VerifyMembership
 ```
 
