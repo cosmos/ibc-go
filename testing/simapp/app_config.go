@@ -80,7 +80,6 @@ import (
 	solomachinemodulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/solomachine/module/v1"
 	ibctmmodulev1 "github.com/cosmos/ibc-go/api/ibc/lightclients/tendermint/module/v1"
 	ibcmockmodulev1 "github.com/cosmos/ibc-go/api/mock/module/v1"
-
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
