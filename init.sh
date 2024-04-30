@@ -15,7 +15,7 @@ export SIMD_RELAYER_ADDR=$(./simd keys show simd_relayer --keyring-backend=test 
 
 
 ./simd genesis add-genesis-account validator001 100000000stake --keyring-backend=test
-./simd genesis add-genesis-account simd_relayer 10stake --keyring-backend=test
+./simd genesis add-genesis-account simd_relayer 100000000stake --keyring-backend=test
 
 ./simd genesis gentx validator001 "100000000stake" --amount="100000000stake" --keyring-backend=test --chain-id=ibcgo --from=validator001
 ./simd genesis collect-gentxs

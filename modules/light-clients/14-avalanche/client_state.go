@@ -409,7 +409,7 @@ func (cs ClientState) VerifyMembership(
 	value []byte,
 ) error {
 	// TODO
-	networkID := uint32(1)
+	networkID := uint32(1337)
 
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
@@ -457,10 +457,11 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrap(err, "failed to verify StorageRoot signature")
 	}
 
-	key := path.(*MerkleKey)
+	// TODO: fix variable casting
+	//key := path.(*MerkleKey)
 
 	// check merkleProof verifycation, by go-ethereum lib
-	return VerifyMembership(cs.Proof, consensusState.StorageRoot, value, key)
+	return VerifyMembership(cs.Proof, consensusState.StorageRoot, value, &MerkleKey{Key: path.String()})
 }
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
