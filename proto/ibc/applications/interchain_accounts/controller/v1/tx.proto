@@ -6,6 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-acco
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/interchain_accounts/v1/packet.proto";
+import "ibc/core/channel/v1/channel.proto";
 
 // Msg defines the 27-interchain-accounts/controller Msg service.
 service Msg {
@@ -20,9 +21,10 @@ message MsgRegisterInterchainAccount {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string owner         = 1;
-  string connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
-  string version       = 3;
+  string                    owner         = 1;
+  string                    connection_id = 2 [(gogoproto.moretags) = "yaml:\"connection_id\""];
+  string                    version       = 3;
+  ibc.core.channel.v1.Order ordering      = 4;
 }
 
 // MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount

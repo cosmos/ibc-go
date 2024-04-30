@@ -13,10 +13,14 @@ var (
 	// in connection version negotiation. The current version supports only
 	// ORDERED and UNORDERED channels and requires at least one channel type
 	// to be agreed upon.
-	DefaultIBCVersion = NewVersion(DefaultIBCVersionIdentifier, []string{"ORDER_ORDERED", "ORDER_UNORDERED"})
+	DefaultIBCVersion = NewVersion(DefaultIBCVersionIdentifier, SupportedOrderings)
 
 	// DefaultIBCVersionIdentifier is the IBC v1.0.0 protocol version identifier
 	DefaultIBCVersionIdentifier = "1"
+
+	// SupportedOrderings is the list of orderings supported by IBC. The current
+	// version supports only ORDERED and UNORDERED channels.
+	SupportedOrderings = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
 
 	// AllowNilFeatureSet is a helper map to indicate if a specified version
 	// identifier is allowed to have a nil feature set. Any versions supported,

@@ -161,11 +161,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			}, false,
 		},
 		{
-			"ICA OnChanOpenInit fails - UNORDERED channel", func() {
-				channel.Ordering = channeltypes.UNORDERED
-			}, false,
-		},
-		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
