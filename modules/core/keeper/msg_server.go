@@ -526,6 +526,49 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }
 
+// RecvPacketCheckNonRedundant checks that a MsgRecvPacket is:
+// 1) Valid
+// 2) Not a duplicate of a packet already received
+// It is only intended to be ran on CheckTx.
+func (k *Keeper) RecvPacketCheckNonRedundant(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (bool, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Lookup module by channel capability
+	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel)
+	if err != nil {
+		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return false, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	// Retrieve callbacks from router
+	_, ok := k.PortKeeper.Route(module)
+	if !ok {
+		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return false, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	// Perform TAO verification
+	//
+	// If the packet was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	// TODO: Update RecvPacket to skip cryptographic checks on Recheck.
+	err = k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
+		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
+		return true, nil
+	default:
+		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "receive packet verification failed"))
+		return false, errorsmod.Wrap(err, "receive packet verification failed")
+	}
+	return false, nil
+}
+
 // Timeout defines a rpc handler method for MsgTimeout.
 func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
