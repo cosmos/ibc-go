@@ -551,6 +551,8 @@ func (k *Keeper) RecvPacketCheckNonRedundant(goCtx context.Context, msg *channel
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
 	// TODO: Update RecvPacket to skip MT inclusion checks on Recheck.
+	// Its slightly involved because right now every client is responsible for checking that the
+	// height exists on the client, rather than the channel keeper.
 	err = k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
