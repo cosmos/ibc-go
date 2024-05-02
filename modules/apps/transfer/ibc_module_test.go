@@ -132,30 +132,31 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			"success", func() {}, nil,
 		},
 		{
-			"max channels reached", func() {
+			"success: invalid counterparty version", func() {
+				// transfer module will propose the default version
+				counterpartyVersion = "version"
+			}, nil,
+		},
+		{
+			"failure: max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
 			}, types.ErrMaxTransferChannels,
 		},
 		{
-			"capability already claimed", func() {
+			"failure: capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
 			}, capabilitytypes.ErrOwnerClaimed,
 		},
 		{
-			"invalid order - ORDERED", func() {
+			"failure: invalid order - ORDERED", func() {
 				channel.Ordering = channeltypes.ORDERED
 			}, channeltypes.ErrInvalidChannelOrdering,
 		},
 		{
-			"invalid port ID", func() {
+			"failure: invalid port ID", func() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
 			}, porttypes.ErrInvalidPort,
-		},
-		{
-			"invalid counterparty version", func() {
-				counterpartyVersion = "version"
-			}, types.ErrInvalidVersion,
 		},
 	}
 
