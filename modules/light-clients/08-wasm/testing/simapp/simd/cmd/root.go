@@ -383,7 +383,7 @@ var tempDir = func() string {
 // Ref: https://github.com/cosmos/ibc-go/issues/4821#issuecomment-1747240445
 func CheckLibwasmVersion(wasmExpectedVersion string) error {
 	if wasmExpectedVersion == "" {
-		return fmt.Errorf("wasmvm module not exist")
+		return errors.New("wasmvm module not exist")
 	}
 	wasmVersion, err := wasmvm.LibwasmvmVersion()
 	if err != nil {
