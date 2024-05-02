@@ -1,9 +1,16 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
+	gogoproto "github.com/cosmos/gogoproto/proto"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+
+	msgv1 "cosmossdk.io/api/cosmos/msg/v1"
+	queryv1 "cosmossdk.io/api/cosmos/query/v1"
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 
@@ -36,7 +43,11 @@ type Keeper struct {
 
 	scopedKeeper exported.ScopedKeeper
 
-	msgRouter icatypes.MessageRouter
+	msgRouter   icatypes.MessageRouter
+	queryRouter icatypes.QueryRouter
+
+	// mqsAllowList is a list of all module safe query paths
+	mqsAllowList []string
 }
 
 // NewKeeper creates a new interchain accounts host Keeper instance
@@ -65,6 +76,7 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		scopedKeeper:  scopedKeeper,
 		msgRouter:     msgRouter,
+		mqsAllowList:  newModuleQuerySafeAllowList(),
 	}
 }
 
@@ -73,6 +85,18 @@ func NewKeeper(
 // in the IBC application stack.
 func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	k.ics4Wrapper = wrapper
+}
+
+// WithQueryRouter sets the QueryRouter. This function may be used after
+// the keeper's creation to set the query router to which queries in the
+// ICA packet data will be routed to if they are module_safe_query.
+// Panics if the queryRouter is nil.
+func (k *Keeper) WithQueryRouter(queryRouter icatypes.QueryRouter) {
+	if queryRouter == nil {
+		panic(errors.New("cannot set a nil query router"))
+	}
+
+	k.queryRouter = queryRouter
 }
 
 // Logger returns the application logger, scoped to the associated module
@@ -224,4 +248,41 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []genesistypes.Registe
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portID, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
+}
+
+// newModuleQuerySafeAllowList returns a list of all query paths labeled with module_query_safe in the proto files.
+func newModuleQuerySafeAllowList() []string {
+	protoFiles, err := gogoproto.MergedRegistry()
+	if err != nil {
+		panic(err)
+	}
+
+	allowList := []string{}
+	protoFiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		for i := 0; i < fd.Services().Len(); i++ {
+			// Get the service descriptor
+			sd := fd.Services().Get(i)
+
+			// Skip services that are annotated with the "cosmos.msg.v1.service" option.
+			if ext := proto.GetExtension(sd.Options(), msgv1.E_Service); ext != nil && ext.(bool) {
+				continue
+			}
+
+			for j := 0; j < sd.Methods().Len(); j++ {
+				// Get the method descriptor
+				md := sd.Methods().Get(j)
+
+				// Skip methods that are not annotated with the "cosmos.query.v1.module_query_safe" option.
+				if ext := proto.GetExtension(md.Options(), queryv1.E_ModuleQuerySafe); ext == nil || !ext.(bool) {
+					continue
+				}
+
+				// Add the method to the whitelist
+				allowList = append(allowList, fmt.Sprintf("/%s/%s", sd.FullName(), md.Name()))
+			}
+		}
+		return true
+	})
+
+	return allowList
 }
