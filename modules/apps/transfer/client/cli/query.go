@@ -112,7 +112,7 @@ func GetCmdParams() *cobra.Command {
 	return cmd
 }
 
-// GetCmdParams returns the command handler for ibc-transfer parameter querying.
+// GetCmdQueryEscrowAddress returns the command handler for ibc-transfer parameter querying.
 func GetCmdQueryEscrowAddress() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "escrow-address",
