@@ -69,7 +69,6 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"success: with multiple allocations",
 			func() {
-
 				testMultiDenom := sdk.NewCoins(ibctesting.TestCoin, sdk.NewCoin("atom", sdkmath.NewInt(100)), sdk.NewCoin("osmo", sdkmath.NewInt(100)))
 
 				alloc := types.Allocation{
