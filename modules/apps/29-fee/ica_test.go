@@ -39,7 +39,6 @@ func NewIncentivizedICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Pa
 
 	feeICAVersion := string(types.ModuleCdc.MustMarshalJSON(&feeMetadata))
 
-	path.SetChannelOrdered()
 	path.EndpointA.ChannelConfig.Version = feeICAVersion
 	path.EndpointB.ChannelConfig.Version = feeICAVersion
 	path.EndpointA.ChannelConfig.PortID = defaultPortID

@@ -66,8 +66,6 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
-	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = TestVersion
 	path.EndpointB.ChannelConfig.Version = TestVersion
 
@@ -215,7 +213,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.INIT,
-				Ordering:       channeltypes.ORDERED,
+				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
 				Version:        path.EndpointA.ChannelConfig.Version,
@@ -278,7 +276,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	initProof, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
 	// use chainA (controller) for ChanOpenTry
-	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, initProof, proofHeight, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, channeltypes.UNORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, initProof, proofHeight, icatypes.ModuleName)
 	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainA.GetContext(), msg)
 
@@ -411,7 +409,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 	suite.Require().NoError(err)
 
 	// chainB maliciously sets channel to OPEN
-	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, TestVersion)
+	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.UNORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, TestVersion)
 	suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
 
 	// commit state changes so proof can be created
@@ -774,11 +772,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		expError error
 	}{
 		{
-			"success w/ ORDERED channel", func() {}, nil,
+			"success w/ UNORDERED channel", func() {}, nil,
 		},
 		{
-			"success w/ UNORDERED channel", func() {
-				channelOrder = channeltypes.UNORDERED
+			"success w/ ORDERED channel", func() {
+				channelOrder = channeltypes.ORDERED
 			}, nil,
 		},
 		{
@@ -845,7 +843,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
 			}
 
-			channelOrder = channeltypes.ORDERED
+			channelOrder = channeltypes.UNORDERED
 
 			version, err = cbs.OnChanUpgradeInit(
 				suite.chainA.GetContext(),
@@ -1000,11 +998,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 		malleate func()
 	}{
 		{
-			"success w/ ORDERED channel", func() {},
+			"success w/ UNORDERED channel", func() {},
 		},
 		{
-			"success w/ UNORDERED channel", func() {
-				channelOrder = channeltypes.UNORDERED
+			"success w/ ORDERED channel", func() {
+				channelOrder = channeltypes.ORDERED
 			},
 		},
 		{
@@ -1052,7 +1050,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
 			}
 
-			channelOrder = channeltypes.ORDERED
+			channelOrder = channeltypes.UNORDERED
 
 			cbs.OnChanUpgradeOpen(
 				suite.chainA.GetContext(),

@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channel := channeltypes.Channel{
 					State:          channeltypes.CLOSED,
-					Ordering:       channeltypes.ORDERED,
+					Ordering:       channeltypes.UNORDERED,
 					Counterparty:   counterparty,
 					ConnectionHops: []string{path.EndpointA.ConnectionID},
 					Version:        TestVersion,
@@ -82,7 +82,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channel := channeltypes.Channel{
 					State:          channeltypes.CLOSED,
-					Ordering:       channeltypes.UNORDERED,
+					Ordering:       channeltypes.ORDERED,
 					Counterparty:   counterparty,
 					ConnectionHops: []string{path.EndpointA.ConnectionID},
 					Version:        TestVersion,
@@ -107,7 +107,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				closedChannel := channeltypes.Channel{
 					State:          channeltypes.CLOSED,
-					Ordering:       channeltypes.ORDERED,
+					Ordering:       channeltypes.UNORDERED,
 					Counterparty:   counterparty,
 					ConnectionHops: []string{path.EndpointA.ConnectionID},
 					Version:        string(versionBytes),
@@ -228,7 +228,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channel := channeltypes.Channel{
 					State:          channeltypes.OPEN,
-					Ordering:       channeltypes.ORDERED,
+					Ordering:       channeltypes.UNORDERED,
 					Counterparty:   counterparty,
 					ConnectionHops: []string{path.EndpointA.ConnectionID},
 					Version:        TestVersion,
@@ -245,7 +245,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channel := channeltypes.Channel{
 					State:          channeltypes.FLUSHING,
-					Ordering:       channeltypes.ORDERED,
+					Ordering:       channeltypes.UNORDERED,
 					Counterparty:   counterparty,
 					ConnectionHops: []string{path.EndpointA.ConnectionID},
 					Version:        TestVersion,
@@ -281,7 +281,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.INIT,
-				Ordering:       channeltypes.ORDERED,
+				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
 				Version:        string(versionBytes),
@@ -407,7 +407,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 			"active channel already set",
 			func() {
 				// create a new channel and set it in state
-				ch := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, ibctesting.DefaultChannelVersion)
+				ch := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.UNORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, ibctesting.DefaultChannelVersion)
 				suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ch)
 
 				// set the active channelID in state

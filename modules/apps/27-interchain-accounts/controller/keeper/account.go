@@ -41,7 +41,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 
 	k.SetMiddlewareEnabled(ctx, portID, connectionID)
 
-	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version, channeltypes.ORDERED)
+	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version, channeltypes.UNORDERED)
 	if err != nil {
 		return err
 	}

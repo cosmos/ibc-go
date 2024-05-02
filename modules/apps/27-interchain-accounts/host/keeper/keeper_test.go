@@ -78,8 +78,6 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain, encoding string) *ibctesti
 
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
-	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = version
 	path.EndpointB.ChannelConfig.Version = version
 

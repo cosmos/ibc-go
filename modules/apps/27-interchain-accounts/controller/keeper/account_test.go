@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channel := channeltypes.Channel{
 					State:          channeltypes.OPEN,
-					Ordering:       channeltypes.ORDERED,
+					Ordering:       channeltypes.UNORDERED,
 					Counterparty:   counterparty,
 					ConnectionHops: []string{path.EndpointA.ConnectionID},
 					Version:        TestVersion,

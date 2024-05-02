@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			func() {},
 		},
 		{
-			"success: ordering falls back to ORDERED if not specified",
+			"success: ordering falls back to UNORDERED if not specified",
 			true,
 			func() {
 				msg.Ordering = channeltypes.NONE
@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 				path.EndpointA.ChannelConfig.PortID = res.PortId
 				path.EndpointA.ChannelID = res.ChannelId
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(channeltypes.ORDERED, channel.Ordering)
+				suite.Require().Equal(channeltypes.UNORDERED, channel.Ordering)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
