@@ -112,17 +112,21 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
+	logger := im.keeper.Logger(ctx)
 	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
 		return "", err
-	}
-
-	if counterpartyVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
 	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
+	}
+
+	if counterpartyVersion != types.Version {
+		// Propose the current version
+		logger.Debug(fmt.Sprintf("invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion))
+		logger.Debug(fmt.Sprintf("proposing the current version: %s", types.Version))
+		return types.Version, nil
 	}
 
 	return types.Version, nil
