@@ -67,6 +67,8 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
+	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
+	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = TestVersion
 	path.EndpointB.ChannelConfig.Version = TestVersion
 
@@ -81,7 +83,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccountWithOrdering(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version, channeltypes.ORDERED); err != nil {
 		return err
 	}
 
@@ -120,7 +122,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenInit() {
 	suite.coordinator.SetupConnections(path)
 
 	// use chainB (host) for ChanOpenInit
-	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icatypes.Version, channeltypes.UNORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icatypes.Version, channeltypes.ORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icatypes.ModuleName)
 	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err := handler(suite.chainB.GetContext(), msg)
 
@@ -139,11 +141,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		expPass  bool
 	}{
 		{
-			"success w/ UNORDERED channel", func() {}, true,
+			"success w/ ORDERED channel", func() {}, true,
 		},
 		{
-			"success w/ ORDERED channel", func() {
-				channel.Ordering = channeltypes.ORDERED
+			"success w/ UNORDERED channel", func() {
+				channel.Ordering = channeltypes.UNORDERED
 			}, true,
 		},
 		{
@@ -192,7 +194,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.TRYOPEN,
-				Ordering:       channeltypes.UNORDERED,
+				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
 				Version:        path.EndpointB.ChannelConfig.Version,
@@ -244,7 +246,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
 	suite.Require().NoError(err)
 
 	// chainA maliciously sets channel to TRYOPEN
-	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.UNORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
+	channel := channeltypes.NewChannel(channeltypes.TRYOPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
 	suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 
 	// commit state changes so proof can be created
@@ -682,7 +684,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 				suite.chainB.GetContext(),
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
-				channeltypes.UNORDERED,
+				channeltypes.ORDERED,
 				[]string{path.EndpointB.ConnectionID},
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version,
 			)

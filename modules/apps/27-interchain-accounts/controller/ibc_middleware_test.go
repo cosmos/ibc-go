@@ -66,6 +66,8 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
+	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
+	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointA.ChannelConfig.Version = TestVersion
 	path.EndpointB.ChannelConfig.Version = TestVersion
 
@@ -80,7 +82,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccountWithOrdering(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion, channeltypes.ORDERED); err != nil {
 		return err
 	}
 
@@ -213,7 +215,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.INIT,
-				Ordering:       channeltypes.UNORDERED,
+				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
 				Version:        path.EndpointA.ChannelConfig.Version,
@@ -276,7 +278,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	initProof, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
 	// use chainA (controller) for ChanOpenTry
-	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, channeltypes.UNORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, initProof, proofHeight, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, initProof, proofHeight, icatypes.ModuleName)
 	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainA.GetContext(), msg)
 
@@ -409,7 +411,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 	suite.Require().NoError(err)
 
 	// chainB maliciously sets channel to OPEN
-	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.UNORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, TestVersion)
+	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, TestVersion)
 	suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
 
 	// commit state changes so proof can be created
@@ -772,11 +774,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		expError error
 	}{
 		{
-			"success w/ UNORDERED channel", func() {}, nil,
+			"success w/ ORDERED channel", func() {}, nil,
 		},
 		{
-			"success w/ ORDERED channel", func() {
-				channelOrder = channeltypes.ORDERED
+			"success w/ UNORDERED channel", func() {
+				channelOrder = channeltypes.UNORDERED
 			}, nil,
 		},
 		{
@@ -843,7 +845,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
 			}
 
-			channelOrder = channeltypes.UNORDERED
+			channelOrder = channeltypes.ORDERED
 
 			version, err = cbs.OnChanUpgradeInit(
 				suite.chainA.GetContext(),
@@ -998,11 +1000,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 		malleate func()
 	}{
 		{
-			"success w/ UNORDERED channel", func() {},
+			"success w/ ORDERED channel", func() {},
 		},
 		{
-			"success w/ ORDERED channel", func() {
-				channelOrder = channeltypes.ORDERED
+			"success w/ UNORDERED channel", func() {
+				channelOrder = channeltypes.UNORDERED
 			},
 		},
 		{
@@ -1050,7 +1052,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
 			}
 
-			channelOrder = channeltypes.UNORDERED
+			channelOrder = channeltypes.ORDERED
 
 			cbs.OnChanUpgradeOpen(
 				suite.chainA.GetContext(),
@@ -1162,7 +1164,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICall
 
 	// attempt to start a second handshake via the controller msg server
 	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion)
+	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccountWithOrdering(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, channeltypes.ORDERED)
 
 	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
 	suite.Require().Error(err)
@@ -1175,7 +1177,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServer
 
 	// initiate a channel handshake such that channel.State == INIT
 	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion)
+	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccountWithOrdering(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, channeltypes.ORDERED)
 
 	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
 	suite.Require().NotNil(res)
@@ -1208,7 +1210,7 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 
 	// route a new MsgRegisterInterchainAccount in order to reopen the
 	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), path.EndpointA.ChannelConfig.Version)
+	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccountWithOrdering(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), path.EndpointA.ChannelConfig.Version, channeltypes.ORDERED)
 
 	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
 	suite.Require().NoError(err)

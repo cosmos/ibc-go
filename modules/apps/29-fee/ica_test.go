@@ -39,6 +39,7 @@ func NewIncentivizedICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Pa
 
 	feeICAVersion := string(types.ModuleCdc.MustMarshalJSON(&feeMetadata))
 
+	path.SetChannelOrdered()
 	path.EndpointA.ChannelConfig.Version = feeICAVersion
 	path.EndpointB.ChannelConfig.Version = feeICAVersion
 	path.EndpointA.ChannelConfig.PortID = defaultPortID
@@ -74,7 +75,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccountWithOrdering(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version, channeltypes.ORDERED); err != nil {
 		return err
 	}
 
