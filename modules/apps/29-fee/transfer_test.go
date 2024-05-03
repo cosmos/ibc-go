@@ -164,7 +164,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 	}
 }
 
-func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareHandshake() {
+func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareTransferHandshake() {
 	RemoveFeeMiddleware(suite.chainB) // remove fee middleware from chainB
 
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
