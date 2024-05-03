@@ -42,7 +42,7 @@ func (TransferAuthorization) MsgTypeURL() string {
 }
 
 // Accept implements Authorization.Accept.
-func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
+func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
 	msgTransfer, ok := msg.(*MsgTransfer)
 	if !ok {
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
@@ -54,18 +54,19 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 	}
 
 	allocation := a.Allocations[index]
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// bool flag to see if we have updated any of the allocations
-	modificationMade := false
-
-	if !isAllowedAddress(sdk.UnwrapSDKContext(ctx), msgTransfer.Receiver, allocation.AllowList) {
+	if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 	}
 
-	err := validateMemo(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowedPacketData)
+	err := validateMemo(ctx, msgTransfer.Memo, allocation.AllowedPacketData)
 	if err != nil {
 		return authz.AcceptResponse{}, err
 	}
+
+	// bool flag to see if we have updated any of the allocations
+	allocationModified := false
 
 	// update spend limit for each token in the MsgTransfer
 	for _, token := range msgTransfer.GetTokens() {
@@ -75,12 +76,12 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			continue
 		}
 
-		limitLeft, isNegative := allocation.SpendLimit.SafeSub(token)
+		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(token)
 		if isNegative {
 			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", token.Denom)
 		}
 
-		modificationMade = true
+		allocationModified = true
 
 		a.Allocations[index] = Allocation{
 			SourcePort:        allocation.SourcePort,
@@ -100,7 +101,7 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 		return authz.AcceptResponse{Accept: true, Delete: true}, nil
 	}
 
-	if !modificationMade {
+	if !allocationModified {
 		return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
 	}
 
@@ -226,7 +227,7 @@ func UnboundedSpendLimit() sdkmath.Int {
 	return sdkmath.NewIntFromBigInt(maxUint256)
 }
 
-// getAllocationIndex ranges through set of allocations, and returns the index of the allocation if found. If not, returns -1.
+// getAllocationIndex ranges through a set of allocations, and returns the index of the allocation if found. If not, returns -1.
 func getAllocationIndex(msg MsgTransfer, allocations []Allocation) int {
 	for index, allocation := range allocations {
 		if allocation.SourceChannel == msg.SourceChannel && allocation.SourcePort == msg.SourcePort {

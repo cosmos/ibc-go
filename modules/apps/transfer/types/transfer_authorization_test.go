@@ -67,21 +67,26 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-			"success: with multiple allocations",
+			"success: with multiple allocations and multidenom transfer",
 			func() {
-				testMultiDenom := sdk.NewCoins(ibctesting.TestCoin, sdk.NewCoin("atom", sdkmath.NewInt(100)), sdk.NewCoin("osmo", sdkmath.NewInt(100)))
+				coins := sdk.NewCoins(
+					ibctesting.TestCoin,
+					sdk.NewCoin("atom", sdkmath.NewInt(100)),
+					sdk.NewCoin("osmo", sdkmath.NewInt(100)),
+				)
 
-				alloc := types.Allocation{
+				allocation := types.Allocation{
 					SourcePort:    ibctesting.MockPort,
 					SourceChannel: "channel-9",
-					SpendLimit:    testMultiDenom,
+					SpendLimit:    coins,
 				}
 
-				transferAuthz.Allocations = append(transferAuthz.Allocations, alloc)
+				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
+
 				msgTransfer = types.NewMsgTransfer(
 					ibctesting.MockPort,
 					"channel-9",
-					sdk.NewCoins(ibctesting.TestCoin, sdk.NewCoin("atom", sdkmath.NewInt(100))),
+					coins,
 					suite.chainA.SenderAccount.GetAddress().String(),
 					ibctesting.TestAccAddress,
 					suite.chainB.GetTimeoutHeight(),
@@ -99,7 +104,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.Require().True(ok)
 
 				// assert spent spendlimits are removed from the list
-				suite.Require().Len(updatedAuthz.Allocations, 2)
+				suite.Require().Len(updatedAuthz.Allocations, 1)
 			},
 		},
 		{
