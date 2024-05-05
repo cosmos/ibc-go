@@ -249,19 +249,21 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			s.Require().Equal(testvalues.StartingTokenAmount, hostAccountBalance.Int64())
 		})
 
-		t.Run("verify acknowledgement error in ack transaction", func(t *testing.T) {
-			txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, "message.action='/ibc.core.channel.v1.MsgRecvPacket'", "")
-			s.Require().NoError(err)
-			s.Require().Len(txSearchRes.Txs, 1)
-
-			errorMessage, isFound := s.ExtractValueFromEvents(
-				txSearchRes.Txs[0].Events,
-				coretypes.ErrorAttributeKeyPrefix+icatypes.EventTypePacket,
-				coretypes.ErrorAttributeKeyPrefix+icatypes.AttributeKeyAckError,
-			)
-
-			s.Require().True(isFound)
-			s.Require().Equal(errorMessage, hosttypes.ErrHostSubModuleDisabled.Error())
-		})
+		testvalues.TransactionEventQueryFeatureReleases.IsSupported(chainBVersion) {
+			t.Run("verify acknowledgement error in ack transaction", func(t *testing.T) {
+				txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, "message.action='/ibc.core.channel.v1.MsgRecvPacket'", "")
+				s.Require().NoError(err)
+				s.Require().Len(txSearchRes.Txs, 1)
+	
+				errorMessage, isFound := s.ExtractValueFromEvents(
+					txSearchRes.Txs[0].Events,
+					coretypes.ErrorAttributeKeyPrefix+icatypes.EventTypePacket,
+					coretypes.ErrorAttributeKeyPrefix+icatypes.AttributeKeyAckError,
+				)
+	
+				s.Require().True(isFound)
+				s.Require().Equal(errorMessage, hosttypes.ErrHostSubModuleDisabled.Error())
+			})
+		}
 	})
 }
