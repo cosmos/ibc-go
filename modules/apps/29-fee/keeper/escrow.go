@@ -206,7 +206,7 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 				return nil
 			}
 
-			// pre-empitively store the unrefunded fees in case of failure
+			// preemptively store the unrefunded fees in case of failure
 			unRefundedFees = identifiedPacketFee.PacketFees[i:]
 
 			refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
