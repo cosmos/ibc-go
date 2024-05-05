@@ -139,20 +139,17 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		{
 			"success: counterparty version is legacy ics20-1", func() {
 				counterpartyVersion = types.Version1
-			},
-			true,
-			types.Version1,
+			}, true, types.Version1,
 		},
 		{
 			"success: invalid counterparty version, we use our proposed version", func() {
 				counterpartyVersion = "version"
-			}, false, types.Version,
+			}, true, types.Version,
 		},
 		{
 			"max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
-			},
-			false, "",
+			}, false, "",
 		},
 		{
 			"capability already claimed", func() {
@@ -168,12 +165,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid port ID", func() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
-			}, false, "",
-		},
-		{
-			"channel not found", func() {
-				counterpartyVersion = "version"
-				path.EndpointB.Chain.DeleteKey(host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 			}, false, "",
 		},
 	}
@@ -372,14 +363,6 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 				counterpartyUpgrade.Fields.Ordering = channeltypes.ORDERED
 			},
 			channeltypes.ErrInvalidChannelOrdering,
-		},
-		{
-			"invalid upgrade version",
-			func() {
-				counterpartyUpgrade.Fields.Version = ibctesting.InvalidID
-				path.EndpointB.Chain.DeleteKey(host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-			},
-			channeltypes.ErrChannelNotFound,
 		},
 	}
 

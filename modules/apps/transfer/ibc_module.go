@@ -118,18 +118,8 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	var (
-		version string
-		found   bool
-	)
-
-	version = counterpartyVersion
-
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		version, found = im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
-		if !found {
-			return "", channeltypes.ErrChannelNotFound
-		}
+		return types.Version, nil
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
@@ -137,7 +127,7 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	return version, nil
+	return counterpartyVersion, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -341,21 +331,11 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 		return "", err
 	}
 
-	var (
-		version string
-		found   bool
-	)
-
-	version = counterpartyVersion
-
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		version, found = im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
-		if !found {
-			return "", channeltypes.ErrChannelNotFound
-		}
+		return types.Version, nil
 	}
 
-	return version, nil
+	return counterpartyVersion, nil
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
