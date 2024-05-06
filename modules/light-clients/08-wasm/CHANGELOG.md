@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.6.
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
 * [#\6097](https://github.com/cosmos/ibc-go/pull/6097) Update wasmvm to v2.0.1.
+* [\#6239](https://github.com/cosmos/ibc-go/pull/6239) Bump CometBFT to v0.38.7.
 
 ### API Breaking
 
@@ -51,6 +52,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 * [#\5821](https://github.com/cosmos/ibc-go/pull/5821) feat: add `VerifyMembershipProof` RPC query (querier approach for conditional clients).
+* [#\6231](https://github.com/cosmos/ibc-go/pull/6231) feat: add CLI to broadcast transaction with `MsgMigrateContract`.
 
 ### Bug Fixes
 
