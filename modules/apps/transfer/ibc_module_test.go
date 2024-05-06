@@ -26,50 +26,56 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name       string
+		malleate   func()
+		expPass    bool
+		expVersion string
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, true, types.Version,
 		},
 		{
 			// connection hops is not used in the transfer application callback,
 			// it is already validated in the core OnChanUpgradeInit.
 			"success: invalid connection hops", func() {
 				path.EndpointA.ConnectionID = "invalid-connection-id"
-			}, true,
+			}, true, types.Version,
 		},
 		{
-			"empty version string", func() {
+			"success: empty version string", func() {
 				channel.Version = ""
-			}, true,
+			}, true, types.Version,
+		},
+		{
+			"success: ics20-1 legacy", func() {
+				channel.Version = types.Version1
+			}, true, types.Version1,
 		},
 		{
 			"max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
-			}, false,
+			}, false, "",
 		},
 		{
 			"invalid order - ORDERED", func() {
 				channel.Ordering = channeltypes.ORDERED
-			}, false,
+			}, false, "",
 		},
 		{
 			"invalid port ID", func() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
-			}, false,
+			}, false, "",
 		},
 		{
 			"invalid version", func() {
 				channel.Version = "version" //nolint:goconst
-			}, false,
+			}, false, "",
 		},
 		{
 			"capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
-			}, false,
+			}, false, "",
 		},
 	}
 
@@ -104,7 +110,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(types.Version, version)
+				suite.Require().Equal(tc.expVersion, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal(version, "")
@@ -123,38 +129,44 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name       string
+		malleate   func()
+		expPass    bool
+		expVersion string
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, true, types.Version,
+		},
+		{
+			"success: counterparty version is legacy ics20-1", func() {
+				counterpartyVersion = types.Version1
+			}, true, types.Version1,
+		},
+		{
+			"success: invalid counterparty version, we use our proposed version", func() {
+				counterpartyVersion = "version"
+			}, true, types.Version,
 		},
 		{
 			"max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
-			}, false,
+			}, false, "",
 		},
 		{
 			"capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
-			}, false,
+			}, false, "",
 		},
 		{
 			"invalid order - ORDERED", func() {
 				channel.Ordering = channeltypes.ORDERED
-			}, false,
+			}, false, "",
 		},
 		{
 			"invalid port ID", func() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
-			}, false,
-		},
-		{
-			"invalid counterparty version", func() {
-				counterpartyVersion = "version"
-			}, false,
+			}, false, "",
 		},
 	}
 
@@ -195,7 +207,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(types.Version, version)
+				suite.Require().Equal(tc.expVersion, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal("", version)
@@ -340,18 +352,18 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			nil,
 		},
 		{
+			"success: invalid upgrade version from counterparty, we use our proposed version",
+			func() {
+				counterpartyUpgrade.Fields.Version = ibctesting.InvalidID
+			},
+			nil,
+		},
+		{
 			"invalid upgrade ordering",
 			func() {
 				counterpartyUpgrade.Fields.Ordering = channeltypes.ORDERED
 			},
 			channeltypes.ErrInvalidChannelOrdering,
-		},
-		{
-			"invalid upgrade version",
-			func() {
-				counterpartyUpgrade.Fields.Version = ibctesting.InvalidID
-			},
-			types.ErrInvalidVersion,
 		},
 	}
 
