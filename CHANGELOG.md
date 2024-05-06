@@ -48,6 +48,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+## [v6.2.2](https://github.com/cosmos/ibc-go/releases/tag/v6.2.2) - 2024-05-06
+
+### Improvements
+
+* (testing) [\#https://github.com/cosmos/ibc-go/pull/6099](https://github.com/cosmos/ibc-go/pull/6099) Add `Version` to tendermint abci headers in ibctesting.
+
 ## [v6.2.1](https://github.com/cosmos/ibc-go/releases/tag/v6.2.1) - 2023-10-20
 
 ### Bug Fixes
