@@ -161,7 +161,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		s.Require().NoError(err)
 
 		// Verify tokens arrived on parachain user
-		parachainUserStake, err := polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 2)
+		parachainUserStake, err := polkadotChain.GetIbcBalance(ctx, polkadotUser.FormattedAddress(), 2)
 		s.Require().NoError(err)
 		s.Require().Equal(amountToSend, parachainUserStake.Amount.Int64(), "unexpected parachain user balance after first tx")
 	})
