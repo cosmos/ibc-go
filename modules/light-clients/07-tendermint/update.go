@@ -138,7 +138,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	}
 
 	// don't do prune logic in CheckTx
-	if !ctx.IsCheckTx() {
+	if !ctx.IsCheckTx() && !ctx.IsReCheckTx() {
 		cs.pruneOldestConsensusState(ctx, cdc, clientStore)
 	}
 
