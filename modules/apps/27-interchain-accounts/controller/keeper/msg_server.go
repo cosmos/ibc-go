@@ -37,7 +37,7 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 	s.SetMiddlewareDisabled(ctx, portID, msg.ConnectionId)
 
-	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
+	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version, msg.Ordering)
 	if err != nil {
 		s.Logger(ctx).Error("error registering interchain account", "error", err.Error())
 		return nil, err

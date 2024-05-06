@@ -6,7 +6,11 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
@@ -141,6 +145,80 @@ func (suite *KeeperTestSuite) TestIsBound() {
 
 	isBound := suite.chainB.GetSimApp().ICAHostKeeper.IsBound(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 	suite.Require().True(isBound)
+}
+
+func (suite *KeeperTestSuite) TestNewKeeper() {
+	testCases := []struct {
+		name          string
+		instantiateFn func()
+		expPass       bool
+	}{
+		{"success", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				&suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().ScopedICAHostKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
+			)
+		}, true},
+		{"failure: interchain accounts module account does not exist", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				&suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				authkeeper.AccountKeeper{}, // empty account keeper
+				suite.chainA.GetSimApp().ScopedICAHostKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
+			)
+		}, false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.SetupTest()
+
+		suite.Run(tc.name, func() {
+			if tc.expPass {
+				suite.Require().NotPanics(
+					tc.instantiateFn,
+				)
+			} else {
+				suite.Require().Panics(
+					tc.instantiateFn,
+				)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
+	// Currently, all queries in bank, staking and auth are marked safe
+	// Notably, the gov and distribution modules are not marked safe
+
+	var allowList []string
+	suite.Require().NotPanics(func() {
+		allowList = keeper.NewModuleQuerySafeAllowList()
+	})
+
+	suite.Require().NotEmpty(allowList)
+	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/Balance")
+	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/AllBalances")
+	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validator")
+	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validators")
+	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/Accounts")
+	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/ModuleAccountByName")
+	suite.Require().NotContains(allowList, "/cosmos.gov.v1beta1.Query/Proposals")
+	suite.Require().NotContains(allowList, "/cosmos.gov.v1.Query/Proposals")
+	suite.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/Params")
+	suite.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/DelegationRewards")
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {

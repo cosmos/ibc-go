@@ -50,6 +50,7 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 // RegisterInterfaces registers module concrete types into protobuf Any
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	controllertypes.RegisterInterfaces(registry)
+	hosttypes.RegisterInterfaces(registry)
 	types.RegisterInterfaces(registry)
 }
 
@@ -136,6 +137,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	if am.hostKeeper != nil {
+		hosttypes.RegisterMsgServer(cfg.MsgServer(), hostkeeper.NewMsgServerImpl(am.hostKeeper))
 		hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
 	}
 
