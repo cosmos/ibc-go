@@ -187,7 +187,7 @@ func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareICAHandshake() {
 
 	path := NewIncentivizedICAPath(suite.chainA, suite.chainB)
 
-	path.SetupConnections()
+	suite.coordinator.SetupConnections(path)
 
 	err := SetupPath(path, defaultOwnerAddress)
 	suite.Require().NoError(err)
@@ -196,7 +196,8 @@ func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareICAHandshake() {
 	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 	suite.Require().True(found)
 
-	expVersionMetadata, err := icatypes.MetadataFromVersion(defaultICAVersion)
+	var expVersionMetadata icatypes.Metadata
+	err = icatypes.ModuleCdc.UnmarshalJSON([]byte(defaultICAVersion), &expVersionMetadata)
 	suite.Require().NoError(err)
 
 	expVersionMetadata.Address = interchainAccountAddr
