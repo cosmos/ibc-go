@@ -136,18 +136,12 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyVersion string,
 ) error {
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-<<<<<<< HEAD
 		var versionMetadata types.Metadata
 		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
-			return sdkerrors.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
-=======
-		versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-		if err != nil {
 			// we pass the entire version string onto the underlying application.
 			// and disable fees for this channel
 			im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 			return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
->>>>>>> 3b3ecc5a (imp(apps): allow one sided fee middleware handshakes to complete (#6253))
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
