@@ -213,7 +213,7 @@ func (k Keeper) GetAllChecksums(ctx context.Context) ([]types.Checksum, error) {
 		return nil, err
 	}
 
-	checksums := []types.Checksum{}
+	checksums := make([]types.Checksum, 0, len(keys))
 	for _, key := range keys {
 		checksums = append(checksums, key)
 	}

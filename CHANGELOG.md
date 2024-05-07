@@ -47,6 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client, light-clients) [\#5806](https://github.com/cosmos/ibc-go/pull/5806) Decouple light client routing from their encoding structure.
 * (core/04-channel) [\#5991](https://github.com/cosmos/ibc-go/pull/5991) The client CLI `QueryLatestConsensusState` has been removed.
 * (light-clients/06-solomachine) [\#6037](https://github.com/cosmos/ibc-go/pull/6037) Remove `Initialize` function from `ClientState` and move logic to `Initialize` function of `LightClientModule`.
+* (light-clients/06-solomachine) [\#6230](https://github.com/cosmos/ibc-go/pull/6230) Remove `GetTimestampAtHeight`, `Status` and `UpdateStateOnMisbehaviour` functions from `ClientState` and move logic to functions of `LightClientModule`.
 * (core/02-client) [\#6084](https://github.com/cosmos/ibc-go/pull/6084) Removed `stakingKeeper` as an argument to `NewKeeper` and replaced with a `ConsensusHost` implementation.
 * (testing) [\#6070](https://github.com/cosmos/ibc-go/pull/6070) Remove `AssertEventsLegacy` function.
 * (core) [\#6138](https://github.com/cosmos/ibc-go/pull/6138) Remove `Router` reference from IBC core keeper and use instead the router on the existing `PortKeeper` reference.
@@ -57,6 +58,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
+* (apps/27-interchain-accounts, apps/tranfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
 
 ### Features
 

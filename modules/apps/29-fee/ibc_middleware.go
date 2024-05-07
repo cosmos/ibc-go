@@ -139,12 +139,13 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	// If handshake was initialized with fee enabled it must complete with fee enabled.
-	// If handshake was initialized with fee disabled it must complete with fee disabled.
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
 		if err != nil {
-			return errorsmod.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
+			// we pass the entire version string onto the underlying application.
+			// and disable fees for this channel
+			im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+			return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
