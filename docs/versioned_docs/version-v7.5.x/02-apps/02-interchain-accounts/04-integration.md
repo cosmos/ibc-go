@@ -20,6 +20,8 @@ Interchain Account authentication modules (both custom or generic, such as the `
 
 ![ica-v6.png](./images/ica-v6.png)
 
+> Please note that since ibc-go v7.5.0 it is mandatory to register the gRPC query router after the creation of the host submodule's keeper, otherwise nodes will not start. The query router is used to execute on the host query messages encoded in the ICA packet data. Please the sample integration code below for more details.
+
 ## Example integration
 
 ```go
@@ -84,13 +86,14 @@ app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
     app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
     app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
     scopedICAControllerKeeper, app.MsgServiceRouter(),
-)
+)   
 app.ICAHostKeeper = icahostkeeper.NewKeeper(
     appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
     app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
     app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
     app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
 )
+app.ICAHostKeeper.WithQueryRouter(app.GRPCQueryRouter())
 
 // Create Interchain Accounts AppModule
 icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)

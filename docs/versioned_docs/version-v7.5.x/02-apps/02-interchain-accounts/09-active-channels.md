@@ -7,7 +7,13 @@ slug: /apps/interchain-accounts/active-channels
 
 # Understanding Active Channels
 
-The Interchain Accounts module uses [ORDERED channels](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#ordering) to maintain the order of transactions when sending packets from a controller to a host chain. A limitation when using ORDERED channels is that when a packet times out the channel will be closed.
+The Interchain Accounts module uses either [ORDERED or UNORDERED](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#ordering) channels. 
+
+When using `ORDERED` channels, the order of transactions when sending packets from a controller to a host chain is maintained.
+
+When using `UNORDERED` channels, there is no guarantee that the order of transactions when sending packets from the controller to the host chain is maintained. Since ibc-go v7.5.0, the default ordering for new ICA channels is `UNORDERED` if no ordering is specified in `MsgRegisterInterchainAccount` (previously the default ordering was `ORDERED`).
+
+> A limitation when using ORDERED channels is that when a packet times out the channel will be closed.
 
 In the case of a channel closing, a controller chain needs to be able to regain access to the interchain account registered on this channel. `Active Channels` enable this functionality.
 
