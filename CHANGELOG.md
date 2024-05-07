@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (apps/27-interchain-accounts) [\#6251](https://github.com/cosmos/ibc-go/pull/6251) Use `UNORDERED` as the default ordering for new ICA channels.
+
 ### Features
 
 * (core) [\#6055](https://github.com/cosmos/ibc-go/pull/6055) Introduce a new interface `ConsensusHost` used to validate an IBC `ClientState` and `ConsensusState` against the host chain's underlying consensus parameters.
