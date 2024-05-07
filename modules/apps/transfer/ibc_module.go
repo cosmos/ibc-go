@@ -112,7 +112,6 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	logger := im.keeper.Logger(ctx)
 	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
 		return "", err
 	}
@@ -124,8 +123,7 @@ func (im IBCModule) OnChanOpenTry(
 
 	if counterpartyVersion != types.Version {
 		// Propose the current version
-		logger.Debug(fmt.Sprintf("invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion))
-		logger.Debug(fmt.Sprintf("proposing the current version: %s", types.Version))
+		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing current app version", "counterpartyVersion", counterpartyVersion, "version", types.Version)
 		return types.Version, nil
 	}
 

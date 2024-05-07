@@ -132,7 +132,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			"success", func() {}, nil,
 		},
 		{
-			"success: invalid counterparty version", func() {
+			"success: invalid counterparty version proposes new version", func() {
 				// transfer module will propose the default version
 				counterpartyVersion = "version"
 			}, nil,
