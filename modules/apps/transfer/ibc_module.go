@@ -116,13 +116,15 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if counterpartyVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
-	}
-
 	// OpenTry must claim the channelCapability that IBC passes into the callback
 	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
+	}
+
+	if counterpartyVersion != types.Version {
+		// Propose the current version
+		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing current app version", "counterpartyVersion", counterpartyVersion, "version", types.Version)
+		return types.Version, nil
 	}
 
 	return types.Version, nil
