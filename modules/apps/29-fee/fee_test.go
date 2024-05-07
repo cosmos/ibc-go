@@ -1,9 +1,7 @@
 package fee_test
 
 import (
-	"reflect"
 	"testing"
-	"unsafe"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -75,17 +73,7 @@ func RemoveFeeMiddleware(chain *ibctesting.TestChain) {
 	channelKeeper := chain.GetSimApp().IBCKeeper.ChannelKeeper
 
 	// Unseal the IBC router by force
-	r := reflect.ValueOf(chain.GetSimApp().IBCKeeper.PortKeeper.Router).Elem()
-
-	f := r.FieldByName("sealed")
-	if !f.IsValid() {
-		panic("field not found")
-	}
-	if !f.CanSet() { // Check if we can set the field
-		f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
-	}
-
-	f.SetBool(false) // Use reflection to bypass unexported status
+	chain.GetSimApp().IBCKeeper.PortKeeper.Router = nil
 
 	newRouter := porttypes.NewRouter() // Create a new router
 	// Remove Fee middleware from transfer module
