@@ -445,15 +445,9 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-<<<<<<< HEAD
 			suite.SetupTest()                   // reset
 			suite.coordinator.Setup(suite.path) // setup channel
-			expIdentifiedPacketFees = []types.IdentifiedPacketFees{}
-=======
-			suite.SetupTest()  // reset
-			suite.path.Setup() // setup channel
 			expIdentifiedPacketFees = []types.IdentifiedPacketFees(nil)
->>>>>>> 500765e4 (fix: delete already refunded fees from state if some fee cannot be refunded on channel closure (#6255))
 			expEscrowBal = sdk.Coins{}
 
 			// setup
