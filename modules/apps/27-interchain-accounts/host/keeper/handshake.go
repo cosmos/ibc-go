@@ -30,7 +30,6 @@ func (k Keeper) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	logger := k.Logger(ctx)
 	if portID != icatypes.HostPortID {
 		return "", errorsmod.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
@@ -43,7 +42,7 @@ func (k Keeper) OnChanOpenTry(
 			return "", errorsmod.Wrapf(err, "failed to retrieve connection %s", connectionHops[0])
 		}
 
-		logger.Debug("counterparty version is invalid, proposing default metadata")
+		k.Logger(ctx).Debug("counterparty version is invalid, proposing default metadata")
 		metadata = icatypes.NewDefaultMetadata(connection.GetCounterparty().GetConnectionID(), connectionHops[0])
 	}
 
