@@ -82,6 +82,7 @@ func RemoveFeeMiddleware(chain *ibctesting.TestChain) {
 	channelKeeper := chain.GetSimApp().IBCKeeper.ChannelKeeper
 
 	// Unseal the IBC router by force
+	chain.GetSimApp().IBCKeeper.Router = nil
 	chain.GetSimApp().IBCKeeper.PortKeeper.Router = nil
 
 	newRouter := porttypes.NewRouter() // Create a new router
