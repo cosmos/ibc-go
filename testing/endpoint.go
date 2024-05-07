@@ -336,6 +336,7 @@ func (endpoint *Endpoint) ChanOpenInit() error {
 	// update version to selected app version
 	// NOTE: this update must be performed after SendMsgs()
 	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+	endpoint.Counterparty.ChannelConfig.Version = endpoint.GetChannel().Version
 
 	return nil
 }
@@ -368,6 +369,7 @@ func (endpoint *Endpoint) ChanOpenTry() error {
 	// update version to selected app version
 	// NOTE: this update must be performed after the endpoint channelID is set
 	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+	endpoint.Counterparty.ChannelConfig.Version = endpoint.GetChannel().Version
 
 	return nil
 }

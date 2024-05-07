@@ -33,7 +33,14 @@ func (k Keeper) OnChanOpenTry(
 
 	var metadata icatypes.Metadata
 	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
-		return "", sdkerrors.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+		// Propose the default metadata if the counterparty version is invalid
+		connection, err := k.channelKeeper.GetConnection(ctx, connectionHops[0])
+		if err != nil {
+			return "", errorsmod.Wrapf(err, "failed to retrieve connection %s", connectionHops[0])
+		}
+
+		k.Logger(ctx).Debug("counterparty version is invalid, proposing default metadata")
+		metadata = icatypes.NewDefaultMetadata(connection.GetCounterparty().GetConnectionID(), connectionHops[0])
 	}
 
 	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {

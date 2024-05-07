@@ -68,3 +68,19 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 		fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
 		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance[0]))
 }
+
+func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareTransferHandshake() {
+	RemoveFeeMiddleware(suite.chainB) // remove fee middleware from chainB
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
+	path.EndpointA.ChannelConfig.Version = feeTransferVersion // this will be renegotiated by the Try step
+	path.EndpointB.ChannelConfig.Version = ""                 // this will be overwritten by the Try step
+	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
+	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
+
+	suite.coordinator.Setup(path)
+
+	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, transfertypes.Version)
+	suite.Require().Equal(path.EndpointB.ChannelConfig.Version, transfertypes.Version)
+}
