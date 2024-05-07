@@ -433,15 +433,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 		{
 			name: "non JSON-encoded allowed packet data",
 			malleate: func() {
-				allocation := types.Allocation{
-					SourcePort:        mock.PortID,
-					SourceChannel:     transferAuthz.Allocations[0].SourceChannel,
-					SpendLimit:        sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
-					AllowList:         []string{ibctesting.TestAccAddress},
-					AllowedPacketData: []string{"forward"},
-				}
-
-				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
+				transferAuthz.Allocations[0].AllowedPacketData = []string{"forward"}
 			},
 			expPass: false,
 		},
