@@ -182,6 +182,31 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	suite.Require().Equal(preEscrowBalance.SubAmount(defaultRecvFee.AmountOf(sdk.DefaultBondDenom)), postDistBalance)
 }
 
+func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareICAHandshake() {
+	RemoveFeeMiddleware(suite.chainB) // remove fee middleware from chainB
+
+	path := NewIncentivizedICAPath(suite.chainA, suite.chainB)
+
+	path.SetupConnections()
+
+	err := SetupPath(path, defaultOwnerAddress)
+	suite.Require().NoError(err)
+
+	// assert the newly established channel is not fee enabled on chainB
+	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+	suite.Require().True(found)
+
+	expVersionMetadata, err := icatypes.MetadataFromVersion(defaultICAVersion)
+	suite.Require().NoError(err)
+
+	expVersionMetadata.Address = interchainAccountAddr
+
+	expVersion := string(icatypes.ModuleCdc.MustMarshalJSON(&expVersionMetadata))
+
+	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, expVersion)
+	suite.Require().Equal(path.EndpointB.ChannelConfig.Version, expVersion)
+}
+
 func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint64) channeltypes.Packet {
 	packet := channeltypes.NewPacket(
 		data,

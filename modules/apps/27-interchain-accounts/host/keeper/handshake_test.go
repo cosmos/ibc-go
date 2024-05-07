@@ -173,9 +173,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid metadata bytestring",
 			func() {
+				// the try step will propose a new valid version
 				path.EndpointA.ChannelConfig.Version = "invalid-metadata-bytestring"
 			},
-			false,
+			true,
 		},
 		{
 			"unsupported encoding format",

@@ -112,13 +112,22 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
+<<<<<<< HEAD
 	if counterpartyVersion != types.Version {
 		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
 	}
 
+=======
+>>>>>>> 3b3ecc5a (imp(apps): allow one sided fee middleware handshakes to complete (#6253))
 	// OpenTry must claim the channelCapability that IBC passes into the callback
 	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
+	}
+
+	if counterpartyVersion != types.Version {
+		// Propose the current version
+		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing current app version", "counterpartyVersion", counterpartyVersion, "version", types.Version)
+		return types.Version, nil
 	}
 
 	return types.Version, nil
