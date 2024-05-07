@@ -65,3 +65,5 @@ jobs:
       chain-binary: 'simd'
       # only run the grandpa test suite for wasm tests.
       test-entry-point: 'TestGrandpaTestSuite'
+      # exclude transfer tests which rely on removed packet event attributes: # https://github.com/cosmos/ibc-go/issues/6243
+      test-exclusions: 'TestMsgTransfer_Succeeds_GrandpaContract,TestMsgTransfer_TimesOut_GrandpaContract'

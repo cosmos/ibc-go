@@ -205,7 +205,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 		panic(errorsmod.Wrap(types.ErrWasmInvalidResponseData, err.Error()))
 	}
 
-	heights := []exported.Height{}
+	heights := make([]exported.Height, 0, len(result.Heights))
 	for _, height := range result.Heights {
 		heights = append(heights, height)
 	}
