@@ -44,7 +44,7 @@ func (k Keeper) OnChanOpenTry(
 		}
 
 		logger.Debug("counterparty version is invalid, proposing default metadata")
-		metadata = icatypes.NewDefaultMetadata(connection.Counterparty.ConnectionId, connectionHops[0])
+		metadata = icatypes.NewDefaultMetadata(connection.GetCounterparty().GetConnectionID(), connectionHops[0])
 	}
 
 	if err = icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {

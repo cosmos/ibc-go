@@ -133,7 +133,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			"success: invalid counterparty version proposes new version", func() {
 				// transfer module will propose the default version
 				counterpartyVersion = "version"
-			}, nil,
+			}, true,
 		},
 		{
 			"failure: max channels reached", func() {
@@ -156,14 +156,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
 			}, false,
 		},
-<<<<<<< HEAD
-		{
-			"invalid counterparty version", func() {
-				counterpartyVersion = "version"
-			}, false,
-		},
-=======
->>>>>>> 3b3ecc5a (imp(apps): allow one sided fee middleware handshakes to complete (#6253))
 	}
 
 	for _, tc := range testCases {

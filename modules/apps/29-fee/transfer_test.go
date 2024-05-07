@@ -174,7 +174,7 @@ func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareTransferHandshake() {
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	path.Setup()
+	suite.coordinator.Setup(path)
 
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, transfertypes.Version)
 	suite.Require().Equal(path.EndpointB.ChannelConfig.Version, transfertypes.Version)

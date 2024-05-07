@@ -186,7 +186,7 @@ func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareICAHandshake() {
 
 	path := NewIncentivizedICAPath(suite.chainA, suite.chainB)
 
-	path.SetupConnections()
+	suite.coordinator.SetupConnections(path)
 
 	err := SetupPath(path, defaultOwnerAddress)
 	suite.Require().NoError(err)
