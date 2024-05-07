@@ -188,7 +188,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 		}
 	}
 
-	var keys []string
+	keys := make([]string, 0, len(jsonObject))
 	for k := range jsonObject {
 		keys = append(keys, k)
 	}
