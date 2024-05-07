@@ -38,7 +38,8 @@ const (
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	dst := &bytes.Buffer{}
-	json.Compact(dst, []byte(testMemo1))
+	err := json.Compact(dst, []byte(testMemo1))
+	suite.NoError(err)
 	compactTestMemo1 := dst.String()
 
 	var (

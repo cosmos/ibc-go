@@ -187,11 +187,17 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 
 		dst := &bytes.Buffer{}
-		json.Compact(dst, []byte(allowedMemo))
+		err := json.Compact(dst, []byte(allowedMemo))
+		if err != nil {
+			errorsmod.Wrapf(ErrInvalidAuthorization, "failed to compact allowed memo: %s", allowedMemo)
+		}
 		compactAllowedMemo := dst.String()
 
 		dst = &bytes.Buffer{}
-		json.Compact(dst, []byte(memo))
+		err = json.Compact(dst, []byte(memo))
+		if err != nil {
+			errorsmod.Wrapf(ErrInvalidAuthorization, "failed to compact memo: %s", memo)
+		}
 		compactMemo := dst.String()
 
 		if compactMemo == compactAllowedMemo {
