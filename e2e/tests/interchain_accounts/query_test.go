@@ -42,7 +42,6 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
-	chainBVersion := chainB.Config().Images[0].Version
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
