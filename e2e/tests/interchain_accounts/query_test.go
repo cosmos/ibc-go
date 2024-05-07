@@ -42,6 +42,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
+	chainBVersion := chainB.Config().Images[0].Version
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
@@ -106,57 +107,59 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			s.Require().NoError(testutil.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 
-		t.Run("verify query response", func(t *testing.T) {
-			var expQueryHeight uint64
+		if testvalues.TransactionEventQueryFeatureReleases.IsSupported(chainBVersion) {
+			t.Run("verify query response", func(t *testing.T) {
+				var expQueryHeight uint64
 
-			ack := &channeltypes.Acknowledgement_Result{}
-			t.Run("retrieve acknowledgement", func(t *testing.T) {
-				txSearchRes, err := s.QueryTxsByEvents(
-					ctx, chainB, 1, 1,
-					"message.action='/ibc.core.channel.v1.MsgRecvPacket'", "",
-				)
-				s.Require().NoError(err)
-				s.Require().Len(txSearchRes.Txs, 1)
+				ack := &channeltypes.Acknowledgement_Result{}
+				t.Run("retrieve acknowledgement", func(t *testing.T) {
+					txSearchRes, err := s.QueryTxsByEvents(
+						ctx, chainB, 1, 1,
+						"message.action='/ibc.core.channel.v1.MsgRecvPacket'", "",
+					)
+					s.Require().NoError(err)
+					s.Require().Len(txSearchRes.Txs, 1)
 
-				expQueryHeight = uint64(txSearchRes.Txs[0].Height)
+					expQueryHeight = uint64(txSearchRes.Txs[0].Height)
 
-				ackHexValue, isFound := s.ExtractValueFromEvents(
-					txSearchRes.Txs[0].Events,
-					channeltypes.EventTypeWriteAck,
-					channeltypes.AttributeKeyAckHex,
-				)
-				s.Require().True(isFound)
-				s.Require().NotEmpty(ackHexValue)
+					ackHexValue, isFound := s.ExtractValueFromEvents(
+						txSearchRes.Txs[0].Events,
+						channeltypes.EventTypeWriteAck,
+						channeltypes.AttributeKeyAckHex,
+					)
+					s.Require().True(isFound)
+					s.Require().NotEmpty(ackHexValue)
 
-				ackBz, err := hex.DecodeString(ackHexValue)
-				s.Require().NoError(err)
+					ackBz, err := hex.DecodeString(ackHexValue)
+					s.Require().NoError(err)
 
-				err = json.Unmarshal(ackBz, ack)
-				s.Require().NoError(err)
+					err = json.Unmarshal(ackBz, ack)
+					s.Require().NoError(err)
+				})
+
+				icaAck := &sdk.TxMsgData{}
+				t.Run("unmarshal ica response", func(t *testing.T) {
+					err := proto.Unmarshal(ack.Result, icaAck)
+					s.Require().NoError(err)
+					s.Require().Len(icaAck.GetMsgResponses(), 1)
+				})
+
+				queryTxResp := &icahosttypes.MsgModuleQuerySafeResponse{}
+				t.Run("unmarshal MsgModuleQuerySafeResponse", func(t *testing.T) {
+					err := proto.Unmarshal(icaAck.MsgResponses[0].Value, queryTxResp)
+					s.Require().NoError(err)
+					s.Require().Len(queryTxResp.Responses, 1)
+					s.Require().Equal(expQueryHeight, queryTxResp.Height)
+				})
+
+				balanceResp := &banktypes.QueryBalanceResponse{}
+				t.Run("unmarshal and verify bank query response", func(t *testing.T) {
+					err := proto.Unmarshal(queryTxResp.Responses[0], balanceResp)
+					s.Require().NoError(err)
+					s.Require().Equal(chainB.Config().Denom, balanceResp.Balance.Denom)
+					s.Require().Equal(testvalues.StartingTokenAmount, balanceResp.Balance.Amount.Int64())
+				})
 			})
-
-			icaAck := &sdk.TxMsgData{}
-			t.Run("unmarshal ica response", func(t *testing.T) {
-				err := proto.Unmarshal(ack.Result, icaAck)
-				s.Require().NoError(err)
-				s.Require().Len(icaAck.GetMsgResponses(), 1)
-			})
-
-			queryTxResp := &icahosttypes.MsgModuleQuerySafeResponse{}
-			t.Run("unmarshal MsgModuleQuerySafeResponse", func(t *testing.T) {
-				err := proto.Unmarshal(icaAck.MsgResponses[0].Value, queryTxResp)
-				s.Require().NoError(err)
-				s.Require().Len(queryTxResp.Responses, 1)
-				s.Require().Equal(expQueryHeight, queryTxResp.Height)
-			})
-
-			balanceResp := &banktypes.QueryBalanceResponse{}
-			t.Run("unmarshal and verify bank query response", func(t *testing.T) {
-				err := proto.Unmarshal(queryTxResp.Responses[0], balanceResp)
-				s.Require().NoError(err)
-				s.Require().Equal(chainB.Config().Denom, balanceResp.Balance.Denom)
-				s.Require().Equal(testvalues.StartingTokenAmount, balanceResp.Balance.Amount.Int64())
-			})
-		})
+		}
 	})
 }
