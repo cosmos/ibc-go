@@ -130,31 +130,40 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			"success", func() {}, true,
 		},
 		{
-			"max channels reached", func() {
+			"success: invalid counterparty version proposes new version", func() {
+				// transfer module will propose the default version
+				counterpartyVersion = "version"
+			}, nil,
+		},
+		{
+			"failure: max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
 			}, false,
 		},
 		{
-			"capability already claimed", func() {
+			"failure: capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
 			}, false,
 		},
 		{
-			"invalid order - ORDERED", func() {
+			"failure: invalid order - ORDERED", func() {
 				channel.Ordering = channeltypes.ORDERED
 			}, false,
 		},
 		{
-			"invalid port ID", func() {
+			"failure: invalid port ID", func() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
 			}, false,
 		},
+<<<<<<< HEAD
 		{
 			"invalid counterparty version", func() {
 				counterpartyVersion = "version"
 			}, false,
 		},
+=======
+>>>>>>> 3b3ecc5a (imp(apps): allow one sided fee middleware handshakes to complete (#6253))
 	}
 
 	for _, tc := range testCases {
