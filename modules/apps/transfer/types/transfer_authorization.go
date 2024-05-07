@@ -1,10 +1,10 @@
 package types
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"math/big"
-	"sort"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -131,6 +131,16 @@ func (a TransferAuthorization) ValidateBasic() error {
 			}
 			found[allocation.AllowList[i]] = true
 		}
+
+		if len(allocation.AllowedPacketData) > 0 && allocation.AllowedPacketData[0] != AllowAllPacketDataKeys {
+			jsonObject := make(map[string]interface{})
+			for _, elem := range allocation.AllowedPacketData {
+				err := json.Unmarshal([]byte(elem), &jsonObject)
+				if err != nil {
+					return errorsmod.Wrapf(ErrInvalidAuthorization, "allowed packet data contains a non JSON-encoded string: %s", elem)
+				}
+			}
+		}
 	}
 
 	return nil
@@ -166,39 +176,30 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 	}
 
 	// if allowedPacketDataList has only 1 element and it equals AllowAllPacketDataKeys
-	// then accept all the packet data keys
+	// then accept all the memo strings
 	if len(allowedPacketDataList) == 1 && allowedPacketDataList[0] == AllowAllPacketDataKeys {
 		return nil
 	}
 
-	jsonObject := make(map[string]interface{})
-	err := json.Unmarshal([]byte(memo), &jsonObject)
-	if err != nil {
-		return err
-	}
-
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
 
-	for _, key := range allowedPacketDataList {
+	for _, allowedMemo := range allowedPacketDataList {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 
-		_, ok := jsonObject[key]
-		if ok {
-			delete(jsonObject, key)
+		dst := &bytes.Buffer{}
+		json.Compact(dst, []byte(allowedMemo))
+		compactAllowedMemo := dst.String()
+
+		dst = &bytes.Buffer{}
+		json.Compact(dst, []byte(memo))
+		compactMemo := dst.String()
+
+		if compactMemo == compactAllowedMemo {
+			return nil
 		}
 	}
 
-	keys := make([]string, 0, len(jsonObject))
-	for k := range jsonObject {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	if len(jsonObject) != 0 {
-		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed packet data keys: %s", keys)
-	}
-
-	return nil
+	return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
 }
 
 // UnboundedSpendLimit returns the sentinel value that can be used

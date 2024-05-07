@@ -1,6 +1,9 @@
 package types_test
 
 import (
+	"bytes"
+	"encoding/json"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,9 +14,33 @@ import (
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-const testMemo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
+const (
+	testMemo1 = `{
+"wasm": {
+	"contract": "osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg",
+	"msg": {
+		"osmosis_swap": {
+			"output_denom": "uosmo",
+			"slippage": {
+				"twap": {
+					"slippage_percentage": "20",
+					"window_seconds": 10
+				}
+			},
+			"receiver": "feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw",
+			"on_failed_delivery": "do_nothing"
+		}
+	}
+}
+}`
+	testMemo2 = `{"forward":{"channel":"channel-11","port":"transfer","receiver":"stars1twfv52yxcyykx2lcvgl42svw46hsm5dd4ww6xy","retries":2,"timeout":1712146014542131200}}`
+)
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
+	dst := &bytes.Buffer{}
+	json.Compact(dst, []byte(testMemo1))
+	compactTestMemo1 := dst.String()
+
 	var (
 		msgTransfer   types.MsgTransfer
 		transferAuthz types.TransferAuthorization
@@ -122,7 +149,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{"*"}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				msgTransfer.Memo = testMemo
+				msgTransfer.Memo = testMemo1
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -133,11 +160,26 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-			"success: transfer memo allowed",
+			"success: non-compact transfer memo allowed",
 			func() {
-				allowedList := []string{"wasm", "forward"}
+				allowedList := []string{compactTestMemo1, testMemo2}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				msgTransfer.Memo = testMemo
+				msgTransfer.Memo = testMemo1
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"success: compact transfer memo allowed",
+			func() {
+				allowedList := []string{testMemo1, testMemo2}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Memo = compactTestMemo1
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -152,7 +194,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				msgTransfer.Memo = testMemo
+				msgTransfer.Memo = testMemo1
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)
@@ -161,13 +203,13 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"memo not allowed",
 			func() {
-				allowedList := []string{"forward"}
+				allowedList := []string{testMemo1}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				msgTransfer.Memo = testMemo
+				msgTransfer.Memo = testMemo2
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)
-				suite.Require().ErrorContains(err, "not allowed packet data keys: [wasm]")
+				suite.Require().ErrorContains(err, "not allowed memo: {\"forward\":{\"channel\":\"channel-11\",\"port\":\"transfer\",\"receiver\":\"stars1twfv52yxcyykx2lcvgl42svw46hsm5dd4ww6xy\",\"retries\":2,\"timeout\":1712146014542131200}}")
 			},
 		},
 		{
@@ -311,6 +353,20 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			true,
 		},
 		{
+			"success: wildcard allowed packet data",
+			func() {
+				transferAuthz.Allocations[0].AllowedPacketData = []string{"*"}
+			},
+			true,
+		},
+		{
+			"success: JSON-encoded allowed packet data",
+			func() {
+				transferAuthz.Allocations[0].AllowedPacketData = []string{testMemo1}
+			},
+			true,
+		},
+		{
 			"empty allocations",
 			func() {
 				transferAuthz = types.TransferAuthorization{Allocations: []types.Allocation{}}
@@ -367,6 +423,21 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 					SourceChannel: transferAuthz.Allocations[0].SourceChannel,
 					SpendLimit:    sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
 					AllowList:     []string{ibctesting.TestAccAddress},
+				}
+
+				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
+			},
+			expPass: false,
+		},
+		{
+			name: "non JSON-encoded allowed packet data",
+			malleate: func() {
+				allocation := types.Allocation{
+					SourcePort:        mock.PortID,
+					SourceChannel:     transferAuthz.Allocations[0].SourceChannel,
+					SpendLimit:        sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					AllowList:         []string{ibctesting.TestAccAddress},
+					AllowedPacketData: []string{"forward"},
 				}
 
 				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
