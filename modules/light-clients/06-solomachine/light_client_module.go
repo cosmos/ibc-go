@@ -169,8 +169,9 @@ func (l LightClientModule) VerifyNonMembership(
 
 // Status returns the status of the solo machine client.
 // The client may be:
-// - Active: if frozen sequence is 0
-// - Frozen: otherwise solo machine is frozen
+// - Active: if `IsFrozen` is false.
+// - Frozen: if `IsFrozen` is true.
+// - Unknown: if the client state associated with the provided client identifier is not found.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
 func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
