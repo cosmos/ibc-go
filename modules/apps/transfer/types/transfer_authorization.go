@@ -189,14 +189,14 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 		dst := &bytes.Buffer{}
 		err := json.Compact(dst, []byte(allowedMemo))
 		if err != nil {
-			errorsmod.Wrapf(ErrInvalidAuthorization, "failed to compact allowed memo: %s", allowedMemo)
+			return errorsmod.Wrapf(ErrInvalidAuthorization, "failed to compact allowed memo: %s", allowedMemo)
 		}
 		compactAllowedMemo := dst.String()
 
 		dst = &bytes.Buffer{}
 		err = json.Compact(dst, []byte(memo))
 		if err != nil {
-			errorsmod.Wrapf(ErrInvalidAuthorization, "failed to compact memo: %s", memo)
+			return errorsmod.Wrapf(ErrInvalidAuthorization, "failed to compact memo: %s", memo)
 		}
 		compactMemo := dst.String()
 
