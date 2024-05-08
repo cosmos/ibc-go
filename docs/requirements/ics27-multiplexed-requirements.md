@@ -51,6 +51,7 @@ Nolus enables users to borrow assets and use the inflation from staking rewards 
 Nomos enable NFTs to be minted on Injective on host accounts controlled from the Xion chain, providing a single interface for users, enabling chain abstraction. 
 
 # Functional requirements
+
 ## Assumptions and dependencies
 
 - Although having atomic transfer plus action workflows with Interchain Accounts is desirable, it is out of scope for these requirements as a solution is applicable to applications beyond Interchain Accounts alone. 
