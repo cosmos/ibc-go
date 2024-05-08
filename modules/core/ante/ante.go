@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -94,8 +93,9 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	return next(ctx, tx, simulate)
 }
 
-// checkTxUpdateClient runs a subset of ibc client update logic to be used in within the RedunantRelayerDecorator AnteHandler.
-// The following function performs client message verification and state updates only. Note that misbehaviour checks are ommited.
+// checkTxUpdateClient runs a subset of ibc client update logic to be used specifically within the RedundantRelayDecorator AnteHandler.
+// The following function performs ibc client message verification for CheckTx only and state updates in both CheckTx and ReCheckTx.
+// Note that misbehaviour checks are omitted.
 func (rrd RedundantRelayDecorator) checkTxUpdateClient(ctx sdk.Context, msg *clienttypes.MsgUpdateClient) error {
 	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
@@ -103,7 +103,7 @@ func (rrd RedundantRelayDecorator) checkTxUpdateClient(ctx sdk.Context, msg *cli
 	}
 
 	if status := rrd.k.ClientKeeper.GetClientStatus(ctx, msg.ClientId); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", msg.ClientId, status)
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot update client (%s) with status %s", msg.ClientId, status)
 	}
 
 	clientModule, found := rrd.k.ClientKeeper.Route(msg.ClientId)
