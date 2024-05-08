@@ -10,15 +10,15 @@ The current pain points for existing ICA users are listed:
 
 - *Account Flexibility* - Currently host accounts can only be of type `BaseAccount`
 
-- *Ordered Channels* - Timeouts and subsequent channel closures are time consuming and difficult to manage
+- *Ordered Channels* - Timeouts and subsequent channel closures are time-consuming and difficult to manage
 
 - *Scalability* - When there are many interchain accounts, and many channels (in the order of 1000s), relayers struggle with the number of queries on startup and performance is compromised. Additionally, account registration being linked to the channel means that multiple packet round trips are required before your host account can execute messages. 
 
 - *Workflows requiring tokens in ICA* - there are no atomic guarantees for a workflow containing multiple applications - i.e. a token transfer followed by an ICA message. The transfer could succeed and the ICA message fail resulting in an incomplete workflow. 
 
-- *Lack of default callbacks* - users are still relying on custom auth modules for packet callbacks, the callbacks middleware solves this problem but is an add on to the application rather than a default
+- *Lack of default callbacks* - users are still relying on custom auth modules for packet callbacks, the callbacks middleware solves this problem but is an add-on to the application rather than a default
 
-- *Whitelisiting messages* - this devex is more complicated than having a blacklist
+*Whitelisting messages* - this devex is more complicated than having a blacklist
 
 ## Objectives
 
@@ -54,7 +54,7 @@ Nomos enable NFTs to be minted on Injective on host accounts controlled from the
 
 ## Assumptions and dependencies
 
-- Although having atomic transfer plus action workflows with Interchain Accounts is desirable, it is out of scope for these requirements as a solution is applicable to applications beyond Interchain Accounts alone. 
+- Although having atomic transfer plus action workflows with Interchain Accounts is desirable, it is out of scope for these requirements, as a solution is applicable to applications beyond Interchain Accounts alone. 
 - Migration of an existing Interchain Account using a prior version of Interchain Accounts that does not satisfy these requirements is not required. 
 - Assumes use of the `x/accounts` sdk module.
 
