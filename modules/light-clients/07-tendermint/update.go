@@ -137,7 +137,10 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
 
-	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
+	// don't do prune logic in CheckTx
+	if !ctx.IsCheckTx() && !ctx.IsReCheckTx() {
+		cs.pruneOldestConsensusState(ctx, cdc, clientStore)
+	}
 
 	// check for duplicate update
 	if _, found := GetConsensusState(clientStore, cdc, header.GetHeight()); found {

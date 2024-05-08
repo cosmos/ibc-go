@@ -557,6 +557,61 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 	}
 }
 
+func (suite *TendermintTestSuite) TestUpdateStateCheckTx() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupClients()
+
+	createClientMessage := func() exported.ClientMessage {
+		trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+		suite.Require().True(ok)
+		header, err := path.EndpointB.Chain.IBCClientHeader(path.EndpointB.Chain.LatestCommittedHeader, trustedHeight)
+		suite.Require().NoError(err)
+		return header
+	}
+
+	// get the first height as it will be pruned first.
+	var pruneHeight exported.Height
+	getFirstHeightCb := func(height exported.Height) bool {
+		pruneHeight = height
+		return true
+	}
+	ctx := path.EndpointA.Chain.GetContext()
+	clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+	ibctm.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
+
+	// Increment the time by a week
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+
+	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+	suite.Require().True(found)
+
+	ctx = path.EndpointA.Chain.GetContext().WithIsCheckTx(true)
+	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
+
+	// Increment the time by another week, then update the client.
+	// This will cause the first two consensus states to become expired.
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+	ctx = path.EndpointA.Chain.GetContext().WithIsCheckTx(true)
+	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
+
+	// check that the first expired consensus state got deleted along with all associated metadata
+	consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+	suite.Require().NotNil(consState, "expired consensus state pruned")
+	suite.Require().True(ok)
+
+	// check processed time metadata is pruned
+	processTime, ok := ibctm.GetProcessedTime(clientStore, pruneHeight)
+	suite.Require().NotEqual(uint64(0), processTime, "processed time metadata pruned")
+	suite.Require().True(ok)
+	processHeight, ok := ibctm.GetProcessedHeight(clientStore, pruneHeight)
+	suite.Require().NotNil(processHeight, "processed height metadata pruned")
+	suite.Require().True(ok)
+
+	// check iteration key metadata is pruned
+	consKey := ibctm.GetIterationKey(clientStore, pruneHeight)
+	suite.Require().NotNil(consKey, "iteration key pruned")
+}
+
 func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	// create path and setup clients
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
