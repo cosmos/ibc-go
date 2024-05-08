@@ -489,7 +489,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	}
 
 	// performance: return early for the redundant relayer ante handler
-	if ctx.IsCheckTx() || ctx.IsReCheckTx() {
+	if (ctx.IsCheckTx() || ctx.IsReCheckTx()) && ctx.ExecMode() != sdk.ExecModeSimulate {
 		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 	}
 
