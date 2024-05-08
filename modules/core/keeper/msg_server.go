@@ -488,6 +488,11 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")
 	}
 
+	// performance: return early for the redundant relayer ante handler
+	if ctx.IsCheckTx() || ctx.IsReCheckTx() {
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
+	}
+
 	// Perform application logic callback
 	//
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.

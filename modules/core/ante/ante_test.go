@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -339,6 +340,20 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				// append non packet and update message to msgs to ensure multimsg tx should pass
 				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{}) //nolint:staticcheck // we're using the deprecated message for testing
 				return msgs
+			},
+			true,
+		},
+		{
+			"success on app callback error, app callbacks are skipped for performance",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) exported.Acknowledgement {
+					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
+				}
+
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessage(false)}
 			},
 			true,
 		},
