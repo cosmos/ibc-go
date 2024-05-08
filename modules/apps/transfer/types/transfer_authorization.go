@@ -1,9 +1,7 @@
 package types
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"math/big"
 	"strings"
 
@@ -131,16 +129,6 @@ func (a TransferAuthorization) ValidateBasic() error {
 			}
 			found[allocation.AllowList[i]] = true
 		}
-
-		if len(allocation.AllowedPacketData) > 0 && allocation.AllowedPacketData[0] != AllowAllPacketDataKeys {
-			jsonObject := make(map[string]interface{})
-			for _, elem := range allocation.AllowedPacketData {
-				err := json.Unmarshal([]byte(elem), &jsonObject)
-				if err != nil {
-					return errorsmod.Wrapf(ErrInvalidAuthorization, "allowed packet data contains a non JSON-encoded string: %s", elem)
-				}
-			}
-		}
 	}
 
 	return nil
@@ -186,21 +174,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 	for _, allowedMemo := range allowedPacketDataList {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 
-		dst := &bytes.Buffer{}
-		err := json.Compact(dst, []byte(allowedMemo))
-		if err != nil {
-			return errorsmod.Wrapf(ErrInvalidAuthorization, "failed to compact allowed memo: %s", allowedMemo)
-		}
-		compactAllowedMemo := dst.String()
-
-		dst = &bytes.Buffer{}
-		err = json.Compact(dst, []byte(memo))
-		if err != nil {
-			return errorsmod.Wrapf(ErrInvalidAuthorization, "failed to compact memo: %s", memo)
-		}
-		compactMemo := dst.String()
-
-		if compactMemo == compactAllowedMemo {
+		if strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo) {
 			return nil
 		}
 	}
