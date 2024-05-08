@@ -135,7 +135,7 @@ func (cs *ClientState) verifyHeader(
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	header, ok := clientMsg.(*Header)
 	if !ok {
-		// clientMsg is invalid Misbehaviour and handler should noop
+		// clientMsg is invalid Misbehaviour, no update necessary
 		return []exported.Height{}
 	}
 
