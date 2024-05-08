@@ -30,10 +30,19 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		for _, m := range tx.GetMsgs() {
 			switch msg := m.(type) {
 			case *channeltypes.MsgRecvPacket:
-				response, err := rrd.k.RecvPacket(ctx, msg)
+				var (
+					response *channeltypes.MsgRecvPacketResponse
+					err      error
+				)
+				if ctx.IsReCheckTx() {
+					response, err = rrd.k.RecvPacketReCheckTx(ctx, msg)
+				} else {
+					response, err = rrd.k.RecvPacket(ctx, msg)
+				}
 				if err != nil {
 					return ctx, err
 				}
+
 				if response.Result == channeltypes.NOOP {
 					redundancies++
 				}

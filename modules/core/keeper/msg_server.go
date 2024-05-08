@@ -526,6 +526,21 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }
 
+func (k *Keeper) RecvPacketReCheckTx(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := k.ChannelKeeper.RecvPacketReCheckTx(ctx, msg.Packet)
+
+	switch err {
+	case nil:
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
+	case channeltypes.ErrNoOpMsg:
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
+	default:
+		return nil, errorsmod.Wrap(err, "receive packet verification failed")
+	}
+}
+
 // Timeout defines a rpc handler method for MsgTimeout.
 func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
