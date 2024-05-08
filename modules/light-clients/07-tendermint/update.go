@@ -134,7 +134,8 @@ func (cs *ClientState) verifyHeader(
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	header, ok := clientMsg.(*Header)
 	if !ok {
-		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
+		// clientMsg is invalid Misbehaviour and handler should noop
+		return []exported.Height{}
 	}
 
 	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
