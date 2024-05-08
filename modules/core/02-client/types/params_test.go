@@ -17,6 +17,12 @@ func TestValidateParams(t *testing.T) {
 		{"default params", DefaultParams(), true},
 		{"custom params", NewParams(exported.Tendermint), true},
 		{"blank client", NewParams(" "), false},
+<<<<<<< HEAD
+=======
+		{"duplicate clients", NewParams(exported.Tendermint, exported.Tendermint), false},
+		{"allow all clients plus valid client", NewParams(AllowAllClients, exported.Tendermint), false},
+		{"too many allowed clients", NewParams(make([]string, MaxAllowedClientsLength+1)...), false},
+>>>>>>> 478f4c60 (imp: check length of slices of messages (#6256))
 	}
 
 	for _, tc := range testCases {
