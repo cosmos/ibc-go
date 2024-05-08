@@ -83,7 +83,7 @@ Nomos enable NFTs to be minted on Injective on host accounts controlled from the
 | 3.04 | The controller of the interchain account should be able to receive information about the balance of the interchain account in the acknowledgment after a transaction was executed by the host | ------------ | ------ |
 | 3.05 | The user of the controller should be able to receive all the information contained in the acknowledgment without implementing additional middleware on a per user basis | ------------ | ------ |
 | 3.06 | Callbacks on the packet lifecycle should be supported by default | ------------ | ------ |
-| 3.07 | A user can perform module safe queries through a host chain account and return the result in the acknowledgement | ------------ | ------ |  
+| 3.07 | A user can perform module safe queries through a host chain account and return the result in the acknowledgment | ------------ | ------ |  
 
 ### 4 - Host execution
 
