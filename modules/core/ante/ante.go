@@ -1,10 +1,14 @@
 package ante
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
 )
 
@@ -70,8 +74,7 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 				packetMsgs++
 
 			case *clienttypes.MsgUpdateClient:
-				_, err := rrd.k.UpdateClient(ctx, msg)
-				if err != nil {
+				if err := rrd.checkTxUpdateClient(ctx, msg); err != nil {
 					return ctx, err
 				}
 
@@ -89,4 +92,34 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		}
 	}
 	return next(ctx, tx, simulate)
+}
+
+// checkTxUpdateClient runs a subset of ibc client update logic to be used in within the RedunantRelayerDecorator AnteHandler.
+// The following function performs client message verification and state updates only. Note that misbehaviour checks are ommited.
+func (rrd RedundantRelayDecorator) checkTxUpdateClient(ctx sdk.Context, msg *clienttypes.MsgUpdateClient) error {
+	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
+	if err != nil {
+		return err
+	}
+
+	if status := rrd.k.ClientKeeper.GetClientStatus(ctx, msg.ClientId); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", msg.ClientId, status)
+	}
+
+	clientModule, found := rrd.k.ClientKeeper.Route(msg.ClientId)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, msg.ClientId)
+	}
+
+	if !ctx.IsReCheckTx() {
+		if err := clientModule.VerifyClientMessage(ctx, msg.ClientId, clientMsg); err != nil {
+			return err
+		}
+	}
+
+	heights := clientModule.UpdateState(ctx, msg.ClientId, clientMsg)
+
+	ctx.Logger().With("module", "x/"+exported.ModuleName).Debug("ante ibc client update", "consensusHeights", heights)
+
+	return nil
 }
