@@ -250,7 +250,11 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 		})
 
 		t.Run("verify acknowledgement error in ack transaction", func(t *testing.T) {
-			txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, "message.action='/ibc.core.channel.v1.MsgRecvPacket'", "")
+			cmd := "message.action=/ibc.core.channel.v1.MsgRecvPacket"
+			if testvalues.TransactionEventQueryFeatureReleases.IsSupported(chainBVersion) {
+				cmd = "message.action='/ibc.core.channel.v1.MsgRecvPacket'"
+			}
+			txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, cmd, "")
 			s.Require().NoError(err)
 			s.Require().Len(txSearchRes.Txs, 1)
 
