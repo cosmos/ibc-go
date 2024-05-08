@@ -2,7 +2,7 @@
 
 # Business requirements
 
-The Interchain Accounts feature has enabled control of an account on a host chain remotely from a controller chain. This has opened up many possibilities for more complex cross-chain workflows beyond token transfer alone, but the current architecture is not easy to use for the case where there are on the order of 1000s of host accounts controlled by many controllers. These requirements aim to alleviate current pain points and ehance the usability of the feature. 
+The Interchain Accounts feature has enabled control of an account on a host chain remotely from a controller chain. This has opened up many possibilities for more complex cross-chain workflows beyond token transfer alone, but the current architecture is not easy to use for the case where there are on the order of 1000s of host accounts controlled by many controllers. These requirements aim to alleviate current pain points and enhance the usability of the feature. 
 
 ## Problem
 
