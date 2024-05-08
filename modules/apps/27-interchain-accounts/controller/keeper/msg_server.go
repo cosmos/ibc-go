@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
 var _ types.MsgServer = msgServer{}
@@ -37,7 +38,15 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 	s.SetMiddlewareDisabled(ctx, portID, msg.ConnectionId)
 
-	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version, msg.Ordering)
+	// use ORDER_UNORDERED as default in case msg's ordering is NONE
+	var order channeltypes.Order
+	if msg.Ordering == channeltypes.NONE {
+		order = channeltypes.UNORDERED
+	} else {
+		order = msg.Ordering
+	}
+
+	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version, order)
 	if err != nil {
 		s.Logger(ctx).Error("error registering interchain account", "error", err.Error())
 		return nil, err
