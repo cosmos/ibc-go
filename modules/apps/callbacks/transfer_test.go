@@ -14,12 +14,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-var (
-	forwardingPath = &transfertypes.ForwardingInfo{
-		Hops: []*transfertypes.Hop{}, // Correcting this line
-		Memo: ""}
-)
-
 func (s *CallbacksTestSuite) TestTransferCallbacks() {
 	testCases := []struct {
 		name         string
@@ -199,7 +193,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, memo,
-		forwardingPath,
+		ibctesting.TestEmptyForwardingPath,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)
@@ -234,7 +228,7 @@ func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string) {
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		timeoutHeight, timeoutTimestamp, memo,
-		forwardingPath,
+		ibctesting.TestEmptyForwardingPath,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)

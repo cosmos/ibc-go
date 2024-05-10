@@ -11,14 +11,6 @@ import (
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 )
 
-/*
-var (
-	//emptyHop       = types.Hop{PortID: "", ChannelId: ""}
-	forwardingPath = &types.ForwardingInfo{
-		Hops: []*types.Hop{}, // Correcting this line
-		Memo: ""}
-)*/
-
 func TestConvertPacketV1ToPacketV3(t *testing.T) {
 	const (
 		sender   = "sender"
@@ -26,7 +18,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 	)
 
 	var forwardingPath = &types.ForwardingInfo{
-		Hops: []*types.Hop{}, // Correcting this line
+		Hops: nil,
 		Memo: ""}
 
 	testCases := []struct {

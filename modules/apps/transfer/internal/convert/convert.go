@@ -8,7 +8,7 @@ import (
 )
 
 var forwardingPath = &types.ForwardingInfo{
-	Hops: []*types.Hop{}, // Correcting this line
+	Hops: nil, // Correcting this line
 	Memo: ""}
 
 // PacketDataV1ToV3 converts a v1 (ICS20-V1) packet data to a v3 (ICS20-V2) packet data.
