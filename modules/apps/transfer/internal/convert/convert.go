@@ -3,17 +3,17 @@ package convert
 import (
 	"strings"
 
-	v1types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 )
 
 // PacketDataV1ToV3 converts a v1 (ICS20-V1) packet data to a v3 (ICS20-V2) packet data.
-func PacketDataV1ToV3(packetData v1types.FungibleTokenPacketData) v3types.FungibleTokenPacketData {
+func PacketDataV1ToV3(packetData types.FungibleTokenPacketData) v3types.FungibleTokenPacketData {
 	if err := packetData.ValidateBasic(); err != nil {
 		panic(err)
 	}
 
-	v2Denom, trace := extractDenomAndTraceFromV1Denom(packetData.Denom)
+	v2Denom, trace := ExtractDenomAndTraceFromV1Denom(packetData.Denom)
 	return v3types.FungibleTokenPacketData{
 		Tokens: []*v3types.Token{
 			{
@@ -29,12 +29,12 @@ func PacketDataV1ToV3(packetData v1types.FungibleTokenPacketData) v3types.Fungib
 }
 
 // extractDenomAndTraceFromV1Denom extracts the base denom and remaining trace from a v1 IBC denom.
-func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
-	v1DenomTrace := v1types.ParseDenomTrace(v1Denom)
+func ExtractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
+	v1DenomTrace := types.ParseDenomTrace(v1Denom)
 
 	// if the path string is empty, then the base denom is the full native denom.
 	if v1DenomTrace.Path == "" {
-		return v1DenomTrace.BaseDenom, []string{""}
+		return v1DenomTrace.BaseDenom, nil
 	}
 
 	splitPath := strings.Split(v1DenomTrace.Path, "/")

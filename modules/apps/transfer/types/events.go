@@ -8,6 +8,7 @@ const (
 	EventTypeChannelClose = "channel_closed"
 	EventTypeDenomTrace   = "denomination_trace"
 
+	AttributeKeySender         = "sender"
 	AttributeKeyReceiver       = "receiver"
 	AttributeKeyDenom          = "denom"
 	AttributeKeyAmount         = "amount"

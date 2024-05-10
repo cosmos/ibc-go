@@ -207,10 +207,8 @@ func (im IBCModule) OnRecvPacket(
 	logger := im.keeper.Logger(ctx)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	var data types.FungibleTokenPacketData
-	var ackErr error
-	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
-		ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+	data, ackErr := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
+	if ackErr != nil {
 		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 	}
@@ -228,26 +226,32 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
-	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-		sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-		sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+	events := make([]sdk.Event, 0, len(data.Tokens)+1)
+	for _, token := range data.Tokens {
+		events = append(events, sdk.NewEvent(
+			types.EventTypePacket,
+			sdk.NewAttribute(types.AttributeKeySender, data.Sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyDenom, token.GetFullDenomPath()),
+			sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+		))
 	}
 
+	eventAttributes := []sdk.Attribute{
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+	}
 	if ackErr != nil {
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypePacket,
-			eventAttributes...,
-		),
-	)
+	events = append(events, sdk.NewEvent(
+		sdk.EventTypeMessage,
+		eventAttributes...,
+	))
+
+	ctx.EventManager().EmitEvents(events)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -264,27 +268,35 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
-	var data types.FungibleTokenPacketData
-	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+
+	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
+	if err != nil {
+		return err
 	}
 
 	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
-		),
-	)
+	events := make([]sdk.Event, 0, len(data.Tokens)+1)
+	for _, token := range data.Tokens {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePacket,
+				sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+				sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+				sdk.NewAttribute(types.AttributeKeyDenom, token.GetFullDenomPath()),
+				sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
+				sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+			),
+		)
+	}
+	events = append(events, sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
+	))
+	ctx.EventManager().EmitEvents(events)
 
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
@@ -312,25 +324,34 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	var data types.FungibleTokenPacketData
-	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
+	if err != nil {
+		return err
 	}
+
 	// refund tokens
 	if err := im.keeper.OnTimeoutPacket(ctx, packet, data); err != nil {
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeTimeout,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),
-			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-		),
-	)
+	events := make([]sdk.Event, 0, len(data.Tokens)+1)
+	for _, token := range data.Tokens {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeTimeout,
+				sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+				sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+				sdk.NewAttribute(types.AttributeKeyDenom, token.GetFullDenomPath()),
+				sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
+				sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+			),
+		)
+	}
+	events = append(events, sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	))
+	ctx.EventManager().EmitEvents(events)
 
 	return nil
 }

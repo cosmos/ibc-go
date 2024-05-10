@@ -17,6 +17,10 @@ func (t Token) Validate() error {
 		return errorsmod.Wrap(types.ErrInvalidDenomForTransfer, err.Error())
 	}
 
+	if len(t.Trace) == 0 {
+		return nil
+	}
+
 	trace := strings.Join(t.Trace, "/")
 	identifiers := strings.Split(trace, "/")
 

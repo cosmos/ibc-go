@@ -369,21 +369,22 @@ func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, portID, channelID st
 // SendTransfer constructs a MsgTransfer and sends the message to the given chain. Any number of optional
 // functions can be provided which will modify the MsgTransfer before SendMsgs is called.
 func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string, fns ...func(*transfertypes.MsgTransfer)) channeltypes.Packet {
-	msgTransfer := transfertypes.MsgTransfer{
-		SourcePort:       portID,
-		SourceChannel:    channelID,
-		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
-		Sender:           chain.SenderAccount.GetAddress().String(),
-		Receiver:         chain.SenderAccount.GetAddress().String(),
-		TimeoutHeight:    clienttypes.ZeroHeight(),
-		TimeoutTimestamp: uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
-	}
+	msgTransfer := transfertypes.NewMsgTransfer(
+		portID,
+		channelID,
+		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+		chain.SenderAccount.GetAddress().String(),
+		chain.SenderAccount.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
+		"",
+	)
 
 	for _, fn := range fns {
-		fn(&msgTransfer)
+		fn(msgTransfer)
 	}
 
-	res, err := chain.SendMsgs(&msgTransfer)
+	res, err := chain.SendMsgs(msgTransfer)
 	require.NoError(solo.t, err)
 
 	packet, err := ParsePacketFromEvents(res.Events)
