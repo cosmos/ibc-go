@@ -16,10 +16,33 @@ message FungibleTokenPacketData {
   string receiver = 3;
   // optional memo
   string memo = 4;
+  // optional forwardingInfo struct 
+  ForwardingInfo forwardingPath = 10; 
+}
+
+message ForwardingInfo {
+  repeated Hop hop = 1; 
+  string memo = 2;
+}
+
+message Hop {
+  string portID = 1;
+  string channelId = 2;
 }
 
 // Token defines a struct which represents a token to be transferred.
 message Token {
+  // the base token denomination to be transferred
+  string denom = 1;
+  // the token amount to be transferred
+  string amount = 2;
+  // the trace of the token
+  repeated string trace = 3;
+}
+
+
+// Token defines a struct which represents a token to be transferred.
+message Hop {
   // the base token denomination to be transferred
   string denom = 1;
   // the token amount to be transferred
