@@ -140,7 +140,6 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			icaAck := &sdk.TxMsgData{}
 			t.Run("unmarshal ica response", func(t *testing.T) {
 				err := proto.Unmarshal(ack.Result, icaAck)
-				s.T().Log("ica ack: %v", icaAck)
 				s.Require().NoError(err)
 				s.Require().Len(icaAck.GetMsgResponses(), 1)
 			})
