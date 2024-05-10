@@ -180,7 +180,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	if !isMemoAllowed {
 		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
 	}
-	
+
 	return nil
 }
 
