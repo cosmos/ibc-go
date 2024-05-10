@@ -327,7 +327,15 @@ func (*E2ETestSuite) QueryTxsByEvents(
 		return nil, fmt.Errorf("QueryTxsByEvents must be passed a cosmos.CosmosChain")
 	}
 
-	cmd := []string{"txs", "--query", queryReq}
+	cmd := []string{"txs"}
+
+	chainVersion := chain.Config().Images[0].Version
+	if testvalues.TransactionEventQueryFeatureReleases.IsSupported(chainVersion) {
+		cmd = append(cmd, "--query", queryReq)
+	} else {
+		cmd = append(cmd, "--events", queryReq)
+	}
+
 	if orderBy != "" {
 		cmd = append(cmd, "--order_by", orderBy)
 	}
