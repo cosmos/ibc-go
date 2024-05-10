@@ -1,13 +1,8 @@
 package types_test
 
 import (
-<<<<<<< HEAD
-=======
 	"fmt"
 
-	sdkmath "cosmossdk.io/math"
-
->>>>>>> 0a22b7a2 (imp: allow memo strings instead of keys for transfer authorizations (#6268))
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -15,14 +10,11 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-<<<<<<< HEAD
-=======
 const (
 	testMemo1 = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
 	testMemo2 = `{"forward":{"channel":"channel-11","port":"transfer","receiver":"stars1twfv52yxcyykx2lcvgl42svw46hsm5dd4ww6xy","retries":2,"timeout":1712146014542131200}}`
 )
 
->>>>>>> 0a22b7a2 (imp: allow memo strings instead of keys for transfer authorizations (#6268))
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	var (
 		msgTransfer   types.MsgTransfer
@@ -114,8 +106,6 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-<<<<<<< HEAD
-=======
 			"success: empty AllowedPacketData and empty memo",
 			func() {
 				allowedList := []string{}
@@ -183,7 +173,6 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
->>>>>>> 0a22b7a2 (imp: allow memo strings instead of keys for transfer authorizations (#6268))
 			"test multiple coins does not overspend",
 			func() {
 				transferAuthz.Allocations[0].SpendLimit = transferAuthz.Allocations[0].SpendLimit.Add(

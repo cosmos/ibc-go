@@ -1,14 +1,9 @@
 package types
 
 import (
-<<<<<<< HEAD
-	"math/big"
-=======
-	"context"
 	"math/big"
 	"slices"
 	"strings"
->>>>>>> 0a22b7a2 (imp: allow memo strings instead of keys for transfer authorizations (#6268))
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -50,6 +45,11 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 
 		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
 			return authz.AcceptResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
+		}
+
+		err := validateMemo(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowedPacketData)
+		if err != nil {
+			return authz.AcceptResponse{}, err
 		}
 
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
@@ -147,14 +147,12 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	return false
 }
 
-<<<<<<< HEAD
-=======
 // validateMemo returns a nil error indicating if the memo is valid for transfer.
 func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	// if the allow list is empty, then the memo must be an empty string
 	if len(allowedMemos) == 0 {
 		if len(strings.TrimSpace(memo)) != 0 {
-			return errorsmod.Wrapf(ErrInvalidAuthorization, "memo must be empty because allowed packet data in allocation is empty")
+			return sdkerrors.Wrapf(ErrInvalidAuthorization, "memo must be empty because allowed packet data in allocation is empty")
 		}
 
 		return nil
@@ -174,13 +172,12 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	})
 
 	if !isMemoAllowed {
-		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
+		return sdkerrors.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
 	}
 
 	return nil
 }
 
->>>>>>> 0a22b7a2 (imp: allow memo strings instead of keys for transfer authorizations (#6268))
 // UnboundedSpendLimit returns the sentinel value that can be used
 // as the amount for a denomination's spend limit for which spend limit updating
 // should be disabled. Please note that using this sentinel value means that a grantee
