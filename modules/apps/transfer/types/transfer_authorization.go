@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"math/big"
+	"slices"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -170,15 +171,17 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	}
 
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
-	for _, allowedMemo := range allowedMemos {
+	isMemoAllowed := slices.ContainsFunc(allowedMemos, func(allowedMemo string) bool {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 
-		if strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo) {
-			return nil
-		}
+		return strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo)
+	})
+
+	if !isMemoAllowed {
+		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
 	}
 
-	return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
+	return nil
 }
 
 // UnboundedSpendLimit returns the sentinel value that can be used
