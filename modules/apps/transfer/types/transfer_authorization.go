@@ -172,7 +172,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 		}
 	}
 
-	return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
+	return sdkerrors.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
 }
 
 // UnboundedSpendLimit returns the sentinel value that can be used
