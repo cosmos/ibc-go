@@ -2,7 +2,6 @@ package types
 
 import (
 	"math/big"
-	"slices"
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
@@ -165,17 +164,15 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	}
 
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
-	isMemoAllowed := slices.ContainsFunc(allowedMemos, func(allowedMemo string) bool {
+	for _, allowedMemo := range allowedMemos {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 
-		return strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo)
-	})
-
-	if !isMemoAllowed {
-		return sdkerrors.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
+		if strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo) {
+			return nil
+		}
 	}
 
-	return nil
+	return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
 }
 
 // UnboundedSpendLimit returns the sentinel value that can be used
