@@ -1,7 +1,14 @@
 package types
 
 import (
+<<<<<<< HEAD
 	"math/big"
+=======
+	"context"
+	"math/big"
+	"slices"
+	"strings"
+>>>>>>> 0a22b7a2 (imp: allow memo strings instead of keys for transfer authorizations (#6268))
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -140,6 +147,40 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	return false
 }
 
+<<<<<<< HEAD
+=======
+// validateMemo returns a nil error indicating if the memo is valid for transfer.
+func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
+	// if the allow list is empty, then the memo must be an empty string
+	if len(allowedMemos) == 0 {
+		if len(strings.TrimSpace(memo)) != 0 {
+			return errorsmod.Wrapf(ErrInvalidAuthorization, "memo must be empty because allowed packet data in allocation is empty")
+		}
+
+		return nil
+	}
+
+	// if allowedPacketDataList has only 1 element and it equals AllowAllPacketDataKeys
+	// then accept all the memo strings
+	if len(allowedMemos) == 1 && allowedMemos[0] == AllowAllPacketDataKeys {
+		return nil
+	}
+
+	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
+	isMemoAllowed := slices.ContainsFunc(allowedMemos, func(allowedMemo string) bool {
+		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
+
+		return strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo)
+	})
+
+	if !isMemoAllowed {
+		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
+	}
+
+	return nil
+}
+
+>>>>>>> 0a22b7a2 (imp: allow memo strings instead of keys for transfer authorizations (#6268))
 // UnboundedSpendLimit returns the sentinel value that can be used
 // as the amount for a denomination's spend limit for which spend limit updating
 // should be disabled. Please note that using this sentinel value means that a grantee
