@@ -399,9 +399,9 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
+func (*E2ETestSuite) TransferChannelOptions(version string) func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transfertypes.Version
+		opts.Version = version
 		opts.SourcePortName = transfertypes.PortID
 		opts.DestPortName = transfertypes.PortID
 	}
@@ -431,7 +431,7 @@ func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain ibc.Chain) cl
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
 }
 
-// CreateUpgradeFields creates upgrade fields for channel with fee middleware
+// CreateUpgradeFields creates upgrade fields for channel with fee middleware.
 func (s *E2ETestSuite) CreateUpgradeFields(channel channeltypes.Channel) channeltypes.UpgradeFields {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
