@@ -34,6 +34,13 @@ var (
 	channelIDSolomachine    = "channel-on-solomachine"    // channelID generated on solo machine side
 )
 
+var (
+	emptyHop       = transfertypes.Hop{PortID: "", ChannelId: ""}
+	forwardingPath = &transfertypes.ForwardingInfo{
+		Hops: []*transfertypes.Hop{&emptyHop}, // Correcting this line
+		Memo: ""}
+)
+
 // DefaultSolomachineClientID is the default solo machine client id used for testing
 var DefaultSolomachineClientID = "06-solomachine-0"
 
@@ -378,6 +385,7 @@ func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string
 		clienttypes.ZeroHeight(),
 		uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
 		"",
+		forwardingPath,
 	)
 
 	for _, fn := range fns {

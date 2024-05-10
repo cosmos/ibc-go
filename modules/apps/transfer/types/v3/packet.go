@@ -23,12 +23,14 @@ func NewFungibleTokenPacketData(
 	tokens []*Token,
 	sender, receiver string,
 	memo string,
+	forwardingPath types.ForwardingInfo,
 ) FungibleTokenPacketData {
 	return FungibleTokenPacketData{
-		Tokens:   tokens,
-		Sender:   sender,
-		Receiver: receiver,
-		Memo:     memo,
+		Tokens:         tokens,
+		Sender:         sender,
+		Receiver:       receiver,
+		Memo:           memo,
+		ForwardingPath: &forwardingPath,
 	}
 }
 

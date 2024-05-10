@@ -15,8 +15,12 @@ const testMemo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	var (
-		msgTransfer   *types.MsgTransfer
-		transferAuthz types.TransferAuthorization
+		msgTransfer    *types.MsgTransfer
+		transferAuthz  types.TransferAuthorization
+		emptyHop       = types.Hop{PortID: "", ChannelId: ""}
+		forwardingPath = &types.ForwardingInfo{
+			Hops: []*types.Hop{&emptyHop}, // Correcting this line
+			Memo: ""}
 	)
 
 	testCases := []struct {
@@ -92,6 +96,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
+					forwardingPath,
 				)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -273,6 +278,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.chainB.GetTimeoutHeight(),
 				0,
 				"",
+				forwardingPath,
 			)
 
 			tc.malleate()

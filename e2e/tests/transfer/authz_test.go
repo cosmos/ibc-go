@@ -22,6 +22,13 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
+var (
+	emptyHop       = transfertypes.Hop{PortID: "", ChannelId: ""}
+	forwardingPath = &transfertypes.ForwardingInfo{
+		Hops: []*transfertypes.Hop{&emptyHop}, // Correcting this line
+		Memo: ""}
+)
+
 func TestAuthzTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(AuthzTransferTestSuite))
 }
@@ -113,6 +120,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			suite.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
+			forwardingPath,
 		)
 
 		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -172,6 +180,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			suite.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
+			forwardingPath,
 		)
 
 		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -254,6 +263,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				suite.GetTimeoutHeight(ctx, chainB),
 				0,
 				"",
+				forwardingPath,
 			)
 
 			protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -313,6 +323,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				suite.GetTimeoutHeight(ctx, chainB),
 				0,
 				"",
+				forwardingPath,
 			)
 
 			protoAny, err := codectypes.NewAnyWithValue(transferMsg)

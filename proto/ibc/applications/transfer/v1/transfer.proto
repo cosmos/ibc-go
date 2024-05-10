@@ -28,7 +28,7 @@ message Params {
 }
 
 message ForwardingInfo {
-  repeated Hop hop = 1; 
+  repeated Hop hops = 1; 
   string memo = 2;
 }
 

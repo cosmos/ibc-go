@@ -11,11 +11,23 @@ import (
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 )
 
+/*
+var (
+	//emptyHop       = types.Hop{PortID: "", ChannelId: ""}
+	forwardingPath = &types.ForwardingInfo{
+		Hops: []*types.Hop{}, // Correcting this line
+		Memo: ""}
+)*/
+
 func TestConvertPacketV1ToPacketV3(t *testing.T) {
 	const (
 		sender   = "sender"
 		receiver = "receiver"
 	)
+
+	var forwardingPath = &types.ForwardingInfo{
+		Hops: []*types.Hop{}, // Correcting this line
+		Memo: ""}
 
 	testCases := []struct {
 		name     string
@@ -33,7 +45,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0"},
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", *forwardingPath),
 			nil,
 		},
 		{
@@ -46,7 +58,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  nil,
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", *forwardingPath),
 			nil,
 		},
 		{
@@ -59,7 +71,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0"},
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", *forwardingPath),
 			nil,
 		},
 		{
@@ -72,7 +84,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0"},
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", *forwardingPath),
 			nil,
 		},
 		{
@@ -85,7 +97,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", *forwardingPath),
 			nil,
 		},
 		{
@@ -98,7 +110,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", *forwardingPath),
 			nil,
 		},
 		{
@@ -111,7 +123,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", *forwardingPath),
 			nil,
 		},
 		{

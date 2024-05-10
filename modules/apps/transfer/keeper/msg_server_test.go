@@ -54,6 +54,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 					suite.chainB.SenderAccount.GetAddress().String(),
 					suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 					"memo",
+					forwardingPath,
 				)
 			},
 			nil,
@@ -139,6 +140,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 					suite.chainB.SenderAccount.GetAddress().String(),
 					suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 					"memo",
+					forwardingPath,
 				)
 
 				// explicitly set to ics20-1 which does not support multi-denom
@@ -169,6 +171,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.chainB.SenderAccount.GetAddress().String(),
 				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 				"memo",
+				forwardingPath,
 			)
 
 			tc.malleate()

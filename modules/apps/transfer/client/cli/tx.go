@@ -18,6 +18,13 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
+var (
+	emptyHop       = types.Hop{PortID: "", ChannelId: ""}
+	forwardingPath = &types.ForwardingInfo{
+		Hops: []*types.Hop{&emptyHop}, // Correcting this line
+		Memo: ""}
+)
+
 const (
 	flagPacketTimeoutHeight    = "packet-timeout-height"
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
@@ -107,7 +114,7 @@ Relative timeout timestamp is added to the value of the user's local system cloc
 			}
 
 			msg := types.NewMsgTransfer(
-				srcPort, srcChannel, sdk.NewCoins(coin), sender, receiver, timeoutHeight, timeoutTimestamp, memo,
+				srcPort, srcChannel, sdk.NewCoins(coin), sender, receiver, timeoutHeight, timeoutTimestamp, memo, forwardingPath,
 			)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

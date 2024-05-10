@@ -15,6 +15,13 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+var (
+	emptyHop       = transfertypes.Hop{PortID: "", ChannelId: ""}
+	forwardingPath = &transfertypes.ForwardingInfo{
+		Hops: []*transfertypes.Hop{&emptyHop}, // Correcting this line
+		Memo: ""}
+)
+
 func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 	var (
 		expRecvFees    sdk.Coins
@@ -115,6 +122,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, "",
+		forwardingPath,
 	)
 
 	res, err := suite.chainA.SendMsgs(msgPayPacketFee, msgTransfer)

@@ -24,6 +24,12 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+var (
+	forwardingPath = &transfertypes.ForwardingInfo{
+		Hops: []*transfertypes.Hop{}, // Correcting this line
+		Memo: ""}
+)
+
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	testedEncodings := []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}
 	var (
@@ -351,6 +357,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
+					forwardingPath,
 				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -386,6 +393,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
+					forwardingPath,
 				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -791,6 +799,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"receiver": "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk",
 							"timeout_height": { "revision_number": 1, "revision_height": 100 },
 							"timeout_timestamp": 0
+							"forwarding_path": { "Hops": [], "Memo": "" }
 						}
 					]
 				}`)

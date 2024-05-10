@@ -34,6 +34,13 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
+var (
+	emptyHop       = transfertypes.Hop{PortID: "", ChannelId: ""}
+	forwardingPath = &transfertypes.ForwardingInfo{
+		Hops: []*transfertypes.Hop{&emptyHop}, // Correcting this line
+		Memo: ""}
+)
+
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
@@ -265,7 +272,7 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, sdk.NewCoins(token), sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	msg := transfertypes.NewMsgTransfer(portID, channelID, sdk.NewCoins(token), sender, receiver, timeoutHeight, timeoutTimestamp, memo, forwardingPath)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 

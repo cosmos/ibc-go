@@ -176,6 +176,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				ibctesting.TestAccAddress,
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
+				*forwardingPath,
 			)
 
 			chanCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
@@ -318,6 +319,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				ibctesting.TestAccAddress,
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
+				*forwardingPath,
 			)
 
 			packet = channeltypes.Packet{
@@ -483,6 +485,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				sdk.NewCoins(ibctesting.TestCoin), s.chainA.SenderAccount.GetAddress().String(),
 				s.chainB.SenderAccount.GetAddress().String(), clienttypes.ZeroHeight(), timeoutTimestamp,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit), // set user gas limit above panic level in mock contract keeper
+				forwardingPath,
 			)
 
 			res, err := s.chainA.SendMsgs(msg)
@@ -651,6 +654,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				ibctesting.TestAccAddress,
 				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit),
+				*forwardingPath,
 			)
 
 			packet = channeltypes.Packet{
@@ -783,6 +787,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				ibctesting.TestAccAddress,
 				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress),
+				*forwardingPath,
 			)
 
 			packet = channeltypes.Packet{
@@ -999,9 +1004,11 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 				Trace:  nil,
 			},
 		},
-		Sender:   ibctesting.TestAccAddress,
-		Receiver: ibctesting.TestAccAddress,
-		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
+		Sender:         ibctesting.TestAccAddress,
+		Receiver:       ibctesting.TestAccAddress,
+		Memo:           fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
+		ForwardingPath: forwardingPath,
+		//ForwardingPath: &transferv1types.ForwardingInfo{Hops: []*transferv1types.Hop{}, Memo: ""},
 	}
 
 	// Unmarshal ICS20 v1 packet data
