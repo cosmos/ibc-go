@@ -26,3 +26,13 @@ message Params {
   // chain.
   bool receive_enabled = 2;
 }
+
+message ForwardingInfo {
+  repeated Hop hop = 1; 
+  string memo = 2;
+}
+
+message Hop {
+  string portID = 1;
+  string channelId = 2;
+}
