@@ -58,6 +58,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
+* (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
 * (apps/27-interchain-accounts, apps/tranfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
 
 ### Features
@@ -68,6 +69,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/27-interchain-accounts) [\#6167](https://github.com/cosmos/ibc-go/pull/6167) Fixed an edge case bug where migrating params for a pre-existing ica module which implemented controller functionality only could panic when migrating params for newly added host, and align controller param migration with host.
+* (app/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete refunded fees from state if some fee(s) cannot be refunded on channel closure.
 
 ## [v8.2.0](https://github.com/cosmos/ibc-go/releases/tag/v8.2.0) - 2024-04-05
 
