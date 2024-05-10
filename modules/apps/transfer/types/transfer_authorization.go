@@ -177,19 +177,8 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 		return strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo)
 	})
 
-<<<<<<< HEAD
-	var keys []string
-	for k := range jsonObject {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	if len(jsonObject) != 0 {
-		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed packet data keys: %s", keys)
-=======
 	if !isMemoAllowed {
 		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
->>>>>>> 0a22b7a2 (imp: allow memo strings instead of keys for transfer authorizations (#6268))
 	}
 
 	return nil
