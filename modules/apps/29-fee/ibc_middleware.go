@@ -367,7 +367,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 	return string(versionBz), nil
 }
 
-// OnChanUpgradeTry implement s the IBCModule interface
+// OnChanUpgradeTry implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
