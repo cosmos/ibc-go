@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"math/big"
+	"slices"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -153,9 +154,9 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 }
 
 // validateMemo returns a nil error indicating if the memo is valid for transfer.
-func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) error {
+func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	// if the allow list is empty, then the memo must be an empty string
-	if len(allowedPacketDataList) == 0 {
+	if len(allowedMemos) == 0 {
 		if len(strings.TrimSpace(memo)) != 0 {
 			return errorsmod.Wrapf(ErrInvalidAuthorization, "memo must be empty because allowed packet data in allocation is empty")
 		}
@@ -165,21 +166,26 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 
 	// if allowedPacketDataList has only 1 element and it equals AllowAllPacketDataKeys
 	// then accept all the memo strings
-	if len(allowedPacketDataList) == 1 && allowedPacketDataList[0] == AllowAllPacketDataKeys {
+	if len(allowedMemos) == 1 && allowedMemos[0] == AllowAllPacketDataKeys {
 		return nil
 	}
 
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
-
-	for _, allowedMemo := range allowedPacketDataList {
+	isMemoAllowed := slices.ContainsFunc(allowedMemos, func(allowedMemo string) bool {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 
 		if strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo) {
-			return nil
+			return true
+		} else {
+			return false
 		}
-	}
+	})
 
-	return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
+	if isMemoAllowed {
+		return nil
+	} else {
+		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
+	}
 }
 
 // UnboundedSpendLimit returns the sentinel value that can be used

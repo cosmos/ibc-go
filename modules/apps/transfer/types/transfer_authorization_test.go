@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -170,7 +172,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)
-				suite.Require().ErrorContains(err, "not allowed memo: {\"forward\":{\"channel\":\"channel-11\",\"port\":\"transfer\",\"receiver\":\"stars1twfv52yxcyykx2lcvgl42svw46hsm5dd4ww6xy\",\"retries\":2,\"timeout\":1712146014542131200}}")
+				suite.Require().ErrorContains(err, fmt.Sprintf("not allowed memo: %s", testMemo2))
 			},
 		},
 		{
