@@ -174,11 +174,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	isMemoAllowed := slices.ContainsFunc(allowedMemos, func(allowedMemo string) bool {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 
-		if strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo) {
-			return true
-		} else {
-			return false
-		}
+		return strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo)
 	})
 
 	if !isMemoAllowed {
