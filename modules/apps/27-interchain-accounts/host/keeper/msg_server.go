@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	_ "cosmossdk.io/api/cosmos/bank/v1beta1"    // workaround to successfully retrieve bank module safe queries
 	_ "cosmossdk.io/api/cosmos/staking/v1beta1" // workaround to successfully retrieve staking module safe queries
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
