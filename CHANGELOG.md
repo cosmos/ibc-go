@@ -57,6 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/27-interchain-accounts) [\#6167](https://github.com/cosmos/ibc-go/pull/6167) Fixed an edge case bug where migrating params for a pre-existing ica module which implemented controller functionality only could panic when migrating params for newly added host, and align controller param migration with host.
+* (app/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete refunded fees from state if some fee(s) cannot be refunded on channel closure.
 
 ## [v8.2.0](https://github.com/cosmos/ibc-go/releases/tag/v8.2.0) - 2024-04-05
 
