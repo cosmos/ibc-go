@@ -189,7 +189,7 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 	cacheCtx, writeFn := ctx.CacheContext()
 
 	for _, identifiedPacketFee := range identifiedPacketFees {
-		var failedToSendCoins bool
+		var unRefundedFees []types.PacketFee
 		for _, packetFee := range identifiedPacketFee.PacketFees {
 
 			if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee.Total()) {
@@ -207,18 +207,22 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 
 			refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 			if err != nil {
-				failedToSendCoins = true
+				unRefundedFees = append(unRefundedFees, packetFee)
 				continue
 			}
 
 			// refund all fees to refund address
 			if err = k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refundAddr, packetFee.Fee.Total()); err != nil {
-				failedToSendCoins = true
+				unRefundedFees = append(unRefundedFees, packetFee)
 				continue
 			}
 		}
 
-		if !failedToSendCoins {
+		if len(unRefundedFees) > 0 {
+			// update packet fees to keep only the unrefunded fees
+			packetFees := types.NewPacketFees(unRefundedFees)
+			k.SetFeesInEscrow(cacheCtx, identifiedPacketFee.PacketId, packetFees)
+		} else {
 			k.DeleteFeesInEscrow(cacheCtx, identifiedPacketFee.PacketId)
 		}
 	}
