@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"testing"
@@ -511,8 +512,10 @@ func (suite *KeeperTestSuite) TestChanUpgrade_CrossingHellos_UpgradeSucceeds_Aft
 		)
 		suite.Require().Error(err)
 		suite.assertUpgradeError(err, types.NewUpgradeError(4, types.ErrInvalidUpgradeSequence))
-
-		suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, err.(*types.UpgradeError))
+		var upgradeErr *types.UpgradeError
+		if errors.As(err, &upgradeErr) {
+			suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeErr)
+		}
 		suite.coordinator.CommitBlock(suite.chainB)
 	})
 
@@ -2378,8 +2381,10 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 func (suite *KeeperTestSuite) assertUpgradeError(actualError, expError error) {
 	suite.Require().Error(actualError)
 
-	if expUpgradeError, ok := expError.(*types.UpgradeError); ok {
-		upgradeError, ok := actualError.(*types.UpgradeError)
+	var expUpgradeError *types.UpgradeError
+	if errors.As(expError, &expUpgradeError) {
+		var upgradeError *types.UpgradeError
+		ok := errors.As(actualError, &upgradeError)
 		suite.Require().True(ok)
 		suite.Require().Equal(expUpgradeError.GetErrorReceipt(), upgradeError.GetErrorReceipt())
 	}
@@ -2470,7 +2475,8 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 				errorReceipt, found := channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "error receipt should be found")
 
-				if ue, ok := upgradeError.(*types.UpgradeError); ok {
+				var ue *types.UpgradeError
+				if errors.As(upgradeError, &ue) {
 					suite.Require().Equal(ue.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
 				}
 			} else {

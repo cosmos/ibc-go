@@ -2,6 +2,7 @@ package ibccallbacks_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -329,18 +330,16 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				return transferStack.OnAcknowledgementPacket(ctx, packet, ack, s.chainA.SenderAccount.GetAddress())
 			}
 
-			switch tc.expError {
-			case nil:
+			switch {
+			case tc.expError == nil:
 				err := onAcknowledgementPacket()
 				s.Require().Nil(err)
-
-			case panicError:
+			case errors.Is(tc.expError, panicError):
 				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
 					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
 				}, func() {
 					_ = onAcknowledgementPacket()
 				})
-
 			default:
 				err := onAcknowledgementPacket()
 				s.Require().ErrorIs(err, tc.expError)

@@ -6,6 +6,7 @@ linters:
   disable-all: true
   enable:
     - exportloopref
+    - errorlint
     - errcheck
     - gci
     - goconst

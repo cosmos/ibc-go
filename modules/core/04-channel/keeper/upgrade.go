@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"slices"
@@ -980,7 +981,8 @@ func (k *Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err err
 
 	// in the case of application callbacks, the error may not be an upgrade error.
 	// in this case we need to construct one in order to write the error receipt.
-	upgradeError, ok := err.(*types.UpgradeError)
+	var upgradeError *types.UpgradeError
+	ok := errors.As(err, &upgradeError)
 	if !ok {
 		upgradeError = types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
