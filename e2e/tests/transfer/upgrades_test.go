@@ -310,7 +310,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
-		upgradeFields := channeltypes.NewUpgradeFields(chA.Ordering, chA.ConnectionHops, transfertypes.Version1)
+		upgradeFields := channeltypes.NewUpgradeFields(chA.Ordering, chA.ConnectionHops, transfertypes.Version)
 		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, upgradeFields)
 	})
 
@@ -319,13 +319,13 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 	t.Run("verify channel A upgraded and transfer version is ics20-2", func(t *testing.T) {
 		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(transfertypes.Version1, channel.Version, "the channel version is not ics20-2")
+		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-2")
 	})
 
 	t.Run("verify channel B upgraded and transfer version is ics20-2", func(t *testing.T) {
 		channel, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(transfertypes.Version1, channel.Version, "the channel version is not ics20-2")
+		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-2")
 	})
 
 	// send the native chainB denom and also the ibc token from chainA
