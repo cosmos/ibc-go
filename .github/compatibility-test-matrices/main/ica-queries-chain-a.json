@@ -1,0 +1,17 @@
+{
+  "chain-a": [
+    "main"
+  ],
+  "chain-b": [
+    "main"
+  ],
+  "entrypoint": [
+    "TestInterchainAccountsQueryTestSuite"
+  ],
+  "test": [
+    "TestInterchainAccountsQuery"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

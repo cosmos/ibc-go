@@ -120,3 +120,9 @@ var CapitalEfficientFeeEscrowFeatureReleases = semverutil.FeatureReleases{
 		"v8.1",
 	},
 }
+
+// TransactionEventQueryFeatureReleases represents the releases the support for --query flag
+// in "query txs" for searching transactions that match exact events (since Cosmos SDK v0.50) was released in.
+var TransactionEventQueryFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
+}
