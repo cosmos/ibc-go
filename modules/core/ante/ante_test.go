@@ -47,7 +47,7 @@ func TestAnteTestSuite(t *testing.T) {
 }
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
-func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
+func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) *channeltypes.MsgRecvPacket {
 	sequence, err := suite.path.EndpointA.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
@@ -469,7 +469,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		{
 			"no success on recvPacket checkTx, no capability found",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				msg := suite.createRecvPacketMessage(false).(*channeltypes.MsgRecvPacket)
+				msg := suite.createRecvPacketMessage(false)
 				msg.Packet.DestinationPort = "invalid-port"
 				return []sdk.Msg{msg}
 			},
