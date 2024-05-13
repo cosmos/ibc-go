@@ -5,6 +5,8 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -597,22 +599,39 @@ func (suite *TendermintTestSuite) TestUpdateStateCheckTx() {
 	ctx = path.EndpointA.Chain.GetContext().WithIsCheckTx(true)
 	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
 
-	// check that the first expired consensus state got deleted along with all associated metadata
-	consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
-	suite.Require().NotNil(consState, "expired consensus state pruned")
-	suite.Require().True(ok)
+	assertPrune := func(pruned bool) {
+		// check consensus states and associated metadata
+		consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+		suite.Require().Equal(!pruned, ok)
 
-	// check processed time metadata is pruned
-	processTime, ok := ibctm.GetProcessedTime(clientStore, pruneHeight)
-	suite.Require().NotEqual(uint64(0), processTime, "processed time metadata pruned")
-	suite.Require().True(ok)
-	processHeight, ok := ibctm.GetProcessedHeight(clientStore, pruneHeight)
-	suite.Require().NotNil(processHeight, "processed height metadata pruned")
-	suite.Require().True(ok)
+		processTime, ok := ibctm.GetProcessedTime(clientStore, pruneHeight)
+		suite.Require().Equal(!pruned, ok)
 
-	// check iteration key metadata is pruned
-	consKey := ibctm.GetIterationKey(clientStore, pruneHeight)
-	suite.Require().NotNil(consKey, "iteration key pruned")
+		processHeight, ok := ibctm.GetProcessedHeight(clientStore, pruneHeight)
+		suite.Require().Equal(!pruned, ok)
+
+		consKey := ibctm.GetIterationKey(clientStore, pruneHeight)
+
+		if pruned {
+			suite.Require().Nil(consState, "expired consensus state not pruned")
+			suite.Require().Empty(processTime, "processed time metadata not pruned")
+			suite.Require().Nil(processHeight, "processed height metadata not pruned")
+			suite.Require().Nil(consKey, "iteration key not pruned")
+		} else {
+			suite.Require().NotNil(consState, "expired consensus state pruned")
+			suite.Require().NotEqual(uint64(0), processTime, "processed time metadata pruned")
+			suite.Require().NotNil(processHeight, "processed height metadata pruned")
+			suite.Require().NotNil(consKey, "iteration key pruned")
+		}
+	}
+
+	assertPrune(false)
+
+	// simulation mode must prune to calculate gas correctly
+	ctx = path.EndpointA.Chain.GetContext().WithExecMode(sdk.ExecModeSimulate)
+	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
+
+	assertPrune(true)
 }
 
 func (suite *TendermintTestSuite) TestPruneConsensusState() {

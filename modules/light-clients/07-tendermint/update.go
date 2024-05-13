@@ -139,8 +139,9 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		return []exported.Height{}
 	}
 
-	// don't do prune logic in CheckTx
-	if !ctx.IsCheckTx() && !ctx.IsReCheckTx() {
+	// performance: do not prune in checkTx
+	// simulation must prune for accurate gas estimation
+	if (!ctx.IsCheckTx() && !ctx.IsReCheckTx()) || ctx.ExecMode() == sdk.ExecModeSimulate {
 		cs.pruneOldestConsensusState(ctx, cdc, clientStore)
 	}
 
