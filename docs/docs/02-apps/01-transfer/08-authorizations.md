@@ -22,7 +22,7 @@ It takes:
 
 - an `AllowList` list that specifies the list of addresses that are allowed to receive funds. If this list is empty, then all addresses are allowed to receive funds from the `TransferAuthorization`.
 
-- an `AllowedPacketData` list that specifies the list of memo packet data keys that are allowed to send the packet. If this list is empty, then only an empty memo is allowed (a `memo` field with non-empty content will be denied). If this list includes a single element equal to `"*"`, then any content in `memo` field will be allowed.
+- an `AllowedPacketData` list that specifies the list of memo strings that are allowed to be included in the memo field of the packet. If this list is empty, then only an empty memo is allowed (a `memo` field with non-empty content will be denied). If this list includes a single element equal to `"*"`, then any content in `memo` field will be allowed.
 
 Setting a `TransferAuthorization` is expected to fail if:
 
@@ -51,9 +51,8 @@ type Allocation struct {
   SpendLimit sdk.Coins  
   // allow list of receivers, an empty allow list permits any receiver address
   AllowList []string 
-  // allow list of packet data keys, an empty list prohibits all packet data keys;
-  // a list only with "*" permits any packet data key
+  // allow list of memo strings, an empty list prohibits all memo strings;
+  // a list only with "*" permits any memo string
   AllowedPacketData []string 
 }
-
 ```
