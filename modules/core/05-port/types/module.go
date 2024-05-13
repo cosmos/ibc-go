@@ -196,3 +196,44 @@ type PacketDataUnmarshaler interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	UnmarshalPacketData([]byte) (interface{}, error)
 }
+
+type LitePacketHandler interface {
+	SendPacket(
+		ctx sdk.Context,
+		sourcePort string,
+		sourceChannel string,
+		timeoutHeight clienttypes.Height,
+		timeoutTimestamp uint64,
+		data []byte,
+	) (sequence uint64, err error)
+
+	WriteAcknowledgement(
+		ctx sdk.Context,
+		packet exported.PacketI,
+		ack exported.Acknowledgement,
+	) error
+
+	// OnRecvPacket must return an acknowledgement that implements the Acknowledgement interface.
+	// In the case of an asynchronous acknowledgement, nil should be returned.
+	// If the acknowledgement returned is successful, the state changes on callback are written,
+	// otherwise the application state changes are discarded. In either case the packet is received
+	// and the acknowledgement is written (in synchronous cases).
+	OnRecvPacket(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+		relayer sdk.AccAddress,
+	) exported.Acknowledgement
+
+	OnAcknowledgementPacket(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+		acknowledgement []byte,
+		relayer sdk.AccAddress,
+	) error
+
+	OnTimeoutPacket(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+		relayer sdk.AccAddress,
+	) error
+}

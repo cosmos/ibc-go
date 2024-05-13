@@ -78,6 +78,14 @@ service PacketMsg {
   rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
 }
 
+// SenderMsg defines the ibc/channel SenderMsg service.
+service SenderMsg {
+  option (cosmos.msg.v1.service) = true;
+
+  // Sender defines a rpc handler method for MsgSendPacket.
+  rpc Sender(MsgSendPacket) returns (MsgSendPacketResponse);
+}
+
 // ResponseResultType defines the possible outcomes of the execution of a message
 enum ResponseResultType {
   option (gogoproto.goproto_enum_prefix) = false;
@@ -212,6 +220,24 @@ message MsgChannelCloseConfirm {
 // MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response
 // type.
 message MsgChannelCloseConfirmResponse {}
+
+// MsgSendPacket sends an outgoing IBC packet
+message MsgSendPacket {
+  string                    source_channel    = 1;
+  string                    source_port       = 2;
+  string                    dest_channel      = 3;
+  string                    dest_port         = 4;
+  ibc.core.client.v1.Height timeout_height    = 5;
+  uint64                    timeout_timestamp = 6;
+  bytes                     data              = 7;
+}
+
+// MsgSendPacketResponse defines the Msg/SendPacket response type.
+message MsgSendPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence = 1;
+}
 
 // MsgRecvPacket receives incoming IBC packet
 message MsgRecvPacket {
