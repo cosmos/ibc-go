@@ -628,7 +628,7 @@ func (suite *TendermintTestSuite) TestUpdateStateCheckTx() {
 	assertPrune(false)
 
 	// simulation mode must prune to calculate gas correctly
-	ctx = path.EndpointA.Chain.GetContext().WithExecMode(sdk.ExecModeSimulate)
+	ctx = ctx.WithExecMode(sdk.ExecModeSimulate)
 	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
 
 	assertPrune(true)
