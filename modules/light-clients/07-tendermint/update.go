@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	"bytes"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
