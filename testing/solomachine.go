@@ -35,9 +35,8 @@ var (
 )
 
 var (
-	emptyHop       = transfertypes.Hop{PortID: "", ChannelId: ""}
 	forwardingPath = &transfertypes.ForwardingInfo{
-		Hops: []*transfertypes.Hop{&emptyHop}, // Correcting this line
+		Hops: nil, // Correcting this line
 		Memo: ""}
 )
 

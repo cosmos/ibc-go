@@ -19,9 +19,8 @@ import (
 )
 
 var (
-	emptyHop       = types.Hop{PortID: "", ChannelId: ""}
 	forwardingPath = &types.ForwardingInfo{
-		Hops: []*types.Hop{&emptyHop}, // Correcting this line
+		Hops: nil, // Correcting this line
 		Memo: ""}
 )
 

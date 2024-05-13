@@ -37,13 +37,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-var (
-	emptyHop       = transfertypes.Hop{PortID: "", ChannelId: ""}
-	forwardingPath = &transfertypes.ForwardingInfo{
-		Hops: []*transfertypes.Hop{&emptyHop}, // Correcting this line
-		Memo: ""}
-)
-
 const (
 	haltHeight         = int64(100)
 	blocksAfterUpgrade = uint64(10)
@@ -967,7 +960,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 		transferAmount := testvalues.DefaultTransferAmount(chainA.Config().Denom)
 
 		msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.FormattedAddress(), nil)
-		msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, sdk.NewCoins(transferAmount), chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "", forwardingPath)
+		msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, sdk.NewCoins(transferAmount), chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "", ibctesting.TestEmptyForwardingPath)
 		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 		s.AssertTxSuccess(resp)
 	})
