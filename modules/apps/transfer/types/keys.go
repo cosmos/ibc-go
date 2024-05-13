@@ -29,7 +29,8 @@ const (
 	// AllowAllPacketDataKeys holds the string key that allows all packet data keys in authz transfer messages
 	AllowAllPacketDataKeys = "*"
 
-	KeyTotalEscrowPrefix = "totalEscrowForDenom"
+	KeyTotalEscrowPrefix  = "totalEscrowForDenom"
+	KeyTotalForwardPrefix = "totalForwardForDenom"
 
 	ParamsKey = "params"
 
@@ -46,6 +47,9 @@ const (
 
 	// escrowAddressVersion should remain as ics20-1 to avoid the address changing.
 	escrowAddressVersion = "ics20-1"
+
+	// this new address is introduced specifically with ics20-2.
+	forwardAddressVersion = "ics20-2"
 )
 
 var (
@@ -74,10 +78,28 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	return hash[:20]
 }
 
+// GetForwardAddress returns the escrow address for the specified channel.
+func GetForwardAddress(portID, channelID string) sdk.AccAddress {
+	// a slash is used to create domain separation between port and channel identifiers to
+	// prevent address collisions between escrow addresses created for different channels
+	contents := fmt.Sprintf("%s/%s", portID, channelID)
+
+	// ADR 028 AddressHash construction
+	preImage := []byte(forwardAddressVersion)
+	preImage = append(preImage, 0)
+	preImage = append(preImage, contents...)
+	hash := sha256.Sum256(preImage)
+	return hash[:20]
+}
+
 // TotalEscrowForDenomKey returns the store key of under which the total amount of
 // source chain tokens in escrow is stored.
 func TotalEscrowForDenomKey(denom string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", KeyTotalEscrowPrefix, denom))
+}
+
+func TotalForwardForDenomKey(denom string) []byte {
+	return []byte(fmt.Sprintf("%s/%s", KeyTotalForwardPrefix, denom))
 }
 
 // Packet forward key

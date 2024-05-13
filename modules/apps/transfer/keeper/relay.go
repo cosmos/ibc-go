@@ -204,13 +204,39 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 		return types.ErrReceiveDisabled
 	}
 
-	// decode the receiver address
-	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
-	if err != nil {
-		return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver)
+	// Receiver addresses logic:
+	var forwardAddress sdk.AccAddress
+	var finalReceiver sdk.AccAddress
+	var receiver sdk.AccAddress
+	var err error
+
+	if len(data.ForwardingPath.Hops) > 0 {
+		// Transaction would abort already for previous check on Memo
+		forwardAddress = types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
+		if forwardAddress.Empty() {
+			forwardAddress, err = sdk.AccAddressFromBech32("forwardAddress") // MMMM // How to set this?
+			if err != nil {
+				return errorsmod.Wrapf(err, "failed to decode forward address: %s", data.Receiver)
+			}
+		}
+		receiver = forwardAddress
+		finalReceiver, err = sdk.AccAddressFromBech32(data.Receiver)
+		if err != nil {
+			return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver)
+		}
+	} else {
+		receiver, err = sdk.AccAddressFromBech32(data.Receiver)
+		if err != nil {
+			return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver)
+		}
 	}
 
-	//var receivedTokens=[]v3types.Token
+	//TODO Assertion Implementation
+	/*assert(packet.sender !== "")
+	  assert(receiver !== "")*/
+
+	//var receivedTokens []*v3types.Token
+	var receivedTokens sdk.Coins
 
 	for _, token := range data.Tokens {
 		fullDenomPath := token.GetFullDenomPath()
@@ -278,7 +304,17 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 				)
 			}()
 
-			return nil
+			// Need to set right trace. Or we use directly coins?
+			//_, trace := convert.ExtractDenomAndTraceFromV1Denom(fullDenomPath)
+
+			recvToken := sdk.Coin{
+				Denom: token.Denom, // or denom?
+				//Trace:  trace, // Which trace?
+				Amount: transferAmount,
+			}
+
+			receivedTokens = append(receivedTokens, recvToken)
+			//return nil
 		}
 
 		// sender chain is the source, mint vouchers
@@ -339,10 +375,60 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 				),
 			)
 		}()
+
+		// Need to set right trace. Or we use directly coins?
+		//_, trace := convert.ExtractDenomAndTraceFromV1Denom(fullDenomPath)
+
+		recvToken := sdk.Coin{
+			Denom: token.Denom,
+			//	Trace:  trace, // Which trace?
+			Amount: transferAmount,
+		}
+
+		receivedTokens = append(receivedTokens, recvToken)
 	}
 
+	// END OF FOR CYCLE
+
+	/* If ack wasn't successfull in the implementation we would have already errored out. No need of this check:
+	if !ack.Success() {
+		return ack
+	  }
+	*/
+
+	// Adding forwarding logic
+	if len(data.ForwardingPath.Hops) > 0 {
+		memo := ""
+		nextForwardingPath := types.ForwardingInfo{
+			Hops: data.ForwardingPath.Hops[1:],
+			Memo: data.ForwardingPath.Memo,
+		}
+
+		if len(data.ForwardingPath.Hops) == 1 {
+			memo = data.ForwardingPath.Memo
+			nextForwardingPath = types.ForwardingInfo{
+				Hops: nil,
+				Memo: data.ForwardingPath.Memo,
+			}
+
+		}
+
+		// Need to check if setting of timeoutHeight and timeoutTimestamp is correct
+		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+		// _ is nextPacketSequence
+		_, err := k.sendTransfer(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, receivedTokens, receiver, string(finalReceiver), selfHeight, selfTimestamp, memo, nextForwardingPath)
+		if err != nil {
+			return err
+		}
+		//return sequence, nil
+		return nil
+	}
+	// This should be return ack.
 	return nil
 }
+
+//	return nil
+//}
 
 // OnAcknowledgementPacket responds to the success or failure of a packet
 // acknowledgement written on the receiving chain. If the acknowledgement
