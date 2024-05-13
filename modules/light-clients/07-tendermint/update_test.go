@@ -546,9 +546,12 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().Equal(expConsensusState, updatedConsensusState)
 
 			} else {
-				suite.Require().Panics(func() {
-					clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
-				})
+				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+				suite.Require().Empty(consensusHeights)
+
+				consensusState, found := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight())))
+				suite.Require().False(found)
+				suite.Require().Nil(consensusState)
 			}
 
 			// perform custom checks
