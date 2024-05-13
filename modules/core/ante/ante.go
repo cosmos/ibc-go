@@ -1,6 +1,8 @@
 package ante
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -34,10 +36,10 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 					response *channeltypes.MsgRecvPacketResponse
 					err      error
 				)
-				if ctx.IsReCheckTx() {
-					response, err = rrd.k.RecvPacketReCheckTx(ctx, msg)
-				} else {
+				if ctx.IsCheckTx() {
 					response, err = rrd.k.RecvPacket(ctx, msg)
+				} else {
+					response, err = rrd.recvPacketReCheckTx(ctx, msg)
 				}
 				if err != nil {
 					return ctx, err
@@ -98,4 +100,19 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		}
 	}
 	return next(ctx, tx, simulate)
+}
+
+// recvPacketReCheckTx runs a subset of ibc recv packet logic to be used specifically within the RedundantRelayDecorator AnteHandler.
+// It only performs core IBC receiving logic and skips any application logic.
+func (rrd RedundantRelayDecorator) recvPacketReCheckTx(ctx sdk.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
+	err := rrd.k.ChannelKeeper.RecvPacketReCheckTx(ctx, msg.Packet)
+
+	switch err {
+	case nil:
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
+	case channeltypes.ErrNoOpMsg:
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
+	default:
+		return nil, errorsmod.Wrap(err, "receive packet verification failed")
+	}
 }

@@ -1,0 +1,23 @@
+package keeper
+
+import (
+	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+)
+
+// RecvPacketReCheckTx applies replay protection ensuring that when relay messages are
+// re-executed in ReCheckTx, when can appropriately filter out duplicate relay transactions.
+func (k *Keeper) RecvPacketReCheckTx(ctx sdk.Context, packet types.Packet) error {
+	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if !found {
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
+	}
+
+	// apply replay protection
+	if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
+		return err
+	}
+
+	return nil
+}

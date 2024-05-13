@@ -279,20 +279,6 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 	return nil
 }
 
-func (k *Keeper) RecvPacketReCheckTx(ctx sdk.Context, packet types.Packet) error {
-	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
-	if !found {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
-	}
-
-	// apply replay protection
-	if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // WriteAcknowledgement writes the packet execution acknowledgement to the state,
 // which will be verified by the counterparty chain using AcknowledgePacket.
 //
