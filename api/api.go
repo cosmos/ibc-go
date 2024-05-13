@@ -63,11 +63,11 @@ type LightClientModule interface {
 	VerifyMembership(
 		ctx sdk.Context,
 		clientID string,
-		height Height, // TODO: change to concrete type
+		height Height,
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path Path, // TODO: change to conrete type
+		path MerklePath,
 		value []byte,
 	) error
 
@@ -76,11 +76,11 @@ type LightClientModule interface {
 	VerifyNonMembership(
 		ctx sdk.Context,
 		clientID string,
-		height Height, // TODO: change to concrete type
+		height Height,
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path Path, // TODO: change to conrete type
+		path MerklePath,
 	) error
 
 	// Status must return the status of the client. Only Active clients are allowed to process packets.
@@ -90,7 +90,7 @@ type LightClientModule interface {
 	TimestampAtHeight(
 		ctx sdk.Context,
 		clientID string,
-		height Height, // TODO: change to concrete type
+		height Height,
 	) (uint64, error)
 
 	// CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
@@ -124,8 +124,4 @@ type ClientMessage interface {
 
 	ClientType() string
 	ValidateBasic() error
-}
-
-type Path interface {
-	Empty() bool
 }

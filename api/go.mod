@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/api
 
-go 1.22.0
+go 1.21
 
 require (
 	cosmossdk.io/store v1.1.0

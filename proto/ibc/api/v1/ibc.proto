@@ -25,3 +25,17 @@ message Height {
   // the height within the given revision
   uint64 revision_height = 2;
 }
+
+// MerklePrefix is merkle path prefixed to the key.
+// The constructed key from the Path and the key will be append(Path.KeyPath,
+// append(Path.KeyPrefix, key...))
+message MerklePrefix {
+  bytes key_prefix = 1;
+}
+
+// MerklePath is the path used to verify commitment proofs, which can be an
+// arbitrary structured object (defined by a commitment type).
+// MerklePath is represented from root-to-leaf
+message MerklePath {
+  repeated string key_path = 1;
+}

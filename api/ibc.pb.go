@@ -72,14 +72,110 @@ func (m *Height) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Height proto.InternalMessageInfo
 
+// MerklePrefix is merkle path prefixed to the key.
+// The constructed key from the Path and the key will be append(Path.KeyPath,
+// append(Path.KeyPrefix, key...))
+type MerklePrefix struct {
+	KeyPrefix []byte `protobuf:"bytes,1,opt,name=key_prefix,json=keyPrefix,proto3" json:"key_prefix,omitempty"`
+}
+
+func (m *MerklePrefix) Reset()         { *m = MerklePrefix{} }
+func (m *MerklePrefix) String() string { return proto.CompactTextString(m) }
+func (*MerklePrefix) ProtoMessage()    {}
+func (*MerklePrefix) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4c74097d49ab7305, []int{1}
+}
+func (m *MerklePrefix) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MerklePrefix) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MerklePrefix.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MerklePrefix) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MerklePrefix.Merge(m, src)
+}
+func (m *MerklePrefix) XXX_Size() int {
+	return m.Size()
+}
+func (m *MerklePrefix) XXX_DiscardUnknown() {
+	xxx_messageInfo_MerklePrefix.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MerklePrefix proto.InternalMessageInfo
+
+func (m *MerklePrefix) GetKeyPrefix() []byte {
+	if m != nil {
+		return m.KeyPrefix
+	}
+	return nil
+}
+
+// MerklePath is the path used to verify commitment proofs, which can be an
+// arbitrary structured object (defined by a commitment type).
+// MerklePath is represented from root-to-leaf
+type MerklePath struct {
+	KeyPath []string `protobuf:"bytes,1,rep,name=key_path,json=keyPath,proto3" json:"key_path,omitempty"`
+}
+
+func (m *MerklePath) Reset()         { *m = MerklePath{} }
+func (m *MerklePath) String() string { return proto.CompactTextString(m) }
+func (*MerklePath) ProtoMessage()    {}
+func (*MerklePath) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4c74097d49ab7305, []int{2}
+}
+func (m *MerklePath) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MerklePath) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MerklePath.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MerklePath) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MerklePath.Merge(m, src)
+}
+func (m *MerklePath) XXX_Size() int {
+	return m.Size()
+}
+func (m *MerklePath) XXX_DiscardUnknown() {
+	xxx_messageInfo_MerklePath.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MerklePath proto.InternalMessageInfo
+
+func (m *MerklePath) GetKeyPath() []string {
+	if m != nil {
+		return m.KeyPath
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*Height)(nil), "ibc.api.v1.Height")
+	proto.RegisterType((*MerklePrefix)(nil), "ibc.api.v1.MerklePrefix")
+	proto.RegisterType((*MerklePath)(nil), "ibc.api.v1.MerklePath")
 }
 
 func init() { proto.RegisterFile("ibc/api/v1/ibc.proto", fileDescriptor_4c74097d49ab7305) }
 
 var fileDescriptor_4c74097d49ab7305 = []byte{
-	// 191 bytes of a gzipped FileDescriptorProto
+	// 259 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xc9, 0x4c, 0x4a, 0xd6,
 	0x4f, 0x2c, 0xc8, 0xd4, 0x2f, 0x33, 0xd4, 0xcf, 0x4c, 0x4a, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9,
 	0x17, 0xe2, 0x02, 0x31, 0x13, 0x0b, 0x32, 0xf5, 0xca, 0x0c, 0xa5, 0x44, 0xd2, 0xf3, 0xd3, 0xf3,
@@ -87,11 +183,16 @@ var fileDescriptor_4c74097d49ab7305 = []byte{
 	0x89, 0x90, 0x3a, 0x17, 0x7f, 0x51, 0x6a, 0x59, 0x66, 0x71, 0x66, 0x7e, 0x5e, 0x7c, 0x5e, 0x69,
 	0x6e, 0x52, 0x6a, 0x91, 0x04, 0xa3, 0x02, 0xa3, 0x06, 0x4b, 0x10, 0x1f, 0x4c, 0xd8, 0x0f, 0x2c,
 	0x8a, 0xa2, 0x30, 0x03, 0xac, 0x57, 0x82, 0x09, 0x55, 0x21, 0xc4, 0x44, 0x2b, 0x8e, 0x8e, 0x05,
-	0xf2, 0x0c, 0x33, 0x16, 0xc8, 0x33, 0x38, 0x99, 0x9d, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c,
-	0xe3, 0x83, 0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1,
-	0x1c, 0x43, 0x94, 0x4c, 0x7a, 0x66, 0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x7e, 0x72,
-	0x7e, 0x71, 0x6e, 0x7e, 0x31, 0xc8, 0xf9, 0xba, 0xe9, 0xf9, 0x20, 0xcf, 0x24, 0xb1, 0x81, 0x1d,
-	0x69, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0xf7, 0x39, 0xfb, 0x1f, 0xde, 0x00, 0x00, 0x00,
+	0xf2, 0x0c, 0x33, 0x16, 0xc8, 0x33, 0x28, 0xe9, 0x72, 0xf1, 0xf8, 0xa6, 0x16, 0x65, 0xe7, 0xa4,
+	0x06, 0x14, 0xa5, 0xa6, 0x65, 0x56, 0x08, 0xc9, 0x72, 0x71, 0x65, 0xa7, 0x56, 0xc6, 0x17, 0x80,
+	0x79, 0x60, 0x6b, 0x78, 0x82, 0x38, 0xb3, 0x53, 0x2b, 0x21, 0xd2, 0x4a, 0xea, 0x5c, 0x5c, 0x50,
+	0xe5, 0x89, 0x25, 0x19, 0x42, 0x92, 0x5c, 0x1c, 0x60, 0xc5, 0x89, 0x25, 0x19, 0x12, 0x8c, 0x0a,
+	0xcc, 0x1a, 0x9c, 0x41, 0xec, 0x20, 0xa5, 0x89, 0x25, 0x19, 0x4e, 0x66, 0x27, 0x1e, 0xc9, 0x31,
+	0x5e, 0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72, 0x0c, 0x17, 0x1e, 0xcb,
+	0x31, 0xdc, 0x78, 0x2c, 0xc7, 0x10, 0x25, 0x93, 0x9e, 0x59, 0x92, 0x51, 0x9a, 0xa4, 0x97, 0x9c,
+	0x9f, 0xab, 0x9f, 0x9c, 0x5f, 0x9c, 0x9b, 0x5f, 0x0c, 0x0a, 0x16, 0xdd, 0xf4, 0x7c, 0x50, 0x20,
+	0x25, 0xb1, 0x81, 0x3d, 0x6f, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0xad, 0x6b, 0x1f, 0x5a, 0x36,
+	0x01, 0x00, 0x00,
 }
 
 func (m *Height) Marshal() (dAtA []byte, err error) {
@@ -127,6 +228,68 @@ func (m *Height) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *MerklePrefix) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MerklePrefix) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MerklePrefix) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.KeyPrefix) > 0 {
+		i -= len(m.KeyPrefix)
+		copy(dAtA[i:], m.KeyPrefix)
+		i = encodeVarintIbc(dAtA, i, uint64(len(m.KeyPrefix)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MerklePath) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MerklePath) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MerklePath) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.KeyPath) > 0 {
+		for iNdEx := len(m.KeyPath) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.KeyPath[iNdEx])
+			copy(dAtA[i:], m.KeyPath[iNdEx])
+			i = encodeVarintIbc(dAtA, i, uint64(len(m.KeyPath[iNdEx])))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintIbc(dAtA []byte, offset int, v uint64) int {
 	offset -= sovIbc(v)
 	base := offset
@@ -149,6 +312,34 @@ func (m *Height) Size() (n int) {
 	}
 	if m.RevisionHeight != 0 {
 		n += 1 + sovIbc(uint64(m.RevisionHeight))
+	}
+	return n
+}
+
+func (m *MerklePrefix) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.KeyPrefix)
+	if l > 0 {
+		n += 1 + l + sovIbc(uint64(l))
+	}
+	return n
+}
+
+func (m *MerklePath) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.KeyPath) > 0 {
+		for _, s := range m.KeyPath {
+			l = len(s)
+			n += 1 + l + sovIbc(uint64(l))
+		}
 	}
 	return n
 }
@@ -226,6 +417,172 @@ func (m *Height) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipIbc(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthIbc
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MerklePrefix) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowIbc
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MerklePrefix: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MerklePrefix: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field KeyPrefix", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowIbc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthIbc
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthIbc
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.KeyPrefix = append(m.KeyPrefix[:0], dAtA[iNdEx:postIndex]...)
+			if m.KeyPrefix == nil {
+				m.KeyPrefix = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipIbc(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthIbc
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MerklePath) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowIbc
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MerklePath: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MerklePath: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field KeyPath", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowIbc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthIbc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthIbc
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.KeyPath = append(m.KeyPath, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipIbc(dAtA[iNdEx:])
