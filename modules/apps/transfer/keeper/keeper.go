@@ -18,6 +18,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -301,4 +302,25 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// Set the forwarded packet in the private store.
+func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, packet v3types.FungibleTokenPacketData) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&packet)
+	store.Set(types.PacketForwardPath(portID, channelID), bz)
+}
+
+// GetCounterpartyUpgrade gets the counterparty upgrade from the store.
+func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string) (v3types.FungibleTokenPacketData, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.PacketForwardPath(portID, channelID))
+	if bz == nil {
+		return v3types.FungibleTokenPacketData{}, false
+	}
+
+	var upgrade v3types.FungibleTokenPacketData
+	k.cdc.MustUnmarshal(bz, &upgrade)
+
+	return upgrade, true
 }

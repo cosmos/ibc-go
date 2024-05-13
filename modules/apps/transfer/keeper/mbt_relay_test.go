@@ -162,7 +162,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
 			"",
-			*forwardingPath,
+			*ibctesting.TestEmptyForwardingPath,
 		),
 	}
 }
@@ -363,7 +363,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
 							"",
-							forwardingPath,
+							ibctesting.TestEmptyForwardingPath,
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)

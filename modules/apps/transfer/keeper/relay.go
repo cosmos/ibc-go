@@ -71,6 +71,14 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
+	// Input validation. We cannot have memo and forwarding path set at the same time.
+	// Note that this check could actually go inside the validate basic of v3 packet.go
+	// for NewFungibleTokenPacketData. Should probably go there because validateBasics is the function used for
+	// Input validations. For now I'll keep this check inside the relay.go function. We can decide to move them.
+	if forwardingPath.Hops != nil && memo != "" {
+		return 0, errorsmod.Wrapf(types.ErrInvalidMemoSpecification, "incorrect memo specification: %s,%s", memo, forwardingPath.Hops)
+	}
+
 	destinationPort := channel.Counterparty.PortId
 	destinationChannel := channel.Counterparty.ChannelId
 
@@ -145,6 +153,7 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
+	// If we put the memo check in the validate basic, in case this line will return an error.
 	packetData := v3types.NewFungibleTokenPacketData(tokens, sender.String(), receiver, memo, forwardingPath)
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
@@ -181,8 +190,14 @@ func (k Keeper) sendTransfer(
 // unescrowed and sent to the receiving address.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v3types.FungibleTokenPacketData) error {
 	// validate packet data upon receiving
+	// same things here if we put the validate memo here this function would return an error.
 	if err := data.ValidateBasic(); err != nil {
 		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
+	}
+
+	// Otherwise we need to validate here
+	if data.ForwardingPath.Hops != nil && data.Memo != "" {
+		return errorsmod.Wrapf(types.ErrInvalidMemoSpecification, "incorrect memo specification: %s,%s", data.Memo, data.ForwardingPath.Hops)
 	}
 
 	if !k.GetParams(ctx).ReceiveEnabled {
@@ -194,6 +209,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver)
 	}
+
+	//var receivedTokens=[]v3types.Token
 
 	for _, token := range data.Tokens {
 		fullDenomPath := token.GetFullDenomPath()

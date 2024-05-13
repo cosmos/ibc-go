@@ -24,12 +24,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-var (
-	forwardingPath = &transfertypes.ForwardingInfo{
-		Hops: []*transfertypes.Hop{}, // Correcting this line
-		Memo: ""}
-)
-
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	testedEncodings := []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}
 	var (
@@ -357,7 +351,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
-					forwardingPath,
+					ibctesting.TestEmptyForwardingPath,
 				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -393,7 +387,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
-					forwardingPath,
+					ibctesting.TestEmptyForwardingPath,
 				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -916,7 +910,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				suite.chainB.GetTimeoutHeight(),
 				0,
 			)
-
+			// Test fails here
 			txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
 
 			expPass := tc.expErr == nil
