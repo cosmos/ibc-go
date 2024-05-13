@@ -73,7 +73,7 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 				packetMsgs++
 
 			case *clienttypes.MsgUpdateClient:
-				if err := rrd.checkTxUpdateClient(ctx, msg); err != nil {
+				if err := rrd.updateClientCheckTx(ctx, msg); err != nil {
 					return ctx, err
 				}
 
@@ -93,10 +93,10 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	return next(ctx, tx, simulate)
 }
 
-// checkTxUpdateClient runs a subset of ibc client update logic to be used specifically within the RedundantRelayDecorator AnteHandler.
+// updateClientCheckTx runs a subset of ibc client update logic to be used specifically within the RedundantRelayDecorator AnteHandler.
 // The following function performs ibc client message verification for CheckTx only and state updates in both CheckTx and ReCheckTx.
 // Note that misbehaviour checks are omitted.
-func (rrd RedundantRelayDecorator) checkTxUpdateClient(ctx sdk.Context, msg *clienttypes.MsgUpdateClient) error {
+func (rrd RedundantRelayDecorator) updateClientCheckTx(ctx sdk.Context, msg *clienttypes.MsgUpdateClient) error {
 	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
 		return err
