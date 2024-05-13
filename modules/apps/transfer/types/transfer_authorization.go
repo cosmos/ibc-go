@@ -2,6 +2,7 @@ package types
 
 import (
 	"math/big"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,6 +44,11 @@ func (a TransferAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.Accep
 
 		if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
 			return authz.AcceptResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
+		}
+
+		err := validateMemo(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowedPacketData)
+		if err != nil {
+			return authz.AcceptResponse{}, err
 		}
 
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
@@ -138,6 +144,35 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 		}
 	}
 	return false
+}
+
+// validateMemo returns a nil error indicating if the memo is valid for transfer.
+func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
+	// if the allow list is empty, then the memo must be an empty string
+	if len(allowedMemos) == 0 {
+		if len(strings.TrimSpace(memo)) != 0 {
+			return sdkerrors.Wrapf(ErrInvalidAuthorization, "memo must be empty because allowed packet data in allocation is empty")
+		}
+
+		return nil
+	}
+
+	// if allowedPacketDataList has only 1 element and it equals AllowAllPacketDataKeys
+	// then accept all the memo strings
+	if len(allowedMemos) == 1 && allowedMemos[0] == AllowAllPacketDataKeys {
+		return nil
+	}
+
+	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
+	for _, allowedMemo := range allowedMemos {
+		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
+
+		if strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo) {
+			return nil
+		}
+	}
+
+	return sdkerrors.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
 }
 
 // UnboundedSpendLimit returns the sentinel value that can be used
