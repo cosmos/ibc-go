@@ -7,14 +7,13 @@ import (
 )
 
 // RecvPacketReCheckTx applies replay protection ensuring that when relay messages are
-// re-executed in ReCheckTx, when can appropriately filter out duplicate relay transactions.
+// re-executed in ReCheckTx, we can appropriately filter out redundant relay transactions.
 func (k *Keeper) RecvPacketReCheckTx(ctx sdk.Context, packet types.Packet) error {
 	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if !found {
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	// apply replay protection
 	if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
 		return err
 	}
