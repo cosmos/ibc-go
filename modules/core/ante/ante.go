@@ -36,10 +36,10 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 					response *channeltypes.MsgRecvPacketResponse
 					err      error
 				)
-				if ctx.IsCheckTx() {
-					response, err = rrd.k.RecvPacket(ctx, msg)
-				} else {
+				if ctx.IsReCheckTx() {
 					response, err = rrd.recvPacketReCheckTx(ctx, msg)
+				} else {
+					response, err = rrd.k.RecvPacket(ctx, msg)
 				}
 				if err != nil {
 					return ctx, err
