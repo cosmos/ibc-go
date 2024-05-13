@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 
-	"cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -20,12 +19,10 @@ import (
 var _ channeltypes.PacketMsgServer = (*Keeper)(nil)
 
 type Keeper struct {
-	cdc                 codec.BinaryCodec
-	channelStoreService store.KVStoreService
-	clientStoreService  store.KVStoreService
-	channelKeeper       types.ChannelKeeper
-	clientRouter        types.ClientRouter
-	appRouter           porttypes.Router
+	cdc           codec.BinaryCodec
+	channelKeeper types.ChannelKeeper
+	clientRouter  types.ClientRouter
+	appRouter     porttypes.Router
 }
 
 func NewKeeper(cdc codec.BinaryCodec) *Keeper {
