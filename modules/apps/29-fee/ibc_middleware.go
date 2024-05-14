@@ -345,7 +345,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 	versionMetadata, err := types.MetadataFromVersion(proposedVersion)
 	if err != nil {
 		// since it is valid for fee version to not be specified, the upgrade version may be for a middleware
-		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
+		// or application further down in the stack. Thus, pass through to next middleware or application in callstack.
 		return cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 	}
 
@@ -367,7 +367,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 	return string(versionBz), nil
 }
 
-// OnChanUpgradeTry implement s the IBCModule interface
+// OnChanUpgradeTry implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
@@ -377,7 +377,7 @@ func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID stri
 	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
-		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
+		// or application further down in the stack. Thus, pass through to next middleware or application in callstack.
 		return cbs.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
 	}
 
@@ -409,7 +409,7 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
-		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
+		// or application further down in the stack. Thus, pass through to next middleware or application in callstack.
 		return cbs.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
 	}
 
@@ -430,13 +430,13 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 
 	versionMetadata, err := types.MetadataFromVersion(proposedVersion)
 	if err != nil {
-		// set fee disabled and passthrough to the next middleware or application in callstack.
+		// set fee disabled and pass through to the next middleware or application in callstack.
 		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 		cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 		return
 	}
 
-	// set fee enabled and passthrough to the next middleware of application in callstack.
+	// set fee enabled and pass through to the next middleware of application in callstack.
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
 	cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, versionMetadata.AppVersion)
 }
