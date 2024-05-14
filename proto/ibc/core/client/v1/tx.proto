@@ -52,7 +52,7 @@ message MsgCreateClient {
   google.protobuf.Any consensus_state = 2;
   // signer address
   string signer = 3;
-  // counterparty client identifier
+  // optional counterparty client identifier
   string counterparty_id = 4;
 }
 
