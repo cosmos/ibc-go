@@ -1,4 +1,4 @@
-package keeper
+package lite
 
 import (
 	"bytes"
@@ -17,17 +17,17 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/lite/types"
 )
 
-var _ channeltypes.PacketMsgServer = (*Keeper)(nil)
+var _ channeltypes.PacketMsgServer = (*Handler)(nil)
 
-type Keeper struct {
-	cdc           codec.BinaryCodec
-	channelKeeper types.ChannelKeeper
-	clientRouter  types.ClientRouter
-	appRouter     porttypes.Router
+type Handler struct {
+	cdc          codec.BinaryCodec
+	keeper       types.IBCLiteKeeper
+	clientRouter types.ClientRouter
+	appRouter    porttypes.Router
 }
 
-func NewKeeper(cdc codec.BinaryCodec) *Keeper {
-	return &Keeper{
+func NewKeeper(cdc codec.BinaryCodec, keeper types.IBCLiteKeeper, appRouter porttypes.Router, clientRouter types.ClientRouter) *Handler {
+	return &Handler{
 		cdc: cdc,
 	}
 }
@@ -35,30 +35,30 @@ func NewKeeper(cdc codec.BinaryCodec) *Keeper {
 // SendPacket implements the MsgServer interface. It creates a new packet
 // with the given source port and source channel and sends it over the channel
 // end with the given destination port and channel identifiers.
-func (k Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacket) (*channeltypes.MsgSendPacketResponse, error) {
+func (h Handler) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacket) (*channeltypes.MsgSendPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
-	lightClientModule := k.clientRouter.Route(msg.SourceChannel)
+	lightClientModule := h.clientRouter.Route(msg.SourceChannel)
 	if lightClientModule == nil {
 		return nil, errorsmod.Wrapf(channeltypes.ErrInvalidChannel, "source channel %s not associated with a light client module", msg.SourceChannel)
 	}
 
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
-	// Note: This can be implemented by the current channelKeeper
+	// Note: This can be implemented by the current keeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelID, found := k.channelKeeper.GetLiteCounterparty(ctx, "", msg.SourceChannel)
-	if !found {
+	counterpartyClientID := h.keeper.GetCounterparty(ctx, msg.SourceChannel)
+	if counterpartyClientID == "" {
 		return nil, channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyChannelID != msg.DestChannel {
+	if counterpartyClientID != msg.DestChannel {
 		return nil, channeltypes.ErrInvalidChannelIdentifier
 	}
 
-	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, msg.SourcePort, msg.SourceChannel)
+	sequence, found := h.keeper.GetNextSequenceSend(ctx, msg.SourcePort, msg.SourceChannel)
 	if !found {
 		sequence = 1
 	}
@@ -90,10 +90,10 @@ func (k Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacke
 		return nil, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
-	commitment := channeltypes.CommitLitePacket(k.cdc, packet)
+	commitment := channeltypes.CommitLitePacket(h.cdc, packet)
 
-	k.channelKeeper.SetNextSequenceSend(ctx, msg.SourcePort, msg.SourceChannel, sequence+1)
-	k.channelKeeper.SetPacketCommitment(ctx, msg.SourcePort, msg.SourceChannel, packet.GetSequence(), commitment)
+	h.keeper.SetNextSequenceSend(ctx, msg.SourcePort, msg.SourceChannel, sequence+1)
+	h.keeper.SetPacketCommitment(ctx, msg.SourcePort, msg.SourceChannel, packet.GetSequence(), commitment)
 
 	// IBC Lite routes to the application to do specific sendpacket logic rather than assuming the caller is the application module.
 	// IMPORTANT: This changes the ordering of core and application execution for SendPacket
@@ -106,30 +106,30 @@ func (k Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacke
 // packet, which was sent over a channel end with the given port and channel
 // identifiers, performs all necessary application logic, and then
 // acknowledges the packet.
-func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
+func (h Handler) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	packet := msg.Packet
 
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
-	// Note: This can be implemented by the current channelKeeper
+	// Note: This can be implemented by the current keeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelID, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.DestinationChannel)
-	if !found {
+	counterpartyClientID := h.keeper.GetCounterparty(ctx, packet.DestinationChannel)
+	if counterpartyClientID == "" {
 		return nil, channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyChannelID != packet.SourceChannel {
+	if counterpartyClientID != packet.SourceChannel {
 		return nil, channeltypes.ErrInvalidChannelIdentifier
 	}
 
 	// create key/value pair for proof verification
 	key := host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	commitment := channeltypes.CommitLitePacket(k.cdc, packet)
+	commitment := channeltypes.CommitLitePacket(h.cdc, packet)
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
-	lightClientModule := k.clientRouter.Route(packet.DestinationChannel)
+	lightClientModule := h.clientRouter.Route(packet.DestinationChannel)
 
 	// TODO: Use context instead of sdk.Context eventually
 	if err := lightClientModule.VerifyMembership(
@@ -144,9 +144,12 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 		return nil, err
 	}
 
+	// Set Packet Receipt to prevent timeout from occurring on counterparty
+	h.keeper.SetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+
 	// Port should directly correspond to the application module route
 	// No need for capabilities and mapping from portID to ModuleName
-	appModule, ok := k.appRouter.GetRoute(packet.DestinationPort)
+	appModule, ok := h.appRouter.GetRoute(packet.DestinationPort)
 	if !ok {
 		return nil, porttypes.ErrInvalidPort
 	}
@@ -175,11 +178,9 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 
 	// Write acknowledgement to store
 	if ack != nil {
-		// Can be implemented by current channelKeeper with change in sdk.Context to context.Context
-		err = k.channelKeeper.WriteAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, ack.Acknowledgement())
-		if err != nil {
-			return nil, errorsmod.Wrap(err, "failed to write acknowledgement to store")
-		}
+		// Can be implemented by current keeper with change in sdk.Context to context.Context
+		ackHash := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
+		h.keeper.SetPacketAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence, ackHash)
 	}
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
@@ -188,24 +189,24 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 // Acknowledgement implements the MsgServer interface. It processes the acknowledgement
 // of a packet previously sent by the calling chain once the packet has been received and acknowledged
 // by the counterparty chain.
-func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
+func (h Handler) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	packet := msg.Packet
 
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
-	// Note: This can be implemented by the current channelKeeper
+	// Note: This can be implemented by the current keeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelID, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.SourceChannel)
-	if !found {
+	counterpartyClientID := h.keeper.GetCounterparty(ctx, packet.SourceChannel)
+	if counterpartyClientID == "" {
 		return nil, channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyChannelID != packet.DestinationChannel {
+	if counterpartyClientID != packet.DestinationChannel {
 		return nil, channeltypes.ErrInvalidChannelIdentifier
 	}
 
-	commitment := k.channelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	commitment := h.keeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	if len(commitment) == 0 {
 		// TODO: events
 		// emitAcknowledgePacketEvent(ctx, packet, channel)
@@ -217,7 +218,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 		return nil, channeltypes.ErrNoOpMsg
 	}
 
-	packetCommitment := channeltypes.CommitLitePacket(k.cdc, packet)
+	packetCommitment := channeltypes.CommitLitePacket(h.cdc, packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
@@ -228,7 +229,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
-	lightClientModule := k.clientRouter.Route(packet.SourceChannel)
+	lightClientModule := h.clientRouter.Route(packet.SourceChannel)
 	// TODO: Use context instead of sdk.Context eventually
 	if err := lightClientModule.VerifyMembership(
 		ctx,
@@ -242,14 +243,14 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 		return nil, err
 	}
 
-	k.channelKeeper.DeletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	h.keeper.DeletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// TODO: emit events
 	// emitAcknowledgePacketEvent(ctx, packet, channel)
 
 	// Port should directly correspond to the application module route
 	// No need for capabilities and mapping from portID to ModuleName
-	appModule, ok := k.appRouter.GetRoute(packet.SourcePort)
+	appModule, ok := h.appRouter.GetRoute(packet.SourcePort)
 	if !ok {
 		return nil, porttypes.ErrInvalidPort
 	}
@@ -271,25 +272,25 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 
 // Timeout implements the MsgServer interface. It processes a timeout
 // for a packet previously sent by the calling chain.
-func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
+func (h Handler) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	packet := msg.Packet
 
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
-	// Note: This can be implemented by the current channelKeeper
+	// Note: This can be implemented by the current keeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelID, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.SourceChannel)
-	if !found {
+	counterpartyClientID := h.keeper.GetCounterparty(ctx, packet.SourceChannel)
+	if counterpartyClientID == "" {
 		return nil, channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyChannelID != packet.DestinationChannel {
+	if counterpartyClientID != packet.DestinationChannel {
 		return nil, channeltypes.ErrInvalidChannelIdentifier
 	}
 
 	// TODO: Use context instead of sdk.Context eventually
-	commitment := k.channelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	commitment := h.keeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
 		// TODO: events
 		// emitTimeoutPacketEvent(ctx, packet, channel)
@@ -301,7 +302,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 		return nil, channeltypes.ErrNoOpMsg
 	}
 
-	packetCommitment := channeltypes.CommitLitePacket(k.cdc, packet)
+	packetCommitment := channeltypes.CommitLitePacket(h.cdc, packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
@@ -312,7 +313,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
-	lightClientModule := k.clientRouter.Route(packet.SourceChannel)
+	lightClientModule := h.clientRouter.Route(packet.SourceChannel)
 	// TODO: Use context instead of sdk.Context eventually
 	if err := lightClientModule.VerifyNonMembership(
 		ctx,
@@ -326,14 +327,14 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	}
 
 	// TODO: Use context instead of sdk.Context eventually
-	k.channelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	h.keeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
 	// TODO: emit an event marking that we have processed the timeout
 	// emitTimeoutPacketEvent(ctx, packet, channel)
 
 	// Port should directly correspond to the application module route
 	// No need for capabilities and mapping from portID to ModuleName
-	appModule, ok := k.appRouter.GetRoute(packet.SourcePort)
+	appModule, ok := h.appRouter.GetRoute(packet.SourcePort)
 	if !ok {
 		return nil, porttypes.ErrInvalidPort
 	}

@@ -138,11 +138,11 @@ func (keeper ChannelKeeper) WriteAcknowledgement(ctx Context, packet Packet, ack
 }
 
 func (keeper ChannelKeeper) DeleteCommitment(ctx Context, packet Packet) {
-  keeper.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+  keeper.DeletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 }
 
 func (keeper ChannelKeeper) DeleteCommitmentTimeout(ctx Context, packet Packet) {
-  k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+  k.DeletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
   
   if channel.Ordering == types.ORDERED [
     channel.State = types.CLOSED
