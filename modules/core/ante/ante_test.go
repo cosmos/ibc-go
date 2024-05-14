@@ -3,8 +3,10 @@ package ante_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -12,6 +14,7 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/ante"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -382,6 +385,39 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 					msgs = append(msgs, suite.createRecvPacketMessage(true))
 				}
 
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one new UpdateClient message: invalid client identifier",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg}}
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one new UpdateClient message: client module not found",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg}}
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one new UpdateClient message: no consensus state for trusted height",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{TrustedHeight: clienttypes.NewHeight(1, 10000)})
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg}}
 				return msgs
 			},
 			false,
