@@ -18,13 +18,13 @@ message FungibleTokenPacketData {
   string receiver = 3;
   // optional memo
   string memo = 4;
-  // optional forwardingInfo struct 
-  ibc.applications.transfer.v1.ForwardingInfo forwardingPath = 5; 
+  // optional forwardingInfo struct
+  ibc.applications.transfer.v1.ForwardingInfo forwarding_path = 5;
 }
 
 /*
 message ForwardingInfo {
-  repeated Hop hop = 1; 
+  repeated Hop hop = 1;
   string memo = 2;
 }
 

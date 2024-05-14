@@ -28,11 +28,11 @@ message Params {
 }
 
 message ForwardingInfo {
-  repeated Hop hops = 1; 
-  string memo = 2;
+  repeated Hop hops = 1;
+  string       memo = 2;
 }
 
 message Hop {
-  string portID = 1;
+  string portID    = 1;
   string channelId = 2;
 }

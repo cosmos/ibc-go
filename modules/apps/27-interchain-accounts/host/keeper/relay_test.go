@@ -788,13 +788,13 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"@type": "/ibc.applications.transfer.v1.MsgTransfer",
 							"source_port": "transfer",
 							"source_channel": "channel-1",
-							"token": { "denom": "stake", "amount": "100" },
+							"tokens": [{ "denom": "stake", "amount": "100" }],
 							"sender": "` + icaAddress + `",
 							"receiver": "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk",
 							"timeout_height": { "revision_number": 1, "revision_height": 100 },
-							"timeout_timestamp": 0, 
-							"memo": ""
-							"forwarding_path": { "Hops": nil, "Memo": "" }
+							"timeout_timestamp": 0,
+							"memo": "",
+							"forwarding_path": { "hops": [], "memo": "" }
 						}
 					]
 				}`)
