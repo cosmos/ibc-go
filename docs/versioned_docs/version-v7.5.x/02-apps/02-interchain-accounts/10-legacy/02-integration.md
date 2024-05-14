@@ -25,7 +25,7 @@ Interchain Account authentication modules are the base application of a middlewa
 ![ica-pre-v6.png](./images/ica-pre-v6.png)
 
 > Please note that since ibc-go v6 the channel capability is claimed by the controller submodule and therefore it is not required for authentication modules to claim the capability in the `OnChanOpenInit` callback. Therefore the custom authentication module does not need a scoped keeper anymore.
-> Please note that since ibc-go v7.5.0 it is mandatory to register the gRPC query router after the creation of the host submodule's keeper, otherwise nodes will not start. The query router is used to execute on the host query messages encoded in the ICA packet data. Please check the sample integration code below for more details.
+> Please note that since ibc-go v7.5.0 it is mandatory to register the gRPC query router after the creation of the host submodule's keeper; otherwise, nodes will not start. The query router is used to execute on the host query messages encoded in the ICA packet data. Please check the sample integration code below for more details.
 
 ## Example integration
 
