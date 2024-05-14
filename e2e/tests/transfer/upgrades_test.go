@@ -35,7 +35,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transfertypes.Version))
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
 
@@ -367,7 +367,6 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 		s.Require().NoError(err)
 		s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
 	})
-
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds tests upgrading a transfer channel to wire up fee middleware under crossing hello
@@ -375,7 +374,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transfertypes.Version))
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
 
@@ -464,7 +463,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transfertypes.Version))
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
 
