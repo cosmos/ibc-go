@@ -3,10 +3,10 @@ package ante_test
 import (
 	"testing"
 
+	"github.com/cosmos/btcutil/bech32"
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/btcutil/bech32"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
