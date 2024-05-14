@@ -48,7 +48,7 @@ func (k Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacke
 	// sent by our counterparty.
 	// Note: This can be implemented by the current channelKeeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelId, found := k.channelKeeper.GetCounterparty(ctx, "", msg.SourceChannel)
+	_, counterpartyChannelId, found := k.channelKeeper.GetLiteCounterparty(ctx, "", msg.SourceChannel)
 	if !found {
 		return nil, channeltypes.ErrChannelNotFound
 	}
@@ -110,7 +110,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// sent by our counterparty.
 	// Note: This can be implemented by the current channelKeeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelId, found := k.channelKeeper.GetCounterparty(ctx, "", packet.DestinationChannel)
+	_, counterpartyChannelId, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.DestinationChannel)
 	if !found {
 		return nil, channeltypes.ErrChannelNotFound
 	}
@@ -188,7 +188,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	// sent by our counterparty.
 	// Note: This can be implemented by the current channelKeeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelId, found := k.channelKeeper.GetCounterparty(ctx, "", packet.SourceChannel)
+	_, counterpartyChannelId, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.SourceChannel)
 	if !found {
 		return nil, channeltypes.ErrChannelNotFound
 	}
@@ -271,7 +271,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	// sent by our counterparty.
 	// Note: This can be implemented by the current channelKeeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelId, found := k.channelKeeper.GetCounterparty(ctx, "", packet.SourceChannel)
+	_, counterpartyChannelId, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.SourceChannel)
 	if !found {
 		return nil, channeltypes.ErrChannelNotFound
 	}

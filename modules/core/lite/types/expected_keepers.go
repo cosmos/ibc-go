@@ -16,7 +16,7 @@ type ChannelKeeper interface {
 	// the executing chain
 	// Note for IBC lite, the portID is not needed as there is effectively
 	// a single channel between the two clients that can switch between apps using the portID
-	GetCounterparty(ctx sdk.Context, portID, channelID string) (portIDOut, channelIDOut string, found bool)
+	GetLiteCounterparty(ctx sdk.Context, portID, channelID string) (portIDOut, channelIDOut string, found bool)
 
 	GetPacketCommitment(ctx sdk.Context, portID string, channelID string, sequence uint64) []byte
 
