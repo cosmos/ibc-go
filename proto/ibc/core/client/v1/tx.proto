@@ -53,7 +53,7 @@ message MsgCreateClient {
   // signer address
   string signer = 3;
   // counterparty client identifier
-  optional string counterparty_id = 4;
+  string counterparty_id = 4;
 }
 
 // MsgCreateClientResponse defines the Msg/CreateClient response type.
