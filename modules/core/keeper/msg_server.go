@@ -137,6 +137,20 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil
 }
 
+// ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
+func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *clienttypes.MsgProvideCounterparty) (*clienttypes.MsgProvideCounterpartyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// TODO: validate that the signer is the creator of the client
+
+	if counterparty := k.ClientKeeper.GetCounterparty(ctx, msg.ClientId); counterparty != "" {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.ClientId)
+	}
+	k.ClientKeeper.SetCounterparty(ctx, msg.ClientId, msg.CounterpartyId)
+
+	return &clienttypes.MsgProvideCounterpartyResponse{}, nil
+}
+
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
 func (k *Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenInit) (*connectiontypes.MsgConnectionOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
