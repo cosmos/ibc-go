@@ -3,16 +3,33 @@ package ante_test
 import (
 	"testing"
 
+<<<<<<< HEAD
+=======
+	"github.com/stretchr/testify/require"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+>>>>>>> 3da48308 (imp: add updateClientCheckTx to redunant relayer ante decorator (#6279))
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+<<<<<<< HEAD
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/ante"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+=======
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/ante"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+>>>>>>> 3da48308 (imp: add updateClientCheckTx to redunant relayer ante decorator (#6279))
 )
 
 type AnteTestSuite struct {
@@ -382,6 +399,39 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 					msgs = append(msgs, suite.createRecvPacketMessage(true))
 				}
 
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one new UpdateClient message: invalid client identifier",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg}}
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one new UpdateClient message: client module not found",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg}}
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one new UpdateClient message: no consensus state for trusted height",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{TrustedHeight: clienttypes.NewHeight(1, 10000)})
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg}}
 				return msgs
 			},
 			false,
