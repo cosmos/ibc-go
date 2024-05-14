@@ -450,6 +450,60 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestPathForwarding() {
+	amount := sdkmath.NewInt(100)
+
+	// setup
+	// 2 transfer channels between chain A and chain B
+	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	path1.Setup()
+
+	path2 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	path2.Setup()
+
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	sender := suite.chainA.SenderAccounts[0].SenderAccount
+	receiver := suite.chainA.SenderAccounts[1].SenderAccount
+	forwardingPath := types.ForwardingInfo{
+		Hops: []*types.Hop{
+			{
+				PortID:    path2.EndpointA.ChannelConfig.PortID,
+				ChannelId: path2.EndpointA.ChannelID,
+			},
+		},
+		Memo: "",
+	}
+
+	transferMsg := types.NewMsgTransfer(
+		path1.EndpointA.ChannelConfig.PortID,
+		path1.EndpointA.ChannelID,
+		sdk.NewCoins(coin),
+		sender.GetAddress().String(),
+		receiver.GetAddress().String(),
+		suite.chainA.GetTimeoutHeight(),
+		0, "",
+		&forwardingPath,
+	)
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	// parse the packet from result events and recv packet on chainB
+	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packet)
+
+	err = path1.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = path1.EndpointB.RecvPacketWithResult(packet)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(packet, forwardedPacket)
+}
+
 func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		Given the following flow of tokens:
