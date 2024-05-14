@@ -18,7 +18,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -304,23 +304,23 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// Set the forwarded packet in the private store.
-func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, packet v3types.FungibleTokenPacketData) {
+// Set the forwarded packet in the private store. // Should the packet be v3types or
+func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64, packet channeltypes.Packet) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&packet)
-	store.Set(types.PacketForwardPath(portID, channelID), bz)
+	store.Set(types.PacketForwardPath(portID, channelID, nextPacketSequence), bz)
 }
 
 // GetCounterpartyUpgrade gets the counterparty upgrade from the store.
-func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string) (v3types.FungibleTokenPacketData, bool) {
+func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64) (channeltypes.Packet, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.PacketForwardPath(portID, channelID))
+	bz := store.Get(types.PacketForwardPath(portID, channelID, nextPacketSequence))
 	if bz == nil {
-		return v3types.FungibleTokenPacketData{}, false
+		return channeltypes.Packet{}, false
 	}
 
-	var upgrade v3types.FungibleTokenPacketData
-	k.cdc.MustUnmarshal(bz, &upgrade)
+	var storedPacket channeltypes.Packet
+	k.cdc.MustUnmarshal(bz, &storedPacket)
 
-	return upgrade, true
+	return storedPacket, true
 }

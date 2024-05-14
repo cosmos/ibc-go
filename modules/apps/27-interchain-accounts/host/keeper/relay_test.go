@@ -792,8 +792,9 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"sender": "` + icaAddress + `",
 							"receiver": "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk",
 							"timeout_height": { "revision_number": 1, "revision_height": 100 },
-							"timeout_timestamp": 0
-							"forwarding_path": { "Hops": [], "Memo": "" }
+							"timeout_timestamp": 0, 
+							"memo": ""
+							"forwarding_path": { "Hops": nil, "Memo": "" }
 						}
 					]
 				}`)

@@ -49,7 +49,7 @@ const (
 	escrowAddressVersion = "ics20-1"
 
 	// this new address is introduced specifically with ics20-2.
-	forwardAddressVersion = "ics20-2"
+	forwardAddressVersion = "forwardingAddress"
 )
 
 var (
@@ -102,6 +102,13 @@ func TotalForwardForDenomKey(denom string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", KeyTotalForwardPrefix, denom))
 }
 
+// PacketForwardPath returns the packet forward path as a byte slice for the provided portID, channelID, and nextPacketSequence
+func PacketForwardPath(portID, channelID string, nextPacketSequence uint64) []byte {
+	path := fmt.Sprintf("%s/%s/%s/%d", KeyPacketForwardPrefix, portID, channelID, nextPacketSequence)
+	return []byte(path)
+}
+
+/*
 // Packet forward key
 func PacketForwardPath(portID, channelID string) []byte {
 	return []byte(packetForwardPath(portID, channelID))
@@ -110,4 +117,4 @@ func PacketForwardPath(portID, channelID string) []byte {
 // Packet ForwardPath to store the forwarded packets
 func packetForwardPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s", KeyPacketForwardPrefix, PacketForwardPath(portID, channelID))
-}
+}*/
