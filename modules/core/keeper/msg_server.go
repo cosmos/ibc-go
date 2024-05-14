@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"errors"
+	"strings"
 
 	metrics "github.com/hashicorp/go-metrics"
 
@@ -41,8 +42,15 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 		return nil, err
 	}
 
-	if _, err = k.ClientKeeper.CreateClient(ctx, clientState.ClientType(), msg.ClientState.Value, msg.ConsensusState.Value); err != nil {
+	clientID, err := k.ClientKeeper.CreateClient(ctx, clientState.ClientType(), msg.ClientState.Value, msg.ConsensusState.Value)
+	if err != nil {
 		return nil, err
+	}
+
+	k.ClientKeeper.SetCreator(ctx, clientID, msg.Signer)
+
+	if strings.TrimSpace(msg.CounterpartyId) != "" {
+		k.ClientKeeper.SetCounterparty(ctx, clientID, msg.CounterpartyId)
 	}
 
 	return &clienttypes.MsgCreateClientResponse{}, nil
@@ -135,6 +143,22 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 	}
 
 	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil
+}
+
+// ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
+func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *clienttypes.MsgProvideCounterparty) (*clienttypes.MsgProvideCounterpartyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if creator := k.ClientKeeper.GetCreator(ctx, msg.ClientId); creator != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", creator, msg.Signer)
+	}
+
+	if counterparty := k.ClientKeeper.GetCounterparty(ctx, msg.ClientId); counterparty != "" {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.ClientId)
+	}
+	k.ClientKeeper.SetCounterparty(ctx, msg.ClientId, msg.CounterpartyId)
+
+	return &clienttypes.MsgProvideCounterpartyResponse{}, nil
 }
 
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
