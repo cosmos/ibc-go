@@ -103,18 +103,8 @@ func TotalForwardForDenomKey(denom string) []byte {
 }
 
 // PacketForwardPath returns the packet forward path as a byte slice for the provided portID, channelID, and nextPacketSequence
-func PacketForwardPath(portID, channelID string, nextPacketSequence uint64) []byte {
-	path := fmt.Sprintf("%s/%s/%s/%d", KeyPacketForwardPrefix, portID, channelID, nextPacketSequence)
+// func PacketForwardPath(portID, channelID string, nextPacketSequence uint64) []byte {
+func PacketForwardPath(portID, channelID string) []byte {
+	path := fmt.Sprintf("%s/%s/%s", KeyPacketForwardPrefix, portID, channelID) //, nextPacketSequence)
 	return []byte(path)
 }
-
-/*
-// Packet forward key
-func PacketForwardPath(portID, channelID string) []byte {
-	return []byte(packetForwardPath(portID, channelID))
-}
-
-// Packet ForwardPath to store the forwarded packets
-func packetForwardPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyPacketForwardPrefix, PacketForwardPath(portID, channelID))
-}*/

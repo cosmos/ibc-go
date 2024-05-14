@@ -396,14 +396,16 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 		}
 		// Assign to timestamp --> current + 1 h
 		timeoutTimestamp := uint64(ctx.BlockTime().Add(time.Hour).UnixNano())
-		// _ is nextPacketSequence
-		nextPacketSequence, err := k.sendTransfer(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, receivedTokens, receiver, string(finalReceiver), clienttypes.Height{}, timeoutTimestamp, memo, nextForwardingPath)
+		// _ is nextPacketSequence what we do with it?
+		_, err := k.sendTransfer(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, receivedTokens, receiver, string(finalReceiver), clienttypes.Height{}, timeoutTimestamp, memo, nextForwardingPath)
 		if err != nil {
 			return err
 		}
 
 		//packetData := v3types.NewFungibleTokenPacketData(tokens, sender.String(), receiver, memo, forwardingPath)
-		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, nextPacketSequence, data)
+		//k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, nextPacketSequence, data)
+		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, packet)
+
 		return nil
 	}
 	// The ibc_module.go module will return the proper ack.
@@ -415,22 +417,83 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 // was a success then nothing occurs. If the acknowledgement failed, then
 // the sender is refunded their tokens using the refundPacketToken function.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data v3types.FungibleTokenPacketData, ack channeltypes.Acknowledgement) error {
-	switch ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Result:
-		// the acknowledgement succeeded on the receiving chain so nothing
-		// needs to be executed and no error needs to be returned
-		return nil
-	case *channeltypes.Acknowledgement_Error:
-		return k.refundPacketToken(ctx, packet, data)
-	default:
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
+
+	prevPacket, prevPacketExist := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel)
+
+	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
+	if !ok {
+		errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
+
+	if prevPacketExist {
+		switch ack.Response.(type) {
+		case *channeltypes.Acknowledgement_Result:
+			// the acknowledgement succeeded on the receiving chain so nothing
+			// needs to be executed and no error needs to be returned
+			// here the ibc_module.go will generate the sucss ack.
+
+			// Figure Out how to do this
+
+			FungibleTokenPacketAcknowledgement := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
+			//				Error:  "forwarded packet succeeded",
+			//				Result: true,
+			//			}
+
+			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, packet, FungibleTokenPacketAcknowledgement)
+
+			//return nil
+		case *channeltypes.Acknowledgement_Error:
+			// the forwarded packet has failed, thus the funds have been refunded to the forwarding address.
+			// we must revert the changes that came from successfully receiving the tokens on our chain
+			// before propogating the error acknowledgement back to original sender chain
+
+			k.revertInFlightChanges(ctx, packet, prevPacket, data)
+			// Figure Out how to do this
+			//err error := "forwarded packet failed"
+			FungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarded packet failed"))
+			/* channeltypes.Acknowledgement{
+				channeltypes.Acknowledgement.Response.Error:  "forwarded packet failed",
+				channeltypes.Acknowledgement.Response.Result: false,
+			}*/
+			// set the acknowledgement so that it can be verified on the other side
+			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, packet, FungibleTokenPacketAcknowledgement)
+
+		default:
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
+		}
+	} else {
+		switch ack.Response.(type) {
+		case *channeltypes.Acknowledgement_Error:
+			k.refundPacketToken(ctx, packet, data)
+		}
+	}
+	return nil
 }
 
 // OnTimeoutPacket refunds the sender since the original packet sent was
 // never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data v3types.FungibleTokenPacketData) error {
-	return k.refundPacketToken(ctx, packet, data)
+	prevPacket, prevPacketExist := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel)
+
+	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
+	if !ok {
+		errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+	}
+
+	if prevPacketExist {
+		k.revertInFlightChanges(ctx, packet, prevPacket, data)
+
+		FungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarded packet failed"))
+
+		/*FungibleTokenPacketAcknowledgement := channeltypes.Acknowledgement{
+			channeltypes.Acknowledgement.Response.Error:  "forwarded packet failed",
+			channeltypes.Acknowledgement.Response.Result: false,
+		}*/
+
+		return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, packet, FungibleTokenPacketAcknowledgement)
+	} else {
+		return k.refundPacketToken(ctx, packet, data)
+	}
 }
 
 // refundPacketToken will unescrow and send back the tokens back to sender

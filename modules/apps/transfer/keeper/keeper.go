@@ -18,7 +18,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -305,21 +305,26 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 }
 
 // Set the forwarded packet in the private store. // Should the packet be v3types or
-func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64, packet v3types.FungibleTokenPacketData) {
+// func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64, packet v3types.FungibleTokenPacketData) {
+func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, packet channeltypes.Packet) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&packet)
-	store.Set(types.PacketForwardPath(portID, channelID, nextPacketSequence), bz)
+	//	store.Set(types.PacketForwardPath(portID, channelID, nextPacketSequence), bz)
+	store.Set(types.PacketForwardPath(portID, channelID), bz)
+
 }
 
 // GetCounterpartyUpgrade gets the counterparty upgrade from the store.
-func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64) (v3types.FungibleTokenPacketData, bool) {
+// func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64) (v3types.FungibleTokenPacketData, bool) {
+func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string) (channeltypes.Packet, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.PacketForwardPath(portID, channelID, nextPacketSequence))
+	//bz := store.Get(types.PacketForwardPath(portID, channelID, nextPacketSequence))
+	bz := store.Get(types.PacketForwardPath(portID, channelID))
 	if bz == nil {
-		return v3types.FungibleTokenPacketData{}, false
+		return channeltypes.Packet{}, false
 	}
 
-	var storedPacket v3types.FungibleTokenPacketData
+	var storedPacket channeltypes.Packet
 	k.cdc.MustUnmarshal(bz, &storedPacket)
 
 	return storedPacket, true
