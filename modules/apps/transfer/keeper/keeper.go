@@ -18,7 +18,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -305,21 +305,21 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 }
 
 // Set the forwarded packet in the private store. // Should the packet be v3types or
-func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64, packet channeltypes.Packet) {
+func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64, packet v3types.FungibleTokenPacketData) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&packet)
 	store.Set(types.PacketForwardPath(portID, channelID, nextPacketSequence), bz)
 }
 
 // GetCounterpartyUpgrade gets the counterparty upgrade from the store.
-func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64) (channeltypes.Packet, bool) {
+func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64) (v3types.FungibleTokenPacketData, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.PacketForwardPath(portID, channelID, nextPacketSequence))
 	if bz == nil {
-		return channeltypes.Packet{}, false
+		return v3types.FungibleTokenPacketData{}, false
 	}
 
-	var storedPacket channeltypes.Packet
+	var storedPacket v3types.FungibleTokenPacketData
 	k.cdc.MustUnmarshal(bz, &storedPacket)
 
 	return storedPacket, true

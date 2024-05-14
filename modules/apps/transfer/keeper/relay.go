@@ -403,8 +403,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 		}
 
 		//packetData := v3types.NewFungibleTokenPacketData(tokens, sender.String(), receiver, memo, forwardingPath)
-
-		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, nextPacketSequence, packet)
+		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, nextPacketSequence, data)
 		return nil
 	}
 	// The ibc_module.go module will return the proper ack.
@@ -438,6 +437,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 // if the sending chain was the source chain. Otherwise, the sent tokens
 // were burnt in the original send so new tokens are minted and sent to
 // the sending address.
+// Probably data is not really necessary here.
 func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, data v3types.FungibleTokenPacketData) error {
 	// NOTE: packet data type already checked in handler.go
 
@@ -478,6 +478,74 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		}
 	}
 
+	return nil
+}
+
+func (k Keeper) revertInFlightChanges(ctx sdk.Context, sentPacket channeltypes.Packet, receivedPacket channeltypes.Packet, sentPacketData v3types.FungibleTokenPacketData) error {
+
+	forwardEscrow := types.GetEscrowAddress(sentPacket.SourcePort, sentPacket.SourceChannel)
+	reverseEscrow := types.GetEscrowAddress(receivedPacket.DestinationPort, receivedPacket.DestinationChannel)
+	// the token on our chain is the token in the sentPacket
+
+	// We could unmarshall the sentPacket data and use it in the for or use sentPacketData
+	// Need to understand how to deal with this. The bank functions wants a coin and not a v3token type
+	for _, token := range sentPacketData.Tokens {
+
+		fullDenomPath := token.GetFullDenomPath()
+
+		// parse the denomination from the full denom path
+		trace := types.ParseDenomTrace(fullDenomPath)
+
+		// parse the transfer amount
+		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
+		if !ok {
+			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", transferAmount)
+		}
+		sdkToken := sdk.NewCoin(trace.IBCDenom(), transferAmount)
+
+		// check if the packet we sent out was sending as source or not
+		// in this case we escrowed the outgoing tokens
+		if types.SenderChainIsSource(sentPacket.SourcePort, sentPacket.SourceChannel, fullDenomPath) {
+			// check if the packet we received was a source token for our chain
+			// Check if here should be ReceiverChainIsSource
+			if types.SenderChainIsSource(receivedPacket.DestinationPort, receivedPacket.DestinationChannel, fullDenomPath) {
+				// receive sent tokens from the received escrow to the forward escrow account
+				// so we must send the tokens back from the forward escrow to the original received escrow account
+				// To check if this is proper
+				//escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
+				return k.unescrowToken(ctx, forwardEscrow, reverseEscrow, sdkToken)
+				//bank.TransferCoins(forwardEscrow, reverseEscrow, token.denom, token.amount)
+			} else {
+				// receive minted vouchers and sent to the forward escrow account
+				// so we must remove the vouchers from the forward escrow account and burn them
+				// Is this ok?
+				if err := k.bankKeeper.BurnCoins(
+					ctx, types.ModuleName, sdk.NewCoins(sdkToken),
+				); err != nil {
+					return err
+				}
+			}
+		} else {
+			// in this case we burned the vouchers of the outgoing packets
+			// check if the packet we received was a source token for our chain
+			// in this case, the tokens were unescrowed from the reverse escrow account
+			if types.SenderChainIsSource(receivedPacket.DestinationPort, receivedPacket.DestinationChannel, token.Denom) {
+				// in this case we must mint the burned vouchers and send them back to the escrow account
+				// mint vouchers back to sender
+				// Is this ok?
+				if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(sdkToken)); err != nil {
+					return err
+				}
+
+				if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, reverseEscrow, sdk.NewCoins(sdkToken)); err != nil {
+					panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+				}
+			}
+			//return nil
+			// if it wasn't a source token on receive, then we simply had minted vouchers and burned them in the receive.
+			// So no state changes were made, and thus no reversion is necessary
+		}
+	}
 	return nil
 }
 
