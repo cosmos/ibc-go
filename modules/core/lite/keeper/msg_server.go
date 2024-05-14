@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -48,12 +49,12 @@ func (k Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacke
 	// sent by our counterparty.
 	// Note: This can be implemented by the current channelKeeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelId, found := k.channelKeeper.GetLiteCounterparty(ctx, "", msg.SourceChannel)
+	_, counterpartyChannelID, found := k.channelKeeper.GetLiteCounterparty(ctx, "", msg.SourceChannel)
 	if !found {
 		return nil, channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyChannelId != msg.DestChannel {
+	if counterpartyChannelID != msg.DestChannel {
 		return nil, channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -70,7 +71,10 @@ func (k Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacke
 		return nil, errorsmod.Wrap(err, "constructed packet failed basic validation")
 	}
 
-	latestHeight := lightClientModule.LatestHeight(ctx, msg.SourceChannel).(clienttypes.Height)
+	latestHeight, ok := lightClientModule.LatestHeight(ctx, msg.SourceChannel).(clienttypes.Height)
+	if !ok {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "latest height of client (%s) is not a %T", msg.SourceChannel, (*clienttypes.Height)(nil))
+	}
 	if latestHeight.IsZero() {
 		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", msg.SourceChannel)
 	}
@@ -110,12 +114,12 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// sent by our counterparty.
 	// Note: This can be implemented by the current channelKeeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelId, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.DestinationChannel)
+	_, counterpartyChannelID, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.DestinationChannel)
 	if !found {
 		return nil, channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyChannelId != packet.SourceChannel {
+	if counterpartyChannelID != packet.SourceChannel {
 		return nil, channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -158,11 +162,12 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 		ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
+
 	ack := appModule.OnRecvPacket(cacheCtx, packet, relayer)
 	if ack == nil || ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
-	} else {
+	} else { //nolint
 		// Modify events in cached context to reflect unsuccessful acknowledgement
 		// TODO: How do we create interface for this that isn't too SDK specific?
 		// ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
@@ -171,7 +176,10 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// Write acknowledgement to store
 	if ack != nil {
 		// Can be implemented by current channelKeeper with change in sdk.Context to context.Context
-		k.channelKeeper.WriteAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, ack.Acknowledgement())
+		err = k.channelKeeper.WriteAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, ack.Acknowledgement())
+		if err != nil {
+			return nil, errorsmod.Wrap(err, "failed to write acknowledgement to store")
+		}
 	}
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
@@ -188,12 +196,12 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	// sent by our counterparty.
 	// Note: This can be implemented by the current channelKeeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelId, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.SourceChannel)
+	_, counterpartyChannelID, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.SourceChannel)
 	if !found {
 		return nil, channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyChannelId != packet.DestinationChannel {
+	if counterpartyChannelID != packet.DestinationChannel {
 		return nil, channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -271,12 +279,12 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	// sent by our counterparty.
 	// Note: This can be implemented by the current channelKeeper
 	// TODO: Use context instead of sdk.Context eventually
-	_, counterpartyChannelId, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.SourceChannel)
+	_, counterpartyChannelID, found := k.channelKeeper.GetLiteCounterparty(ctx, "", packet.SourceChannel)
 	if !found {
 		return nil, channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyChannelId != packet.DestinationChannel {
+	if counterpartyChannelID != packet.DestinationChannel {
 		return nil, channeltypes.ErrInvalidChannelIdentifier
 	}
 
