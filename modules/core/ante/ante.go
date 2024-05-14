@@ -9,6 +9,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	tendermint "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 type RedundantRelayDecorator struct {
@@ -119,9 +121,17 @@ func (rrd RedundantRelayDecorator) updateClientCheckTx(ctx sdk.Context, msg *cli
 		}
 	}
 
-	heights := clientState.UpdateState(ctx, rrd.k.Codec(), clientStore, clientMsg)
-
-	ctx.Logger().With("module", "x/"+exported.ModuleName).Debug("ante ibc client update", "consensusHeights", heights)
+	// NOTE: the folowing avoids panics in ante handler client updates for ibc-go v7.4.x
+	// without state machine breaking changes within light client modules.
+	switch clientMsg.(type) {
+	case *solomachine.Misbehaviour:
+		// ignore solomachine misbehaviour for update state in ante
+	case *tendermint.Misbehaviour:
+		// ignore tendermint misbehaviour for update state in ante
+	default:
+		heights := clientState.UpdateState(ctx, rrd.k.Codec(), clientStore, clientMsg)
+		ctx.Logger().With("module", "x/"+exported.ModuleName).Debug("ante ibc client update", "consensusHeights", heights)
+	}
 
 	return nil
 }
