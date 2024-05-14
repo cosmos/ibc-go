@@ -315,6 +315,17 @@ func (k *Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) 
 	return k.consensusHost.GetSelfConsensusState(ctx, height)
 }
 
+// GetCounterparty returns the counterparty client's identifier for a given client identifier.
+// If the counterparty client identifier is not found, an empty string is returned.
+func (k *Keeper) GetCounterparty(ctx sdk.Context, clientID string) string {
+	return string(k.ClientStore(ctx, clientID).Get(host.CounterpartyKey()))
+}
+
+// SetCounterparty sets the counterparty client's identifier for a given client identifier.
+func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID, counterpartyClientID string) {
+	k.ClientStore(ctx, clientID).Set(host.CounterpartyKey(), []byte(counterpartyClientID))
+}
+
 // ValidateSelfClient validates the client parameters for a client of the running chain.
 // This function is only used to validate the client state the counterparty stores for this chain.
 // NOTE: If the client type is not of type Tendermint then delegate to a custom client validator function.
