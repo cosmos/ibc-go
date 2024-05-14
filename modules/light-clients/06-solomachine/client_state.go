@@ -9,10 +9,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -53,17 +52,12 @@ func (cs *ClientState) VerifyMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path,
+	merklePath api.MerklePath,
 	value []byte,
 ) error {
 	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
 	if err != nil {
 		return err
-	}
-
-	merklePath, ok := path.(commitmenttypes.MerklePath)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
@@ -110,16 +104,11 @@ func (cs *ClientState) VerifyNonMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path,
+	merklePath api.MerklePath,
 ) error {
 	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
 	if err != nil {
 		return err
-	}
-
-	merklePath, ok := path.(commitmenttypes.MerklePath)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {

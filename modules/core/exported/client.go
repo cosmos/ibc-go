@@ -6,6 +6,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/api"
 )
 
 // Status represents the status of a client
@@ -90,7 +92,7 @@ type LightClientModule interface {
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path Path,
+		path api.MerklePath,
 		value []byte,
 	) error
 
@@ -103,7 +105,7 @@ type LightClientModule interface {
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
 		proof []byte,
-		path Path,
+		path api.MerklePath,
 	) error
 
 	// Status must return the status of the client. Only Active clients are allowed to process packets.

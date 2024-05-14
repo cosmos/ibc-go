@@ -11,6 +11,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	"github.com/cosmos/ibc-go/api"
 	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -365,7 +366,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 	var (
 		clientState      *types.ClientState
 		expClientStateBz []byte
-		path             exported.Path
+		path             api.MerklePath
 		proof            []byte
 		proofHeight      exported.Height
 		value            []byte
@@ -412,7 +413,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 					suite.Require().Nil(payload.VerifyNonMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
-					suite.Require().Equal(path, payload.VerifyMembership.Path)
+					suite.Require().Equal(commitmenttypes.NewMerklePath(path.KeyPath...), payload.VerifyMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
 					suite.Require().Equal(value, payload.VerifyMembership.Value)
 
@@ -455,13 +456,6 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			ibcerrors.ErrInvalidHeight,
 		},
 		{
-			"failure: invalid path argument",
-			func() {
-				path = ibcmock.KeyPath{}
-			},
-			ibcerrors.ErrInvalidType,
-		},
-		{
 			"failure: proof height is invalid type",
 			func() {
 				proofHeight = ibcmock.Height{}
@@ -480,7 +474,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			path = commitmenttypes.NewMerklePath("/ibc/key/path")
+			path = api.NewMerklePath("/ibc/key/path")
 			proof = wasmtesting.MockValidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 			value = []byte("value")
@@ -512,7 +506,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 	var (
 		clientState      *types.ClientState
 		expClientStateBz []byte
-		path             exported.Path
+		path             api.MerklePath
 		proof            []byte
 		proofHeight      exported.Height
 		clientID         string
@@ -540,7 +534,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
+					suite.Require().Equal(commitmenttypes.NewMerklePath(path.KeyPath...), payload.VerifyNonMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
 
 					bz, err := json.Marshal(types.EmptyResult{})
@@ -567,7 +561,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
+					suite.Require().Equal(commitmenttypes.NewMerklePath(path.KeyPath...), payload.VerifyNonMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
 
 					bz, err := json.Marshal(types.EmptyResult{})
@@ -622,13 +616,6 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			ibcerrors.ErrInvalidHeight,
 		},
 		{
-			"failure: invalid path argument",
-			func() {
-				path = ibcmock.KeyPath{}
-			},
-			ibcerrors.ErrInvalidType,
-		},
-		{
 			"failure: proof height is invalid type",
 			func() {
 				proofHeight = ibcmock.Height{}
@@ -647,7 +634,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			path = commitmenttypes.NewMerklePath("/ibc/key/path")
+			path = api.NewMerklePath("/ibc/key/path")
 			proof = wasmtesting.MockInvalidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 

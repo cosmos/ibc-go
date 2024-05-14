@@ -2,11 +2,9 @@ package errors
 
 import (
 	errorsmod "cosmossdk.io/errors"
-
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-const codespace = exported.ModuleName
+const codespace = "api"
 
 var (
 	// ErrInvalidSequence is used the sequence number (nonce) is incorrect

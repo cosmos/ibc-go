@@ -45,9 +45,9 @@ func (mp MerklePath) Empty() bool {
 
 // ApplyPrefix constructs a new commitment path from the arguments. It prepends the prefix key
 // with the given path.
-func ApplyPrefix(prefix MerklePrefix, path MerklePath) (MerklePath, error) {
-	if prefix.Empty() {
+func ApplyPrefix(prefix []byte, path MerklePath) (MerklePath, error) {
+	if len(prefix) == 0 {
 		return MerklePath{}, errors.New("prefix can't be empty")
 	}
-	return NewMerklePath(append([]string{string(prefix.Bytes())}, path.KeyPath...)...), nil
+	return NewMerklePath(append([]string{string(prefix)}, path.KeyPath...)...), nil
 }

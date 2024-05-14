@@ -11,6 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/api"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -261,7 +262,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 					suite.Require().NoError(err)
 
 					root := commitmenttypes.NewMerkleRoot(suite.chainA.App.LastCommitID().Hash)
-					err = merkleProof.VerifyMembership(commitmenttypes.GetSDKSpecs(), root, merklePath, payload.VerifyMembership.Value)
+					err = merkleProof.VerifyMembership(commitmenttypes.GetSDKSpecs(), root, api.NewMerklePath(merklePath.KeyPath...), payload.VerifyMembership.Value)
 					suite.Require().NoError(err)
 
 					bz, err := json.Marshal(types.EmptyResult{})

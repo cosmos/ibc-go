@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -71,17 +72,12 @@ func (ClientState) VerifyMembership(
 	_ uint64,
 	_ uint64,
 	proof []byte,
-	path exported.Path,
+	merklePath api.MerklePath,
 	value []byte,
 ) error {
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
 		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
-	}
-
-	merklePath, ok := path.(commitmenttypes.MerklePath)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
@@ -91,11 +87,11 @@ func (ClientState) VerifyMembership(
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz == nil {
-		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
+		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", merklePath)
 	}
 
 	if !bytes.Equal(bz, value) {
-		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value provided does not equal value stored at path: %s", path)
+		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value provided does not equal value stored at path: %s", merklePath)
 	}
 
 	return nil
@@ -112,16 +108,11 @@ func (ClientState) VerifyNonMembership(
 	_ uint64,
 	_ uint64,
 	proof []byte,
-	path exported.Path,
+	merklePath api.MerklePath,
 ) error {
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
 		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
-	}
-
-	merklePath, ok := path.(commitmenttypes.MerklePath)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
@@ -130,7 +121,7 @@ func (ClientState) VerifyNonMembership(
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	if store.Has([]byte(merklePath.KeyPath[1])) {
-		return errorsmod.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
+		return errorsmod.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", merklePath)
 	}
 
 	return nil

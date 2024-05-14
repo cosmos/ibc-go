@@ -8,6 +8,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/ibc-go/api"
 	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 )
 
@@ -61,7 +62,7 @@ func (suite *MerkleTestSuite) TestVerifyMembership() {
 			tc.malleate()
 
 			root := types.NewMerkleRoot(tc.root)
-			path := types.NewMerklePath(tc.pathArr...)
+			path := api.NewMerklePath(tc.pathArr...)
 
 			err := proof.VerifyMembership(types.GetSDKSpecs(), &root, path, tc.value)
 
@@ -125,7 +126,7 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 			tc.malleate()
 
 			root := types.NewMerkleRoot(tc.root)
-			path := types.NewMerklePath(tc.pathArr...)
+			path := api.NewMerklePath(tc.pathArr...)
 
 			err := proof.VerifyNonMembership(types.GetSDKSpecs(), &root, path)
 

@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -124,7 +125,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 }
 
 // construct MerklePath for the committed client from upgradePath
-func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypes.MerklePath {
+func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.Height) api.MerklePath {
 	// copy all elements from upgradePath except final element
 	clientPath := make([]string, len(upgradePath)-1)
 	copy(clientPath, upgradePath)
@@ -135,11 +136,11 @@ func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedClient)
 
 	clientPath = append(clientPath, appendedKey)
-	return commitmenttypes.NewMerklePath(clientPath...)
+	return api.NewMerklePath(clientPath...)
 }
 
 // construct MerklePath for the committed consensus state from upgradePath
-func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypes.MerklePath {
+func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight exported.Height) api.MerklePath {
 	// copy all elements from upgradePath except final element
 	consPath := make([]string, len(upgradePath)-1)
 	copy(consPath, upgradePath)
@@ -150,5 +151,5 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedConsState)
 
 	consPath = append(consPath, appendedKey)
-	return commitmenttypes.NewMerklePath(consPath...)
+	return api.NewMerklePath(consPath...)
 }

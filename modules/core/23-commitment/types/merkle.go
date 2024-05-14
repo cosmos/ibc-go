@@ -11,6 +11,7 @@ import (
 
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
+	"github.com/cosmos/ibc-go/api"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -98,23 +99,17 @@ func ApplyPrefix(prefix exported.Prefix, path MerklePath) (MerklePath, error) {
 	return NewMerklePath(append([]string{string(prefix.Bytes())}, path.KeyPath...)...), nil
 }
 
-var _ exported.Proof = (*MerkleProof)(nil)
-
 // VerifyMembership verifies the membership of a merkle proof against the given root, path, and value.
 // Note that the path is expected as []string{<store key of module>, <key corresponding to requested value>}.
-func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, value []byte) error {
+func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exported.Root, path api.MerklePath, value []byte) error {
 	if err := proof.validateVerificationArgs(specs, root); err != nil {
 		return err
 	}
 
 	// VerifyMembership specific argument validation
-	mpath, ok := path.(MerklePath)
-	if !ok {
-		return errorsmod.Wrapf(ErrInvalidProof, "path %v is not of type MerklePath", path)
-	}
-	if len(mpath.KeyPath) != len(specs) {
+	if len(path.KeyPath) != len(specs) {
 		return errorsmod.Wrapf(ErrInvalidProof, "path length %d not same as proof %d",
-			len(mpath.KeyPath), len(specs))
+			len(path.KeyPath), len(specs))
 	}
 	if len(value) == 0 {
 		return errorsmod.Wrap(ErrInvalidProof, "empty value in membership proof")
@@ -122,25 +117,21 @@ func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exporte
 
 	// Since every proof in chain is a membership proof we can use verifyChainedMembershipProof from index 0
 	// to validate entire proof
-	return verifyChainedMembershipProof(root.GetHash(), specs, proof.Proofs, mpath, value, 0)
+	return verifyChainedMembershipProof(root.GetHash(), specs, proof.Proofs, path, value, 0)
 }
 
 // VerifyNonMembership verifies the absence of a merkle proof against the given root and path.
 // VerifyNonMembership verifies a chained proof where the absence of a given path is proven
 // at the lowest subtree and then each subtree's inclusion is proved up to the final root.
-func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path) error {
+func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root exported.Root, path api.MerklePath) error {
 	if err := proof.validateVerificationArgs(specs, root); err != nil {
 		return err
 	}
 
 	// VerifyNonMembership specific argument validation
-	mpath, ok := path.(MerklePath)
-	if !ok {
-		return errorsmod.Wrapf(ErrInvalidProof, "path %v is not of type MerkleProof", path)
-	}
-	if len(mpath.KeyPath) != len(specs) {
+	if len(path.KeyPath) != len(specs) {
 		return errorsmod.Wrapf(ErrInvalidProof, "path length %d not same as proof %d",
-			len(mpath.KeyPath), len(specs))
+			len(path.KeyPath), len(specs))
 	}
 
 	switch proof.Proofs[0].Proof.(type) {
@@ -151,16 +142,16 @@ func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root expo
 		if err != nil {
 			return errorsmod.Wrapf(ErrInvalidProof, "could not calculate root for proof index 0, merkle tree is likely empty. %v", err)
 		}
-		key, err := mpath.GetKey(uint64(len(mpath.KeyPath) - 1))
+		key, err := path.GetKey(uint64(len(path.KeyPath) - 1))
 		if err != nil {
-			return errorsmod.Wrapf(ErrInvalidProof, "could not retrieve key bytes for key: %s", mpath.KeyPath[len(mpath.KeyPath)-1])
+			return errorsmod.Wrapf(ErrInvalidProof, "could not retrieve key bytes for key: %s", path.KeyPath[len(path.KeyPath)-1])
 		}
 		if ok := ics23.VerifyNonMembership(specs[0], subroot, proof.Proofs[0], key); !ok {
 			return errorsmod.Wrapf(ErrInvalidProof, "could not verify absence of key %s. Please ensure that the path is correct.", string(key))
 		}
 
 		// Verify chained membership proof starting from index 1 with value = subroot
-		if err := verifyChainedMembershipProof(root.GetHash(), specs, proof.Proofs, mpath, subroot, 1); err != nil {
+		if err := verifyChainedMembershipProof(root.GetHash(), specs, proof.Proofs, path, subroot, 1); err != nil {
 			return err
 		}
 	case *ics23.CommitmentProof_Exist:
@@ -190,7 +181,7 @@ func (MerkleProof) BatchVerifyNonMembership(specs []*ics23.ProofSpec, root expor
 // The proofs and specs are passed in from lowest subtree to the highest subtree, but the keys are passed in from highest subtree to lowest.
 // The index specifies what index to start chaining the membership proofs, this is useful since the lowest proof may not be a membership proof, thus we
 // will want to start the membership proof chaining from index 1 with value being the lowest subroot
-func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs []*ics23.CommitmentProof, keys MerklePath, value []byte, index int) error {
+func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs []*ics23.CommitmentProof, keys api.MerklePath, value []byte, index int) error {
 	var (
 		subroot []byte
 		err     error

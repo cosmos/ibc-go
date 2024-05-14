@@ -6,16 +6,14 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const (
@@ -218,7 +216,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 	var (
 		clientState *solomachine.ClientState
-		path        exported.Path
+		path        api.MerklePath
 		proof       []byte
 		testingPath *ibctesting.Path
 		signBytes   solomachine.SignBytes
@@ -247,9 +245,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					path = sm.GetClientStatePath(counterpartyClientIdentifier)
-					merklePath, ok := path.(commitmenttypes.MerklePath)
-					suite.Require().True(ok)
-					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+					key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 					suite.Require().NoError(err)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
@@ -283,9 +279,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					path = sm.GetConsensusStatePath(counterpartyClientIdentifier, clienttypes.NewHeight(0, 1))
-					merklePath, ok := path.(commitmenttypes.MerklePath)
-					suite.Require().True(ok)
-					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+					key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 					suite.Require().NoError(err)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
@@ -322,9 +316,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					path = sm.GetConnectionStatePath(ibctesting.FirstConnectionID)
-					merklePath, ok := path.(commitmenttypes.MerklePath)
-					suite.Require().True(ok)
-					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+					key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 					suite.Require().NoError(err)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
@@ -362,9 +354,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					path = sm.GetChannelStatePath(ibctesting.MockPort, ibctesting.FirstChannelID)
-					merklePath, ok := path.(commitmenttypes.MerklePath)
-					suite.Require().True(ok)
-					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+					key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 					suite.Require().NoError(err)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
@@ -399,9 +389,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					suite.Require().True(found)
 
 					path = sm.GetNextSequenceRecvPath(ibctesting.MockPort, ibctesting.FirstChannelID)
-					merklePath, ok := path.(commitmenttypes.MerklePath)
-					suite.Require().True(ok)
-					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+					key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 					suite.Require().NoError(err)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
@@ -442,9 +430,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 					commitmentBz := channeltypes.CommitPacket(suite.chainA.Codec, packet)
 					path = sm.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-					merklePath, ok := path.(commitmenttypes.MerklePath)
-					suite.Require().True(ok)
-					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+					key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 					suite.Require().NoError(err)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
@@ -473,9 +459,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				"success: packet acknowledgement verification",
 				func() {
 					path = sm.GetPacketAcknowledgementPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
-					merklePath, ok := path.(commitmenttypes.MerklePath)
-					suite.Require().True(ok)
-					key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+					key, err := path.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 					suite.Require().NoError(err)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
@@ -504,9 +488,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				"success: packet receipt verification",
 				func() {
 					path = sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
-					merklePath, ok := path.(commitmenttypes.MerklePath)
-					suite.Require().True(ok)
-					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+					key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 					suite.Require().NoError(err)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.Sequence,
@@ -537,13 +519,6 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					clientID = unusedSmClientID
 				},
 				clienttypes.ErrClientNotFound,
-			},
-			{
-				"failure: invalid path type - empty",
-				func() {
-					path = ibcmock.KeyPath{}
-				},
-				ibcerrors.ErrInvalidType,
 			},
 			{
 				"failure: malformed proof fails to unmarshal",
@@ -617,7 +592,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"failure: empty path",
 				func() {
-					path = commitmenttypes.MerklePath{}
+					path = api.MerklePath{}
 				},
 				fmt.Errorf("path must be of length 2: []: %s", host.ErrInvalidPath),
 			},
@@ -633,10 +608,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				clientID = sm.ClientID
 				clientState = sm.ClientState()
 
-				path = commitmenttypes.NewMerklePath("ibc", "solomachine")
-				merklePath, ok := path.(commitmenttypes.MerklePath)
-				suite.Require().True(ok)
-				key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+				path = api.NewMerklePath("ibc", "solomachine")
+				key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 				suite.Require().NoError(err)
 				signBytes = solomachine.SignBytes{
 					Sequence:    sm.GetHeight().GetRevisionHeight(),
@@ -683,7 +656,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					// Grab fresh client state after updates.
 					cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
 					suite.Require().True(found)
-					clientState, ok = cs.(*solomachine.ClientState)
+					clientState, ok := cs.(*solomachine.ClientState)
 					suite.Require().True(ok)
 
 					suite.Require().NoError(err)
@@ -701,7 +674,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 	var (
 		clientState *solomachine.ClientState
-		path        exported.Path
+		path        api.MerklePath
 		proof       []byte
 		signBytes   solomachine.SignBytes
 		err         error
@@ -724,9 +697,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				"success: packet receipt absence verification",
 				func() {
 					path = sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
-					merklePath, ok := path.(commitmenttypes.MerklePath)
-					suite.Require().True(ok)
-					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+					key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 					suite.Require().NoError(err)
 					signBytes = solomachine.SignBytes{
 						Sequence:    sm.GetHeight().GetRevisionHeight(),
@@ -757,13 +728,6 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					clientID = unusedSmClientID
 				},
 				clienttypes.ErrClientNotFound,
-			},
-			{
-				"failure: invalid path type",
-				func() {
-					path = ibcmock.KeyPath{}
-				},
-				ibcerrors.ErrInvalidType,
 			},
 			{
 				"failure: malformed proof fails to unmarshal",
@@ -858,10 +822,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				clientState = sm.ClientState()
 				clientID = sm.ClientID
 
-				path = commitmenttypes.NewMerklePath("ibc", "solomachine")
-				merklePath, ok := path.(commitmenttypes.MerklePath)
-				suite.Require().True(ok)
-				key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+				path = api.NewMerklePath("ibc", "solomachine")
+				key, err := path.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 				suite.Require().NoError(err)
 				signBytes = solomachine.SignBytes{
 					Sequence:    sm.GetHeight().GetRevisionHeight(),
@@ -908,7 +870,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					// Grab fresh client state after updates.
 					cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
 					suite.Require().True(found)
-					clientState, ok = cs.(*solomachine.ClientState)
+					clientState, ok := cs.(*solomachine.ClientState)
 					suite.Require().True(ok)
 
 					suite.Require().NoError(err)

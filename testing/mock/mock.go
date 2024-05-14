@@ -163,21 +163,6 @@ func (AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMes
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
 
-var _ exported.Path = KeyPath{}
-
-// KeyPath defines a placeholder struct which implements the exported.Path interface
-type KeyPath struct{}
-
-// String implements the exported.Path interface
-func (KeyPath) String() string {
-	return ""
-}
-
-// Empty implements the exported.Path interface
-func (KeyPath) Empty() bool {
-	return false
-}
-
 var _ exported.Height = Height{}
 
 // Height defines a placeholder struct which implements the exported.Height interface

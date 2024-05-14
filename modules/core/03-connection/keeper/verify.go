@@ -7,10 +7,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
@@ -34,8 +34,8 @@ func (k *Keeper) VerifyClientState(
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.Counterparty.ClientId))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.FullClientStatePath(connection.Counterparty.ClientId))
+	merklePath, err := api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -76,8 +76,8 @@ func (k *Keeper) VerifyClientConsensusState(
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.Counterparty.ClientId, consensusHeight))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.FullConsensusStatePath(connection.Counterparty.ClientId, consensusHeight))
+	merklePath, err := api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -118,8 +118,8 @@ func (k *Keeper) VerifyConnectionState(
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.ConnectionPath(connectionID))
+	merklePath, err := api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -161,8 +161,8 @@ func (k *Keeper) VerifyChannelState(
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.ChannelPath(portID, channelID))
+	merklePath, err := api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -209,8 +209,8 @@ func (k *Keeper) VerifyPacketCommitment(
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
+	merklePath, err := api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -250,8 +250,8 @@ func (k *Keeper) VerifyPacketAcknowledgement(
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
+	merklePath, err := api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -297,8 +297,8 @@ func (k *Keeper) VerifyPacketReceiptAbsence(
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
+	merklePath, err = api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -337,8 +337,8 @@ func (k *Keeper) VerifyNextSequenceRecv(
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
+	merklePath, err := api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -374,8 +374,8 @@ func (k *Keeper) VerifyChannelUpgradeError(
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
+	merklePath, err := api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}
@@ -416,8 +416,8 @@ func (k *Keeper) VerifyChannelUpgrade(
 		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := api.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
+	merklePath, err := api.ApplyPrefix(connection.Counterparty.Prefix.Bytes(), merklePath)
 	if err != nil {
 		return err
 	}

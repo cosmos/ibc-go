@@ -9,6 +9,7 @@ import (
 
 	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 
+	"github.com/cosmos/ibc-go/api"
 	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 )
 
@@ -17,8 +18,8 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 	cid := suite.store.Commit()
 
 	root := types.NewMerkleRoot(cid.Hash)
-	existsPath := types.NewMerklePath(suite.storeKey.Name(), "MYKEY")
-	nonexistPath := types.NewMerklePath(suite.storeKey.Name(), "NOTMYKEY")
+	existsPath := api.NewMerklePath(suite.storeKey.Name(), "MYKEY")
+	nonexistPath := api.NewMerklePath(suite.storeKey.Name(), "NOTMYKEY")
 	value := []byte("MYVALUE")
 
 	var proofOps *crypto.ProofOps

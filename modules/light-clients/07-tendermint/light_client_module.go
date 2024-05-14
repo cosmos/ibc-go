@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/api"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -134,7 +135,7 @@ func (l LightClientModule) VerifyMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path,
+	path api.MerklePath,
 	value []byte,
 ) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
@@ -158,7 +159,7 @@ func (l LightClientModule) VerifyNonMembership(
 	delayTimePeriod uint64,
 	delayBlockPeriod uint64,
 	proof []byte,
-	path exported.Path,
+	path api.MerklePath,
 ) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
