@@ -129,6 +129,17 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 	suite.Require().Equal(clientState, retrievedState, "Client states are not equal")
 }
 
+func (suite *KeeperTestSuite) TestSetCounterparty() {
+	counterpartyClientID := suite.keeper.GetCounterparty(suite.ctx, testClientID)
+	suite.Require().Equal("", counterpartyClientID, "Counterparty client ID is not empty")
+
+	testCounterpartyID := "counterparty-1"
+	suite.keeper.SetCounterparty(suite.ctx, testClientID, testCounterpartyID)
+
+	counterpartyClientID = suite.keeper.GetCounterparty(suite.ctx, testClientID)
+	suite.Require().Equal(testCounterpartyID, counterpartyClientID, "Counterparty client ID is not equal")
+}
+
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
 

@@ -40,3 +40,7 @@ func FullConsensusStateKey(clientID string, height exported.Height) []byte {
 func ConsensusStateKey(height exported.Height) []byte {
 	return []byte(ConsensusStatePath(height))
 }
+
+func CounterpartyKey() []byte {
+	return []byte(KeyCounterparty)
+}

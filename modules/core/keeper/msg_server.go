@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"errors"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -43,7 +44,13 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 		return nil, err
 	}
 
-	return &clienttypes.MsgCreateClientResponse{ClientId: clientID}, nil
+	k.ClientKeeper.SetCreator(ctx, clientID, msg.Signer)
+
+	if strings.TrimSpace(msg.CounterpartyId) != "" {
+		k.ClientKeeper.SetCounterparty(ctx, clientID, msg.CounterpartyId)
+	}
+
+	return &clienttypes.MsgCreateClientResponse{}, nil
 }
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.
@@ -133,6 +140,22 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 	}
 
 	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil
+}
+
+// ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
+func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *clienttypes.MsgProvideCounterparty) (*clienttypes.MsgProvideCounterpartyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if creator := k.ClientKeeper.GetCreator(ctx, msg.ClientId); creator != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", creator, msg.Signer)
+	}
+
+	if counterparty := k.ClientKeeper.GetCounterparty(ctx, msg.ClientId); counterparty != "" {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.ClientId)
+	}
+	k.ClientKeeper.SetCounterparty(ctx, msg.ClientId, msg.CounterpartyId)
+
+	return &clienttypes.MsgProvideCounterpartyResponse{}, nil
 }
 
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
