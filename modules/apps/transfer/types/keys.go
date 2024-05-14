@@ -43,7 +43,7 @@ const (
 	Version1 = "ics20-1"
 
 	// escrowAddressVersion should remain as ics20-1 to avoid the address changing.
-	escrowAddressVersion = "ics20-1"
+	escrowAddressVersion = Version1
 )
 
 var (
