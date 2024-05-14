@@ -326,6 +326,20 @@ func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID, counterpartyClientID
 	k.ClientStore(ctx, clientID).Set(host.CounterpartyKey(), []byte(counterpartyClientID))
 }
 
+// GetCreator returns the creator of the client.
+func (k *Keeper) GetCreator(ctx sdk.Context, clientID string) string {
+	// the creator key is imported from types instead of host because
+	// the creator key is not a part of the ics-24 host specification
+	return string(k.ClientStore(ctx, clientID).Get([]byte(types.CreatorKey)))
+}
+
+// SetCreator sets the creator of the client.
+func (k *Keeper) SetCreator(ctx sdk.Context, clientID, creator string) {
+	// the creator key is imported from types instead of host because
+	// the creator key is not a part of the ics-24 host specification
+	k.ClientStore(ctx, clientID).Set([]byte(types.CreatorKey), []byte(creator))
+}
+
 // ValidateSelfClient validates the client parameters for a client of the running chain.
 // This function is only used to validate the client state the counterparty stores for this chain.
 // NOTE: If the client type is not of type Tendermint then delegate to a custom client validator function.
