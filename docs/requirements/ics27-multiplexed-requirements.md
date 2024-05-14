@@ -14,7 +14,7 @@ The current pain points for existing ICA users are listed:
 
 - *Scalability* - When there are many interchain accounts, and many channels (in the order of 1000s), relayers struggle with the number of queries on startup and performance is compromised. Additionally, account registration being linked to the channel means that multiple packet round trips are required before your host account can execute messages.
 
-- *Workflows requiring tokens in ICA* - there are no atomic guarantees for a workflow containing multiple applications - i.e. a token transfer followed by an ICA message. The transfer could succeed and the ICA message fail, resulting in an incomplete workflow. 
+- *Workflows requiring tokens in ICA* - there are no atomic guarantees for a workflow containing multiple applications - i.e. a token transfer followed by an ICA message. The transfer could succeed and the ICA message fail, resulting in an incomplete workflow.
 
 - *Lack of default callbacks* - users are still relying on custom auth modules for packet callbacks, the callbacks middleware solves this problem but is an add-on to the application rather than a default
 
@@ -22,8 +22,7 @@ The current pain points for existing ICA users are listed:
 
 ## Objectives
 
-Enable different account types, to be controlled remotely 
-- To facilitate performant cross-chain account management for accounts created on a per-user basis
+Enable different account types, to be controlled remotely
 - To streamline workflows using token transfer and interchain accounts in combination
 
 ## Scope
@@ -70,7 +69,7 @@ Migration of an existing Interchain Account using a prior version of Interchain 
 
 | ID | Description | Verification | Status |
 | -- | ----------- | ------------ | ------ |
-| 2.01 | The controller of the interchain account must have authority over the account on the host chain to execute messages | -- | ----------- | ------------ | ------ |
+| 2.01 | The controller of the interchain account must have authority over the account on the host chain to execute messages | -- | ----------- |
 | 2.02 | A registered interchain account can be any account type supported by `x/accounts` | ------------ | ------ |
 
 ### 3 - Control
