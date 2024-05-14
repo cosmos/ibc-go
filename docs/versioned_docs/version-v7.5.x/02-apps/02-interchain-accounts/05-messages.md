@@ -73,7 +73,7 @@ The packet `Sequence` is returned in the message response.
 
 ### Queries
 
-It is possible to use [`MsgModuleQuerySafe`](https://github.com/cosmos/ibc-go/blob/eecfa5c09a4c38a5c9f2cc2a322d2286f45911da/proto/ibc/applications/interchain_accounts/host/v1/tx.proto#L41-L51) to execute a list of queries on the host chain. This message can be included in the list of encoded `sdk.Msg`s of `InterchainPacketData`. The host chain will return on the acknowledgment the responses for all the queries. Please note that only module safe queries can be executed ([deterministic queries that are safe to be called from within the state machine](https://docs.cosmos.network/main/build/building-modules/query-services#calling-queries-from-the-state-machine)). 
+It is possible to use [`MsgModuleQuerySafe`](https://github.com/cosmos/ibc-go/blob/v7.5.0/proto/ibc/applications/interchain_accounts/host/v1/tx.proto#L32-L39) to execute a list of queries on the host chain. This message can be included in the list of encoded `sdk.Msg`s of `InterchainPacketData`. The host chain will return on the acknowledgment the responses for all the queries. Please note that only module safe queries can be executed ([deterministic queries that are safe to be called from within the state machine](https://docs.cosmos.network/main/build/building-modules/query-services#calling-queries-from-the-state-machine)). 
  
 The queries available from Cosmos SDK are:
 
