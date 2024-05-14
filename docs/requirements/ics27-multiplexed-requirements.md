@@ -22,8 +22,9 @@ The current pain points for existing ICA users are listed:
 
 ## Objectives
 
-Enable different account types, to be controlled remotely
+- Enable different account types, to be controlled remotely
 - To streamline workflows using token transfer and interchain accounts in combination
+- To enable scalable and efficient account creation
 
 ## Scope
 
