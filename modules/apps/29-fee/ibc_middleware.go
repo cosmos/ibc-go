@@ -212,6 +212,18 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	return im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID)
 }
 
+// OnSendPacket implements the IBCModule interface.
+func (IBCMiddleware) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	data []byte,
+	signer string,
+) error {
+	return nil
+}
+
 // OnRecvPacket implements the IBCMiddleware interface.
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnRecvPacket(

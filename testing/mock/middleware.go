@@ -113,6 +113,15 @@ func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, cha
 	return nil
 }
 
+// OnSendPacket implements the IBCModule interface.
+func (im BlockUpgradeMiddleware) OnSendPacket(ctx sdk.Context, portID string, channelID string, sequence uint64, data []byte, signer string) error {
+	if im.IBCApp.OnSendPacket != nil {
+		return im.IBCApp.OnSendPacket(ctx, portID, channelID, sequence, data, signer)
+	}
+
+	return nil
+}
+
 // OnRecvPacket implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if im.IBCApp.OnRecvPacket != nil {

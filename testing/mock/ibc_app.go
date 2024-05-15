@@ -62,6 +62,15 @@ type IBCApp struct {
 		channelID string,
 	) error
 
+	OnSendPacket func(
+		ctx sdk.Context,
+		portID string,
+		channelID string,
+		sequence uint64,
+		data []byte,
+		signer string,
+	) error
+
 	// OnRecvPacket must return an acknowledgement that implements the Acknowledgement interface.
 	// In the case of an asynchronous acknowledgement, nil should be returned.
 	// If the acknowledgement returned is successful, the state changes on callback are written,

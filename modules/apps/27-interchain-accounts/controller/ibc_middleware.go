@@ -170,6 +170,18 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	return nil
 }
 
+// OnSendPacket implements the IBCModule interface.
+func (IBCMiddleware) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	data []byte,
+	signer string,
+) error {
+	return nil
+}
+
 // OnRecvPacket implements the IBCMiddleware interface
 func (IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,

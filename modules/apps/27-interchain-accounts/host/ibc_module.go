@@ -110,6 +110,18 @@ func (im IBCModule) OnChanCloseConfirm(
 	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
+// OnSendPacket implements the IBCModule interface.
+func (IBCModule) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	data []byte,
+	signer string,
+) error {
+	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "cannot send packet on icahost")
+}
+
 // OnRecvPacket implements the IBCModule interface
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,

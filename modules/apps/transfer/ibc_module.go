@@ -172,6 +172,18 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
+// OnSendPacket implements the IBCModule interface.
+func (IBCModule) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	data []byte,
+	signer string,
+) error {
+	return nil
+}
+
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.

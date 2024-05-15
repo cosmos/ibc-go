@@ -122,6 +122,15 @@ func (im IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string
 	return nil
 }
 
+// OnSendPacket implements the IBCModule interface.
+func (im IBCModule) OnSendPacket(ctx sdk.Context, portID string, channelID string, sequence uint64, data []byte, signer string) error {
+	if im.IBCApp.OnSendPacket != nil {
+		return im.IBCApp.OnSendPacket(ctx, portID, channelID, sequence, data, signer)
+	}
+
+	return nil
+}
+
 // OnRecvPacket implements the IBCModule interface.
 func (im IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if im.IBCApp.OnRecvPacket != nil {

@@ -81,6 +81,15 @@ type IBCModule interface {
 		channelID string,
 	) error
 
+	OnSendPacket(
+		ctx sdk.Context,
+		portID string,
+		channelID string,
+		sequence uint64,
+		data []byte,
+		signer string,
+	) error
+
 	// OnRecvPacket must return an acknowledgement that implements the Acknowledgement interface.
 	// In the case of an asynchronous acknowledgement, nil should be returned.
 	// If the acknowledgement returned is successful, the state changes on callback are written,
@@ -159,6 +168,7 @@ type UpgradableModule interface {
 
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
 type ICS4Wrapper interface {
+	// TODO: Leave in place to avoid compiler errors and incrementally work to remove. We can then delete these methods
 	SendPacket(
 		ctx sdk.Context,
 		chanCap *capabilitytypes.Capability,
