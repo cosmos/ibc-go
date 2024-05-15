@@ -254,7 +254,12 @@ func (im IBCModule) OnRecvPacket(
 	ctx.EventManager().EmitEvents(events)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	return ack
+	if ack.Success() {
+		return channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	} else {
+		return ack
+	}
+
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

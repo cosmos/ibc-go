@@ -155,8 +155,8 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			[]*v3types.Token{
 				{
 					Denom:  denom,
-					Amount: packet.Data.Amount,
 					Trace:  trace,
+					Amount: packet.Data.Amount,
 				},
 			},
 			AddressFromString(packet.Data.Sender),
@@ -355,6 +355,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						if !ok {
 							panic(errors.New("MBT failed to parse amount from string"))
 						}
+
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,
@@ -374,6 +375,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 				case "OnTimeoutPacket":
 					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+
 				case "OnRecvAcknowledgementResult":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,

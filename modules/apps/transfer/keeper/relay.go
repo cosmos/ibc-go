@@ -206,14 +206,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 	}
 
 	// Receiver addresses logic:
-	var forwardAddress sdk.AccAddress
+	//var forwardAddress sdk.AccAddress
 	var finalReceiver sdk.AccAddress
 	var receiver sdk.AccAddress
 	var err error
 
 	if len(data.ForwardingPath.Hops) > 0 {
 		// Transaction would abort already for previous check on Memo
-		forwardAddress = types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
+		forwardAddress := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
 		/*if forwardAddress.Empty() {
 			forwardAddress, err = sdk.AccAddressFromBech32("forwardingAddress") // MMMM // How to set this?
 			if err != nil {
@@ -447,6 +447,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			// we must revert the changes that came from successfully receiving the tokens on our chain
 			// before propogating the error acknowledgement back to original sender chain
 
+			// Should Check return value
 			k.revertInFlightChanges(ctx, packet, prevPacket, data)
 			// Figure Out how to do this
 			//err error := "forwarded packet failed"
