@@ -80,6 +80,8 @@ if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerCo
 }
 ```
 
+> Since ibc-go v7.5.0 the default ordering of new ICA channels created when invoking `RegisterInterchainAccount` has changed from `ORDERED` to `UNORDERED`. If this default behaviour does not meet your use case, please use the function `RegisterInterchainAccountWithOrdering` (available since ibc-go v7.5.0), which takes an extra parameter that can be used to specify the ordering of the channel.
+
 ## `SendTx`
 
 The authentication module can attempt to send a packet by calling `SendTx`:
