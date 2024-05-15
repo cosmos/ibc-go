@@ -4,7 +4,6 @@ package ibc.core.channel.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types";
 
-import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "ibc/core/client/v1/client.proto";
@@ -221,8 +220,8 @@ message MsgSendPacket {
   string                    port_id           = 1;
   string                    channel_id        = 2;
   ibc.core.client.v1.Height timeout_height    = 3 [(gogoproto.nullable) = false];
-  google.protobuf.Timestamp timeout_timestamp = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-  bytes                     packet_data       = 5;
+  uint64                    timeout_timestamp = 4;
+  bytes                     data              = 5;
   string                    signer            = 6;
 }
 

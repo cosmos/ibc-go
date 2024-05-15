@@ -462,7 +462,7 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	sequence, err := k.ChannelKeeper.SendPacket(ctx, capability, msg.PortId, msg.ChannelId, msg.TimeoutHeight, uint64(msg.TimeoutTimestamp.UnixNano()), msg.PacketData)
+	sequence, err := k.ChannelKeeper.SendPacket(ctx, capability, msg.PortId, msg.ChannelId, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data)
 	if err != nil {
 		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", module)
@@ -471,7 +471,7 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 	// TODO: Make port router have list of ordered callbacks
 	// Loop over cbs in-order calling OnSendPacket on each IBCModule. To be done for RecvPacket handler as well in opposite order.
 	// Adjust app logic to account for what should be done before MsgSendPacket and what should be done in OnSendPacket.
-	if err := cbs.OnSendPacket(ctx, msg.PortId, msg.ChannelId, sequence, msg.PacketData, msg.Signer); err != nil {
+	if err := cbs.OnSendPacket(ctx, msg.PortId, msg.ChannelId, sequence, msg.Data, msg.Signer); err != nil {
 		ctx.Logger().Error("send packet callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet callback failed"))
 		return nil, errorsmod.Wrapf(err, "send packet callback failed for module: %s", module)
 	}
