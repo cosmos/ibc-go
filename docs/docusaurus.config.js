@@ -49,14 +49,14 @@ const config = {
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
           // Select the latest version
-          lastVersion: "v8.2.x",
+          lastVersion: "v8.3.x",
           // Assign banners to specific versions
           versions: {
             current: {
               path: "main",
               banner: "unreleased",
             },
-            "v8.2.x": {
+            "v8.3.x": {
               path: "v8",
               banner: "none",
             },
