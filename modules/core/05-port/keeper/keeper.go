@@ -15,7 +15,8 @@ import (
 
 // Keeper defines the IBC connection keeper
 type Keeper struct {
-	Router *types.Router
+	AppRouter *types.AppRouter
+	Router    *types.Router
 
 	scopedKeeper exported.ScopedKeeper
 }
@@ -84,6 +85,12 @@ func (k *Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *ca
 
 // Route returns a IBCModule for a given module, and a boolean indicating
 // whether or not the route is present.
-func (k *Keeper) Route(clientID string) (types.IBCModule, bool) {
-	return k.Router.GetRoute(clientID)
+func (k *Keeper) Route(module string) (types.IBCModule, bool) {
+	return k.Router.GetRoute(module)
+}
+
+// AppRoute returns an ordered list of IBCModule callbacks for a given module name, and a boolean indicating
+// whether or not the callbacks are present.
+func (k *Keeper) AppRoute(module string) ([]types.IBCModule, bool) {
+	return k.AppRouter.GetRoute(module)
 }

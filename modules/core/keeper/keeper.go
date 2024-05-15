@@ -89,6 +89,17 @@ func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
 	k.ClientKeeper.SetConsensusHost(consensusHost)
 }
 
+// SetAppRouter sets the Router in IBC Keeper and seals it. The method panics if
+// there is an existing router that's already sealed.
+func (k *Keeper) SetAppRouter(rtr *porttypes.AppRouter) {
+	if k.PortKeeper.AppRouter != nil && k.PortKeeper.AppRouter.Sealed() {
+		panic(errors.New("cannot reset a sealed router"))
+	}
+
+	k.PortKeeper.AppRouter = rtr
+	k.PortKeeper.AppRouter.Seal()
+}
+
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *porttypes.Router) {
