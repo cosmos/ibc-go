@@ -121,6 +121,18 @@ func (im IBCMiddleware) SendPacket(
 	return seq, nil
 }
 
+// OnSendPacket implements the IBCModule interface.
+func (IBCMiddleware) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	data []byte,
+	signer string,
+) error {
+	return nil
+}
+
 // OnAcknowledgementPacket implements source callbacks for acknowledgement packets.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
