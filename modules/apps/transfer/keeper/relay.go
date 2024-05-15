@@ -434,7 +434,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 
 			// Figure Out how to do this
 
-			FungibleTokenPacketAcknowledgement := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
+			FungibleTokenPacketAcknowledgement := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded")) //[]byte{byte(1)})
 			//				Error:  "forwarded packet succeeded",
 			//				Result: true,
 			//			}
@@ -464,7 +464,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	} else {
 		switch ack.Response.(type) {
 		case *channeltypes.Acknowledgement_Error:
-			k.refundPacketToken(ctx, packet, data)
+			return k.refundPacketToken(ctx, packet, data)
 		}
 	}
 	return nil
