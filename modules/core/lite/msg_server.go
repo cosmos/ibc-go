@@ -126,6 +126,7 @@ func (h Handler) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 
 	// create key/value pair for proof verification
 	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence))
+	// TODO: allow for custom prefix
 	merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)), merklePath)
 	if err != nil {
 		return nil, err
@@ -232,6 +233,7 @@ func (h Handler) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+	// TODO: allow for custom prefix
 	merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)), merklePath)
 	if err != nil {
 		return nil, err
@@ -320,6 +322,7 @@ func (h Handler) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+	// TODO: allow for custom prefix
 	merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)), merklePath)
 	if err != nil {
 		return nil, err
