@@ -2,6 +2,7 @@ package ante_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -340,6 +341,64 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
 				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{})
+				return msgs
+			},
+			true,
+		},
+		{
+			"success on new UpdateClient messages: solomachine misbehaviour",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainB.Codec, "06-solomachine-0", "testing", 1)
+				suite.chainB.GetSimApp().GetIBCKeeper().ClientKeeper.SetClientState(suite.chainB.GetContext(), solomachine.ClientID, solomachine.ClientState())
+
+				msgUpdateClient, err := clienttypes.NewMsgUpdateClient(solomachine.ClientID, solomachine.CreateMisbehaviour(), suite.chainB.SenderAccount.GetAddress().String())
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{msgUpdateClient}
+
+				return msgs
+			},
+			true,
+		},
+		{
+			"success on new UpdateClient messages: solomachine multisig misbehaviour",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 4)
+				suite.chainB.GetSimApp().GetIBCKeeper().ClientKeeper.SetClientState(suite.chainB.GetContext(), solomachine.ClientID, solomachine.ClientState())
+
+				msgUpdateClient, err := clienttypes.NewMsgUpdateClient(solomachine.ClientID, solomachine.CreateMisbehaviour(), suite.chainB.SenderAccount.GetAddress().String())
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{msgUpdateClient}
+
+				return msgs
+			},
+			true,
+		},
+		{
+			"success on new UpdateClient messages: tendermint misbehaviour",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				trustedHeight := suite.path.EndpointB.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainA.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				err := suite.path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+
+				height := suite.path.EndpointB.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				// construct valid fork misbehaviour: two headers at the same height with different time
+				misbehaviour := &ibctm.Misbehaviour{
+					Header1: suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainA.CurrentHeader.Time.Add(time.Minute), suite.chainA.Vals, suite.chainA.NextVals, trustedVals, suite.chainA.Signers),
+					Header2: suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.NextVals, trustedVals, suite.chainA.Signers),
+				}
+
+				msgUpdateClient, err := clienttypes.NewMsgUpdateClient(suite.path.EndpointB.ClientID, misbehaviour, suite.chainB.SenderAccount.GetAddress().String())
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{msgUpdateClient}
+
 				return msgs
 			},
 			true,
