@@ -468,6 +468,9 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 		return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", module)
 	}
 
+	// TODO: Make port router have list of ordered callbacks
+	// Loop over cbs in-order calling OnSendPacket on each IBCModule. To be done for RecvPacket handler as well in opposite order.
+	// Adjust app logic to account for what should be done before MsgSendPacket and what should be done in OnSendPacket.
 	if err := cbs.OnSendPacket(ctx, msg.PortId, msg.ChannelId, sequence, msg.PacketData, msg.Signer); err != nil {
 		ctx.Logger().Error("send packet callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet callback failed"))
 		return nil, errorsmod.Wrapf(err, "send packet callback failed for module: %s", module)
