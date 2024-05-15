@@ -14,6 +14,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/core/lite/types"
 )
 
@@ -124,7 +125,13 @@ func (h Handler) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	}
 
 	// create key/value pair for proof verification
-	key := host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence))
+	// TODO: allow for custom prefix
+	merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)), merklePath)
+	if err != nil {
+		return nil, err
+	}
+
 	commitment := channeltypes.CommitLitePacket(h.cdc, packet)
 
 	// Get LightClientModule associated with the destination channel
@@ -138,7 +145,7 @@ func (h Handler) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		msg.ProofHeight,
 		0, 0,
 		msg.ProofCommitment,
-		commitmenttypes.NewMerklePath(key),
+		merklePath,
 		commitment,
 	); err != nil {
 		return nil, err
@@ -225,7 +232,12 @@ func (h Handler) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 		return nil, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
-	proofPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+	// TODO: allow for custom prefix
+	merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)), merklePath)
+	if err != nil {
+		return nil, err
+	}
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
@@ -237,7 +249,7 @@ func (h Handler) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 		msg.ProofHeight,
 		0, 0,
 		msg.ProofAcked,
-		proofPath,
+		merklePath,
 		channeltypes.CommitAcknowledgement(msg.Acknowledgement),
 	); err != nil {
 		return nil, err
@@ -309,7 +321,12 @@ func (h Handler) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
-	proofPath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+	// TODO: allow for custom prefix
+	merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)), merklePath)
+	if err != nil {
+		return nil, err
+	}
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
@@ -321,7 +338,7 @@ func (h Handler) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		msg.ProofHeight,
 		0, 0,
 		msg.ProofUnreceived,
-		proofPath,
+		merklePath,
 	); err != nil {
 		return nil, err
 	}
