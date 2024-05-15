@@ -4,6 +4,7 @@ package ibc.core.channel.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types";
 
+import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "ibc/core/client/v1/client.proto";
@@ -32,6 +33,9 @@ service Msg {
   // ChannelCloseConfirm defines a rpc handler method for
   // MsgChannelCloseConfirm.
   rpc ChannelCloseConfirm(MsgChannelCloseConfirm) returns (MsgChannelCloseConfirmResponse);
+
+  // SendPacket defines a rpc handler method for MsgSendPacket.
+  rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
 
   // RecvPacket defines a rpc handler method for MsgRecvPacket.
   rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
@@ -207,6 +211,27 @@ message MsgChannelCloseConfirm {
 // MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response
 // type.
 message MsgChannelCloseConfirmResponse {}
+
+// MsgSendPacket sends an outgoing IBC packet
+message MsgSendPacket {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  string                    port_id           = 1;
+  string                    channel_id        = 2;
+  ibc.core.client.v1.Height timeout_height    = 3 [(gogoproto.nullable) = false];
+  google.protobuf.Timestamp timeout_timestamp = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  bytes                     packet_data       = 5;
+  string                    signer            = 6;
+}
+
+// MsgSendPacketReponse defines the Msg/SendPacket response type.
+message MsgSendPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence = 1;
+}
 
 // MsgRecvPacket receives incoming IBC packet
 message MsgRecvPacket {
