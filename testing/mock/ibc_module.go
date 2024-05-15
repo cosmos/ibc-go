@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -123,7 +124,7 @@ func (im IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string
 }
 
 // OnSendPacket implements the IBCModule interface.
-func (im IBCModule) OnSendPacket(ctx sdk.Context, portID string, channelID string, sequence uint64, data []byte, signer string) error {
+func (im IBCModule) OnSendPacket(ctx sdk.Context, portID string, channelID string, sequence uint64, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte, signer string) error {
 	if im.IBCApp.OnSendPacket != nil {
 		return im.IBCApp.OnSendPacket(ctx, portID, channelID, sequence, data, signer)
 	}

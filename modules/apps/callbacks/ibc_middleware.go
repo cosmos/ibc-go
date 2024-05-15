@@ -99,12 +99,31 @@ func (im IBCMiddleware) SendPacket(
 		return 0, err
 	}
 
+	if err := im.OnSendPacket(ctx, sourcePort, sourceChannel, seq, timeoutHeight, timeoutTimestamp, data, ""); err != nil {
+		return 0, err
+	}
+
+	return seq, nil
+}
+
+// OnSendPacket implements the IBCModule interface.
+func (im IBCMiddleware) OnSendPacket(
+	ctx sdk.Context,
+	sourcePort string,
+	sourceChannel string,
+	sequence uint64,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+	signer string,
+) error {
 	callbackData, err := types.GetSourceCallbackData(im.app, data, sourcePort, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
-		return seq, nil
+		return nil
 	}
 
+	// TODO: the packet sender is now passed in, it is possible to remove `GetPacketSender` in favour of this arg
 	callbackExecutor := func(cachedCtx sdk.Context) error {
 		return im.contractKeeper.IBCSendPacketCallback(
 			cachedCtx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackData.CallbackAddress, callbackData.SenderAddress,
@@ -114,22 +133,10 @@ func (im IBCMiddleware) SendPacket(
 	err = im.processCallback(ctx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	types.EmitCallbackEvent(ctx, sourcePort, sourceChannel, seq, types.CallbackTypeSendPacket, callbackData, nil)
-	return seq, nil
-}
-
-// OnSendPacket implements the IBCModule interface.
-func (IBCMiddleware) OnSendPacket(
-	ctx sdk.Context,
-	portID string,
-	channelID string,
-	sequence uint64,
-	data []byte,
-	signer string,
-) error {
+	types.EmitCallbackEvent(ctx, sourcePort, sourceChannel, sequence, types.CallbackTypeSendPacket, callbackData, nil)
 	return nil
 }
 

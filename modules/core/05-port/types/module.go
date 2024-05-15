@@ -81,11 +81,14 @@ type IBCModule interface {
 		channelID string,
 	) error
 
+	// TODO: consider removing timeout height and timeout timestamp added back for callbacks
 	OnSendPacket(
 		ctx sdk.Context,
 		portID string,
 		channelID string,
 		sequence uint64,
+		timeoutHeight clienttypes.Height,
+		timeoutTimestamp uint64,
 		data []byte,
 		signer string,
 	) error

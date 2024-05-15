@@ -176,6 +176,8 @@ func (IBCMiddleware) OnSendPacket(
 	portID string,
 	channelID string,
 	sequence uint64,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
 	data []byte,
 	signer string,
 ) error {

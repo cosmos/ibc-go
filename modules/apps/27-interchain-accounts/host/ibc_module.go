@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -116,6 +117,8 @@ func (IBCModule) OnSendPacket(
 	portID string,
 	channelID string,
 	sequence uint64,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
 	data []byte,
 	signer string,
 ) error {
