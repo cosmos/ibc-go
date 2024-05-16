@@ -158,6 +158,84 @@ func (k Keeper) sendTransfer(
 	return sequence, nil
 }
 
+// OnSendPacket handles transfer sending logic.
+// TODO: Copy godoc from above sendTransfer function.
+func (k Keeper) OnSendPacket(ctx sdk.Context,
+	sourcePort string,
+	sourceChannel string,
+	packetData types.FungibleTokenPacketData,
+	sender sdk.AccAddress,
+) error {
+	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
+	if !found {
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+	}
+
+	// begin createOutgoingPacket logic
+	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
+	labels := []metrics.Label{
+		telemetry.NewLabel(coretypes.LabelDestinationPort, channel.Counterparty.PortId),
+		telemetry.NewLabel(coretypes.LabelDestinationChannel, channel.Counterparty.ChannelId),
+	}
+
+	amount, ok := sdkmath.NewIntFromString(packetData.Amount)
+	if !ok {
+		return errorsmod.Wrapf(types.ErrInvalidAmount, "cannot convert packet data amount to int: %s", packetData.Amount)
+	}
+
+	token := sdk.NewCoin(packetData.Denom, amount)
+
+	// NOTE: SendTransfer simply sends the denomination as it exists on its own
+	// chain inside the packet data. The receiving chain will perform denom
+	// prefixing as necessary.
+	if types.SenderChainIsSource(sourcePort, sourceChannel, packetData.Denom) {
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
+
+		// obtain the escrow address for the source channel end
+		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+		if err := k.escrowToken(ctx, sender, escrowAddress, token); err != nil {
+			return err
+		}
+
+	} else {
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
+
+		// transfer the coins to the module account and burn them
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(
+			ctx, sender, types.ModuleName, sdk.NewCoins(token),
+		); err != nil {
+			return err
+		}
+
+		if err := k.bankKeeper.BurnCoins(
+			ctx, types.ModuleName, sdk.NewCoins(token),
+		); err != nil {
+			// NOTE: should not happen as the module account was
+			// retrieved on the step above and it has enough balance
+			// to burn.
+			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
+		}
+	}
+
+	defer func() {
+		if token.Amount.IsInt64() {
+			telemetry.SetGaugeWithLabels(
+				[]string{"tx", "msg", "ibc", "transfer"},
+				float32(token.Amount.Int64()),
+				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, packetData.Denom)},
+			)
+		}
+
+		telemetry.IncrCounterWithLabels(
+			[]string{"ibc", types.ModuleName, "send"},
+			1,
+			labels,
+		)
+	}()
+
+	return nil
+}
+
 // OnRecvPacket processes a cross chain fungible token transfer. If the
 // sender chain is the source of minted tokens then vouchers will be minted
 // and sent to the receiving address. Otherwise if the sender chain is sending

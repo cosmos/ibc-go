@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
@@ -33,6 +35,34 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	if k.bankKeeper.BlockedAddr(sender) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
+
+	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
+	fullDenomPath := msg.Token.Denom
+
+	// deconstruct the token denomination into the denomination trace info
+	// to determine if the sender is the source chain
+	if strings.HasPrefix(msg.Token.Denom, "ibc/") {
+		fullDenomPath, err = k.DenomPathFromHash(ctx, msg.Token.Denom)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	packetData := types.NewFungibleTokenPacketData(
+		fullDenomPath, msg.Token.Amount.String(), sender.String(), msg.Receiver, msg.Memo,
+	)
+
+	msgSendPacket := channeltypes.MsgSendPacket{
+		PortId:           msg.SourcePort,
+		ChannelId:        msg.SourceChannel,
+		TimeoutHeight:    msg.TimeoutHeight,
+		TimeoutTimestamp: msg.TimeoutTimestamp,
+		Data:             packetData.GetBytes(),
+		Signer:           sender.String(),
+	}
+
+	// TODO: route msgSendPacket to core which calls OnSendPacket
+	_ = msgSendPacket
 
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,

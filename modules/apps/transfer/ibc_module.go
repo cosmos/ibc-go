@@ -174,17 +174,27 @@ func (IBCModule) OnChanCloseConfirm(
 }
 
 // OnSendPacket implements the IBCModule interface.
-func (IBCModule) OnSendPacket(
+func (im IBCModule) OnSendPacket(
 	ctx sdk.Context,
 	portID string,
 	channelID string,
-	sequence uint64,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
+	_ uint64,
+	_ clienttypes.Height,
+	_ uint64,
+	dataBz []byte,
 	signer string,
 ) error {
-	return nil
+	var data types.FungibleTokenPacketData
+	if err := json.Unmarshal(dataBz, &data); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+	}
+
+	sender, err := sdk.AccAddressFromBech32(signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "cannot convert signer address to sdk.AccAddress")
+	}
+
+	return im.keeper.OnSendPacket(ctx, portID, channelID, data, sender)
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
