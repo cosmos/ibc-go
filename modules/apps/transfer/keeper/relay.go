@@ -214,12 +214,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 	if len(data.ForwardingPath.Hops) > 0 {
 		// Transaction would abort already for previous check on Memo
 		forwardAddress := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
-		/*if forwardAddress.Empty() {
-			forwardAddress, err = sdk.AccAddressFromBech32("forwardingAddress") // MMMM // How to set this?
-			if err != nil {
-				return errorsmod.Wrapf(err, "failed to decode forward address: %s", data.Receiver)
-			}
-		}*/
 		receiver = forwardAddress
 		finalReceiver, err = sdk.AccAddressFromBech32(data.Receiver)
 		if err != nil {
@@ -232,11 +226,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 		}
 	}
 
-	//TODO Assertion Implementation
-	/*assert(packet.sender !== "")
-	  assert(receiver !== "")*/
+	if string(data.Sender) == "" {
+		return errorsmod.Wrapf(err, "empty sender address: %s", data.Sender)
+	}
 
-	//var receivedTokens []*v3types.Token
+	if string(receiver) == "" {
+		return errorsmod.Wrapf(err, "empty receiver address: %s", receiver)
+	}
+
 	var receivedTokens sdk.Coins
 
 	for _, token := range data.Tokens {
