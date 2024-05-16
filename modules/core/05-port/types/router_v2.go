@@ -6,8 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/exp/maps"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // AppRouter contains a map from module name to an ordered list of IBCModules

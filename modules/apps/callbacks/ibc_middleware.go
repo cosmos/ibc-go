@@ -85,7 +85,7 @@ func (im *IBCMiddleware) GetICS4Wrapper() porttypes.ICS4Wrapper {
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback returns an error, panics, or runs out of gas, then
 // the packet send is rejected.
-func (im IBCMiddleware) SendPacket(
+func (IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,

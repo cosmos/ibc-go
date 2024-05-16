@@ -14,7 +14,7 @@ import (
 )
 
 // SendPacket wraps the ICS4Wrapper SendPacket function
-func (k Keeper) SendPacket(
+func (Keeper) SendPacket(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,

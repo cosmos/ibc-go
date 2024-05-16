@@ -456,7 +456,7 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 }
 
 // SendPacket implements the ICS4 Wrapper interface
-func (im IBCMiddleware) SendPacket(
+func (IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
