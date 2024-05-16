@@ -172,15 +172,6 @@ type UpgradableModule interface {
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
 type ICS4Wrapper interface {
 	// TODO: Leave in place to avoid compiler errors and incrementally work to remove. We can then delete these methods
-	SendPacket(
-		ctx sdk.Context,
-		sourcePort string,
-		sourceChannel string,
-		timeoutHeight clienttypes.Height,
-		timeoutTimestamp uint64,
-		data []byte,
-	) (sequence uint64, err error)
-
 	WriteAcknowledgement(
 		ctx sdk.Context,
 		packet exported.PacketI,

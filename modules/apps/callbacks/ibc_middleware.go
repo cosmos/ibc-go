@@ -81,21 +81,6 @@ func (im *IBCMiddleware) GetICS4Wrapper() porttypes.ICS4Wrapper {
 	return im.ics4Wrapper
 }
 
-// SendPacket implements source callbacks for sending packets.
-// It defers to the underlying application and then calls the contract callback.
-// If the contract callback returns an error, panics, or runs out of gas, then
-// the packet send is rejected.
-func (IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	panic("TODO: remove")
-}
-
 // OnSendPacket implements the IBCModule interface.
 func (im IBCMiddleware) OnSendPacket(
 	ctx sdk.Context,

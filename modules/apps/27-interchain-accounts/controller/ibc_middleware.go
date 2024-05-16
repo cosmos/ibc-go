@@ -359,18 +359,6 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 	}
 }
 
-// SendPacket implements the ICS4 Wrapper interface
-func (IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	panic(errors.New("SendPacket not supported for ICA controller module. Please use SendTx"))
-}
-
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,

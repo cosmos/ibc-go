@@ -8,22 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
-
-// SendPacket wraps the ICS4Wrapper SendPacket function
-func (Keeper) SendPacket(
-	ctx sdk.Context,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	panic("TODO: remove")
-}
 
 // WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
 // ICS29 WriteAcknowledgement is used for asynchronous acknowledgements
