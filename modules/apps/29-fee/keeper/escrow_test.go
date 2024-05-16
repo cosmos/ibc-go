@@ -574,15 +574,15 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 
 			tc.malleate()
 
-			// original balance before distribution
+			// original balance before RefundFeesOnChannelClosure
 			originalRefundBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
 			originalEscrowBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), moduleAcc)
 
-			// distribute the packet fees
+			// perform refund fees on channel closure
 			err := suite.chainA.GetSimApp().IBCFeeKeeper.RefundFeesOnChannelClosure(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			suite.NoError(err)
 
-			// refundAcc balance after distribution
+			// refundAcc balance after RefundFeesOnChannelClosure
 			refundBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
 			escrowBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), moduleAcc)
 
