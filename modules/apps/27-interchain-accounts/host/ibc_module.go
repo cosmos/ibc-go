@@ -206,3 +206,13 @@ func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	}
 	return data, nil
 }
+
+// WrapVersion returns the version. Interchain accounts does not wrap versions.
+func (IBCModule) WrapVersion(version, appVersion string) string {
+	return version
+}
+
+// UnwrapVersion returns the version. Interchain accounts does not wrap versions.
+func (IBCModule) UnwrapVersion(version string) (string, string) {
+	return version, ""
+}

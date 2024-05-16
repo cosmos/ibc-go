@@ -214,7 +214,7 @@ func (k *Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgCha
 	}
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.PortKeeper.Route(module)
+	cbs, ok := k.PortKeeper.AppRoute(module)
 	if !ok {
 		ctx.Logger().Error("channel open init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -230,11 +230,28 @@ func (k *Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgCha
 		return nil, errorsmod.Wrap(err, "channel handshake open init failed")
 	}
 
+	var (
+		version            = msg.Channel.Version
+		negotiatedVersions = make([]string, len(cbs))
+	)
+
 	// Perform application logic callback
-	version, err := cbs.OnChanOpenInit(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, capability, msg.Channel.Counterparty, msg.Channel.Version)
-	if err != nil {
-		ctx.Logger().Error("channel open init failed", "port-id", msg.PortId, "channel-id", channelID, "error", errorsmod.Wrap(err, "channel open init callback failed"))
-		return nil, errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", msg.PortId, channelID)
+	for i := len(cbs) - 1; i >= 0; i-- {
+		var cbVersion string
+		cbVersion, version = cbs[i].UnwrapVersion(version)
+		negotiatedVersion, err := cbs[i].OnChanOpenInit(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, capability, msg.Channel.Counterparty, cbVersion)
+		if err != nil {
+			ctx.Logger().Error("channel open init failed", "port-id", msg.PortId, "channel-id", channelID, "error", errorsmod.Wrap(err, "channel open init callback failed"))
+			return nil, errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", msg.PortId, channelID)
+		}
+
+		negotiatedVersions[i] = negotiatedVersion
+	}
+
+	// glue back proposed version for channel storage
+	version = ""
+	for i, cb := range cbs {
+		version = cb.WrapVersion(version, negotiatedVersions[i])
 	}
 
 	// Write channel into state

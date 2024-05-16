@@ -429,3 +429,13 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	return im.app.UnmarshalPacketData(bz)
 }
+
+// WrapVersion returns the version. Callbacks does not have a version.
+func (IBCModule) WrapVersion(version, appVersion string) string {
+	return version
+}
+
+// UnwrapVersion returns the version. Callbacks does not have a version.
+func (IBCModule) UnwrapVersion(version) (string, string) {
+	return "", version
+}

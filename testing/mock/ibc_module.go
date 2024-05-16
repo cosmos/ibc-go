@@ -236,6 +236,16 @@ func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	return nil, MockApplicationCallbackError
 }
 
+// WrapVersion returns the version. Mock does not wrap versions
+func (IBCModule) WrapVersion(version, appVersion string) string {
+	return version
+}
+
+// UnwrapVersion returns the version. Mock does not wrap versions.
+func (IBCModule) UnwrapVersion(version string) (string, string) {
+	return version, ""
+}
+
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
 func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))

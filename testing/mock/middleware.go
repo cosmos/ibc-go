@@ -203,3 +203,13 @@ func (BlockUpgradeMiddleware) WriteAcknowledgement(
 func (BlockUpgradeMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return Version, true
 }
+
+// WrapVersion returns the version. Mock does not wrap versions
+func (BlockUpgradeMiddleware) WrapVersion(version, appVersion string) string {
+	return version
+}
+
+// UnwrapVersion returns the version. Mock does not wrap versions.
+func (BlockUpgradeMiddleware) UnwrapVersion(version string) (string, string) {
+	return version, Version
+}
