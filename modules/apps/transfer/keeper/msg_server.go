@@ -52,7 +52,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		fullDenomPath, msg.Token.Amount.String(), sender.String(), msg.Receiver, msg.Memo,
 	)
 
-	msgSendPacket := channeltypes.MsgSendPacket{
+	msgSendPacket := &channeltypes.MsgSendPacket{
 		PortId:           msg.SourcePort,
 		ChannelId:        msg.SourceChannel,
 		TimeoutHeight:    msg.TimeoutHeight,
@@ -61,8 +61,18 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		Signer:           sender.String(),
 	}
 
-	// TODO: route msgSendPacket to core which calls OnSendPacket
-	_ = msgSendPacket
+	handler := k.msgRouter.Handler(msgSendPacket)
+	_, err = handler(ctx, msgSendPacket)
+	if err != nil {
+		return nil, err
+	}
+
+	//	sendPacketResp, ok := res.MsgResponses[0].GetCachedValue().(*channeltypes.MsgSendPacketResponse)
+	//	if !ok {
+	//		return errorsmod.Wrap(ibcerrors.ErrInvalidType, "failed to convert %T message response to %T", res.MsgResponse[0].GetCachedValue(), &channeltypes.MsgSendPacketResponse)
+	//	}
+
+	//	seq := sendPacketResp.Sequence
 
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,

@@ -447,36 +447,42 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 
 // SendPacket defines a rpc handler method for MsgSendPacket.
 func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacket) (*channeltypes.MsgSendPacketResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
+	//	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
-	if err != nil {
-		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
+	return &channeltypes.MsgSendPacketResponse{Sequence: 0}, nil
 
-	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(module)
-	if !ok {
-		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-	}
+	/*
 
-	sequence, err := k.ChannelKeeper.SendPacket(ctx, capability, msg.PortId, msg.ChannelId, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data)
-	if err != nil {
-		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))
-		return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", module)
-	}
+		module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+		if err != nil {
+			ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+			return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+		}
 
-	// TODO: Make port router have list of ordered callbacks
-	// Loop over cbs in-order calling OnSendPacket on each IBCModule. To be done for RecvPacket handler as well in opposite order.
-	// Adjust app logic to account for what should be done before MsgSendPacket and what should be done in OnSendPacket.
-	if err := cbs.OnSendPacket(ctx, msg.PortId, msg.ChannelId, sequence, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data, msg.Signer); err != nil {
-		ctx.Logger().Error("send packet callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet callback failed"))
-		return nil, errorsmod.Wrapf(err, "send packet callback failed for module: %s", module)
-	}
+		// Retrieve callbacks from router
+		cbs, ok := k.PortKeeper.Route(module)
+		if !ok {
+			ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+			return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+		}
 
-	return &channeltypes.MsgSendPacketResponse{Sequence: sequence}, nil
+		sequence, err := k.ChannelKeeper.SendPacket(ctx, capability, msg.PortId, msg.ChannelId, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data)
+		if err != nil {
+			ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))
+			return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", module)
+		}
+
+		// TODO: Make port router have list of ordered callbacks
+		// Loop over cbs in-order calling OnSendPacket on each IBCModule. To be done for RecvPacket handler as well in opposite order.
+		// Adjust app logic to account for what should be done before MsgSendPacket and what should be done in OnSendPacket.
+		if err := cbs.OnSendPacket(ctx, msg.PortId, msg.ChannelId, sequence, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data, msg.Signer); err != nil {
+			ctx.Logger().Error("send packet callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet callback failed"))
+			return nil, errorsmod.Wrapf(err, "send packet callback failed for module: %s", module)
+		}
+
+	*/
+
+	// return &channeltypes.MsgSendPacketResponse{Sequence: sequence}, nil
 }
 
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
