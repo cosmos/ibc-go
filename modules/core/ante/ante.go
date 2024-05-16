@@ -36,10 +36,13 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 					response *channeltypes.MsgRecvPacketResponse
 					err      error
 				)
-				if ctx.IsCheckTx() {
-					response, err = rrd.recvPacketCheckTx(ctx, msg)
-				} else {
+				// when we are in ReCheckTx mode, ctx.IsCheckTx() will also return true
+				// there we must start the if statement on ctx.IsReCheckTx() to correctly
+				// determine which mode we are in
+				if ctx.IsReCheckTx() {
 					response, err = rrd.k.RecvPacket(ctx, msg)
+				} else {
+					response, err = rrd.recvPacketCheckTx(ctx, msg)
 				}
 				if err != nil {
 					return ctx, err
