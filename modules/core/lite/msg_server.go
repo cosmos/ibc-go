@@ -290,7 +290,7 @@ func (h Handler) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	// 	return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	// }
 	// TODO: Use context instead of sdk.Context eventually
-	err := appModule.OnAcknowledgementPacket(ctx, packet, msg.Acknowledgement, msg.Signer)
+	err = appModule.OnAcknowledgementPacket(ctx, packet, msg.Acknowledgement, msg.Signer)
 	if err != nil {
 		ctx.Logger().Error("acknowledgement failed", "port-id", packet.SourcePort, "channel-id", packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
@@ -382,7 +382,7 @@ func (h Handler) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	// }
 	// Perform application logic callback
 	// TODO: Use context instead of sdk.Context eventually
-	err := appModule.OnTimeoutPacket(ctx, packet, msg.Signer)
+	err = appModule.OnTimeoutPacket(ctx, packet, msg.Signer)
 	if err != nil {
 		ctx.Logger().Error("timeout failed", "port-id", packet.SourcePort, "channel-id", packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
