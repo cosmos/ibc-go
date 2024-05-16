@@ -276,7 +276,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 		malleate func()
 		expError error
 	}{
-
 		{
 			"successful receive",
 			func() {},
