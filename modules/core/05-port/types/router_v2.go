@@ -46,10 +46,6 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 	if !sdk.IsAlphaNumeric(module) {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
-	if rtr.HasRoute(module) {
-		panic(fmt.Errorf("route %s has already been registered", module))
-	}
-
 	rtr.routes[module] = append(rtr.routes[module], cbs)
 	return rtr
 }

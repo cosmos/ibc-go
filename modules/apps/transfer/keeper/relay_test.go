@@ -93,19 +93,9 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, false,
 		},
 		{
-			"channel capability not found",
-			func() {
-				capability := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				// Release channel capability
-				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), capability) //nolint:errcheck // ignore error for testing
-			}, false,
-		},
-		{
 			"SendPacket fails, timeout height and timeout timestamp are zero",
 			func() {
 				timeoutHeight = clienttypes.ZeroHeight()
-				expEscrowAmount = sdkmath.NewInt(100)
 			}, false,
 		},
 	}

@@ -58,28 +58,22 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		TimeoutHeight:    msg.TimeoutHeight,
 		TimeoutTimestamp: msg.TimeoutTimestamp,
 		Data:             packetData.GetBytes(),
-		Signer:           sender.String(),
+		Signer:           msg.Sender,
 	}
 
 	handler := k.msgRouter.Handler(msgSendPacket)
-	_, err = handler(ctx, msgSendPacket)
+	res, err := handler(ctx, msgSendPacket)
 	if err != nil {
 		return nil, err
 	}
 
-	//	sendPacketResp, ok := res.MsgResponses[0].GetCachedValue().(*channeltypes.MsgSendPacketResponse)
-	//	if !ok {
-	//		return errorsmod.Wrap(ibcerrors.ErrInvalidType, "failed to convert %T message response to %T", res.MsgResponse[0].GetCachedValue(), &channeltypes.MsgSendPacketResponse)
-	//	}
-
-	//	seq := sendPacketResp.Sequence
-
-	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Memo)
-	if err != nil {
-		return nil, err
+	sendPacketResp, ok := res.MsgResponses[0].GetCachedValue().(*channeltypes.MsgSendPacketResponse)
+	if !ok {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to convert %T message response to %T", res.MsgResponses[0].GetCachedValue(), &channeltypes.MsgSendPacketResponse{})
 	}
+
+	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
+	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
 
@@ -98,7 +92,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		),
 	})
 
-	return &types.MsgTransferResponse{Sequence: sequence}, nil
+	return &types.MsgTransferResponse{Sequence: sendPacketResp.Sequence}, nil
 }
 
 // UpdateParams defines an rpc handler method for MsgUpdateParams. Updates the ibc-transfer module's parameters.
