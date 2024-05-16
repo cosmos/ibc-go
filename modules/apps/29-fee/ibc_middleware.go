@@ -465,7 +465,7 @@ func (im IBCMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
-	return im.keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	panic("TODO: remove")
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
