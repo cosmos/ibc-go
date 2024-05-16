@@ -456,7 +456,7 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 	}
 
 	// Retrieve callbacks from router
-	cbsList, ok := k.PortKeeper.AppRoute(msg.PortId)
+	cbs, ok := k.PortKeeper.AppRoute(msg.PortId)
 	if !ok {
 		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
@@ -470,8 +470,8 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 
 	// Loop over cbs in-order calling OnSendPacket on each IBCModule. To be done for RecvPacket handler as well in opposite order.
 	// Adjust app logic to account for what should be done before MsgSendPacket and what should be done in OnSendPacket.
-	for _, cbs := range cbsList {
-		if err := cbs.OnSendPacket(ctx, msg.PortId, msg.ChannelId, sequence, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data, signer); err != nil {
+	for _, cb := range cbs {
+		if err := cb.OnSendPacket(ctx, msg.PortId, msg.ChannelId, sequence, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data, signer); err != nil {
 			ctx.Logger().Error("send packet callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet callback failed"))
 			return nil, errorsmod.Wrapf(err, "send packet callback failed for module: %s", msg.PortId)
 		}
