@@ -26,7 +26,7 @@ func E2E(t *testing.T) (string, error) {
 
 	const maxAttempts = 100
 	count := 0
-	for ; !strings.HasSuffix(wd, e2eDir) || count > maxAttempts; wd = path.Dir(wd) {
+	for ; !strings.HasSuffix(wd, e2eDir) && count < maxAttempts; wd = path.Dir(wd) {
 		count++
 	}
 
