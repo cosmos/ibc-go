@@ -216,7 +216,10 @@ func (im IBCModule) OnRecvPacket(
 	// only attempt the application logic if the packet data
 	// was successfully decoded
 	if ack.Success() {
-		err := im.keeper.OnRecvPacket(ctx, packet, data)
+		err, async := im.keeper.OnRecvPacket(ctx, packet, data)
+		if async {
+			return nil // Ok if we do this, which guaranteee we have that we can return the proper ack later on?
+		}
 		if err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err)
 			ackErr = err
@@ -254,11 +257,7 @@ func (im IBCModule) OnRecvPacket(
 	ctx.EventManager().EmitEvents(events)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	if ack.Success() {
-		return channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	} else {
-		return ack
-	}
+	return ack
 
 }
 

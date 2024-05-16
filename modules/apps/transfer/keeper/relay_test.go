@@ -426,8 +426,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, *ibctesting.TestEmptyForwardingPath)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
-			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
-
+			var async bool
+			err, async = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+			suite.Require().False(async)
 			// check total amount in escrow of received token denom on receiving chain
 			totalEscrow := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), sdk.DefaultBondDenom)
 			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
@@ -593,7 +594,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	suite.Require().Equal(sdkmath.NewInt(100), totalEscrowChainB.Amount)
 
 	// execute onRecvPacket, when chaninB receives the source token the escrow amount should decrease
-	err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+	var async bool
+	err, async := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+	suite.Require().False(async)
 	suite.Require().NoError(err)
 
 	// check total amount in escrow of sent token on receiving chain

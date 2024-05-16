@@ -189,20 +189,21 @@ func (k Keeper) sendTransfer(
 // and sent to the receiving address. Otherwise if the sender chain is sending
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v3types.FungibleTokenPacketData) error {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v3types.FungibleTokenPacketData) (error, bool) {
 	// validate packet data upon receiving
 	// same things here if we put the validate memo here this function would return an error.
+
 	if err := data.ValidateBasic(); err != nil {
-		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
+		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data"), false
 	}
 
 	// Otherwise we need to validate here
 	if data.ForwardingPath.Hops != nil && data.Memo != "" {
-		return errorsmod.Wrapf(types.ErrInvalidMemoSpecification, "incorrect memo specification: %s,%s", data.Memo, data.ForwardingPath.Hops)
+		return errorsmod.Wrapf(types.ErrInvalidMemoSpecification, "incorrect memo specification: %s,%s", data.Memo, data.ForwardingPath.Hops), false
 	}
 
 	if !k.GetParams(ctx).ReceiveEnabled {
-		return types.ErrReceiveDisabled
+		return types.ErrReceiveDisabled, false
 	}
 
 	// Receiver addresses logic:
@@ -217,21 +218,21 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 		receiver = forwardAddress
 		finalReceiver, err = sdk.AccAddressFromBech32(data.Receiver)
 		if err != nil {
-			return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver)
+			return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver), false
 		}
 	} else {
 		receiver, err = sdk.AccAddressFromBech32(data.Receiver)
 		if err != nil {
-			return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver)
+			return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver), false
 		}
 	}
 
 	if string(data.Sender) == "" {
-		return errorsmod.Wrapf(err, "empty sender address: %s", data.Sender)
+		return errorsmod.Wrapf(err, "empty sender address: %s", data.Sender), false
 	}
 
 	if string(receiver) == "" {
-		return errorsmod.Wrapf(err, "empty receiver address: %s", receiver)
+		return errorsmod.Wrapf(err, "empty receiver address: %s", receiver), false
 	}
 
 	var receivedTokens sdk.Coins
@@ -247,7 +248,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 		// parse the transfer amount
 		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
 		if !ok {
-			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", token.Amount)
+			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", token.Amount), false
 		}
 
 		// This is the prefix that would have been prefixed to the denomination
@@ -276,12 +277,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 			token := sdk.NewCoin(denom, transferAmount)
 
 			if k.bankKeeper.BlockedAddr(receiver) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver), false
 			}
 
 			escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 			if err := k.unescrowToken(ctx, escrowAddress, receiver, token); err != nil {
-				return err
+				return err, false
 			}
 
 			defer func() {
@@ -337,14 +338,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 		if err := k.bankKeeper.MintCoins(
 			ctx, types.ModuleName, sdk.NewCoins(voucher),
 		); err != nil {
-			return errorsmod.Wrap(err, "failed to mint IBC tokens")
+			return errorsmod.Wrap(err, "failed to mint IBC tokens"), false
 		}
 
 		// send to receiver
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 			ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 		); err != nil {
-			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
+			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String()), false
 		}
 
 		defer func() {
@@ -396,17 +397,27 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data v
 		// _ is nextPacketSequence what we do with it?
 		_, err := k.sendTransfer(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, receivedTokens, receiver, string(finalReceiver), clienttypes.Height{}, timeoutTimestamp, memo, nextForwardingPath)
 		if err != nil {
-			return err
+			return err, false
 		}
 
-		//packetData := v3types.NewFungibleTokenPacketData(tokens, sender.String(), receiver, memo, forwardingPath)
 		//k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, nextPacketSequence, data)
 		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, packet)
 
-		return nil
+		// The return value will be used by the onRecvPacket in the ibc_module.go
+		// If we return nil here, then we will write a successfull sinc ack.
+		// If we reutrn an error, then we will write a sinc error ack
+		// The onRecvPacket in the ibc_module.go has as return value ibcexported.Acknowledgement
+		// and it will return either an error ack or succesfull ack.
+		// Thus to achieve the correct behaviour, we should be able to return a nil value in the ibc_module.go
+		// onRecvPacket function.
+		// return nil
+		// Instead of returning simply nil, we will return a sentinel value that can be used to return nil in the ibc_module.go
+		// onRecvPacket function.
+		return nil, true
+
 	}
 	// The ibc_module.go module will return the proper ack.
-	return nil
+	return nil, false
 }
 
 // OnAcknowledgementPacket responds to the success or failure of a packet
