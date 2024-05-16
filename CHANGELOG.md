@@ -56,6 +56,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 * (light-clients/07-tendermint) [\#6276](https://github.com/cosmos/ibc-go/pull/6276) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
+* (light-clients/06-solomachine) [\#6313](https://github.com/cosmos/ibc-go/pull/6313) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
 
 ### Improvements
 
