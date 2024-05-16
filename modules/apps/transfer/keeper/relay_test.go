@@ -379,7 +379,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 }
 
 // TestOnRecvPacket_ReceiverIsSource tests receiving on chainB a coin that
-// originated on chainB, but was previously transfered to chainA. The bulk
+// originated on chainB, but was previously transferred to chainA. The bulk
 // of the testing occurs in the test case for loop since setup is intensive
 // for all cases. The malleate function allows for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
