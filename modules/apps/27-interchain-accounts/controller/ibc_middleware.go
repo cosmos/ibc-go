@@ -171,7 +171,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 }
 
 // OnSendPacket implements the IBCModule interface.
-func (IBCMiddleware) OnSendPacket(
+func (im IBCMiddleware) OnSendPacket(
 	ctx sdk.Context,
 	portID string,
 	channelID string,
@@ -181,6 +181,42 @@ func (IBCMiddleware) OnSendPacket(
 	data []byte,
 	signer string,
 ) error {
+	if !im.keeper.GetParams(ctx).ControllerEnabled {
+		return types.ErrControllerSubModuleDisabled
+	}
+
+	controllerPortID, err := icatypes.NewControllerPortID(signer)
+	if err != nil {
+		return err
+	}
+
+	if controllerPortID != portID {
+		return errorsmod.Wrap(ibcerrors.ErrUnauthorized, "signer is not owner of interchain account channel")
+	}
+
+	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
+	if err != nil {
+		return err
+	}
+
+	activeChannelID, found := im.keeper.GetOpenActiveChannel(ctx, connectionID, portID)
+	if !found {
+		return errorsmod.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
+	}
+
+	if activeChannelID != channelID {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "active channel ID does not match provided channelID. expected %s, got %s", activeChannelID, channelID)
+	}
+
+	var icaPacketData icatypes.InterchainAccountPacketData
+	if err := icaPacketData.UnmarshalJSON(data); err != nil {
+		return err
+	}
+
+	if err := icaPacketData.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "invalid interchain account packet data")
+	}
+
 	return nil
 }
 
