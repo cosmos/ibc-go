@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -25,9 +24,9 @@ func (suite *KeeperTestSuite) TestRecvPacketReCheckTx() {
 		{
 			"channel not found",
 			func() {
-				packet.DestinationPort = "invalid-port"
+				packet.DestinationPort = "invalid-port" //nolint:goconst
 			},
-			channeltypes.ErrChannelNotFound,
+			types.ErrChannelNotFound,
 		},
 		{
 			"redundant relay",
@@ -35,7 +34,7 @@ func (suite *KeeperTestSuite) TestRecvPacketReCheckTx() {
 				err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.RecvPacketReCheckTx(suite.chainB.GetContext(), packet)
 				suite.Require().NoError(err)
 			},
-			channeltypes.ErrNoOpMsg,
+			types.ErrNoOpMsg,
 		},
 	}
 
