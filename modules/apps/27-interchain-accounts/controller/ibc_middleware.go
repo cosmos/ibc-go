@@ -179,13 +179,13 @@ func (im IBCMiddleware) OnSendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-	signer string,
+	signer sdk.AccAddress,
 ) error {
 	if !im.keeper.GetParams(ctx).ControllerEnabled {
 		return types.ErrControllerSubModuleDisabled
 	}
 
-	controllerPortID, err := icatypes.NewControllerPortID(signer)
+	controllerPortID, err := icatypes.NewControllerPortID(signer.String())
 	if err != nil {
 		return err
 	}

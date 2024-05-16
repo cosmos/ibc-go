@@ -105,7 +105,7 @@ func (im IBCMiddleware) OnSendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-	signer string,
+	signer sdk.AccAddress,
 ) error {
 	callbackData, err := types.GetSourceCallbackData(im.app, data, sourcePort, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks

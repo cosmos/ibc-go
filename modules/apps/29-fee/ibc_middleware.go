@@ -194,7 +194,7 @@ func (IBCMiddleware) OnSendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-	signer string,
+	signer sdk.AccAddress,
 ) error {
 	return nil
 }

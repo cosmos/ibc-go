@@ -120,7 +120,7 @@ func (IBCModule) OnSendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-	signer string,
+	signer sdk.AccAddress,
 ) error {
 	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "cannot send packet on icahost")
 }

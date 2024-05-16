@@ -182,23 +182,18 @@ func (im IBCModule) OnSendPacket(
 	_ clienttypes.Height,
 	_ uint64,
 	dataBz []byte,
-	signer string,
+	signer sdk.AccAddress,
 ) error {
 	var data types.FungibleTokenPacketData
 	if err := json.Unmarshal(dataBz, &data); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
 	}
 
-	sender, err := sdk.AccAddressFromBech32(signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "cannot convert signer address to sdk.AccAddress")
-	}
-
-	if data.Sender != sender.String() {
+	if data.Sender != signer.String() {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "invalid signer address: expected %s, got %s", data.Sender, signer)
 	}
 
-	return im.keeper.OnSendPacket(ctx, portID, channelID, data, sender)
+	return im.keeper.OnSendPacket(ctx, portID, channelID, data, signer)
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement

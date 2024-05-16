@@ -90,7 +90,7 @@ type IBCModule interface {
 		timeoutHeight clienttypes.Height,
 		timeoutTimestamp uint64,
 		data []byte,
-		signer string,
+		signer sdk.AccAddress,
 	) error
 
 	// OnRecvPacket must return an acknowledgement that implements the Acknowledgement interface.
