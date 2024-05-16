@@ -3,12 +3,12 @@ package keeper
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/lite/types"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var _ types.IBCLiteKeeper = (*Keeper)(nil)
@@ -44,7 +44,6 @@ func (k Keeper) SetPacketCommitment(goCtx context.Context, portID string, channe
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	k.channelKeeper.SetPacketCommitment(ctx, portID, channelID, sequence, commitment)
-
 }
 
 func (k Keeper) GetPacketCommitment(goCtx context.Context, portID string, channelID string, sequence uint64) []byte {
