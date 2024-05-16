@@ -68,7 +68,7 @@ type IBCApp struct {
 		channelID string,
 		sequence uint64,
 		data []byte,
-		signer string,
+		signer sdk.AccAddress,
 	) error
 
 	// OnRecvPacket must return an acknowledgement that implements the Acknowledgement interface.

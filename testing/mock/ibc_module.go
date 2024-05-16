@@ -124,7 +124,7 @@ func (im IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string
 }
 
 // OnSendPacket implements the IBCModule interface.
-func (im IBCModule) OnSendPacket(ctx sdk.Context, portID string, channelID string, sequence uint64, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte, signer string) error {
+func (im IBCModule) OnSendPacket(ctx sdk.Context, portID string, channelID string, sequence uint64, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte, signer sdk.AccAddress) error {
 	if im.IBCApp.OnSendPacket != nil {
 		return im.IBCApp.OnSendPacket(ctx, portID, channelID, sequence, data, signer)
 	}

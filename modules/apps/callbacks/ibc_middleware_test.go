@@ -172,7 +172,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			var err error
 
 			sendPacket := func() {
-				err = callbacksModule.OnSendPacket(ctx, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes(), ibctesting.TestAccAddress)
+				err = callbacksModule.OnSendPacket(ctx, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes(), s.chainB.SenderAccount.GetAddress())
 			}
 
 			expPass := tc.expValue == nil
