@@ -3,13 +3,12 @@ package types
 import (
 	"context"
 
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 type ClientRouter interface {
 	// Route returns the client module for the given client ID
-	Route(clientID string) exported.LightClientModule
+	GetRoute(clientID string) (clientModule exported.LightClientModule, found bool)
 }
 
 type IBCLiteKeeper interface {
@@ -45,5 +44,5 @@ type IBCLiteKeeper interface {
 }
 
 type AppRouter interface {
-	Route(portID string) porttypes.IBCModule
+	GetRoute(portID string) (PacketModule, bool)
 }

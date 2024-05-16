@@ -223,6 +223,10 @@ message MsgChannelCloseConfirmResponse {}
 
 // MsgSendPacket sends an outgoing IBC packet
 message MsgSendPacket {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
   string                    source_channel    = 1;
   string                    source_port       = 2;
   string                    dest_channel      = 3;
@@ -230,6 +234,7 @@ message MsgSendPacket {
   ibc.core.client.v1.Height timeout_height    = 5;
   uint64                    timeout_timestamp = 6;
   bytes                     data              = 7;
+  string                    signer            = 8;
 }
 
 // MsgSendPacketResponse defines the Msg/SendPacket response type.

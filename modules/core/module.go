@@ -27,6 +27,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/lite"
 	"github.com/cosmos/ibc-go/v8/modules/core/simulation"
 	"github.com/cosmos/ibc-go/v8/modules/core/types"
 )
@@ -111,13 +112,15 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // AppModule implements an application module for the ibc module.
 type AppModule struct {
 	AppModuleBasic
-	keeper *keeper.Keeper
+	keeper  *keeper.Keeper
+	handler *lite.Handler
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k *keeper.Keeper) AppModule {
+func NewAppModule(k *keeper.Keeper, h *lite.Handler) AppModule {
 	return AppModule{
-		keeper: k,
+		keeper:  k,
+		handler: h,
 	}
 }
 
@@ -129,8 +132,9 @@ func (AppModule) Name() string {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	// connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	// channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	channeltypes.RegisterPacketMsgServer(cfg.MsgServer(), am.handler)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
 	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
@@ -206,7 +210,7 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 
 // RegisterStoreDecoder registers a decoder for ibc module's types
 func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	sdr[exported.StoreKey] = simulation.NewDecodeStore(*am.keeper)
+	// sdr[exported.StoreKey] = simulation.NewDecodeStore(*am.keeper)
 }
 
 // WeightedOperations returns the all the ibc module operations with their respective weights.

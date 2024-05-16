@@ -23,12 +23,15 @@ type Handler struct {
 	cdc          codec.BinaryCodec
 	keeper       types.IBCLiteKeeper
 	clientRouter types.ClientRouter
-	appRouter    porttypes.Router
+	appRouter    types.AppRouter
 }
 
-func NewKeeper(cdc codec.BinaryCodec, keeper types.IBCLiteKeeper, appRouter porttypes.Router, clientRouter types.ClientRouter) *Handler {
+func NewHandler(cdc codec.BinaryCodec, keeper types.IBCLiteKeeper, appRouter types.AppRouter, clientRouter types.ClientRouter) *Handler {
 	return &Handler{
-		cdc: cdc,
+		cdc:          cdc,
+		keeper:       keeper,
+		appRouter:    appRouter,
+		clientRouter: clientRouter,
 	}
 }
 
@@ -40,9 +43,9 @@ func (h Handler) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
-	lightClientModule := h.clientRouter.Route(msg.SourceChannel)
-	if lightClientModule == nil {
-		return nil, errorsmod.Wrapf(channeltypes.ErrInvalidChannel, "source channel %s not associated with a light client module", msg.SourceChannel)
+	lightClientModule, ok := h.clientRouter.GetRoute(msg.SourceChannel)
+	if !ok {
+		return nil, clienttypes.ErrClientNotFound
 	}
 
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
@@ -97,7 +100,15 @@ func (h Handler) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 
 	// IBC Lite routes to the application to do specific sendpacket logic rather than assuming the caller is the application module.
 	// IMPORTANT: This changes the ordering of core and application execution for SendPacket
-	// TODO: Add SendPacket callback to IBCModule interface
+	// Port should directly correspond to the application module route
+	// No need for capabilities and mapping from portID to ModuleName
+	appModule, ok := h.appRouter.GetRoute(msg.SourcePort)
+	if !ok {
+		return nil, porttypes.ErrInvalidPort
+	}
+
+	// Perform application logic callback
+	appModule.OnSendPacket(ctx, msg.SourcePort, msg.SourceChannel, packet.Sequence, msg.Data, msg.Signer)
 
 	return &channeltypes.MsgSendPacketResponse{Sequence: packet.GetSequence()}, nil
 }
@@ -129,7 +140,10 @@ func (h Handler) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
-	lightClientModule := h.clientRouter.Route(packet.DestinationChannel)
+	lightClientModule, ok := h.clientRouter.GetRoute(packet.DestinationChannel)
+	if !ok {
+		return nil, clienttypes.ErrClientNotFound
+	}
 
 	// TODO: Use context instead of sdk.Context eventually
 	if err := lightClientModule.VerifyMembership(
@@ -160,13 +174,13 @@ func (h Handler) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn := ctx.CacheContext()
 	// TODO: Use signer as string rather than sdk.AccAddress
-	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
-		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
-	}
+	// relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	// if err != nil {
+	// 	ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+	// 	return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	// }
 
-	ack := appModule.OnRecvPacket(cacheCtx, packet, relayer)
+	ack := appModule.OnRecvPacket(cacheCtx, packet, msg.Signer)
 	if ack == nil || ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
@@ -229,7 +243,10 @@ func (h Handler) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
-	lightClientModule := h.clientRouter.Route(packet.SourceChannel)
+	lightClientModule, ok := h.clientRouter.GetRoute(packet.SourceChannel)
+	if !ok {
+		return nil, clienttypes.ErrClientNotFound
+	}
 	// TODO: Use context instead of sdk.Context eventually
 	if err := lightClientModule.VerifyMembership(
 		ctx,
@@ -255,13 +272,13 @@ func (h Handler) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 		return nil, porttypes.ErrInvalidPort
 	}
 
-	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
-		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
-	}
+	// relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	// if err != nil {
+	// 	ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+	// 	return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	// }
 	// TODO: Use context instead of sdk.Context eventually
-	err = appModule.OnAcknowledgementPacket(ctx, packet, msg.Acknowledgement, relayer)
+	err := appModule.OnAcknowledgementPacket(ctx, packet, msg.Acknowledgement, msg.Signer)
 	if err != nil {
 		ctx.Logger().Error("acknowledgement failed", "port-id", packet.SourcePort, "channel-id", packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
@@ -313,7 +330,10 @@ func (h Handler) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
-	lightClientModule := h.clientRouter.Route(packet.SourceChannel)
+	lightClientModule, ok := h.clientRouter.GetRoute(packet.SourceChannel)
+	if !ok {
+		return nil, clienttypes.ErrClientNotFound
+	}
 	// TODO: Use context instead of sdk.Context eventually
 	if err := lightClientModule.VerifyNonMembership(
 		ctx,
@@ -338,14 +358,14 @@ func (h Handler) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	if !ok {
 		return nil, porttypes.ErrInvalidPort
 	}
-	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
-		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
-	}
+	// relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	// if err != nil {
+	// 	ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+	// 	return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	// }
 	// Perform application logic callback
 	// TODO: Use context instead of sdk.Context eventually
-	err = appModule.OnTimeoutPacket(ctx, packet, relayer)
+	err := appModule.OnTimeoutPacket(ctx, packet, msg.Signer)
 	if err != nil {
 		ctx.Logger().Error("timeout failed", "port-id", packet.SourcePort, "channel-id", packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
