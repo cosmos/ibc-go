@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"golang.org/x/exp/maps"
 )
 
 // AppRouter contains a map from module name to an ordered list of IBCModules
@@ -62,4 +63,8 @@ func (rtr *AppRouter) GetRoute(module string) ([]IBCModule, bool) {
 		return nil, false
 	}
 	return rtr.routes[module], true
+}
+
+func (rtr *AppRouter) Keys() []string {
+	return maps.Keys(rtr.routes)
 }

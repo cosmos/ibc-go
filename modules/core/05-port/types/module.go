@@ -174,7 +174,6 @@ type ICS4Wrapper interface {
 	// TODO: Leave in place to avoid compiler errors and incrementally work to remove. We can then delete these methods
 	SendPacket(
 		ctx sdk.Context,
-		chanCap *capabilitytypes.Capability,
 		sourcePort string,
 		sourceChannel string,
 		timeoutHeight clienttypes.Height,

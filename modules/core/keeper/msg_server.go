@@ -449,23 +449,17 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacket) (*channeltypes.MsgSendPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
-	if err != nil {
-		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
-
 	// Retrieve callbacks from router
-	cbsList, ok := k.PortKeeper.AppRoute(module)
+	cbsList, ok := k.PortKeeper.AppRoute(msg.PortId)
 	if !ok {
-		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
 	}
 
-	sequence, err := k.ChannelKeeper.SendPacket(ctx, capability, msg.PortId, msg.ChannelId, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data)
+	sequence, err := k.ChannelKeeper.SendPacket(ctx, msg.PortId, msg.ChannelId, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data)
 	if err != nil {
 		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))
-		return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", module)
+		return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", msg.PortId)
 	}
 
 	// Loop over cbs in-order calling OnSendPacket on each IBCModule. To be done for RecvPacket handler as well in opposite order.
@@ -473,7 +467,7 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 	for _, cbs := range cbsList {
 		if err := cbs.OnSendPacket(ctx, msg.PortId, msg.ChannelId, sequence, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data, msg.Signer); err != nil {
 			ctx.Logger().Error("send packet callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet callback failed"))
-			return nil, errorsmod.Wrapf(err, "send packet callback failed for module: %s", module)
+			return nil, errorsmod.Wrapf(err, "send packet callback failed for module: %s", msg.PortId)
 		}
 	}
 

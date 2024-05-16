@@ -17,7 +17,6 @@ import (
 // SendPacket wraps the ICS4Wrapper SendPacket function
 func (k Keeper) SendPacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,

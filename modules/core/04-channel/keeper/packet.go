@@ -22,7 +22,6 @@ import (
 // is returned if one occurs.
 func (k *Keeper) SendPacket(
 	ctx sdk.Context,
-	channelCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -36,10 +35,6 @@ func (k *Keeper) SendPacket(
 
 	if channel.State != types.OPEN {
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
-		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)

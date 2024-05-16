@@ -180,7 +180,6 @@ func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channel
 // SendPacket implements the ICS4 Wrapper interface
 func (BlockUpgradeMiddleware) SendPacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,

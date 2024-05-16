@@ -87,7 +87,6 @@ func (im *IBCMiddleware) GetICS4Wrapper() porttypes.ICS4Wrapper {
 // the packet send is rejected.
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,

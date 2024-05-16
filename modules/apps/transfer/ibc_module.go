@@ -194,6 +194,10 @@ func (im IBCModule) OnSendPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "cannot convert signer address to sdk.AccAddress")
 	}
 
+	if data.Sender != sender.String() {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "invalid signer address: expected %s, got %s", data.Sender, signer)
+	}
+
 	return im.keeper.OnSendPacket(ctx, portID, channelID, data, sender)
 }
 
