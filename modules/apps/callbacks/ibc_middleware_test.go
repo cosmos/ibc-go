@@ -120,15 +120,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
-			"failure: ics4Wrapper SendPacket call fails",
-			func() {
-				s.path.EndpointA.ChannelID = "invalid-channel"
-			},
-			"none", // ics4wrapper failure should result in no callback execution
-			false,
-			channeltypes.ErrChannelNotFound,
-		},
-		{
 			"failure: callback execution fails",
 			func() {
 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.ErrorContract)
@@ -162,26 +153,26 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
-			transferICS4Wrapper := GetSimApp(s.chainA).TransferKeeper.GetICS4Wrapper()
+			cbs, ok := GetSimApp(s.chainA).IBCKeeper.PortKeeper.AppRoute(transfertypes.ModuleName)
+			s.Require().True(ok)
+
+			callbacksModule, ok := cbs[1].(ibccallbacks.IBCMiddleware) // callbacks module is routed second
+			s.Require().True(ok)
 
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress,
 				ibctesting.TestAccAddress, fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			)
 
-			chanCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
-
 			tc.malleate()
 
 			ctx := s.chainA.GetContext()
 			gasLimit := ctx.GasMeter().Limit()
 
-			var (
-				seq uint64
-				err error
-			)
+			var err error
+
 			sendPacket := func() {
-				seq, err = transferICS4Wrapper.SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+				err = callbacksModule.OnSendPacket(ctx, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes(), ibctesting.TestAccAddress)
 			}
 
 			expPass := tc.expValue == nil
@@ -189,11 +180,10 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			case expPass:
 				sendPacket()
 				s.Require().Nil(err)
-				s.Require().Equal(uint64(1), seq)
 
 				expEvent, exists := GetExpectedEvent(
-					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
-					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
+					callbacksModule, gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1, types.CallbackTypeSendPacket, nil,
 				)
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
@@ -205,7 +195,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			default:
 				sendPacket()
 				s.Require().ErrorIs(err, tc.expValue.(error))
-				s.Require().Equal(uint64(0), seq)
 			}
 
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)

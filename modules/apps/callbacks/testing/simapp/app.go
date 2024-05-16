@@ -544,13 +544,16 @@ func NewSimApp(
 		panic(fmt.Errorf("cannot convert %T to %T", icaControllerStack, app.ICAAuthModule))
 	}
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
 	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
 	var icaICS4Wrapper porttypes.ICS4Wrapper
 	icaICS4Wrapper, ok = icaControllerStack.(porttypes.ICS4Wrapper)
 	if !ok {
 		panic(fmt.Errorf("cannot convert %T to %T", icaControllerStack, icaICS4Wrapper))
 	}
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
 	app.ICAControllerKeeper.WithICS4Wrapper(icaICS4Wrapper)
 
@@ -571,7 +574,6 @@ func NewSimApp(
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 
 	ibcAppRouter.
-		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 

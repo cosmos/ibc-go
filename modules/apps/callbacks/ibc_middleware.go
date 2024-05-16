@@ -94,16 +94,7 @@ func (im IBCMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
-	seq, err := im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
-	if err != nil {
-		return 0, err
-	}
-
-	if err := im.OnSendPacket(ctx, sourcePort, sourceChannel, seq, timeoutHeight, timeoutTimestamp, data, ""); err != nil {
-		return 0, err
-	}
-
-	return seq, nil
+	panic("TODO: remove")
 }
 
 // OnSendPacket implements the IBCModule interface.
