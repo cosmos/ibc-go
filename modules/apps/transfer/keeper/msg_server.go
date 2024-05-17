@@ -52,7 +52,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, tokens, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Memo, *msg.ForwardingPath)
+		msg.Memo, msg.ForwardingPath)
 	if err != nil {
 		return nil, err
 	}

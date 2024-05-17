@@ -17,10 +17,6 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 		receiver = "receiver"
 	)
 
-	var forwardingPath = &types.ForwardingInfo{
-		Hops: nil,
-		Memo: ""}
-
 	testCases := []struct {
 		name     string
 		v1Data   types.FungibleTokenPacketData
@@ -37,7 +33,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0"},
 					},
-				}, sender, receiver, "", *forwardingPath),
+				}, sender, receiver, "", nil),
 			nil,
 		},
 		{
@@ -50,7 +46,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  nil,
 					},
-				}, sender, receiver, "", *forwardingPath),
+				}, sender, receiver, "", nil),
 			nil,
 		},
 		{
@@ -63,7 +59,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0"},
 					},
-				}, sender, receiver, "", *forwardingPath),
+				}, sender, receiver, "", nil),
 			nil,
 		},
 		{
@@ -76,7 +72,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0"},
 					},
-				}, sender, receiver, "", *forwardingPath),
+				}, sender, receiver, "", nil),
 			nil,
 		},
 		{
@@ -89,7 +85,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
-				}, sender, receiver, "", *forwardingPath),
+				}, sender, receiver, "", nil),
 			nil,
 		},
 		{
@@ -102,7 +98,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
-				}, sender, receiver, "", *forwardingPath),
+				}, sender, receiver, "", nil),
 			nil,
 		},
 		{
@@ -115,7 +111,7 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 						Amount: "1000",
 						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
-				}, sender, receiver, "", *forwardingPath),
+				}, sender, receiver, "", nil),
 			nil,
 		},
 		{

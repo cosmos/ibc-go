@@ -23,12 +23,6 @@ const (
 )
 
 var (
-	forwardingPath = &types.ForwardingInfo{
-		Hops: nil,
-		Memo: ""}
-)
-
-var (
 	sender   = secp256k1.GenPrivKey().PubKey().Address().String()
 	receiver = sdk.AccAddress("testaddr2").String()
 )
@@ -53,7 +47,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				*forwardingPath,
+				nil,
 			),
 			nil,
 		},
@@ -70,7 +64,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"memo",
-				*forwardingPath,
+				nil,
 			),
 			nil,
 		},
@@ -87,7 +81,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"memo",
-				*forwardingPath,
+				nil,
 			),
 			nil,
 		},
@@ -104,7 +98,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				*forwardingPath,
+				nil,
 			),
 			types.ErrInvalidDenomForTransfer,
 		},
@@ -121,7 +115,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				*forwardingPath,
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -132,7 +126,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				*forwardingPath,
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -149,7 +143,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				*forwardingPath,
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -166,7 +160,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				*forwardingPath,
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -183,7 +177,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"memo",
-				*forwardingPath,
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -200,7 +194,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				"",
 				receiver,
 				"memo",
-				*forwardingPath,
+				nil,
 			),
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -217,7 +211,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 				sender,
 				"",
 				"",
-				*forwardingPath,
+				nil,
 			),
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -256,7 +250,7 @@ func TestGetPacketSender(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				*forwardingPath,
+				nil,
 			),
 			sender,
 		},
@@ -273,7 +267,7 @@ func TestGetPacketSender(t *testing.T) {
 				"",
 				receiver,
 				"abc",
-				*forwardingPath,
+				nil,
 			),
 			"",
 		},
@@ -304,7 +298,7 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver), *forwardingPath),
+				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver), nil),
 
 			map[string]interface{}{
 				"address": receiver,
@@ -322,7 +316,7 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver), *forwardingPath),
+				fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver), nil),
 			map[string]interface{}{
 				"address":   receiver,
 				"gas_limit": "200000",
@@ -340,7 +334,7 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				`{"src_callback": "string"}`, *forwardingPath),
+				`{"src_callback": "string"}`, nil),
 			"string",
 		},
 		{
@@ -355,7 +349,7 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				fmt.Sprintf(`{"dest_callback": {"address": "%s", "min_gas": "200000"}}`, receiver), *forwardingPath),
+				fmt.Sprintf(`{"dest_callback": {"address": "%s", "min_gas": "200000"}}`, receiver), nil),
 			nil,
 		},
 		{
@@ -371,7 +365,7 @@ func TestPacketDataProvider(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				*forwardingPath),
+				nil),
 			nil,
 		},
 		{
@@ -386,7 +380,8 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				"invalid", *forwardingPath),
+				"invalid",
+				nil),
 			nil,
 		},
 	}
@@ -418,7 +413,7 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				*forwardingPath,
+				nil,
 			),
 			false,
 		},
@@ -435,7 +430,7 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 				sender,
 				receiver,
 				"abc",
-				*forwardingPath,
+				nil,
 			),
 			true,
 		},

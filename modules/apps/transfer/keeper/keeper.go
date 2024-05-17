@@ -304,22 +304,17 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// Set the forwarded packet in the private store. // Should the packet be v3types or
-// func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64, packet v3types.FungibleTokenPacketData) {
-func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, packet channeltypes.Packet) {
+// SetForwardedPacket sets the forwarded packet in the private store.
+func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&packet)
-	//	store.Set(types.PacketForwardPath(portID, channelID, nextPacketSequence), bz)
-	store.Set(types.PacketForwardPath(portID, channelID), bz)
-
+	store.Set(types.PacketForwardKey(portID, channelID, sequence), bz)
 }
 
-// GetCounterpartyUpgrade gets the counterparty upgrade from the store.
-// func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, nextPacketSequence uint64) (v3types.FungibleTokenPacketData, bool) {
-func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string) (channeltypes.Packet, bool) {
+// GetForwardedPacket gets the forwarded packet from the store.
+func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
 	store := ctx.KVStore(k.storeKey)
-	//bz := store.Get(types.PacketForwardPath(portID, channelID, nextPacketSequence))
-	bz := store.Get(types.PacketForwardPath(portID, channelID))
+	bz := store.Get(types.PacketForwardKey(portID, channelID, sequence))
 	if bz == nil {
 		return channeltypes.Packet{}, false
 	}

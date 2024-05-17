@@ -7,10 +7,6 @@ import (
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 )
 
-var forwardingPath = &types.ForwardingInfo{
-	Hops: nil, // Correcting this line
-	Memo: ""}
-
 // PacketDataV1ToV3 converts a v1 (ICS20-V1) packet data to a v3 (ICS20-V2) packet data.
 func PacketDataV1ToV3(packetData types.FungibleTokenPacketData) v3types.FungibleTokenPacketData {
 	if err := packetData.ValidateBasic(); err != nil {
@@ -29,7 +25,7 @@ func PacketDataV1ToV3(packetData types.FungibleTokenPacketData) v3types.Fungible
 		Sender:         packetData.Sender,
 		Receiver:       packetData.Receiver,
 		Memo:           packetData.Memo,
-		ForwardingPath: forwardingPath,
+		ForwardingPath: nil,
 	}
 }
 
