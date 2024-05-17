@@ -19,42 +19,18 @@ send fungible token transfers to other chains.
 
 Integrating the IBC module to your SDK-based application is straightforward. The general changes can be summarized in the following steps:
 
-- Add required modules to the `module.Manager`.
-- Define additional `Keeper` fields for the new modules on the `App` type.
-- Add the module's `StoreKey`s and initialize their `Keeper`s.
-- Set up corresponding routers and routes for the `ibc` module.
-- Add the modules to the module `Manager`.
-- Add modules to `Begin/EndBlockers` and `InitGenesis`.
-- Update the module `SimulationManager` to enable simulations.
+- [Define additional `Keeper` fields for the new modules on the `App` type](#add-application-fields-to-app).
+- [Add the module's `StoreKey`s and initialize their `Keeper`s](#configure-the-keepers).
+- [Set up IBC router and add route for the `transfer` module](#register-module-routes-in-the-ibc-router).
+- [Grant permissions to `transfer`'s `ModuleAccount`](#module-account-permissions).
+- [Add the modules to the module `Manager`](#module-manager-and-simulationmanager).
+- [Update the module `SimulationManager` to enable simulations](#module-manager-and-simulationmanager).
+- [Integrate light client modules (e.g. `07-tendermint`)](#integrating-light-clients).
+- [Add modules to `Begin/EndBlockers` and `InitGenesis`](#Application ABCI ordering).
 
-### Module account permissions
+### Add application fields to `App`
 
-After that, we need to grant `Minter` and `Burner` permissions to
-the `transfer` `ModuleAccount` to mint and burn relayed tokens.
-
-```go title="app.go"
-import (
-  // other imports
-  // ...
-  "github.com/cosmos/cosmos-sdk/types/module"
-  // highlight-next-line
-+ ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-)
-
-// app.go
-var (
-  // module account permissions
-	maccPerms = map[string][]string{
-    // other module accounts permissions
-    // ...
-		ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-	}
-)
-```
-
-### Application fields
-
-Then, we need to register the core `ibc` and `transfer` `Keeper`s as follows:
+We need to register the core `ibc` and `transfer` `Keeper`s as follows:
 
 ```go title="app.go"
 import (
@@ -90,6 +66,8 @@ During initialization, besides initializing the IBC `Keeper`s (for core `ibc` an
 import (
   // other imports
   // ...
+  authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
   capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
   capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
   ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -142,7 +120,7 @@ func NewApp(...args) *App {
 }
 ```
 
-### Register `Router`s
+### Register module routes in the IBC `Router`
 
 IBC needs to know which module is bound to which port so that it can route packets to the
 appropriate module and call the appropriate callbacks. The port to module name mapping is handled by
@@ -178,7 +156,7 @@ func NewApp(...args) *App {
   // ... continues
 ```
 
-### Module `Manager`s
+### Module `Manager` and `SimulationManager`
 
 In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager`, in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/14-simulator.md).
 
@@ -212,14 +190,40 @@ func NewApp(...args) *App {
   // ... continues
 ```
 
+### Module account permissions
+
+After that, we need to grant `Minter` and `Burner` permissions to
+the `transfer` `ModuleAccount` to mint and burn relayed tokens.
+
+```go title="app.go"
+import (
+  // other imports
+  // ...
+  "github.com/cosmos/cosmos-sdk/types/module"
+  authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+  // highlight-next-line
++ ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+)
+
+// app.go
+var (
+  // module account permissions
+	maccPerms = map[string][]string{
+    // other module accounts permissions
+    // ...
+		ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+	}
+)
+```
+
 #### Integrating light clients
 
-> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below.
-> This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box.
+> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below. This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box.
 
 All light clients must be registered with `module.BasicManager` in a chain's app.go file.
 
-The following code example shows how to register the existing `ibctm.AppModuleBasic{}` light client implementation.
+The following code example shows how to register the existing `ibctm.AppModule{}` light client implementation.
 
 ```go title="app.go"
 import (
@@ -233,13 +237,13 @@ import (
 // app.go
 app.ModuleManager = module.NewManager(
   // ...
-  capability.AppModuleBasic{},
-  ibc.AppModuleBasic{},
-  transfer.AppModuleBasic{}, // i.e ibc-transfer module
+  capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
+  ibc.NewAppModule(app.IBCKeeper),
+  transfer.NewAppModule(app.TransferKeeper), // i.e ibc-transfer module
 
   // register light clients on IBC
   // highlight-next-line
-+ ibctm.AppModuleBasic{},
++ ibctm.NewAppModule(),
 )
 ```
 
@@ -267,7 +271,7 @@ func NewApp(...args) *App {
   // add x/staking, ibc and transfer modules to BeginBlockers
   // capability module's Beginblocker must come before any
   // modules using capabilities (e.g. IBC)
-  app.mm.SetOrderBeginBlockers(
+  app.ModuleManager.SetOrderBeginBlockers(
     // other modules ...
     capabilitytypes.ModuleName,
     stakingtypes.ModuleName,
@@ -303,6 +307,6 @@ func NewApp(...args) *App {
 **IMPORTANT**: The capability module **must** be declared first in `SetOrderBeginBlockers` and `SetOrderInitGenesis`.
 :::
 
-That's it! You have now wired up the IBC module and are now able to send fungible tokens across
+That's it! You have now wired up the IBC module and the `transfer` module, and are now able to send fungible tokens across
 different chains. If you want to have a broader view of the changes take a look into the SDK's
 [`SimApp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go).
