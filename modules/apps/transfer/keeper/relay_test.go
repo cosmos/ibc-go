@@ -1016,33 +1016,40 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	suite.Require().Equal(sdkmath.ZeroInt(), totalEscrowChainB.Amount)
 }
 
-func (suite *KeeperTestSuite) TestHappyPathForwarding() {
+func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 	amount := sdkmath.NewInt(100)
+	/*
+		Given the following topolgy:
 
-	// setup A -> B -> A
-	// 2 transfer channels between chain A <-> B <-> C
+		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-1) chain A
+		stake                  transfer/channel-0/stake           transfer/channel-1/transfer/channel-0/stake
+
+		We want to trigger:
+		1. A sends B over channel0.
+		2. B onRecv . 2.1(B sends A over channel1) Atomic Actions
+		At this point we want to assert:
+		A: escrowA = amount,denom
+		B: escrowB = amount,transfer/channel-0/denom
+
+	*/
+
 	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 	path1.Setup()
 
-	path2 := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+	path2 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 	path2.Setup()
-
-
-
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
-	receiver := suite.chainC.SenderAccounts[0].SenderAccount
+	receiver := suite.chainA.SenderAccounts[1].SenderAccount
 	forwardingPath := types.ForwardingInfo{
 		Hops: []*types.Hop{
 			{
-				PortID:    path2.EndpointA.ChannelConfig.PortID,
-				ChannelId: path2.EndpointA.ChannelID,
+				PortID:    path2.EndpointB.ChannelConfig.PortID,
+				ChannelId: path2.EndpointB.ChannelID,
 			},
 		},
 		Memo: "",
 	}
-
-	preCoinA := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
 	transferMsg := types.NewMsgTransfer(
 		path1.EndpointA.ChannelConfig.PortID,
@@ -1054,6 +1061,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 		0, "",
 		&forwardingPath,
 	)
+
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
 
@@ -1069,68 +1077,164 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	err = path2.EndpointB.UpdateClient()
-	suite.Require().NoError(err)
-
-	postCoinA := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress(), sdk.DefaultBondDenom)
-
-	packet2, err := ibctesting.ParsePacketFromEvents(result.Events)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(packet2)
-
-	result, err = path2.EndpointB.RecvPacketWithResult(packet2)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(result)
-
-	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, packet2.Sequence)
-	suite.Require().True(found)
-	suite.Require().Equal(packet, forwardedPacket)
-
 	totalEscrowChainA := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.NewInt(100), totalEscrowChainA.Amount)
 
-	denomTraceAB := types.DenomTrace{
+	// denomTrace path: transfer/channel-0
+	denomTrace := types.DenomTrace{
 		BaseDenom: sdk.DefaultBondDenom,
-		Path:      fmt.Sprintf("%s/%s/", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
+		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
 
-	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), denomTraceAB.IBCDenom())
-	suite.Require().Equal(sdkmath.ZeroInt(), totalEscrowChainB.Amount)
+	// Check that Escrow B has amount
+	coin = sdk.NewCoin(denomTrace.IBCDenom(), amount)
+	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
+	suite.Require().Equal(sdkmath.NewInt(100), totalEscrowChainB.Amount)
 
-	// Since we're sending out from A to C
-	// The delta amount is computed as preSend - postSend : e.g. if preSend=100 and postSend=0 --> delta = 100
-	deltaAmountA := preCoinA.Amount.Sub(postCoinA.Amount)
-	suite.Require().Equal(amount.Int64(), deltaAmountA.Int64(), "token successfully deduced from A balance")
+}
 
-	// WIP
-	/* Random things
+// This test is probably overcomplicated. Could have used RecvPacketWithResult directly.
+func (suite *KeeperTestSuite) TestHappyPathForwarding() {
+	amount := sdkmath.NewInt(100)
+	/*
+		Given the following topolgy:
 
-	denomTraceABC := types.DenomTrace{
+		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-1) chain A
+		stake                  transfer/channel-0/stake           transfer/channel-1/transfer/channel-0/stake
+
+		We want to trigger:
+		1. A sends B over channel0.
+		2. B onRecv . 2.1(B sends A over channel1) Atomic Actions
+		At this point we want to assert:
+		A: escrowA = amount,denom
+		B: escrowB = amount,transfer/channel-0/denom
+		3. A OnRecv
+		At this point we want to assert:
+		C: finalReceiver = amount,transfer/channel-1/transfer/channel-0/denom
+	*/
+
+	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	path1.Setup()
+
+	path2 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	path2.Setup()
+
+	// transfer/channel-1/transfer/channel-0/denom
+	denomTraceABA := types.DenomTrace{
 		BaseDenom: sdk.DefaultBondDenom,
 		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
 
-	//preCoinC := suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccounts[0].SenderAccount.GetAddress(), denomTraceABC.IBCDenom())
+	// Check that initially the final receiver address has 0 ABA coins
+	coin := sdk.NewCoin(denomTraceABA.IBCDenom(), amount)
+	preCoinOnA := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccounts[1].SenderAccount.GetAddress(), coin.GetDenom())
+	suite.Require().Equal(sdkmath.NewInt(0), preCoinOnA.Amount, "final receiver has not zero balance")
 
-		// Check sender's balance on chain A to ensure it has reduced by the sent amount
-		//balanceA := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress(), sdk.DefaultBondDenom)
-		//suite.Require().Equal(sdkmath.NewInt(0), balanceA.Amount)
+	coin = sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	sender := suite.chainA.SenderAccounts[0].SenderAccount
+	receiver := suite.chainA.SenderAccounts[1].SenderAccount
+	forwardingPath := types.ForwardingInfo{
+		Hops: []*types.Hop{
+			{
+				PortID:    path2.EndpointB.ChannelConfig.PortID,
+				ChannelId: path2.EndpointB.ChannelID,
+			},
+		},
+		Memo: "",
+	}
 
-			denomTrace = types.DenomTrace{
-				BaseDenom: sdk.DefaultBondDenom,
-				Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
-			}
-			balanceC := suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccounts[0].SenderAccount.GetAddress(), denomTrace.IBCDenom())
-			suite.Require().Equal(denomTrace.IBCDenom(), balanceC.Denom)
-			suite.Require().NoError(err)*/
+	transferMsg := types.NewMsgTransfer(
+		path1.EndpointA.ChannelConfig.PortID,
+		path1.EndpointA.ChannelID,
+		sdk.NewCoins(coin),
+		sender.GetAddress().String(),
+		receiver.GetAddress().String(),
+		suite.chainA.GetTimeoutHeight(),
+		0, "",
+		&forwardingPath,
+	)
 
-	// suite.Require().Equal(sdkmath.NewInt(100), balanceC.Amount)
-	/*
-		// Additional checks: Verify that there is no unexpected remaining balance or state
-		// Check that the escrow amount on chain B is zero after forwarding
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
 
-		balanceC := suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccounts[0].SenderAccount.GetAddress(), denomTrace.IBCDenom())
-		suite.Require().Equal(denomTrace.IBCDenom(), balanceC.Denom)
-		//suite.Require().Equal(sdkmath.NewInt(10), balanceC.Amount)
-	*/
+	// parse the packet from result events and recv packet on chainB
+	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packet)
+
+	denomTrace := types.ParseDenomTrace(sdk.DefaultBondDenom)
+
+	denom, trace := convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	data := v3types.NewFungibleTokenPacketData(
+		[]*v3types.Token{
+			{
+				Denom:  denom,
+				Amount: amount.String(),
+				Trace:  trace,
+			},
+		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", &forwardingPath)
+	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+
+	var async bool
+	err, async = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
+	// If forwarding has been triggered then the async must be true.
+	suite.Require().True(async)
+	suite.Require().Nil(err)
+
+	// denomTrace path: transfer/channel-0
+	denomTrace = types.DenomTrace{
+		BaseDenom: sdk.DefaultBondDenom,
+		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
+	}
+
+	// Check that Escrow B has amount
+	coin = sdk.NewCoin(denomTrace.IBCDenom(), amount)
+	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
+	suite.Require().Equal(amount, totalEscrowChainB.Amount, "escrow account on B is different than amount")
+
+	// Check that Escrow A has amount
+	coin = sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	totalEscrowChainA := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
+	suite.Require().Equal(amount, totalEscrowChainA.Amount, "escrow account on A is different than amount")
+
+	// Now during the onRecvPacket above a new msgTransfer has been sent
+	// We need to receive the packet on the final hand
+
+	packet, err = ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packet)
+
+	denom, trace = convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	data = v3types.NewFungibleTokenPacketData(
+		[]*v3types.Token{
+			{
+				Denom:  denom,
+				Amount: amount.String(),
+				Trace:  trace,
+			},
+		}, types.GetForwardAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID).String(), receiver.GetAddress().String(), "", nil)
+	packetRecv = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
+
+	// execute onRecvPacket, when chaninA receives the tokens the escrow amount on B should increase to amount
+	err, async = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packetRecv, data)
+	suite.Require().False(async)
+	suite.Require().NoError(err)
+
+	// Check that the final receiver has received the expected tokens.
+	coin = sdk.NewCoin(denomTraceABA.IBCDenom(), amount)
+	postCoinOnA := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccounts[1].SenderAccount.GetAddress(), coin.GetDenom())
+	suite.Require().Equal(sdkmath.NewInt(100), postCoinOnA.Amount, "final receiver balance has not increased")
 }
+
+/*
+// TODO
+ Test scenarios for failures ack
+Check out the notion page: https://www.notion.so/interchain/ICS20-v2-path-forwarding-091f1ac788e84a538261c5a247cb5924
+
+// TODO
+Test async ack is properly relayed to middle hop after forwarding transfer completition
+
+// TODO
+Tiemout during forwarding after middle hop execution reverts properly the state changes
+
+*/
