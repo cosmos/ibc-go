@@ -258,7 +258,6 @@ func (im IBCModule) OnRecvPacket(
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
-
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
