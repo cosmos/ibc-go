@@ -392,6 +392,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 		})
 	}
 }
+
 func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 	var (
 		expIdentifiedPacketFees []types.IdentifiedPacketFees
