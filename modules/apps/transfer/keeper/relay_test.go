@@ -1027,8 +1027,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	path2 := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 	path2.Setup()
 
-	//path3 := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-	//path3.Setup()
+
 
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
@@ -1125,7 +1124,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 			suite.Require().Equal(denomTrace.IBCDenom(), balanceC.Denom)
 			suite.Require().NoError(err)*/
 
-	//suite.Require().Equal(sdkmath.NewInt(100), balanceC.Amount)
+	// suite.Require().Equal(sdkmath.NewInt(100), balanceC.Amount)
 	/*
 		// Additional checks: Verify that there is no unexpected remaining balance or state
 		// Check that the escrow amount on chain B is zero after forwarding
