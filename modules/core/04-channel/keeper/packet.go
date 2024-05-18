@@ -479,14 +479,14 @@ func (k *Keeper) AcknowledgePacket(
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
-		if err := k.handleFlushState(ctx, packet, channel); err != nil {
+		if err := k.handleFlushState(ctx, &packet, &channel); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel types.Channel) error {
+func (k *Keeper) handleFlushState(ctx sdk.Context, packet *types.Packet, channel *types.Channel) error {
 	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
 		return nil
@@ -505,8 +505,8 @@ func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel 
 	// set the channel state to flush complete if all packets have been acknowledged/flushed.
 	if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 		channel.State = types.FLUSHCOMPLETE
-		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-		emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), *channel)
+		emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), *channel)
 	}
 
 	return nil
