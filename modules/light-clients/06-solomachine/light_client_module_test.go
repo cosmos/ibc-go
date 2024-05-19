@@ -1042,13 +1042,13 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				nil,
 			},
 			{
-				"failure: invalid type misbehaviour",
+				"invalid type misbehaviour no-ops",
 				func() {
 					clientState = sm.ClientState()
 					clientMsg = sm.CreateMisbehaviour()
 					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 				},
-				fmt.Errorf("unsupported ClientMessage: %T", sm.CreateMisbehaviour()),
+				nil,
 			},
 			{
 				"failure: cannot find client state",
@@ -1091,6 +1091,11 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 					suite.Require().NotEmpty(clientStateBz)
 
 					newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
+
+					if len(consensusHeights) == 0 {
+						suite.Require().Equal(clientState, newClientState)
+						return
+					}
 
 					suite.Require().Len(consensusHeights, 1)
 					suite.Require().Equal(uint64(0), consensusHeights[0].GetRevisionNumber())
