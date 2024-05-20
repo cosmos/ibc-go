@@ -10,6 +10,7 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
