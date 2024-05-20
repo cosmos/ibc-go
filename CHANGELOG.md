@@ -52,10 +52,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing) [\#6070](https://github.com/cosmos/ibc-go/pull/6070) Remove `AssertEventsLegacy` function.
 * (core) [\#6138](https://github.com/cosmos/ibc-go/pull/6138) Remove `Router` reference from IBC core keeper and use instead the router on the existing `PortKeeper` reference.
 * (core/04-channel) [\#6023](https://github.com/cosmos/ibc-go/pull/6023) Remove emission of non-hexlified event attributes `packet_data` and `packet_ack`.
+* (core) [\#6320](https://github.com/cosmos/ibc-go/pull/6320) Remove unnecessary `Proof` interface from `exported` package.
 
 ### State Machine Breaking
 
 * (light-clients/07-tendermint) [\#6276](https://github.com/cosmos/ibc-go/pull/6276) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
+* (light-clients/06-solomachine) [\#6313](https://github.com/cosmos/ibc-go/pull/6313) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
 
 ### Improvements
 
@@ -63,6 +65,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
 * (apps/27-interchain-accounts, apps/tranfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
 * (apps/transfer) [\#6268](https://github.com/cosmos/ibc-go/pull/6268) Use memo strings instead of JSON keys in `AllowedPacketData` of transfer authorization.
+* (core/ante) [\#6278](https://github.com/cosmos/ibc-go/pull/6278) Performance: Exclude pruning from tendermint client updates in ante handler executions.
 
 ### Features
 
@@ -212,6 +215,32 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#3893](https://github.com/cosmos/ibc-go/pull/3893) Add deprecated option to `MsgSubmitMisbehaviour`.
 * (apps/transfer, apps/29-fee) [\#4570](https://github.com/cosmos/ibc-go/pull/4570) Remove `GetSignBytes` from 29-fee and transfer msgs.
 * [\#3630](https://github.com/cosmos/ibc-go/pull/3630) Add annotation to Msg service.
+
+## [v7.5.0](https://github.com/cosmos/ibc-go/releases/tag/v7.5.0) - 2024-05-14
+
+### Dependencies
+
+* [\#6254](https://github.com/cosmos/ibc-go/pull/6254) Update Cosmos SDK to v0.47.11 and CometBFT to v0.37.5.
+
+### State Machine Breaking
+
+* (light-clients/07-tendermint) [\#6276](https://github.com/cosmos/ibc-go/pull/6276) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
+
+### Improvements
+
+* (apps/27-interchain-accounts) [\#6147](https://github.com/cosmos/ibc-go/pull/6147) Emit an event signalling that the host submodule is disabled.
+* (testing) [\#6180](https://github.com/cosmos/ibc-go/pull/6180) Add version to tm abci headers in ibctesting.
+* (apps/27-interchain-accounts, apps/tranfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
+* (apps/transfer) [\#6268](https://github.com/cosmos/ibc-go/pull/6268) Use memo strings instead of JSON keys in `AllowedPacketData` of transfer authorization.
+
+### Features
+
+* (apps/27-interchain-accounts) [\#5633](https://github.com/cosmos/ibc-go/pull/5633) Allow new ICA channels to use unordered ordering.
+* (apps/27-interchain-accounts) [\#5785](https://github.com/cosmos/ibc-go/pull/5785) Introduce a new tx message that ICA host submodule can use to query the chain (only those marked with `module_query_safe`) and write the responses to the acknowledgement.
+
+### Bug Fixes
+
+* (apps/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete already refunded fees from state if some fee(s) cannot be refunded on channel closure. 
 
 ## [v7.4.0](https://github.com/cosmos/ibc-go/releases/tag/v7.4.0) - 2024-04-05
 
