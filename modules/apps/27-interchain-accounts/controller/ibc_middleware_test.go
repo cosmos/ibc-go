@@ -1276,13 +1276,15 @@ func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 		Memo: "",
 	}
 
-	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(expPacketData.GetBytes())
+    ctx := suite.chainA.GetContext()
+
+	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(ctx, "", "", expPacketData.GetBytes())
 	suite.Require().NoError(err)
 	suite.Require().Equal(expPacketData, packetData)
 
 	// test invalid packet data
 	invalidPacketData := []byte("invalid packet data")
-	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(invalidPacketData)
+	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(ctx, "", "", invalidPacketData)
 	suite.Require().Error(err)
 	suite.Require().Nil(packetData)
 }
