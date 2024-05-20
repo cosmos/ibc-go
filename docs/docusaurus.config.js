@@ -49,18 +49,18 @@ const config = {
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
           // Select the latest version
-          lastVersion: "v8.2.x",
+          lastVersion: "v8.3.x",
           // Assign banners to specific versions
           versions: {
             current: {
               path: "main",
               banner: "unreleased",
             },
-            "v8.2.x": {
+            "v8.3.x": {
               path: "v8",
               banner: "none",
             },
-            "v7.4.x": {
+            "v7.5.x": {
               path: "v7",
               banner: "none",
             },
@@ -351,6 +351,7 @@ const config = {
           "data-project-color": "#1878FF",
           "data-modal-title": "IBC Docs AI",
           "data-modal-disclaimer": "This is a custom LLM for the Inter-Blockchain Communication Protocol in Golang (ibc-go). It is trained on the IBC developer documentation, code base, and resources. Answers are AI-generated. Please use your best judgment before implementing. The bot is not trained on documentation, code, or resources for the Cosmos SDK, CometBFT, CosmJS, CosmWasm, or interchain ecosystem blockchains. Please refer to those specific documentation sites for answers to those questions.",
+          "data-modal-ask-ai-input-placeholder": "Ask me a question about IBC...",
           "data-modal-disclaimer-text-color": "#000000",
           "data-modal-disclaimer-font-size": "14px",
           "data-modal-image":
