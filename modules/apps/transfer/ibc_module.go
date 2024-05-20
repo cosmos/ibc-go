@@ -15,7 +15,6 @@ import (
 	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -175,25 +174,25 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
-func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte) (v3types.FungibleTokenPacketData, error) {
+func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte) (types.FungibleTokenPacketDataV2, error) {
 	// TODO: remove support for this function parsing v1 packet data
 	// TODO: explicit check for packet data type against app version
 
 	var datav1 types.FungibleTokenPacketData
 	if err := json.Unmarshal(bz, &datav1); err == nil {
 		if len(datav1.Denom) != 0 {
-			return convertinternal.PacketDataV1ToV3(datav1), nil
+			return convertinternal.PacketDataV1ToV2(datav1), nil
 		}
 	}
 
-	var data v3types.FungibleTokenPacketData
+	var data types.FungibleTokenPacketDataV2
 	if err := json.Unmarshal(bz, &data); err == nil {
 		if len(data.Tokens) != 0 {
 			return data, nil
 		}
 	}
 
-	return v3types.FungibleTokenPacketData{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+	return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
