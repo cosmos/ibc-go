@@ -5,13 +5,9 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-<<<<<<< HEAD
-	tmtypes "github.com/cometbft/cometbft/types"
-=======
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	cmttypes "github.com/cometbft/cometbft/types"
->>>>>>> 67b23cd8 (perf: exclude pruning from tendermint update client in ante handler execution (#6278))
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -531,12 +527,10 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 
 func (suite *TendermintTestSuite) TestUpdateStateCheckTx() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	path.SetupClients()
+	suite.coordinator.SetupClients(path)
 
 	createClientMessage := func() exported.ClientMessage {
-		trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
-		suite.Require().True(ok)
-		header, err := path.EndpointB.Chain.IBCClientHeader(path.EndpointB.Chain.LatestCommittedHeader, trustedHeight)
+		header, err := suite.chainA.ConstructUpdateTMClientHeader(suite.chainB, path.EndpointA.ClientID)
 		suite.Require().NoError(err)
 		return header
 	}
@@ -554,17 +548,16 @@ func (suite *TendermintTestSuite) TestUpdateStateCheckTx() {
 	// Increment the time by a week
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
 
-	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-	suite.Require().True(found)
-
+	cs := path.EndpointA.GetClientState()
 	ctx = path.EndpointA.Chain.GetContext().WithIsCheckTx(true)
-	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
+
+	cs.UpdateState(ctx, suite.chainA.GetSimApp().AppCodec(), clientStore, createClientMessage())
 
 	// Increment the time by another week, then update the client.
 	// This will cause the first two consensus states to become expired.
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
 	ctx = path.EndpointA.Chain.GetContext().WithIsCheckTx(true)
-	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
+	cs.UpdateState(ctx, suite.chainA.GetSimApp().AppCodec(), clientStore, createClientMessage())
 
 	assertPrune := func(pruned bool) {
 		// check consensus states and associated metadata
@@ -596,7 +589,7 @@ func (suite *TendermintTestSuite) TestUpdateStateCheckTx() {
 
 	// simulation mode must prune to calculate gas correctly
 	ctx = ctx.WithExecMode(sdk.ExecModeSimulate)
-	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
+	cs.UpdateState(ctx, suite.chainA.GetSimApp().AppCodec(), clientStore, createClientMessage())
 
 	assertPrune(true)
 }
