@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -8,8 +9,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/ante"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -46,7 +49,7 @@ func TestAnteTestSuite(t *testing.T) {
 }
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
-func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
+func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) *channeltypes.MsgRecvPacket {
 	sequence, err := suite.path.EndpointA.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
@@ -343,6 +346,20 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			true,
 		},
 		{
+			"success on app callback error, app callbacks are skipped for performance",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) exported.Acknowledgement {
+					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
+				}
+
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessage(false)}
+			},
+			nil,
+		},
+		{
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createRecvPacketMessage(true)}
@@ -425,7 +442,11 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
 				}
 			},
+<<<<<<< HEAD
 			false,
+=======
+			commitmenttypes.ErrInvalidProof,
+>>>>>>> 0993246f (perf: minimize necessary execution on recvpacket checktx (#6302))
 		},
 		{
 			"no success on one new message and one redundant message in the same block",
@@ -450,6 +471,15 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				return []sdk.Msg{msg}
 			},
 			false,
+		},
+		{
+			"no success on recvPacket checkTx, no capability found",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msg := suite.createRecvPacketMessage(false)
+				msg.Packet.DestinationPort = "invalid-port"
+				return []sdk.Msg{msg}
+			},
+			capabilitytypes.ErrCapabilityNotFound,
 		},
 	}
 
