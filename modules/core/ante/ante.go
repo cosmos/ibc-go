@@ -33,10 +33,22 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		for _, m := range tx.GetMsgs() {
 			switch msg := m.(type) {
 			case *channeltypes.MsgRecvPacket:
-				response, err := rrd.k.RecvPacket(ctx, msg)
+				var (
+					response *channeltypes.MsgRecvPacketResponse
+					err      error
+				)
+				// when we are in ReCheckTx mode, ctx.IsCheckTx() will also return true
+				// there we must start the if statement on ctx.IsReCheckTx() to correctly
+				// determine which mode we are in
+				if ctx.IsReCheckTx() {
+					response, err = rrd.k.RecvPacket(ctx, msg)
+				} else {
+					response, err = rrd.recvPacketCheckTx(ctx, msg)
+				}
 				if err != nil {
 					return ctx, err
 				}
+
 				if response.Result == channeltypes.NOOP {
 					redundancies++
 				}
@@ -91,6 +103,32 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		}
 	}
 	return next(ctx, tx, simulate)
+}
+
+// recvPacketCheckTx runs a subset of ibc recv packet logic to be used specifically within the RedundantRelayDecorator AnteHandler.
+// It only performs core IBC receiving logic and skips any application logic.
+func (rrd RedundantRelayDecorator) recvPacketCheckTx(ctx sdk.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
+	// grab channel capability
+	_, capability, err := rrd.k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	// If the packet was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	err = rrd.k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypes.ErrNoOpMsg:
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
+	default:
+		return nil, errorsmod.Wrap(err, "receive packet verification failed")
+	}
+
+	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }
 
 // updateClientCheckTx runs a subset of ibc client update logic to be used specifically within the RedundantRelayDecorator AnteHandler.
