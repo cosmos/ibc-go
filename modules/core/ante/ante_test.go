@@ -554,7 +554,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 	testCases := []struct {
 		name     string
 		malleate func(suite *AnteTestSuite) []sdk.Msg
-		expPass  bool
+		expError error
 	}{
 		{
 			"success on one new RecvPacket message",
@@ -562,7 +562,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createRecvPacketMessage(false)}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on one redundant and one new RecvPacket message",
@@ -572,7 +572,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 					suite.createRecvPacketMessage(false),
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on invalid proof (proof checks occur in checkTx)",
@@ -581,7 +581,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 				msg.ProofCommitment = []byte("invalid-proof")
 				return []sdk.Msg{msg}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on app callback error, app callbacks are skipped for performance",
@@ -595,14 +595,14 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createRecvPacketMessage(false)}
 			},
-			true,
+			nil,
 		},
 		{
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createRecvPacketMessage(true)}
 			},
-			false,
+			channeltypes.ErrRedundantTx,
 		},
 	}
 
@@ -633,10 +633,10 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 			suite.Require().NoError(err, "antedecorator should not error on DeliverTx")
 
 			_, err = decorator.AnteHandle(reCheckCtx, tx, false, next)
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err, "non-strict decorator did not pass as expected")
 			} else {
-				suite.Require().Error(err, "non-strict antehandler did not return error as expected")
+				suite.Require().ErrorIs(err, tc.expError, "non-strict antehandler did not return error as expected")
 			}
 		})
 	}
