@@ -61,5 +61,4 @@ func (suite *KeeperTestSuite) TestRecvPacketReCheckTx() {
 			}
 		})
 	}
-
 }
