@@ -10,8 +10,10 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/ante"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -181,7 +183,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 	testCases := []struct {
 		name     string
 		malleate func(suite *AnteTestSuite) []sdk.Msg
-		expPass  bool
+		expError error
 	}{
 		{
 			"success on one new RecvPacket message",
@@ -189,7 +191,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createRecvPacketMessage(false)}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on one new Acknowledgement message",
@@ -197,7 +199,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createAcknowledgementMessage(false)}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on one new Timeout message",
@@ -205,7 +207,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				// the Timeout message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createTimeoutMessage(false)}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on one new TimeoutOnClose message",
@@ -213,7 +215,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				// the TimeoutOnClose message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createTimeoutOnCloseMessage(false)}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on three new messages of each type",
@@ -242,7 +244,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				}
 				return msgs
 			},
-			true,
+			nil,
 		},
 		{
 			"success on three redundant messages of RecvPacket, Acknowledgement and TimeoutOnClose, and one new Timeout message",
@@ -272,7 +274,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				}
 				return msgs
 			},
-			true,
+			nil,
 		},
 		{
 			"success on one new message and two redundant messages of each type",
@@ -302,21 +304,21 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				}
 				return msgs
 			},
-			true,
+			nil,
 		},
 		{
 			"success on one new UpdateClient message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createUpdateClientMessage()}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on three new UpdateClient messages",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on three new Updateclient messages and one new RecvPacket message",
@@ -328,7 +330,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 					suite.createRecvPacketMessage(false),
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success on three redundant RecvPacket messages and one SubmitMisbehaviour message",
@@ -343,14 +345,28 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{}) //nolint:staticcheck // we're using the deprecated message for testing
 				return msgs
 			},
-			true,
+			nil,
+		},
+		{
+			"success on app callback error, app callbacks are skipped for performance",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) exported.Acknowledgement {
+					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
+				}
+
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessage(false)}
+			},
+			nil,
 		},
 		{
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createRecvPacketMessage(true)}
 			},
-			false,
+			channeltypes.ErrRedundantTx,
 		},
 		{
 			"no success on three redundant messages of each type",
@@ -375,12 +391,12 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				}
 				return msgs
 			},
-			false,
+			channeltypes.ErrRedundantTx,
 		},
 		{
 			"no success on one new UpdateClient message and three redundant RecvPacket messages",
 			func(suite *AnteTestSuite) []sdk.Msg {
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}}
+				msgs := []sdk.Msg{suite.createUpdateClientMessage()}
 
 				for i := 1; i <= 3; i++ {
 					msgs = append(msgs, suite.createRecvPacketMessage(true))
@@ -388,7 +404,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 
 				return msgs
 			},
-			false,
+			channeltypes.ErrRedundantTx,
 		},
 		{
 			"no success on one new UpdateClient message: invalid client identifier",
@@ -399,7 +415,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg}}
 				return msgs
 			},
-			false,
+			clienttypes.ErrClientNotActive,
 		},
 		{
 			"no success on one new UpdateClient message: client module not found",
@@ -410,7 +426,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg}}
 				return msgs
 			},
-			false,
+			clienttypes.ErrClientNotActive,
 		},
 		{
 			"no success on one new UpdateClient message: no consensus state for trusted height",
@@ -421,7 +437,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg}}
 				return msgs
 			},
-			false,
+			clienttypes.ErrConsensusStateNotFound,
 		},
 		{
 			"no success on three new UpdateClient messages and three redundant messages of each type",
@@ -446,7 +462,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				}
 				return msgs
 			},
-			false,
+			channeltypes.ErrRedundantTx,
 		},
 		{
 			"no success on one new message and one invalid message",
@@ -461,7 +477,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
 				}
 			},
-			false,
+			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"no success on one new message and one redundant message in the same block",
@@ -485,7 +501,16 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 
 				return []sdk.Msg{msg}
 			},
-			false,
+			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on recvPacket checkTx, no capability found",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msg := suite.createRecvPacketMessage(false)
+				msg.Packet.DestinationPort = "invalid-port"
+				return []sdk.Msg{msg}
+			},
+			capabilitytypes.ErrCapabilityNotFound,
 		},
 	}
 
@@ -516,10 +541,10 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			suite.Require().NoError(err, "antedecorator should not error on DeliverTx")
 
 			_, err = decorator.AnteHandle(checkCtx, tx, false, next)
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err, "non-strict decorator did not pass as expected")
 			} else {
-				suite.Require().Error(err, "non-strict antehandler did not return error as expected")
+				suite.Require().ErrorIs(err, tc.expError, "non-strict antehandler did not return error as expected")
 			}
 		})
 	}
