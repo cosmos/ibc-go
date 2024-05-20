@@ -3,8 +3,6 @@ package types
 import (
 	fmt "fmt"
 	"testing"
-
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
