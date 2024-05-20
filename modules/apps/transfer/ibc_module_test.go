@@ -9,7 +9,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	multidenom "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
+	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -544,8 +544,8 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		{
 			"success: valid packet data multidenom with memo",
 			func() {
-				initialPacketData = multidenom.FungibleTokenPacketData{
-					Tokens: []*multidenom.Token{
+				initialPacketData = v3types.FungibleTokenPacketData{
+					Tokens: []*v3types.Token{
 						{
 							Denom:  "atom",
 							Amount: ibctesting.TestCoin.Amount.String(),
@@ -557,15 +557,15 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					Memo:     "some memo",
 				}
 
-				data = initialPacketData.(multidenom.FungibleTokenPacketData).GetBytes()
+				data = initialPacketData.(v3types.FungibleTokenPacketData).GetBytes()
 			},
 			true,
 		},
 		{
 			"success: valid packet data multidenom without memo",
 			func() {
-				initialPacketData = multidenom.FungibleTokenPacketData{
-					Tokens: []*multidenom.Token{
+				initialPacketData = v3types.FungibleTokenPacketData{
+					Tokens: []*v3types.Token{
 						{
 							Denom:  ibctesting.TestCoin.Denom,
 							Amount: ibctesting.TestCoin.Amount.String(),
@@ -577,7 +577,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					Memo:     "",
 				}
 
-				data = initialPacketData.(multidenom.FungibleTokenPacketData).GetBytes()
+				data = initialPacketData.(v3types.FungibleTokenPacketData).GetBytes()
 			},
 			true,
 		},
@@ -600,7 +600,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				v3PacketData, ok := packetData.(multidenom.FungibleTokenPacketData)
+				v3PacketData, ok := packetData.(v3types.FungibleTokenPacketData)
 				suite.Require().True(ok)
 
 				if v1PacketData, ok := initialPacketData.(types.FungibleTokenPacketData); ok {
@@ -610,7 +610,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					suite.Require().Equal(v1PacketData.Receiver, v3PacketData.Receiver)
 					suite.Require().Equal(v1PacketData.Memo, v3PacketData.Memo)
 				} else {
-					suite.Require().Equal(initialPacketData.(multidenom.FungibleTokenPacketData), v3PacketData)
+					suite.Require().Equal(initialPacketData.(v3types.FungibleTokenPacketData), v3PacketData)
 				}
 			} else {
 				suite.Require().Error(err)

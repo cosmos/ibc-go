@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			false,
 		},
 		{
-			"success: multi-denom with version ics20-2",
+			"success: multidenom",
 			func() {
 				coin2 = sdk.NewCoin("bond", sdkmath.NewInt(100))
 				coins := sdk.NewCoins(coin1, coin2)

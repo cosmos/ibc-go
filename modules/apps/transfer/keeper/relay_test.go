@@ -10,7 +10,7 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
+	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -415,7 +415,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 			tc.malleate()
 
-			denom, trace := convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 			data := v3types.NewFungibleTokenPacketData(
 				[]*v3types.Token{
 					{
@@ -553,7 +553,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
 
-	denom, trace := convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := v3types.NewFungibleTokenPacketData(
 		[]*v3types.Token{
 			{
@@ -682,7 +682,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			tc.malleate()
 
-			denom, trace := convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 			data := v3types.NewFungibleTokenPacketData(
 				[]*v3types.Token{
 					{
@@ -775,7 +775,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		),
 	)
 
-	denom, trace := convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := v3types.NewFungibleTokenPacketData(
 		[]*v3types.Token{
 			{
@@ -899,7 +899,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			tc.malleate()
 
-			denom, trace := convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 			data := v3types.NewFungibleTokenPacketData(
 				[]*v3types.Token{
 					{
@@ -985,7 +985,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		),
 	)
 
-	denom, trace := convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := v3types.NewFungibleTokenPacketData(
 		[]*v3types.Token{
 			{

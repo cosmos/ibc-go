@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	transferv1types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	transferv3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
@@ -341,7 +341,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transferv1types.ModuleName)
+			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onAcknowledgementPacket := func() error {
@@ -480,7 +480,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			// succeed on timeout
 			userGasLimit := 600_000
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
-			msg := transferv1types.NewMsgTransfer(
+			msg := transfertypes.NewMsgTransfer(
 				s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
 				sdk.NewCoins(ibctesting.TestCoin), s.chainA.SenderAccount.GetAddress().String(),
 				s.chainB.SenderAccount.GetAddress().String(), clienttypes.ZeroHeight(), timeoutTimestamp,
@@ -505,7 +505,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transferv1types.ModuleName)
+			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onTimeoutPacket := func() error {
@@ -674,7 +674,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transferv1types.ModuleName)
+			transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onRecvPacket := func() ibcexported.Acknowledgement {
@@ -982,13 +982,13 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transferv1types.ModuleName)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	s.Require().True(ok)
 
 	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
 	s.Require().True(ok)
 
-	expPacketDataICS20V1 := transferv1types.FungibleTokenPacketData{
+	expPacketDataICS20V1 := transfertypes.FungibleTokenPacketData{
 		Denom:    ibctesting.TestCoin.Denom,
 		Amount:   ibctesting.TestCoin.Amount.String(),
 		Sender:   ibctesting.TestAccAddress,
