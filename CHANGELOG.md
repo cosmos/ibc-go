@@ -65,6 +65,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
 * (apps/27-interchain-accounts, apps/tranfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
 * (apps/transfer) [\#6268](https://github.com/cosmos/ibc-go/pull/6268) Use memo strings instead of JSON keys in `AllowedPacketData` of transfer authorization.
+* (core/ante) [\#6278](https://github.com/cosmos/ibc-go/pull/6278) Performance: Exclude pruning from tendermint client updates in ante handler executions.
 
 ### Features
 
