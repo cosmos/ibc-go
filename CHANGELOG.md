@@ -45,6 +45,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (apps/27-interchain-accounts) [\#6144](https://github.com/cosmos/ibc-go/pull/6144) Emit an event signalling that the host submodule is disabled.
+* (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
 
 ### Features
 
