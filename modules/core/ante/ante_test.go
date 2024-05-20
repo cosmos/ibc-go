@@ -9,10 +9,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/ante"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -357,7 +355,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createRecvPacketMessage(false)}
 			},
-			nil,
+			true,
 		},
 		{
 			"no success on one redundant RecvPacket message",
@@ -442,11 +440,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
 				}
 			},
-<<<<<<< HEAD
 			false,
-=======
-			commitmenttypes.ErrInvalidProof,
->>>>>>> 0993246f (perf: minimize necessary execution on recvpacket checktx (#6302))
 		},
 		{
 			"no success on one new message and one redundant message in the same block",
@@ -479,7 +473,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				msg.Packet.DestinationPort = "invalid-port"
 				return []sdk.Msg{msg}
 			},
-			capabilitytypes.ErrCapabilityNotFound,
+			false,
 		},
 	}
 
