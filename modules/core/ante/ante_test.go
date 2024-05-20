@@ -3,9 +3,10 @@ package ante_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -45,7 +46,7 @@ func TestAnteTestSuite(t *testing.T) {
 }
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
-func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
+func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) *channeltypes.MsgRecvPacket {
 	sequence, err := suite.path.EndpointA.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
@@ -446,6 +447,15 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				_, err = decorator.AnteHandle(checkCtx, tx, false, next)
 				suite.Require().NoError(err)
 
+				return []sdk.Msg{msg}
+			},
+			false,
+		},
+		{
+			"no success on recvPacket checkTx, no capability found",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msg := suite.createRecvPacketMessage(false)
+				msg.Packet.DestinationPort = "invalid-port"
 				return []sdk.Msg{msg}
 			},
 			false,
