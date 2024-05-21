@@ -1,12 +1,17 @@
 package ante
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	tendermint "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 type RedundantRelayDecorator struct {
@@ -83,8 +88,7 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 				packetMsgs++
 
 			case *clienttypes.MsgUpdateClient:
-				_, err := rrd.k.UpdateClient(sdk.WrapSDKContext(ctx), msg)
-				if err != nil {
+				if err := rrd.updateClientCheckTx(ctx, msg); err != nil {
 					return ctx, err
 				}
 
@@ -148,4 +152,45 @@ func (rrd RedundantRelayDecorator) recvPacketReCheckTx(ctx sdk.Context, msg *cha
 	}
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
+}
+
+// updateClientCheckTx runs a subset of ibc client update logic to be used specifically within the RedundantRelayDecorator AnteHandler.
+// The following function performs ibc client message verification for CheckTx only and state updates in both CheckTx and ReCheckTx.
+// Note that misbehaviour checks are omitted.
+func (rrd RedundantRelayDecorator) updateClientCheckTx(ctx sdk.Context, msg *clienttypes.MsgUpdateClient) error {
+	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
+	if err != nil {
+		return err
+	}
+
+	clientState, found := rrd.k.ClientKeeper.GetClientState(ctx, msg.ClientId)
+	if !found {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotFound, msg.ClientId)
+	}
+
+	if status := rrd.k.ClientKeeper.GetClientStatus(ctx, clientState, msg.ClientId); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot update client (%s) with status %s", msg.ClientId, status)
+	}
+
+	clientStore := rrd.k.ClientKeeper.ClientStore(ctx, msg.ClientId)
+
+	if !ctx.IsReCheckTx() {
+		if err := clientState.VerifyClientMessage(ctx, rrd.k.Codec(), clientStore, clientMsg); err != nil {
+			return err
+		}
+	}
+
+	// NOTE: the following avoids panics in ante handler client updates for ibc-go v7.4.x
+	// without state machine breaking changes within light client modules.
+	switch clientMsg.(type) {
+	case *solomachine.Misbehaviour:
+		// ignore solomachine misbehaviour for update state in ante
+	case *tendermint.Misbehaviour:
+		// ignore tendermint misbehaviour for update state in ante
+	default:
+		heights := clientState.UpdateState(ctx, rrd.k.Codec(), clientStore, clientMsg)
+		ctx.Logger().With("module", "x/"+exported.ModuleName).Debug("ante ibc client update", "consensusHeights", heights)
+	}
+
+	return nil
 }
