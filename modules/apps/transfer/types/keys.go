@@ -35,15 +35,17 @@ const (
 )
 
 const (
-	// Version defines the current version the IBC transfer
-	// module supports
-	Version = "ics20-2"
+	// V1 defines first version of the IBC transfer module
+	V1 = "ics20-1"
 
-	// Version1 defines first version of the IBC transfer module
-	Version1 = "ics20-1"
+	// V2 defines the current version the IBC transfer
+	// module supports
+	V2 = "ics20-2"
 
 	// escrowAddressVersion should remain as ics20-1 to avoid the address changing.
-	escrowAddressVersion = Version1
+	// this address has been reasoned about to avoid collisions with other addresses
+	// https://github.com/cosmos/cosmos-sdk/issues/7737#issuecomment-735671951
+	escrowAddressVersion = V1
 )
 
 var (
@@ -53,7 +55,7 @@ var (
 	DenomTraceKey = []byte{0x02}
 
 	// SupportedVersions defines all versions that are supported by the module
-	SupportedVersions = []string{Version, Version1}
+	SupportedVersions = []string{V2, V1}
 )
 
 // GetEscrowAddress returns the escrow address for the specified channel.

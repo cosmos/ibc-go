@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 				// explicitly set to ics20-1 which does not support multi-denom
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
-					channel.Version = types.Version1
+					channel.Version = types.V1
 				})
 			},
 			ibcerrors.ErrInvalidRequest,
