@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestRecvPacketReCheckTx() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.Setup()
+			suite.coordinator.Setup(path)
 
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
