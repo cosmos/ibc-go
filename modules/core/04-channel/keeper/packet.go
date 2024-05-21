@@ -227,7 +227,6 @@ func (k Keeper) RecvPacket(
 // applyReplayProtection ensures a packet has not already been received
 // and performs the necessary state changes to ensure it cannot be received again.
 func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet exported.PacketI, channel types.Channel) error {
-
 	switch channel.Ordering {
 	case types.UNORDERED:
 		// check if the packet receipt has been received already for unordered channels
