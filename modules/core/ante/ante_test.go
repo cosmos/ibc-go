@@ -3,10 +3,12 @@ package ante_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -14,6 +16,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/ante"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -358,6 +361,64 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			true,
 		},
 		{
+			"success on new UpdateClient messages: solomachine misbehaviour",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainB.Codec, "06-solomachine-0", "testing", 1)
+				suite.chainB.GetSimApp().GetIBCKeeper().ClientKeeper.SetClientState(suite.chainB.GetContext(), solomachine.ClientID, solomachine.ClientState())
+
+				msgUpdateClient, err := clienttypes.NewMsgUpdateClient(solomachine.ClientID, solomachine.CreateMisbehaviour(), suite.chainB.SenderAccount.GetAddress().String())
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{msgUpdateClient}
+
+				return msgs
+			},
+			true,
+		},
+		{
+			"success on new UpdateClient messages: solomachine multisig misbehaviour",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 4)
+				suite.chainB.GetSimApp().GetIBCKeeper().ClientKeeper.SetClientState(suite.chainB.GetContext(), solomachine.ClientID, solomachine.ClientState())
+
+				msgUpdateClient, err := clienttypes.NewMsgUpdateClient(solomachine.ClientID, solomachine.CreateMisbehaviour(), suite.chainB.SenderAccount.GetAddress().String())
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{msgUpdateClient}
+
+				return msgs
+			},
+			true,
+		},
+		{
+			"success on new UpdateClient messages: tendermint misbehaviour",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				trustedHeight := suite.path.EndpointB.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainA.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				err := suite.path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+
+				height := suite.path.EndpointB.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				// construct valid fork misbehaviour: two headers at the same height with different time
+				misbehaviour := &ibctm.Misbehaviour{
+					Header1: suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainA.CurrentHeader.Time.Add(time.Minute), suite.chainA.Vals, suite.chainA.NextVals, trustedVals, suite.chainA.Signers),
+					Header2: suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.NextVals, trustedVals, suite.chainA.Signers),
+				}
+
+				msgUpdateClient, err := clienttypes.NewMsgUpdateClient(suite.path.EndpointB.ClientID, misbehaviour, suite.chainB.SenderAccount.GetAddress().String())
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{msgUpdateClient}
+
+				return msgs
+			},
+			true,
+		},
+		{
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createRecvPacketMessage(true)}
@@ -398,6 +459,39 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 					msgs = append(msgs, suite.createRecvPacketMessage(true))
 				}
 
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one new UpdateClient message: invalid client identifier",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg}}
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one new UpdateClient message: client module not found",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg}}
+				return msgs
+			},
+			false,
+		},
+		{
+			"no success on one new UpdateClient message: no consensus state for trusted height",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{TrustedHeight: clienttypes.NewHeight(1, 10000)})
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg}}
 				return msgs
 			},
 			false,
