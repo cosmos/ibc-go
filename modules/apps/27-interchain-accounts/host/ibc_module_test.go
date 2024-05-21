@@ -883,7 +883,7 @@ func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 		Memo: "",
 	}
 
-    ctx := suite.chainA.GetContext()
+	ctx := suite.chainA.GetContext()
 
 	packetData, err := icahost.IBCModule{}.UnmarshalPacketData(ctx, "", "", expPacketData.GetBytes())
 	suite.Require().NoError(err)

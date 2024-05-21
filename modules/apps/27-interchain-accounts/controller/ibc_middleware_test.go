@@ -1276,7 +1276,7 @@ func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 		Memo: "",
 	}
 
-    ctx := suite.chainA.GetContext()
+	ctx := suite.chainA.GetContext()
 
 	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(ctx, "", "", expPacketData.GetBytes())
 	suite.Require().NoError(err)
