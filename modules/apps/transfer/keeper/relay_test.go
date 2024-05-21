@@ -12,7 +12,6 @@ import (
 
 	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -412,8 +411,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			tc.malleate()
 
 			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-			data := v3types.NewFungibleTokenPacketData(
-				[]*v3types.Token{
+			data := types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
@@ -495,8 +494,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	}
 
 	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-	data := v3types.NewFungibleTokenPacketData(
-		[]*v3types.Token{
+	data := types.NewFungibleTokenPacketDataV2(
+		[]*types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
@@ -622,8 +621,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			tc.malleate()
 
 			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-			data := v3types.NewFungibleTokenPacketData(
-				[]*v3types.Token{
+			data := types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
@@ -715,8 +714,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	)
 
 	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-	data := v3types.NewFungibleTokenPacketData(
-		[]*v3types.Token{
+	data := types.NewFungibleTokenPacketDataV2(
+		[]*types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
@@ -838,8 +837,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			tc.malleate()
 
 			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-			data := v3types.NewFungibleTokenPacketData(
-				[]*v3types.Token{
+			data := types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
@@ -924,8 +923,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	)
 
 	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-	data := v3types.NewFungibleTokenPacketData(
-		[]*v3types.Token{
+	data := types.NewFungibleTokenPacketDataV2(
+		[]*types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),

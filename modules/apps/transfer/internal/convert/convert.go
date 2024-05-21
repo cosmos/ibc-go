@@ -4,18 +4,17 @@ import (
 	"strings"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 )
 
-// PacketDataV1ToV3 converts a v1 (ICS20-V1) packet data to a v3 (ICS20-V2) packet data.
-func PacketDataV1ToV3(packetData types.FungibleTokenPacketData) v3types.FungibleTokenPacketData {
+// PacketDataV1ToV2 converts a v1 packet data to a v2 packet data.
+func PacketDataV1ToV2(packetData types.FungibleTokenPacketData) types.FungibleTokenPacketDataV2 {
 	if err := packetData.ValidateBasic(); err != nil {
 		panic(err)
 	}
 
 	v2Denom, trace := ExtractDenomAndTraceFromV1Denom(packetData.Denom)
-	return v3types.FungibleTokenPacketData{
-		Tokens: []*v3types.Token{
+	return types.FungibleTokenPacketDataV2{
+		Tokens: []*types.Token{
 			{
 				Denom:  v2Denom,
 				Amount: packetData.Amount,

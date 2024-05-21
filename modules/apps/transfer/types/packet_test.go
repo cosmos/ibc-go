@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 const (
@@ -158,4 +159,412 @@ func (suite *TypesTestSuite) TestFungibleTokenPacketDataOmitEmpty() {
 
 	// check that the memo field is present in the marshalled bytes
 	suite.Require().Contains(string(bz), "memo")
+}
+
+// TestFungibleTokenPacketDataValidateBasic tests ValidateBasic for FungibleTokenPacketData
+func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
+	testCases := []struct {
+		name       string
+		packetData types.FungibleTokenPacketDataV2
+		expErr     error
+	}{
+		{
+			"success: valid packet",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			nil,
+		},
+		{
+			"success: valid packet with memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"memo",
+			),
+			nil,
+		},
+		{
+			"success: valid packet with large amount",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: largeAmount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"memo",
+			),
+			nil,
+		},
+		{
+			"failure: invalid denom",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  "",
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			types.ErrInvalidDenomForTransfer,
+		},
+		{
+			"failure: invalid empty amount",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: "",
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			types.ErrInvalidAmount,
+		},
+		{
+			"failure: invalid empty token array",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{},
+				sender,
+				receiver,
+				"",
+			),
+			types.ErrInvalidAmount,
+		},
+		{
+			"failure: invalid zero amount",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: "0",
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			types.ErrInvalidAmount,
+		},
+		{
+			"failure: invalid negative amount",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: "-100",
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			types.ErrInvalidAmount,
+		},
+		{
+			"failure: invalid large amount",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: invalidLargeAmount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"memo",
+			),
+			types.ErrInvalidAmount,
+		},
+		{
+			"failure: missing sender address",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				"",
+				receiver,
+				"memo",
+			),
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: missing recipient address",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				"",
+				"",
+			),
+			ibcerrors.ErrInvalidAddress,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.packetData.ValidateBasic()
+
+			expPass := tc.expErr == nil
+			if expPass {
+				require.NoError(t, err, tc.name)
+			} else {
+				require.ErrorContains(t, err, tc.expErr.Error(), tc.name)
+			}
+		})
+	}
+}
+
+func TestGetPacketSender(t *testing.T) {
+	testCases := []struct {
+		name       string
+		packetData types.FungibleTokenPacketDataV2
+		expSender  string
+	}{
+		{
+			"non-empty sender field",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			sender,
+		},
+		{
+			"empty sender field",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				"",
+				receiver,
+				"abc",
+			),
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expSender, tc.packetData.GetPacketSender(types.PortID))
+		})
+	}
+}
+
+func TestPacketDataProvider(t *testing.T) {
+	testCases := []struct {
+		name          string
+		packetData    types.FungibleTokenPacketDataV2
+		expCustomData interface{}
+	}{
+		{
+			"success: src_callback key in memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver)),
+
+			map[string]interface{}{
+				"address": receiver,
+			},
+		},
+		{
+			"success: src_callback key in memo with additional fields",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver)),
+			map[string]interface{}{
+				"address":   receiver,
+				"gas_limit": "200000",
+			},
+		},
+		{
+			"success: src_callback has string value",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				`{"src_callback": "string"}`),
+			"string",
+		},
+		{
+			"failure: src_callback key not found memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				fmt.Sprintf(`{"dest_callback": {"address": "%s", "min_gas": "200000"}}`, receiver)),
+			nil,
+		},
+		{
+			"failure: empty memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				""),
+			nil,
+		},
+		{
+			"failure: non-json memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"invalid"),
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			customData := tc.packetData.GetCustomPacketData("src_callback")
+			require.Equal(t, tc.expCustomData, customData)
+		})
+	}
+}
+
+func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
+	testCases := []struct {
+		name       string
+		packetData types.FungibleTokenPacketDataV2
+		expMemo    bool
+	}{
+		{
+			"empty memo field, resulting marshalled bytes should not contain the memo field",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+			),
+			false,
+		},
+		{
+			"non-empty memo field, resulting marshalled bytes should contain the memo field",
+			types.NewFungibleTokenPacketDataV2(
+				[]*types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"abc",
+			),
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			bz, err := json.Marshal(tc.packetData)
+			if tc.expMemo {
+				require.NoError(t, err, tc.name)
+				// check that the memo field is present in the marshalled bytes
+				require.Contains(t, string(bz), "memo")
+			} else {
+				require.NoError(t, err, tc.name)
+				// check that the memo field is not present in the marshalled bytes
+				require.NotContains(t, string(bz), "memo")
+			}
+		})
+	}
 }

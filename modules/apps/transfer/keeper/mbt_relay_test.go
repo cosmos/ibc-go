@@ -21,7 +21,6 @@ import (
 
 	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -67,7 +66,7 @@ type FungibleTokenPacket struct {
 	SourcePort    string
 	DestChannel   string
 	DestPort      string
-	Data          v3types.FungibleTokenPacketData
+	Data          types.FungibleTokenPacketDataV2
 }
 
 type OnRecvPacketTestCase = struct {
@@ -151,8 +150,8 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 		SourcePort:    packet.SourcePort,
 		DestChannel:   packet.DestChannel,
 		DestPort:      packet.DestPort,
-		Data: v3types.NewFungibleTokenPacketData(
-			[]*v3types.Token{
+		Data: types.NewFungibleTokenPacketDataV2(
+			[]*types.Token{
 				{
 					Denom:  denom,
 					Amount: packet.Data.Amount,

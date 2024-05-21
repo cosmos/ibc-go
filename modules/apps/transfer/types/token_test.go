@@ -1,4 +1,4 @@
-package v3
+package types
 
 import (
 	fmt "fmt"
@@ -6,18 +6,29 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+const (
+	denom  = "atom/pool"
+	amount = "100"
+)
+
+var (
+	sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	receiver = sdk.AccAddress("testaddr2").String()
 )
 
 func TestGetFullDenomPath(t *testing.T) {
 	testCases := []struct {
 		name       string
-		packetData FungibleTokenPacketData
+		packetData FungibleTokenPacketDataV2
 		expPath    string
 	}{
 		{
 			"denom path with trace",
-			NewFungibleTokenPacketData(
+			NewFungibleTokenPacketDataV2(
 				[]*Token{
 					{
 						Denom:  denom,
@@ -33,7 +44,7 @@ func TestGetFullDenomPath(t *testing.T) {
 		},
 		{
 			"nil trace",
-			NewFungibleTokenPacketData(
+			NewFungibleTokenPacketDataV2(
 				[]*Token{
 					{
 						Denom:  denom,
@@ -49,7 +60,7 @@ func TestGetFullDenomPath(t *testing.T) {
 		},
 		{
 			"empty string trace",
-			NewFungibleTokenPacketData(
+			NewFungibleTokenPacketDataV2(
 				[]*Token{
 					{
 						Denom:  denom,
@@ -113,7 +124,7 @@ func TestValidate(t *testing.T) {
 				Amount: amount,
 				Trace:  nil,
 			},
-			types.ErrInvalidDenomForTransfer,
+			ErrInvalidDenomForTransfer,
 		},
 		{
 			"failure: invalid identifier in trace",
