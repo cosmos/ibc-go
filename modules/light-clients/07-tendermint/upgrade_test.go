@@ -1,7 +1,7 @@
 package tendermint_test
 
 import (
-	"fmt"
+	"errors"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -283,7 +283,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				upgradedClientProof = []byte("proof")
 			},
-			expErr: fmt.Errorf("could not unmarshal client merkle proof"),
+			expErr: errors.New("could not unmarshal client merkle proof"),
 		},
 		{
 			name: "unsuccessful upgrade: consensus state proof unmarshal failed",
@@ -297,7 +297,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 
 				upgradedConsensusStateProof = []byte("proof")
 			},
-			expErr: fmt.Errorf("could not unmarshal consensus state merkle proof"),
+			expErr: errors.New("could not unmarshal consensus state merkle proof"),
 		},
 		{
 			name: "unsuccessful upgrade: client proof verification failed",
@@ -367,7 +367,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 				tmClient.UpgradePath = []string{""}
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
 			},
-			expErr: fmt.Errorf("client state proof failed"),
+			expErr: errors.New("client state proof failed"),
 		},
 		{
 			name: "unsuccessful upgrade: upgraded height is not greater than current height",
@@ -391,7 +391,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
-			expErr: fmt.Errorf("consensus state proof failed"),
+			expErr: errors.New("consensus state proof failed"),
 		},
 		{
 			name: "unsuccessful upgrade: consensus state for upgrade height cannot be found",
