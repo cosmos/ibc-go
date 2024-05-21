@@ -204,6 +204,29 @@ func (k Keeper) RecvPacket(
 		return sdkerrors.Wrap(err, "couldn't verify counterparty packet commitment")
 	}
 
+	if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
+		return err
+	}
+
+	// log that a packet has been received & executed
+	k.Logger(ctx).Info(
+		"packet received",
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestPort(),
+		"dst_channel", packet.GetDestChannel(),
+	)
+
+	// emit an event that the relayer can query for
+	EmitRecvPacketEvent(ctx, packet, channel)
+
+	return nil
+}
+
+// applyReplayProtection ensures a packet has not already been received
+// and performs the necessary state changes to ensure it cannot be received again.
+func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet exported.PacketI, channel types.Channel) error {
 	switch channel.Ordering {
 	case types.UNORDERED:
 		// check if the packet receipt has been received already for unordered channels
@@ -256,19 +279,6 @@ func (k Keeper) RecvPacket(
 		k.SetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv)
 
 	}
-
-	// log that a packet has been received & executed
-	k.Logger(ctx).Info(
-		"packet received",
-		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
-		"src_port", packet.GetSourcePort(),
-		"src_channel", packet.GetSourceChannel(),
-		"dst_port", packet.GetDestPort(),
-		"dst_channel", packet.GetDestChannel(),
-	)
-
-	// emit an event that the relayer can query for
-	EmitRecvPacketEvent(ctx, packet, channel)
 
 	return nil
 }
