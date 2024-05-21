@@ -3,6 +3,10 @@ package types_test
 import (
 	"fmt"
 
+
+
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
@@ -10,6 +14,8 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -277,7 +283,12 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 
 			tc.malleate()
 
-			callbackData, err := types.GetCallbackData(packetDataUnmarshaler, packetData, ibcmock.PortID, remainingGas, uint64(1_000_000), callbackKey)
+			// TODO(jim): better way?
+			gasMeter := storetypes.NewGasMeter(remainingGas)
+			ctx := s.chain.GetContext().WithGasMeter(gasMeter)
+
+			packet := channeltypes.NewPacket(packetData, 0, ibcmock.PortID, "", "", "", clienttypes.ZeroHeight(), 0)
+			callbackData, err := types.GetCallbackData(ctx, packetDataUnmarshaler, packet, remainingGas, uint64(1_000_000), callbackKey)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -315,7 +326,11 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 	packetUnmarshaler := transfer.IBCModule{}
 
-	callbackData, err := types.GetSourceCallbackData(packetUnmarshaler, packetDataBytes, ibcmock.PortID, 2_000_000, 1_000_000)
+	gasMeter := storetypes.NewGasMeter(2_000_000)
+	ctx := s.chain.GetContext().WithGasMeter(gasMeter)
+
+	packet := channeltypes.NewPacket(packetDataBytes, 0, ibcmock.PortID, "", "", "", clienttypes.ZeroHeight(), 0)
+	callbackData, err := types.GetSourceCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
 	s.Require().NoError(err)
 	s.Require().Equal(expCallbackData, callbackData)
 }
@@ -342,7 +357,11 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 
 	packetUnmarshaler := transfer.IBCModule{}
 
-	callbackData, err := types.GetDestCallbackData(packetUnmarshaler, packetDataBytes, ibcmock.PortID, 2_000_000, 1_000_000)
+	gasMeter := storetypes.NewGasMeter(2_000_000)
+	ctx := s.chain.GetContext().WithGasMeter(gasMeter)
+
+	packet := channeltypes.NewPacket(packetDataBytes, 0, ibcmock.PortID, "", "", "", clienttypes.ZeroHeight(), 0)
+	callbackData, err := types.GetDestCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
 	s.Require().NoError(err)
 	s.Require().Equal(expCallbackData, callbackData)
 }
