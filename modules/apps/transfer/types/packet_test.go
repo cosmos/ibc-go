@@ -171,7 +171,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"success: valid packet",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -187,7 +187,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"success: valid packet with memo",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -203,7 +203,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"success: valid packet with large amount",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: largeAmount,
@@ -219,7 +219,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"failure: invalid denom",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  "",
 						Amount: amount,
@@ -235,7 +235,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"failure: invalid empty amount",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: "",
@@ -251,7 +251,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"failure: invalid empty token array",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{},
+				[]types.Token{},
 				sender,
 				receiver,
 				"",
@@ -261,7 +261,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"failure: invalid zero amount",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: "0",
@@ -277,7 +277,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"failure: invalid negative amount",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: "-100",
@@ -293,7 +293,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"failure: invalid large amount",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: invalidLargeAmount,
@@ -309,7 +309,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"failure: missing sender address",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -325,7 +325,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		{
 			"failure: missing recipient address",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -363,7 +363,7 @@ func TestGetPacketSender(t *testing.T) {
 		{
 			"non-empty sender field",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -379,7 +379,7 @@ func TestGetPacketSender(t *testing.T) {
 		{
 			"empty sender field",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -410,7 +410,7 @@ func TestPacketDataProvider(t *testing.T) {
 		{
 			"success: src_callback key in memo",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -428,7 +428,7 @@ func TestPacketDataProvider(t *testing.T) {
 		{
 			"success: src_callback key in memo with additional fields",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -446,7 +446,7 @@ func TestPacketDataProvider(t *testing.T) {
 		{
 			"success: src_callback has string value",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -461,7 +461,7 @@ func TestPacketDataProvider(t *testing.T) {
 		{
 			"failure: src_callback key not found memo",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -476,7 +476,7 @@ func TestPacketDataProvider(t *testing.T) {
 		{
 			"failure: empty memo",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -491,7 +491,7 @@ func TestPacketDataProvider(t *testing.T) {
 		{
 			"failure: non-json memo",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -522,7 +522,7 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 		{
 			"empty memo field, resulting marshalled bytes should not contain the memo field",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -538,7 +538,7 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 		{
 			"non-empty memo field, resulting marshalled bytes should contain the memo field",
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount,

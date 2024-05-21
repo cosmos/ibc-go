@@ -151,7 +151,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 		DestChannel:   packet.DestChannel,
 		DestPort:      packet.DestPort,
 		Data: types.NewFungibleTokenPacketDataV2(
-			[]*types.Token{
+			[]types.Token{
 				{
 					Denom:  denom,
 					Amount: packet.Data.Amount,

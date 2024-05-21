@@ -38,9 +38,11 @@ func (t Token) GetFullDenomPath() string {
 	return strings.Join(append(t.Trace, t.Denom), "/")
 }
 
+// Tokens is a set of Token
 type Tokens []Token
 
-// String prints out the otkens TODO
+// String prints out the tokens array as a string.
+// If the array is empty, an empty string is returned
 func (tokens Tokens) String() string {
 	if len(tokens) == 0 {
 		return ""
@@ -48,7 +50,6 @@ func (tokens Tokens) String() string {
 		return tokens[0].String()
 	}
 
-	// Build the string with a string builder
 	var out strings.Builder
 	for _, token := range tokens[:len(tokens)-1] {
 		out.WriteString(token.String())
