@@ -119,13 +119,13 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		return types.V2, nil
-	}
-
 	// OpenTry must claim the channelCapability that IBC passes into the callback
 	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
+	}
+
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
+		return types.V2, nil
 	}
 
 	return counterpartyVersion, nil
