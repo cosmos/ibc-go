@@ -41,7 +41,7 @@ Clients may also store any necessary client-specific metadata.
 
 `Initialize` is called when a [client is created](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L30).
 
-## `UpdateState`
+## `UpdateState` method
 
 `UpdateState` updates and stores as necessary any associated information for an IBC client, such as the `ClientState` and corresponding `ConsensusState`. See section [`UpdateState`](05-updates-and-misbehaviour.md#updatestate) for more information.
 
