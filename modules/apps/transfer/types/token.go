@@ -52,9 +52,10 @@ func (tokens Tokens) String() string {
 
 	var out strings.Builder
 	for _, token := range tokens[:len(tokens)-1] {
-		out.WriteString(token.String())
-		out.WriteByte(',')
+		out.WriteString(token.String()) //nolint:errcheck // no error returned by WriteString
+		out.WriteByte(',')              //nolint:errcheck // no error returned by WriteByte
+
 	}
-	out.WriteString(tokens[len(tokens)-1].String())
+	out.WriteString(tokens[len(tokens)-1].String()) //nolint:errcheck
 	return out.String()
 }
