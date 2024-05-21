@@ -36,10 +36,10 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 					err      error
 				)
 				// when we are in ReCheckTx mode, ctx.IsCheckTx() will also return true
-				// there we must start the if statement on ctx.IsReCheckTx() to correctly
+				// therefore we must start the if statement on ctx.IsReCheckTx() to correctly
 				// determine which mode we are in
 				if ctx.IsReCheckTx() {
-					response, err = rrd.k.RecvPacket(sdk.WrapSDKContext(ctx), msg)
+					response, err = rrd.recvPacketReCheckTx(ctx, msg)
 				} else {
 					response, err = rrd.recvPacketCheckTx(ctx, msg)
 				}
@@ -117,6 +117,26 @@ func (rrd RedundantRelayDecorator) recvPacketCheckTx(ctx sdk.Context, msg *chann
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = rrd.k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypes.ErrNoOpMsg:
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
+	default:
+		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
+	}
+
+	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
+}
+
+// recvPacketReCheckTx runs a subset of ibc recv packet logic to be used specifically within the RedundantRelayDecorator AnteHandler.
+// It only performs core IBC receiving logic and skips any application logic.
+func (rrd RedundantRelayDecorator) recvPacketReCheckTx(ctx sdk.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
+	// If the packet was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	err := rrd.k.ChannelKeeper.RecvPacketReCheckTx(cacheCtx, msg.Packet)
 
 	switch err {
 	case nil:
