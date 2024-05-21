@@ -2,34 +2,21 @@ package ante_test
 
 import (
 	"testing"
+	"time"
 
-<<<<<<< HEAD
-=======
-	"github.com/stretchr/testify/require"
-	testifysuite "github.com/stretchr/testify/suite"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
->>>>>>> 3da48308 (imp: add updateClientCheckTx to redunant relayer ante decorator (#6279))
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-<<<<<<< HEAD
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/ante"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-=======
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/ante"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
->>>>>>> 3da48308 (imp: add updateClientCheckTx to redunant relayer ante decorator (#6279))
 )
 
 type AnteTestSuite struct {
@@ -354,6 +341,64 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
 				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{})
+				return msgs
+			},
+			true,
+		},
+		{
+			"success on new UpdateClient messages: solomachine misbehaviour",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainB.Codec, "06-solomachine-0", "testing", 1)
+				suite.chainB.GetSimApp().GetIBCKeeper().ClientKeeper.SetClientState(suite.chainB.GetContext(), solomachine.ClientID, solomachine.ClientState())
+
+				msgUpdateClient, err := clienttypes.NewMsgUpdateClient(solomachine.ClientID, solomachine.CreateMisbehaviour(), suite.chainB.SenderAccount.GetAddress().String())
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{msgUpdateClient}
+
+				return msgs
+			},
+			true,
+		},
+		{
+			"success on new UpdateClient messages: solomachine multisig misbehaviour",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 4)
+				suite.chainB.GetSimApp().GetIBCKeeper().ClientKeeper.SetClientState(suite.chainB.GetContext(), solomachine.ClientID, solomachine.ClientState())
+
+				msgUpdateClient, err := clienttypes.NewMsgUpdateClient(solomachine.ClientID, solomachine.CreateMisbehaviour(), suite.chainB.SenderAccount.GetAddress().String())
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{msgUpdateClient}
+
+				return msgs
+			},
+			true,
+		},
+		{
+			"success on new UpdateClient messages: tendermint misbehaviour",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				trustedHeight := suite.path.EndpointB.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				trustedVals, found := suite.chainA.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				suite.Require().True(found)
+
+				err := suite.path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+
+				height := suite.path.EndpointB.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+				// construct valid fork misbehaviour: two headers at the same height with different time
+				misbehaviour := &ibctm.Misbehaviour{
+					Header1: suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainA.CurrentHeader.Time.Add(time.Minute), suite.chainA.Vals, suite.chainA.NextVals, trustedVals, suite.chainA.Signers),
+					Header2: suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.NextVals, trustedVals, suite.chainA.Signers),
+				}
+
+				msgUpdateClient, err := clienttypes.NewMsgUpdateClient(suite.path.EndpointB.ClientID, misbehaviour, suite.chainB.SenderAccount.GetAddress().String())
+				suite.Require().NoError(err)
+
+				msgs := []sdk.Msg{msgUpdateClient}
+
 				return msgs
 			},
 			true,

@@ -5,16 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-<<<<<<< HEAD
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-=======
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
->>>>>>> 3da48308 (imp: add updateClientCheckTx to redunant relayer ante decorator (#6279))
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	tendermint "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 type RedundantRelayDecorator struct {
@@ -79,12 +75,7 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 				packetMsgs++
 
 			case *clienttypes.MsgUpdateClient:
-<<<<<<< HEAD
-				_, err := rrd.k.UpdateClient(sdk.WrapSDKContext(ctx), msg)
-				if err != nil {
-=======
 				if err := rrd.updateClientCheckTx(ctx, msg); err != nil {
->>>>>>> 3da48308 (imp: add updateClientCheckTx to redunant relayer ante decorator (#6279))
 					return ctx, err
 				}
 
@@ -113,24 +104,34 @@ func (rrd RedundantRelayDecorator) updateClientCheckTx(ctx sdk.Context, msg *cli
 		return err
 	}
 
-	if status := rrd.k.ClientKeeper.GetClientStatus(ctx, msg.ClientId); status != exported.Active {
+	clientState, found := rrd.k.ClientKeeper.GetClientState(ctx, msg.ClientId)
+	if !found {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotFound, msg.ClientId)
+	}
+
+	if status := rrd.k.ClientKeeper.GetClientStatus(ctx, clientState, msg.ClientId); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot update client (%s) with status %s", msg.ClientId, status)
 	}
 
-	clientModule, found := rrd.k.ClientKeeper.Route(msg.ClientId)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, msg.ClientId)
-	}
+	clientStore := rrd.k.ClientKeeper.ClientStore(ctx, msg.ClientId)
 
 	if !ctx.IsReCheckTx() {
-		if err := clientModule.VerifyClientMessage(ctx, msg.ClientId, clientMsg); err != nil {
+		if err := clientState.VerifyClientMessage(ctx, rrd.k.Codec(), clientStore, clientMsg); err != nil {
 			return err
 		}
 	}
 
-	heights := clientModule.UpdateState(ctx, msg.ClientId, clientMsg)
-
-	ctx.Logger().With("module", "x/"+exported.ModuleName).Debug("ante ibc client update", "consensusHeights", heights)
+	// NOTE: the following avoids panics in ante handler client updates for ibc-go v7.4.x
+	// without state machine breaking changes within light client modules.
+	switch clientMsg.(type) {
+	case *solomachine.Misbehaviour:
+		// ignore solomachine misbehaviour for update state in ante
+	case *tendermint.Misbehaviour:
+		// ignore tendermint misbehaviour for update state in ante
+	default:
+		heights := clientState.UpdateState(ctx, rrd.k.Codec(), clientStore, clientMsg)
+		ctx.Logger().With("module", "x/"+exported.ModuleName).Debug("ante ibc client update", "consensusHeights", heights)
+	}
 
 	return nil
 }
