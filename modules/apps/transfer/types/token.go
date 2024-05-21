@@ -1,4 +1,4 @@
-package v3
+package types
 
 import (
 	"strings"
@@ -8,13 +8,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
-// ValidateToken validates a token denomination and trace identifiers.
+// Validate validates a token denomination and trace identifiers.
 func (t Token) Validate() error {
 	if err := sdk.ValidateDenom(t.Denom); err != nil {
-		return errorsmod.Wrap(types.ErrInvalidDenomForTransfer, err.Error())
+		return errorsmod.Wrap(ErrInvalidDenomForTransfer, err.Error())
 	}
 
 	if len(t.Trace) == 0 {

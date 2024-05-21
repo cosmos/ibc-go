@@ -111,7 +111,7 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 	channelOptions := ibc.DefaultChannelOpts()
 	// TODO: better way to do this.
 	// For now, set the version to the latest transfer module version
-	channelOptions.Version = transfertypes.Version
+	channelOptions.Version = transfertypes.V2
 
 	if channelOpts != nil {
 		channelOpts(&channelOptions)
@@ -401,7 +401,7 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
 func (*E2ETestSuite) TransferChannelOptions(version string) func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = version
+		opts.Version = transfertypes.V2
 		opts.SourcePortName = transfertypes.PortID
 		opts.DestPortName = transfertypes.PortID
 	}
@@ -411,7 +411,7 @@ func (*E2ETestSuite) TransferChannelOptions(version string) func(options *ibc.Cr
 func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: transfertypes.Version,
+		AppVersion: transfertypes.V2,
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)

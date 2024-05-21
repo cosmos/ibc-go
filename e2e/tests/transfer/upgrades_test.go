@@ -494,7 +494,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
-		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-2")
+		s.Require().Equal(transfertypes.V2, channel.Version, "the channel version is not ics20-2")
 
 		errorReceipt, err := s.QueryUpgradeError(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
@@ -507,7 +507,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
-		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-2")
+		s.Require().Equal(transfertypes.V2, channel.Version, "the channel version is not ics20-2")
 
 		errorReceipt, err := s.QueryUpgradeError(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)

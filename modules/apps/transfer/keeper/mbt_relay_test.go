@@ -19,9 +19,8 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 
-	convert "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
+	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -67,7 +66,7 @@ type FungibleTokenPacket struct {
 	SourcePort    string
 	DestChannel   string
 	DestPort      string
-	Data          v3types.FungibleTokenPacketData
+	Data          types.FungibleTokenPacketDataV2
 }
 
 type OnRecvPacketTestCase = struct {
@@ -110,7 +109,7 @@ func AddressFromTla(addr []string) string {
 		s = addr[2]
 	} else if len(addr[2]) == 0 {
 		// escrow address: ics20-1\x00port/channel
-		s = fmt.Sprintf("%s\x00%s/%s", types.Version1, addr[0], addr[1])
+		s = fmt.Sprintf("%s\x00%s/%s", types.V1, addr[0], addr[1])
 	} else {
 		panic(errors.New("failed to convert from TLA+ address: neither simple nor escrow address"))
 	}
@@ -145,14 +144,14 @@ func BalancesFromTla(tla []TlaBalance) []Balance {
 }
 
 func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPacket {
-	denom, trace := convert.ExtractDenomAndTraceFromV1Denom(DenomFromTla(packet.Data.Denom))
+	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(DenomFromTla(packet.Data.Denom))
 	return FungibleTokenPacket{
 		SourceChannel: packet.SourceChannel,
 		SourcePort:    packet.SourcePort,
 		DestChannel:   packet.DestChannel,
 		DestPort:      packet.DestPort,
-		Data: v3types.NewFungibleTokenPacketData(
-			[]*v3types.Token{
+		Data: types.NewFungibleTokenPacketDataV2(
+			[]*types.Token{
 				{
 					Denom:  denom,
 					Amount: packet.Data.Amount,

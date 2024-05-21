@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			false,
 		},
 		{
-			"success: multi-denom with version ics20-2",
+			"success: multidenom",
 			func() {
 				coin2 = sdk.NewCoin("bond", sdkmath.NewInt(100))
 				coins := sdk.NewCoins(coin1, coin2)
@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 				// explicitly set to ics20-1 which does not support multi-denom
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
-					channel.Version = types.Version1
+					channel.Version = types.V1
 				})
 			},
 			ibcerrors.ErrInvalidRequest,
