@@ -26,10 +26,4 @@ Adding a new light client to a chain is just as simple as submitting a governanc
 go get github.com/cosmos/ibc-go/modules/light-clients/08-wasm@7ee2a2452b79d0bc8316dc622a1243afa058e8cb
 ```
 
-The following table shows the compatibility matrix between the `08-wasm` module, `ibc-go`, and `wasmvm`.
-
-|            **Version**           |         **Git commit to import**         |
-|:--------------------------------:|:----------------------------------------:|
-| `v0.1.1+ibc-go-v7.3-wasmvm-v1.5` | 7ee2a2452b79d0bc8316dc622a1243afa058e8cb |
-| `v0.1.0+ibc-go-v8.0-wasmvm-v1.5` | 57fcdb9a9a9db9b206f7df2f955866dc4e10fef4 |
-| `v0.1.0+ibc-go-v7.3-wasmvm-v1.5` | b306e7a706e1f84a5e11af0540987bd68de9bae5 |
+You can find the compatibility matrix between the `08-wasm` module, `ibc-go`, and `wasmvm` in [here](https://github.com/cosmos/ibc-go/blob/main/docs/docs/03-light-clients/04-wasm/03-integration.md#importing-the-08-wasm-module).
