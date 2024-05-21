@@ -532,20 +532,6 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 			nil,
 		},
 		{
-			"success on app callback error, app callbacks are skipped for performance",
-			func(suite *AnteTestSuite) []sdk.Msg {
-				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
-				) exported.Acknowledgement {
-					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
-				}
-
-				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
-				return []sdk.Msg{suite.createRecvPacketMessage(false)}
-			},
-			nil,
-		},
-		{
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createRecvPacketMessage(true)}

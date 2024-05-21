@@ -201,10 +201,7 @@ func (k Keeper) RecvPacket(
 		packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
 		commitment,
 	); err != nil {
-<<<<<<< HEAD
 		return sdkerrors.Wrap(err, "couldn't verify counterparty packet commitment")
-=======
-		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
 	}
 
 	if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
@@ -222,23 +219,14 @@ func (k Keeper) RecvPacket(
 	)
 
 	// emit an event that the relayer can query for
-	emitRecvPacketEvent(ctx, packet, channel)
+	EmitRecvPacketEvent(ctx, packet, channel)
 
 	return nil
 }
 
 // applyReplayProtection ensures a packet has not already been received
 // and performs the necessary state changes to ensure it cannot be received again.
-func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, channel types.Channel) error {
-	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
-	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
-	// upgrade all packets under the recvStartSequence will have been processed and thus should be
-	// rejected.
-	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
-	if packet.GetSequence() < recvStartSequence {
-		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
->>>>>>> 56ae97d8 (perf: minimize logic on rechecktx for recvpacket (#6280))
-	}
+func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet exported.PacketI, channel types.Channel) error {
 
 	switch channel.Ordering {
 	case types.UNORDERED:
@@ -293,22 +281,6 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 
 	}
 
-<<<<<<< HEAD
-	// log that a packet has been received & executed
-	k.Logger(ctx).Info(
-		"packet received",
-		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
-		"src_port", packet.GetSourcePort(),
-		"src_channel", packet.GetSourceChannel(),
-		"dst_port", packet.GetDestPort(),
-		"dst_channel", packet.GetDestChannel(),
-	)
-
-	// emit an event that the relayer can query for
-	EmitRecvPacketEvent(ctx, packet, channel)
-
-=======
->>>>>>> 56ae97d8 (perf: minimize logic on rechecktx for recvpacket (#6280))
 	return nil
 }
 
