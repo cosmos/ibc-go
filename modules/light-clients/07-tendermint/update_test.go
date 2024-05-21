@@ -5,6 +5,8 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -546,15 +548,90 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().Equal(expConsensusState, updatedConsensusState)
 
 			} else {
-				suite.Require().Panics(func() {
-					clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
-				})
+				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+				suite.Require().Empty(consensusHeights)
+
+				consensusState, found := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight())))
+				suite.Require().False(found)
+				suite.Require().Nil(consensusState)
 			}
 
 			// perform custom checks
 			tc.expResult()
 		})
 	}
+}
+
+func (suite *TendermintTestSuite) TestUpdateStateCheckTx() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupClients()
+
+	createClientMessage := func() exported.ClientMessage {
+		trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+		suite.Require().True(ok)
+		header, err := path.EndpointB.Chain.IBCClientHeader(path.EndpointB.Chain.LatestCommittedHeader, trustedHeight)
+		suite.Require().NoError(err)
+		return header
+	}
+
+	// get the first height as it will be pruned first.
+	var pruneHeight exported.Height
+	getFirstHeightCb := func(height exported.Height) bool {
+		pruneHeight = height
+		return true
+	}
+	ctx := path.EndpointA.Chain.GetContext()
+	clientStore := path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+	ibctm.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
+
+	// Increment the time by a week
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+
+	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+	suite.Require().True(found)
+
+	ctx = path.EndpointA.Chain.GetContext().WithIsCheckTx(true)
+	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
+
+	// Increment the time by another week, then update the client.
+	// This will cause the first two consensus states to become expired.
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+	ctx = path.EndpointA.Chain.GetContext().WithIsCheckTx(true)
+	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
+
+	assertPrune := func(pruned bool) {
+		// check consensus states and associated metadata
+		consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+		suite.Require().Equal(!pruned, ok)
+
+		processTime, ok := ibctm.GetProcessedTime(clientStore, pruneHeight)
+		suite.Require().Equal(!pruned, ok)
+
+		processHeight, ok := ibctm.GetProcessedHeight(clientStore, pruneHeight)
+		suite.Require().Equal(!pruned, ok)
+
+		consKey := ibctm.GetIterationKey(clientStore, pruneHeight)
+
+		if pruned {
+			suite.Require().Nil(consState, "expired consensus state not pruned")
+			suite.Require().Empty(processTime, "processed time metadata not pruned")
+			suite.Require().Nil(processHeight, "processed height metadata not pruned")
+			suite.Require().Nil(consKey, "iteration key not pruned")
+		} else {
+			suite.Require().NotNil(consState, "expired consensus state pruned")
+			suite.Require().NotEqual(uint64(0), processTime, "processed time metadata pruned")
+			suite.Require().NotNil(processHeight, "processed height metadata pruned")
+			suite.Require().NotNil(consKey, "iteration key pruned")
+		}
+	}
+
+	assertPrune(false)
+
+	// simulation mode must prune to calculate gas correctly
+	ctx = ctx.WithExecMode(sdk.ExecModeSimulate)
+	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
+
+	assertPrune(true)
 }
 
 func (suite *TendermintTestSuite) TestPruneConsensusState() {

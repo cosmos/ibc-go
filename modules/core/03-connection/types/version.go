@@ -27,6 +27,11 @@ var (
 	allowNilFeatureSet = map[string]bool{
 		DefaultIBCVersionIdentifier: false,
 	}
+
+	// MaxVersionsLength is the maximum number of versions that can be supported
+	MaxCounterpartyVersionsLength = 100
+	// MaxFeaturesLength is the maximum number of features that can be supported
+	MaxFeaturesLength = 100
 )
 
 // NewVersion returns a new instance of Version.
@@ -55,6 +60,9 @@ func ValidateVersion(version *Version) error {
 	}
 	if strings.TrimSpace(version.Identifier) == "" {
 		return errorsmod.Wrap(ErrInvalidVersion, "version identifier cannot be blank")
+	}
+	if len(version.Features) > MaxFeaturesLength {
+		return errorsmod.Wrapf(ErrInvalidVersion, "features length must not exceed %d items", MaxFeaturesLength)
 	}
 	for i, feature := range version.Features {
 		if strings.TrimSpace(feature) == "" {

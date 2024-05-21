@@ -11,6 +11,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -1426,7 +1427,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 						bz, err := json.Marshal(types.EmptyResult{})
 						suite.Require().NoError(err)
 
-						prefixedKey := types.SubjectPrefix
+						prefixedKey := internaltypes.SubjectPrefix
 						prefixedKey = append(prefixedKey, host.ClientStateKey()...)
 						expectedClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
 						store.Set(prefixedKey, expectedClientStateBz)

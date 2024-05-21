@@ -91,7 +91,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wa
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
-		code, err = types.Uncompress(code, types.MaxWasmByteSize())
+		code, err = types.Uncompress(code, types.MaxWasmSize)
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "failed to store contract")
 		}
@@ -213,7 +213,7 @@ func (k Keeper) GetAllChecksums(ctx context.Context) ([]types.Checksum, error) {
 		return nil, err
 	}
 
-	checksums := []types.Checksum{}
+	checksums := make([]types.Checksum, 0, len(keys))
 	for _, key := range keys {
 		checksums = append(checksums, key)
 	}
