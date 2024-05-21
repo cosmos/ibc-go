@@ -130,8 +130,6 @@ func (rrd RedundantRelayDecorator) recvPacketCheckTx(ctx sdk.Context, msg *chann
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }
-<<<<<<< HEAD
-=======
 
 // recvPacketReCheckTx runs a subset of ibc recv packet logic to be used specifically within the RedundantRelayDecorator AnteHandler.
 // It only performs core IBC receiving logic and skips any application logic.
@@ -152,35 +150,3 @@ func (rrd RedundantRelayDecorator) recvPacketReCheckTx(ctx sdk.Context, msg *cha
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }
-
-// updateClientCheckTx runs a subset of ibc client update logic to be used specifically within the RedundantRelayDecorator AnteHandler.
-// The following function performs ibc client message verification for CheckTx only and state updates in both CheckTx and ReCheckTx.
-// Note that misbehaviour checks are omitted.
-func (rrd RedundantRelayDecorator) updateClientCheckTx(ctx sdk.Context, msg *clienttypes.MsgUpdateClient) error {
-	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
-	if err != nil {
-		return err
-	}
-
-	if status := rrd.k.ClientKeeper.GetClientStatus(ctx, msg.ClientId); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot update client (%s) with status %s", msg.ClientId, status)
-	}
-
-	clientModule, found := rrd.k.ClientKeeper.Route(msg.ClientId)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, msg.ClientId)
-	}
-
-	if !ctx.IsReCheckTx() {
-		if err := clientModule.VerifyClientMessage(ctx, msg.ClientId, clientMsg); err != nil {
-			return err
-		}
-	}
-
-	heights := clientModule.UpdateState(ctx, msg.ClientId, clientMsg)
-
-	ctx.Logger().With("module", "x/"+exported.ModuleName).Debug("ante ibc client update", "consensusHeights", heights)
-
-	return nil
-}
->>>>>>> 56ae97d8 (perf: minimize logic on rechecktx for recvpacket (#6280))

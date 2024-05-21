@@ -214,7 +214,7 @@ func (k Keeper) RecvPacket(
 
 // applyReplayProtection ensures a packet has not already been received
 // and performs the necessary state changes to ensure it cannot be received again.
-func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, channel types.Channel) error {
+func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet exported.PacketI, channel types.Channel) error {
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
 	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
 	// upgrade all packets under the recvStartSequence will have been processed and thus should be
