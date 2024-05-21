@@ -200,7 +200,8 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			// modify counterparty client without setting in store so it still passes validate but fails proof verification
 			tmClient, ok := counterpartyClient.(*ibctm.ClientState)
 			suite.Require().True(ok)
-			tmClient.LatestHeight = tmClient.LatestHeight.Increment().(clienttypes.Height)
+			tmClient.LatestHeight, ok = tmClient.LatestHeight.Increment().(clienttypes.Height)
+			suite.Require().True(ok)
 		}, false},
 		{"consensus state verification failed", func() {
 			// retrieve client state of chainA to pass as counterpartyClient
@@ -232,7 +233,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 				},
 			}
 
-			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(&mockValidator)
+			suite.chainB.App.GetIBCKeeper().SetConsensusHost(&mockValidator)
 		}, false},
 	}
 
@@ -460,7 +461,8 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			// modify counterparty client without setting in store so it still passes validate but fails proof verification
 			tmClient, ok := counterpartyClient.(*ibctm.ClientState)
 			suite.Require().True(ok)
-			tmClient.LatestHeight = tmClient.LatestHeight.Increment().(clienttypes.Height)
+			tmClient.LatestHeight, ok = tmClient.LatestHeight.Increment().(clienttypes.Height)
+			suite.Require().True(ok)
 
 			err = path.EndpointB.ConnOpenTry()
 			suite.Require().NoError(err)

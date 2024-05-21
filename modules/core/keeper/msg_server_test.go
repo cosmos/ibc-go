@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 			msg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
 
 			ctx := suite.chainB.GetContext()
-			_, err := keeper.Keeper.RecvPacket(*suite.chainB.App.GetIBCKeeper(), ctx, msg)
+			_, err := suite.chainB.App.GetIBCKeeper().RecvPacket(ctx, msg)
 
 			events := ctx.EventManager().Events()
 
@@ -180,7 +180,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 				suite.Require().NoError(err)
 
 				// replay should not fail since it will be treated as a no-op
-				_, err := keeper.Keeper.RecvPacket(*suite.chainB.App.GetIBCKeeper(), suite.chainB.GetContext(), msg)
+				_, err := suite.chainB.App.GetIBCKeeper().RecvPacket(suite.chainB.GetContext(), msg)
 				suite.Require().NoError(err)
 
 				// check that callback state was handled correctly
@@ -280,7 +280,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 
 			tc.malleate()
 
-			_, err = keeper.Keeper.RecoverClient(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+			_, err = suite.chainA.App.GetIBCKeeper().RecoverClient(suite.chainA.GetContext(), msg)
 
 			expPass := tc.expErr == nil
 			if expPass {
@@ -288,7 +288,8 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 
 				// Assert that client status is now Active
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
-				tmClientState := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				tmClientState, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
 			} else {
 				suite.Require().Error(err)
@@ -425,7 +426,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 			msg := channeltypes.NewMsgAcknowledgement(packet, ibcmock.MockAcknowledgement.Acknowledgement(), proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
 			ctx := suite.chainA.GetContext()
-			_, err := keeper.Keeper.Acknowledgement(*suite.chainA.App.GetIBCKeeper(), ctx, msg)
+			_, err := suite.chainA.App.GetIBCKeeper().Acknowledgement(ctx, msg)
 
 			events := ctx.EventManager().Events()
 
@@ -437,7 +438,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 				suite.Require().False(has)
 
 				// replay should not error as it is treated as a no-op
-				_, err := keeper.Keeper.Acknowledgement(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+				_, err := suite.chainA.App.GetIBCKeeper().Acknowledgement(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
 				if tc.replay {
@@ -582,7 +583,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 			msg := channeltypes.NewMsgTimeout(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
 			ctx := suite.chainA.GetContext()
-			_, err := keeper.Keeper.Timeout(*suite.chainA.App.GetIBCKeeper(), ctx, msg)
+			_, err := suite.chainA.App.GetIBCKeeper().Timeout(ctx, msg)
 
 			events := ctx.EventManager().Events()
 
@@ -590,7 +591,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 				suite.Require().NoError(err)
 
 				// replay should not return an error as it is treated as a no-op
-				_, err := keeper.Keeper.Timeout(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+				_, err := suite.chainA.App.GetIBCKeeper().Timeout(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
 				// verify packet commitment was deleted on source chain
@@ -756,13 +757,13 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 
 			msg := channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, closedProof, proofHeight, suite.chainA.SenderAccount.GetAddress().String(), counterpartyUpgradeSequence)
 
-			_, err := keeper.Keeper.TimeoutOnClose(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+			_, err := suite.chainA.App.GetIBCKeeper().TimeoutOnClose(suite.chainA.GetContext(), msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 
 				// replay should not return an error as it will be treated as a no-op
-				_, err := keeper.Keeper.TimeoutOnClose(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+				_, err := suite.chainA.App.GetIBCKeeper().TimeoutOnClose(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
 				// verify packet commitment was deleted on source chain
@@ -870,7 +871,8 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 		path.SetupClients()
 
 		var err error
-		clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+		clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+		suite.Require().True(ok)
 		revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
 		newChainID, err = clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
@@ -932,26 +934,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(uint64(1), res.UpgradeSequence)
-
-				upgrade := path.EndpointA.GetChannelUpgrade()
 				channel := path.EndpointA.GetChannel()
 
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeInit: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:     upgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            upgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:           upgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeInit,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1078,24 +1077,21 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.Require().Equal(channeltypes.FLUSHING, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				upgrade := path.EndpointB.GetChannelUpgrade()
-
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeTry: {
-						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:     upgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            upgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:           upgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeTry,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1128,22 +1124,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.Require().Equal(uint64(99), errorReceipt.Sequence)
 
 				channel := path.EndpointB.GetChannel()
-
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "counterparty upgrade sequence < current upgrade sequence (1 < 99): invalid upgrade sequence",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "counterparty upgrade sequence < current upgrade sequence (1 < 99): invalid upgrade sequence"),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1265,24 +1262,21 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				upgrade := path.EndpointA.GetChannelUpgrade()
-
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeAck: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:     upgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            upgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:           upgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeAck,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1302,24 +1296,17 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().Equal(channeltypes.FLUSHING, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				upgrade := path.EndpointA.GetChannelUpgrade()
-
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeAck: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:     upgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            upgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:           upgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeAck,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1374,22 +1361,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
 
 				channel := path.EndpointB.GetChannel()
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "expected upgrade ordering (ORDER_NONE_UNSPECIFIED) to match counterparty upgrade ordering (ORDER_UNORDERED): incompatible counterparty upgrade",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "expected upgrade ordering (ORDER_NONE_UNSPECIFIED) to match counterparty upgrade ordering (ORDER_UNORDERED): incompatible counterparty upgrade"),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1419,22 +1407,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().False(store.Has([]byte("foo")))
 
 				channel := path.EndpointB.GetChannel()
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "mock app callback failed",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "mock app callback failed"),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1565,32 +1554,31 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().Equal(channeltypes.OPEN, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeConfirm: {
-						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyChannelState:       channeltypes.FLUSHCOMPLETE.String(),
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					channeltypes.EventTypeChannelUpgradeOpen: {
-						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyChannelState:       channeltypes.OPEN.String(),
-						channeltypes.AttributeKeyConnectionHops:     channel.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            channel.Version,
-						channeltypes.AttributeKeyOrdering:           channel.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeConfirm,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelState, channeltypes.FLUSHCOMPLETE.String()),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeOpen,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelState, channeltypes.OPEN.String()),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1647,18 +1635,18 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeConfirm: {
-						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyChannelState:       channeltypes.FLUSHCOMPLETE.String(),
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-				}
-
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeConfirm,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelState, channeltypes.FLUSHCOMPLETE.String()),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1676,18 +1664,18 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().Equal(channeltypes.FLUSHING, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeConfirm: {
-						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyChannelState:       channeltypes.FLUSHING.String(),
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-				}
-
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeConfirm,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelState, channeltypes.FLUSHING.String()),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1755,22 +1743,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 
 				channel := path.EndpointB.GetChannel()
 
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "counterparty upgrade timeout elapsed: current timestamp: 1578269010000000000, timeout timestamp 1578268995000000000: timeout elapsed",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "counterparty upgrade timeout elapsed: current timestamp: 1578269010000000000, timeout timestamp 1578268995000000000: timeout elapsed"),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1866,23 +1855,22 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.OPEN, channel.State)
 
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeOpen: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyChannelState:       channeltypes.OPEN.String(),
-						channeltypes.AttributeKeyConnectionHops:     channel.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            channel.Version,
-						channeltypes.AttributeKeyOrdering:           channel.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeOpen,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelState, channeltypes.OPEN.String()),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -1912,23 +1900,22 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.OPEN, channel.State)
 
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeOpen: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyChannelState:       channeltypes.OPEN.String(),
-						channeltypes.AttributeKeyConnectionHops:     channel.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            channel.Version,
-						channeltypes.AttributeKeyOrdering:           channel.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeOpen,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelState, channeltypes.OPEN.String()),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -2055,33 +2042,30 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should be changed to match sequence on error receipt.
 				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeCancel: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:     proposedUpgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            proposedUpgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:           proposedUpgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "invalid upgrade",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeCancel,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "invalid upgrade"),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -2104,33 +2088,27 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should be changed to match initial upgrade sequence.
 				suite.Require().Equal(uint64(3), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeCancel: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:     proposedUpgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            proposedUpgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:           proposedUpgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeCancel,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "invalid upgrade",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "invalid upgrade"),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -2154,33 +2132,31 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should be changed to match initial upgrade sequence.
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeCancel: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:     proposedUpgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            proposedUpgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:           proposedUpgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeCancel,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "invalid upgrade",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "invalid upgrade"),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -2204,33 +2180,31 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should be changed to match initial upgrade sequence.
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeCancel: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:     proposedUpgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            proposedUpgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:           proposedUpgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeCancel,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "invalid upgrade",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "invalid upgrade"),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -2253,33 +2227,32 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Upgrade sequence should not be changed.
 				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeCancel: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:     proposedUpgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            proposedUpgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:           proposedUpgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeCancel,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "invalid upgrade",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "invalid upgrade"),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(
+							sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -2428,37 +2401,36 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
 
-				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
 				// use the timeout we set in the malleate function
 				timeout := channeltypes.NewTimeout(clienttypes.ZeroHeight(), 1)
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeTimeout: {
-						channeltypes.AttributeKeyPortID:                  path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:               path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:         path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID:      path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyConnectionHops:          proposedUpgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:                 proposedUpgrade.Fields.Version,
-						channeltypes.AttributeKeyOrdering:                proposedUpgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeTimeoutHeight:    timeout.Height.String(),
-						channeltypes.AttributeKeyUpgradeTimeoutTimestamp: fmt.Sprintf("%d", timeout.Timestamp),
-						channeltypes.AttributeKeyUpgradeSequence:         fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					channeltypes.EventTypeChannelUpgradeError: {
-						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+
+				expEvents := sdk.Events{
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeTimeout,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeTimeoutHeight, timeout.Height.String()),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeTimeoutTimestamp, fmt.Sprintf("%d", timeout.Timestamp)),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
+					),
+					sdk.NewEvent(
+						channeltypes.EventTypeChannelUpgradeError,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
-						channeltypes.AttributeKeyErrorReceipt: "upgrade timed-out",
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "upgrade timed-out"),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, channeltypes.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
 		{
@@ -2574,7 +2546,8 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				Height: 1000,
 			}
 			// update trusting period
-			clientState := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			clientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
 			clientState.TrustingPeriod += 100
 
 			var err error
@@ -2588,7 +2561,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 
 			tc.malleate()
 
-			_, err = keeper.Keeper.IBCSoftwareUpgrade(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+			_, err = suite.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(suite.chainA.GetContext(), msg)
 
 			if tc.expError == nil {
 				suite.Require().NoError(err)
@@ -2649,7 +2622,7 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			_, err := keeper.Keeper.UpdateClientParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
+			_, err := suite.chainA.App.GetIBCKeeper().UpdateClientParams(suite.chainA.GetContext(), tc.msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				p := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
@@ -2700,7 +2673,7 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			_, err := keeper.Keeper.UpdateConnectionParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
+			_, err := suite.chainA.App.GetIBCKeeper().UpdateConnectionParams(suite.chainA.GetContext(), tc.msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				p := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetParams(suite.chainA.GetContext())
@@ -2751,7 +2724,7 @@ func (suite *KeeperTestSuite) TestUpdateChannelParams() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			resp, err := keeper.Keeper.UpdateChannelParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
+			resp, err := suite.chainA.App.GetIBCKeeper().UpdateChannelParams(suite.chainA.GetContext(), tc.msg)
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)

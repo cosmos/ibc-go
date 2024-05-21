@@ -17,7 +17,7 @@ import (
 // client identifier. The light client module is responsible for setting any client-specific data in the store
 // via the Initialize method. This includes the client state, initial consensus state and any associated
 // metadata. The generated client identifier will be returned if a client was successfully initialized.
-func (k Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, consensusState []byte) (string, error) {
+func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, consensusState []byte) (string, error) {
 	if clientType == exported.Localhost {
 		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientType)
 	}
@@ -60,7 +60,7 @@ func (k Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, co
 }
 
 // UpdateClient updates the consensus state and the state root from a provided header.
-func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
@@ -122,7 +122,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 
 // UpgradeClient upgrades the client to a new client state if this new client was committed to
 // by the old client at the specified upgrade height
-func (k Keeper) UpgradeClient(
+func (k *Keeper) UpgradeClient(
 	ctx sdk.Context,
 	clientID string,
 	upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof []byte,
@@ -167,7 +167,7 @@ func (k Keeper) UpgradeClient(
 // is responsible for validating the parameters of the substitute (ensuring they match the subject's parameters)
 // as well as copying the necessary consensus states from the substitute to the subject client store.
 // The substitute must be Active and the subject must not be Active.
-func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
+func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
 	if status := k.GetClientStatus(ctx, subjectClientID); status == exported.Active {
 		return errorsmod.Wrapf(types.ErrInvalidRecoveryClient, "cannot recover %s subject client", exported.Active)
 	}

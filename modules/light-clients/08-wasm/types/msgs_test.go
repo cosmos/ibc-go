@@ -71,7 +71,7 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+			suite.SetupTest()
 
 			address := tc.address
 			msg := types.NewMsgStoreCode(address.String(), wasmtesting.Code)
@@ -174,7 +174,7 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+			suite.SetupTest()
 
 			address := tc.address
 			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum, []byte("{}"))
@@ -251,7 +251,7 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+			suite.SetupTest()
 
 			address := tc.address
 			msg := types.NewMsgRemoveChecksum(address.String(), checksum)

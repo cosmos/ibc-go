@@ -23,6 +23,7 @@ var (
 	icaUnorderedChannelFeatureReleases = semverutil.FeatureReleases{
 		MajorVersion: "v9",
 		MinorVersions: []string{
+			"v7.5",
 			"v8.1",
 		},
 	}
