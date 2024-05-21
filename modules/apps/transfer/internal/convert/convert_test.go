@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
-func TestConvertPacketV1ToPacketV3(t *testing.T) {
+func TestConvertPacketV1ToPacketV2(t *testing.T) {
 	const (
 		sender   = "sender"
 		receiver = "receiver"
@@ -124,8 +124,8 @@ func TestConvertPacketV1ToPacketV3(t *testing.T) {
 	for _, tc := range testCases {
 		expPass := tc.expPanic == nil
 		if expPass {
-			v3Data := PacketDataV1ToV2(tc.v1Data)
-			require.Equal(t, tc.v2Data, v3Data, "test case: %s", tc.name)
+			actualV2Data := PacketDataV1ToV2(tc.v1Data)
+			require.Equal(t, tc.v2Data, actualV2Data, "test case: %s", tc.name)
 		} else {
 			require.PanicsWithError(t, tc.expPanic.Error(), func() {
 				PacketDataV1ToV2(tc.v1Data)

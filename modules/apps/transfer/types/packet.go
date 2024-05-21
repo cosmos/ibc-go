@@ -153,7 +153,7 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 func (ftpd FungibleTokenPacketDataV2) GetBytes() []byte {
 	bz, err := json.Marshal(&ftpd)
 	if err != nil {
-		panic(errors.New("cannot marshal v3 FungibleTokenPacketData into bytes"))
+		panic(errors.New("cannot marshal FungibleTokenPacketDataV2 into bytes"))
 	}
 
 	return bz
