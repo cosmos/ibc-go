@@ -129,6 +129,9 @@ func (msg MsgConnectionOpenTry) ValidateBasic() error {
 	if len(msg.CounterpartyVersions) == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidVersion, "empty counterparty versions")
 	}
+	if len(msg.CounterpartyVersions) > MaxCounterpartyVersionsLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "counterparty versions must not exceed %d items", MaxCounterpartyVersionsLength)
+	}
 	for i, version := range msg.CounterpartyVersions {
 		if err := ValidateVersion(version); err != nil {
 			return errorsmod.Wrapf(err, "basic validation failed on version with index %d", i)

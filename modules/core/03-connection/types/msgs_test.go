@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	log "cosmossdk.io/log"
+	"cosmossdk.io/log"
 	"cosmossdk.io/store/iavl"
 	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"
@@ -60,7 +60,8 @@ func (suite *MsgTestSuite) SetupTest() {
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	err := store.LoadVersion(0)
 	suite.Require().NoError(err)
-	iavlStore := store.GetCommitStore(storeKey).(*iavl.Store)
+	iavlStore, ok := store.GetCommitStore(storeKey).(*iavl.Store)
+	suite.Require().True(ok)
 
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
@@ -158,8 +159,10 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 		{"empty proofConsensus", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, suite.proof, emptyProof, clientHeight, clientHeight, signer), false},
 		{"invalid consensusHeight", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clienttypes.ZeroHeight(), signer), false},
 		{"empty singer", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, ""), false},
-		{"success", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, signer), true},
 		{"invalid version", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{{}}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, signer), false},
+		{"too many counterparty versions", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, make([]*types.Version, types.MaxCounterpartyVersionsLength+1), 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, signer), false},
+		{"too many features in counterparty version", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{{"v1", make([]string, types.MaxFeaturesLength+1)}}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, signer), false},
+		{"success", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, signer), true},
 	}
 
 	for _, tc := range testCases {

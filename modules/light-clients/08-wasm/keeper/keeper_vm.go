@@ -9,6 +9,7 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -33,6 +34,10 @@ func NewKeeperWithVM(
 		panic(errors.New("client keeper must not be nil"))
 	}
 
+	if queryRouter == nil {
+		panic(errors.New("query router must not be nil"))
+	}
+
 	if vm == nil {
 		panic(errors.New("wasm VM must not be nil"))
 	}
@@ -45,23 +50,29 @@ func NewKeeperWithVM(
 		panic(errors.New("authority must be non-empty"))
 	}
 
+	sb := collections.NewSchemaBuilder(storeService)
+
 	keeper := &Keeper{
 		cdc:          cdc,
+		vm:           vm,
+		checksums:    collections.NewKeySet(sb, types.ChecksumsKey, "checksums", collections.BytesKey),
 		storeService: storeService,
 		clientKeeper: clientKeeper,
 		authority:    authority,
 	}
 
+	_, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+
 	// set query plugins to ensure there is a non-nil query plugin
 	// regardless of what options the user provides
-	ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
+	keeper.setQueryPlugins(NewDefaultQueryPlugins(queryRouter))
+
 	for _, opt := range opts {
 		opt.apply(keeper)
 	}
-
-	ibcwasm.SetVM(vm)
-	ibcwasm.SetQueryRouter(queryRouter)
-	ibcwasm.SetupWasmStoreService(storeService)
 
 	return *keeper
 }

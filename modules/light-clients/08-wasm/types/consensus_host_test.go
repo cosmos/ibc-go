@@ -60,9 +60,7 @@ func (suite *TypesTestSuite) TestGetSelfConsensusState() {
 			consensusHost, err = types.NewWasmConsensusHost(suite.chainA.Codec, consensusHost)
 			suite.Require().NoError(err)
 
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(
-				consensusHost,
-			)
+			suite.chainA.App.GetIBCKeeper().SetConsensusHost(consensusHost)
 
 			cs, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), height)
 
@@ -81,6 +79,7 @@ func (suite *TypesTestSuite) TestGetSelfConsensusState() {
 
 func (suite *TypesTestSuite) TestValidateSelfClient() {
 	var (
+		mockChecksum  = []byte("checksum")
 		clientState   exported.ClientState
 		consensusHost clienttypes.ConsensusHost
 	)
@@ -125,7 +124,7 @@ func (suite *TypesTestSuite) TestValidateSelfClient() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			clientState = types.NewClientState(wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum), wasmtesting.Code, clienttypes.ZeroHeight())
+			clientState = types.NewClientState(wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, mockChecksum), wasmtesting.Code, clienttypes.ZeroHeight())
 			consensusHost = &mock.ConsensusHost{}
 
 			tc.malleate()
@@ -134,9 +133,7 @@ func (suite *TypesTestSuite) TestValidateSelfClient() {
 			consensusHost, err = types.NewWasmConsensusHost(suite.chainA.Codec, consensusHost)
 			suite.Require().NoError(err)
 
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(
-				consensusHost,
-			)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetConsensusHost(consensusHost)
 
 			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.ValidateSelfClient(suite.chainA.GetContext(), clientState)
 
