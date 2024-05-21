@@ -31,24 +31,24 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		expVersion string
 	}{
 		{
-			"success", func() {}, true, types.Version,
+			"success", func() {}, true, types.V2,
 		},
 		{
 			// connection hops is not used in the transfer application callback,
 			// it is already validated in the core OnChanUpgradeInit.
 			"success: invalid connection hops", func() {
 				path.EndpointA.ConnectionID = "invalid-connection-id"
-			}, true, types.Version,
+			}, true, types.V2,
 		},
 		{
 			"success: empty version string", func() {
 				channel.Version = ""
-			}, true, types.Version,
+			}, true, types.V2,
 		},
 		{
 			"success: ics20-1 legacy", func() {
-				channel.Version = types.Version1
-			}, true, types.Version1,
+				channel.Version = types.V1
+			}, true, types.V1,
 		},
 		{
 			"max channels reached", func() {
@@ -93,7 +93,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.Version,
+				Version:        types.V2,
 			}
 
 			var err error
@@ -134,17 +134,17 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		expVersion string
 	}{
 		{
-			"success", func() {}, true, types.Version,
+			"success", func() {}, true, types.V2,
 		},
 		{
 			"success: counterparty version is legacy ics20-1", func() {
-				counterpartyVersion = types.Version1
-			}, true, types.Version1,
+				counterpartyVersion = types.V1
+			}, true, types.V1,
 		},
 		{
 			"success: invalid counterparty version, we use our proposed version", func() {
 				counterpartyVersion = "version"
-			}, true, types.Version,
+			}, true, types.V2,
 		},
 		{
 			"max channels reached", func() {
@@ -185,9 +185,9 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.Version,
+				Version:        types.V2,
 			}
-			counterpartyVersion = types.Version
+			counterpartyVersion = types.V2
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
@@ -242,7 +242,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
-			counterpartyVersion = types.Version
+			counterpartyVersion = types.V2
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
@@ -405,7 +405,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(types.Version, version)
+				suite.Require().Equal(types.V2, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())

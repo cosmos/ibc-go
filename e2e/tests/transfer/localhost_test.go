@@ -68,7 +68,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	t.Run("channel open init localhost", func(t *testing.T) {
 		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
-			transfertypes.PortID, transfertypes.Version,
+			transfertypes.PortID, transfertypes.V2,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, rlyWallet.FormattedAddress(),
 		)
@@ -83,10 +83,10 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	t.Run("channel open try localhost", func(t *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
-			transfertypes.PortID, transfertypes.Version,
+			transfertypes.PortID, transfertypes.V2,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
-			transfertypes.Version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+			transfertypes.V2, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
@@ -98,7 +98,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
-			msgChanOpenTryRes.ChannelId, transfertypes.Version,
+			msgChanOpenTryRes.ChannelId, transfertypes.V2,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 

@@ -89,7 +89,7 @@ func (im IBCModule) OnChanOpenInit(
 
 	// default to latest supported version
 	if strings.TrimSpace(version) == "" {
-		version = types.Version
+		version = types.V2
 	}
 
 	if !slices.Contains(types.SupportedVersions, version) {
@@ -120,7 +120,7 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		return types.Version, nil
+		return types.V2, nil
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
@@ -375,7 +375,7 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 	}
 
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		return types.Version, nil
+		return types.V2, nil
 	}
 
 	return counterpartyVersion, nil

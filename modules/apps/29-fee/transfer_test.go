@@ -12,7 +12,7 @@ import (
 // Integration test to ensure ics29 works with ics20
 func (suite *FeeTestSuite) TestFeeTransfer() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
+	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
 	path.EndpointA.ChannelConfig.Version = feeTransferVersion
 	path.EndpointB.ChannelConfig.Version = feeTransferVersion
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
@@ -94,13 +94,13 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 			// configure the initial path to create a regular transfer channel
 			path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 			path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
-			path.EndpointA.ChannelConfig.Version = transfertypes.Version
-			path.EndpointB.ChannelConfig.Version = transfertypes.Version
+			path.EndpointA.ChannelConfig.Version = transfertypes.V2
+			path.EndpointB.ChannelConfig.Version = transfertypes.V2
 
 			path.Setup()
 
 			// configure the channel upgrade to upgrade to an incentivized fee enabled transfer channel
-			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
