@@ -1,8 +1,6 @@
 package solomachine
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -79,10 +77,12 @@ func (cs ClientState) verifyHeader(cdc codec.BinaryCodec, header *Header) error 
 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
 // A list containing the updated consensus height is returned.
+// If the provided clientMsg is not of type Header, the handler will no-op and return an empty slice.
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	smHeader, ok := clientMsg.(*Header)
 	if !ok {
-		panic(fmt.Errorf("unsupported ClientMessage: %T", clientMsg))
+		// clientMsg is invalid Misbehaviour, no update necessary
+		return []exported.Height{}
 	}
 
 	// create new solomachine ConsensusState
