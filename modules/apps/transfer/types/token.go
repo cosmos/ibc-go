@@ -37,3 +37,23 @@ func (t Token) GetFullDenomPath() string {
 
 	return strings.Join(append(t.Trace, t.Denom), "/")
 }
+
+type Tokens []Token
+
+// String prints out the otkens TODO
+func (tokens Tokens) String() string {
+	if len(tokens) == 0 {
+		return ""
+	} else if len(tokens) == 1 {
+		return tokens[0].String()
+	}
+
+	// Build the string with a string builder
+	var out strings.Builder
+	for _, token := range tokens[:len(tokens)-1] {
+		out.WriteString(token.String())
+		out.WriteByte(',')
+	}
+	out.WriteString(tokens[len(tokens)-1].String())
+	return out.String()
+}

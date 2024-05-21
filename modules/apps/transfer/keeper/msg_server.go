@@ -58,17 +58,14 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	events := make([]sdk.Event, 0, len(tokens)+1)
-	for _, token := range tokens {
-		k.Logger(ctx).Info("IBC fungible token transfer", "token", token.Denom, "amount", token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
-		events = append(events, sdk.NewEvent(
-			types.EventTypeTransfer,
-			sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, token.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, token.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-		))
-	}
+	k.Logger(ctx).Info("IBC fungible token transfer", "tokens", tokens, "sender", msg.Sender, "receiver", msg.Receiver)
+	events = append(events, sdk.NewEvent(
+		types.EventTypeTransfer,
+		sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
+		sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+		sdk.NewAttribute(types.AttributeKeyTokens, tokens.String()),
+		sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+	))
 	events = append(events, sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
