@@ -9,6 +9,16 @@ slug: /ibc/light-clients/wasm/integration
 
 Learn how to integrate the `08-wasm` module in a chain binary and about the recommended approaches depending on whether the [`x/wasm` module](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) is already used in the chain. The following document only applies for Cosmos SDK chains. 
 
+## Importing the `08-wasm` module
+
+`08-wasm` has no stable releases yet. To use it, you need to import the git commit that contains the module with the compatible versions of `ibc-go` and `wasmvm`. To do so, run the following command with the desired git commit in your project:
+
+```sh
+go get github.com/cosmos/ibc-go/modules/light-clients/08-wasm@7ee2a2452b79d0bc8316dc622a1243afa058e8cb
+```
+
+You can find the version matrix in [here](../../../../docs/03-light-clients/04-wasm/03-integration.md#importing-the-08-wasm-module).
+
 ## `app.go` setup
 
 The sample code below shows the relevant integration points in `app.go` required to setup the `08-wasm` module in a chain binary. Since `08-wasm` is a light client module itself, please check out as well the section [Integrating light clients](../../01-ibc/02-integration.md#integrating-light-clients) for more information:
