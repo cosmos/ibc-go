@@ -119,13 +119,13 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		return types.V2, nil
-	}
-
 	// OpenTry must claim the channelCapability that IBC passes into the callback
 	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
+	}
+
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
+		return types.V2, nil
 	}
 
 	return counterpartyVersion, nil
@@ -203,12 +203,11 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	logger := im.keeper.Logger(ctx)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
 	data, ackErr := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
 	if ackErr != nil {
-		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 	}
 
@@ -219,9 +218,9 @@ func (im IBCModule) OnRecvPacket(
 		if err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err)
 			ackErr = err
-			logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+			im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		} else {
-			logger.Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
+			im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 		}
 	}
 

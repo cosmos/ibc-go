@@ -123,7 +123,7 @@ func (cs ClientState) Validate() error {
 	}
 
 	if err := light.ValidateTrustLevel(cs.TrustLevel.ToTendermint()); err != nil {
-		return err
+		return errorsmod.Wrapf(ErrInvalidTrustLevel, err.Error())
 	}
 	if cs.TrustingPeriod <= 0 {
 		return errorsmod.Wrap(ErrInvalidTrustingPeriod, "trusting period must be greater than zero")
@@ -303,7 +303,6 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHei
 			return errorsmod.Wrapf(ErrDelayPeriodNotPassed, "cannot verify packet until time: %d, current time: %d",
 				validTime, currentTimestamp)
 		}
-
 	}
 
 	if delayBlockPeriod != 0 {

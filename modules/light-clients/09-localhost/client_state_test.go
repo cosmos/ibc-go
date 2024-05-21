@@ -116,6 +116,8 @@ func (suite *LocalhostTestSuite) TestUpdateState() {
 	expHeight := clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight()))
 	suite.Require().True(heights[0].EQ(expHeight))
 
-	clientState = suite.chain.GetClientState(exported.LocalhostClientID).(*localhost.ClientState)
+	var ok bool
+	clientState, ok = suite.chain.GetClientState(exported.LocalhostClientID).(*localhost.ClientState)
+	suite.Require().True(ok)
 	suite.Require().True(heights[0].EQ(clientState.LatestHeight))
 }
