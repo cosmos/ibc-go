@@ -46,6 +46,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
 * (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
+* (core/ante) [\#6306](https://github.com/cosmos/ibc-go/pull/6306) Performance: Skip misbehaviour checks in UpdateClient flow and skip signature checks in reCheckTx mode.
 
 ### Features
 
@@ -67,7 +68,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing) [\#6180](https://github.com/cosmos/ibc-go/pull/6180) Add version to tm abci headers in ibctesting.
 * (apps/27-interchain-accounts, apps/tranfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
 * (apps/transfer) [\#6268](https://github.com/cosmos/ibc-go/pull/6268) Use memo strings instead of JSON keys in `AllowedPacketData` of transfer authorization.
-* (core/ante) [\#6306](https://github.com/cosmos/ibc-go/pull/6306) Performance: Skip misbehaviour checks in UpdateClient flow and skip signature checks in reCheckTx mode.
 
 ### Features
 
