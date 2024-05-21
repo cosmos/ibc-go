@@ -12,7 +12,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
+	"github.com/cosmos/ibc-go/v8/internal/validate"
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -73,7 +75,18 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
+		return nil, err
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
+
+	if !k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
 
 	var packets []*types.IdentifiedPacketFees
 	keyPrefix := types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId)
@@ -257,7 +270,18 @@ func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnab
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
+		return nil, err
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.HasChannel(ctx, req.PortId, req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
+		)
+	}
 
 	isFeeEnabled := k.IsFeeEnabled(ctx, req.PortId, req.ChannelId)
 

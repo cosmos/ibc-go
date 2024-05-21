@@ -9,72 +9,79 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// CreateClient generates a new client identifier and isolated prefix store for the provided client state.
-// The client state is responsible for setting any client-specific data in the store via the Initialize method.
-// This includes the client state, initial consensus state and any associated metadata.
-func (k Keeper) CreateClient(
-	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
-) (string, error) {
-	if clientState.ClientType() == exported.Localhost {
-		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientState.ClientType())
+// CreateClient generates a new client identifier and invokes the associated light client module in order to
+// initialize a new client. An isolated prefixed store will be reserved for this client using the generated
+// client identifier. The light client module is responsible for setting any client-specific data in the store
+// via the Initialize method. This includes the client state, initial consensus state and any associated
+// metadata. The generated client identifier will be returned if a client was successfully initialized.
+func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, consensusState []byte) (string, error) {
+	if clientType == exported.Localhost {
+		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientType)
 	}
 
 	params := k.GetParams(ctx)
-	if !params.IsAllowedClient(clientState.ClientType()) {
+	if !params.IsAllowedClient(clientType) {
 		return "", errorsmod.Wrapf(
 			types.ErrInvalidClientType,
-			"client state type %s is not registered in the allowlist", clientState.ClientType(),
+			"client state type %s is not registered in the allowlist", clientType,
 		)
 	}
 
-	clientID := k.GenerateClientIdentifier(ctx, clientState.ClientType())
-	clientStore := k.ClientStore(ctx, clientID)
+	clientID := k.GenerateClientIdentifier(ctx, clientType)
 
-	if err := clientState.Initialize(ctx, k.cdc, clientStore, consensusState); err != nil {
+	clientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return "", errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	}
+
+	if err := clientModule.Initialize(ctx, clientID, clientState, consensusState); err != nil {
 		return "", err
 	}
 
-	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client (%s) with status %s", clientID, status)
 	}
 
-	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
+	initialHeight := clientModule.LatestHeight(ctx, clientID)
+	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", initialHeight.String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "create"},
 		1,
-		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientState.ClientType())},
+		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientType)},
 	)
 
-	emitCreateClientEvent(ctx, clientID, clientState)
+	emitCreateClientEvent(ctx, clientID, clientType, initialHeight)
 
 	return clientID, nil
 }
 
 // UpdateClient updates the consensus state and the state root from a provided header.
-func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
-	clientState, found := k.GetClientState(ctx, clientID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
-	}
-
-	clientStore := k.ClientStore(ctx, clientID)
-
-	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
-	if err := clientState.VerifyClientMessage(ctx, k.cdc, clientStore, clientMsg); err != nil {
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
+		return errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
+	}
+
+	clientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	}
+
+	if err := clientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
 		return err
 	}
 
-	foundMisbehaviour := clientState.CheckForMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
+	foundMisbehaviour := clientModule.CheckForMisbehaviour(ctx, clientID, clientMsg)
 	if foundMisbehaviour {
-		clientState.UpdateStateOnMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
+		clientModule.UpdateStateOnMisbehaviour(ctx, clientID, clientMsg)
 
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID)
 
@@ -82,18 +89,18 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 			[]string{"ibc", "client", "misbehaviour"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientType, clientType),
 				telemetry.NewLabel(types.LabelClientID, clientID),
 				telemetry.NewLabel(types.LabelMsgType, "update"),
 			},
 		)
 
-		emitSubmitMisbehaviourEvent(ctx, clientID, clientState)
+		emitSubmitMisbehaviourEvent(ctx, clientID, clientType)
 
 		return nil
 	}
 
-	consensusHeights := clientState.UpdateState(ctx, k.cdc, clientStore, clientMsg)
+	consensusHeights := clientModule.UpdateState(ctx, clientID, clientMsg)
 
 	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
@@ -101,100 +108,92 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 		[]string{"ibc", "client", "update"},
 		1,
 		[]metrics.Label{
-			telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+			telemetry.NewLabel(types.LabelClientType, clientType),
 			telemetry.NewLabel(types.LabelClientID, clientID),
 			telemetry.NewLabel(types.LabelUpdateType, "msg"),
 		},
 	)
 
 	// emitting events in the keeper emits for both begin block and handler client updates
-	emitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, k.cdc, clientMsg)
+	emitUpdateClientEvent(ctx, clientID, clientType, consensusHeights, k.cdc, clientMsg)
 
 	return nil
 }
 
 // UpgradeClient upgrades the client to a new client state if this new client was committed to
 // by the old client at the specified upgrade height
-func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
-	upgradeClientProof, upgradeConsensusStateProof []byte,
+func (k *Keeper) UpgradeClient(
+	ctx sdk.Context,
+	clientID string,
+	upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof []byte,
 ) error {
-	clientState, found := k.GetClientState(ctx, clientID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
-	}
-
-	clientStore := k.ClientStore(ctx, clientID)
-
-	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
-	// last height of current counterparty chain must be client's latest height
-	lastHeight := clientState.GetLatestHeight()
-
-	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s",
-			upgradedClient.GetLatestHeight(), lastHeight)
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
+		return errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
 	}
 
-	if err := clientState.VerifyUpgradeAndUpdateState(ctx, k.cdc, clientStore,
-		upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof,
-	); err != nil {
+	clientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	}
+
+	if err := clientModule.VerifyUpgradeAndUpdateState(ctx, clientID, upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof); err != nil {
 		return errorsmod.Wrapf(err, "cannot upgrade client with ID %s", clientID)
 	}
 
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", upgradedClient.GetLatestHeight().String())
+	latestHeight := clientModule.LatestHeight(ctx, clientID)
+	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", latestHeight.String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "upgrade"},
 		1,
 		[]metrics.Label{
-			telemetry.NewLabel(types.LabelClientType, upgradedClient.ClientType()),
+			telemetry.NewLabel(types.LabelClientType, clientType),
 			telemetry.NewLabel(types.LabelClientID, clientID),
 		},
 	)
 
-	emitUpgradeClientEvent(ctx, clientID, upgradedClient)
+	emitUpgradeClientEvent(ctx, clientID, clientType, latestHeight)
 
 	return nil
 }
 
-// RecoverClient will retrieve the subject and substitute client.
-// A callback will occur to the subject client state with the client
-// prefixed store being provided for both the subject and the substitute client.
-// The IBC client implementations are responsible for validating the parameters of the
-// substitute (ensuring they match the subject's parameters) as well as copying
-// the necessary consensus states from the substitute to the subject client
-// store. The substitute must be Active and the subject must not be Active.
-func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
-	subjectClientState, found := k.GetClientState(ctx, subjectClientID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "subject client with ID %s", subjectClientID)
-	}
-
-	subjectClientStore := k.ClientStore(ctx, subjectClientID)
-
-	if status := k.GetClientStatus(ctx, subjectClientState, subjectClientID); status == exported.Active {
+// RecoverClient will invoke the light client module associated with the subject clientID requesting it to
+// recover the subject client given a substitute client identifier. The light client implementation
+// is responsible for validating the parameters of the substitute (ensuring they match the subject's parameters)
+// as well as copying the necessary consensus states from the substitute to the subject client store.
+// The substitute must be Active and the subject must not be Active.
+func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
+	if status := k.GetClientStatus(ctx, subjectClientID); status == exported.Active {
 		return errorsmod.Wrapf(types.ErrInvalidRecoveryClient, "cannot recover %s subject client", exported.Active)
 	}
 
-	substituteClientState, found := k.GetClientState(ctx, substituteClientID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "substitute client with ID %s", substituteClientID)
-	}
-
-	if subjectClientState.GetLatestHeight().GTE(substituteClientState.GetLatestHeight()) {
-		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectClientState.GetLatestHeight(), substituteClientState.GetLatestHeight())
-	}
-
-	substituteClientStore := k.ClientStore(ctx, substituteClientID)
-
-	if status := k.GetClientStatus(ctx, substituteClientState, substituteClientID); status != exported.Active {
+	if status := k.GetClientStatus(ctx, substituteClientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not %s, status is %s", exported.Active, status)
 	}
 
-	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {
-		return errorsmod.Wrap(err, "failed to validate substitute client")
+	clientType, _, err := types.ParseClientIdentifier(subjectClientID)
+	if err != nil {
+		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", subjectClientID)
+	}
+
+	clientModule, found := k.router.GetRoute(subjectClientID)
+	if !found {
+		return errorsmod.Wrap(types.ErrRouteNotFound, subjectClientID)
+	}
+
+	subjectLatestHeight := clientModule.LatestHeight(ctx, subjectClientID)
+	substituteLatestHeight := clientModule.LatestHeight(ctx, substituteClientID)
+	if subjectLatestHeight.GTE(substituteLatestHeight) {
+		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectLatestHeight, substituteLatestHeight)
+	}
+
+	if err := clientModule.RecoverClient(ctx, subjectClientID, substituteClientID); err != nil {
+		return err
 	}
 
 	k.Logger(ctx).Info("client recovered", "client-id", subjectClientID)
@@ -203,14 +202,14 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 		[]string{"ibc", "client", "update"},
 		1,
 		[]metrics.Label{
-			telemetry.NewLabel(types.LabelClientType, substituteClientState.ClientType()),
+			telemetry.NewLabel(types.LabelClientType, clientType),
 			telemetry.NewLabel(types.LabelClientID, subjectClientID),
 			telemetry.NewLabel(types.LabelUpdateType, "recovery"),
 		},
 	)
 
 	// emitting events in the keeper for recovering clients
-	emitRecoverClientEvent(ctx, subjectClientID, substituteClientState.ClientType())
+	emitRecoverClientEvent(ctx, subjectClientID, clientType)
 
 	return nil
 }

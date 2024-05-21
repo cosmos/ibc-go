@@ -7,10 +7,10 @@ on:
         required: true
         type: choice
         options:
-          - release/v7.2.x
-          - release/v7.3.x
-          - release/v8.0.x
-          - release/v8.1.x
+          - release/v7.4.x
+          - release/v7.5.x
+          - release/v8.2.x
+          - release/v8.3.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -43,10 +43,10 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release/v7.2.x
-          - release/v7.3.x
-          - release/v8.0.x
-          - release/v8.1.x
+          - release/v7.4.x
+          - release/v7.5.x
+          - release/v8.2.x
+          - release/v8.3.x
           - main
     steps:
       - uses: actions/checkout@v4
@@ -56,7 +56,7 @@ jobs:
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -216,6 +216,42 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "ica-gov-chain-b"
+
+  ica-queries-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-queries-chain-a"
+
+  ica-queries-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-queries-chain-b"
+
+  ica-unordered-channel-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-unordered-channel-chain-a"
+
+  ica-unordered-channel-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-unordered-channel-chain-b"
 
   localhost-transfer-chain-a:
     needs:

@@ -46,7 +46,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	// copy consensus states and processed time from substitute to subject
 	// starting from initial height and ending on the latest height (inclusive)
-	height := substituteClientState.GetLatestHeight()
+	height := substituteClientState.LatestHeight
 
 	consensusState, found := GetConsensusState(substituteClientStore, cdc, height)
 	if !found {
