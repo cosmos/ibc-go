@@ -131,13 +131,19 @@ func (cs *ClientState) verifyHeader(
 // UpdateState must only be used to update within a single revision, thus header revision number and trusted height's revision
 // number must be the same. To update to a new revision, use a separate upgrade path
 // UpdateState will prune the oldest consensus state if it is expired.
+// If the provided clientMsg is not of type of Header then the handler will noop and empty slice is returned.
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	header, ok := clientMsg.(*Header)
 	if !ok {
-		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
+		// clientMsg is invalid Misbehaviour, no update necessary
+		return []exported.Height{}
 	}
 
-	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
+	// performance: do not prune in checkTx
+	// simulation must prune for accurate gas estimation
+	if (!ctx.IsCheckTx() && !ctx.IsReCheckTx()) || ctx.ExecMode() == sdk.ExecModeSimulate {
+		cs.pruneOldestConsensusState(ctx, cdc, clientStore)
+	}
 
 	// check for duplicate update
 	if _, found := GetConsensusState(clientStore, cdc, header.GetHeight()); found {
