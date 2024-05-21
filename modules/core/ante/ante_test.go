@@ -1,17 +1,19 @@
 package ante_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/cosmos/btcutil/bech32"
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/ante"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -49,7 +51,7 @@ func TestAnteTestSuite(t *testing.T) {
 }
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
-func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) sdk.Msg {
+func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) *channeltypes.MsgRecvPacket {
 	sequence, err := suite.path.EndpointA.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
 	suite.Require().NoError(err)
 
@@ -177,7 +179,7 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 	return msg
 }
 
-func (suite *AnteTestSuite) TestAnteDecorator() {
+func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 	testCases := []struct {
 		name     string
 		malleate func(suite *AnteTestSuite) []sdk.Msg
@@ -346,6 +348,20 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			nil,
 		},
 		{
+			"success on app callback error, app callbacks are skipped for performance",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) exported.Acknowledgement {
+					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
+				}
+
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessage(false)}
+			},
+			nil,
+		},
+		{
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createRecvPacketMessage(true)}
@@ -461,7 +477,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
 				}
 			},
-			bech32.ErrInvalidLength(6),
+			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"no success on one new message and one redundant message in the same block",
@@ -486,6 +502,15 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				return []sdk.Msg{msg}
 			},
 			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on recvPacket checkTx, no capability found",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msg := suite.createRecvPacketMessage(false)
+				msg.Packet.DestinationPort = "invalid-port"
+				return []sdk.Msg{msg}
+			},
+			capabilitytypes.ErrCapabilityNotFound,
 		},
 	}
 
@@ -516,6 +541,98 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 			suite.Require().NoError(err, "antedecorator should not error on DeliverTx")
 
 			_, err = decorator.AnteHandle(checkCtx, tx, false, next)
+			if tc.expError == nil {
+				suite.Require().NoError(err, "non-strict decorator did not pass as expected")
+			} else {
+				suite.Require().ErrorIs(err, tc.expError, "non-strict antehandler did not return error as expected")
+			}
+		})
+	}
+}
+
+func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
+	testCases := []struct {
+		name     string
+		malleate func(suite *AnteTestSuite) []sdk.Msg
+		expError error
+	}{
+		{
+			"success on one new RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessage(false)}
+			},
+			nil,
+		},
+		{
+			"success on one redundant and one new RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{
+					suite.createRecvPacketMessage(true),
+					suite.createRecvPacketMessage(false),
+				}
+			},
+			nil,
+		},
+		{
+			"success on invalid proof (proof checks occur in checkTx)",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msg := suite.createRecvPacketMessage(false)
+				msg.ProofCommitment = []byte("invalid-proof")
+				return []sdk.Msg{msg}
+			},
+			nil,
+		},
+		{
+			"success on app callback error, app callbacks are skipped for performance",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) exported.Acknowledgement {
+					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
+				}
+
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessage(false)}
+			},
+			nil,
+		},
+		{
+			"no success on one redundant RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{suite.createRecvPacketMessage(true)}
+			},
+			channeltypes.ErrRedundantTx,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			// reset suite
+			suite.SetupTest()
+
+			k := suite.chainB.App.GetIBCKeeper()
+			decorator := ante.NewRedundantRelayDecorator(k)
+
+			msgs := tc.malleate(suite)
+
+			deliverCtx := suite.chainB.GetContext().WithIsCheckTx(false)
+			reCheckCtx := suite.chainB.GetContext().WithIsReCheckTx(true)
+
+			// create multimsg tx
+			txBuilder := suite.chainB.TxConfig.NewTxBuilder()
+			err := txBuilder.SetMsgs(msgs...)
+			suite.Require().NoError(err)
+			tx := txBuilder.GetTx()
+
+			next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
+
+			_, err = decorator.AnteHandle(deliverCtx, tx, false, next)
+			suite.Require().NoError(err, "antedecorator should not error on DeliverTx")
+
+			_, err = decorator.AnteHandle(reCheckCtx, tx, false, next)
 			if tc.expError == nil {
 				suite.Require().NoError(err, "non-strict decorator did not pass as expected")
 			} else {

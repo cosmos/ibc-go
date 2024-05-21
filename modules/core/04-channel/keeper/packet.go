@@ -188,6 +188,29 @@ func (k *Keeper) RecvPacket(
 		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
 	}
 
+	if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
+		return err
+	}
+
+	// log that a packet has been received & executed
+	k.Logger(ctx).Info(
+		"packet received",
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestPort(),
+		"dst_channel", packet.GetDestChannel(),
+	)
+
+	// emit an event that the relayer can query for
+	emitRecvPacketEvent(ctx, packet, channel)
+
+	return nil
+}
+
+// applyReplayProtection ensures a packet has not already been received
+// and performs the necessary state changes to ensure it cannot be received again.
+func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, channel types.Channel) error {
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
 	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
 	// upgrade all packets under the recvStartSequence will have been processed and thus should be
@@ -252,19 +275,6 @@ func (k *Keeper) RecvPacket(
 		// Since this is the receiving chain, our channelEnd is packet's destination port and channel
 		k.SetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv)
 	}
-
-	// log that a packet has been received & executed
-	k.Logger(ctx).Info(
-		"packet received",
-		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
-		"src_port", packet.GetSourcePort(),
-		"src_channel", packet.GetSourceChannel(),
-		"dst_port", packet.GetDestPort(),
-		"dst_channel", packet.GetDestChannel(),
-	)
-
-	// emit an event that the relayer can query for
-	emitRecvPacketEvent(ctx, packet, channel)
 
 	return nil
 }
