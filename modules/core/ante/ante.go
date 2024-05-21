@@ -134,7 +134,7 @@ func (rrd RedundantRelayDecorator) updateClientCheckTx(ctx sdk.Context, msg *cli
 		}
 	}
 
-	// NOTE: the following avoids panics in ante handler client updates for ibc-go v7.4.x
+	// NOTE: the following avoids panics in ante handler client updates for ibc-go v7.5.x
 	// without state machine breaking changes within light client modules.
 	switch clientMsg.(type) {
 	case *solomachine.Misbehaviour:
