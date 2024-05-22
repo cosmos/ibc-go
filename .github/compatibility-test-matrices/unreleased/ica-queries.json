@@ -1,0 +1,19 @@
+{
+  "chain-a": [
+    "release-v7.5.x",
+    "release-v8.3.x"
+  ],
+  "chain-b": [
+    "release-v7.5.x",
+    "release-v8.3.x"
+  ],
+  "entrypoint": [
+    "TestInterchainAccountsQueryTestSuite"
+  ],
+  "test": [
+    "TestInterchainAccountsQuery"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

@@ -125,7 +125,7 @@ import (
 	ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
 	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	ibcfeetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
@@ -416,7 +416,7 @@ func NewSimApp(
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, runtime.NewKVStoreService(keys[upgradetypes.StoreKey]), appCodec, homePath, app.BaseApp, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), ibctm.NewConsensusHost(app.StakingKeeper), app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Register the proposal types
@@ -565,8 +565,12 @@ func NewSimApp(
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
+	var ok bool
 	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
-	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
+	app.ICAAuthModule, ok = icaControllerStack.(ibcmock.IBCModule)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T into %T", icaControllerStack, app.ICAAuthModule))
+	}
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 
@@ -846,7 +850,7 @@ func NewSimApp(
 		ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
-		if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
+		if err := app.WasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
 			cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 	}

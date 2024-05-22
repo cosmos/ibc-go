@@ -1,6 +1,7 @@
 package transfer_test
 
 import (
+	"errors"
 	"math"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -27,48 +28,48 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			// connection hops is not used in the transfer application callback,
 			// it is already validated in the core OnChanUpgradeInit.
 			"success: invalid connection hops", func() {
 				path.EndpointA.ConnectionID = "invalid-connection-id"
-			}, true,
+			}, nil,
 		},
 		{
 			"empty version string", func() {
 				channel.Version = ""
-			}, true,
+			}, nil,
 		},
 		{
 			"max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
-			}, false,
+			}, types.ErrMaxTransferChannels,
 		},
 		{
 			"invalid order - ORDERED", func() {
 				channel.Ordering = channeltypes.ORDERED
-			}, false,
+			}, channeltypes.ErrInvalidChannelOrdering,
 		},
 		{
 			"invalid port ID", func() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
-			}, false,
+			}, porttypes.ErrInvalidPort,
 		},
 		{
 			"invalid version", func() {
 				channel.Version = "version" //nolint:goconst
-			}, false,
+			}, types.ErrInvalidVersion,
 		},
 		{
 			"capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
-			}, false,
+			}, capabilitytypes.ErrOwnerClaimed,
 		},
 	}
 
@@ -101,12 +102,13 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
 			)
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal(version, "")
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
@@ -124,36 +126,37 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
-			"max channels reached", func() {
+			"success: invalid counterparty version proposes new version", func() {
+				// transfer module will propose the default version
+				counterpartyVersion = "version"
+			}, nil,
+		},
+		{
+			"failure: max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
-			}, false,
+			}, types.ErrMaxTransferChannels,
 		},
 		{
-			"capability already claimed", func() {
+			"failure: capability already claimed", func() {
 				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
-			}, false,
+			}, capabilitytypes.ErrOwnerClaimed,
 		},
 		{
-			"invalid order - ORDERED", func() {
+			"failure: invalid order - ORDERED", func() {
 				channel.Ordering = channeltypes.ORDERED
-			}, false,
+			}, channeltypes.ErrInvalidChannelOrdering,
 		},
 		{
-			"invalid port ID", func() {
+			"failure: invalid port ID", func() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockPort
-			}, false,
-		},
-		{
-			"invalid counterparty version", func() {
-				counterpartyVersion = "version"
-			}, false,
+			}, porttypes.ErrInvalidPort,
 		},
 	}
 
@@ -183,7 +186,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
@@ -191,13 +194,13 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, counterpartyVersion,
 			)
-
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Equal("", version)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
@@ -209,15 +212,15 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"invalid counterparty version", func() {
 				counterpartyVersion = "version"
-			}, false,
+			}, types.ErrInvalidVersion,
 		},
 	}
 
@@ -235,17 +238,19 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelID, counterpartyVersion)
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
@@ -379,7 +384,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), types.PortID)
 			suite.Require().NoError(err)
 
-			app, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -450,7 +455,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
 			suite.Require().NoError(err)
 
-			app, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -481,7 +486,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success: valid packet data with memo",
@@ -495,7 +500,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				}
 				data = expPacketData.GetBytes()
 			},
-			true,
+			nil,
 		},
 		{
 			"success: valid packet data without memo",
@@ -509,14 +514,14 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				}
 				data = expPacketData.GetBytes()
 			},
-			true,
+			nil,
 		},
 		{
 			"failure: invalid packet data",
 			func() {
 				data = []byte("invalid packet data")
 			},
-			false,
+			errors.New("invalid character 'i' looking for beginning of value"),
 		},
 	}
 
@@ -527,12 +532,13 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 			packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expPacketData, packetData)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Nil(packetData)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}

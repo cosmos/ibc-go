@@ -30,11 +30,6 @@ func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
 			true,
 		},
 		{
-			"success: MerkleProof",
-			sdk.MsgTypeURL(&types.MerkleProof{}),
-			true,
-		},
-		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
 			false,
