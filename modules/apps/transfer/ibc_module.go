@@ -225,8 +225,7 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
-	events := make([]sdk.Event, 0, len(data.Tokens)+1)
-	events = append(events, sdk.NewEvent(
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypePacket,
 		sdk.NewAttribute(types.AttributeKeySender, data.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
@@ -242,12 +241,10 @@ func (im IBCModule) OnRecvPacket(
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
 
-	events = append(events, sdk.NewEvent(
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		eventAttributes...,
 	))
-
-	ctx.EventManager().EmitEvents(events)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -274,8 +271,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	events := make([]sdk.Event, 0, len(data.Tokens)+1)
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
@@ -283,13 +279,12 @@ func (im IBCModule) OnAcknowledgementPacket(
 			sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
 			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		),
-	)
-	events = append(events, sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
-	))
-	ctx.EventManager().EmitEvents(events)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
+		),
+	})
 
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
@@ -327,8 +322,7 @@ func (im IBCModule) OnTimeoutPacket(
 		return err
 	}
 
-	events := make([]sdk.Event, 0, len(data.Tokens)+1)
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeout,
 			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
@@ -336,12 +330,11 @@ func (im IBCModule) OnTimeoutPacket(
 			sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
 			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		),
-	)
-	events = append(events, sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-	))
-	ctx.EventManager().EmitEvents(events)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
 
 	return nil
 }
