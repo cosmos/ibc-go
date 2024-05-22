@@ -19,6 +19,16 @@ The callbacks middleware is a minimal and stateless implementation of the IBC mi
 The callbacks middleware, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
 For Cosmos SDK chains this setup is done via the `app/app.go` file, where modules are constructed and configured in order to bootstrap the blockchain application.
 
+## Importing the callbacks middleware
+
+The callbacks middleware has no stable releases yet. To use it, you need to import the git commit that contains the module with the compatible version of `ibc-go`. To do so, run the following command with the desired git commit in your project:
+
+```sh
+go get github.com/cosmos/ibc-go/modules/apps/callbacks@342c00b0f8bd7feeebf0780f208a820b0faf90d1
+```
+
+You can find the version matrix in [here](../../../../docs/04-middleware/02-callbacks/02-integration.md#importing-the-callbacks-middleware).
+
 ## Configuring an application stack with the callbacks middleware
 
 As mentioned in [IBC middleware development](../../01-ibc/04-middleware/02-develop.md) an application stack may be composed of many or no middlewares that nest a base application.
@@ -59,7 +69,7 @@ app.TransferKeeper.WithICS4Wrapper(transferICS4Wrapper)
 ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 ```
 
-::: warning
+:::warning
 The usage of `WithICS4Wrapper` after `transferStack`'s configuration is critical! It allows the callbacks middleware to do `SendPacket` callbacks and asynchronous `ReceivePacket` callbacks. You must do this regardless of whether you are using the `29-fee` middleware or not.
 :::
 
@@ -93,6 +103,6 @@ AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 AddRoute(icahosttypes.SubModuleName, icaHostStack).
 ```
 
-::: warning
+:::warning
 The usage of `WithICS4Wrapper` here is also critical!
 :::

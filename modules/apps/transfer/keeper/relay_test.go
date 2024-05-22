@@ -412,7 +412,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
@@ -495,7 +495,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 
 	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
-		[]*types.Token{
+		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
@@ -622,7 +622,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
@@ -715,7 +715,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 
 	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
-		[]*types.Token{
+		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
@@ -838,7 +838,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
@@ -924,7 +924,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 
 	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
-		[]*types.Token{
+		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
