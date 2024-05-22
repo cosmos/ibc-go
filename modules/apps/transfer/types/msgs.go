@@ -15,6 +15,7 @@ import (
 const (
 	MaximumReceiverLength = 2048  // maximum length of the receiver address in bytes (value chosen arbitrarily)
 	MaximumMemoLength     = 32768 // maximum length of the memo in bytes (value chosen arbitrarily)
+	MaximumTokensLength   = 100   // maximum number of tokens that can be transferred in a single message (value chosen arbitrarily)
 )
 
 var (
@@ -79,6 +80,10 @@ func (msg MsgTransfer) ValidateBasic() error {
 
 	if len(msg.Tokens) != 0 && isValidToken(msg.Token) {
 		return errorsmod.Wrap(ErrInvalidAmount, "cannot fill both token and token array")
+	}
+
+	if len(msg.Tokens) > MaximumTokensLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "number of tokens must not exceed %d", MaximumTokensLength)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
