@@ -224,17 +224,13 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
-	events := make([]sdk.Event, 0, len(data.Tokens)+1)
-	for _, token := range data.Tokens {
-		events = append(events, sdk.NewEvent(
-			types.EventTypePacket,
-			sdk.NewAttribute(types.AttributeKeySender, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, token.GetFullDenomPath()),
-			sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
-			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-		))
-	}
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypePacket,
+		sdk.NewAttribute(types.AttributeKeySender, data.Sender),
+		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+		sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
+		sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+	))
 
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
@@ -244,12 +240,10 @@ func (im IBCModule) OnRecvPacket(
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
 
-	events = append(events, sdk.NewEvent(
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		eventAttributes...,
 	))
-
-	ctx.EventManager().EmitEvents(events)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -276,25 +270,20 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	events := make([]sdk.Event, 0, len(data.Tokens)+1)
-	for _, token := range data.Tokens {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypePacket,
-				sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-				sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-				sdk.NewAttribute(types.AttributeKeyDenom, token.GetFullDenomPath()),
-				sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
-				sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-			),
-		)
-	}
-	events = append(events, sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
-	))
-	ctx.EventManager().EmitEvents(events)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
+		),
+	})
 
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
@@ -332,24 +321,19 @@ func (im IBCModule) OnTimeoutPacket(
 		return err
 	}
 
-	events := make([]sdk.Event, 0, len(data.Tokens)+1)
-	for _, token := range data.Tokens {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeTimeout,
-				sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-				sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-				sdk.NewAttribute(types.AttributeKeyDenom, token.GetFullDenomPath()),
-				sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
-				sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-			),
-		)
-	}
-	events = append(events, sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-	))
-	ctx.EventManager().EmitEvents(events)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeTimeout,
+			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
 
 	return nil
 }

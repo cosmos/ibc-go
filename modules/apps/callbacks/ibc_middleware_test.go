@@ -165,7 +165,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			transferICS4Wrapper := GetSimApp(s.chainA).TransferKeeper.GetICS4Wrapper()
 
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]*transfertypes.Token{
+				[]transfertypes.Token{
 					{
 						Denom:  ibctesting.TestCoin.GetDenom(),
 						Amount: ibctesting.TestCoin.Amount.String(),
@@ -307,7 +307,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			userGasLimit = 600000
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]*transfertypes.Token{
+				[]transfertypes.Token{
 					{
 						Denom:  ibctesting.TestCoin.GetDenom(),
 						Amount: ibctesting.TestCoin.Amount.String(),
@@ -640,7 +640,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			// set user gas limit above panic level in mock contract keeper
 			userGasLimit = 600_000
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]*transfertypes.Token{
+				[]transfertypes.Token{
 					{
 						Denom:  ibctesting.TestCoin.GetDenom(),
 						Amount: ibctesting.TestCoin.Amount.String(),
@@ -772,7 +772,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 
 			// set user gas limit above panic level in mock contract keeper
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]*transfertypes.Token{
+				[]transfertypes.Token{
 					{
 						Denom:  ibctesting.TestCoin.GetDenom(),
 						Amount: ibctesting.TestCoin.Amount.String(),
@@ -991,7 +991,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 	}
 
 	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
-		Tokens: []*transfertypes.Token{
+		Tokens: []transfertypes.Token{
 			{
 				Denom:  ibctesting.TestCoin.Denom,
 				Amount: ibctesting.TestCoin.Amount.String(),

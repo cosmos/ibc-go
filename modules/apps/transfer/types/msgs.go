@@ -108,7 +108,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 }
 
 // GetTokens returns the tokens which will be transferred.
-func (msg MsgTransfer) GetTokens() []sdk.Coin {
+func (msg MsgTransfer) GetTokens() sdk.Coins {
 	tokens := msg.Tokens
 	if isValidToken(msg.Token) {
 		tokens = []sdk.Coin{msg.Token}

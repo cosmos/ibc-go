@@ -29,7 +29,7 @@ func TestGetFullDenomPath(t *testing.T) {
 		{
 			"denom path with trace",
 			NewFungibleTokenPacketDataV2(
-				[]*Token{
+				[]Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -45,7 +45,7 @@ func TestGetFullDenomPath(t *testing.T) {
 		{
 			"nil trace",
 			NewFungibleTokenPacketDataV2(
-				[]*Token{
+				[]Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -61,7 +61,7 @@ func TestGetFullDenomPath(t *testing.T) {
 		{
 			"empty string trace",
 			NewFungibleTokenPacketDataV2(
-				[]*Token{
+				[]Token{
 					{
 						Denom:  denom,
 						Amount: amount,

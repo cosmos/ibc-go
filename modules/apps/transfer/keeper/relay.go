@@ -84,7 +84,7 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	var tokens []*types.Token
+	var tokens []types.Token
 
 	for _, coin := range coins {
 		// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
@@ -135,7 +135,7 @@ func (k Keeper) sendTransfer(
 		}
 
 		denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(fullDenomPath)
-		token := &types.Token{
+		token := types.Token{
 			Denom:  denom,
 			Amount: coin.Amount.String(),
 			Trace:  trace,

@@ -554,7 +554,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			"success: valid packet data multidenom with memo",
 			func() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
-					Tokens: []*types.Token{
+					Tokens: []types.Token{
 						{
 							Denom:  "atom",
 							Amount: ibctesting.TestCoin.Amount.String(),
@@ -574,7 +574,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			"success: valid packet data multidenom without memo",
 			func() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
-					Tokens: []*types.Token{
+					Tokens: []types.Token{
 						{
 							Denom:  ibctesting.TestCoin.Denom,
 							Amount: ibctesting.TestCoin.Amount.String(),

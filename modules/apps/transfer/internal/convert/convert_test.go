@@ -26,7 +26,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			"success",
 			types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  "atom",
 						Amount: "1000",
@@ -39,7 +39,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			"success with empty trace",
 			types.NewFungibleTokenPacketData("atom", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  "atom",
 						Amount: "1000",
@@ -52,7 +52,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			"success: base denom with '/'",
 			types.NewFungibleTokenPacketData("transfer/channel-0/atom/withslash", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  "atom/withslash",
 						Amount: "1000",
@@ -65,7 +65,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			"success: base denom with '/' at the end",
 			types.NewFungibleTokenPacketData("transfer/channel-0/atom/", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  "atom/",
 						Amount: "1000",
@@ -78,7 +78,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			"success: longer trace base denom with '/'",
 			types.NewFungibleTokenPacketData("transfer/channel-0/transfer/channel-1/atom/pool", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  "atom/pool",
 						Amount: "1000",
@@ -91,7 +91,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			"success: longer trace with non transfer port",
 			types.NewFungibleTokenPacketData("transfer/channel-0/transfer/channel-1/transfer-custom/channel-2/atom", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  "atom",
 						Amount: "1000",
@@ -104,7 +104,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			"success: base denom with slash, trace with non transfer port",
 			types.NewFungibleTokenPacketData("transfer/channel-0/transfer/channel-1/transfer-custom/channel-2/atom/pool", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
-				[]*types.Token{
+				[]types.Token{
 					{
 						Denom:  "atom/pool",
 						Amount: "1000",
