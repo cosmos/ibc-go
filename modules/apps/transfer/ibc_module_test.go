@@ -596,7 +596,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			nil,
 		},
 		{
-			"failure: valid packet data multidenom without memo",
+			"failure: invalid token trace",
 			func() {
 				path.EndpointA.ChannelConfig.Version = types.V2
 				initialPacketData = types.FungibleTokenPacketDataV2{
