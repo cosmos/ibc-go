@@ -286,7 +286,16 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			ctx := s.chain.GetContext().WithGasMeter(gasMeter)
 
 			packet := channeltypes.NewPacket(packetData, 0, ibcmock.PortID, "", "", "", clienttypes.ZeroHeight(), 0)
-			callbackData, err := types.GetCallbackData(ctx, packetDataUnmarshaler, packet, remainingGas, uint64(1_000_000), callbackKey)
+
+			var (
+				callbackData types.CallbackData
+				err          error
+			)
+			if callbackKey == types.DestinationCallbackKey {
+				callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, uint64(1_000_000))
+			} else {
+				callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, uint64(1_000_000))
+			}
 
 			expPass := tc.expError == nil
 			if expPass {

@@ -1573,6 +1573,7 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
 	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)
 	suite.Require().True(ok)
 
+	// Context, port identifier, channel identifier are not used in current wiring of fee.
 	packetData, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
 	suite.Require().NoError(err)
 	suite.Require().Equal(ibcmock.MockPacketData, packetData)

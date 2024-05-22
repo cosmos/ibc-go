@@ -1003,15 +1003,18 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
 	}
 
+	portID := s.path.EndpointA.ChannelConfig.PortID
+	channelID := s.path.EndpointA.ChannelID
+
 	// Unmarshal ICS20 v1 packet data
 	data := expPacketDataICS20V1.GetBytes()
-	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), "", "", data)
+	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 
 	// Unmarshal ICS20 v1 packet data
 	data = expPacketDataICS20V2.GetBytes()
-	packetData, err = unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), "", "", data)
+	packetData, err = unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 }
