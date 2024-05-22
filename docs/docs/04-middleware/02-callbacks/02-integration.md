@@ -74,7 +74,7 @@ app.TransferKeeper.WithICS4Wrapper(transferICS4Wrapper)
 ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 ```
 
-::: warning
+:::warning
 The usage of `WithICS4Wrapper` after `transferStack`'s configuration is critical! It allows the callbacks middleware to do `SendPacket` callbacks and asynchronous `ReceivePacket` callbacks. You must do this regardless of whether you are using the `29-fee` middleware or not.
 :::
 
@@ -108,6 +108,6 @@ AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 AddRoute(icahosttypes.SubModuleName, icaHostStack).
 ```
 
-::: warning
+:::warning
 The usage of `WithICS4Wrapper` here is also critical!
 :::
