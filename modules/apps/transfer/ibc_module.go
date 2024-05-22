@@ -179,7 +179,7 @@ func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte, ics20Version strin
 	case types.V1:
 		var datav1 types.FungibleTokenPacketData
 		if err := json.Unmarshal(bz, &datav1); err != nil {
-			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrap(err, "cannot unmarshal ICS20-V2 transfer packet data")
+			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
 		}
 
 		if err := datav1.ValidateBasic(); err != nil {
@@ -190,7 +190,7 @@ func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte, ics20Version strin
 	case types.V2:
 		var datav2 types.FungibleTokenPacketDataV2
 		if err := json.Unmarshal(bz, &datav2); err != nil {
-			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrap(err, "cannot unmarshal ICS20-V2 transfer packet data")
+			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
 		}
 
 		if err := datav2.ValidateBasic(); err != nil {
@@ -215,11 +215,12 @@ func (im IBCModule) OnRecvPacket(
 
 	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if !ok {
-		return channeltypes.NewErrorAcknowledgement(fmt.Errorf("could not retrieve app version for channel (%s, %s)", packet.SourcePort, packet.SourceChannel))
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "could not retrieve app version for channel (%s, %s)", packet.SourcePort, packet.SourceChannel))
 	}
 
 	data, ackErr := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
 	if ackErr != nil {
+		ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, ackErr.Error())
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 	}
