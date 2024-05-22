@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -914,7 +915,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	suite.Require().Equal(sdkmath.ZeroInt(), totalEscrowChainB.Amount)
 }
 
-func (suite *KeeperTestSuite) TestPacketBackwardsCompatibility() {
+func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 	// We are testing a scenario where a packet in the future has a new populated
 	// field called "new_field". And this packet is being sent to this module which
 	// doesn't have this field in the packet data. The module should be able to handle
@@ -925,7 +926,7 @@ func (suite *KeeperTestSuite) TestPacketBackwardsCompatibility() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success: new field",
@@ -933,7 +934,7 @@ func (suite *KeeperTestSuite) TestPacketBackwardsCompatibility() {
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
-			true,
+			nil,
 		},
 		{
 			"success: no new field with memo",
@@ -941,7 +942,7 @@ func (suite *KeeperTestSuite) TestPacketBackwardsCompatibility() {
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
-			true,
+			nil,
 		},
 		{
 			"success: no new field without memo",
@@ -949,22 +950,22 @@ func (suite *KeeperTestSuite) TestPacketBackwardsCompatibility() {
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
-			true,
+			nil,
 		},
 		{
 			"failure: invalid packet data",
 			func() {
 				packetData = []byte("invalid packet data")
 			},
-			false,
+			ibcerrors.ErrUnknownRequest,
 		},
 		{
 			"failure: missing field",
 			func() {
-				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","receiver":"%s"}`, suite.chainA.SenderAccount.GetAddress().String())
+				jsonString := fmt.Sprintf(`{"amount":"100","sender":%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
-			false,
+			ibcerrors.ErrUnknownRequest,
 		},
 	}
 
@@ -989,10 +990,11 @@ func (suite *KeeperTestSuite) TestPacketBackwardsCompatibility() {
 			// receive packet on chainA
 			err = path.RelayPacket(packet)
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.expError.Error())
 			}
 		})
 	}
