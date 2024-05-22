@@ -496,6 +496,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
+		path              *ibctesting.Path
 		data              []byte
 		initialPacketData interface{}
 	)
@@ -508,6 +509,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		{
 			"success: valid packet data single denom -> multidenom conversion with memo",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
 				initialPacketData = types.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -523,6 +525,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		{
 			"success: valid packet data single denom -> multidenom conversion without memo",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
 				initialPacketData = types.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -538,6 +541,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		{
 			"success: valid packet data single denom with trace -> multidenom conversion with trace",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
 				initialPacketData = types.FungibleTokenPacketData{
 					Denom:    "transfer/channel-0/atom",
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -571,8 +575,30 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			nil,
 		},
 		{
-			"success: valid packet data multidenom without memo",
+			"success: valid packet data multidenom nil trace",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V2
+				initialPacketData = types.FungibleTokenPacketDataV2{
+					Tokens: []types.Token{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+							Trace:  nil,
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
+				}
+
+				data = initialPacketData.(types.FungibleTokenPacketDataV2).GetBytes()
+			},
+			nil,
+		},
+		{
+			"failure: valid packet data multidenom without memo",
+			func() {
+				path.EndpointA.ChannelConfig.Version = types.V2
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
@@ -588,23 +614,33 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 				data = initialPacketData.(types.FungibleTokenPacketDataV2).GetBytes()
 			},
-			nil,
+			errors.New("trace info must come in pairs of port and channel identifiers"),
 		},
 		{
 			"failure: invalid packet data",
 			func() {
 				data = []byte("invalid packet data")
 			},
-			errors.New("cannot unmarshal ICS-20 transfer packet data"),
+			errors.New("cannot unmarshal ICS20-V2 transfer packet data"),
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+
 			tc.malleate()
 
-			packetData, err := transfer.IBCModule{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", data)
+			path.Setup()
+
+			transferStack, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(types.ModuleName)
+			suite.Require().True(ok)
+
+			unmarshalerStack, ok := transferStack.(porttypes.PacketDataUnmarshaler)
+			suite.Require().True(ok)
+
+			packetData, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
 
 			expPass := tc.expError == nil
 			if expPass {

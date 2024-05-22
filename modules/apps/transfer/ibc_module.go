@@ -179,15 +179,25 @@ func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte, ics20Version strin
 	case types.V1:
 		var datav1 types.FungibleTokenPacketData
 		if err := json.Unmarshal(bz, &datav1); err != nil {
+			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrap(err, "cannot unmarshal ICS20-V2 transfer packet data")
+		}
+
+		if err := datav1.ValidateBasic(); err != nil {
 			return types.FungibleTokenPacketDataV2{}, err
 		}
+
 		return convertinternal.PacketDataV1ToV2(datav1), nil
 	case types.V2:
-		var data types.FungibleTokenPacketDataV2
-		if err := json.Unmarshal(bz, &data); err != nil {
+		var datav2 types.FungibleTokenPacketDataV2
+		if err := json.Unmarshal(bz, &datav2); err != nil {
+			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrap(err, "cannot unmarshal ICS20-V2 transfer packet data")
+		}
+
+		if err := datav2.ValidateBasic(); err != nil {
 			return types.FungibleTokenPacketDataV2{}, err
 		}
-		return data, nil
+
+		return datav2, nil
 	default:
 		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(types.ErrInvalidVersion, "invalid ICS-20 version: %s", ics20Version)
 	}

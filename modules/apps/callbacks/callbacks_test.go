@@ -306,7 +306,7 @@ func GetExpectedEvent(
 	ctx = ctx.WithGasMeter(gasMeter)
 
 	// Mock packet.
-	packet := channeltypes.NewPacket(data, 0, srcPortID, "", "", "", clienttypes.ZeroHeight(), 0)
+	packet := channeltypes.NewPacket(data, 0, srcPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
 	if callbackType == types.CallbackTypeReceivePacket {
 		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {
