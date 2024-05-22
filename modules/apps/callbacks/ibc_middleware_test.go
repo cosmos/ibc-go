@@ -200,7 +200,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				s.Require().Equal(uint64(1), seq)
 
 				expEvent, exists := GetExpectedEvent(
-					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
 					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
 				)
 				if exists {
@@ -381,7 +381,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeAcknowledgementPacket, nil,
 				)
 				s.Require().True(exists)
@@ -543,7 +543,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().Equal(uint8(2), sourceStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeTimeoutPacket, nil,
 				)
 				s.Require().True(exists)
@@ -712,7 +712,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().Equal(uint8(1), destStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				s.Require().True(exists)
@@ -814,7 +814,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				s.Require().NoError(err)
 
 				expEvent, exists := GetExpectedEvent(
-					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				if exists {
@@ -1003,15 +1003,18 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
 	}
 
+	portID := s.path.EndpointA.ChannelConfig.PortID
+	channelID := s.path.EndpointA.ChannelID
+
 	// Unmarshal ICS20 v1 packet data
 	data := expPacketDataICS20V1.GetBytes()
-	packetData, err := unmarshalerStack.UnmarshalPacketData(data)
+	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 
 	// Unmarshal ICS20 v1 packet data
 	data = expPacketDataICS20V2.GetBytes()
-	packetData, err = unmarshalerStack.UnmarshalPacketData(data)
+	packetData, err = unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 }
