@@ -22,7 +22,7 @@ For a given channel, the source callbacks are supported if the source chain has 
 Callbacks are always executed after the packet has been processed by the underlying IBC module.
 :::
 
-::: warning
+:::warning
 If the underlying application module is doing an asynchronous acknowledgement on packet receive (for example, if the [packet forward middleware](https://github.com/cosmos/ibc-apps/tree/main/middleware/packet-forward-middleware) is in the stack, and is being used by this packet), then the callbacks middleware will execute the `ReceivePacket` callback after the acknowledgement has been received.
 :::
 
