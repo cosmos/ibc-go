@@ -2,7 +2,7 @@ package types_test
 
 import (
 	"fmt"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -11,10 +11,10 @@ import (
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
@@ -361,6 +361,8 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 }
 
 func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
+	s.SetupTest()
+
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
@@ -380,19 +382,32 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 		CommitGasLimit:    1_000_000,
 	}
 
-	packetUnmarshaler := transfer.IBCModule{}
+	s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
+	s.path.EndpointA.ChannelConfig.PortID = transfertypes.ModuleName
+	s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
+	s.path.EndpointB.ChannelConfig.PortID = transfertypes.ModuleName
+
+	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+	s.Require().True(ok)
+
+	packetUnmarshaler, ok := transferStack.(types.CallbacksCompatibleModule)
+	s.Require().True(ok)
+
+	s.path.Setup()
 
 	// Set up gas meter for context.
 	gasMeter := storetypes.NewGasMeter(2_000_000)
-	ctx := s.chain.GetContext().WithGasMeter(gasMeter)
+	ctx := s.chainA.GetContext().WithGasMeter(gasMeter)
 
-	packet := channeltypes.NewPacket(packetDataBytes, 0, ibcmock.PortID, "", "", "", clienttypes.ZeroHeight(), 0)
+	packet := channeltypes.NewPacket(packetDataBytes, 0, transfertypes.PortID, s.path.EndpointA.ChannelID, transfertypes.PortID, s.path.EndpointB.ChannelID, clienttypes.ZeroHeight(), 0)
 	callbackData, err := types.GetSourceCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
 	s.Require().NoError(err)
 	s.Require().Equal(expCallbackData, callbackData)
 }
 
 func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
+	s.SetupTest()
+
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
@@ -412,12 +427,22 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 		CommitGasLimit:    1_000_000,
 	}
 
-	packetUnmarshaler := transfer.IBCModule{}
+	s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
+	s.path.EndpointA.ChannelConfig.PortID = transfertypes.ModuleName
+	s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
+	s.path.EndpointB.ChannelConfig.PortID = transfertypes.ModuleName
+
+	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+	s.Require().True(ok)
+
+	packetUnmarshaler, ok := transferStack.(types.CallbacksCompatibleModule)
+	s.Require().True(ok)
+
+	s.path.Setup()
 
 	gasMeter := storetypes.NewGasMeter(2_000_000)
-	ctx := s.chain.GetContext().WithGasMeter(gasMeter)
-
-	packet := channeltypes.NewPacket(packetDataBytes, 0, ibcmock.PortID, "", "", "", clienttypes.ZeroHeight(), 0)
+	ctx := s.chainA.GetContext().WithGasMeter(gasMeter)
+	packet := channeltypes.NewPacket(packetDataBytes, 0, transfertypes.PortID, s.path.EndpointA.ChannelID, transfertypes.PortID, s.path.EndpointB.ChannelID, clienttypes.ZeroHeight(), 0)
 	callbackData, err := types.GetDestCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
 	s.Require().NoError(err)
 	s.Require().Equal(expCallbackData, callbackData)
