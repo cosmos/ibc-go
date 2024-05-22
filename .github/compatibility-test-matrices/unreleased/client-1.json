@@ -1,9 +1,13 @@
 {
   "chain-a": [
-    "release-v8.2.x"
+    "release-v8.2.x",
+    "release-v7.5.x",
+    "release-v7.4.x"
   ],
   "chain-b": [
-    "release-v8.2.x"
+    "release-v8.2.x",
+    "release-v7.5.x",
+    "release-v7.4.x"
   ],
   "entrypoint": [
     "TestClientTestSuite"

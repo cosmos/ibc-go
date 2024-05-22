@@ -297,7 +297,7 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []types.ForwardRe
 	return forwardRelayerAddr
 }
 
-// Deletes the forwardRelayerAddr associated with the packetID
+// DeleteForwardRelayerAddress deletes the forwardRelayerAddr associated with the packetID
 func (k Keeper) DeleteForwardRelayerAddress(ctx sdk.Context, packetID channeltypes.PacketId) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.KeyRelayerAddressForAsyncAck(packetID)

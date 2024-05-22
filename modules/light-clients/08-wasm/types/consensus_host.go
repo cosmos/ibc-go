@@ -1,7 +1,7 @@
 package types
 
 import (
-	"fmt"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -23,11 +23,11 @@ var _ clienttypes.ConsensusHost = (*WasmConsensusHost)(nil)
 // NewWasmConsensusHost creates and returns a new ConsensusHost for wasm wrapped consensus client state and consensus state self validation.
 func NewWasmConsensusHost(cdc codec.BinaryCodec, delegate clienttypes.ConsensusHost) (*WasmConsensusHost, error) {
 	if cdc == nil {
-		return nil, fmt.Errorf("wasm consensus host codec is nil")
+		return nil, errors.New("wasm consensus host codec is nil")
 	}
 
 	if delegate == nil {
-		return nil, fmt.Errorf("wasm delegate consensus host is nil")
+		return nil, errors.New("wasm delegate consensus host is nil")
 	}
 
 	return &WasmConsensusHost{

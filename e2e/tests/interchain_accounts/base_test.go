@@ -301,7 +301,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 
 	t.Run("submit tx message with bank transfer message times out", func(t *testing.T) {
 		t.Run("fund interchain account wallet", func(t *testing.T) {
-			// fund the host account account so it has some $$ to send
+			// fund the host account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
 				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),

@@ -88,7 +88,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestMsgSendTx_SuccessfulTra
 	})
 
 	t.Run("fund interchain account wallet", func(t *testing.T) {
-		// fund the host account account so it has some $$ to send
+		// fund the host account so it has some $$ to send
 		err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: hostAccount,
 			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
@@ -316,7 +316,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 
 	t.Run("submit tx message with bank transfer message that times out", func(t *testing.T) {
 		t.Run("fund interchain account wallet", func(t *testing.T) {
-			// fund the host account account so it has some $$ to send
+			// fund the host account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: interchainAccount,
 				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
