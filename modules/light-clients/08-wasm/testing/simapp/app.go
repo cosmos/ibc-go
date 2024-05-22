@@ -512,6 +512,7 @@ func NewSimApp(
 		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	app.ICAHostKeeper.WithQueryRouter(app.GRPCQueryRouter())
 
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
