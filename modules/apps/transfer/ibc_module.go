@@ -174,25 +174,23 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
-func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte) (types.FungibleTokenPacketDataV2, error) {
-	// TODO: remove support for this function parsing v1 packet data
-	// TODO: explicit check for packet data type against app version
-
-	var datav1 types.FungibleTokenPacketData
-	if err := json.Unmarshal(bz, &datav1); err == nil {
-		if len(datav1.Denom) != 0 {
-			return convertinternal.PacketDataV1ToV2(datav1), nil
+func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte, ics20Version string) (types.FungibleTokenPacketDataV2, error) {
+	switch ics20Version {
+	case types.V1:
+		var datav1 types.FungibleTokenPacketData
+		if err := json.Unmarshal(bz, &datav1); err != nil {
+			return types.FungibleTokenPacketDataV2{}, err
 		}
-	}
-
-	var data types.FungibleTokenPacketDataV2
-	if err := json.Unmarshal(bz, &data); err == nil {
-		if len(data.Tokens) != 0 {
-			return data, nil
+		return convertinternal.PacketDataV1ToV2(datav1), nil
+	case types.V2:
+		var data types.FungibleTokenPacketDataV2
+		if err := json.Unmarshal(bz, &data); err != nil {
+			return types.FungibleTokenPacketDataV2{}, err
 		}
+		return data, nil
+	default:
+		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(types.ErrInvalidVersion, "invalid ICS-20 version: %s", ics20Version)
 	}
-
-	return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
@@ -205,7 +203,12 @@ func (im IBCModule) OnRecvPacket(
 ) ibcexported.Acknowledgement {
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	data, ackErr := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
+	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
+	if !ok {
+		return channeltypes.NewErrorAcknowledgement(fmt.Errorf("could not retrieve app version for channel (%s, %s)", packet.SourcePort, packet.SourceChannel))
+	}
+
+	data, ackErr := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
 	if ackErr != nil {
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
@@ -267,7 +270,12 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
+	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "could not retrieve app version for channel (%s, %s)", packet.SourcePort, packet.SourceChannel)
+	}
+
+	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
 	if err != nil {
 		return err
 	}
@@ -322,7 +330,12 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
+	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "could not retrieve app version for channel (%s, %s)", packet.SourcePort, packet.SourceChannel)
+	}
+
+	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
 	if err != nil {
 		return err
 	}
@@ -397,7 +410,8 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	ftpd, err := im.unmarshalPacketDataBytesToICS20V2(bz)
+	// TODO: implement correctly after https://github.com/cosmos/ibc-go/pull/6341 is merged
+	ftpd, err := im.unmarshalPacketDataBytesToICS20V2(bz, types.V2)
 	if err != nil {
 		return nil, err
 	}
