@@ -74,6 +74,7 @@ We reserve the right to drop support for releases if they are deemed unused (for
 |`v7.4.x`|September 17, 2024|
 |`v7.5.x`|September 17, 2024|
 |`v8.2.x`|May 10, 2025|
+|`v8.3.x`|May 10, 2025|
 
 ### Callbacks middleware
 
@@ -125,6 +126,7 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 | 1.19 | v7.4.0 | v0.47.8  | v0.37.4  |
 | 1.19 | v7.5.0 | v0.47.11 | v0.37.5  |
 | 1.21 | v8.2.0 | v0.50.5  | v0.38.5  |
+| 1.21 | v8.3.0 | v0.50.6  | v0.38.7  |
 
 ### Callbacks middleware
 

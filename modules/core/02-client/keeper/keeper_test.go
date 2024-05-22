@@ -570,7 +570,9 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
-			upgradedClientState = path.EndpointA.GetClientState().(*ibctm.ClientState).ZeroCustomFields()
+			tmClientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
+			upgradedClientState = tmClientState.ZeroCustomFields()
 
 			// use height 1000 to distinguish from old plan
 			plan = upgradetypes.Plan{
