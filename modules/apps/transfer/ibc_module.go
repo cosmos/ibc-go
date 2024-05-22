@@ -213,7 +213,7 @@ func (im IBCModule) OnRecvPacket(
 ) ibcexported.Acknowledgement {
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
+	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if !ok {
 		return channeltypes.NewErrorAcknowledgement(fmt.Errorf("could not retrieve app version for channel (%s, %s)", packet.SourcePort, packet.SourceChannel))
 	}
