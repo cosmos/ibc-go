@@ -1276,15 +1276,15 @@ func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 		Memo: "",
 	}
 
-	ctx := suite.chainA.GetContext()
-
-	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(ctx, "", "", expPacketData.GetBytes())
+	// Context, port identifier and channel identifier are unused for controller.
+	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", expPacketData.GetBytes())
 	suite.Require().NoError(err)
 	suite.Require().Equal(expPacketData, packetData)
 
 	// test invalid packet data
 	invalidPacketData := []byte("invalid packet data")
-	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(ctx, "", "", invalidPacketData)
+	// Context, port identifier and channel identifier are not used for controller.
+	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", invalidPacketData)
 	suite.Require().Error(err)
 	suite.Require().Nil(packetData)
 }

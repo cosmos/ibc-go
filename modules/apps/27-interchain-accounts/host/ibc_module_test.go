@@ -883,15 +883,15 @@ func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 		Memo: "",
 	}
 
-	ctx := suite.chainA.GetContext()
-
-	packetData, err := icahost.IBCModule{}.UnmarshalPacketData(ctx, "", "", expPacketData.GetBytes())
+	// Context, port identifier and channel identifier are unused for host.
+	packetData, err := icahost.IBCModule{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", expPacketData.GetBytes())
 	suite.Require().NoError(err)
 	suite.Require().Equal(expPacketData, packetData)
 
 	// test invalid packet data
 	invalidPacketData := []byte("invalid packet data")
-	packetData, err = icahost.IBCModule{}.UnmarshalPacketData(ctx, "", "", invalidPacketData)
+	// Context, port identifier and channel identifier are unused for host.
+	packetData, err = icahost.IBCModule{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", invalidPacketData)
 	suite.Require().Error(err)
 	suite.Require().Nil(packetData)
 }

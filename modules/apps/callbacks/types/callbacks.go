@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"strings"
 
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -80,6 +79,7 @@ func GetSourceCallbackData(
 	if err != nil {
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
+
 	return getCallbackData(packetData, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
 }
 
@@ -94,7 +94,6 @@ func GetDestCallbackData(
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
-	// TODO(jim): use ctx to get remaining gas after passing it to unmarshalpacketdata which might consume.
 	return getCallbackData(packetData, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, DestinationCallbackKey)
 }
 

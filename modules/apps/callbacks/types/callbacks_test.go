@@ -3,8 +3,6 @@ package types_test
 import (
 	"fmt"
 
-
-
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -283,7 +281,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 
 			tc.malleate()
 
-			// TODO(jim): better way?
+			// Set up gas meter for context.
 			gasMeter := storetypes.NewGasMeter(remainingGas)
 			ctx := s.chain.GetContext().WithGasMeter(gasMeter)
 
@@ -326,6 +324,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 	packetUnmarshaler := transfer.IBCModule{}
 
+	// Set up gas meter for context.
 	gasMeter := storetypes.NewGasMeter(2_000_000)
 	ctx := s.chain.GetContext().WithGasMeter(gasMeter)
 

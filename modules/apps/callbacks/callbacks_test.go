@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	storetypes "cosmossdk.io/store/types"
-
-
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/suite"
 
@@ -304,10 +301,12 @@ func GetExpectedEvent(
 		err          error
 	)
 
-	packet := channeltypes.NewPacket(data, 0, srcPortID, "", "", "", clienttypes.ZeroHeight(), 0)
+	// Set up gas meter with remainingGas.
 	gasMeter := storetypes.NewGasMeter(remainingGas)
 	ctx = ctx.WithGasMeter(gasMeter)
 
+	// Mock packet.
+	packet := channeltypes.NewPacket(data, 0, srcPortID, "", "", "", clienttypes.ZeroHeight(), 0)
 	if callbackType == types.CallbackTypeReceivePacket {
 		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {

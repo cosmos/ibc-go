@@ -99,9 +99,7 @@ func (im IBCMiddleware) SendPacket(
 		return 0, err
 	}
 
-	// TODO(jim): Look up dest info?
 	packet := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
-
 	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet, im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -248,9 +246,13 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	// TODO(jim): Proper cast (though has same effect either way)
+	chanPacket, ok := packet.(channeltypes.Packet)
+	if !ok {
+		panic(fmt.Errorf("expected type %T, got %T", &channeltypes.Packet{}, packet))
+	}
+
 	callbackData, err := types.GetDestCallbackData(
-		ctx, im.app, packet.(channeltypes.Packet), im.maxCallbackGas,
+		ctx, im.app, chanPacket, im.maxCallbackGas,
 	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
