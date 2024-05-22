@@ -489,27 +489,34 @@ func (k *Keeper) AcknowledgePacket(
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
-		if err := k.handleFlushState(ctx, &packet, &channel); err != nil {
-			return err
+		if aborted := k.handleFlushState(ctx, &packet, &channel); aborted {
+			k.Logger(ctx).Info(
+				"upgrade aborted",
+				"port_id", packet.GetSourcePort(),
+				"channel_id", packet.GetSourceChannel(),
+				"upgrade_sequence", channel.UpgradeSequence,
+			)
+			return nil
 		}
 	}
+
 	return nil
 }
 
-func (k *Keeper) handleFlushState(ctx sdk.Context, packet *types.Packet, channel *types.Channel) error {
+func (k *Keeper) handleFlushState(ctx sdk.Context, packet *types.Packet, channel *types.Channel) bool {
 	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
-		return nil
+		return false
 	}
 
 	timeout := counterpartyUpgrade.Timeout
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
 
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
-		// packet flushing timeout has expired, abort the upgrade and return nil,
+		// packet flushing timeout has expired, abort the upgrade
 		// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
 		k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
-		return nil
+		return true
 	}
 
 	// set the channel state to flush complete if all packets have been acknowledged/flushed.
@@ -519,5 +526,5 @@ func (k *Keeper) handleFlushState(ctx sdk.Context, packet *types.Packet, channel
 		emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), *channel)
 	}
 
-	return nil
+	return false
 }
