@@ -99,7 +99,7 @@ func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} 
 
 // NewFungibleTokenPacketDataV2 constructs a new NewFungibleTokenPacketDataV2 instance
 func NewFungibleTokenPacketDataV2(
-	tokens []*Token,
+	tokens []Token,
 	sender, receiver string,
 	memo string,
 ) FungibleTokenPacketDataV2 {

@@ -74,6 +74,7 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"multidenom: invalid denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidDenomCoins...), sender, receiver, timeoutHeight, 0, ""), false},
 		{"multidenom: invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidIBCCoins...), sender, receiver, timeoutHeight, 0, ""), false},
 		{"multidenom: zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, ""), false},
+		{"multidenom: too many coins", types.NewMsgTransfer(validPort, validChannel, make([]sdk.Coin, types.MaximumTokensLength+1), sender, receiver, timeoutHeight, 0, ""), false},
 	}
 
 	for i, tc := range testCases {

@@ -14,7 +14,7 @@ func PacketDataV1ToV2(packetData types.FungibleTokenPacketData) types.FungibleTo
 
 	v2Denom, trace := ExtractDenomAndTraceFromV1Denom(packetData.Denom)
 	return types.FungibleTokenPacketDataV2{
-		Tokens: []*types.Token{
+		Tokens: []types.Token{
 			{
 				Denom:  v2Denom,
 				Amount: packetData.Amount,
