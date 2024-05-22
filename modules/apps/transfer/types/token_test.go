@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"

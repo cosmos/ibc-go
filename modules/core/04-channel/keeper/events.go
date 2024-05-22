@@ -125,7 +125,6 @@ func emitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Cha
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
-			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())), //nolint:staticcheck // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, timeoutHeight.String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
@@ -153,7 +152,6 @@ func emitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Cha
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
-			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())), //nolint:staticcheck // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
@@ -180,7 +178,6 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWriteAck,
-			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())), //nolint:staticcheck // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
@@ -189,7 +186,6 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
-			sdk.NewAttribute(types.AttributeKeyAck, string(acknowledgement)), //nolint:staticcheck // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyAckHex, hex.EncodeToString(acknowledgement)),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
@@ -280,9 +276,6 @@ func EmitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID strin
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionHops, upgrade.Fields.ConnectionHops[0]),
-			sdk.NewAttribute(types.AttributeKeyVersion, upgrade.Fields.Version),
-			sdk.NewAttribute(types.AttributeKeyOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 		),
 		sdk.NewEvent(
@@ -301,9 +294,6 @@ func EmitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionHops, upgrade.Fields.ConnectionHops[0]),
-			sdk.NewAttribute(types.AttributeKeyVersion, upgrade.Fields.Version),
-			sdk.NewAttribute(types.AttributeKeyOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 		),
 		sdk.NewEvent(
@@ -322,9 +312,6 @@ func EmitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionHops, upgrade.Fields.ConnectionHops[0]),
-			sdk.NewAttribute(types.AttributeKeyVersion, upgrade.Fields.Version),
-			sdk.NewAttribute(types.AttributeKeyOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 		),
 		sdk.NewEvent(
@@ -363,9 +350,6 @@ func EmitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID strin
 			sdk.NewAttribute(types.AttributeKeyChannelState, channel.State.String()),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionHops, channel.ConnectionHops[0]),
-			sdk.NewAttribute(types.AttributeKeyVersion, channel.Version),
-			sdk.NewAttribute(types.AttributeKeyOrdering, channel.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 		),
 		sdk.NewEvent(
@@ -384,9 +368,6 @@ func EmitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID st
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionHops, upgrade.Fields.ConnectionHops[0]),
-			sdk.NewAttribute(types.AttributeKeyVersion, upgrade.Fields.Version),
-			sdk.NewAttribute(types.AttributeKeyOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeTimeoutHeight, upgrade.Timeout.Height.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeTimeoutTimestamp, fmt.Sprintf("%d", upgrade.Timeout.Timestamp)),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
@@ -426,9 +407,6 @@ func EmitChannelUpgradeCancelEvent(ctx sdk.Context, portID string, channelID str
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
 			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
-			sdk.NewAttribute(types.AttributeKeyConnectionHops, upgrade.Fields.ConnectionHops[0]),
-			sdk.NewAttribute(types.AttributeKeyVersion, upgrade.Fields.Version),
-			sdk.NewAttribute(types.AttributeKeyOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 		),
 		sdk.NewEvent(

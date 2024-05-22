@@ -17,6 +17,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
@@ -41,6 +42,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
+	chainBVersion := chainB.Config().Images[0].Version
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
@@ -64,7 +66,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
+		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(hostAccount)
 
@@ -110,10 +112,11 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 
 			ack := &channeltypes.Acknowledgement_Result{}
 			t.Run("retrieve acknowledgement", func(t *testing.T) {
-				txSearchRes, err := s.QueryTxsByEvents(
-					ctx, chainB, 1, 1,
-					"message.action='/ibc.core.channel.v1.MsgRecvPacket'", "",
-				)
+				cmd := "message.action=/ibc.core.channel.v1.MsgRecvPacket"
+				if testvalues.TransactionEventQueryFeatureReleases.IsSupported(chainBVersion) {
+					cmd = "message.action='/ibc.core.channel.v1.MsgRecvPacket'"
+				}
+				txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, cmd, "")
 				s.Require().NoError(err)
 				s.Require().Len(txSearchRes.Txs, 1)
 

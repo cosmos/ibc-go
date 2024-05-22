@@ -163,3 +163,19 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 		})
 	}
 }
+
+func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareTransferHandshake() {
+	RemoveFeeMiddleware(suite.chainB) // remove fee middleware from chainB
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
+	path.EndpointA.ChannelConfig.Version = feeTransferVersion // this will be renegotiated by the Try step
+	path.EndpointB.ChannelConfig.Version = ""                 // this will be overwritten by the Try step
+	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
+	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
+
+	path.Setup()
+
+	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, transfertypes.V2)
+	suite.Require().Equal(path.EndpointB.ChannelConfig.Version, transfertypes.V2)
+}

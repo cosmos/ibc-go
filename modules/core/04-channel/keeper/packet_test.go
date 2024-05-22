@@ -7,6 +7,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -145,12 +147,31 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
+		{"client state zero height", func() {
+			path.Setup()
+			sourceChannel = path.EndpointA.ChannelID
 
+			connection := path.EndpointA.GetConnection()
+			clientState := path.EndpointA.GetClientState()
+			cs, ok := clientState.(*ibctm.ClientState)
+			suite.Require().True(ok)
+
+			// force a consensus state into the store at height zero to allow client status check to pass.
+			consensusState := path.EndpointA.GetConsensusState(cs.LatestHeight)
+			path.EndpointA.SetConsensusState(consensusState, clienttypes.ZeroHeight())
+
+			cs.LatestHeight = clienttypes.ZeroHeight()
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), connection.ClientId, cs)
+
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+		}, false},
 		{"timeout height passed", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			timeoutHeight = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			var ok bool
+			timeoutHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			suite.Require().True(ok)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"timeout timestamp passed", func() {
@@ -847,7 +868,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		name      string
 		malleate  func()
 		expResult func(commitment []byte, err error)
-		expEvents func(path *ibctesting.Path) map[string]map[string]string
+		expEvents func(path *ibctesting.Path) []abci.Event
 	}{
 		{
 			name: "success on ordered channel",
@@ -954,19 +975,21 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), nextSequenceAck, "sequence incremented for UNORDERED channel")
 			},
-			expEvents: func(path *ibctesting.Path) map[string]map[string]string {
-				return ibctesting.EventsMap{
-					types.EventTypeChannelFlushComplete: {
-						types.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						types.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						types.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						types.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						types.AttributeKeyChannelState:       path.EndpointA.GetChannel().State.String(),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: types.AttributeValueCategory,
-					},
-				}
+			expEvents: func(path *ibctesting.Path) []abci.Event {
+				return sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeChannelFlushComplete,
+						sdk.NewAttribute(types.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(types.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(types.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(types.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(types.AttributeKeyChannelState, path.EndpointA.GetChannel().State.String()),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
 			},
 		},
 		{
@@ -1320,7 +1343,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				expEvents := tc.expEvents(path)
 
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			}
 		})
 	}

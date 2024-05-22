@@ -95,7 +95,9 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 	return clientState.CheckForMisbehaviour(ctx, l.cdc, clientStore, clientMsg)
 }
 
-// UpdateStateOnMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.UpdateStateOnMisbehaviour method.
+// UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState.
+// This method should only be called when misbehaviour is detected as it does not perform
+// any misbehaviour checks.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
 func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
@@ -105,7 +107,8 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	clientState.UpdateStateOnMisbehaviour(ctx, l.cdc, clientStore, clientMsg)
+	clientState.IsFrozen = true
+	setClientState(clientStore, l.cdc, clientState)
 }
 
 // UpdateState obtains the client state associated with the client identifier and calls into the clientState.UpdateState method.
@@ -164,7 +167,11 @@ func (l LightClientModule) VerifyNonMembership(
 	return clientState.VerifyNonMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
-// Status obtains the client state associated with the client identifier and calls into the clientState.Status method.
+// Status returns the status of the solo machine client.
+// The client may be:
+// - Active: if `IsFrozen` is false.
+// - Frozen: if `IsFrozen` is true.
+// - Unknown: if the client state associated with the provided client identifier is not found.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
 func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
@@ -174,7 +181,11 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 		return exported.Unknown
 	}
 
-	return clientState.Status(ctx, clientStore, l.cdc)
+	if clientState.IsFrozen {
+		return exported.Frozen
+	}
+
+	return exported.Active
 }
 
 // LatestHeight returns the latest height for the client state for the given client identifier.
@@ -193,7 +204,7 @@ func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) export
 	return clienttypes.NewHeight(0, clientState.Sequence)
 }
 
-// TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.GetTimestampAtHeight method.
+// TimestampAtHeight obtains the client state associated with the client identifier and returns the timestamp in nanoseconds of the consensus state at the given height.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
 func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
@@ -203,7 +214,7 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 		return 0, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.GetTimestampAtHeight(ctx, clientStore, l.cdc, height)
+	return clientState.ConsensusState.Timestamp, nil
 }
 
 // RecoverClient asserts that the substitute client is a solo machine client. It obtains the client state associated with the

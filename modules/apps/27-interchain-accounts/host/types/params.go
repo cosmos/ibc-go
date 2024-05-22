@@ -9,6 +9,8 @@ import (
 const (
 	// DefaultHostEnabled is the default value for the host param (set to true)
 	DefaultHostEnabled = true
+	// Maximum length of the allowlist
+	MaxAllowListLength = 500
 )
 
 // NewParams creates a new parameter configuration for the host submodule
@@ -30,6 +32,10 @@ func (p Params) Validate() error {
 }
 
 func validateAllowlist(allowMsgs []string) error {
+	if len(allowMsgs) > MaxAllowListLength {
+		return fmt.Errorf("allow list length must not exceed %d items", MaxAllowListLength)
+	}
+
 	if slices.Contains(allowMsgs, AllowAllHostMsgs) && len(allowMsgs) > 1 {
 		return fmt.Errorf("allow list must have only one element because the allow all host messages wildcard (%s) is present", AllowAllHostMsgs)
 	}
