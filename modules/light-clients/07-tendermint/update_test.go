@@ -307,14 +307,12 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 			header, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
 			tc.malleate()
 
-			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
-
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
-			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, header)
+			err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
 
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
@@ -524,14 +522,15 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 			clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
 			tc.malleate()
 
-			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			if tc.expPass {
-				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+				consensusHeights = lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage)
 
 				header, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
@@ -548,7 +547,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().Equal(expConsensusState, updatedConsensusState)
 
 			} else {
-				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+				consensusHeights = lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage)
 				suite.Require().Empty(consensusHeights)
 
 				consensusState, found := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight())))
@@ -895,16 +894,14 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 			clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
 			tc.malleate()
 
-			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
-			foundMisbehaviour := clientState.CheckForMisbehaviour(
+			foundMisbehaviour := lightClientModule.CheckForMisbehaviour(
 				suite.chainA.GetContext(),
-				suite.chainA.App.AppCodec(),
-				clientStore, // pass in clientID prefixed clientStore
+				path.EndpointA.ClientID,
 				clientMessage,
 			)
 
@@ -943,13 +940,14 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
 
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
 			tc.malleate()
 
-			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-			clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, nil)
+			lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, nil)
 
 			if tc.expPass {
 				clientStateBz := clientStore.Get(host.ClientStateKey())
