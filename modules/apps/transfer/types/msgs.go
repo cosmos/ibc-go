@@ -15,7 +15,7 @@ import (
 const (
 	MaximumReceiverLength = 2048  // maximum length of the receiver address in bytes (value chosen arbitrarily)
 	MaximumMemoLength     = 32768 // maximum length of the memo in bytes (value chosen arbitrarily)
-	MaximumTokensLength   = 100   // maximum number of tokens that can be transferred in a single message
+	MaximumTokensLength   = 100   // maximum number of tokens that can be transferred in a single message (value chosen arbitrarily)
 )
 
 var (
