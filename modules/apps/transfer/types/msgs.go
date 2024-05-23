@@ -109,7 +109,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	return nil
 }
 
-// GetTokens returns the tokens which will be transferred.
+// GetCoins returns the tokens which will be transferred.
 func (msg MsgTransfer) GetCoins() sdk.Coins {
 	coins := msg.Tokens
 	if isValidIBCCoin(msg.Token) {
