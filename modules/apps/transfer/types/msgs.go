@@ -134,7 +134,7 @@ func validateIBCCoin(coin sdk.Coin) error {
 	if !coin.Amount.IsPositive() {
 		return errorsmod.Wrap(ErrInvalidAmount, "amount must be positive")
 	}
-	if err := ValidateIBCDenom(coin.GetDenom()); err != nil {
+	if err := validateIBCDenom(coin.GetDenom()); err != nil {
 		return err
 	}
 
