@@ -37,7 +37,7 @@ The `migrate-contract` command allows users to broadcast a transaction with a `M
 simd tx ibc-wasm migrate-contract [client-id] [checksum] [migrate-msg]
 ```
 
-The migrate message must not be emptied and is expected to be a JSON-encoded string.
+The migrate message must not be empty and is expected to be a JSON-encoded string.
 
 ### Query
 

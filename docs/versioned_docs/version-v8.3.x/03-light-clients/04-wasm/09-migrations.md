@@ -87,7 +87,7 @@ type WasmEngine interface {
 }
 ```
 
-Similar changes were required in the functions of `MockWasmEngine` interface.
+Similar changes were required in the functions of the `MockWasmEngine` interface.
 
 ### Chains
 
