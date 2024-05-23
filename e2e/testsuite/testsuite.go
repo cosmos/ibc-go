@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path"
 	"strings"
 
 	dockerclient "github.com/docker/docker/client"
@@ -17,10 +19,13 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -42,7 +47,6 @@ type E2ETestSuite struct {
 
 	// proposalIDs keeps track of the active proposal ID for each chain.
 	proposalIDs    map[string]uint64
-	grpcClients    map[string]GRPCClients
 	paths          map[string]pathPair
 	relayers       relayer.Map
 	logger         *zap.Logger
@@ -65,6 +69,49 @@ func newPath(chainA, chainB ibc.Chain) pathPair {
 		chainA: chainA,
 		chainB: chainB,
 	}
+}
+
+func (s *E2ETestSuite) SetupTest() {
+	s.configureGenesisDebugExport()
+}
+
+// configureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
+func (s *E2ETestSuite) configureGenesisDebugExport() {
+	tc := LoadConfig()
+	t := s.T()
+	cfg := tc.DebugConfig.GenesisDebug
+	if !cfg.DumpGenesisDebugInfo {
+		return
+	}
+
+	// Set the export path.
+	exportPath := cfg.ExportFilePath
+
+	// If no path is provided, use the default (e2e/diagnostics/genesis.json).
+	if exportPath == "" {
+		e2eDir, err := directories.E2E(t)
+		s.Require().NoError(err, "can't get e2edir")
+		exportPath = path.Join(e2eDir, directories.DefaultGenesisExportPath)
+	}
+
+	if !path.IsAbs(exportPath) {
+		wd, err := os.Getwd()
+		s.Require().NoError(err, "can't get working directory")
+		exportPath = path.Join(wd, exportPath)
+	}
+
+	// This env variables are set by the interchain test code:
+	// https://github.com/strangelove-ventures/interchaintest/blob/7aa0fd6487f76238ab44231fdaebc34627bc5990/chain/cosmos/cosmos_chain.go#L1007-L1008
+	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
+
+	chainName := tc.GetGenesisChainName()
+	chainIdx, err := tc.GetChainIndex(chainName)
+	s.Require().NoError(err)
+
+	// Interchaintest adds a suffix (https://github.com/strangelove-ventures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
+	// to the chain name, so we need to do the same.
+	genesisChainName := fmt.Sprintf("%s-%d", chainName, chainIdx+1)
+	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
@@ -96,8 +143,6 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains(chainSpecOpts...)
 	r := s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
-	s.InitGRPCClients(chainA)
-	s.InitGRPCClients(chainB)
 	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 	s.Require().NoError(err)
 	return r, chainAChannels[len(chainAChannels)-1]
@@ -109,9 +154,9 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 	pathName := s.generatePathName()
 
 	channelOptions := ibc.DefaultChannelOpts()
-	// TODO: better way to do this.
 	// For now, set the version to the latest transfer module version
-	channelOptions.Version = transfertypes.Version
+	// DefaultChannelOpts uses V1 at the moment
+	channelOptions.Version = transfertypes.V2
 
 	if channelOpts != nil {
 		channelOpts(&channelOptions)
@@ -169,17 +214,14 @@ func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
 		SkipPathCreation: true,
 	}))
 
-	s.InitGRPCClients(chainA)
-	s.InitGRPCClients(chainB)
-
 	return chainA
 }
 
 // generatePathName generates the path name using the test suites name
 func (s *E2ETestSuite) generatePathName() string {
-	path := s.GetPathName(s.pathNameIndex)
+	pathName := s.GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
-	return path
+	return pathName
 }
 
 // GetPathName returns the name of a path at a specific index. This can be used in tests
@@ -223,9 +265,9 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 		s.paths = map[string]pathPair{}
 	}
 
-	path, ok := s.paths[s.T().Name()]
+	suitePath, ok := s.paths[s.T().Name()]
 	if ok {
-		return path.chainA, path.chainB
+		return suitePath.chainA, suitePath.chainB
 	}
 
 	chainOptions := DefaultChainOptions()
@@ -234,8 +276,8 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 	}
 
 	chainA, chainB := s.createChains(chainOptions)
-	path = newPath(chainA, chainB)
-	s.paths[s.T().Name()] = path
+	suitePath = newPath(chainA, chainB)
+	s.paths[s.T().Name()] = suitePath
 
 	if s.proposalIDs == nil {
 		s.proposalIDs = map[string]uint64{}
@@ -244,7 +286,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 	s.proposalIDs[chainA.Config().ChainID] = 1
 	s.proposalIDs[chainB.Config().ChainID] = 1
 
-	return path.chainA, path.chainB
+	return suitePath.chainA, suitePath.chainB
 }
 
 // GetRelayerWallets returns the ibcrelayer wallets associated with the chains.
@@ -318,43 +360,53 @@ func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc
 func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	chainA, _ := s.GetChains()
 
-	balance, err := s.QueryBalance(ctx, chainA, user.FormattedAddress(), chainA.Config().Denom)
+	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainA, &banktypes.QueryBalanceRequest{
+		Address: user.FormattedAddress(),
+		Denom:   chainA.Config().Denom,
+	})
 	if err != nil {
 		return 0, err
 	}
-	return balance.Int64(), nil
+
+	return balanceResp.Balance.Amount.Int64(), nil
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
 func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	_, chainB := s.GetChains()
-	balance, err := s.QueryBalance(ctx, chainB, user.FormattedAddress(), chainB.Config().Denom)
-	if err != nil {
-		return -1, err
-	}
-	return balance.Int64(), nil
-}
 
-// GetChainGRCPClients gets the GRPC clients associated with the given chain.
-func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
-	cs, ok := s.grpcClients[chain.Config().ChainID]
-	s.Require().True(ok, "chain %s does not have GRPC clients", chain.Config().ChainID)
-	return cs
+	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainB, &banktypes.QueryBalanceRequest{
+		Address: user.FormattedAddress(),
+		Denom:   chainB.Config().Denom,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return balanceResp.Balance.Amount.Int64(), nil
 }
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
 // The packet commitment will be deleted upon a packet acknowledgement or timeout.
 func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) {
-	commitment, _ := s.QueryPacketCommitment(ctx, chain, portID, channelID, sequence)
-	s.Require().Empty(commitment)
+	_, err := query.GRPCQuery[channeltypes.QueryPacketCommitmentResponse](ctx, chain, &channeltypes.QueryPacketCommitmentRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+		Sequence:  sequence,
+	})
+	s.Require().ErrorContains(err, "packet commitment hash not found")
 }
 
 // AssertHumanReadableDenom asserts that a human readable denom is present for a given chain.
 func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.Chain, counterpartyNativeDenom string, counterpartyChannel ibc.ChannelOutput) {
 	chainIBCDenom := GetIBCToken(counterpartyNativeDenom, counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID)
 
-	denomMetadata, err := s.QueryDenomMetadata(ctx, chain, chainIBCDenom.IBCDenom())
+	denomMetadataResp, err := query.GRPCQuery[banktypes.QueryDenomMetadataResponse](ctx, chain, &banktypes.QueryDenomMetadataRequest{
+		Denom: chainIBCDenom.IBCDenom(),
+	})
 	s.Require().NoError(err)
+
+	denomMetadata := denomMetadataResp.Metadata
 
 	s.Require().Equal(chainIBCDenom.IBCDenom(), denomMetadata.Base, "denom metadata base does not match expected %s: got %s", chainIBCDenom.IBCDenom(), denomMetadata.Base)
 	expectedName := fmt.Sprintf("%s/%s/%s IBC token", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom)
@@ -401,7 +453,7 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
 func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transfertypes.Version
+		opts.Version = transfertypes.V2
 		opts.SourcePortName = transfertypes.PortID
 		opts.DestPortName = transfertypes.PortID
 	}
@@ -411,7 +463,7 @@ func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOpt
 func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: transfertypes.Version,
+		AppVersion: transfertypes.V2,
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
@@ -446,7 +498,7 @@ func (s *E2ETestSuite) CreateUpgradeFields(channel channeltypes.Channel) channel
 // SetUpgradeTimeoutParam creates and submits a governance proposal to execute the message to update 04-channel params with a timeout of 1s
 func (s *E2ETestSuite) SetUpgradeTimeoutParam(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet) {
 	const timeoutDelta = 1000000000 // use 1 second as relative timeout to force upgrade timeout on the counterparty
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -457,7 +509,7 @@ func (s *E2ETestSuite) SetUpgradeTimeoutParam(ctx context.Context, chain ibc.Cha
 
 // InitiateChannelUpgrade creates and submits a governance proposal to execute the message to initiate a channel upgrade
 func (s *E2ETestSuite) InitiateChannelUpgrade(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, portID, channelID string, upgradeFields channeltypes.UpgradeFields) {
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 

@@ -15,6 +15,7 @@ import (
 const (
 	MaximumReceiverLength = 2048  // maximum length of the receiver address in bytes (value chosen arbitrarily)
 	MaximumMemoLength     = 32768 // maximum length of the memo in bytes (value chosen arbitrarily)
+	MaximumTokensLength   = 100   // maximum number of tokens that can be transferred in a single message (value chosen arbitrarily)
 )
 
 var (
@@ -75,12 +76,16 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
 
-	if len(msg.Tokens) == 0 && !isValidToken(msg.Token) {
-		return errorsmod.Wrap(ErrInvalidAmount, "either token or token array must be filled")
+	if len(msg.Tokens) == 0 && !isValidIBCCoin(msg.Token) {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "either token or token array must be filled")
 	}
 
-	if len(msg.Tokens) != 0 && isValidToken(msg.Token) {
-		return errorsmod.Wrap(ErrInvalidAmount, "cannot fill both token and token array")
+	if len(msg.Tokens) != 0 && isValidIBCCoin(msg.Token) {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot fill both token and token array")
+	}
+
+	if len(msg.Tokens) > MaximumTokensLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "number of tokens must not exceed %d", MaximumTokensLength)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
@@ -97,47 +102,45 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 
-	for _, token := range msg.GetTokens() {
-		if !isValidToken(token) {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.String())
-		}
-		if err := ValidateIBCDenom(token.GetDenom()); err != nil {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.Denom)
+	for _, coin := range msg.GetCoins() {
+		if err := validateIBCCoin(coin); err != nil {
+			return errorsmod.Wrap(err, coin.String())
 		}
 	}
 
 	return nil
 }
 
-// GetTokens returns the tokens which will be transferred.
-func (msg MsgTransfer) GetTokens() []sdk.Coin {
-	tokens := msg.Tokens
-	if isValidToken(msg.Token) {
-		tokens = []sdk.Coin{msg.Token}
+// GetCoins returns the tokens which will be transferred.
+// If MsgTransfer is populated in the Token field, only that field
+// will be returned in the coin array.
+func (msg MsgTransfer) GetCoins() sdk.Coins {
+	coins := msg.Tokens
+	if isValidIBCCoin(msg.Token) {
+		coins = []sdk.Coin{msg.Token}
 	}
-	return tokens
+	return coins
 }
 
-// isValidToken returns true if the token provided is valid,
+// isValidIBCCoin returns true if the token provided is valid,
 // and should be used to transfer tokens.
-// this function is used in case the user constructs a sdk.Coin literal
-// instead of using the construction function.
-func isValidToken(coin sdk.Coin) bool {
-	if coin.IsNil() {
-		return false
+func isValidIBCCoin(coin sdk.Coin) bool {
+	return validateIBCCoin(coin) == nil
+}
+
+// validateIBCCoin returns true if the token provided is valid,
+// and should be used to transfer tokens. The token must
+// have a positive amount.
+func validateIBCCoin(coin sdk.Coin) error {
+	if err := coin.Validate(); err != nil {
+		return err
+	}
+	if !coin.IsPositive() {
+		return errorsmod.Wrap(ErrInvalidAmount, "amount must be positive")
+	}
+	if err := validateIBCDenom(coin.GetDenom()); err != nil {
+		return err
 	}
 
-	if strings.TrimSpace(coin.Denom) == "" {
-		return false
-	}
-
-	if coin.Amount.IsZero() {
-		return false
-	}
-
-	if coin.Amount.IsNegative() {
-		return false
-	}
-
-	return true
+	return nil
 }

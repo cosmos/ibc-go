@@ -15,12 +15,12 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.1.1",
-    "@docusaurus/plugin-client-redirects": "^3.1.1",
-    "@docusaurus/plugin-content-docs": "^3.1.1",
-    "@docusaurus/plugin-google-gtag": "^3.1.1",
-    "@docusaurus/plugin-sitemap": "^3.1.1",
-    "@docusaurus/preset-classic": "^3.1.1",
+    "@docusaurus/core": "^3.3.2",
+    "@docusaurus/plugin-client-redirects": "^3.3.2",
+    "@docusaurus/plugin-content-docs": "^3.3.2",
+    "@docusaurus/plugin-google-gtag": "^3.3.2",
+    "@docusaurus/plugin-sitemap": "^3.3.2",
+    "@docusaurus/preset-classic": "^3.3.2",
     "@easyops-cn/docusaurus-search-local": "^0.40.1",
     "@gracefullight/docusaurus-plugin-microsoft-clarity": "^1.0.0",
     "@mdx-js/react": "^3.0.0",
@@ -36,7 +36,7 @@
     "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.1.1"
+    "@docusaurus/module-type-aliases": "^3.3.2"
   },
   "browserslist": {
     "production": [

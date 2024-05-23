@@ -13,9 +13,9 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v3types "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types/v3"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -417,8 +417,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			tc.malleate()
 
 			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-			data := v3types.NewFungibleTokenPacketData(
-				[]*v3types.Token{
+			data := types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
@@ -555,8 +555,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	}
 
 	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-	data := v3types.NewFungibleTokenPacketData(
-		[]*v3types.Token{
+	data := types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
@@ -684,8 +684,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			tc.malleate()
 
 			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-			data := v3types.NewFungibleTokenPacketData(
-				[]*v3types.Token{
+			data := types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
@@ -777,8 +777,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	)
 
 	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-	data := v3types.NewFungibleTokenPacketData(
-		[]*v3types.Token{
+	data := types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
@@ -901,8 +901,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			tc.malleate()
 
 			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-			data := v3types.NewFungibleTokenPacketData(
-				[]*v3types.Token{
+			data := types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
@@ -987,8 +987,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	)
 
 	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-	data := v3types.NewFungibleTokenPacketData(
-		[]*v3types.Token{
+	data := types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
@@ -1166,8 +1166,8 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	denomTrace := types.ParseDenomTrace(sdk.DefaultBondDenom)
 
 	denom, trace := convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-	data := v3types.NewFungibleTokenPacketData(
-		[]*v3types.Token{
+	data := types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
@@ -1206,8 +1206,8 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	suite.Require().NotNil(packet)
 
 	denom, trace = convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
-	data = v3types.NewFungibleTokenPacketData(
-		[]*v3types.Token{
+	data = types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
@@ -1229,7 +1229,9 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 
 /*
 // TODO
- Test scenarios for failures ack
+
+	Test scenarios for failures ack
+
 Check out the notion page: https://www.notion.so/interchain/ICS20-v2-path-forwarding-091f1ac788e84a538261c5a247cb5924
 
 // TODO
@@ -1237,5 +1239,90 @@ Test async ack is properly relayed to middle hop after forwarding transfer compl
 
 // TODO
 Tiemout during forwarding after middle hop execution reverts properly the state changes
-
 */
+func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
+	// We are testing a scenario where a packet in the future has a new populated
+	// field called "new_field". And this packet is being sent to this module which
+	// doesn't have this field in the packet data. The module should be able to handle
+	// this packet without any issues.
+
+	var packetData []byte
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: new field",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+		},
+		{
+			"success: no new field with memo",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+		},
+		{
+			"success: no new field without memo",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+		},
+		{
+			"failure: invalid packet data",
+			func() {
+				packetData = []byte("invalid packet data")
+			},
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: missing field",
+			func() {
+				jsonString := fmt.Sprintf(`{"amount":"100","sender":%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			ibcerrors.ErrInvalidType,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.msg, func() {
+			suite.SetupTest() // reset
+			packetData = nil
+
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.EndpointA.ChannelConfig.Version = types.V1
+			path.EndpointB.ChannelConfig.Version = types.V1
+			path.Setup()
+
+			tc.malleate()
+
+			timeoutHeight := suite.chainB.GetTimeoutHeight()
+
+			seq, err := path.EndpointB.SendPacket(timeoutHeight, 0, packetData)
+			suite.Require().NoError(err)
+
+			packet := channeltypes.NewPacket(packetData, seq, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, 0)
+
+			// receive packet on chainA
+			err = path.RelayPacket(packet)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorContains(err, tc.expError.Error())
+			}
+		})
+	}
+}

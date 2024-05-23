@@ -1,6 +1,8 @@
 package solomachine
 
 import (
+	"fmt"
+
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,5 +20,11 @@ func getClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientSta
 	}
 
 	clientStateI := clienttypes.MustUnmarshalClientState(cdc, bz)
-	return clientStateI.(*ClientState), true
+	var clientState *ClientState
+	clientState, ok := clientStateI.(*ClientState)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T to %T", clientStateI, clientState))
+	}
+
+	return clientState, true
 }

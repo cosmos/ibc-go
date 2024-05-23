@@ -33,7 +33,7 @@ func NewPath(chainA, chainB *TestChain) *Path {
 	}
 }
 
-// NewPath constructs an endpoint for each chain using the default values
+// NewPathWithFeeEnabled constructs an endpoint for each chain using the default values
 // for the endpoints. Each endpoint is updated to have a pointer to the
 // counterparty endpoint. It also enables fee on the path
 func NewPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
@@ -47,8 +47,8 @@ func NewTransferPath(chainA, chainB *TestChain) *Path {
 	path := NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = TransferPort
 	path.EndpointB.ChannelConfig.PortID = TransferPort
-	path.EndpointA.ChannelConfig.Version = transfertypes.Version
-	path.EndpointB.ChannelConfig.Version = transfertypes.Version
+	path.EndpointA.ChannelConfig.Version = transfertypes.V2
+	path.EndpointB.ChannelConfig.Version = transfertypes.V2
 
 	return path
 }
@@ -195,7 +195,7 @@ func (path *Path) CreateConnections() {
 	}
 }
 
-// CreateChannel constructs and executes channel handshake messages in order to create
+// CreateChannels constructs and executes channel handshake messages in order to create
 // OPEN channels on chainA and chainB. The function expects the channels to be successfully
 // opened otherwise testing will fail.
 func (path *Path) CreateChannels() {

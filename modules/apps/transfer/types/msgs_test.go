@@ -42,8 +42,9 @@ var (
 	ibcCoins          = sdk.NewCoins(sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.NewInt(100)))
 	invalidIBCCoins   = sdk.NewCoins(sdk.NewCoin("ibc/7F1D3FCF4AE79E1554", sdkmath.NewInt(100)))
 	invalidDenomCoins = []sdk.Coin{{Denom: "0atom", Amount: sdkmath.NewInt(100)}}
-	zeroCoins         = sdk.NewCoins(sdk.Coin{Denom: "atoms", Amount: sdkmath.NewInt(0)})
-	timeoutHeight     = clienttypes.NewHeight(0, 10)
+	zeroCoins         = []sdk.Coin{{Denom: "atoms", Amount: sdkmath.NewInt(0)}}
+
+	timeoutHeight = clienttypes.NewHeight(0, 10)
 )
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
@@ -73,6 +74,7 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"multidenom: invalid denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidDenomCoins...), sender, receiver, timeoutHeight, 0, "", nil), false},
 		{"multidenom: invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidIBCCoins...), sender, receiver, timeoutHeight, 0, "", nil), false},
 		{"multidenom: zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, "", nil), false},
+		{"multidenom: too many coins", types.NewMsgTransfer(validPort, validChannel, make([]sdk.Coin, types.MaximumTokensLength+1), sender, receiver, timeoutHeight, 0, "", nil), false},
 	}
 
 	for i, tc := range testCases {
