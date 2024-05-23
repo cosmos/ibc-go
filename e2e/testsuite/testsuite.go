@@ -154,8 +154,8 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 	pathName := s.generatePathName()
 
 	channelOptions := ibc.DefaultChannelOpts()
-	// TODO: better way to do this.
 	// For now, set the version to the latest transfer module version
+	// DefaultChannelOpts uses V1 at the moment
 	channelOptions.Version = transfertypes.V2
 
 	if channelOpts != nil {

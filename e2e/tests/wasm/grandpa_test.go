@@ -140,7 +140,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// Create a new channel & get channels from each chain
-	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
+	err = r.CreateChannel(ctx, eRep, pathName, s.TransferChannelOptions())
 	s.Require().NoError(err)
 	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
 	s.Require().NoError(err)
@@ -293,7 +293,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// Create a new channel & get channels from each chain
-	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
+	err = r.CreateChannel(ctx, eRep, pathName, s.TransferChannelOptions())
 	s.Require().NoError(err)
 	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
 	s.Require().NoError(err)
