@@ -139,7 +139,11 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		return []exported.Height{}
 	}
 
-	cs.pruneOldestConsensusState(ctx, cdc, clientStore)
+	// performance: do not prune in checkTx
+	// simulation must prune for accurate gas estimation
+	if (!ctx.IsCheckTx() && !ctx.IsReCheckTx()) || ctx.ExecMode() == sdk.ExecModeSimulate {
+		cs.pruneOldestConsensusState(ctx, cdc, clientStore)
+	}
 
 	// check for duplicate update
 	if _, found := GetConsensusState(clientStore, cdc, header.GetHeight()); found {

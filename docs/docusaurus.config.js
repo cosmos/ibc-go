@@ -347,7 +347,7 @@ const config = {
           src: "https://widget.kapa.ai/kapa-widget.bundle.js",
           "data-website-id": "806aa1dc-0d46-4563-a8b8-880eecac59f1",
           "data-project-name": "Interchain",
-          "data-user-analytics-fingerprint-enabled": true,
+          "data-user-analytics-fingerprint-enabled": "true",
           "data-project-color": "#1878FF",
           "data-modal-title": "IBC Docs AI",
           "data-modal-disclaimer": "This is a custom LLM for the Inter-Blockchain Communication Protocol in Golang (ibc-go). It is trained on the IBC developer documentation, code base, and resources. Answers are AI-generated. Please use your best judgment before implementing. The bot is not trained on documentation, code, or resources for the Cosmos SDK, CometBFT, CosmJS, CosmWasm, or interchain ecosystem blockchains. Please refer to those specific documentation sites for answers to those questions.",
