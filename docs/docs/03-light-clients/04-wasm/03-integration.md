@@ -283,7 +283,7 @@ Currently the only option available is the `WithQueryPlugins` option, which allo
 
 #### `WithQueryPlugins`
 
-By default, the `08-wasm` module does not configure any querier options for light client contracts. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L45) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L54-L61).
+By default, the `08-wasm` module does not configure any querier options for light client contracts. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v2.0.1/packages/std/src/query/mod.rs#L48) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v2.0.1/packages/std/src/query/mod.rs#L57-L65).
 
 Assuming that the keeper is not yet instantiated, the following sample code shows how to register query plugins for the `08-wasm` module.
 
