@@ -12,7 +12,9 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	controllerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	hostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/simulation"
 )
@@ -25,32 +27,59 @@ func TestProposalMsgs(t *testing.T) {
 	ctx := sdk.NewContext(nil, cmtproto.Header{}, true, nil)
 	accounts := simtypes.RandomAccounts(r, 3)
 
-	// execute ProposalMsgs function
-	weightedProposalMsgs := simulation.ProposalMsgs()
-	require.Equal(t, 2, len(weightedProposalMsgs))
-	w0 := weightedProposalMsgs[0]
+	tests := []struct {
+		controller   *controllerkeeper.Keeper
+		host         *hostkeeper.Keeper
+		proposalMsgs int
+		isHost       []bool
+	}{
+		{
+			controller:   &controllerkeeper.Keeper{},
+			host:         &hostkeeper.Keeper{},
+			proposalMsgs: 2,
+			isHost:       []bool{true, false},
+		},
+		{
+			controller:   nil,
+			host:         nil,
+			proposalMsgs: 0,
+		},
+		{
+			controller:   &controllerkeeper.Keeper{},
+			proposalMsgs: 1,
+			isHost:       []bool{false},
+		},
+		{
+			host:         &hostkeeper.Keeper{},
+			proposalMsgs: 1,
+			isHost:       []bool{true},
+		},
+	}
 
-	// tests w0 interface:
-	require.Equal(t, simulation.OpWeightMsgUpdateParams, w0.AppParamsKey())
-	require.Equal(t, simulation.DefaultWeightMsgUpdateParams, w0.DefaultWeight())
+	for _, test := range tests {
+		// execute ProposalMsgs function
+		weightedProposalMsgs := simulation.ProposalMsgs(test.controller, test.host)
+		require.Equal(t, test.proposalMsgs, len(weightedProposalMsgs))
 
-	msg := w0.MsgSimulatorFn()(r, ctx, accounts)
-	msgUpdateHostParams, ok := msg.(*types.MsgUpdateParams)
-	require.True(t, ok)
+		for idx, weightedMsg := range weightedProposalMsgs {
+			// tests weighted interface:
+			require.Equal(t, simulation.OpWeightMsgUpdateParams, weightedMsg.AppParamsKey())
+			require.Equal(t, simulation.DefaultWeightMsgUpdateParams, weightedMsg.DefaultWeight())
 
-	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateHostParams.Signer)
-	require.Equal(t, msgUpdateHostParams.Params.HostEnabled, false)
+			msg := weightedMsg.MsgSimulatorFn()(r, ctx, accounts)
+			if test.isHost[idx] {
+				msgUpdateHostParams, ok := msg.(*types.MsgUpdateParams)
+				require.True(t, ok)
 
-	w1 := weightedProposalMsgs[1]
+				require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateHostParams.Signer)
+				require.Equal(t, msgUpdateHostParams.Params.HostEnabled, false)
+			} else {
+				msgUpdateControllerParams, ok := msg.(*controllertypes.MsgUpdateParams)
+				require.True(t, ok)
 
-	// tests w1 interface:
-	require.Equal(t, simulation.OpWeightMsgUpdateParams, w1.AppParamsKey())
-	require.Equal(t, simulation.DefaultWeightMsgUpdateParams, w1.DefaultWeight())
-
-	msg1 := w1.MsgSimulatorFn()(r, ctx, accounts)
-	msgUpdateControllerParams, ok := msg1.(*controllertypes.MsgUpdateParams)
-	require.True(t, ok)
-
-	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateControllerParams.Signer)
-	require.Equal(t, msgUpdateControllerParams.Params.ControllerEnabled, false)
+				require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateControllerParams.Signer)
+				require.Equal(t, msgUpdateControllerParams.Params.ControllerEnabled, false)
+			}
+		}
+	}
 }
