@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -951,4 +952,91 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	// check total amount in escrow of sent token on sending chain
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.ZeroInt(), totalEscrowChainB.Amount)
+}
+
+func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
+	// We are testing a scenario where a packet in the future has a new populated
+	// field called "new_field". And this packet is being sent to this module which
+	// doesn't have this field in the packet data. The module should be able to handle
+	// this packet without any issues.
+
+	var packetData []byte
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: new field",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+		},
+		{
+			"success: no new field with memo",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+		},
+		{
+			"success: no new field without memo",
+			func() {
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+		},
+		{
+			"failure: invalid packet data",
+			func() {
+				packetData = []byte("invalid packet data")
+			},
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: missing field",
+			func() {
+				jsonString := fmt.Sprintf(`{"amount":"100","sender":%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			ibcerrors.ErrInvalidType,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.msg, func() {
+			suite.SetupTest() // reset
+			packetData = nil
+
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.EndpointA.ChannelConfig.Version = types.V1
+			path.EndpointB.ChannelConfig.Version = types.V1
+			path.Setup()
+
+			tc.malleate()
+
+			timeoutHeight := suite.chainB.GetTimeoutHeight()
+
+			seq, err := path.EndpointB.SendPacket(timeoutHeight, 0, packetData)
+			suite.Require().NoError(err)
+
+			packet := channeltypes.NewPacket(packetData, seq, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, 0)
+
+			// receive packet on chainA
+			err = path.RelayPacket(packet)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorContains(err, tc.expError.Error())
+			}
+		})
+	}
 }
