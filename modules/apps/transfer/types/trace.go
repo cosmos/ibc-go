@@ -14,7 +14,8 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // ParseDenomTrace parses a string with the ibc prefix (denom trace) and the base denomination
@@ -37,7 +38,7 @@ func ParseDenomTrace(rawDenom string) DenomTrace {
 		}
 	}
 
-	pathSlice, baseDenom := denominternal.ExtractPathAndBaseFromFullDenom(denomSplit)
+	pathSlice, baseDenom := extractPathAndBaseFromFullDenom(denomSplit)
 	return DenomTrace{
 		Path:      strings.Join(pathSlice, "/"),
 		BaseDenom: baseDenom,
@@ -81,6 +82,56 @@ func (dt DenomTrace) IsNativeDenom() bool {
 	return dt.Path == ""
 }
 
+// extractPathAndBaseFromFullDenom returns the trace path and the base denom from
+// the elements that constitute the complete denom.
+func extractPathAndBaseFromFullDenom(fullDenomItems []string) ([]string, string) {
+	var (
+		pathSlice      []string
+		baseDenomSlice []string
+	)
+
+	length := len(fullDenomItems)
+	for i := 0; i < length; i += 2 {
+		// The IBC specification does not guarantee the expected format of the
+		// destination port or destination channel identifier. A short term solution
+		// to determine base denomination is to expect the channel identifier to be the
+		// one ibc-go specifies. A longer term solution is to separate the path and base
+		// denomination in the ICS20 packet. If an intermediate hop prefixes the full denom
+		// with a channel identifier format different from our own, the base denomination
+		// will be incorrectly parsed, but the token will continue to be treated correctly
+		// as an IBC denomination. The hash used to store the token internally on our chain
+		// will be the same value as the base denomination being correctly parsed.
+		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(fullDenomItems[i+1]) {
+			pathSlice = append(pathSlice, fullDenomItems[i], fullDenomItems[i+1])
+		} else {
+			baseDenomSlice = fullDenomItems[i:]
+			break
+		}
+	}
+
+	baseDenom := strings.Join(baseDenomSlice, "/")
+
+	return pathSlice, baseDenom
+}
+
+// validateTraceIdentifiers validates the correctness of the trace associated with a particular base denom.
+func validateTraceIdentifiers(identifiers []string) error {
+	if len(identifiers) == 0 || len(identifiers)%2 != 0 {
+		return fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: %s", identifiers)
+	}
+
+	// validate correctness of port and channel identifiers
+	for i := 0; i < len(identifiers); i += 2 {
+		if err := host.PortIdentifierValidator(identifiers[i]); err != nil {
+			return errorsmod.Wrapf(err, "invalid port ID at position %d", i)
+		}
+		if err := host.ChannelIdentifierValidator(identifiers[i+1]); err != nil {
+			return errorsmod.Wrapf(err, "invalid channel ID at position %d", i)
+		}
+	}
+	return nil
+}
+
 // Validate performs a basic validation of the DenomTrace fields.
 func (dt DenomTrace) Validate() error {
 	// empty trace is accepted when token lives on the original chain
@@ -94,7 +145,7 @@ func (dt DenomTrace) Validate() error {
 	// NOTE: no base denomination validation
 
 	identifiers := strings.Split(dt.Path, "/")
-	return denominternal.ValidateTraceIdentifiers(identifiers)
+	return validateTraceIdentifiers(identifiers)
 }
 
 // Traces defines a wrapper type for a slice of DenomTrace.
@@ -148,7 +199,7 @@ func ValidatePrefixedDenom(denom string) error {
 		return nil
 	}
 
-	pathSlice, baseDenom := denominternal.ExtractPathAndBaseFromFullDenom(denomSplit)
+	pathSlice, baseDenom := extractPathAndBaseFromFullDenom(denomSplit)
 	if strings.TrimSpace(baseDenom) == "" {
 		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
 	}
@@ -160,7 +211,7 @@ func ValidatePrefixedDenom(denom string) error {
 	}
 
 	identifiers := strings.Split(path, "/")
-	return denominternal.ValidateTraceIdentifiers(identifiers)
+	return validateTraceIdentifiers(identifiers)
 }
 
 // validateIBCDenom validates that the given denomination is either:

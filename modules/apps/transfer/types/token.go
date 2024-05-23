@@ -5,8 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-
-	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
 )
 
 // Validate validates a token denomination and trace identifiers.
@@ -28,7 +26,7 @@ func (t Token) Validate() error {
 		trace := strings.Join(t.Trace, "/")
 		identifiers := strings.Split(trace, "/")
 
-		if err := denominternal.ValidateTraceIdentifiers(identifiers); err != nil {
+		if err := validateTraceIdentifiers(identifiers); err != nil {
 			return err
 		}
 	}
