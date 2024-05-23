@@ -26,9 +26,8 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	// tokens will always be an array, but may contain a single element
-	// if the ics20-1 token field is populated, and the ics20-2 array is empty.
-	tokens := msg.GetTokens()
+	// coins will always be an array, but may contain a single element
+	coins := msg.GetCoins()
 
 	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
 	if !found {
@@ -36,13 +35,13 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	// ics20-1 only supports a single token, so if that is the current version, we must only process a single token.
-	if appVersion == types.V1 && len(tokens) > 1 {
+	if appVersion == types.V1 && len(coins) > 1 {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple tokens with ics20-1")
 	}
 
-	for _, token := range tokens {
-		if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
-			return nil, errorsmod.Wrapf(types.ErrSendDisabled, "transfers are currently disabled for %s", token.Denom)
+	for _, coin := range coins {
+		if !k.bankKeeper.IsSendEnabledCoin(ctx, coin) {
+			return nil, errorsmod.Wrapf(types.ErrSendDisabled, "transfers are currently disabled for %s", coin.Denom)
 		}
 	}
 
@@ -51,7 +50,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, tokens, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
+		ctx, msg.SourcePort, msg.SourceChannel, coins, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
 		msg.Memo)
 	if err != nil {
 		return nil, err
@@ -62,7 +61,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 			types.EventTypeTransfer,
 			sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, tokens.String()),
+			sdk.NewAttribute(types.AttributeKeyTokens, coins.String()),
 			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
 		),
 		sdk.NewEvent(
@@ -71,7 +70,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		),
 	})
 
-	k.Logger(ctx).Info("IBC fungible token transfer", "tokens", tokens, "sender", msg.Sender, "receiver", msg.Receiver)
+	k.Logger(ctx).Info("IBC fungible token transfer", "tokens", coins, "sender", msg.Sender, "receiver", msg.Receiver)
 
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }

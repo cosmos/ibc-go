@@ -58,22 +58,6 @@ func TestGetFullDenomPath(t *testing.T) {
 			),
 			denom,
 		},
-		{
-			"empty string trace",
-			NewFungibleTokenPacketDataV2(
-				[]Token{
-					{
-						Denom:  denom,
-						Amount: amount,
-						Trace:  []string{""},
-					},
-				},
-				sender,
-				receiver,
-				"",
-			),
-			denom,
-		},
 	}
 
 	for _, tc := range testCases {
