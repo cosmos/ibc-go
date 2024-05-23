@@ -5,8 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-
-	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
 )
 
 // Validate validates a token denomination and trace identifiers.
@@ -31,7 +29,7 @@ func (t Token) Validate() error {
 	trace := strings.Join(t.Trace, "/")
 	identifiers := strings.Split(trace, "/")
 
-	return denominternal.ValidateTraceIdentifiers(identifiers)
+	return validateTraceIdentifiers(identifiers)
 }
 
 // GetFullDenomPath returns the full denomination according to the ICS20 specification:
