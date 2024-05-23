@@ -163,11 +163,11 @@ func ValidatePrefixedDenom(denom string) error {
 	return denominternal.ValidateTraceIdentifiers(identifiers)
 }
 
-// ValidateIBCDenom validates that the given denomination is either:
+// validateIBCDenom validates that the given denomination is either:
 //
 //   - A valid base denomination (eg: 'uatom' or 'gamm/pool/1' as in https://github.com/cosmos/ibc-go/issues/894)
 //   - A valid fungible token representation (i.e 'ibc/{hash}') per ADR 001 https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-001-coin-source-tracing.md
-func ValidateIBCDenom(denom string) error {
+func validateIBCDenom(denom string) error {
 	if err := sdk.ValidateDenom(denom); err != nil {
 		return err
 	}
