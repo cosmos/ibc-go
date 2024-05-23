@@ -1,8 +1,9 @@
 package types_test
 
 import (
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"testing"
-
 
 	"github.com/stretchr/testify/require"
 
@@ -15,8 +16,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -69,14 +68,14 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"too long memo", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 0, ibctesting.GenerateString(types.MaximumMemoLength+1)), types.ErrInvalidMemo},
 		{"channel id contains non-alpha", types.NewMsgTransfer(validPort, invalidChannel, coins, sender, receiver, timeoutHeight, 0, ""), host.ErrInvalidID},
 		{"invalid denom", types.NewMsgTransfer(validPort, validChannel, invalidDenomCoins, sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
-		{"zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, ""), types.ErrInvalidAmount},
+		{"zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
 		{"missing sender address", types.NewMsgTransfer(validPort, validChannel, coins, emptyAddr, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidAddress},
 		{"missing recipient address", types.NewMsgTransfer(validPort, validChannel, coins, sender, "", timeoutHeight, 0, ""), ibcerrors.ErrInvalidAddress},
 		{"too long recipient address", types.NewMsgTransfer(validPort, validChannel, coins, sender, ibctesting.GenerateString(types.MaximumReceiverLength+1), timeoutHeight, 0, ""), ibcerrors.ErrInvalidAddress},
-		{"empty coins", types.NewMsgTransfer(validPort, validChannel, sdk.NewCoins(), sender, receiver, timeoutHeight, 0, ""), types.ErrInvalidAmount},
+		{"empty coins", types.NewMsgTransfer(validPort, validChannel, sdk.NewCoins(), sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
 		{"multidenom: invalid denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidDenomCoins...), sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
 		{"multidenom: invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidIBCCoins...), sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
-		{"multidenom: zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, ""), types.ErrInvalidAmount},
+		{"multidenom: zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
 		{"multidenom: too many coins", types.NewMsgTransfer(validPort, validChannel, make([]sdk.Coin, types.MaximumTokensLength+1), sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
 	}
 

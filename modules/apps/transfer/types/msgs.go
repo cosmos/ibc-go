@@ -102,7 +102,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 
 	for _, coin := range msg.GetCoins() {
 		if err := validateIBCCoin(coin); err != nil {
-			return errorsmod.Wrap(err, coin.String())
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "%s: %s", err.Error(), coin.String())
 		}
 	}
 
@@ -137,7 +137,7 @@ func validateIBCCoin(coin sdk.Coin) error {
 		return errorsmod.Wrap(ErrInvalidAmount, "amount must be positive")
 	}
 	if err := validateIBCDenom(coin.GetDenom()); err != nil {
-		return err
+		return errorsmod.Wrap(ErrInvalidDenomForTransfer, err.Error())
 	}
 
 	return nil
