@@ -199,7 +199,7 @@ func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte, ics20Version strin
 
 		return datav2, nil
 	default:
-		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(types.ErrInvalidVersion, "invalid ICS-20 version: %s", ics20Version)
+		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrap(types.ErrInvalidVersion, ics20Version)
 	}
 }
 
@@ -213,9 +213,9 @@ func (im IBCModule) OnRecvPacket(
 ) ibcexported.Acknowledgement {
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.DestinationPort, packet.DestinationChannel)
-	if !ok {
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "could not retrieve app version for channel (%s, %s)", packet.SourcePort, packet.SourceChannel))
+	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.DestinationPort, packet.DestinationChannel)
+	if !found {
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.DestinationPort, packet.DestinationChannel))
 	}
 
 	data, ackErr := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
@@ -275,9 +275,9 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "could not retrieve app version for channel (%s, %s)", packet.SourcePort, packet.SourceChannel)
+	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
+	if !found {
+		return errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.SourcePort, packet.SourceChannel)
 	}
 
 	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
@@ -330,9 +330,9 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "could not retrieve app version for channel (%s, %s)", packet.SourcePort, packet.SourceChannel)
+	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
+	if !found {
+		return errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.SourcePort, packet.SourceChannel)
 	}
 
 	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
@@ -405,9 +405,9 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
-	ics20Version, ok := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
-	if !ok {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidVersion, "could not retrieve app version for channel (%s, %s)", portID, channelID)
+	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
 	ftpd, err := im.unmarshalPacketDataBytesToICS20V2(bz, ics20Version)
