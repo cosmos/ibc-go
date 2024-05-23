@@ -1,8 +1,6 @@
 package types_test
 
 import (
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,6 +14,8 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -79,17 +79,16 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"multidenom: too many coins", types.NewMsgTransfer(validPort, validChannel, make([]sdk.Coin, types.MaximumTokensLength+1), sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		tc := tc
 
 		err := tc.msg.ValidateBasic()
 
 		expPass := tc.expError == nil
 		if expPass {
-			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
+			require.NoError(t, err)
 		} else {
-			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
-			require.ErrorIs(t, err, tc.expError, "expected error %s but got %s", tc.expError, err)
+			require.ErrorIs(t, err, tc.expError)
 		}
 	}
 }
@@ -108,23 +107,25 @@ func TestMsgTransferGetSigners(t *testing.T) {
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
 func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
+		name     string
+		msg      *types.MsgUpdateParams
+		expError error
 	}{
-		{"success: valid signer and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
-		{"failure: invalid signer with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), false},
-		{"failure: empty signer with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), false},
+		{"success: valid signer and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), nil},
+		{"failure: invalid signer with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), ibcerrors.ErrInvalidAddress},
+		{"failure: empty signer with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), ibcerrors.ErrInvalidAddress},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		tc := tc
 
 		err := tc.msg.ValidateBasic()
-		if tc.expPass {
-			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
+
+		expPass := tc.expError == nil
+		if expPass {
+			require.NoError(t, err)
 		} else {
-			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+			require.ErrorIs(t, err, tc.expError)
 		}
 	}
 }
@@ -150,6 +151,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 
 		encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
 		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
+
 		if tc.expPass {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
