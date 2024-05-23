@@ -4,16 +4,22 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	denominternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/denom"
+	sdkmath "cosmossdk.io/math"
 )
 
 // Validate validates a token denomination and trace identifiers.
 func (t Token) Validate() error {
-	if err := sdk.ValidateDenom(t.Denom); err != nil {
-		return errorsmod.Wrap(ErrInvalidDenomForTransfer, err.Error())
+	if strings.TrimSpace(t.Denom) == "" {
+		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "denom cannot be empty")
+	}
+
+	amount, ok := sdkmath.NewIntFromString(t.Amount)
+	if !ok {
+		return errorsmod.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", t.Amount)
+	}
+
+	if !amount.IsPositive() {
+		return errorsmod.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
 	}
 
 	if len(t.Trace) == 0 {
@@ -23,15 +29,14 @@ func (t Token) Validate() error {
 	trace := strings.Join(t.Trace, "/")
 	identifiers := strings.Split(trace, "/")
 
-	return denominternal.ValidateTraceIdentifiers(identifiers)
+	return validateTraceIdentifiers(identifiers)
 }
 
 // GetFullDenomPath returns the full denomination according to the ICS20 specification:
 // tracePath + "/" + baseDenom
 // If there exists no trace then the base denomination is returned.
 func (t Token) GetFullDenomPath() string {
-	trace := strings.Join(t.Trace, "/")
-	if len(trace) == 0 {
+	if len(t.Trace) == 0 {
 		return t.Denom
 	}
 
