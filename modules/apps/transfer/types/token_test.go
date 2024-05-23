@@ -58,22 +58,6 @@ func TestGetFullDenomPath(t *testing.T) {
 			),
 			denom,
 		},
-		{
-			"empty string trace",
-			NewFungibleTokenPacketDataV2(
-				[]Token{
-					{
-						Denom:  denom,
-						Amount: amount,
-						Trace:  []string{""},
-					},
-				},
-				sender,
-				receiver,
-				"",
-			),
-			denom,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -134,6 +118,15 @@ func TestValidate(t *testing.T) {
 				Trace:  []string{"transfer/channel-1", "randomport"},
 			},
 			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: [transfer channel-1 randomport]"),
+		},
+		{
+			"failure: empty identifier in trace",
+			Token{
+				Denom:  "uatom",
+				Amount: amount,
+				Trace:  []string{""},
+			},
+			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: "),
 		},
 	}
 

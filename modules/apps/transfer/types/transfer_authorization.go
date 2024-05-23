@@ -68,16 +68,16 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 	allocationModified := false
 
 	// update spend limit for each token in the MsgTransfer
-	for _, token := range msgTransfer.GetTokens() {
+	for _, coin := range msgTransfer.GetCoins() {
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
 		// if there is no unlimited spend, then we need to subtract the amount from the spend limit to get the limit left
-		if allocation.SpendLimit.AmountOf(token.Denom).Equal(UnboundedSpendLimit()) {
+		if allocation.SpendLimit.AmountOf(coin.Denom).Equal(UnboundedSpendLimit()) {
 			continue
 		}
 
-		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(token)
+		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(coin)
 		if isNegative {
-			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", token.Denom)
+			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", coin.Denom)
 		}
 
 		allocationModified = true

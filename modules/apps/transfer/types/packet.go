@@ -128,15 +128,6 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 	}
 
 	for _, token := range ftpd.Tokens {
-		amount, ok := sdkmath.NewIntFromString(token.Amount)
-		if !ok {
-			return errorsmod.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", token.Amount)
-		}
-
-		if !amount.IsPositive() {
-			return errorsmod.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
-		}
-
 		if err := token.Validate(); err != nil {
 			return err
 		}
