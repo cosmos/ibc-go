@@ -22,14 +22,16 @@ func (t Token) Validate() error {
 		return errorsmod.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
 	}
 
-	if len(t.Trace) == 0 {
-		return nil
+	if len(t.Trace) != 0 {
+		trace := strings.Join(t.Trace, "/")
+		identifiers := strings.Split(trace, "/")
+
+		if err := validateTraceIdentifiers(identifiers); err != nil {
+			return err
+		}
 	}
 
-	trace := strings.Join(t.Trace, "/")
-	identifiers := strings.Split(trace, "/")
-
-	return validateTraceIdentifiers(identifiers)
+	return nil
 }
 
 // GetFullDenomPath returns the full denomination according to the ICS20 specification:
