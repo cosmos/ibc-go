@@ -149,3 +149,85 @@ func TestValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestTokens_String(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    Tokens
+		expected string
+	}{
+		{
+			"empty tokens",
+			Tokens{},
+			"",
+		},
+		{
+			"single token, no trace",
+			Tokens{
+				Token{
+					Denom:  "tree",
+					Amount: "1",
+					Trace:  []string{},
+				},
+			},
+			`denom:"tree" amount:"1" `,
+		},
+		{
+			"single token with trace",
+			Tokens{
+				Token{
+					Denom:  "tree",
+					Amount: "1",
+					Trace:  []string{"portid/channelid"},
+				},
+			},
+			`denom:"tree" amount:"1" trace:"portid/channelid" `,
+		},
+		{
+			"multiple tokens, no trace",
+			Tokens{
+				Token{
+					Denom:  "tree",
+					Amount: "1",
+					Trace:  []string{},
+				},
+				Token{
+					Denom:  "gas",
+					Amount: "2",
+					Trace:  []string{},
+				},
+				Token{
+					Denom:  "mineral",
+					Amount: "3",
+					Trace:  []string{},
+				},
+			},
+			`denom:"tree" amount:"1" ,denom:"gas" amount:"2" ,denom:"mineral" amount:"3" `,
+		},
+		{
+			"multiple tokens, trace and no trace",
+			Tokens{
+				Token{
+					Denom:  "tree",
+					Amount: "1",
+					Trace:  []string{},
+				},
+				Token{
+					Denom:  "gas",
+					Amount: "2",
+					Trace:  []string{"portid/channelid"},
+				},
+				Token{
+					Denom:  "mineral",
+					Amount: "3",
+					Trace:  []string{"portid/channelid", "transfer/channel-52"},
+				},
+			},
+			`denom:"tree" amount:"1" ,denom:"gas" amount:"2" trace:"portid/channelid" ,denom:"mineral" amount:"3" trace:"portid/channelid" trace:"transfer/channel-52" `,
+		},
+	}
+
+	for _, tt := range cases {
+		require.Equal(t, tt.expected, tt.input.String())
+	}
+}
