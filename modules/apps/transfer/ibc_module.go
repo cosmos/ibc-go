@@ -174,6 +174,8 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
+// unmarshalPacketDataBytesToICS20V2 attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
+// The version of ics20 should be provided and should be either ics20-1 or ics20-2.
 func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte, ics20Version string) (types.FungibleTokenPacketDataV2, error) {
 	switch ics20Version {
 	case types.V1:
