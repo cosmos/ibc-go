@@ -230,5 +230,4 @@ func TestTokens_String(t *testing.T) {
 	for _, tt := range cases {
 		require.Equal(t, tt.expected, tt.input.String())
 	}
-
 }
