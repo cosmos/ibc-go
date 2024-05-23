@@ -254,7 +254,7 @@ func (im IBCModule) OnRecvPacket(
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			sdk.EventTypeMessage,
+			sdk.EventTypePacket,
 			eventAttributes...,
 		),
 		sdk.NewEvent(
