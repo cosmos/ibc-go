@@ -996,7 +996,7 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			func() {
 				packetData = []byte("invalid packet data")
 			},
-			ibcerrors.ErrUnknownRequest,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: missing field",
@@ -1004,7 +1004,7 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 				jsonString := fmt.Sprintf(`{"amount":"100","sender":%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
-			ibcerrors.ErrUnknownRequest,
+			ibcerrors.ErrInvalidType,
 		},
 	}
 
@@ -1015,6 +1015,8 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			packetData = nil
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.EndpointA.ChannelConfig.Version = types.V1
+			path.EndpointB.ChannelConfig.Version = types.V1
 			path.Setup()
 
 			tc.malleate()
