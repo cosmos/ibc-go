@@ -111,6 +111,33 @@ func TestValidate(t *testing.T) {
 			ErrInvalidDenomForTransfer,
 		},
 		{
+			"failure: invalid amount string",
+			Token{
+				Denom:  "atom",
+				Amount: "value",
+				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+			},
+			ErrInvalidAmount,
+		},
+		{
+			"failure: amount is zero",
+			Token{
+				Denom:  "atom",
+				Amount: "0",
+				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+			},
+			ErrInvalidAmount,
+		},
+		{
+			"failure: amount is negative",
+			Token{
+				Denom:  "atom",
+				Amount: "-1",
+				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+			},
+			ErrInvalidAmount,
+		},
+		{
 			"failure: invalid identifier in trace",
 			Token{
 				Denom:  "uatom",

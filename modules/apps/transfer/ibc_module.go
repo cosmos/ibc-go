@@ -181,7 +181,7 @@ func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte, ics20Version strin
 	case types.V1:
 		var datav1 types.FungibleTokenPacketData
 		if err := json.Unmarshal(bz, &datav1); err != nil {
-			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
+			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V1 transfer packet data: %s", err.Error())
 		}
 
 		if err := datav1.ValidateBasic(); err != nil {
@@ -240,26 +240,28 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypePacket,
+	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeySender, data.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 		sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
 		sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-	))
-
-	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}
+
 	if ackErr != nil {
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		eventAttributes...,
-	))
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			eventAttributes...,
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -298,11 +300,11 @@ func (im IBCModule) OnAcknowledgementPacket(
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
 			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 	})
 
@@ -350,9 +352,8 @@ func (im IBCModule) OnTimeoutPacket(
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeout,
-			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Sender),
+			sdk.NewAttribute(types.AttributeKeyRefundTokens, types.Tokens(data.Tokens).String()),
 			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		),
 		sdk.NewEvent(
