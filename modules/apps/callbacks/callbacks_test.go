@@ -305,11 +305,11 @@ func GetExpectedEvent(
 	gasMeter := storetypes.NewGasMeter(remainingGas)
 	ctx = ctx.WithGasMeter(gasMeter)
 
-	// Mock packet.
-	packet := channeltypes.NewPacket(data, 0, srcPortID, "", "", "", clienttypes.ZeroHeight(), 0)
 	if callbackType == types.CallbackTypeReceivePacket {
+		packet := channeltypes.NewPacket(data, seq, "", "", eventPortID, eventChannelID, clienttypes.ZeroHeight(), 0)
 		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {
+		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
 		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	}
 	if err != nil {

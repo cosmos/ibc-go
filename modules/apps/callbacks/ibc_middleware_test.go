@@ -971,8 +971,13 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 	}
 }
 
-func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
+func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	s.setupChains()
+	s.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	s.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+	s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
+	s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
+	s.path.Setup()
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
@@ -1006,15 +1011,43 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 	portID := s.path.EndpointA.ChannelConfig.PortID
 	channelID := s.path.EndpointA.ChannelID
 
-	// Unmarshal ICS20 v1 packet data
+	// Unmarshal ICS20 v1 packet data into v2 packet data
 	data := expPacketDataICS20V1.GetBytes()
 	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
+}
 
-	// Unmarshal ICS20 v1 packet data
-	data = expPacketDataICS20V2.GetBytes()
-	packetData, err = unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
+func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
+	s.SetupTransferTest()
+
+	// We will pass the function call down the transfer stack to the transfer module
+	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
+	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+	s.Require().True(ok)
+
+	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
+	s.Require().True(ok)
+
+	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
+		Tokens: []transfertypes.Token{
+			{
+				Denom:  ibctesting.TestCoin.Denom,
+				Amount: ibctesting.TestCoin.Amount.String(),
+				Trace:  nil,
+			},
+		},
+		Sender:   ibctesting.TestAccAddress,
+		Receiver: ibctesting.TestAccAddress,
+		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
+	}
+
+	portID := s.path.EndpointA.ChannelConfig.PortID
+	channelID := s.path.EndpointA.ChannelID
+
+	// Unmarshal ICS20 v2 packet data
+	data := expPacketDataICS20V2.GetBytes()
+	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 }
