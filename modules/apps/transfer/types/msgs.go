@@ -126,7 +126,7 @@ func isValidIBCCoin(coin sdk.Coin) bool {
 	return validateIBCCoin(coin) == nil
 }
 
-// isValidIBCCoin returns true if the token provided is valid,
+// validateIBCCoin returns true if the token provided is valid,
 // and should be used to transfer tokens. The token must
 // have a positive amount.
 func validateIBCCoin(coin sdk.Coin) error {

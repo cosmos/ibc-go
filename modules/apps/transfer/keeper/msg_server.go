@@ -38,10 +38,8 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with ics20-1")
 	}
 
-	for _, coin := range coins {
-		if !k.bankKeeper.IsSendEnabledCoin(ctx, coin) {
-			return nil, errorsmod.Wrapf(types.ErrSendDisabled, "transfers are currently disabled for %s", coin.Denom)
-		}
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
 	}
 
 	if k.bankKeeper.BlockedAddr(sender) {
