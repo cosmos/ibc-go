@@ -100,9 +100,9 @@ message MsgCreateClient {
 }
 ```
 
-Leveraging protobuf `Any` encoding allows core IBC to [unpack](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/keeper/msg_server.go#L28-L36) both the `ClientState` and `ConsensusState` into their respective interface types registered previously using the light client module's `RegisterInterfaces` method.
+Leveraging protobuf `Any` encoding allows core IBC to [unpack](https://github.com/cosmos/ibc-go/blob/47162061bcbfe74df791161059715a635e31c604/modules/core/keeper/msg_server.go#L38) the `ClientState` into its respective interface type registered previously using the light client module's `RegisterInterfaces` method.
 
-Within the `02-client` submodule, the [`ClientState` is then initialized](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L30-L32) with its own isolated key-value store, namespaced using a unique client identifier.
+Within the `02-client` submodule, the [`ClientState` is then initialized](https://github.com/cosmos/ibc-go/blob/47162061bcbfe74df791161059715a635e31c604/modules/core/02-client/keeper/client.go#L40-L42) with its own isolated key-value store, namespaced using a unique client identifier.
 
 In order to successfully create an IBC client using a new client type, it [must be supported](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L19-L25). Light client support in IBC is gated by on-chain governance. The allow list may be updated by submitting a new governance proposal to update the `02-client` parameter `AllowedClients`.
 
