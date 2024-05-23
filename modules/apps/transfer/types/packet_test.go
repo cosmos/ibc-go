@@ -9,6 +9,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 const (
@@ -337,6 +338,22 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				"",
 			),
 			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: memo field too large",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  denom,
+						Amount: largeAmount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				ibctesting.GenerateString(types.MaximumMemoLength+1),
+			),
+			types.ErrInvalidMemo,
 		},
 	}
 
