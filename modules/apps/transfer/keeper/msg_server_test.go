@@ -143,7 +143,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			types.ErrSendDisabled,
 			true,
 		},
-
 		{
 			"failure: channel does not exist",
 			func() {
