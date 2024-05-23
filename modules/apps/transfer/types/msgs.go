@@ -110,6 +110,8 @@ func (msg MsgTransfer) ValidateBasic() error {
 }
 
 // GetCoins returns the tokens which will be transferred.
+// If MsgTransfer is populated in the Token field, only that field
+// will be returned in the coin array.
 func (msg MsgTransfer) GetCoins() sdk.Coins {
 	coins := msg.Tokens
 	if isValidIBCCoin(msg.Token) {
@@ -131,7 +133,7 @@ func validateIBCCoin(coin sdk.Coin) error {
 	if err := coin.Validate(); err != nil {
 		return err
 	}
-	if !coin.Amount.IsPositive() {
+	if !coin.IsPositive() {
 		return errorsmod.Wrap(ErrInvalidAmount, "amount must be positive")
 	}
 	if err := validateIBCDenom(coin.GetDenom()); err != nil {

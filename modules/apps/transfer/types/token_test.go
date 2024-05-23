@@ -119,6 +119,15 @@ func TestValidate(t *testing.T) {
 			},
 			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: [transfer channel-1 randomport]"),
 		},
+		{
+			"failure: empty identifier in trace",
+			Token{
+				Denom:  "uatom",
+				Amount: amount,
+				Trace:  []string{""},
+			},
+			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: "),
+		},
 	}
 
 	for _, tc := range testCases {
