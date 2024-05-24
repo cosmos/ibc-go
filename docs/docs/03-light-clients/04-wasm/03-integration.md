@@ -9,9 +9,26 @@ slug: /ibc/light-clients/wasm/integration
 
 Learn how to integrate the `08-wasm` module in a chain binary and about the recommended approaches depending on whether the [`x/wasm` module](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) is already used in the chain. The following document only applies for Cosmos SDK chains. 
 
+## Importing the `08-wasm` module
+
+`08-wasm` has no stable releases yet. To use it, you need to import the git commit that contains the module with the compatible versions of `ibc-go` and `wasmvm`. To do so, run the following command with the desired git commit in your project:
+
+```sh
+go get github.com/cosmos/ibc-go/modules/light-clients/08-wasm@7ee2a2452b79d0bc8316dc622a1243afa058e8cb
+```
+
+The following table shows the compatibility matrix between the `08-wasm` module, `ibc-go`, and `wasmvm`.
+
+|            **Version**           |         **Git commit to import**         |
+|:--------------------------------:|:----------------------------------------:|
+| `v0.2.0+ibc-go-v8.3-wasmvm-v2.0` | 4b45d1822fb6a0698e7621112b92c13679061c40 |
+| `v0.1.1+ibc-go-v7.3-wasmvm-v1.5` | 7ee2a2452b79d0bc8316dc622a1243afa058e8cb |
+| `v0.1.0+ibc-go-v8.0-wasmvm-v1.5` | 57fcdb9a9a9db9b206f7df2f955866dc4e10fef4 |
+| `v0.1.0+ibc-go-v7.3-wasmvm-v1.5` | b306e7a706e1f84a5e11af0540987bd68de9bae5 |
+
 ## `app.go` setup
 
-The sample code below shows the relevant integration points in `app.go` required to setup the `08-wasm` module in a chain binary. Since `08-wasm` is a light client module itself, please check out as well the section [Integrating light clients](../../01-ibc/02-integration.md#integrating-light-clients) for more information:
+The sample code below shows the relevant integration points in `app.go` required to set up the `08-wasm` module in a chain binary. Since `08-wasm` is a light client module itself, please check out as well the section [Integrating light clients](../../01-ibc/02-integration.md#integrating-light-clients) for more information:
 
 ```go
 // app.go
@@ -71,6 +88,11 @@ func NewSimApp(
     wasmVM,
     app.GRPCQueryRouter(),
   )
+
+  clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+  wasmLightClientModule := wasm.NewLightClientModule(app.WasmClientKeeper)
+  clientRouter.AddRoute(ibcwasmtypes.ModuleName, &wasmLightClientModule)
+
   app.ModuleManager = module.NewManager(
     // SDK app modules
     ...
@@ -125,13 +147,13 @@ func NewSimApp(
 
 ## Keeper instantiation
 
-When it comes to instantiating `08-wasm`'s keeper there are two recommended ways of doing it. Choosing one or the other will depend on whether the chain already integrates [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) or not.
+When it comes to instantiating `08-wasm`'s keeper, there are two recommended ways of doing it. Choosing one or the other will depend on whether the chain already integrates [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) or not.
 
 ### If `x/wasm` is present
 
 If the chain where the module is integrated uses `x/wasm` then we recommend that both `08-wasm` and `x/wasm` share the same Wasm VM instance. Having two separate Wasm VM instances is still possible, but care should be taken to make sure that both instances do not share the directory when the VM stores blobs and various caches, otherwise unexpected behaviour is likely to happen (from `x/wasm` v0.51 and `08-wasm` v0.2.0+ibc-go-v8.3-wasmvm-v2.0 this will be forbidden anyway, since wasmvm v2.0.0 and above will not allow two different Wasm VM instances to shared the same data folder).
 
-In order to share the Wasm VM instance please follow the guideline below. Please note that this requires `x/wasm` v0.41 or above.
+In order to share the Wasm VM instance, please follow the guideline below. Please note that this requires `x/wasm` v0.41 or above.
 
 - Instantiate the Wasm VM in `app.go` with the parameters of your choice.
 - [Create an `Option` with this Wasm VM instance](https://github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/options.go#L21-L25).
@@ -262,7 +284,7 @@ Currently the only option available is the `WithQueryPlugins` option, which allo
 
 #### `WithQueryPlugins`
 
-By default, the `08-wasm` module does not configure any querier options for light client contracts. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L45) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L54-L61).
+By default, the `08-wasm` module does not configure any querier options for light client contracts. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v2.0.1/packages/std/src/query/mod.rs#L48) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v2.0.1/packages/std/src/query/mod.rs#L57-L65).
 
 Assuming that the keeper is not yet instantiated, the following sample code shows how to register query plugins for the `08-wasm` module.
 

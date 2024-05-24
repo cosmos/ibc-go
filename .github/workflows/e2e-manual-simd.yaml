@@ -35,21 +35,25 @@ on:
         default: main
         options:
           - main
+          - v8.3.0
           - v8.2.0
           - v7.4.0
+          - v7.5.0
       chain-a-tag-override:
         description: 'Specify an arbitrary tag for chain A'
         required: false
         type: string
       chain-b-tag:
-        default: v8.2.0
+        default: v8.3.0
         description: 'The tag to use for chain B'
         required: true
         type: choice
         options:
           - main
+          - v8.3.0
           - v8.2.0
           - v7.4.0
+          - v7.5.0
       chain-b-tag-override:
         description: 'Specify an arbitrary tag for chain B'
         required: false
