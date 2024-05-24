@@ -19,6 +19,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
@@ -85,7 +86,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 	var channelOutput ibc.ChannelOutput
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAcc, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
+		interchainAcc, err = query.InterchainAccount(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAcc))
 
@@ -116,13 +117,13 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
-			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
+			address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 		})
 
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -164,7 +165,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -179,16 +180,16 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		})
 
 		t.Run("packets are relayed", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
 
 		t.Run("verify interchain account sent tokens", func(t *testing.T) {
-			balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			_, err = s.QueryBalance(ctx, chainB, interchainAcc, chainB.Config().Denom)
+			_, err = query.Balance(ctx, chainB, interchainAcc, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
@@ -263,7 +264,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	var channelOutput ibc.ChannelOutput
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAcc, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
+		interchainAcc, err = query.InterchainAccount(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAcc))
 
@@ -284,13 +285,13 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
-			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
+			address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 		})
 
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -333,7 +334,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -348,16 +349,16 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 		})
 
 		t.Run("packets are relayed", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
 
 		t.Run("verify interchain account did not send tokens", func(t *testing.T) {
-			balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			_, err = s.QueryBalance(ctx, chainB, interchainAcc, chainB.Config().Denom)
+			_, err = query.Balance(ctx, chainB, interchainAcc, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount

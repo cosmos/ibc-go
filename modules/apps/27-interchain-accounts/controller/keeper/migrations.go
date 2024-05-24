@@ -29,24 +29,23 @@ func NewMigrator(k *Keeper) Migrator {
 // are owned by the controller submodule and ibc.
 func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 	if m.keeper != nil {
-		logger := m.keeper.Logger(ctx)
 		filteredChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, icatypes.ControllerPortPrefix)
 		for _, ch := range filteredChannels {
 			name := host.ChannelCapabilityPath(ch.PortId, ch.ChannelId)
 			capability, found := m.keeper.scopedKeeper.GetCapability(ctx, name)
 			if !found {
-				logger.Error(fmt.Sprintf("failed to find capability: %s", name))
+				m.keeper.Logger(ctx).Error(fmt.Sprintf("failed to find capability: %s", name))
 				return errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", name)
 			}
 
 			isAuthenticated := m.keeper.scopedKeeper.AuthenticateCapability(ctx, capability, name)
 			if !isAuthenticated {
-				logger.Error(fmt.Sprintf("expected capability owner: %s", controllertypes.SubModuleName))
+				m.keeper.Logger(ctx).Error(fmt.Sprintf("expected capability owner: %s", controllertypes.SubModuleName))
 				return errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotOwned, "expected capability owner: %s", controllertypes.SubModuleName)
 			}
 
 			m.keeper.SetMiddlewareEnabled(ctx, ch.PortId, ch.ConnectionHops[0])
-			logger.Info("successfully migrated channel capability", "name", name)
+			m.keeper.Logger(ctx).Info("successfully migrated channel capability", "name", name)
 		}
 	}
 	return nil
@@ -55,9 +54,10 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 // MigrateParams migrates the controller submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	if m.keeper != nil {
-		var params controllertypes.Params
-		m.keeper.legacySubspace.GetParamSet(ctx, &params)
-
+		params := controllertypes.DefaultParams()
+		if m.keeper.legacySubspace != nil {
+			m.keeper.legacySubspace.GetParamSetIfExists(ctx, &params)
+		}
 		m.keeper.SetParams(ctx, params)
 		m.keeper.Logger(ctx).Info("successfully migrated ica/controller submodule to self-manage params")
 	}
