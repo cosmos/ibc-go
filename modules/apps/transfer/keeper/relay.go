@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -179,49 +180,32 @@ func (k Keeper) sendTransfer(
 // and sent to the receiving address. Otherwise if the sender chain is sending
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) (error, bool) {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) (bool, error) {
 	// validate packet data upon receiving
-	// same things here if we put the validate memo here this function would return an error.
-
 	if err := data.ValidateBasic(); err != nil {
-		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data"), false
+		return false, errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
 	}
 
 	if !k.GetParams(ctx).ReceiveEnabled {
-		return types.ErrReceiveDisabled, false
+		return false, types.ErrReceiveDisabled
 	}
 
-	// Receiver addresses logic:
+	var (
+		err           error
+		receiver      sdk.AccAddress // final receiver of tokens if there is no forwarding info, otherwise, receiver in the next hop
+		finalReceiver sdk.AccAddress // final receiver of tokens if there is forwarding info
+	)
 
-	var finalReceiver sdk.AccAddress
-	var receiver sdk.AccAddress
-	var err error
-
+	receiver, err = sdk.AccAddressFromBech32(data.Receiver)
+	if err != nil {
+		return false, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
+	}
 	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
-		// Transaction would abort already for previous check on Memo
-		forwardAddress := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
-		receiver = forwardAddress
-		finalReceiver, err = sdk.AccAddressFromBech32(data.Receiver)
-		if err != nil {
-			return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver), false
-		}
-	} else {
-		receiver, err = sdk.AccAddressFromBech32(data.Receiver)
-		if err != nil {
-			return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver), false
-		}
-	}
-
-	if string(data.Sender) == "" {
-		return errorsmod.Wrapf(err, "empty sender address: %s", data.Sender), false
-	}
-
-	if string(receiver) == "" {
-		return errorsmod.Wrapf(err, "empty receiver address: %s", receiver), false
+		receiver = types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
+		finalReceiver = receiver
 	}
 
 	var receivedTokens sdk.Coins
-
 	for _, token := range data.Tokens {
 		fullDenomPath := token.GetFullDenomPath()
 
@@ -233,7 +217,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		// parse the transfer amount
 		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
 		if !ok {
-			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", token.Amount), false
+			return false, errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", token.Amount)
 		}
 
 		// This is the prefix that would have been prefixed to the denomination
@@ -262,12 +246,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			token := sdk.NewCoin(denom, transferAmount)
 
 			if k.bankKeeper.BlockedAddr(receiver) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver), false
+				return false, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 
 			escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 			if err := k.unescrowToken(ctx, escrowAddress, receiver, token); err != nil {
-				return err, false
+				return false, err
 			}
 
 			defer func() {
@@ -287,9 +271,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 					),
 				)
 			}()
+
 			// Appending token. The new denom has been computed
 			receivedTokens = append(receivedTokens, token)
-
 		}
 
 		// sender chain is the source, mint vouchers
@@ -323,14 +307,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		if err := k.bankKeeper.MintCoins(
 			ctx, types.ModuleName, sdk.NewCoins(voucher),
 		); err != nil {
-			return errorsmod.Wrap(err, "failed to mint IBC tokens"), false
+			return false, errorsmod.Wrap(err, "failed to mint IBC tokens")
 		}
 
 		// send to receiver
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 			ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 		); err != nil {
-			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String()), false
+			return false, errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 		}
 
 		defer func() {
@@ -351,23 +335,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			)
 		}()
 
-		// Appending voucher. The new denom has been computed
 		receivedTokens = append(receivedTokens, voucher)
-	} // END OF FOR CYCLE
-
-	/* If ack wasn't successful in the implementation we would have already errored out. No need of this check:
-	if !ack.Success() {
-		return ack
-	  }
-	*/
+	}
 
 	// Adding forwarding logic
 	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
 		memo := ""
-		nextForwardingPath := types.ForwardingInfo{
-			Hops: data.ForwardingPath.Hops[1:],
-			Memo: data.ForwardingPath.Memo,
-		}
+		var nextForwardingPath types.ForwardingInfo
 
 		if len(data.ForwardingPath.Hops) == 1 {
 			memo = data.ForwardingPath.Memo
@@ -375,37 +349,45 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				Hops: nil,
 				Memo: data.ForwardingPath.Memo,
 			}
+		} else {
+			nextForwardingPath = types.ForwardingInfo{
+				Hops: data.ForwardingPath.Hops[1:],
+				Memo: data.ForwardingPath.Memo,
+			}
 		}
+
 		// Assign to timestamp --> current + 1 h
 		timeoutTimestamp := uint64(ctx.BlockTime().Add(time.Hour).UnixNano())
-		sequence, err := k.sendTransfer(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, receivedTokens, receiver, string(finalReceiver), clienttypes.Height{}, timeoutTimestamp, memo, &nextForwardingPath)
+		sequence, err := k.sendTransfer(
+			ctx,
+			data.ForwardingPath.Hops[0].PortId,
+			data.ForwardingPath.Hops[0].ChannelId,
+			receivedTokens,
+			receiver,
+			string(finalReceiver),
+			clienttypes.Height{},
+			timeoutTimestamp,
+			memo,
+			&nextForwardingPath,
+		)
 		if err != nil {
-			return err, false
+			return false, err
 		}
 
-		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortID, data.ForwardingPath.Hops[0].ChannelId, sequence, packet)
-
-		// The return value will be used by the onRecvPacket in the ibc_module.go
-		// If we return nil here, then we will write a successful sinc ack.
-		// If we reutrn an error, then we will write a sinc error ack
-		// The onRecvPacket in the ibc_module.go has as return value ibcexported.Acknowledgement
-		// and it will return either an error ack or succesfull ack.
-		// Thus to achieve the correct behaviour, we should be able to return a nil value in the ibc_module.go
-		// onRecvPacket function.
-		// return nil
-		// Instead of returning simply nil, we will return a sentinel value that can be used to return nil in the ibc_module.go
-		// onRecvPacket function.
-		return nil, true
-
+		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortId, data.ForwardingPath.Hops[0].ChannelId, sequence, packet)
+		return true, nil
 	}
+
 	// The ibc_module.go module will return the proper ack.
-	return nil, false
+	return false, nil
 }
 
-// OnAcknowledgementPacket responds to the success or failure of a packet
-// acknowledgement written on the receiving chain. If the acknowledgement
-// was a success then nothing occurs. If the acknowledgement failed, then
-// the sender is refunded their tokens using the refundPacketToken function.
+// OnAcknowledgementPacket either reverts the state changes executed in receive
+// and send packet if the chain acted as a middle hop on a multihop transfer; or
+// responds to the success or failure of a packet acknowledgement written on the
+// final receiving chain, if it acted as the original sender chain. If the
+// acknowledgement was a success then nothing occurs. If the acknowledgement failed,
+// then the sender is refunded their tokens using the refundPacketToken function.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
 	if !ok {
@@ -416,36 +398,21 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	if found {
 		switch ack.Response.(type) {
 		case *channeltypes.Acknowledgement_Result:
-			// the acknowledgement succeeded on the receiving chain so nothing
-			// needs to be executed and no error needs to be returned
-			// here the ibc_module.go will generate the sucss ack.
-
-			// Figure Out how to do this
-
-			FungibleTokenPacketAcknowledgement := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded")) // []byte{byte(1)})
-			//				Error:  "forwarded packet succeeded",
-			//				Result: true,
-			//			}
-
-			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, packet, FungibleTokenPacketAcknowledgement)
-
+			// the acknowledgement succeeded on the receiving chain so
+			// we write the asynchronous acknowledgement for the sender
+			// of the previous packet.
+			FungibleTokenPacketAcknowledgement := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
+			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, FungibleTokenPacketAcknowledgement)
 		case *channeltypes.Acknowledgement_Error:
 			// the forwarded packet has failed, thus the funds have been refunded to the forwarding address.
 			// we must revert the changes that came from successfully receiving the tokens on our chain
 			// before propogating the error acknowledgement back to original sender chain
+			if err := k.revertInFlightChanges(ctx, packet, prevPacket, data); err != nil {
+				return err
+			}
 
-			// Should Check return value
-			k.revertInFlightChanges(ctx, packet, prevPacket, data)
-			// Figure Out how to do this
-
-			FungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarded packet failed"))
-			/* channeltypes.Acknowledgement{
-				channeltypes.Acknowledgement.Response.Error:  "forwarded packet failed",
-				channeltypes.Acknowledgement.Response.Result: false,
-			}*/
-			// set the acknowledgement so that it can be verified on the other side
-			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, packet, FungibleTokenPacketAcknowledgement)
-
+			FungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
+			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, FungibleTokenPacketAcknowledgement)
 		default:
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 		}
@@ -461,11 +428,11 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 		}
 	}
-	return nil
 }
 
-// OnTimeoutPacket refunds the sender since the original packet sent was
-// never received and has been timed out.
+// OnTimeoutPacket either reverts the state changes executed in receive and send
+// packet if the chain acted as a middle hop on a multihop transfer; or refunds
+// the sender if the original packet sent was never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
 	if !ok {
@@ -474,16 +441,12 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 
 	prevPacket, found := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if found {
-		k.revertInFlightChanges(ctx, packet, prevPacket, data)
+		if err := k.revertInFlightChanges(ctx, packet, prevPacket, data); err != nil {
+			return err
+		}
 
-		FungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarded packet failed"))
-
-		/*FungibleTokenPacketAcknowledgement := channeltypes.Acknowledgement{
-			channeltypes.Acknowledgement.Response.Error:  "forwarded packet failed",
-			channeltypes.Acknowledgement.Response.Result: false,
-		}*/
-
-		return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, packet, FungibleTokenPacketAcknowledgement)
+		FungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarded packet timed out"))
+		return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, FungibleTokenPacketAcknowledgement)
 	} else {
 		return k.refundPacketToken(ctx, packet, data)
 	}
@@ -536,15 +499,16 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	return nil
 }
 
+// revertInFlightChanges reverts the logic of receive packet and send packet
+// that occurs in the middle chains during a packet forwarding. If an error
+// occurs further down the line, the state changes on this chain must be
+// reverted before sending back the error acknowledgement to ensure atomic packet forwarding.
 func (k Keeper) revertInFlightChanges(ctx sdk.Context, sentPacket channeltypes.Packet, receivedPacket channeltypes.Packet, sentPacketData types.FungibleTokenPacketDataV2) error {
 	forwardEscrow := types.GetEscrowAddress(sentPacket.SourcePort, sentPacket.SourceChannel)
 	reverseEscrow := types.GetEscrowAddress(receivedPacket.DestinationPort, receivedPacket.DestinationChannel)
+
 	// the token on our chain is the token in the sentPacket
-
-	// We could unmarshall the sentPacket data and use it in the for or use sentPacketData
-	// Need to understand how to deal with this. The bank functions wants a coin and not a v3token type
 	for _, token := range sentPacketData.Tokens {
-
 		fullDenomPath := token.GetFullDenomPath()
 
 		// parse the denomination from the full denom path
@@ -555,25 +519,22 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, sentPacket channeltypes.P
 		if !ok {
 			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", transferAmount)
 		}
-		sdkToken := sdk.NewCoin(trace.IBCDenom(), transferAmount)
+		coin := sdk.NewCoin(trace.IBCDenom(), transferAmount)
 
 		// check if the packet we sent out was sending as source or not
-		// in this case we escrowed the outgoing tokens
+		// if it is source, then we escrowed the outgoing tokens
 		if types.SenderChainIsSource(sentPacket.SourcePort, sentPacket.SourceChannel, fullDenomPath) {
 			// check if the packet we received was a source token for our chain
-			// Check if here should be ReceiverChainIsSource
+			// check if here should be ReceiverChainIsSource
 			if types.SenderChainIsSource(receivedPacket.DestinationPort, receivedPacket.DestinationChannel, fullDenomPath) {
 				// receive sent tokens from the received escrow to the forward escrow account
 				// so we must send the tokens back from the forward escrow to the original received escrow account
-				// To check if this is proper
-
-				return k.unescrowToken(ctx, forwardEscrow, reverseEscrow, sdkToken)
+				return k.unescrowToken(ctx, forwardEscrow, reverseEscrow, coin)
 			} else {
 				// receive minted vouchers and sent to the forward escrow account
 				// so we must remove the vouchers from the forward escrow account and burn them
-				// Is this ok?
 				if err := k.bankKeeper.BurnCoins(
-					ctx, types.ModuleName, sdk.NewCoins(sdkToken),
+					ctx, types.ModuleName, sdk.NewCoins(coin),
 				); err != nil {
 					return err
 				}
@@ -582,15 +543,13 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, sentPacket channeltypes.P
 			// in this case we burned the vouchers of the outgoing packets
 			// check if the packet we received was a source token for our chain
 			// in this case, the tokens were unescrowed from the reverse escrow account
-			if types.SenderChainIsSource(receivedPacket.DestinationPort, receivedPacket.DestinationChannel, token.Denom) {
+			if types.SenderChainIsSource(receivedPacket.DestinationPort, receivedPacket.DestinationChannel, fullDenomPath) {
 				// in this case we must mint the burned vouchers and send them back to the escrow account
-				// mint vouchers back to sender
-				// Is this ok?
-				if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(sdkToken)); err != nil {
+				if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 					return err
 				}
 
-				if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, reverseEscrow, sdk.NewCoins(sdkToken)); err != nil {
+				if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, reverseEscrow, sdk.NewCoins(coin)); err != nil {
 					panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 				}
 			}

@@ -119,7 +119,7 @@ type FungibleTokenPacketDataV2 struct {
 	Receiver string `protobuf:"bytes,3,opt,name=receiver,proto3" json:"receiver,omitempty"`
 	// optional memo
 	Memo string `protobuf:"bytes,4,opt,name=memo,proto3" json:"memo,omitempty"`
-	// optional forwardingInfo struct
+	// optional forwarding information
 	ForwardingPath *ForwardingInfo `protobuf:"bytes,5,opt,name=forwarding_path,json=forwardingPath,proto3" json:"forwarding_path,omitempty"`
 }
 

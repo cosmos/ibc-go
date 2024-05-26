@@ -55,7 +55,8 @@ type MsgTransfer struct {
 	// optional memo
 	Memo string `protobuf:"bytes,8,opt,name=memo,proto3" json:"memo,omitempty"`
 	// tokens to be transferred
-	Tokens         []types.Coin    `protobuf:"bytes,9,rep,name=tokens,proto3" json:"tokens"`
+	Tokens []types.Coin `protobuf:"bytes,9,rep,name=tokens,proto3" json:"tokens"`
+	// optional forwarding information
 	ForwardingPath *ForwardingInfo `protobuf:"bytes,10,opt,name=forwarding_path,json=forwardingPath,proto3" json:"forwarding_path,omitempty"`
 }
 

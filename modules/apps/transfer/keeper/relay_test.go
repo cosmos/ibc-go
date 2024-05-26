@@ -428,7 +428,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 			var async bool
-			err, async = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+			async, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 			suite.Require().False(async)
 			// check total amount in escrow of received token denom on receiving chain
 			totalEscrow := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), sdk.DefaultBondDenom)
@@ -469,7 +469,7 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 	forwardingPath := types.ForwardingInfo{
 		Hops: []*types.Hop{
 			{
-				PortID:    path2.EndpointA.ChannelConfig.PortID,
+				PortId:    path2.EndpointA.ChannelConfig.PortID,
 				ChannelId: path2.EndpointA.ChannelID,
 			},
 		},
@@ -596,7 +596,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 
 	// execute onRecvPacket, when chaninB receives the source token the escrow amount should decrease
 	var async bool
-	err, async := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+	async, err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 	suite.Require().False(async)
 	suite.Require().NoError(err)
 
@@ -1045,7 +1045,7 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 	forwardingPath := types.ForwardingInfo{
 		Hops: []*types.Hop{
 			{
-				PortID:    path2.EndpointB.ChannelConfig.PortID,
+				PortId:    path2.EndpointB.ChannelConfig.PortID,
 				ChannelId: path2.EndpointB.ChannelID,
 			},
 		},
@@ -1091,7 +1091,6 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 	coin = sdk.NewCoin(denomTrace.IBCDenom(), amount)
 	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.NewInt(100), totalEscrowChainB.Amount)
-
 }
 
 // This test is probably overcomplicated. Could have used RecvPacketWithResult directly.
@@ -1137,7 +1136,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	forwardingPath := types.ForwardingInfo{
 		Hops: []*types.Hop{
 			{
-				PortID:    path2.EndpointB.ChannelConfig.PortID,
+				PortId:    path2.EndpointB.ChannelConfig.PortID,
 				ChannelId: path2.EndpointB.ChannelID,
 			},
 		},
@@ -1177,7 +1176,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	var async bool
-	err, async = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
+	async, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
 	// If forwarding has been triggered then the async must be true.
 	suite.Require().True(async)
 	suite.Require().Nil(err)
@@ -1217,7 +1216,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	packetRecv = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	// execute onRecvPacket, when chaninA receives the tokens the escrow amount on B should increase to amount
-	err, async = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packetRecv, data)
+	async, err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packetRecv, data)
 	suite.Require().False(async)
 	suite.Require().NoError(err)
 

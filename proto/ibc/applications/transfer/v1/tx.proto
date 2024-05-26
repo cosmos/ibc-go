@@ -51,7 +51,7 @@ message MsgTransfer {
   string memo = 8;
   // tokens to be transferred
   repeated cosmos.base.v1beta1.Coin tokens = 9 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
-
+  // optional forwarding information
   ForwardingInfo forwarding_path = 10;
 }
 

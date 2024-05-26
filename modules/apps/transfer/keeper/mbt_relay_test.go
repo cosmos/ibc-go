@@ -371,7 +371,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					}
 				case "OnRecvPacket":
 					var async bool
-					err, async = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+					async, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
 					suite.Require().False(async)
 
 				case "OnTimeoutPacket":
