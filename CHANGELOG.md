@@ -54,6 +54,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#6138](https://github.com/cosmos/ibc-go/pull/6138) Remove `Router` reference from IBC core keeper and use instead the router on the existing `PortKeeper` reference.
 * (core/04-channel) [\#6023](https://github.com/cosmos/ibc-go/pull/6023) Remove emission of non-hexlified event attributes `packet_data` and `packet_ack`.
 * (core) [\#6320](https://github.com/cosmos/ibc-go/pull/6320) Remove unnecessary `Proof` interface from `exported` package.
+* (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6341) Modify `UnmarshalPacketData` interface to take in the context, portID, and channelID. This allows for packet data's to be unmarshaled based on the channel version. 
 
 ### State Machine Breaking
 

@@ -38,9 +38,9 @@ func ParseDenomTrace(rawDenom string) DenomTrace {
 		}
 	}
 
-	path, baseDenom := extractPathAndBaseFromFullDenom(denomSplit)
+	pathSlice, baseDenom := extractPathAndBaseFromFullDenom(denomSplit)
 	return DenomTrace{
-		Path:      path,
+		Path:      strings.Join(pathSlice, "/"),
 		BaseDenom: baseDenom,
 	}
 }
@@ -84,7 +84,7 @@ func (dt DenomTrace) IsNativeDenom() bool {
 
 // extractPathAndBaseFromFullDenom returns the trace path and the base denom from
 // the elements that constitute the complete denom.
-func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
+func extractPathAndBaseFromFullDenom(fullDenomItems []string) ([]string, string) {
 	var (
 		pathSlice      []string
 		baseDenomSlice []string
@@ -109,12 +109,12 @@ func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
 		}
 	}
 
-	path := strings.Join(pathSlice, "/")
 	baseDenom := strings.Join(baseDenomSlice, "/")
 
-	return path, baseDenom
+	return pathSlice, baseDenom
 }
 
+// validateTraceIdentifiers validates the correctness of the trace associated with a particular base denom.
 func validateTraceIdentifiers(identifiers []string) error {
 	if len(identifiers) == 0 || len(identifiers)%2 != 0 {
 		return fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: %s", identifiers)
@@ -199,11 +199,12 @@ func ValidatePrefixedDenom(denom string) error {
 		return nil
 	}
 
-	if strings.TrimSpace(denomSplit[len(denomSplit)-1]) == "" {
+	pathSlice, baseDenom := extractPathAndBaseFromFullDenom(denomSplit)
+	if strings.TrimSpace(baseDenom) == "" {
 		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
 	}
 
-	path, _ := extractPathAndBaseFromFullDenom(denomSplit)
+	path := strings.Join(pathSlice, "/")
 	if path == "" {
 		// NOTE: base denom contains slashes, so no base denomination validation
 		return nil
@@ -213,11 +214,11 @@ func ValidatePrefixedDenom(denom string) error {
 	return validateTraceIdentifiers(identifiers)
 }
 
-// ValidateIBCDenom validates that the given denomination is either:
+// validateIBCDenom validates that the given denomination is either:
 //
 //   - A valid base denomination (eg: 'uatom' or 'gamm/pool/1' as in https://github.com/cosmos/ibc-go/issues/894)
 //   - A valid fungible token representation (i.e 'ibc/{hash}') per ADR 001 https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-001-coin-source-tracing.md
-func ValidateIBCDenom(denom string) error {
+func validateIBCDenom(denom string) error {
 	if err := sdk.ValidateDenom(denom); err != nil {
 		return err
 	}
