@@ -10,7 +10,6 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -1164,7 +1163,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 
 	denomTrace := types.ParseDenomTrace(sdk.DefaultBondDenom)
 
-	denom, trace := convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
@@ -1204,7 +1203,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packet)
 
-	denom, trace = convert.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom, trace = convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data = types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
