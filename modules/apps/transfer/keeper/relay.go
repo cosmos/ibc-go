@@ -201,8 +201,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return false, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
 	}
 	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
+		finalReceiver = receiver //, _ = sdk.AccAddressFromBech32(data.Receiver)
+		//finalReceiver = receiver
 		receiver = types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
-		finalReceiver = receiver
+
 	}
 
 	var receivedTokens sdk.Coins
@@ -364,7 +366,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			data.ForwardingPath.Hops[0].ChannelId,
 			receivedTokens,
 			receiver,
-			string(finalReceiver),
+			finalReceiver.String(),
 			clienttypes.Height{},
 			timeoutTimestamp,
 			memo,
