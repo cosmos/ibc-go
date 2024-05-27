@@ -960,50 +960,114 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 	// doesn't have this field in the packet data. The module should be able to handle
 	// this packet without any issues.
 
+	// the test also ensures that an ack is written for any malformed or bad packet data.
+
 	var packetData []byte
+	var path *ibctesting.Path
 
 	testCases := []struct {
-		msg      string
-		malleate func()
-		expError error
+		msg         string
+		malleate    func()
+		expError    error
+		expAckError error
 	}{
 		{
 			"success: new field",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
+			nil,
 			nil,
 		},
 		{
 			"success: no new field with memo",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
+			nil,
 			nil,
 		},
 		{
 			"success: no new field without memo",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
+			nil,
 			nil,
 		},
 		{
 			"failure: invalid packet data",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				packetData = []byte("invalid packet data")
 			},
+			ibcerrors.ErrInvalidType,
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: missing field",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"amount":"100","sender":%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+
+		{
+			"success: new field v2",
+			func() {
+				jsonString := fmt.Sprintf(`{"tokens": [{"denom":"denom","amount":"100","trace":[]}],  "sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+			nil,
+		},
+		{
+			"success: no new field with memo v2",
+			func() {
+				jsonString := fmt.Sprintf(`{"tokens": [{"denom":"denom","amount":"100","trace":[]}],  "sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+			nil,
+		},
+		{
+			"success: no new field without memo",
+			func() {
+				jsonString := fmt.Sprintf(`{"tokens": [{"denom":"denom","amount":"100","trace":[]}],  "sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+			nil,
+		},
+		{
+			"failure: invalid packet data v2",
+			func() {
+				packetData = []byte("invalid packet data")
+			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: missing field v2",
+			func() {
+				jsonString := fmt.Sprintf(`{"tokens": [{"amount":"100","trace":[]}],  "sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			types.ErrInvalidDenomForTransfer,
 			ibcerrors.ErrInvalidType,
 		},
 	}
@@ -1014,12 +1078,11 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			suite.SetupTest() // reset
 			packetData = nil
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			path.EndpointA.ChannelConfig.Version = types.V1
-			path.EndpointB.ChannelConfig.Version = types.V1
-			path.Setup()
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
+
+			path.Setup()
 
 			timeoutHeight := suite.chainB.GetTimeoutHeight()
 
@@ -1036,6 +1099,13 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorContains(err, tc.expError.Error())
+				ackBz, ok := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
+				suite.Require().True(ok)
+
+				// an ack should be written for the malformed / bad packet data.
+				expectedAck := channeltypes.NewErrorAcknowledgement(tc.expAckError)
+				expBz := channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement())
+				suite.Require().Equal(expBz, ackBz)
 			}
 		})
 	}
