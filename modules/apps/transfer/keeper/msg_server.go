@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
@@ -34,12 +36,44 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
-	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Memo)
+	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
+	fullDenomPath := msg.Token.Denom
+
+	// deconstruct the token denomination into the denomination trace info
+	// to determine if the sender is the source chain
+	if strings.HasPrefix(msg.Token.Denom, "ibc/") {
+		fullDenomPath, err = k.DenomPathFromHash(ctx, msg.Token.Denom)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	packetData := types.NewFungibleTokenPacketData(
+		fullDenomPath, msg.Token.Amount.String(), sender.String(), msg.Receiver, msg.Memo,
+	)
+
+	msgSendPacket := &channeltypes.MsgSendPacket{
+		PortId:           msg.SourcePort,
+		ChannelId:        msg.SourceChannel,
+		TimeoutHeight:    msg.TimeoutHeight,
+		TimeoutTimestamp: msg.TimeoutTimestamp,
+		Data:             packetData.GetBytes(),
+		Signer:           msg.Sender,
+	}
+
+	handler := k.msgRouter.Handler(msgSendPacket)
+	res, err := handler(ctx, msgSendPacket)
 	if err != nil {
 		return nil, err
 	}
+
+	sendPacketResp, ok := res.MsgResponses[0].GetCachedValue().(*channeltypes.MsgSendPacketResponse)
+	if !ok {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to convert %T message response to %T", res.MsgResponses[0].GetCachedValue(), &channeltypes.MsgSendPacketResponse{})
+	}
+
+	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
+	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
 
@@ -58,7 +92,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		),
 	})
 
-	return &types.MsgTransferResponse{Sequence: sequence}, nil
+	return &types.MsgTransferResponse{Sequence: sendPacketResp.Sequence}, nil
 }
 
 // UpdateParams defines an rpc handler method for MsgUpdateParams. Updates the ibc-transfer module's parameters.

@@ -116,30 +116,6 @@ func (suite *KeeperTestSuite) TestSendTx() {
 			},
 			false,
 		},
-		{
-			"timeout timestamp is not in the future",
-			func() {
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
-
-				msg := &banktypes.MsgSend{
-					FromAddress: interchainAccountAddr,
-					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
-				}
-
-				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
-				suite.Require().NoError(err)
-
-				packetData = icatypes.InterchainAccountPacketData{
-					Type: icatypes.EXECUTE_TX,
-					Data: data,
-				}
-
-				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().UnixNano())
-			},
-			false,
-		},
 	}
 
 	for _, tc := range testCases {

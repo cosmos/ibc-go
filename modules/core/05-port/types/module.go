@@ -81,6 +81,18 @@ type IBCModule interface {
 		channelID string,
 	) error
 
+	// TODO: consider removing timeout height and timeout timestamp added back for callbacks
+	OnSendPacket(
+		ctx sdk.Context,
+		portID string,
+		channelID string,
+		sequence uint64,
+		timeoutHeight clienttypes.Height,
+		timeoutTimestamp uint64,
+		data []byte,
+		signer sdk.AccAddress,
+	) error
+
 	// OnRecvPacket must return an acknowledgement that implements the Acknowledgement interface.
 	// In the case of an asynchronous acknowledgement, nil should be returned.
 	// If the acknowledgement returned is successful, the state changes on callback are written,
@@ -159,19 +171,9 @@ type UpgradableModule interface {
 
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
 type ICS4Wrapper interface {
-	SendPacket(
-		ctx sdk.Context,
-		chanCap *capabilitytypes.Capability,
-		sourcePort string,
-		sourceChannel string,
-		timeoutHeight clienttypes.Height,
-		timeoutTimestamp uint64,
-		data []byte,
-	) (sequence uint64, err error)
-
+	// TODO: Leave in place to avoid compiler errors and incrementally work to remove. We can then delete these methods
 	WriteAcknowledgement(
 		ctx sdk.Context,
-		chanCap *capabilitytypes.Capability,
 		packet exported.PacketI,
 		ack exported.Acknowledgement,
 	) error

@@ -9,11 +9,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -22,7 +20,6 @@ import (
 // is returned if one occurs.
 func (k *Keeper) SendPacket(
 	ctx sdk.Context,
-	channelCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -36,10 +33,6 @@ func (k *Keeper) SendPacket(
 
 	if channel.State != types.OPEN {
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
-		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
@@ -107,7 +100,6 @@ func (k *Keeper) SendPacket(
 // sent on the corresponding channel end on the counterparty chain.
 func (k *Keeper) RecvPacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
@@ -132,15 +124,6 @@ func (k *Keeper) RecvPacket(
 		if packet.GetSequence() >= counterpartyNextSequenceSend {
 			return errorsmod.Wrapf(types.ErrInvalidPacket, "cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d).", packet.GetSequence(), counterpartyNextSequenceSend)
 		}
-	}
-
-	// Authenticate capability to ensure caller has authority to receive packet on this channel
-	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication for capability name %s", capName,
-		)
 	}
 
 	// packet must come from the channel's counterparty
@@ -292,7 +275,6 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 // previously by RecvPacket.
 func (k *Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	acknowledgement exported.Acknowledgement,
 ) error {
@@ -303,15 +285,6 @@ func (k *Keeper) WriteAcknowledgement(
 
 	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
-	}
-
-	// Authenticate capability to ensure caller has authority to receive packet on this channel
-	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication for capability name %s", capName,
-		)
 	}
 
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
@@ -369,7 +342,6 @@ func (k *Keeper) WriteAcknowledgement(
 // It will also increment NextSequenceAck in case of ORDERED channels.
 func (k *Keeper) AcknowledgePacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 	acknowledgement []byte,
 	proof []byte,
@@ -385,15 +357,6 @@ func (k *Keeper) AcknowledgePacket(
 
 	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING}, channel.State) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "packets cannot be acknowledged on channel with state (%s)", channel.State)
-	}
-
-	// Authenticate capability to ensure caller has authority to receive packet on this channel
-	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication for capability name %s", capName,
-		)
 	}
 
 	// packet must have been sent to the channel's counterparty

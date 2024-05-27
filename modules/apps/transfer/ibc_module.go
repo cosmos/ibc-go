@@ -13,6 +13,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -170,6 +171,29 @@ func (IBCModule) OnChanCloseConfirm(
 	channelID string,
 ) error {
 	return nil
+}
+
+// OnSendPacket implements the IBCModule interface.
+func (im IBCModule) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	_ uint64,
+	_ clienttypes.Height,
+	_ uint64,
+	dataBz []byte,
+	signer sdk.AccAddress,
+) error {
+	var data types.FungibleTokenPacketData
+	if err := json.Unmarshal(dataBz, &data); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+	}
+
+	if data.Sender != signer.String() {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "invalid signer address: expected %s, got %s", data.Sender, signer)
+	}
+
+	return im.keeper.OnSendPacket(ctx, portID, channelID, data, signer)
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement

@@ -170,6 +170,56 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	return nil
 }
 
+// OnSendPacket implements the IBCModule interface.
+func (im IBCMiddleware) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+	signer sdk.AccAddress,
+) error {
+	if !im.keeper.GetParams(ctx).ControllerEnabled {
+		return types.ErrControllerSubModuleDisabled
+	}
+
+	controllerPortID, err := icatypes.NewControllerPortID(signer.String())
+	if err != nil {
+		return err
+	}
+
+	if controllerPortID != portID {
+		return errorsmod.Wrap(ibcerrors.ErrUnauthorized, "signer is not owner of interchain account channel")
+	}
+
+	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
+	if err != nil {
+		return err
+	}
+
+	activeChannelID, found := im.keeper.GetOpenActiveChannel(ctx, connectionID, portID)
+	if !found {
+		return errorsmod.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
+	}
+
+	if activeChannelID != channelID {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "active channel ID does not match provided channelID. expected %s, got %s", activeChannelID, channelID)
+	}
+
+	var icaPacketData icatypes.InterchainAccountPacketData
+	if err := icaPacketData.UnmarshalJSON(data); err != nil {
+		return err
+	}
+
+	if err := icaPacketData.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "invalid interchain account packet data")
+	}
+
+	return nil
+}
+
 // OnRecvPacket implements the IBCMiddleware interface
 func (IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
@@ -309,23 +359,9 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 	}
 }
 
-// SendPacket implements the ICS4 Wrapper interface
-func (IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	panic(errors.New("SendPacket not supported for ICA controller module. Please use SendTx"))
-}
-
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {

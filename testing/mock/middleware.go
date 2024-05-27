@@ -113,6 +113,15 @@ func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, cha
 	return nil
 }
 
+// OnSendPacket implements the IBCModule interface.
+func (im BlockUpgradeMiddleware) OnSendPacket(ctx sdk.Context, portID string, channelID string, sequence uint64, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte, signer sdk.AccAddress) error {
+	if im.IBCApp.OnSendPacket != nil {
+		return im.IBCApp.OnSendPacket(ctx, portID, channelID, sequence, data, signer)
+	}
+
+	return nil
+}
+
 // OnRecvPacket implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if im.IBCApp.OnRecvPacket != nil {
@@ -168,23 +177,9 @@ func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channel
 	return nil
 }
 
-// SendPacket implements the ICS4 Wrapper interface
-func (BlockUpgradeMiddleware) SendPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	return 0, nil
-}
-
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (BlockUpgradeMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {

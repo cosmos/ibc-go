@@ -31,6 +31,10 @@ var (
 	maxSequence   = uint64(10)
 )
 
+func (suite *KeeperTestSuite) TestHandleSendPacket() {
+	suite.T().Skip("todo: handle test send packet rpc")
+}
+
 // tests the IBC handler receiving a packet on ordered and unordered channels.
 // It verifies that the storing of an acknowledgement on success occurs. It
 // tests high level properties like ordering and basic sanity checks. More

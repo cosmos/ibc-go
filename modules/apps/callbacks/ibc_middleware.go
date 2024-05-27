@@ -81,30 +81,24 @@ func (im *IBCMiddleware) GetICS4Wrapper() porttypes.ICS4Wrapper {
 	return im.ics4Wrapper
 }
 
-// SendPacket implements source callbacks for sending packets.
-// It defers to the underlying application and then calls the contract callback.
-// If the contract callback returns an error, panics, or runs out of gas, then
-// the packet send is rejected.
-func (im IBCMiddleware) SendPacket(
+// OnSendPacket implements the IBCModule interface.
+func (im IBCMiddleware) OnSendPacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
+	sequence uint64,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-) (uint64, error) {
-	seq, err := im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
-	if err != nil {
-		return 0, err
-	}
-
+	signer sdk.AccAddress,
+) error {
 	callbackData, err := types.GetSourceCallbackData(im.app, data, sourcePort, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
-		return seq, nil
+		return nil
 	}
 
+	// TODO: the packet sender is now passed in, it is possible to remove `GetPacketSender` in favour of this arg
 	callbackExecutor := func(cachedCtx sdk.Context) error {
 		return im.contractKeeper.IBCSendPacketCallback(
 			cachedCtx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackData.CallbackAddress, callbackData.SenderAddress,
@@ -114,11 +108,11 @@ func (im IBCMiddleware) SendPacket(
 	err = im.processCallback(ctx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	types.EmitCallbackEvent(ctx, sourcePort, sourceChannel, seq, types.CallbackTypeSendPacket, callbackData, nil)
-	return seq, nil
+	types.EmitCallbackEvent(ctx, sourcePort, sourceChannel, sequence, types.CallbackTypeSendPacket, callbackData, nil)
+	return nil
 }
 
 // OnAcknowledgementPacket implements source callbacks for acknowledgement packets.
@@ -236,11 +230,10 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 // reverted via a panic.
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
-	err := im.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	err := im.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack)
 	if err != nil {
 		return err
 	}

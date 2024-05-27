@@ -10,9 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -288,24 +286,4 @@ func (suite *KeeperTestSuite) TestGetAllCounterpartyPayees() {
 	counterpartyPayeeAddr := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllCounterpartyPayees(suite.chainA.GetContext())
 	suite.Require().Len(counterpartyPayeeAddr, len(expectedCounterpartyPayee))
 	suite.Require().Equal(counterpartyPayeeAddr, expectedCounterpartyPayee)
-}
-
-func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
-	suite.SetupTest()
-
-	// test if the ics4 wrapper is the channel keeper initially
-	ics4Wrapper := suite.chainA.GetSimApp().IBCFeeKeeper.GetICS4Wrapper()
-
-	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
-	_, isFeeKeeper := ics4Wrapper.(keeper.Keeper)
-	suite.Require().False(isFeeKeeper)
-
-	// set the ics4 wrapper to itself (don't do this in production)
-	suite.chainA.GetSimApp().IBCFeeKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCFeeKeeper)
-	ics4Wrapper = suite.chainA.GetSimApp().IBCFeeKeeper.GetICS4Wrapper()
-
-	_, isFeeKeeper = ics4Wrapper.(keeper.Keeper)
-	suite.Require().True(isFeeKeeper)
-	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
-	suite.Require().False(isChannelKeeper)
 }

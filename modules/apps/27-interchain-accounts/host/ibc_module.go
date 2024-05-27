@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -108,6 +109,20 @@ func (im IBCModule) OnChanCloseConfirm(
 	channelID string,
 ) error {
 	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
+}
+
+// OnSendPacket implements the IBCModule interface.
+func (IBCModule) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+	signer sdk.AccAddress,
+) error {
+	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "cannot send packet on icahost")
 }
 
 // OnRecvPacket implements the IBCModule interface

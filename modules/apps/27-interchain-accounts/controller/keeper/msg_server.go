@@ -65,7 +65,7 @@ func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.M
 	// the absolute timeout value is calculated using the controller chain block time + the relative timeout value
 	// this assumes time synchrony to a certain degree between the controller and counterparty host chain
 	absoluteTimeout := uint64(ctx.BlockTime().UnixNano()) + msg.RelativeTimeout
-	seq, err := s.sendTx(ctx, msg.ConnectionId, portID, msg.PacketData, absoluteTimeout)
+	seq, err := s.sendTx(ctx, msg.ConnectionId, portID, msg.PacketData, absoluteTimeout, msg.Owner)
 	if err != nil {
 		return nil, err
 	}
