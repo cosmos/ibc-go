@@ -259,7 +259,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				)
 			}()
 
-			return nil
+			continue
 		}
 
 		// sender chain is the source, mint vouchers
