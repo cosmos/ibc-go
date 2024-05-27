@@ -410,7 +410,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expResult func(suite *KeeperTestSuite, originalRefundBal, originalEscrowBal, refundBal, escrowBal sdk.Coins)
+		expResult func(originalRefundBal, originalEscrowBal, refundBal, escrowBal sdk.Coins)
 	}{
 		{
 			"success", func() {
@@ -424,7 +424,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 					err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
 					suite.Require().NoError(err)
 				}
-			}, func(suite *KeeperTestSuite, _, _, refundBal, escrowBal sdk.Coins) {
+			}, func(_, _, refundBal, escrowBal sdk.Coins) {
 				suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 				suite.Require().Empty(suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 				suite.Require().Empty(escrowBal)
@@ -454,7 +454,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 
 				expEscrowBal = fee.Total()
 				expRefundBal = expRefundBal.Sub(fee.Total()...)
-			}, func(suite *KeeperTestSuite, _, _, refundBal, escrowBal sdk.Coins) {
+			}, func(_, _, refundBal, escrowBal sdk.Coins) {
 				suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 				suite.Require().Empty(suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 				suite.Require().Equal(expEscrowBal, escrowBal)
@@ -471,7 +471,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
 
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFees}
-			}, func(suite *KeeperTestSuite, originalRefundBal, originalEscrowBal, refundBal, escrowBal sdk.Coins) {
+			}, func(originalRefundBal, originalEscrowBal, refundBal, escrowBal sdk.Coins) {
 				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 				suite.Require().Equal(expIdentifiedPacketFees, suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 				suite.Require().Equal(originalRefundBal, refundBal)
@@ -495,7 +495,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 				suite.Require().NoError(err)
 
 				expIdentifiedPacketFees = []types.IdentifiedPacketFees{identifiedPacketFee1, identifiedPacketFee2}
-			}, func(suite *KeeperTestSuite, originalRefundBal, originalEscrowBal, refundBal, escrowBal sdk.Coins) {
+			}, func(originalRefundBal, originalEscrowBal, refundBal, escrowBal sdk.Coins) {
 				suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 				suite.Require().Equal(expIdentifiedPacketFees, suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 				suite.Require().Equal(originalRefundBal, refundBal)
@@ -521,7 +521,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 
 				expEscrowBal = fee.Total()
 				expRefundBal = expRefundBal.Sub(fee.Total()...)
-			}, func(suite *KeeperTestSuite, _, _, refundBal, escrowBal sdk.Coins) {
+			}, func(_, _, refundBal, escrowBal sdk.Coins) {
 				suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 				suite.Require().Equal(expIdentifiedPacketFees, suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 				suite.Require().Equal(expEscrowBal, escrowBal)
@@ -549,7 +549,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 
 				expEscrowBal = fee.Total()
 				expRefundBal = expRefundBal.Sub(fee.Total()...)
-			}, func(suite *KeeperTestSuite, _, _, refundBal, escrowBal sdk.Coins) {
+			}, func(_, _, refundBal, escrowBal sdk.Coins) {
 				suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 				suite.Require().Equal(expIdentifiedPacketFees, suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
 				suite.Require().Equal(expEscrowBal, escrowBal)
@@ -587,7 +587,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 			refundBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), refundAcc)
 			escrowBal := suite.chainA.GetSimApp().BankKeeper.GetAllBalances(suite.chainA.GetContext(), moduleAcc)
 
-			tc.expResult(suite, originalRefundBal, originalEscrowBal, refundBal, escrowBal)
+			tc.expResult(originalRefundBal, originalEscrowBal, refundBal, escrowBal)
 		})
 	}
 }
