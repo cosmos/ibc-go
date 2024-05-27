@@ -242,7 +242,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transfertypes.Version1))
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transfertypes.V1))
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
 
@@ -260,9 +260,9 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("verify transfer version of channel A is ics20-1", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(transfertypes.Version1, channel.Version, "the channel version is not ics20-1")
+		s.Require().Equal(transfertypes.V1, channel.Version, "the channel version is not ics20-1")
 	})
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
@@ -286,7 +286,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 
-		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+		actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 
 		expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
@@ -300,7 +300,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -308,25 +308,25 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
-		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		chA, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
-		upgradeFields := channeltypes.NewUpgradeFields(chA.Ordering, chA.ConnectionHops, transfertypes.Version)
+		upgradeFields := channeltypes.NewUpgradeFields(chA.Ordering, chA.ConnectionHops, transfertypes.V2)
 		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, upgradeFields)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("verify channel A upgraded and transfer version is ics20-2", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-2")
+		s.Require().Equal(transfertypes.V2, channel.Version, "the channel version is not ics20-2")
 	})
 
 	t.Run("verify channel B upgraded and transfer version is ics20-2", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		channel, err := query.Channel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
-		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-2")
+		s.Require().Equal(transfertypes.V2, channel.Version, "the channel version is not ics20-2")
 	})
 
 	// send the native chainB denom and also the ibc token from chainA
@@ -355,7 +355,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 		})
 
 		t.Run("chain B ibc denom", func(t *testing.T) {
-			actualBalance, err := s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+			actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
@@ -364,7 +364,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 	})
 
 	t.Run("tokens are un-escrowed", func(t *testing.T) {
-		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+		actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 		s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
 	})
