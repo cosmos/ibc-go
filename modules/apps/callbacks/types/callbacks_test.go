@@ -277,7 +277,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 	}
 }
 
-func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
+func (s *CallbacksTypesTestSuite) TestGetSourceDestCallbackDataTransfer() {
 	s.SetupTest()
 
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -288,7 +288,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 		Amount:   ibctesting.TestCoin.Amount.String(),
 		Sender:   sender,
 		Receiver: receiver,
-		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, sender),
+		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address": "%s"}}`, sender, sender),
 	}
 	packetDataBytes := packetData.GetBytes()
 
@@ -317,52 +317,14 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 	ctx := s.chainA.GetContext().WithGasMeter(gasMeter)
 
 	packet := channeltypes.NewPacket(packetDataBytes, 0, transfertypes.PortID, s.path.EndpointA.ChannelID, transfertypes.PortID, s.path.EndpointB.ChannelID, clienttypes.ZeroHeight(), 0)
-	callbackData, err := types.GetSourceCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
+	sourceCallbackData, err := types.GetSourceCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
 	s.Require().NoError(err)
-	s.Require().Equal(expCallbackData, callbackData)
-}
+	s.Require().Equal(expCallbackData, sourceCallbackData)
 
-func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
-	s.SetupTest()
-
-	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-
-	packetData := transfertypes.FungibleTokenPacketData{
-		Denom:    ibctesting.TestCoin.Denom,
-		Amount:   ibctesting.TestCoin.Amount.String(),
-		Sender:   sender,
-		Receiver: receiver,
-		Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
-	}
-	packetDataBytes := packetData.GetBytes()
-
-	expCallbackData := types.CallbackData{
-		CallbackAddress:   sender,
-		SenderAddress:     "",
-		ExecutionGasLimit: 1_000_000,
-		CommitGasLimit:    1_000_000,
-	}
-
-	s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
-	s.path.EndpointA.ChannelConfig.PortID = transfertypes.ModuleName
-	s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
-	s.path.EndpointB.ChannelConfig.PortID = transfertypes.ModuleName
-
-	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	packetUnmarshaler, ok := transferStack.(types.CallbacksCompatibleModule)
-	s.Require().True(ok)
-
-	s.path.Setup()
-
-	gasMeter := storetypes.NewGasMeter(2_000_000)
-	ctx := s.chainA.GetContext().WithGasMeter(gasMeter)
-	packet := channeltypes.NewPacket(packetDataBytes, 0, transfertypes.PortID, s.path.EndpointA.ChannelID, transfertypes.PortID, s.path.EndpointB.ChannelID, clienttypes.ZeroHeight(), 0)
-	callbackData, err := types.GetDestCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
+	expCallbackData.SenderAddress = ""
+	destCallbackData, err := types.GetDestCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
 	s.Require().NoError(err)
-	s.Require().Equal(expCallbackData, callbackData)
+	s.Require().Equal(expCallbackData, destCallbackData)
 }
 
 func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
