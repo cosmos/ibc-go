@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 			msg := types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				coin,
+				sdk.NewCoins(coin),
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				suite.chainA.GetTimeoutHeight(), 0, "",

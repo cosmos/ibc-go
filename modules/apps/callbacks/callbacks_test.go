@@ -11,6 +11,7 @@ import (
 
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,6 +25,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -78,8 +80,8 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 
 	s.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	s.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-	s.path.EndpointA.ChannelConfig.Version = transfertypes.Version
-	s.path.EndpointB.ChannelConfig.Version = transfertypes.Version
+	s.path.EndpointA.ChannelConfig.Version = transfertypes.V2
+	s.path.EndpointB.ChannelConfig.Version = transfertypes.V2
 
 	s.path.Setup()
 }
@@ -88,7 +90,7 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 	s.setupChains()
 
-	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.Version}))
+	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.V2}))
 	s.path.EndpointA.ChannelConfig.Version = feeTransferVersion
 	s.path.EndpointB.ChannelConfig.Version = feeTransferVersion
 	s.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
@@ -291,17 +293,24 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 
 // GetExpectedEvent returns the expected event for a callback.
 func GetExpectedEvent(
-	packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
+	ctx sdk.Context, packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
 	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
 ) (abci.Event, bool) {
 	var (
 		callbackData types.CallbackData
 		err          error
 	)
+
+	// Set up gas meter with remainingGas.
+	gasMeter := storetypes.NewGasMeter(remainingGas)
+	ctx = ctx.WithGasMeter(gasMeter)
+
 	if callbackType == types.CallbackTypeReceivePacket {
-		callbackData, err = types.GetDestCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
+		packet := channeltypes.NewPacket(data, seq, "", "", eventPortID, eventChannelID, clienttypes.ZeroHeight(), 0)
+		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {
-		callbackData, err = types.GetSourceCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
+		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
+		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	}
 	if err != nil {
 		return abci.Event{}, false
