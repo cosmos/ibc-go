@@ -114,6 +114,36 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			false,
 		},
 		{
+			"failure: bank send disabled for coin in multi coin transfer",
+			func() {
+				coin2 = sdk.NewCoin("bond", sdkmath.NewInt(100))
+				coins := sdk.NewCoins(coin1, coin2)
+
+				// send some coins of the second denom from bank module to the sender account as well
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2)))
+				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin2)))
+
+				msg = types.NewMsgTransfer(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					coins,
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.chainB.SenderAccount.GetAddress().String(),
+					suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+					"memo",
+				)
+
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+					banktypes.Params{
+						SendEnabled: []*banktypes.SendEnabled{{Denom: coin2.Denom, Enabled: false}},
+					},
+				)
+				suite.Require().NoError(err)
+			},
+			types.ErrSendDisabled,
+			true,
+		},
+		{
 			"failure: channel does not exist",
 			func() {
 				msg.SourceChannel = "channel-100"
@@ -186,15 +216,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
 						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-						sdk.NewAttribute(types.AttributeKeyDenom, coin1.Denom),
-						sdk.NewAttribute(types.AttributeKeyAmount, coin1.Amount.String()),
-					),
-					sdk.NewEvent(types.EventTypeTransfer,
-						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
-						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-						sdk.NewAttribute(types.AttributeKeyDenom, coin2.Denom),
-						sdk.NewAttribute(types.AttributeKeyAmount, coin2.Amount.String()),
+						sdk.NewAttribute(types.AttributeKeyTokens, sdk.NewCoins(coin1, coin2).String()),
 					),
 					sdk.NewEvent(
 						sdk.EventTypeMessage,
@@ -207,8 +229,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
 						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-						sdk.NewAttribute(types.AttributeKeyDenom, coin1.Denom),
-						sdk.NewAttribute(types.AttributeKeyAmount, coin1.Amount.String()),
+						sdk.NewAttribute(types.AttributeKeyTokens, coin1.String()),
 					),
 					sdk.NewEvent(
 						sdk.EventTypeMessage,

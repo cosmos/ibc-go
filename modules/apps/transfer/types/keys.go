@@ -26,7 +26,7 @@ const (
 	// DenomPrefix is the prefix used for internal SDK coin representation.
 	DenomPrefix = "ibc"
 
-	// AllowAllPacketDataKeys holds the string key that allows all packet data keys in authz transfer messages
+	// AllowAllPacketDataKeys holds the string key that allows all memo strings in authz transfer messages
 	AllowAllPacketDataKeys = "*"
 
 	KeyTotalEscrowPrefix = "totalEscrowForDenom"
@@ -38,8 +38,8 @@ const (
 	// V1 defines first version of the IBC transfer module
 	V1 = "ics20-1"
 
-	// V2 defines the current version the IBC transfer
-	// module supports
+	// V2 defines the transfer version which introduces multidenom support
+	// through the FungibleTokenPacketDataV2. It is the latest version.
 	V2 = "ics20-2"
 
 	// escrowAddressVersion should remain as ics20-1 to avoid the address changing.

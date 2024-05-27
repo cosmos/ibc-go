@@ -331,7 +331,7 @@ lint-fix:
 	@echo "--> Running linter"
 	@./scripts/go-lint-all.sh --fix
 
-#? format: Run gofumpt and mispell
+#? format: Run gofumpt and misspell
 format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w

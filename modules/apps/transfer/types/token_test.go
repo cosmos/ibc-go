@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,7 +29,7 @@ func TestGetFullDenomPath(t *testing.T) {
 		{
 			"denom path with trace",
 			NewFungibleTokenPacketDataV2(
-				[]*Token{
+				[]Token{
 					{
 						Denom:  denom,
 						Amount: amount,
@@ -45,27 +45,11 @@ func TestGetFullDenomPath(t *testing.T) {
 		{
 			"nil trace",
 			NewFungibleTokenPacketDataV2(
-				[]*Token{
+				[]Token{
 					{
 						Denom:  denom,
 						Amount: amount,
 						Trace:  []string{},
-					},
-				},
-				sender,
-				receiver,
-				"",
-			),
-			denom,
-		},
-		{
-			"empty string trace",
-			NewFungibleTokenPacketDataV2(
-				[]*Token{
-					{
-						Denom:  denom,
-						Amount: amount,
-						Trace:  []string{""},
 					},
 				},
 				sender,
@@ -127,6 +111,33 @@ func TestValidate(t *testing.T) {
 			ErrInvalidDenomForTransfer,
 		},
 		{
+			"failure: invalid amount string",
+			Token{
+				Denom:  "atom",
+				Amount: "value",
+				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+			},
+			ErrInvalidAmount,
+		},
+		{
+			"failure: amount is zero",
+			Token{
+				Denom:  "atom",
+				Amount: "0",
+				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+			},
+			ErrInvalidAmount,
+		},
+		{
+			"failure: amount is negative",
+			Token{
+				Denom:  "atom",
+				Amount: "-1",
+				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+			},
+			ErrInvalidAmount,
+		},
+		{
 			"failure: invalid identifier in trace",
 			Token{
 				Denom:  "uatom",
@@ -134,6 +145,15 @@ func TestValidate(t *testing.T) {
 				Trace:  []string{"transfer/channel-1", "randomport"},
 			},
 			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: [transfer channel-1 randomport]"),
+		},
+		{
+			"failure: empty identifier in trace",
+			Token{
+				Denom:  "uatom",
+				Amount: amount,
+				Trace:  []string{""},
+			},
+			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: "),
 		},
 	}
 
@@ -147,5 +167,87 @@ func TestValidate(t *testing.T) {
 				require.ErrorContains(t, err, tc.expError.Error(), tc.name)
 			}
 		})
+	}
+}
+
+func TestTokens_String(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    Tokens
+		expected string
+	}{
+		{
+			"empty tokens",
+			Tokens{},
+			"",
+		},
+		{
+			"single token, no trace",
+			Tokens{
+				Token{
+					Denom:  "tree",
+					Amount: "1",
+					Trace:  []string{},
+				},
+			},
+			`denom:"tree" amount:"1" `,
+		},
+		{
+			"single token with trace",
+			Tokens{
+				Token{
+					Denom:  "tree",
+					Amount: "1",
+					Trace:  []string{"portid/channelid"},
+				},
+			},
+			`denom:"tree" amount:"1" trace:"portid/channelid" `,
+		},
+		{
+			"multiple tokens, no trace",
+			Tokens{
+				Token{
+					Denom:  "tree",
+					Amount: "1",
+					Trace:  []string{},
+				},
+				Token{
+					Denom:  "gas",
+					Amount: "2",
+					Trace:  []string{},
+				},
+				Token{
+					Denom:  "mineral",
+					Amount: "3",
+					Trace:  []string{},
+				},
+			},
+			`denom:"tree" amount:"1" ,denom:"gas" amount:"2" ,denom:"mineral" amount:"3" `,
+		},
+		{
+			"multiple tokens, trace and no trace",
+			Tokens{
+				Token{
+					Denom:  "tree",
+					Amount: "1",
+					Trace:  []string{},
+				},
+				Token{
+					Denom:  "gas",
+					Amount: "2",
+					Trace:  []string{"portid/channelid"},
+				},
+				Token{
+					Denom:  "mineral",
+					Amount: "3",
+					Trace:  []string{"portid/channelid", "transfer/channel-52"},
+				},
+			},
+			`denom:"tree" amount:"1" ,denom:"gas" amount:"2" trace:"portid/channelid" ,denom:"mineral" amount:"3" trace:"portid/channelid" trace:"transfer/channel-52" `,
+		},
+	}
+
+	for _, tt := range cases {
+		require.Equal(t, tt.expected, tt.input.String())
 	}
 }

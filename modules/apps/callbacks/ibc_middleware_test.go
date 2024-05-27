@@ -33,21 +33,21 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			nil,
 		},
 		{
 			"panics with nil underlying app",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(nil, channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(nil, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
 		},
 		{
 			"panics with nil contract keeper",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, nil, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, nil, maxCallbackGas)
 			},
 			fmt.Errorf("contract keeper cannot be nil"),
 		},
@@ -61,7 +61,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"panics with zero maxCallbackGas",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
 			},
 			fmt.Errorf("maxCallbackGas cannot be zero"),
 		},
@@ -89,7 +89,7 @@ func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 	cbsMiddleware.WithICS4Wrapper(s.chainA.App.GetIBCKeeper().ChannelKeeper)
 	ics4Wrapper := cbsMiddleware.GetICS4Wrapper()
 
-	s.Require().IsType(channelkeeper.Keeper{}, ics4Wrapper)
+	s.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 }
 
 func (s *CallbacksTestSuite) TestSendPacket() {
@@ -165,7 +165,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			transferICS4Wrapper := GetSimApp(s.chainA).TransferKeeper.GetICS4Wrapper()
 
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]*transfertypes.Token{
+				[]transfertypes.Token{
 					{
 						Denom:  ibctesting.TestCoin.GetDenom(),
 						Amount: ibctesting.TestCoin.Amount.String(),
@@ -200,7 +200,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				s.Require().Equal(uint64(1), seq)
 
 				expEvent, exists := GetExpectedEvent(
-					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
 					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
 				)
 				if exists {
@@ -307,7 +307,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			userGasLimit = 600000
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]*transfertypes.Token{
+				[]transfertypes.Token{
 					{
 						Denom:  ibctesting.TestCoin.GetDenom(),
 						Amount: ibctesting.TestCoin.Amount.String(),
@@ -338,7 +338,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onAcknowledgementPacket := func() error {
@@ -381,7 +381,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeAcknowledgementPacket, nil,
 				)
 				s.Require().True(exists)
@@ -501,7 +501,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onTimeoutPacket := func() error {
@@ -543,7 +543,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().Equal(uint8(2), sourceStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeTimeoutPacket, nil,
 				)
 				s.Require().True(exists)
@@ -640,7 +640,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			// set user gas limit above panic level in mock contract keeper
 			userGasLimit = 600_000
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]*transfertypes.Token{
+				[]transfertypes.Token{
 					{
 						Denom:  ibctesting.TestCoin.GetDenom(),
 						Amount: ibctesting.TestCoin.Amount.String(),
@@ -669,7 +669,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			transferStack, ok := s.chainB.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onRecvPacket := func() ibcexported.Acknowledgement {
@@ -712,7 +712,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().Equal(uint8(1), destStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				s.Require().True(exists)
@@ -772,7 +772,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 
 			// set user gas limit above panic level in mock contract keeper
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]*transfertypes.Token{
+				[]transfertypes.Token{
 					{
 						Denom:  ibctesting.TestCoin.GetDenom(),
 						Amount: ibctesting.TestCoin.Amount.String(),
@@ -814,7 +814,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				s.Require().NoError(err)
 
 				expEvent, exists := GetExpectedEvent(
-					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				if exists {
@@ -945,7 +945,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 
 			module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
 			s.Require().NoError(err)
-			cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			s.Require().True(ok)
 			mockCallbackStack, ok := cbs.(ibccallbacks.IBCMiddleware)
 			s.Require().True(ok)
@@ -971,12 +971,17 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 	}
 }
 
-func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
+func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	s.setupChains()
+	s.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	s.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+	s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
+	s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
+	s.path.Setup()
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
 	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
@@ -991,7 +996,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 	}
 
 	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
-		Tokens: []*transfertypes.Token{
+		Tokens: []transfertypes.Token{
 			{
 				Denom:  ibctesting.TestCoin.Denom,
 				Amount: ibctesting.TestCoin.Amount.String(),
@@ -1003,15 +1008,46 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
 	}
 
-	// Unmarshal ICS20 v1 packet data
+	portID := s.path.EndpointA.ChannelConfig.PortID
+	channelID := s.path.EndpointA.ChannelID
+
+	// Unmarshal ICS20 v1 packet data into v2 packet data
 	data := expPacketDataICS20V1.GetBytes()
-	packetData, err := unmarshalerStack.UnmarshalPacketData(data)
+	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
+}
 
-	// Unmarshal ICS20 v1 packet data
-	data = expPacketDataICS20V2.GetBytes()
-	packetData, err = unmarshalerStack.UnmarshalPacketData(data)
+func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
+	s.SetupTransferTest()
+
+	// We will pass the function call down the transfer stack to the transfer module
+	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
+	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+	s.Require().True(ok)
+
+	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
+	s.Require().True(ok)
+
+	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
+		Tokens: []transfertypes.Token{
+			{
+				Denom:  ibctesting.TestCoin.Denom,
+				Amount: ibctesting.TestCoin.Amount.String(),
+				Trace:  nil,
+			},
+		},
+		Sender:   ibctesting.TestAccAddress,
+		Receiver: ibctesting.TestAccAddress,
+		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
+	}
+
+	portID := s.path.EndpointA.ChannelConfig.PortID
+	channelID := s.path.EndpointA.ChannelID
+
+	// Unmarshal ICS20 v2 packet data
+	data := expPacketDataICS20V2.GetBytes()
+	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 }
@@ -1022,10 +1058,11 @@ func (s *CallbacksTestSuite) TestGetAppVersion() {
 	// Obtain an IBC stack for testing. The function call will use the top of the stack which calls
 	// directly to the channel keeper. Calling from a further down module in the stack is not necessary
 	// for this test.
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack := icaControllerStack.(porttypes.ICS4Wrapper)
+	controllerStack, ok := icaControllerStack.(porttypes.ICS4Wrapper)
+	s.Require().True(ok)
 	appVersion, found := controllerStack.GetAppVersion(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	s.Require().True(found)
 	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, appVersion)
@@ -1036,10 +1073,11 @@ func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack OnChanCloseInit call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack := icaControllerStack.(porttypes.Middleware)
+	controllerStack, ok := icaControllerStack.(porttypes.Middleware)
+	s.Require().True(ok)
 	err := controllerStack.OnChanCloseInit(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller to return an error
 	s.Require().ErrorIs(err, errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"))
@@ -1050,10 +1088,11 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack OnChanCloseConfirm call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack := icaControllerStack.(porttypes.Middleware)
+	controllerStack, ok := icaControllerStack.(porttypes.Middleware)
+	s.Require().True(ok)
 	err := controllerStack.OnChanCloseConfirm(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller
 	s.Require().NoError(err)
@@ -1064,7 +1103,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 
 	module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
 	s.Require().NoError(err)
-	cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 	s.Require().True(ok)
 	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
 	s.Require().True(ok)

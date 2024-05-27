@@ -18,7 +18,9 @@ func (suite *KeeperTestSuite) TestMsgCreateClientEvents() {
 	tmConfig, ok := path.EndpointA.ClientConfig.(*ibctesting.TendermintConfig)
 	suite.Require().True(ok)
 
-	height := path.EndpointA.Counterparty.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
+	height, ok := path.EndpointA.Counterparty.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
+	suite.Require().True(ok)
+
 	clientState := ibctm.NewClientState(
 		path.EndpointA.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
 		height, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
@@ -56,7 +58,9 @@ func (suite *KeeperTestSuite) TestMsgUpdateClientEvents() {
 
 	suite.chainB.Coordinator.CommitBlock(suite.chainB)
 
-	clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+	clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+	suite.Require().True(ok)
+
 	trustedHeight := clientState.LatestHeight
 	header, err := suite.chainB.IBCClientHeader(suite.chainB.LatestCommittedHeader, trustedHeight)
 	suite.Require().NoError(err)

@@ -19,6 +19,7 @@ import (
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -36,14 +37,12 @@ type ConnectionTestSuite struct {
 // QueryMaxExpectedTimePerBlockParam queries the on-chain max expected time per block param for 03-connection
 func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Context, chain ibc.Chain) uint64 {
 	if testvalues.SelfParamsFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
-		queryClient := s.GetChainGRCPClients(chain).ConnectionQueryClient
-		res, err := queryClient.ConnectionParams(ctx, &connectiontypes.QueryConnectionParamsRequest{})
+		res, err := query.GRPCQuery[connectiontypes.QueryConnectionParamsResponse](ctx, chain, &connectiontypes.QueryConnectionParamsRequest{})
 		s.Require().NoError(err)
 
 		return res.Params.MaxExpectedTimePerBlock
 	}
-	queryClient := s.GetChainGRCPClients(chain).ParamsQueryClient
-	res, err := queryClient.Params(ctx, &paramsproposaltypes.QueryParamsRequest{
+	res, err := query.GRPCQuery[paramsproposaltypes.QueryParamsResponse](ctx, chain, &paramsproposaltypes.QueryParamsRequest{
 		Subspace: ibcexported.ModuleName,
 		Key:      string(connectiontypes.KeyMaxExpectedTimePerBlock),
 	})
@@ -86,7 +85,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t.Run("change the delay to 60 seconds", func(t *testing.T) {
 		delay := uint64(1 * time.Minute)
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -129,7 +128,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 		t.Run("packets are relayed", func(t *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
-			actualBalance, err := s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+			actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 
 			s.Require().NoError(err)
 

@@ -16,7 +16,10 @@ on:
       - synchronize
       # trigger workflow if PR is marked ready for review.
       - ready_for_review
-
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'LICENSE'
 
 jobs:
   # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
@@ -65,3 +68,5 @@ jobs:
       chain-binary: 'simd'
       # only run the grandpa test suite for wasm tests.
       test-entry-point: 'TestGrandpaTestSuite'
+      # exclude transfer tests which rely on removed packet event attributes: # https://github.com/cosmos/ibc-go/issues/6243
+      test-exclusions: 'TestMsgTransfer_Succeeds_GrandpaContract,TestMsgTransfer_TimesOut_GrandpaContract'

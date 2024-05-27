@@ -119,13 +119,13 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		return types.V2, nil
-	}
-
 	// OpenTry must claim the channelCapability that IBC passes into the callback
 	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
+	}
+
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
+		return types.V2, nil
 	}
 
 	return counterpartyVersion, nil
@@ -174,25 +174,35 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
-func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte) (types.FungibleTokenPacketDataV2, error) {
-	// TODO: remove support for this function parsing v1 packet data
-	// TODO: explicit check for packet data type against app version
-
-	var datav1 types.FungibleTokenPacketData
-	if err := json.Unmarshal(bz, &datav1); err == nil {
-		if len(datav1.Denom) != 0 {
-			return convertinternal.PacketDataV1ToV2(datav1), nil
+// unmarshalPacketDataBytesToICS20V2 attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
+// The version of ics20 should be provided and should be either ics20-1 or ics20-2.
+func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte, ics20Version string) (types.FungibleTokenPacketDataV2, error) {
+	switch ics20Version {
+	case types.V1:
+		var datav1 types.FungibleTokenPacketData
+		if err := json.Unmarshal(bz, &datav1); err != nil {
+			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V1 transfer packet data: %s", err.Error())
 		}
-	}
 
-	var data types.FungibleTokenPacketDataV2
-	if err := json.Unmarshal(bz, &data); err == nil {
-		if len(data.Tokens) != 0 {
-			return data, nil
+		if err := datav1.ValidateBasic(); err != nil {
+			return types.FungibleTokenPacketDataV2{}, err
 		}
-	}
 
-	return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+		return convertinternal.PacketDataV1ToV2(datav1), nil
+	case types.V2:
+		var datav2 types.FungibleTokenPacketDataV2
+		if err := json.Unmarshal(bz, &datav2); err != nil {
+			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
+		}
+
+		if err := datav2.ValidateBasic(); err != nil {
+			return types.FungibleTokenPacketDataV2{}, err
+		}
+
+		return datav2, nil
+	default:
+		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrap(types.ErrInvalidVersion, ics20Version)
+	}
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
@@ -203,12 +213,17 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	logger := im.keeper.Logger(ctx)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	data, ackErr := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
+	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.DestinationPort, packet.DestinationChannel)
+	if !found {
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.DestinationPort, packet.DestinationChannel))
+	}
+
+	data, ackErr := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
 	if ackErr != nil {
-		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, ackErr.Error())
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 	}
 
@@ -219,38 +234,34 @@ func (im IBCModule) OnRecvPacket(
 		if err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err)
 			ackErr = err
-			logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+			im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		} else {
-			logger.Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
+			im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 		}
 	}
 
-	events := make([]sdk.Event, 0, len(data.Tokens)+1)
-	for _, token := range data.Tokens {
-		events = append(events, sdk.NewEvent(
-			types.EventTypePacket,
-			sdk.NewAttribute(types.AttributeKeySender, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, token.GetFullDenomPath()),
-			sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
-			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-		))
-	}
-
 	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(types.AttributeKeySender, data.Sender),
+		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+		sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
+		sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}
+
 	if ackErr != nil {
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
 
-	events = append(events, sdk.NewEvent(
-		sdk.EventTypeMessage,
-		eventAttributes...,
-	))
-
-	ctx.EventManager().EmitEvents(events)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypePacket,
+			eventAttributes...,
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -268,7 +279,12 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
+	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
+	if !found {
+		return errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.SourcePort, packet.SourceChannel)
+	}
+
+	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
 	if err != nil {
 		return err
 	}
@@ -277,25 +293,20 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	events := make([]sdk.Event, 0, len(data.Tokens)+1)
-	for _, token := range data.Tokens {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypePacket,
-				sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-				sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-				sdk.NewAttribute(types.AttributeKeyDenom, token.GetFullDenomPath()),
-				sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
-				sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-			),
-		)
-	}
-	events = append(events, sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
-	))
-	ctx.EventManager().EmitEvents(events)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(data.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
 
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
@@ -323,7 +334,12 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData())
+	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, packet.SourcePort, packet.SourceChannel)
+	if !found {
+		return errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.SourcePort, packet.SourceChannel)
+	}
+
+	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
 	if err != nil {
 		return err
 	}
@@ -333,24 +349,18 @@ func (im IBCModule) OnTimeoutPacket(
 		return err
 	}
 
-	events := make([]sdk.Event, 0, len(data.Tokens)+1)
-	for _, token := range data.Tokens {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeTimeout,
-				sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-				sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-				sdk.NewAttribute(types.AttributeKeyDenom, token.GetFullDenomPath()),
-				sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
-				sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
-			),
-		)
-	}
-	events = append(events, sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-	))
-	ctx.EventManager().EmitEvents(events)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeTimeout,
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Sender),
+			sdk.NewAttribute(types.AttributeKeyRefundTokens, types.Tokens(data.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
 
 	return nil
 }
@@ -397,8 +407,13 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	ftpd, err := im.unmarshalPacketDataBytesToICS20V2(bz)
+func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
+	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
+	}
+
+	ftpd, err := im.unmarshalPacketDataBytesToICS20V2(bz, ics20Version)
 	if err != nil {
 		return nil, err
 	}

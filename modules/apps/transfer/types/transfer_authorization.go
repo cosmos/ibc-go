@@ -2,9 +2,8 @@ package types
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -69,16 +68,16 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 	allocationModified := false
 
 	// update spend limit for each token in the MsgTransfer
-	for _, token := range msgTransfer.GetTokens() {
+	for _, coin := range msgTransfer.GetCoins() {
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
 		// if there is no unlimited spend, then we need to subtract the amount from the spend limit to get the limit left
-		if allocation.SpendLimit.AmountOf(token.Denom).Equal(UnboundedSpendLimit()) {
+		if allocation.SpendLimit.AmountOf(coin.Denom).Equal(UnboundedSpendLimit()) {
 			continue
 		}
 
-		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(token)
+		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(coin)
 		if isNegative {
-			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", token.Denom)
+			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", coin.Denom)
 		}
 
 		allocationModified = true
@@ -172,9 +171,9 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 }
 
 // validateMemo returns a nil error indicating if the memo is valid for transfer.
-func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) error {
+func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	// if the allow list is empty, then the memo must be an empty string
-	if len(allowedPacketDataList) == 0 {
+	if len(allowedMemos) == 0 {
 		if len(strings.TrimSpace(memo)) != 0 {
 			return errorsmod.Wrapf(ErrInvalidAuthorization, "memo must be empty because allowed packet data in allocation is empty")
 		}
@@ -183,36 +182,20 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 	}
 
 	// if allowedPacketDataList has only 1 element and it equals AllowAllPacketDataKeys
-	// then accept all the packet data keys
-	if len(allowedPacketDataList) == 1 && allowedPacketDataList[0] == AllowAllPacketDataKeys {
+	// then accept all the memo strings
+	if len(allowedMemos) == 1 && allowedMemos[0] == AllowAllPacketDataKeys {
 		return nil
 	}
 
-	jsonObject := make(map[string]interface{})
-	err := json.Unmarshal([]byte(memo), &jsonObject)
-	if err != nil {
-		return err
-	}
-
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
-
-	for _, key := range allowedPacketDataList {
+	isMemoAllowed := slices.ContainsFunc(allowedMemos, func(allowedMemo string) bool {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 
-		_, ok := jsonObject[key]
-		if ok {
-			delete(jsonObject, key)
-		}
-	}
+		return strings.TrimSpace(memo) == strings.TrimSpace(allowedMemo)
+	})
 
-	var keys []string
-	for k := range jsonObject {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	if len(jsonObject) != 0 {
-		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed packet data keys: %s", keys)
+	if !isMemoAllowed {
+		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
 	}
 
 	return nil
