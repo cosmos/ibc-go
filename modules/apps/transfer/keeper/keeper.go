@@ -144,74 +144,79 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store.Set([]byte(types.ParamsKey), bz)
 }
 
-// GetDenomTrace retrieves the full identifiers trace and base denomination from the store.
-func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash cmtbytes.HexBytes) (types.DenomTrace, bool) {
+// GetTokenInfo retrieves the full identifiers trace and base denomination from the store.
+func (k Keeper) GetTokenInfo(ctx sdk.Context, denomHash cmtbytes.HexBytes) (types.Token, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
-	bz := store.Get(denomTraceHash)
+	bz := store.Get(denomHash)
 	if len(bz) == 0 {
-		return types.DenomTrace{}, false
+		return types.Token{}, false
 	}
 
-	denomTrace := k.MustUnmarshalDenomTrace(bz)
-	return denomTrace, true
+	var tokenInfo types.Token
+	k.cdc.MustUnmarshal(bz, &tokenInfo)
+
+	return tokenInfo, true
 }
 
-// HasDenomTrace checks if a the key with the given denomination trace hash exists on the store.
-func (k Keeper) HasDenomTrace(ctx sdk.Context, denomTraceHash cmtbytes.HexBytes) bool {
+// HasTokenInfo checks if a the key with the given denomination trace hash exists on the store.
+func (k Keeper) HasTokenInfo(ctx sdk.Context, denomHash cmtbytes.HexBytes) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
-	return store.Has(denomTraceHash)
+	return store.Has(denomHash)
 }
 
-// SetDenomTrace sets a new {trace hash -> denom trace} pair to the store.
-func (k Keeper) SetDenomTrace(ctx sdk.Context, denomTrace types.DenomTrace) {
+// SetTokenInfo sets a new {trace hash -> denom trace} pair to the store.
+func (k Keeper) SetTokenInfo(ctx sdk.Context, tokenInfo types.Token) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
-	bz := k.MustMarshalDenomTrace(denomTrace)
-	store.Set(denomTrace.Hash(), bz)
+	bz := k.cdc.MustMarshal(&tokenInfo)
+
+	store.Set(tokenInfo.Hash(), bz)
 }
 
 // GetAllDenomTraces returns the trace information for all the denominations.
-func (k Keeper) GetAllDenomTraces(ctx sdk.Context) types.Traces {
+func (k Keeper) GetAllTokenInfo(ctx sdk.Context) types.Traces {
 	traces := types.Traces{}
-	k.IterateDenomTraces(ctx, func(denomTrace types.DenomTrace) bool {
-		traces = append(traces, denomTrace)
+	k.IterateTokenInfos(ctx, func(tokenInfo types.Token) bool {
+		traces = append(traces, tokenInfo)
 		return false
 	})
 
 	return traces.Sort()
 }
 
-// IterateDenomTraces iterates over the denomination traces in the store
+// IterateTokenInfos iterates over the denomination traces in the store
 // and performs a callback function.
-func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.DenomTrace) bool) {
+func (k Keeper) IterateTokenInfos(ctx sdk.Context, cb func(tokenInfo types.Token) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-		denomTrace := k.MustUnmarshalDenomTrace(iterator.Value())
-		if cb(denomTrace) {
+		var tokenInfo types.Token
+		k.cdc.MustUnmarshal(iterator.Value(), &tokenInfo)
+
+		if cb(tokenInfo) {
 			break
 		}
 	}
 }
 
 // setDenomMetadata sets an IBC token's denomination metadata
-func (k Keeper) setDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
+func (k Keeper) setDenomMetadata(ctx sdk.Context, tokenInfo types.Token) {
 	metadata := banktypes.Metadata{
-		Description: fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath()),
+		Description: fmt.Sprintf("IBC token from %s", tokenInfo.GetFullDenomPath()),
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    denomTrace.BaseDenom,
+				Denom:    tokenInfo.Denom,
 				Exponent: 0,
 			},
 		},
 		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
 		// Base as key path and the IBC hash is what gives this token uniqueness
 		// on the executing chain
-		Base:    denomTrace.IBCDenom(),
-		Display: denomTrace.GetFullDenomPath(),
-		Name:    fmt.Sprintf("%s IBC token", denomTrace.GetFullDenomPath()),
-		Symbol:  strings.ToUpper(denomTrace.BaseDenom),
+		Base:    tokenInfo.IBCDenom(),
+		Display: tokenInfo.GetFullDenomPath(),
+		Name:    fmt.Sprintf("%s IBC token", tokenInfo.GetFullDenomPath()),
+		Symbol:  strings.ToUpper(tokenInfo.Denom),
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)

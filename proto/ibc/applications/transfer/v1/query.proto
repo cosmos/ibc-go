@@ -4,7 +4,7 @@ package ibc.applications.transfer.v1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
+// import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/applications/transfer/v1/transfer.proto";
 import "google/api/annotations.proto";
 
@@ -13,15 +13,17 @@ option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 // Query provides defines the gRPC querier service.
 service Query {
   // DenomTraces queries all denomination traces.
-  rpc DenomTraces(QueryDenomTracesRequest) returns (QueryDenomTracesResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces";
-  }
+  /*
+    rpc DenomTraces(QueryDenomTracesRequest) returns (QueryDenomTracesResponse) {
+      option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces";
+    }
 
-  // DenomTrace queries a denomination trace information.
-  rpc DenomTrace(QueryDenomTraceRequest) returns (QueryDenomTraceResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{hash=**}";
-  }
+    // DenomTrace queries a denomination trace information.
+    rpc DenomTrace(QueryDenomTraceRequest) returns (QueryDenomTraceResponse) {
+      option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{hash=**}";
+    }
 
+  */
   // Params queries all parameters of the ibc-transfer module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/ibc/apps/transfer/v1/params";
@@ -43,6 +45,7 @@ service Query {
   }
 }
 
+/*
 // QueryDenomTraceRequest is the request type for the Query/DenomTrace RPC
 // method
 message QueryDenomTraceRequest {
@@ -72,6 +75,7 @@ message QueryDenomTracesResponse {
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
+*/
 
 // QueryParamsRequest is the request type for the Query/Params RPC method.
 message QueryParamsRequest {}

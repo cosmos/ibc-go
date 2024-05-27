@@ -2,17 +2,13 @@ package keeper
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/store/prefix"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/internal/validate"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -21,6 +17,7 @@ import (
 
 var _ types.QueryServer = (*Keeper)(nil)
 
+/*
 // DenomTrace implements the Query/DenomTrace gRPC method
 func (k Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest) (*types.QueryDenomTraceResponse, error) {
 	if req == nil {
@@ -75,6 +72,7 @@ func (k Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesReques
 		Pagination:  pageRes,
 	}, nil
 }
+*/
 
 // Params implements the Query/Params gRPC method
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {

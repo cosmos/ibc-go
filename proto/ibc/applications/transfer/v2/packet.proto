@@ -43,5 +43,12 @@ message Token {
   // the token amount to be transferred
   string amount = 2;
   // the trace of the token
-  repeated string trace = 3;
+  repeated Trace trace = 3 [(gogoproto.nullable) = false];
+}
+
+// Trace defines portID and channelID the token arrived through
+message Trace {
+  option (gogoproto.goproto_stringer) = false;
+  string port_id                      = 1;
+  string channel_id                   = 2;
 }
