@@ -297,7 +297,7 @@ func (k *Keeper) ChanOpenConfirm(
 	if channel.State != types.TRYOPEN {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
-			"channel state is not TRYOPEN (got %s)", channel.State.String(),
+			"channel state is not TRYOPEN (got %s)", channel.State,
 		)
 	}
 

@@ -187,7 +187,7 @@ func (k *Keeper) ConnOpenAck(
 	if connection.State != types.INIT {
 		return errorsmod.Wrapf(
 			types.ErrInvalidConnectionState,
-			"connection state is not INIT (got %s)", connection.State.String(),
+			"connection state is not INIT (got %s)", connection.State,
 		)
 	}
 
@@ -269,7 +269,7 @@ func (k *Keeper) ConnOpenConfirm(
 	if connection.State != types.TRYOPEN {
 		return errorsmod.Wrapf(
 			types.ErrInvalidConnectionState,
-			"connection state is not TRYOPEN (got %s)", connection.State.String(),
+			"connection state is not TRYOPEN (got %s)", connection.State,
 		)
 	}
 
