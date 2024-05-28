@@ -1,10 +1,8 @@
 package types
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"sort"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -43,43 +41,6 @@ func ParseDenomTrace(rawDenom string) DenomTrace {
 		Path:      strings.Join(pathSlice, "/"),
 		BaseDenom: baseDenom,
 	}
-}
-
-// Hash returns the hex bytes of the SHA256 hash of the DenomTrace fields using the following formula:
-//
-// hash = sha256(tracePath + "/" + baseDenom)
-func (dt DenomTrace) Hash() cmtbytes.HexBytes {
-	hash := sha256.Sum256([]byte(dt.GetFullDenomPath()))
-	return hash[:]
-}
-
-// GetPrefix returns the receiving denomination prefix composed by the trace info and a separator.
-func (dt DenomTrace) GetPrefix() string {
-	return dt.Path + "/"
-}
-
-// IBCDenom a coin denomination for an ICS20 fungible token in the format
-// 'ibc/{hash(tracePath + baseDenom)}'. If the trace is empty, it will return the base denomination.
-func (dt DenomTrace) IBCDenom() string {
-	if dt.Path != "" {
-		return fmt.Sprintf("%s/%s", DenomPrefix, dt.Hash())
-	}
-	return dt.BaseDenom
-}
-
-// GetFullDenomPath returns the full denomination according to the ICS20 specification:
-// tracePath + "/" + baseDenom
-// If there exists no trace then the base denomination is returned.
-func (dt DenomTrace) GetFullDenomPath() string {
-	if dt.Path == "" {
-		return dt.BaseDenom
-	}
-	return dt.GetPrefix() + dt.BaseDenom
-}
-
-// IsNativeDenom returns true if the denomination is native, thus containing no trace history.
-func (dt DenomTrace) IsNativeDenom() bool {
-	return dt.Path == ""
 }
 
 // extractPathAndBaseFromFullDenom returns the trace path and the base denom from
@@ -146,43 +107,6 @@ func (dt DenomTrace) Validate() error {
 
 	identifiers := strings.Split(dt.Path, "/")
 	return validateTraceIdentifiers(identifiers)
-}
-
-// Denoms defines a wrapper type for a slice of Denom.
-type Denoms []Denom
-
-// Validate performs a basic validation of each denomination trace info.
-func (d Denoms) Validate() error {
-	seenDenoms := make(map[string]bool)
-	for i, denom := range d {
-		hash := denom.Hash().String()
-		if seenDenom[hash] {
-			return fmt.Errorf("duplicated denomination trace with hash %s", denom.Hash())
-		}
-
-		if err := denom.Validate(); err != nil {
-			return errorsmod.Wrapf(err, "failed denom trace %d validation", i)
-		}
-		seenDenom[hash] = true
-	}
-	return nil
-}
-
-var _ sort.Interface = (*Denoms)(nil)
-
-// Len implements sort.Interface for Traces
-func (d Denoms) Len() int { return len(t) }
-
-// Less implements sort.Interface for Traces
-func (d Denoms) Less(i, j int) bool { return t[i].GetFullDenomPath() < t[j].GetFullDenomPath() }
-
-// Swap implements sort.Interface for Traces
-func (d Denoms) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
-
-// Sort is a helper function to sort the set of denomination traces in-place
-func (t Traces) Sort() Traces {
-	sort.Sort(t)
-	return t
 }
 
 // ValidatePrefixedDenom checks that the denomination for an IBC fungible token packet denom is correctly prefixed.

@@ -1,23 +1,24 @@
 syntax = "proto3";
 
-package ibc.applications.transfer.v1;
+package ibc.applications.transfer.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 
 import "gogoproto/gogo.proto";
-import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "ibc/applications/transfer/v1/transfer.proto";
+import "ibc/applications/transfer/v2/token.proto";
 import "google/api/annotations.proto";
 
 // QueryV2 provides defines the gRPC querier service for ics20-v2.
 service QueryV2 {
   // Denoms queries all denomination traces.
   rpc Denoms(QueryDenomsRequest) returns (QueryDenomsResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/denoms";
+    option (google.api.http).get = "/ibc/apps/transfer/v2/denoms";
   }
 
   // Denom queries a denomination trace information.
   rpc Denom(QueryDenomRequest) returns (QueryDenomResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/denoms/{hash=**}";
+    option (google.api.http).get = "/ibc/apps/transfer/v2/denoms/{hash=**}";
   }
 }
 
