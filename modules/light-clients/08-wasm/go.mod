@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/modules/light-clients/08-wasm
 
-go 1.21
+go 1.22
 
 replace github.com/cosmos/ibc-go/v8 => ../../../
 
