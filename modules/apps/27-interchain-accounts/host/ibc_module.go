@@ -183,7 +183,7 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into an InterchainAccountPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
+func (IBCModule) UnmarshalPacketData(_ sdk.Context, _, _ string, bz []byte) (interface{}, error) {
 	var data icatypes.InterchainAccountPacketData
 	err := data.UnmarshalJSON(bz)
 	if err != nil {

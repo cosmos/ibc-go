@@ -19,6 +19,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 
+	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -65,7 +66,7 @@ type FungibleTokenPacket struct {
 	SourcePort    string
 	DestChannel   string
 	DestPort      string
-	Data          types.FungibleTokenPacketData
+	Data          types.FungibleTokenPacketDataV2
 }
 
 type OnRecvPacketTestCase = struct {
@@ -108,7 +109,7 @@ func AddressFromTla(addr []string) string {
 		s = addr[2]
 	} else if len(addr[2]) == 0 {
 		// escrow address: ics20-1\x00port/channel
-		s = fmt.Sprintf("%s\x00%s/%s", types.Version, addr[0], addr[1])
+		s = fmt.Sprintf("%s\x00%s/%s", types.V1, addr[0], addr[1])
 	} else {
 		panic(errors.New("failed to convert from TLA+ address: neither simple nor escrow address"))
 	}
@@ -143,17 +144,26 @@ func BalancesFromTla(tla []TlaBalance) []Balance {
 }
 
 func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPacket {
+	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(DenomFromTla(packet.Data.Denom))
 	return FungibleTokenPacket{
 		SourceChannel: packet.SourceChannel,
 		SourcePort:    packet.SourcePort,
 		DestChannel:   packet.DestChannel,
 		DestPort:      packet.DestPort,
-		Data: types.NewFungibleTokenPacketData(
-			DenomFromTla(packet.Data.Denom),
-			packet.Data.Amount,
+		Data: types.NewFungibleTokenPacketDataV2(
+			[]types.Token{
+				{
+					Denom: types.Denom{
+						Base:  denom,
+						Trace: trace,
+					},
+					Amount: packet.Data.Amount,
+				},
+			},
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
-			""),
+			"",
+		),
 	}
 }
 
@@ -310,7 +320,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)
 			registerDenomFn := func() {
-				denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
+				denomTrace := types.ParseDenomTrace(tc.packet.Data.Tokens[0].GetFullDenomPath())
 				traceHash := denomTrace.Hash()
 				if !suite.chainB.GetSimApp().TransferKeeper.HasDenomTrace(suite.chainB.GetContext(), traceHash) {
 					suite.chainB.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainB.GetContext(), denomTrace)
@@ -337,18 +347,18 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						panic(errors.New("MBT failed to convert sender address"))
 					}
 					registerDenomFn()
-					denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
+					denomTrace := types.ParseDenomTrace(tc.packet.Data.Tokens[0].GetFullDenomPath())
 					denom := denomTrace.IBCDenom()
 					err = sdk.ValidateDenom(denom)
 					if err == nil {
-						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Amount)
+						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Tokens[0].Amount)
 						if !ok {
 							panic(errors.New("MBT failed to parse amount from string"))
 						}
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,
-							sdk.NewCoin(denom, amount),
+							sdk.NewCoins(sdk.NewCoin(denom, amount)),
 							sender.String(),
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
