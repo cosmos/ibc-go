@@ -13,8 +13,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
@@ -69,6 +70,14 @@ func (ics IdentifiedClientStates) Swap(i, j int) { ics[i], ics[j] = ics[j], ics[
 func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
 	sort.Sort(ics)
 	return ics
+}
+
+// NewLiteCounterparty creates a new LiteCounterparty instance
+func NewLiteCounterparty(clientID string, merklePathPrefix *commitmenttypes.MerklePath) LiteCounterparty {
+	return LiteCounterparty{
+		ClientId:         clientID,
+		MerklePathPrefix: merklePathPrefix,
+	}
 }
 
 // NewConsensusStateWithHeight creates a new ConsensusStateWithHeight instance

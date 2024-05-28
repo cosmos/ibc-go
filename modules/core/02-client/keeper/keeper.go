@@ -14,11 +14,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v9/modules/light-clients/09-localhost"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
 // Keeper represents a type that grants read and write permissions to any client
@@ -322,15 +323,24 @@ func (k *Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) 
 	return k.consensusHost.GetSelfConsensusState(ctx, height)
 }
 
-// GetCounterparty returns the counterparty client's identifier for a given client identifier.
-// If the counterparty client identifier is not found, an empty string is returned.
-func (k *Keeper) GetCounterparty(ctx sdk.Context, clientID string) string {
-	return string(k.ClientStore(ctx, clientID).Get(host.CounterpartyKey()))
+// SetCounterparty sets the Litecounterparty for a given client identifier.
+func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID, counterpartyClientID string, merklePathPrefix *commitmenttypes.MerklePath) {
+	counterparty := types.NewLiteCounterparty(counterpartyClientID, merklePathPrefix)
+	bz := k.cdc.MustMarshal(&counterparty)
+	k.ClientStore(ctx, clientID).Set(host.CounterpartyKey(), bz)
 }
 
-// SetCounterparty sets the counterparty client's identifier for a given client identifier.
-func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID, counterpartyClientID string) {
-	k.ClientStore(ctx, clientID).Set(host.CounterpartyKey(), []byte(counterpartyClientID))
+// GetCounterparty gets the counterparty client's identifier for a given client identifier.
+func (k *Keeper) GetCounterparty(ctx sdk.Context, clientID string) (types.LiteCounterparty, bool) {
+	store := k.ClientStore(ctx, clientID)
+	bz := store.Get(host.CounterpartyKey())
+	if len(bz) == 0 {
+		return types.LiteCounterparty{}, false
+	}
+
+	var counterparty types.LiteCounterparty
+	k.cdc.MustUnmarshal(bz, &counterparty)
+	return counterparty, true
 }
 
 // GetCreator returns the creator of the client.

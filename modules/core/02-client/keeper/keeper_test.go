@@ -130,14 +130,16 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 }
 
 func (suite *KeeperTestSuite) TestSetCounterparty() {
-	counterpartyClientID := suite.keeper.GetCounterparty(suite.ctx, testClientID)
-	suite.Require().Equal("", counterpartyClientID, "Counterparty client ID is not empty")
+	merklePathPrefix := commitmenttypes.NewMerklePath("ibc", "")
+	expectedCounterparty := types.LiteCounterparty{
+		ClientId:         testClientID,
+		MerklePathPrefix: &merklePathPrefix,
+	}
+	suite.keeper.SetCounterparty(suite.ctx, testClientID, testClientID, &merklePathPrefix)
 
-	testCounterpartyID := "counterparty-1"
-	suite.keeper.SetCounterparty(suite.ctx, testClientID, testCounterpartyID)
-
-	counterpartyClientID = suite.keeper.GetCounterparty(suite.ctx, testClientID)
-	suite.Require().Equal(testCounterpartyID, counterpartyClientID, "Counterparty client ID is not equal")
+	counterparty, ok := suite.keeper.GetCounterparty(suite.ctx, testClientID)
+	suite.Require().True(ok, "GetCounterparty does not return counterparty")
+	suite.Require().Equal(expectedCounterparty, counterparty, "Counterparty is not equal")
 }
 
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
