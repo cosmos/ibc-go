@@ -1,7 +1,7 @@
 package convert
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -44,7 +44,7 @@ func ExtractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 
 	// this condition should never be reached.
 	if len(splitPath)%2 != 0 {
-		panic(fmt.Errorf("path slice length is not even"))
+		panic(errors.New("path slice length is not even"))
 	}
 
 	// the path slices consists of entries of ports and channel ids separately,
