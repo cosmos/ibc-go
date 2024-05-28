@@ -1341,7 +1341,9 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		1. B sends C over channel1 [path2].
 		2. C recvs - This represent the checkpoint we will need to verify at the of the test
 		3. C --> [path2] B --> [path1] A.
-		4. OnRecv in B works properly, but OnRecv on A fails. Error Ack is written in A, relayed to B and finally to C.
+		4. OnRecv in B works properly and trigger the packet forwarding to A
+		5. Modify the balance of escrowA to cause an error during the onRecv
+		6. OnRecv on A fails. Error Ack is written in A, relayed to B and finally to C.
 		At this point we want to assert:
 		Everything has been reverted at checkpoint values.
 		- C has amount of transfer/channel-1/transfer/channel-0/stake
@@ -1404,9 +1406,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 
 	// A --> B Simple transfer happened properly.
 
-	// Now we want to execute 1.
-
-	// Now we want to trigget B -> C
+	// Now we want to trigger B -> C
 	sender = suite.chainB.SenderAccounts[0].SenderAccount
 	receiver = suite.chainC.SenderAccounts[0].SenderAccount
 
@@ -1514,16 +1514,16 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	// To trigger an error during the OnRecv, we have to manipulate the balance present in the escrow of A
 	// of denom
 
+	// parse the packet from result events and recv packet on chainA
+	packet, err = ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packet)
+
 	// manipulate escrow account for denom on chain A
 	coin = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(99))
 	suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), coin)
 	totalEscrowChainA = suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.NewInt(99), totalEscrowChainA.Amount)
-
-	// parse the packet from result events and recv packet on chainA
-	packet, err = ibctesting.ParsePacketFromEvents(result.Events)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(packet)
 
 	err = path1.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
@@ -1544,7 +1544,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 				Amount: amount.String(),
 				Trace:  trace,
 			},
-		}, types.GetForwardAddress(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID).String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
+		}, types.GetForwardAddress(path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID).String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
 	packetRecv := channeltypes.NewPacket(data.GetBytes(), 3, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	err = path1.EndpointB.UpdateClient()
