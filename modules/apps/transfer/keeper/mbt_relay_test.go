@@ -153,9 +153,11 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 		Data: types.NewFungibleTokenPacketDataV2(
 			[]types.Token{
 				{
-					Denom:  denom,
+					Denom: types.Denom{
+						Base:  denom,
+						Trace: trace,
+					},
 					Amount: packet.Data.Amount,
-					Trace:  trace,
 				},
 			},
 			AddressFromString(packet.Data.Sender),

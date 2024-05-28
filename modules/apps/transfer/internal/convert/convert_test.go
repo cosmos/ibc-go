@@ -28,9 +28,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom",
+						Denom: types.Denom{
+							Base:  "atom",
+							Trace: []string{"transfer/channel-0"},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -41,9 +43,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom",
+						Denom: types.Denom{
+							Base:  "atom",
+							Trace: nil,
+						},
 						Amount: "1000",
-						Trace:  nil,
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -54,9 +58,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/withslash",
+						Denom: types.Denom{
+							Base:  "atom/withslash",
+							Trace: []string{"transfer/channel-0"},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -67,9 +73,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/",
+						Denom: types.Denom{
+							Base:  "atom/",
+							Trace: []string{"transfer/channel-0"},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -80,9 +88,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/pool",
+						Denom: types.Denom{
+							Base:  "atom/pool",
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -93,9 +103,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom",
+						Denom: types.Denom{
+							Base:  "atom",
+							Trace: []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -106,9 +118,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/pool",
+						Denom: types.Denom{
+							Base:  "atom/pool",
+							Trace: []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
 				}, sender, receiver, ""),
 			nil,
