@@ -8,6 +8,7 @@ import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/channel/v1/channel.proto";
+import "ibc/core/channel/v1/packet.proto";
 import "ibc/core/channel/v1/upgrade.proto";
 
 // Msg defines the ibc/channel Msg service.
@@ -33,17 +34,8 @@ service Msg {
   // MsgChannelCloseConfirm.
   rpc ChannelCloseConfirm(MsgChannelCloseConfirm) returns (MsgChannelCloseConfirmResponse);
 
-  // RecvPacket defines a rpc handler method for MsgRecvPacket.
-  rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
-
-  // Timeout defines a rpc handler method for MsgTimeout.
-  rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
-
   // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
   rpc TimeoutOnClose(MsgTimeoutOnClose) returns (MsgTimeoutOnCloseResponse);
-
-  // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
-  rpc Acknowledgement(MsgAcknowledgement) returns (MsgAcknowledgementResponse);
 
   // ChannelUpgradeInit defines a rpc handler method for MsgChannelUpgradeInit.
   rpc ChannelUpgradeInit(MsgChannelUpgradeInit) returns (MsgChannelUpgradeInitResponse);
@@ -71,6 +63,28 @@ service Msg {
 
   // PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
   rpc PruneAcknowledgements(MsgPruneAcknowledgements) returns (MsgPruneAcknowledgementsResponse);
+}
+
+// PacketMsg defines the ibc/channel PacketMsg service.
+service PacketMsg {
+  option (cosmos.msg.v1.service) = true;
+
+  // RecvPacket defines a rpc handler method for MsgRecvPacket.
+  rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
+
+  // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+  rpc Acknowledgement(MsgAcknowledgement) returns (MsgAcknowledgementResponse);
+
+  // Timeout defines a rpc handler method for MsgTimeout.
+  rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
+}
+
+// SenderMsg defines the ibc/channel SenderMsg service.
+service SenderMsg {
+  option (cosmos.msg.v1.service) = true;
+
+  // Sender defines a rpc handler method for MsgSendPacket.
+  rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
 }
 
 // ResponseResultType defines the possible outcomes of the execution of a message
@@ -207,6 +221,29 @@ message MsgChannelCloseConfirm {
 // MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response
 // type.
 message MsgChannelCloseConfirmResponse {}
+
+// MsgSendPacket sends an outgoing IBC packet
+message MsgSendPacket {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  string                    source_channel    = 1;
+  string                    source_port       = 2;
+  string                    dest_channel      = 3;
+  string                    dest_port         = 4;
+  ibc.core.client.v1.Height timeout_height    = 5;
+  uint64                    timeout_timestamp = 6;
+  bytes                     data              = 7;
+  string                    signer            = 8;
+}
+
+// MsgSendPacketResponse defines the Msg/SendPacket response type.
+message MsgSendPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence = 1;
+}
 
 // MsgRecvPacket receives incoming IBC packet
 message MsgRecvPacket {

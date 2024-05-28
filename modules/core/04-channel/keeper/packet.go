@@ -472,7 +472,7 @@ func (k *Keeper) AcknowledgePacket(
 	}
 
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
-	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	k.DeletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// log that a packet has been acknowledged
 	k.Logger(ctx).Info(

@@ -35,6 +35,27 @@ func CommitPacket(cdc codec.BinaryCodec, packet Packet) []byte {
 	return hash[:]
 }
 
+func CommitLitePacket(cdc codec.BinaryCodec, packet Packet) []byte {
+	timeoutHeight := packet.GetTimeoutHeight()
+
+	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
+
+	revisionNumber := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionNumber())
+	buf = append(buf, revisionNumber...)
+
+	revisionHeight := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionHeight())
+	buf = append(buf, revisionHeight...)
+
+	dataHash := sha256.Sum256(packet.GetData())
+	buf = append(buf, dataHash[:]...)
+
+	buf = append(buf, packet.GetDestPort()...)
+	buf = append(buf, packet.GetDestChannel()...)
+
+	hash := sha256.Sum256(buf)
+	return hash[:]
+}
+
 // CommitAcknowledgement returns the hash of commitment bytes
 func CommitAcknowledgement(data []byte) []byte {
 	hash := sha256.Sum256(data)

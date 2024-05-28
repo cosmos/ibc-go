@@ -219,7 +219,7 @@ func (k *Keeper) SetPacketCommitment(ctx sdk.Context, portID, channelID string, 
 	store.Set(host.PacketCommitmentKey(portID, channelID, sequence), commitmentHash)
 }
 
-func (k *Keeper) deletePacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) {
+func (k *Keeper) DeletePacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.PacketCommitmentKey(portID, channelID, sequence))
 }

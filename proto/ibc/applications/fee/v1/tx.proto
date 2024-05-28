@@ -7,7 +7,7 @@ option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types";
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
-import "ibc/core/channel/v1/channel.proto";
+import "ibc/core/channel/v1/packet.proto";
 import "cosmos/msg/v1/msg.proto";
 
 // Msg defines the ICS29 Msg service.

@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -20,6 +22,7 @@ var (
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
 	_ sdk.Msg = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.Msg = (*MsgRecoverClient)(nil)
+	_ sdk.Msg = (*MsgProvideCounterparty)(nil)
 
 	_ sdk.HasValidateBasic = (*MsgCreateClient)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpdateClient)(nil)
@@ -28,6 +31,7 @@ var (
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 	_ sdk.HasValidateBasic = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.HasValidateBasic = (*MsgRecoverClient)(nil)
+	_ sdk.HasValidateBasic = (*MsgProvideCounterparty)(nil)
 
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
@@ -260,6 +264,32 @@ func (msg *MsgRecoverClient) ValidateBasic() error {
 
 	if msg.SubjectClientId == msg.SubstituteClientId {
 		return errorsmod.Wrapf(ErrInvalidSubstitute, "subject and substitute clients must be different")
+	}
+
+	return nil
+}
+
+// NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
+func NewMsgProvideCounterparty(signer, clientID, counterpartyID string) *MsgProvideCounterparty {
+	return &MsgProvideCounterparty{
+		Signer:         signer,
+		ClientId:       clientID,
+		CounterpartyId: counterpartyID,
+	}
+}
+
+// ValidateBasic performs basic checks on a MsgProvideCounterparty.
+func (msg *MsgProvideCounterparty) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
+		return err
+	}
+
+	if strings.TrimSpace(msg.CounterpartyId) == "" {
+		return errorsmod.Wrapf(ErrInvalidCounterparty, "counterparty client id cannot be empty")
 	}
 
 	return nil

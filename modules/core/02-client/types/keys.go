@@ -32,6 +32,9 @@ const (
 	// AllowAllClients is the value that if set in AllowedClients param
 	// would allow any wired up light client modules to be allowed
 	AllowAllClients = "*"
+
+	// CreatorKey is the key used to store the client creator in the client store
+	CreatorKey = "creator"
 )
 
 // FormatClientIdentifier returns the client identifier with the sequence appended.

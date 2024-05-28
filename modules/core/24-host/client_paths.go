@@ -12,6 +12,7 @@ var KeyClientStorePrefix = []byte("clients")
 const (
 	KeyClientState          = "clientState"
 	KeyConsensusStatePrefix = "consensusStates"
+	KeyCounterparty         = "counterparty"
 )
 
 // FullClientPath returns the full path of a specific client path in the format:
@@ -40,6 +41,12 @@ func FullClientStatePath(clientID string) string {
 // store the consensus state of a client.
 func FullConsensusStatePath(clientID string, height exported.Height) string {
 	return FullClientPath(clientID, ConsensusStatePath(height))
+}
+
+// FullCounterpartyPath takes a client identifier and returns a Path under which to
+// store the counterparty of a client.
+func FullCounterpartyPath(clientID string) string {
+	return FullClientPath(clientID, KeyCounterparty)
 }
 
 // ConsensusStatePath returns the suffix store key for the consensus state at a
