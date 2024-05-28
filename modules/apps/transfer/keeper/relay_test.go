@@ -1135,7 +1135,7 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		{
 			"success: new field v2",
 			func() {
-				jsonString := fmt.Sprintf(`{"tokens": [{"denom":"denom","amount":"100","trace":[]}],  "sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom":"denom","amount":"100","trace":[]}],"sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
 			nil,
@@ -1144,7 +1144,7 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		{
 			"success: no new field with memo v2",
 			func() {
-				jsonString := fmt.Sprintf(`{"tokens": [{"denom":"denom","amount":"100","trace":[]}],  "sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom":"denom","amount":"100","trace":[]}],"sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
 			nil,
@@ -1153,7 +1153,7 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		{
 			"success: no new field without memo",
 			func() {
-				jsonString := fmt.Sprintf(`{"tokens": [{"denom":"denom","amount":"100","trace":[]}],  "sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom":"denom","amount":"100","trace":[]}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
 			nil,
@@ -1170,7 +1170,7 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		{
 			"failure: missing field v2",
 			func() {
-				jsonString := fmt.Sprintf(`{"tokens": [{"amount":"100","trace":[]}],  "sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				jsonString := fmt.Sprintf(`{"tokens":[{"amount":"100","trace":[]}],"sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
 			types.ErrInvalidDenomForTransfer,
