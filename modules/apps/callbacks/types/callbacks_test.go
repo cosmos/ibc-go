@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"fmt"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -627,7 +628,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 
 	testCases := []struct {
 		name       string
-		packetData transfertypes.FungibleTokenPacketData
+		packetData ibcexported.PacketDataProvider
 		expAddress string
 	}{
 		{
@@ -712,6 +713,126 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 			transfertypes.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {"address": 10}}`,
+			},
+			"",
+		},
+		{
+			"success v2: memo has callbacks in json struct and properly formatted src_callback_address which does not match packet sender",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
+			},
+			receiver,
+		},
+		{
+			"success v2: valid src_callback address specified in memo that matches sender",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, sender),
+			},
+			sender,
+		},
+		{
+			"failure v2: memo is empty",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "",
+			},
+			"",
+		},
+		{
+			"failure v2: memo is not json string",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "memo",
+			},
+			"",
+		},
+		{
+			"failure v2: memo has empty src_callback object",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {}}`,
+			},
+			"",
+		},
+		{
+			"failure v2: memo does not have callbacks in json struct",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"Key": 10}`,
+			},
+			"",
+		},
+		{
+			"failure v2:  memo has src_callback in json struct but does not have address key",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {"Key": 10}}`,
+			},
+			"",
+		},
+		{
+			"failure v2: memo has src_callback in json struct but does not have string value for address key",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
 				Sender:   sender,
 				Receiver: receiver,
 				Memo:     `{"src_callback": {"address": 10}}`,
