@@ -27,7 +27,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/core/lite"
 	"github.com/cosmos/ibc-go/v8/modules/core/simulation"
 	"github.com/cosmos/ibc-go/v8/modules/core/types"
 )
@@ -112,15 +111,13 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // AppModule implements an application module for the ibc module.
 type AppModule struct {
 	AppModuleBasic
-	keeper  *keeper.Keeper
-	handler *lite.Handler
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k *keeper.Keeper, h *lite.Handler) AppModule {
+func NewAppModule(k *keeper.Keeper) AppModule {
 	return AppModule{
-		keeper:  k,
-		handler: h,
+		keeper: k,
 	}
 }
 
@@ -132,9 +129,10 @@ func (AppModule) Name() string {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	// connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	// channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	channeltypes.RegisterPacketMsgServer(cfg.MsgServer(), am.handler)
+	connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	channeltypes.RegisterPacketMsgServer(cfg.MsgServer(), am.keeper)
+	channeltypes.RegisterSenderMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 
 	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)

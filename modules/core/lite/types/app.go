@@ -12,6 +12,7 @@ type PacketModule interface {
 		sourcePort string,
 		sourceChannel string,
 		sequence uint64,
+		version string,
 		data []byte,
 		sender string,
 	) error
@@ -23,12 +24,14 @@ type PacketModule interface {
 	// and the acknowledgement is written (in synchronous cases).
 	OnRecvPacket(
 		ctx context.Context,
+		version string,
 		packet exported.PacketI,
 		relayer string,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket(
 		ctx context.Context,
+		version string,
 		packet exported.PacketI,
 		acknowledgement []byte,
 		relayer string,
@@ -36,6 +39,7 @@ type PacketModule interface {
 
 	OnTimeoutPacket(
 		ctx context.Context,
+		version string,
 		packet exported.PacketI,
 		relayer string,
 	) error

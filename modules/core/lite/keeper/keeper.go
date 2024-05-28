@@ -18,15 +18,17 @@ type Keeper struct {
 
 	clientKeeper  *clientkeeper.Keeper
 	channelKeeper *channelkeeper.Keeper
+	clientRouter  types.ClientRouter
 }
 
 // NewKeeper creates a new ibc lite Keeper. It wraps over the ibc-go client keeper and channel keeper
 // to implement the required interface for the IBC lite module
-func NewKeeper(cdc codec.BinaryCodec, clientKeeper *clientkeeper.Keeper, channelKeeper *channelkeeper.Keeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, clientKeeper *clientkeeper.Keeper, channelKeeper *channelkeeper.Keeper, clientRouter types.ClientRouter) *Keeper {
 	return &Keeper{
 		cdc:           cdc,
 		clientKeeper:  clientKeeper,
 		channelKeeper: channelKeeper,
+		clientRouter:  clientRouter,
 	}
 }
 

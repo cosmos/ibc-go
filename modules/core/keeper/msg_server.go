@@ -470,6 +470,32 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
 
+// SendPacket defines a rpc handler method for MsgSendPacket
+func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacket) (*channeltypes.MsgSendPacketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Switch betweenn IBC core logic and IBC lite logic
+	if _, ok := k.ChannelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel); ok {
+		// TODO: Reorient IBC to call this first and then call a SendPacket callback
+		_, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.SourcePort, msg.SourceChannel)
+		if err != nil {
+			ctx.Logger().Error("sende packet failed", "port-id", msg.SourcePort, "channel-id", msg.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+			return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+		}
+		sequence, err := k.ChannelKeeper.SendPacket(ctx, capability, msg.SourcePort, msg.SourceChannel, *msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data)
+		if err != nil {
+			return nil, err
+		}
+		return &channeltypes.MsgSendPacketResponse{Sequence: sequence}, nil
+	}
+	sequence, err := k.LiteKeeper.SendPacket(ctx, nil, msg.SourcePort, msg.SourceChannel, msg.DestPort, msg.DestChannel, *msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &channeltypes.MsgSendPacketResponse{Sequence: sequence}, nil
+}
+
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -480,18 +506,35 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	// Lookup module by channel capability
-	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel)
-	if err != nil {
-		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	// Switch betweenn IBC core logic and IBC lite logic
+	// based on if the channel exists in the store
+	var chanKeeper ChanKeeperI
+	if _, ok := k.ChannelKeeper.GetChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel); ok {
+		chanKeeper = k.ChannelKeeper
+	} else {
+		// use IBC Lite Keeper
+		chanKeeper = k.LiteKeeper
 	}
 
+	// Lookup module by channel capability
+	// TODO: Remove capability checks
+	module, capability, _ := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel)
+	// if err != nil {
+	// 	ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+	// 	return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	// }
+
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(module)
+	// First try to grab callback directly from the port
+	// if this doesn't work, fallback to channel capability
+	cbs, ok := k.PortKeeper.Route(msg.Packet.DestinationPort)
 	if !ok {
-		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+		// TODO: Remove this HACK once capabilities are fully removed for ICA/WasmG
+		cbs, ok = k.PortKeeper.Route(module)
+		if !ok {
+			ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort))
+			return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort)
+		}
 	}
 
 	// Perform TAO verification
@@ -499,7 +542,8 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// If the packet was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+	// TODO: Remove capability
+	err = chanKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -530,7 +574,8 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
 	if ack != nil {
-		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, capability, msg.Packet, ack); err != nil {
+		// TODO: Remove capability
+		if err := chanKeeper.WriteAcknowledgement(ctx, capability, msg.Packet, ack); err != nil {
 			return nil, err
 		}
 	}
@@ -561,18 +606,36 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	// Lookup module by channel capability
-	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel)
-	if err != nil {
-		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	// Switch betweenn IBC core logic and IBC lite logic
+	// based on if the channel exists in the store
+	var chanKeeper ChanKeeperI
+	liteFlag := false
+	if _, ok := k.ChannelKeeper.GetChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel); ok {
+		chanKeeper = k.ChannelKeeper
+	} else {
+		// use IBC Lite Keeper
+		liteFlag = true
+		chanKeeper = k.LiteKeeper
 	}
 
+	// Lookup module by channel capability
+	module, capability, _ := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel)
+	// if err != nil {
+	// 	ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+	// 	return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	// }
+
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(module)
+	// First try to grab callback directly from the port
+	// if this doesn't work, fallback to channel capability
+	cbs, ok := k.PortKeeper.Route(msg.Packet.DestinationPort)
 	if !ok {
-		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+		// TODO: Remove this HACK once capabilities are fully removed for ICA/WasmG
+		cbs, ok = k.PortKeeper.Route(module)
+		if !ok {
+			ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort))
+			return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort)
+		}
 	}
 
 	// Perform TAO verification
@@ -580,7 +643,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	// If the timeout was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
+	err = chanKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
 
 	switch err {
 	case nil:
@@ -595,8 +658,11 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	}
 
 	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
-		return nil, err
+	// TODO: Move this into TimeoutPacket and get rid of this clause entirely
+	if !liteFlag {
+		if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
+			return nil, err
+		}
 	}
 
 	// Perform application logic callback
@@ -708,18 +774,34 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	// Lookup module by channel capability
-	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel)
-	if err != nil {
-		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	// Switch betweenn IBC core logic and IBC lite logic
+	// based on if the channel exists in the store
+	var chanKeeper ChanKeeperI
+	if _, ok := k.ChannelKeeper.GetChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel); ok {
+		chanKeeper = k.ChannelKeeper
+	} else {
+		// use IBC Lite Keeper
+		chanKeeper = k.LiteKeeper
 	}
 
+	// Lookup module by channel capability
+	module, capability, _ := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel)
+	// if err != nil {
+	// 	ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+	// 	return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	// }
+
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(module)
+	// First try to grab callback directly from the port
+	// if this doesn't work, fallback to channel capability
+	cbs, ok := k.PortKeeper.Route(msg.Packet.DestinationPort)
 	if !ok {
-		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+		// TODO: Remove this HACK once capabilities are fully removed for ICA/WasmG
+		cbs, ok = k.PortKeeper.Route(module)
+		if !ok {
+			ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort))
+			return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort)
+		}
 	}
 
 	// Perform TAO verification
@@ -727,7 +809,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	// If the acknowledgement was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.AcknowledgePacket(cacheCtx, capability, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+	err = chanKeeper.AcknowledgePacket(cacheCtx, capability, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
 	switch err {
 	case nil:

@@ -17,6 +17,7 @@ func (lpm LitePacketModule) OnSendPacket(
 	sourcePort string,
 	sourceChannel string,
 	sequence uint64,
+	version string,
 	data []byte,
 	sender string,
 ) error {
@@ -33,6 +34,7 @@ func (lpm LitePacketModule) OnSendPacket(
 // and the acknowledgement is written (in synchronous cases).
 func (lpm LitePacketModule) OnRecvPacket(
 	ctx context.Context,
+	version string,
 	packet exported.PacketI,
 	relayer string,
 ) exported.Acknowledgement {
@@ -44,6 +46,7 @@ func (lpm LitePacketModule) OnRecvPacket(
 
 func (lpm LitePacketModule) OnAcknowledgementPacket(
 	ctx context.Context,
+	version string,
 	packet exported.PacketI,
 	acknowledgement []byte,
 	relayer string,
@@ -53,6 +56,7 @@ func (lpm LitePacketModule) OnAcknowledgementPacket(
 
 func (lpm LitePacketModule) OnTimeoutPacket(
 	ctx context.Context,
+	version string,
 	packet exported.PacketI,
 	relayer string,
 ) error {

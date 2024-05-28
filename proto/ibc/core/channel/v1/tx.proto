@@ -8,6 +8,7 @@ import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/channel/v1/channel.proto";
+import "ibc/core/channel/v1/packet.proto";
 import "ibc/core/channel/v1/upgrade.proto";
 
 // Msg defines the ibc/channel Msg service.
@@ -83,7 +84,7 @@ service SenderMsg {
   option (cosmos.msg.v1.service) = true;
 
   // Sender defines a rpc handler method for MsgSendPacket.
-  rpc Sender(MsgSendPacket) returns (MsgSendPacketResponse);
+  rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
 }
 
 // ResponseResultType defines the possible outcomes of the execution of a message

@@ -25,6 +25,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgChannelOpenConfirm{},
 		&MsgChannelCloseInit{},
 		&MsgChannelCloseConfirm{},
+		&MsgSendPacket{},
 		&MsgRecvPacket{},
 		&MsgAcknowledgement{},
 		&MsgTimeout{},
@@ -40,6 +41,8 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgUpdateParams{},
 	)
 
+	msgservice.RegisterMsgServiceDesc(registry, &_PacketMsg_serviceDesc)
+	msgservice.RegisterMsgServiceDesc(registry, &_SenderMsg_serviceDesc)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
