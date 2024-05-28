@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/lite/types"
 )
@@ -36,7 +37,7 @@ func NewKeeper(cdc codec.BinaryCodec, clientKeeper *clientkeeper.Keeper, channel
 // the executing chain
 // Note for IBC lite, the portID is not needed as there is effectively
 // a single channel between the two clients that can switch between apps using the portID
-func (k Keeper) GetCounterparty(goCtx context.Context, clientID string) (counterparty string) {
+func (k Keeper) GetCounterparty(goCtx context.Context, clientID string) (counterparty clienttypes.LiteCounterparty, found bool) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	return k.clientKeeper.GetCounterparty(ctx, clientID)

@@ -9,7 +9,6 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/core/lite/types"
@@ -55,12 +54,15 @@ func (ck ChannelKeeper) SendPacket(
 	// sent by our counterparty.
 	// Note: This can be implemented by the current keeper
 	// TODO: Use context instead of sdk.Context eventually
-	counterpartyClientID := ck.keeper.GetCounterparty(ctx, sourceChannel)
-	if counterpartyClientID == "" {
+	counterparty, ok := ck.keeper.GetCounterparty(ctx, sourceChannel)
+	if !ok {
+		return 0, channeltypes.ErrChannelNotFound
+	}
+	if counterparty.ClientId == "" {
 		return 0, channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyClientID != destChannel {
+	if counterparty.ClientId != destChannel {
 		return 0, channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -114,22 +116,23 @@ func (ck ChannelKeeper) RecvPacket(
 	// sent by our counterparty.
 	// Note: This can be implemented by the current keeper
 	// TODO: Use context instead of sdk.Context eventually
-	counterpartyClientID := ck.keeper.GetCounterparty(ctx, packet.DestinationChannel)
-	if counterpartyClientID == "" {
+	counterparty, ok := ck.keeper.GetCounterparty(ctx, packet.DestinationChannel)
+	if !ok {
+		return channeltypes.ErrChannelNotFound
+	}
+	if counterparty.ClientId == "" {
 		return channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyClientID != packet.SourceChannel {
+	if counterparty.ClientId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
-	// create key/value pair for proof verification
-	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence))
+	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
+
 	// TODO: allow for custom prefix
-	merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(exported.StoreKey)), merklePath)
-	if err != nil {
-		return err
-	}
+	path := host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	commitment := channeltypes.CommitLitePacket(ck.cdc, packet)
 
@@ -185,12 +188,15 @@ func (ck ChannelKeeper) AcknowledgePacket(
 	// sent by our counterparty.
 	// Note: This can be implemented by the current keeper
 	// TODO: Use context instead of sdk.Context eventually
-	counterpartyClientID := ck.keeper.GetCounterparty(ctx, packet.SourceChannel)
-	if counterpartyClientID == "" {
+	counterparty, ok := ck.keeper.GetCounterparty(ctx, packet.SourceChannel)
+	if !ok {
+		return channeltypes.ErrChannelNotFound
+	}
+	if counterparty.ClientId == "" {
 		return channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyClientID != packet.DestinationChannel {
+	if counterparty.ClientId != packet.DestinationChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -213,12 +219,8 @@ func (ck ChannelKeeper) AcknowledgePacket(
 		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
-	// TODO: allow for custom prefix
-	merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(exported.StoreKey)), merklePath)
-	if err != nil {
-		return err
-	}
+	path := host.PacketAcknowledgementPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
@@ -254,12 +256,15 @@ func (ck ChannelKeeper) TimeoutPacket(
 	// sent by our counterparty.
 	// Note: This can be implemented by the current keeper
 	// TODO: Use context instead of sdk.Context eventually
-	counterpartyClientID := ck.keeper.GetCounterparty(ctx, packet.SourceChannel)
-	if counterpartyClientID == "" {
+	counterparty, ok := ck.keeper.GetCounterparty(ctx, packet.SourceChannel)
+	if !ok {
+		return channeltypes.ErrChannelNotFound
+	}
+	if counterparty.ClientId == "" {
 		return channeltypes.ErrChannelNotFound
 	}
 
-	if counterpartyClientID != packet.DestinationChannel {
+	if counterparty.ClientId != packet.DestinationChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -283,12 +288,8 @@ func (ck ChannelKeeper) TimeoutPacket(
 		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
-	// TODO: allow for custom prefix
-	merklePath, err := commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(exported.StoreKey)), merklePath)
-	if err != nil {
-		return err
-	}
+	path := host.PacketReceiptPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter

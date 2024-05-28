@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -15,7 +16,7 @@ type IBCLiteKeeper interface {
 	// GetCounterparty returns the counterparty client given the client ID on
 	// the executing chain
 	// This is a private path that is only used by the IBC lite module
-	GetCounterparty(ctx context.Context, clientID string) (counterpartyClientID string)
+	GetCounterparty(ctx context.Context, clientID string) (counterparty clienttypes.LiteCounterparty, found bool)
 
 	// SetPacketCommitment writes the commitment hash under the commitment path
 	// This is a public path that is standardized by the IBC specification

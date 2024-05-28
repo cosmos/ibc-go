@@ -50,7 +50,7 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 	k.ClientKeeper.SetCreator(ctx, clientID, msg.Signer)
 
 	if strings.TrimSpace(msg.CounterpartyId) != "" {
-		k.ClientKeeper.SetCounterparty(ctx, clientID, msg.CounterpartyId)
+		k.ClientKeeper.SetCounterparty(ctx, clientID, msg.CounterpartyId, msg.MerklePathPrefix)
 	}
 
 	return &clienttypes.MsgCreateClientResponse{}, nil
@@ -153,10 +153,10 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *clienttypes.Msg
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", creator, msg.Signer)
 	}
 
-	if counterparty := k.ClientKeeper.GetCounterparty(ctx, msg.ClientId); counterparty != "" {
+	if _, ok := k.ClientKeeper.GetCounterparty(ctx, msg.ClientId); !ok {
 		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.ClientId)
 	}
-	k.ClientKeeper.SetCounterparty(ctx, msg.ClientId, msg.CounterpartyId)
+	k.ClientKeeper.SetCounterparty(ctx, msg.ClientId, msg.CounterpartyId, msg.MerklePathPrefix)
 
 	return &clienttypes.MsgProvideCounterpartyResponse{}, nil
 }
