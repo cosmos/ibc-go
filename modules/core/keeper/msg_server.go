@@ -610,7 +610,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	// based on if the channel exists in the store
 	var chanKeeper ChanKeeperI
 	liteFlag := false
-	if _, ok := k.ChannelKeeper.GetChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel); ok {
+	if _, ok := k.ChannelKeeper.GetChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel); ok {
 		chanKeeper = k.ChannelKeeper
 	} else {
 		// use IBC Lite Keeper
@@ -628,7 +628,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	// Retrieve callbacks from router
 	// First try to grab callback directly from the port
 	// if this doesn't work, fallback to channel capability
-	cbs, ok := k.PortKeeper.Route(msg.Packet.DestinationPort)
+	cbs, ok := k.PortKeeper.Route(msg.Packet.SourcePort)
 	if !ok {
 		// TODO: Remove this HACK once capabilities are fully removed for ICA/WasmG
 		cbs, ok = k.PortKeeper.Route(module)
@@ -777,7 +777,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	// Switch betweenn IBC core logic and IBC lite logic
 	// based on if the channel exists in the store
 	var chanKeeper ChanKeeperI
-	if _, ok := k.ChannelKeeper.GetChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel); ok {
+	if _, ok := k.ChannelKeeper.GetChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel); ok {
 		chanKeeper = k.ChannelKeeper
 	} else {
 		// use IBC Lite Keeper
@@ -794,7 +794,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	// Retrieve callbacks from router
 	// First try to grab callback directly from the port
 	// if this doesn't work, fallback to channel capability
-	cbs, ok := k.PortKeeper.Route(msg.Packet.DestinationPort)
+	cbs, ok := k.PortKeeper.Route(msg.Packet.SourcePort)
 	if !ok {
 		// TODO: Remove this HACK once capabilities are fully removed for ICA/WasmG
 		cbs, ok = k.PortKeeper.Route(module)
