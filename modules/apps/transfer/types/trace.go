@@ -148,36 +148,36 @@ func (dt DenomTrace) Validate() error {
 	return validateTraceIdentifiers(identifiers)
 }
 
-// Traces defines a wrapper type for a slice of DenomTrace.
-type Traces []DenomTrace
+// Denoms defines a wrapper type for a slice of Denom.
+type Denoms []Denom
 
 // Validate performs a basic validation of each denomination trace info.
-func (t Traces) Validate() error {
-	seenTraces := make(map[string]bool)
-	for i, trace := range t {
-		hash := trace.Hash().String()
-		if seenTraces[hash] {
-			return fmt.Errorf("duplicated denomination trace with hash %s", trace.Hash())
+func (d Denoms) Validate() error {
+	seenDenoms := make(map[string]bool)
+	for i, denom := range d {
+		hash := denom.Hash().String()
+		if seenDenom[hash] {
+			return fmt.Errorf("duplicated denomination trace with hash %s", denom.Hash())
 		}
 
-		if err := trace.Validate(); err != nil {
+		if err := denom.Validate(); err != nil {
 			return errorsmod.Wrapf(err, "failed denom trace %d validation", i)
 		}
-		seenTraces[hash] = true
+		seenDenom[hash] = true
 	}
 	return nil
 }
 
-var _ sort.Interface = (*Traces)(nil)
+var _ sort.Interface = (*Denoms)(nil)
 
 // Len implements sort.Interface for Traces
-func (t Traces) Len() int { return len(t) }
+func (d Denoms) Len() int { return len(t) }
 
 // Less implements sort.Interface for Traces
-func (t Traces) Less(i, j int) bool { return t[i].GetFullDenomPath() < t[j].GetFullDenomPath() }
+func (d Denoms) Less(i, j int) bool { return t[i].GetFullDenomPath() < t[j].GetFullDenomPath() }
 
 // Swap implements sort.Interface for Traces
-func (t Traces) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
+func (d Denoms) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 
 // Sort is a helper function to sort the set of denomination traces in-place
 func (t Traces) Sort() Traces {

@@ -52,6 +52,7 @@ var (
 	// PortKey defines the key to store the port ID in store
 	PortKey = []byte{0x01}
 	// DenomTraceKey defines the key to store the denomination trace info in store
+	// TODO: update
 	DenomTraceKey = []byte{0x02}
 
 	// SupportedVersions defines all versions that are supported by the module

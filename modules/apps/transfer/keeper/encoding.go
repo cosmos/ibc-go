@@ -28,9 +28,3 @@ func (k Keeper) MustUnmarshalDenomTrace(bz []byte) types.DenomTrace {
 func (k Keeper) MarshalDenomTrace(denomTrace types.DenomTrace) ([]byte, error) {
 	return k.cdc.Marshal(&denomTrace)
 }
-
-// MustMarshalDenomTrace attempts to encode an DenomTrace object and returns the
-// raw encoded bytes. It panics on error.
-func (k Keeper) MustMarshalDenomTrace(denomTrace types.DenomTrace) []byte {
-	return k.cdc.MustMarshal(&denomTrace)
-}
