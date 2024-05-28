@@ -52,6 +52,7 @@ import (
 // 4. A -> C : sender chain is sink zone. Denom upon receiving: 'C/B/denom'
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
+// TODO: Validation on destport/channel
 func (k Keeper) sendTransfer(
 	ctx sdk.Context,
 	sourcePort,
