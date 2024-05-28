@@ -201,8 +201,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return false, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
 	}
 	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
-		finalReceiver = receiver //, _ = sdk.AccAddressFromBech32(data.Receiver)
-		//finalReceiver = receiver
+		finalReceiver = receiver // , _ = sdk.AccAddressFromBech32(data.Receiver)
+
 		receiver = types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
 
 	}
@@ -393,7 +393,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
 	if !ok {
-		errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	prevPacket, found := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
@@ -403,8 +403,8 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			// the acknowledgement succeeded on the receiving chain so
 			// we write the asynchronous acknowledgement for the sender
 			// of the previous packet.
-			FungibleTokenPacketAcknowledgement := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
-			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, FungibleTokenPacketAcknowledgement)
+			fungibleTokenPacketAcknowledgement := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
+			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, fungibleTokenPacketAcknowledgement)
 		case *channeltypes.Acknowledgement_Error:
 			// the forwarded packet has failed, thus the funds have been refunded to the forwarding address.
 			// we must revert the changes that came from successfully receiving the tokens on our chain
@@ -413,8 +413,8 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 				return err
 			}
 
-			FungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
-			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, FungibleTokenPacketAcknowledgement)
+			fungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
+			return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, fungibleTokenPacketAcknowledgement)
 		default:
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 		}
@@ -438,7 +438,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
 	if !ok {
-		errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	prevPacket, found := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
@@ -447,11 +447,11 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 			return err
 		}
 
-		FungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarded packet timed out"))
-		return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, FungibleTokenPacketAcknowledgement)
-	} else {
-		return k.refundPacketToken(ctx, packet, data)
+		fungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarded packet timed out"))
+		return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, fungibleTokenPacketAcknowledgement)
 	}
+
+	return k.refundPacketToken(ctx, packet, data)
 }
 
 // refundPacketToken will unescrow and send back the tokens back to sender
@@ -532,16 +532,16 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, sentPacket channeltypes.P
 				// receive sent tokens from the received escrow to the forward escrow account
 				// so we must send the tokens back from the forward escrow to the original received escrow account
 				return k.unescrowToken(ctx, forwardEscrow, reverseEscrow, coin)
-			} else {
-				// receive minted vouchers and sent to the forward escrow account
-				// so we must remove the vouchers from the forward escrow account and burn them
-				if err := k.bankKeeper.BurnCoins(
-					ctx, types.ModuleName, sdk.NewCoins(coin),
-				); err != nil {
-					return err
-				}
 			}
-		} else {
+
+			// receive minted vouchers and sent to the forward escrow account
+			// so we must remove the vouchers from the forward escrow account and burn them
+			if err := k.bankKeeper.BurnCoins(
+				ctx, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				return err
+			}
+		} else { //nolint:gocritic
 			// in this case we burned the vouchers of the outgoing packets
 			// check if the packet we received was a source token for our chain
 			// in this case, the tokens were unescrowed from the reverse escrow account

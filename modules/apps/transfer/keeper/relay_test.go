@@ -1322,7 +1322,6 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	coin = sdk.NewCoin(denomTraceABA.IBCDenom(), amount)
 	postCoinOnA := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccounts[1].SenderAccount.GetAddress(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.NewInt(100), postCoinOnA.Amount, "final receiver balance has not increased")
-
 }
 
 // Simplification of the above test.
@@ -1451,7 +1450,6 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 
 	// Now we want to trigger C -> B -> A
 	// The coin we want to send out is exactly the one we received on C
-	//coin = sdk.NewCoin(denomTraceBC.IBCDenom(), amount)
 
 	sender = suite.chainC.SenderAccounts[0].SenderAccount
 	receiver = suite.chainA.SenderAccounts[0].SenderAccount // Receiver is the A chain account
@@ -1496,7 +1494,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	// We have succesfully received the packet on B and forwarded it to A.
+	// We have successfully received the packet on B and forwarded it to A.
 	// Voucher have been burned on chain B
 	coin = sdk.NewCoin(denomTraceAB.IBCDenom(), amount)
 	postCoinOnB = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccounts[0].SenderAccount.GetAddress(), coin.GetDenom())
