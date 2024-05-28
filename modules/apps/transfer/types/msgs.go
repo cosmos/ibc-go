@@ -61,6 +61,28 @@ func NewMsgTransfer(
 	}
 }
 
+// NewMsgLiteTransfer creates a new MsgTransfer instance for IBC Lite
+// that includes destination port and channel identifiers.
+func NewMsgLiteTransfer(
+	sourcePort, sourceChannel, destPort, destChannel string,
+	token sdk.Coin, sender, receiver string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	memo string,
+) *MsgTransfer {
+	return &MsgTransfer{
+		SourcePort:       sourcePort,
+		SourceChannel:    sourceChannel,
+		DestPort:         destPort,
+		DestChannel:      destChannel,
+		Token:            token,
+		Sender:           sender,
+		Receiver:         receiver,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: timeoutTimestamp,
+		Memo:             memo,
+	}
+}
+
 // ValidateBasic performs a basic check of the MsgTransfer fields.
 // NOTE: timeout height or timestamp values can be 0 to disable the timeout.
 // NOTE: The recipient addresses format is not validated as the format defined by

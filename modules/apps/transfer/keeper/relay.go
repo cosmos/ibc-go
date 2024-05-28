@@ -55,7 +55,9 @@ import (
 func (k Keeper) sendTransfer(
 	ctx sdk.Context,
 	sourcePort,
-	sourceChannel string,
+	sourceChannel,
+	destPort,
+	destChannel string,
 	token sdk.Coin,
 	sender sdk.AccAddress,
 	receiver string,
@@ -63,13 +65,6 @@ func (k Keeper) sendTransfer(
 	timeoutTimestamp uint64,
 	memo string,
 ) (uint64, error) {
-	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
-	if !found {
-		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
-	}
-
-	destinationPort := channel.Counterparty.PortId
-	destinationChannel := channel.Counterparty.ChannelId
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
@@ -92,10 +87,7 @@ func (k Keeper) sendTransfer(
 		}
 	}
 
-	labels := []metrics.Label{
-		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
-		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
-	}
+	var labels []metrics.Label
 
 	// NOTE: SendTransfer simply sends the denomination as it exists on its own
 	// chain inside the packet data. The receiving chain will perform denom
@@ -134,11 +126,6 @@ func (k Keeper) sendTransfer(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
 	)
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
-	if err != nil {
-		return 0, err
-	}
-
 	defer func() {
 		if token.Amount.IsInt64() {
 			telemetry.SetGaugeWithLabels(
@@ -154,6 +141,42 @@ func (k Keeper) sendTransfer(
 			labels,
 		)
 	}()
+
+	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
+	if !found {
+		// DO IBC LITE Switch here for now
+		// TODO: Remove this and only use MsgServer once Middleware passing upwards is removed
+		if k.msgRouter == nil {
+			return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+		}
+		sendPacketMsg := channeltypes.MsgSendPacket{
+			SourcePort:       sourcePort,
+			SourceChannel:    sourceChannel,
+			DestPort:         destPort,
+			DestChannel:      destChannel,
+			Data:             packetData.GetBytes(),
+			TimeoutHeight:    &timeoutHeight,
+			TimeoutTimestamp: timeoutTimestamp,
+		}
+		res, err := k.msgRouter.SendPacket(ctx, &sendPacketMsg)
+		if err != nil {
+			return 0, err
+		}
+		return res.Sequence, nil
+	}
+
+	destinationPort := channel.Counterparty.PortId
+	destinationChannel := channel.Counterparty.ChannelId
+
+	labels = []metrics.Label{
+		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
+		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
+	}
+
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
+	if err != nil {
+		return 0, err
+	}
 
 	return sequence, nil
 }

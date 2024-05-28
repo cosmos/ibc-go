@@ -49,6 +49,10 @@ message MsgTransfer {
   uint64 timeout_timestamp = 7;
   // optional memo
   string memo = 8;
+  // optional destination port for IBC Lite
+  string dest_port = 9;
+  // optional destination channel for IBC Lite
+  string dest_channel = 10;
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.
