@@ -1544,7 +1544,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 				Amount: amount.String(),
 				Trace:  trace,
 			},
-		}, types.GetForwardAddress(path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID).String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
+		}, types.GetForwardAddress(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID).String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
 	packetRecv := channeltypes.NewPacket(data.GetBytes(), 3, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	err = path1.EndpointB.UpdateClient()
@@ -1571,7 +1571,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 				Amount: amount.String(),
 				Trace:  trace,
 			},
-		}, suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(), suite.chainB.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
+		}, suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
 	//suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String() This should be forward account of B
 	packet = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
@@ -1584,7 +1584,8 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().Equal(sdkmath.NewInt(0), postCoinOnC.Amount, "Final Hop balance has been refunded before Ack execution")
 
 	// Execute ack
-	err = suite.chainC.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainC.GetContext(), forwardedPacket, data, ack)
+	err = suite.chainC.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainC.GetContext(), packet, data, ack)
+	//err = path2.EndpointB.AcknowledgePacket(packet, ack.Acknowledgement())
 	suite.Require().NoError(err)
 
 	// Check that everythig has been reverted
