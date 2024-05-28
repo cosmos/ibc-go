@@ -31,9 +31,11 @@ func TestGetFullDenomPath(t *testing.T) {
 			NewFungibleTokenPacketDataV2(
 				[]Token{
 					{
-						Denom:  denom,
+						Denom: Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -47,9 +49,11 @@ func TestGetFullDenomPath(t *testing.T) {
 			NewFungibleTokenPacketDataV2(
 				[]Token{
 					{
-						Denom:  denom,
+						Denom: Denom{
+							Base:  denom,
+							Trace: []string{},
+						},
 						Amount: amount,
-						Trace:  []string{},
 					},
 				},
 				sender,
@@ -77,81 +81,96 @@ func TestValidate(t *testing.T) {
 		{
 			"success: multiple port channel pair denom",
 			Token{
-				Denom:  "atom",
+				Denom: Denom{
+					Base:  "atom",
+					Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+				},
 				Amount: amount,
-				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 			},
 			nil,
 		},
 		{
 			"success: one port channel pair denom",
 			Token{
-				Denom:  "uatom",
+				Denom: Denom{
+					Base:  "uatom",
+					Trace: []string{"transfer/channel-1"},
+				},
 				Amount: amount,
-				Trace:  []string{"transfer/channel-1"},
 			},
 			nil,
 		},
 		{
 			"success: non transfer port trace",
 			Token{
-				Denom:  "uatom",
+				Denom: Denom{
+					Base:  "uatom",
+					Trace: []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
+				},
 				Amount: amount,
-				Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 			},
 			nil,
 		},
 		{
 			"failure: empty denom",
 			Token{
-				Denom:  "",
+				Denom:  Denom{},
 				Amount: amount,
-				Trace:  nil,
 			},
 			ErrInvalidDenomForTransfer,
 		},
 		{
 			"failure: invalid amount string",
 			Token{
-				Denom:  "atom",
+				Denom: Denom{
+					Base:  "atom",
+					Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+				},
 				Amount: "value",
-				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 			},
 			ErrInvalidAmount,
 		},
 		{
 			"failure: amount is zero",
 			Token{
-				Denom:  "atom",
+				Denom: Denom{
+					Base:  "atom",
+					Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+				},
 				Amount: "0",
-				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 			},
 			ErrInvalidAmount,
 		},
 		{
 			"failure: amount is negative",
 			Token{
-				Denom:  "atom",
+				Denom: Denom{
+					Base:  "atom",
+					Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+				},
 				Amount: "-1",
-				Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 			},
 			ErrInvalidAmount,
 		},
 		{
 			"failure: invalid identifier in trace",
 			Token{
-				Denom:  "uatom",
+				Denom: Denom{
+					Base:  "uatom",
+					Trace: []string{"transfer/channel-1", "randomport"},
+				},
 				Amount: amount,
-				Trace:  []string{"transfer/channel-1", "randomport"},
 			},
 			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: [transfer channel-1 randomport]"),
 		},
 		{
 			"failure: empty identifier in trace",
 			Token{
-				Denom:  "uatom",
+				Denom: Denom{
+					Base:  "uatom",
+					Trace: []string{""},
+				},
 				Amount: amount,
-				Trace:  []string{""},
 			},
 			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: "),
 		},
@@ -185,65 +204,81 @@ func TestTokens_String(t *testing.T) {
 			"single token, no trace",
 			Tokens{
 				Token{
-					Denom:  "tree",
+					Denom: Denom{
+						Base:  "tree",
+						Trace: []string{},
+					},
 					Amount: "1",
-					Trace:  []string{},
 				},
 			},
-			`denom:"tree" amount:"1" `,
+			`denom:<base:"tree" > amount:"1" `,
 		},
 		{
 			"single token with trace",
 			Tokens{
 				Token{
-					Denom:  "tree",
+					Denom: Denom{
+						Base:  "tree",
+						Trace: []string{"portid/channelid"},
+					},
 					Amount: "1",
-					Trace:  []string{"portid/channelid"},
 				},
 			},
-			`denom:"tree" amount:"1" trace:"portid/channelid" `,
+			`denom:<base:"tree" trace:"portid/channelid" > amount:"1" `,
 		},
 		{
 			"multiple tokens, no trace",
 			Tokens{
 				Token{
-					Denom:  "tree",
+					Denom: Denom{
+						Base:  "tree",
+						Trace: []string{},
+					},
 					Amount: "1",
-					Trace:  []string{},
 				},
 				Token{
-					Denom:  "gas",
+					Denom: Denom{
+						Base:  "gas",
+						Trace: []string{},
+					},
 					Amount: "2",
-					Trace:  []string{},
 				},
 				Token{
-					Denom:  "mineral",
+					Denom: Denom{
+						Base:  "mineral",
+						Trace: []string{},
+					},
 					Amount: "3",
-					Trace:  []string{},
 				},
 			},
-			`denom:"tree" amount:"1" ,denom:"gas" amount:"2" ,denom:"mineral" amount:"3" `,
+			`denom:<base:"tree" > amount:"1" ,denom:<base:"gas" > amount:"2" ,denom:<base:"mineral" > amount:"3" `,
 		},
 		{
 			"multiple tokens, trace and no trace",
 			Tokens{
 				Token{
-					Denom:  "tree",
+					Denom: Denom{
+						Base:  "tree",
+						Trace: []string{},
+					},
 					Amount: "1",
-					Trace:  []string{},
 				},
 				Token{
-					Denom:  "gas",
+					Denom: Denom{
+						Base:  "gas",
+						Trace: []string{"portid/channelid"},
+					},
 					Amount: "2",
-					Trace:  []string{"portid/channelid"},
 				},
 				Token{
-					Denom:  "mineral",
+					Denom: Denom{
+						Base:  "mineral",
+						Trace: []string{"portid/channelid", "transfer/channel-52"},
+					},
 					Amount: "3",
-					Trace:  []string{"portid/channelid", "transfer/channel-52"},
 				},
 			},
-			`denom:"tree" amount:"1" ,denom:"gas" amount:"2" trace:"portid/channelid" ,denom:"mineral" amount:"3" trace:"portid/channelid" trace:"transfer/channel-52" `,
+			`denom:<base:"tree" > amount:"1" ,denom:<base:"gas" trace:"portid/channelid" > amount:"2" ,denom:<base:"mineral" trace:"portid/channelid" trace:"transfer/channel-52" > amount:"3" `,
 		},
 	}
 
