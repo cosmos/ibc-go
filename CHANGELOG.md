@@ -67,6 +67,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (apps/transfer) [\#6352](https://github.com/cosmos/ibc-go/pull/6352) Add for multi-token transfers. 
+
 ### Bug Fixes
 
 ## [v8.3.0](https://github.com/cosmos/ibc-go/releases/tag/v8.3.0) - 2024-05-16
