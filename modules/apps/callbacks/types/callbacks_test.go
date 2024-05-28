@@ -859,7 +859,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 
 	testCases := []struct {
 		name       string
-		packetData transfertypes.FungibleTokenPacketData
+		packetData ibcexported.PacketDataProvider
 		expUserGas uint64
 	}{
 		{
@@ -955,6 +955,141 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 			transfertypes.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `invalid`,
+			},
+			0,
+		},
+		{
+			"success v2: memo is empty",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "",
+			},
+			0,
+		},
+		{
+			"success v2: memo has user defined gas limit",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {"gas_limit": "100"}}`,
+			},
+			100,
+		},
+		{
+			"success v2: user defined gas limit is zero",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {"gas_limit": "0"}}`,
+			},
+			0,
+		},
+		{
+			"failure v2: memo has empty src_callback object",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {}}`,
+			},
+			0,
+		},
+		{
+			"failure v2: memo has user defined gas limit as json number",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {"gas_limit": 100}}`,
+			},
+			0,
+		},
+		{
+			"failure v2: memo has user defined gas limit as negative",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {"gas_limit": "-100"}}`,
+			},
+			0,
+		},
+		{
+			"failure v2: memo has user defined gas limit as string",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {"gas_limit": "invalid"}}`,
+			},
+			0,
+		},
+		{
+			"failure v2: memo has user defined gas limit as empty string",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {"gas_limit": ""}}`,
+			},
+			0,
+		},
+		{
+			"failure v2: malformed memo",
+			transfertypes.FungibleTokenPacketDataV2{
+				Tokens: transfertypes.Tokens{
+					{
+						Denom:  denom,
+						Amount: amount,
+					},
+				},
 				Sender:   sender,
 				Receiver: receiver,
 				Memo:     `invalid`,
