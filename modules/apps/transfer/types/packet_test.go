@@ -221,6 +221,31 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			nil,
 		},
 		{
+			"success: valid packet with forwarding path hops",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"",
+				&types.ForwardingInfo{
+					Hops: []*types.Hop{
+						{
+							PortId: "transfer",
+							ChannelId: "channel-1",
+						},
+					},
+					Memo: "",
+				},
+			),
+			nil,
+		},
+		{
 			"failure: invalid denom",
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
@@ -364,6 +389,31 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				receiver,
 				ibctesting.GenerateString(types.MaximumMemoLength+1),
 				nil,
+			),
+			types.ErrInvalidMemo,
+		},
+		{
+			"failure: memo must be empty if forwarding path hops is not empty",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  denom,
+						Amount: amount,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
+					},
+				},
+				sender,
+				receiver,
+				"memo",
+				&types.ForwardingInfo{
+					Hops: []*types.Hop{
+						{
+							PortId: "transfer",
+							ChannelId: "channel-1",
+						},
+					},
+					Memo: "",
+				},
 			),
 			types.ErrInvalidMemo,
 		},
