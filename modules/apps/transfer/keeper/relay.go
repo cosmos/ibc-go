@@ -259,6 +259,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				)
 			}()
 
+			// Continue processing rest of tokens in packet data.
 			continue
 		}
 
@@ -377,7 +378,12 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		if types.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), fullDenomPath) {
 			// unescrow tokens back to sender
 			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-			return k.unescrowToken(ctx, escrowAddress, sender, token)
+			if err := k.unescrowToken(ctx, escrowAddress, sender, token); err != nil {
+				return err
+			}
+
+			// Continue processing rest of tokens in packet data.
+			continue
 		}
 
 		// mint vouchers back to sender
