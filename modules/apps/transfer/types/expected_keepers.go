@@ -27,7 +27,7 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	BlockedAddr(addr sdk.AccAddress) bool
-	IsSendEnabledCoin(ctx context.Context, coin sdk.Coin) bool
+	IsSendEnabledCoins(ctx context.Context, coins ...sdk.Coin) error
 	HasDenomMetaData(ctx context.Context, denom string) bool
 	SetDenomMetaData(ctx context.Context, denomMetaData banktypes.Metadata)
 	GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin

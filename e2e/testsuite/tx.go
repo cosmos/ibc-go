@@ -280,7 +280,7 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	msg := transfertypes.NewMsgTransfer(portID, channelID, sdk.NewCoins(token), sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
