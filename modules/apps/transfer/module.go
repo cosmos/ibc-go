@@ -170,7 +170,7 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 
 // RegisterStoreDecoder registers a decoder for transfer module's types
 func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.keeper)
+	sdr[types.StoreKey] = simulation.NewDecodeStore()
 }
 
 // WeightedOperations returns the all the transfer module operations with their respective weights.
