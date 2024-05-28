@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.6.
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
 * [\#6239](https://github.com/cosmos/ibc-go/pull/6239) Bump CometBFT to v0.38.7.
+* [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump go to v1.22.
 
 ### API Breaking
 
