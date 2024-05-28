@@ -16,9 +16,11 @@ func PacketDataV1ToV2(packetData types.FungibleTokenPacketData) types.FungibleTo
 	return types.FungibleTokenPacketDataV2{
 		Tokens: []types.Token{
 			{
-				Denom:  v2Denom,
+				Denom: types.Denom{
+					Base:  v2Denom,
+					Trace: trace,
+				},
 				Amount: packetData.Amount,
-				Trace:  trace,
 			},
 		},
 		Sender:   packetData.Sender,

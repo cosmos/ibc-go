@@ -136,9 +136,11 @@ func (k Keeper) sendTransfer(
 
 		denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(fullDenomPath)
 		token := types.Token{
-			Denom:  denom,
+			Denom: types.Denom{
+				Base:  denom,
+				Trace: trace,
+			},
 			Amount: coin.Amount.String(),
-			Trace:  trace,
 		}
 		tokens = append(tokens, token)
 	}
