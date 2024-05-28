@@ -250,6 +250,260 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			types.CallbackData{},
 			types.ErrCallbackAddressNotFound,
 		},
+
+		{
+			"success: source callback",
+			func() {
+				remainingGas = 2_000_000
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, sender),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     sender,
+				ExecutionGasLimit: 1_000_000,
+				CommitGasLimit:    1_000_000,
+			},
+			nil,
+		},
+		{
+			"success: destination callback",
+			func() {
+				callbackKey = types.DestinationCallbackKey
+
+				remainingGas = 2_000_000
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     "",
+				ExecutionGasLimit: 1_000_000,
+				CommitGasLimit:    1_000_000,
+			},
+			nil,
+		},
+		{
+			"success v2: destination callback with 0 user defined gas limit",
+			func() {
+				callbackKey = types.DestinationCallbackKey
+
+				remainingGas = 2_000_000
+				packetData = transfertypes.FungibleTokenPacketDataV2{
+					Tokens: transfertypes.Tokens{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit":"0"}}`, sender),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     "",
+				ExecutionGasLimit: 1_000_000,
+				CommitGasLimit:    1_000_000,
+			},
+			nil,
+		},
+		{
+			"success v2: source callback with gas limit < remaining gas < max gas",
+			func() {
+				packetData = transfertypes.FungibleTokenPacketDataV2{
+					Tokens: transfertypes.Tokens{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "50000"}}`, sender),
+				}
+
+				remainingGas = 100_000
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     sender,
+				ExecutionGasLimit: 50_000,
+				CommitGasLimit:    50_000,
+			},
+			nil,
+		},
+		{
+			"success v2: source callback with remaining gas < gas limit < max gas",
+			func() {
+				remainingGas = 100_000
+				packetData = transfertypes.FungibleTokenPacketDataV2{
+					Tokens: transfertypes.Tokens{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, sender),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     sender,
+				ExecutionGasLimit: 100_000,
+				CommitGasLimit:    200_000,
+			},
+			nil,
+		},
+		{
+			"success v2: source callback with remaining gas < max gas < gas limit",
+			func() {
+				remainingGas = 100_000
+				packetData = transfertypes.FungibleTokenPacketDataV2{
+					Tokens: transfertypes.Tokens{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "2000000"}}`, sender),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     sender,
+				ExecutionGasLimit: 100_000,
+				CommitGasLimit:    1_000_000,
+			},
+			nil,
+		},
+		{
+			"success v2: destination callback with remaining gas < max gas < gas limit",
+			func() {
+				callbackKey = types.DestinationCallbackKey
+
+				remainingGas = 100_000
+				packetData = transfertypes.FungibleTokenPacketDataV2{
+					Tokens: transfertypes.Tokens{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "2000000"}}`, sender),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     "",
+				ExecutionGasLimit: 100_000,
+				CommitGasLimit:    1_000_000,
+			},
+			nil,
+		},
+		{
+			"success v2: source callback with max gas < remaining gas < gas limit",
+			func() {
+				remainingGas = 2_000_000
+				packetData = transfertypes.FungibleTokenPacketDataV2{
+					Tokens: transfertypes.Tokens{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "3000000"}}`, sender),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     sender,
+				ExecutionGasLimit: 1_000_000,
+				CommitGasLimit:    1_000_000,
+			},
+			nil,
+		},
+		{
+			"failure: packet data does not implement PacketDataProvider",
+			func() {
+				packetData = ibcmock.MockPacketData
+			},
+			types.CallbackData{},
+			types.ErrNotPacketDataProvider,
+		},
+		{
+			"failure v2: empty memo",
+			func() {
+				packetData = transfertypes.FungibleTokenPacketDataV2{
+					Tokens: transfertypes.Tokens{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
+				}
+			},
+			types.CallbackData{},
+			types.ErrCallbackKeyNotFound,
+		},
+		{
+			"failure v2: empty address",
+			func() {
+				packetData = transfertypes.FungibleTokenPacketDataV2{
+					Tokens: transfertypes.Tokens{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     `{"src_callback": {"address": ""}}`,
+				}
+			},
+			types.CallbackData{},
+			types.ErrCallbackAddressNotFound,
+		},
+		{
+			"failure v2: space address",
+			func() {
+				packetData = transfertypes.FungibleTokenPacketDataV2{
+					Tokens: transfertypes.Tokens{
+						{
+							Denom:  ibctesting.TestCoin.Denom,
+							Amount: ibctesting.TestCoin.Amount.String(),
+						},
+					},
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     `{"src_callback": {"address": " "}}`,
+				}
+			},
+			types.CallbackData{},
+			types.ErrCallbackAddressNotFound,
+		},
 	}
 
 	for _, tc := range testCases {
