@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"sort"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -77,11 +76,6 @@ func (dt DenomTrace) GetFullDenomPath() string {
 	return dt.GetPrefix() + dt.BaseDenom
 }
 
-// IsNativeDenom returns true if the denomination is native, thus containing no trace history.
-func (dt DenomTrace) IsNativeDenom() bool {
-	return dt.Path == ""
-}
-
 // extractPathAndBaseFromFullDenom returns the trace path and the base denom from
 // the elements that constitute the complete denom.
 func extractPathAndBaseFromFullDenom(fullDenomItems []string) ([]string, string) {
@@ -146,43 +140,6 @@ func (dt DenomTrace) Validate() error {
 
 	identifiers := strings.Split(dt.Path, "/")
 	return validateTraceIdentifiers(identifiers)
-}
-
-// Traces defines a wrapper type for a slice of DenomTrace.
-type Traces []DenomTrace
-
-// Validate performs a basic validation of each denomination trace info.
-func (t Traces) Validate() error {
-	seenTraces := make(map[string]bool)
-	for i, trace := range t {
-		hash := trace.Hash().String()
-		if seenTraces[hash] {
-			return fmt.Errorf("duplicated denomination trace with hash %s", trace.Hash())
-		}
-
-		if err := trace.Validate(); err != nil {
-			return errorsmod.Wrapf(err, "failed denom trace %d validation", i)
-		}
-		seenTraces[hash] = true
-	}
-	return nil
-}
-
-var _ sort.Interface = (*Traces)(nil)
-
-// Len implements sort.Interface for Traces
-func (t Traces) Len() int { return len(t) }
-
-// Less implements sort.Interface for Traces
-func (t Traces) Less(i, j int) bool { return t[i].GetFullDenomPath() < t[j].GetFullDenomPath() }
-
-// Swap implements sort.Interface for Traces
-func (t Traces) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
-
-// Sort is a helper function to sort the set of denomination traces in-place
-func (t Traces) Sort() Traces {
-	sort.Sort(t)
-	return t
 }
 
 // ValidatePrefixedDenom checks that the denomination for an IBC fungible token packet denom is correctly prefixed.

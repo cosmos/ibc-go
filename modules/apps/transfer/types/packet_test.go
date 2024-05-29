@@ -174,9 +174,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -190,9 +192,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -206,9 +210,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: largeAmount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -222,9 +228,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "",
+						Denom: types.Denom{
+							Base:  "",
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -238,9 +246,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: "",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -264,9 +274,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: "0",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -280,9 +292,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: "-100",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -296,9 +310,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: invalidLargeAmount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -312,9 +328,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				"",
@@ -328,9 +346,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -344,9 +364,11 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: largeAmount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -382,9 +404,11 @@ func TestGetPacketSender(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -398,9 +422,11 @@ func TestGetPacketSender(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				"",
@@ -429,9 +455,11 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -447,9 +475,11 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -465,9 +495,11 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -480,9 +512,11 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -495,9 +529,11 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -510,9 +546,11 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -541,9 +579,11 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
@@ -557,9 +597,11 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: []string{"transfer/channel-0", "transfer/channel-1"},
+						},
 						Amount: amount,
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				},
 				sender,
