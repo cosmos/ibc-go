@@ -152,7 +152,9 @@ func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash cmtbytes.HexBytes)
 		return types.DenomTrace{}, false
 	}
 
-	denomTrace := k.MustUnmarshalDenomTrace(bz)
+	var denomTrace types.DenomTrace
+	k.cdc.MustUnmarshal(bz, &denomTrace)
+
 	return denomTrace, true
 }
 
@@ -165,7 +167,8 @@ func (k Keeper) HasDenomTrace(ctx sdk.Context, denomTraceHash cmtbytes.HexBytes)
 // SetDenomTrace sets a new {trace hash -> denom trace} pair to the store.
 func (k Keeper) SetDenomTrace(ctx sdk.Context, denomTrace types.DenomTrace) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
-	bz := k.MustMarshalDenomTrace(denomTrace)
+	bz := k.cdc.MustMarshal(&denomTrace)
+
 	store.Set(denomTrace.Hash(), bz)
 }
 
@@ -188,7 +191,9 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-		denomTrace := k.MustUnmarshalDenomTrace(iterator.Value())
+		var denomTrace types.DenomTrace
+		k.cdc.MustUnmarshal(iterator.Value(), &denomTrace)
+
 		if cb(denomTrace) {
 			break
 		}
