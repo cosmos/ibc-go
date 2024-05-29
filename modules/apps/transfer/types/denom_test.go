@@ -30,7 +30,7 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 				{Base: "uatom", Trace: []string{"transfer/channel-1", "transfer/channel-2"}},
 				{Base: "uatom", Trace: []string{"transfer/channel-1", "transfer/channel-2"}},
 			},
-			fmt.Errorf("duplicated denomination trace with hash"),
+			fmt.Errorf("duplicated denomination with hash"),
 		},
 		{
 			"empty base denom with trace",
