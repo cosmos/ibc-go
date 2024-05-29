@@ -35,8 +35,8 @@ func (suite *KeeperTestSuite) TestGenesis() {
 			Base:  "uatom",
 			Trace: traceAndEscrowAmount.trace,
 		}
-		suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
 		denoms = append(denoms, denom)
+		suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
 
 		amount, ok := sdkmath.NewIntFromString(traceAndEscrowAmount.escrow)
 		suite.Require().True(ok)
