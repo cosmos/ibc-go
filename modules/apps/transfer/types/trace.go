@@ -44,7 +44,7 @@ func ParseDenomTrace(rawDenom string) DenomTrace {
 	}
 }
 
-// Hash returns the hex bytes of the SHA256 hash of the Denom fields using the following formula:
+// Hash returns the hex bytes of the SHA256 hash of the DenomTrace fields using the following formula:
 //
 // hash = sha256(tracePath + "/" + baseDenom)
 func (dt DenomTrace) Hash() cmtbytes.HexBytes {
