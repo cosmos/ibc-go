@@ -160,14 +160,3 @@ func (k Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscr
 	}, nil
 }
 
-// DenomTrace implements the Query/DenomTrace gRPC method
-// Deprecated: Please use Denom instead.
-func (Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest) (*types.QueryDenomTraceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "unsupported rpc")
-}
-
-// DenomTraces implements the Query/DenomTraces gRPC method
-// Deprecated: Please use Denoms instead.
-func (Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesRequest) (*types.QueryDenomTracesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "unsupported rpc")
-}
