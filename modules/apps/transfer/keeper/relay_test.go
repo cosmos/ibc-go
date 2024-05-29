@@ -405,12 +405,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			}
 
 			// initiate transfer of coins from chainA to chainB
-			coins := append(ibctesting.TestCoins, ibctesting.TestCoin)
+			coins := append(ibctesting.TestCoins, ibctesting.TestCoin) //nolint:gocritic
 			transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coins, chainAAddress, chainBAddress, clienttypes.NewHeight(1, 110), 0, "")
 
 			var tokens types.Tokens
 			for _, coin := range transferMsg.GetCoins() {
-				tokens = append(tokens, types.Token{types.Denom{coin.Denom, []string{}}, coin.Amount.String()})
+				tokens = append(tokens, types.Token{Denom: types.Denom{Base: coin.Denom, Trace: []string{}}, Amount: coin.Amount.String()})
 			}
 
 			packetData = types.NewFungibleTokenPacketDataV2(tokens, chainAAddress, chainBAddress, "")
