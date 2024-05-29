@@ -20,7 +20,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 		name     string
 		v1Data   types.FungibleTokenPacketData
 		v2Data   types.FungibleTokenPacketDataV2
-		expPanic error
+		expError error
 	}{
 		{
 			"success",
@@ -128,7 +128,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			nil,
 		},
 		{
-			"failure: panics with empty denom",
+			"failure: packet data fails validation with empty denom",
 			types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
 			types.FungibleTokenPacketDataV2{},
 			errorsmod.Wrap(types.ErrInvalidDenomForTransfer, "base denomination cannot be blank"),
@@ -136,14 +136,14 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		expPass := tc.expPanic == nil
+		actualV2Data, err := PacketDataV1ToV2(tc.v1Data)
+
+		expPass := tc.expError == nil
 		if expPass {
-			actualV2Data := PacketDataV1ToV2(tc.v1Data)
+			require.NoError(t, err, "test case: %s", tc.name)
 			require.Equal(t, tc.v2Data, actualV2Data, "test case: %s", tc.name)
 		} else {
-			require.PanicsWithError(t, tc.expPanic.Error(), func() {
-				PacketDataV1ToV2(tc.v1Data)
-			}, "test case: %s", tc.name)
+			require.Error(t, err, "test case: %s", tc.name)
 		}
 	}
 }
