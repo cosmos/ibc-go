@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {
 				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, "randomdenom", coin.Amount)
 			},
-			types.ErrTraceNotFound,
+			types.ErrDenomNotFound,
 		},
 		{
 			"failure: bank send from module account failed, insufficient balance",

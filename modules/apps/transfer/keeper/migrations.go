@@ -2,8 +2,12 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
@@ -34,7 +38,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	// list of traces that must replace the old traces in store
 	var newTraces []types.DenomTrace
-	m.keeper.IterateDenomTraces(ctx,
+	m.keeper.iterateDenomTraces(ctx,
 		func(dt types.DenomTrace) (stop bool) {
 			// check if the new way of splitting FullDenom
 			// is the same as the current DenomTrace.
@@ -61,18 +65,18 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 
 	// replace the outdated traces with the new trace information
 	for _, nt := range newTraces {
-		m.keeper.SetDenomTrace(ctx, nt)
+		m.keeper.setDenomTrace(ctx, nt)
 	}
 	return nil
 }
 
 // MigrateDenomMetadata sets token metadata for all the IBC denom traces
 func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
-	m.keeper.IterateDenomTraces(ctx,
+	m.keeper.iterateDenomTraces(ctx,
 		func(dt types.DenomTrace) (stop bool) {
 			// check if the metadata for the given denom trace does not already exist
 			if !m.keeper.bankKeeper.HasDenomMetaData(ctx, dt.IBCDenom()) {
-				m.keeper.setDenomMetadata(ctx, dt)
+				m.keeper.setDenomMetadataWithDenomTrace(ctx, dt)
 			}
 			return false
 		})
@@ -104,4 +108,51 @@ func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
 
 func equalTraces(dtA, dtB types.DenomTrace) bool {
 	return dtA.BaseDenom == dtB.BaseDenom && dtA.Path == dtB.Path
+}
+
+// setDenomTrace sets a new {trace hash -> denom trace} pair to the store.
+func (k Keeper) setDenomTrace(ctx sdk.Context, denomTrace types.DenomTrace) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+	bz := k.cdc.MustMarshal(&denomTrace)
+
+	store.Set(denomTrace.Hash(), bz)
+}
+
+// iterateDenomTraces iterates over the denomination traces in the store
+// and performs a callback function.
+func (k Keeper) iterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.DenomTrace) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
+
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	for ; iterator.Valid(); iterator.Next() {
+		var denomTrace types.DenomTrace
+		k.cdc.MustUnmarshal(iterator.Value(), &denomTrace)
+
+		if cb(denomTrace) {
+			break
+		}
+	}
+}
+
+// setDenomMetadataWithDenomTrace sets an IBC token's denomination metadata
+func (k Keeper) setDenomMetadataWithDenomTrace(ctx sdk.Context, denomTrace types.DenomTrace) {
+	metadata := banktypes.Metadata{
+		Description: fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath()),
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    denomTrace.BaseDenom,
+				Exponent: 0,
+			},
+		},
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+		// Base as key path and the IBC hash is what gives this token uniqueness
+		// on the executing chain
+		Base:    denomTrace.IBCDenom(),
+		Display: denomTrace.GetFullDenomPath(),
+		Name:    fmt.Sprintf("%s IBC token", denomTrace.GetFullDenomPath()),
+		Symbol:  strings.ToUpper(denomTrace.BaseDenom),
+	}
+
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 }

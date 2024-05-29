@@ -146,7 +146,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 // GetDenom retrieves the denom from store given the hash of the denom.
 func (k Keeper) GetDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) (types.Denom, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomKey)
 	bz := store.Get(denomHash)
 	if len(bz) == 0 {
 		return types.Denom{}, false
@@ -166,15 +166,15 @@ func (k Keeper) HasDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) bool {
 
 // SetDenom sets a new {denom hash -> denom } pair to the store.
 // This allows for reverse lookup of the denom given the hash.
-func (k Keeper) SetDenom(ctx sdk.Context, denomTrace types.Denom) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+func (k Keeper) SetDenom(ctx sdk.Context, denom types.Denom) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomKey)
 	bz := k.cdc.MustMarshal(&denom)
-	store.Set(denomTrace.Hash(), bz)
+	store.Set(denom.Hash(), bz)
 }
 
 // GetAllDenoms returns all the denominations.
-func (k Keeper) GetAllDenoms(ctx sdk.Context) types.Traces {
-	traces := types.Denoms{}
+func (k Keeper) GetAllDenoms(ctx sdk.Context) types.Denoms {
+	denoms := types.Denoms{}
 	k.IterateDenoms(ctx, func(denom types.Denom) bool {
 		denoms = append(denoms, denom)
 		return false
@@ -186,7 +186,7 @@ func (k Keeper) GetAllDenoms(ctx sdk.Context) types.Traces {
 // IterateDenoms iterates over the denominations in the store and performs a callback function.
 func (k Keeper) IterateDenoms(ctx sdk.Context, cb func(denom types.Denom) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.DenomKey)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -202,10 +202,10 @@ func (k Keeper) IterateDenoms(ctx sdk.Context, cb func(denom types.Denom) bool) 
 // setDenomMetadata sets an IBC token's denomination metadata
 func (k Keeper) setDenomMetadata(ctx sdk.Context, denom types.Denom) {
 	metadata := banktypes.Metadata{
-		Description: fmt.Sprintf("IBC token from %s", denom.GetFullDenomPath()),
+		Description: fmt.Sprintf("IBC token from %s", denom.GetFullPath()),
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    denom.BaseDenom,
+				Denom:    denom.Base,
 				Exponent: 0,
 			},
 		},
@@ -213,9 +213,9 @@ func (k Keeper) setDenomMetadata(ctx sdk.Context, denom types.Denom) {
 		// Base as key path and the IBC hash is what gives this token uniqueness
 		// on the executing chain
 		Base:    denom.IBCDenom(),
-		Display: denom.GetFullDenomPath(),
-		Name:    fmt.Sprintf("%s IBC token", denom.GetFullDenomPath()),
-		Symbol:  strings.ToUpper(denom.BaseDenom),
+		Display: denom.GetFullPath(),
+		Name:    fmt.Sprintf("%s IBC token", denom.GetFullPath()),
+		Symbol:  strings.ToUpper(denom.Base),
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
