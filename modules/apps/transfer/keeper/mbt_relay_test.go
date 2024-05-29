@@ -269,22 +269,11 @@ func (bank *Bank) NonZeroString() string {
 func BankOfChain(chain *ibctesting.TestChain) Bank {
 	bank := MakeBank()
 	chain.GetSimApp().BankKeeper.IterateAllBalances(chain.GetContext(), func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
-		fullPath := coin.Denom
-		if strings.HasPrefix(coin.Denom, "ibc/") {
-			hexHash := coin.Denom[len(types.DenomPrefix+"/"):]
-			hash, err := types.ParseHexHash(hexHash)
-			if err != nil {
-				panic(fmt.Errorf("Failed to parse hex hash: %w", err))
-			}
-
-			denom, found := chain.GetSimApp().TransferKeeper.GetDenom(chain.GetContext(), hash)
-			if !found {
-				panic(fmt.Errorf("Failed to denom with hash %X", hash))
-			}
-
-			fullPath = denom.GetFullPath()
+		token, err := chain.GetSimApp().TransferKeeper.ConstructTokenFromCoin(chain.GetContext(), coin)
+		if err != nil {
+			panic(fmt.Errorf("Failed to construct token from coin: %w", err))
 		}
-		bank.SetBalance(address.String(), fullPath, coin.Amount)
+		bank.SetBalance(address.String(), token.Denom.GetFullPath(), coin.Amount)
 		return false
 	})
 	return bank

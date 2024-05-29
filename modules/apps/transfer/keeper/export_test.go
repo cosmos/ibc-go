@@ -26,3 +26,8 @@ func (k Keeper) GetAllDenomTraces(ctx sdk.Context) []types.DenomTrace {
 
 	return traces
 }
+
+// ConstructTokenFromCoin is a wrapper around constructTokenFromCoin for testing purposes.
+func (k Keeper) ConstructTokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
+	return k.constructTokenFromCoin(ctx, coin)
+}
