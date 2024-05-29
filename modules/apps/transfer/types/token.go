@@ -9,7 +9,7 @@ import (
 
 // Validate validates a token denomination and trace identifiers.
 func (t Token) Validate() error {
-	if strings.TrimSpace(t.Denom) == "" {
+	if strings.TrimSpace(t.Denom.Base) == "" {
 		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "denom cannot be empty")
 	}
 
@@ -22,8 +22,8 @@ func (t Token) Validate() error {
 		return errorsmod.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
 	}
 
-	if len(t.Trace) != 0 {
-		trace := strings.Join(t.Trace, "/")
+	if len(t.Denom.Trace) != 0 {
+		trace := strings.Join(t.Denom.Trace, "/")
 		identifiers := strings.Split(trace, "/")
 
 		if err := validateTraceIdentifiers(identifiers); err != nil {
@@ -38,11 +38,11 @@ func (t Token) Validate() error {
 // tracePath + "/" + baseDenom
 // If there exists no trace then the base denomination is returned.
 func (t Token) GetFullDenomPath() string {
-	if len(t.Trace) == 0 {
-		return t.Denom
+	if len(t.Denom.Trace) == 0 {
+		return t.Denom.Base
 	}
 
-	return strings.Join(append(t.Trace, t.Denom), "/")
+	return strings.Join(append(t.Denom.Trace, t.Denom.Base), "/")
 }
 
 // Tokens is a set of Token
