@@ -20,7 +20,7 @@ service Query {
   }
 
   // DenomTrace queries a denomination trace information.
-  // Deprecated: Please se the Denom endpoint instead.
+  // Deprecated: Please see the Denom endpoint instead.
   rpc DenomTrace(QueryDenomTraceRequest) returns (QueryDenomTraceResponse) {
     option deprecated = true;
     option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{hash=**}";
