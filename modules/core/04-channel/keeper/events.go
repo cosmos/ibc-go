@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // emitChannelOpenInitEvent emits a channel open init event
@@ -121,23 +120,35 @@ func emitChannelCloseConfirmEvent(ctx sdk.Context, portID string, channelID stri
 
 // emitSendPacketEvent emits an event with packet data along with other packet information for relayer
 // to pick up and relay to other chain
-func emitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel, timeoutHeight exported.Height) {
+func EmitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel) {
+	var (
+		timeoutHeightStr string
+		connHops         string
+	)
+	if packet.GetTimeoutHeight() != nil {
+		timeoutHeightStr = packet.GetTimeoutHeight().String()
+	}
+	ordering := types.UNORDERED.String()
+	if channel != nil {
+		connHops = channel.ConnectionHops[0]
+		ordering = channel.Ordering.String()
+	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
 			sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
-			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, timeoutHeight.String()),
+			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, timeoutHeightStr),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
 			sdk.NewAttribute(types.AttributeKeySrcPort, packet.GetSourcePort()),
 			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
-			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
+			sdk.NewAttribute(types.AttributeKeyChannelOrdering, ordering),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
-			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), // DEPRECATED
-			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyConnection, connHops), // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnectionID, connHops),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -148,7 +159,13 @@ func emitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Cha
 
 // emitRecvPacketEvent emits a receive packet event. It will be emitted both the first time a packet
 // is received for a certain sequence and for all duplicate receives.
-func emitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
+func EmitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel) {
+	var connHops string
+	ordering := types.UNORDERED.String()
+	if channel != nil {
+		connHops = channel.ConnectionHops[0]
+		ordering = channel.Ordering.String()
+	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
@@ -160,11 +177,11 @@ func emitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Cha
 			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
-			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
+			sdk.NewAttribute(types.AttributeKeyChannelOrdering, ordering),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
-			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), // DEPRECATED
-			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyConnection, connHops), // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnectionID, connHops),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -174,7 +191,11 @@ func emitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Cha
 }
 
 // emitWriteAcknowledgementEvent emits an event that the relayer can query for
-func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel types.Channel, acknowledgement []byte) {
+func EmitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel, acknowledgement []byte) {
+	var connHops string
+	if channel != nil {
+		connHops = channel.ConnectionHops[0]
+	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWriteAck,
@@ -189,8 +210,8 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 			sdk.NewAttribute(types.AttributeKeyAckHex, hex.EncodeToString(acknowledgement)),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
-			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), // DEPRECATED
-			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyConnection, connHops), // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnectionID, connHops),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -201,7 +222,13 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 
 // emitAcknowledgePacketEvent emits an acknowledge packet event. It will be emitted both the first time
 // a packet is acknowledged for a certain sequence and for all duplicate acknowledgements.
-func emitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
+func EmitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel) {
+	var connHops string
+	ordering := types.UNORDERED.String()
+	if channel != nil {
+		connHops = channel.ConnectionHops[0]
+		ordering = channel.Ordering.String()
+	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,
@@ -212,11 +239,11 @@ func emitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel ty
 			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
-			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
+			sdk.NewAttribute(types.AttributeKeyChannelOrdering, ordering),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
-			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), // DEPRECATED
-			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyConnection, connHops), // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnectionID, connHops),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -227,7 +254,13 @@ func emitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel ty
 
 // emitTimeoutPacketEvent emits a timeout packet event. It will be emitted both the first time a packet
 // is timed out for a certain sequence and for all duplicate timeouts.
-func emitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
+func EmitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel) {
+	var connHops string
+	ordering := types.UNORDERED.String()
+	if channel != nil {
+		connHops = channel.ConnectionHops[0]
+		ordering = channel.Ordering.String()
+	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeoutPacket,
@@ -238,8 +271,8 @@ func emitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel types.
 			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
-			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
-			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, connHops),
+			sdk.NewAttribute(types.AttributeKeyChannelOrdering, ordering),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

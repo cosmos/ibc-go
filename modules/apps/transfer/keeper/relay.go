@@ -69,10 +69,6 @@ func (k Keeper) sendTransfer(
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
 
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
 	fullDenomPath := token.Denom
@@ -159,11 +155,24 @@ func (k Keeper) sendTransfer(
 			TimeoutHeight:    &timeoutHeight,
 			TimeoutTimestamp: timeoutTimestamp,
 		}
-		res, err := k.msgRouter.SendPacket(ctx, &sendPacketMsg)
+		handler := k.msgRouter.Handler(&sendPacketMsg)
+		res, err := handler(ctx, &sendPacketMsg)
 		if err != nil {
 			return 0, err
 		}
-		return res.Sequence, nil
+		// emit events from send packet msg
+		ctx.EventManager().EmitEvents(res.GetEvents())
+		// get sequence from msg response
+		msgResponse := res.MsgResponses[0]
+		sendPacketResonse, ok := msgResponse.GetCachedValue().(*channeltypes.MsgSendPacketResponse)
+		if !ok {
+			return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to convert %T message response to %T", msgResponse.GetCachedValue(), &channeltypes.MsgChannelOpenInitResponse{})
+		}
+		return sendPacketResonse.Sequence, nil
+	}
+	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
+	if !ok {
+		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	destinationPort := channel.Counterparty.PortId

@@ -18,7 +18,6 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -41,7 +40,7 @@ type Keeper struct {
 	// should be the x/gov module account.
 	authority string
 
-	msgRouter channeltypes.SenderMsgServer
+	msgRouter types.MsgRouter
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
@@ -78,6 +77,24 @@ func NewKeeper(
 		scopedKeeper:   scopedKeeper,
 		authority:      authority,
 	}
+}
+
+func NewKeeperWithLite(
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	legacySubspace types.ParamSubspace,
+	ics4Wrapper porttypes.ICS4Wrapper,
+	channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper,
+	authKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	scopedKeeper exported.ScopedKeeper,
+	authority string,
+	msgRouter types.MsgRouter,
+) Keeper {
+	keeper := NewKeeper(cdc, key, legacySubspace, ics4Wrapper, channelKeeper, portKeeper, authKeeper, bankKeeper, scopedKeeper, authority)
+	keeper.msgRouter = msgRouter
+	return keeper
 }
 
 // WithICS4Wrapper sets the ICS4Wrapper. This function may be used after

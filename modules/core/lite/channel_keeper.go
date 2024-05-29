@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -102,6 +103,10 @@ func (ck ChannelKeeper) SendPacket(
 
 	ck.keeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	ck.keeper.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
+
+	// TODO: Abstract away to not require SDK event system
+	channelkeeper.EmitSendPacketEvent(ctx, packet, nil)
+
 	return packet.Sequence, nil
 }
 
@@ -158,6 +163,10 @@ func (ck ChannelKeeper) RecvPacket(
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
 	ck.keeper.SetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+
+	// emit the same events as receive packet without channel fields
+	channelkeeper.EmitRecvPacketEvent(ctx, packet, nil)
+
 	return nil
 }
 
@@ -173,6 +182,15 @@ func (ck ChannelKeeper) WriteAcknowledgement(
 	// Can be implemented by current keeper with change in sdk.Context to context.Context
 	ackHash := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
 	ck.keeper.SetPacketAcknowledgement(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ackHash)
+
+	bz := ack.Acknowledgement()
+	if len(bz) == 0 {
+		return errorsmod.Wrap(channeltypes.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
+	}
+
+	// emit the same events as write acknowledgement without channel fields
+	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet.(channeltypes.Packet), nil, bz)
+
 	return nil
 }
 
@@ -242,6 +260,9 @@ func (ck ChannelKeeper) AcknowledgePacket(
 	}
 
 	ck.keeper.DeletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+
+	// emit the same events as acknowledge packet without channel fields
+	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, nil)
 	return nil
 }
 
@@ -312,7 +333,7 @@ func (ck ChannelKeeper) TimeoutPacket(
 	// TODO: Use context instead of sdk.Context eventually
 	ck.keeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
-	// TODO: emit an event marking that we have processed the timeout
-	// emitTimeoutPacketEvent(ctx, packet, channel)
+	// emit the same events as timeout packet without channel fields
+	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, nil)
 	return nil
 }

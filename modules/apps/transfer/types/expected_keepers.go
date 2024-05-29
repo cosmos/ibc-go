@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -60,4 +61,10 @@ type PortKeeper interface {
 // ParamSubspace defines the expected Subspace interface for module parameters.
 type ParamSubspace interface {
 	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
+}
+
+// MsgRouter defines the expected msg router interface to send
+// a SendPacketMsg to the msg server
+type MsgRouter interface {
+	Handler(msg sdk.Msg) baseapp.MsgServiceHandler
 }
