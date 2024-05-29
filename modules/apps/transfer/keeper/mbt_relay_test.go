@@ -19,7 +19,6 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 
-	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -144,7 +143,7 @@ func BalancesFromTla(tla []TlaBalance) []Balance {
 }
 
 func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPacket {
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(DenomFromTla(packet.Data.Denom))
+	denom := types.ExtractDenomFromFullPath(DenomFromTla(packet.Data.Denom))
 	return FungibleTokenPacket{
 		SourceChannel: packet.SourceChannel,
 		SourcePort:    packet.SourcePort,
@@ -153,10 +152,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 		Data: types.NewFungibleTokenPacketDataV2(
 			[]types.Token{
 				{
-					Denom: types.Denom{
-						Base:  denom,
-						Trace: trace,
-					},
+					Denom:  denom,
 					Amount: packet.Data.Amount,
 				},
 			},

@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -134,12 +133,9 @@ func (k Keeper) sendTransfer(
 			}
 		}
 
-		denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(fullDenomPath)
+		denom := types.ExtractDenomFromFullPath(fullDenomPath)
 		token := types.Token{
-			Denom: types.Denom{
-				Base:  denom,
-				Trace: trace,
-			},
+			Denom:  denom,
 			Amount: coin.Amount.String(),
 		}
 		tokens = append(tokens, token)

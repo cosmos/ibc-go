@@ -12,7 +12,6 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -508,14 +507,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 
 			tc.malleate()
 
-			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+			denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: trace,
-						},
+						Denom:  denom,
 						Amount: amount.String(),
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
@@ -589,14 +585,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
 
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom: types.Denom{
-					Base:  denom,
-					Trace: trace,
-				},
+				Denom:  denom,
 				Amount: amount.String(),
 			},
 		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
@@ -723,14 +716,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			tc.malleate()
 
-			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+			denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: trace,
-						},
+						Denom:  denom,
 						Amount: amount.String(),
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
@@ -820,14 +810,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		),
 	)
 
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom: types.Denom{
-					Base:  denom,
-					Trace: trace,
-				},
+				Denom:  denom,
 				Amount: amount.String(),
 			},
 		},
@@ -951,14 +938,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			tc.malleate()
 
-			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+			denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: trace,
-						},
+						Denom:  denom,
 						Amount: amount.String(),
 					},
 				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "")
@@ -1041,14 +1025,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		),
 	)
 
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom: types.Denom{
-					Base:  denom,
-					Trace: trace,
-				},
+				Denom:  denom,
 				Amount: amount.String(),
 			},
 		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "")
