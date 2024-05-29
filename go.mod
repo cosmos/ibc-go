@@ -1,5 +1,7 @@
 go 1.21
 
+toolchain go1.22.0
+
 module github.com/cosmos/ibc-go/v8
 
 require (
