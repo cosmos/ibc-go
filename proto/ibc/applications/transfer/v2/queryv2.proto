@@ -11,12 +11,12 @@ import "google/api/annotations.proto";
 
 // QueryV2 provides defines the gRPC querier service for ics20-v2.
 service QueryV2 {
-  // Denoms queries all denomination traces.
+  // Denoms queries all denominations
   rpc Denoms(QueryDenomsRequest) returns (QueryDenomsResponse) {
     option (google.api.http).get = "/ibc/apps/transfer/v2/denoms";
   }
 
-  // Denom queries a denomination trace information.
+  // Denom queries a denomination
   rpc Denom(QueryDenomRequest) returns (QueryDenomResponse) {
     option (google.api.http).get = "/ibc/apps/transfer/v2/denoms/{hash=**}";
   }
@@ -32,11 +32,11 @@ message QueryDenomRequest {
 // QueryDenomResponse is the response type for the Query/Denom RPC
 // method.
 message QueryDenomResponse {
-  // denom_trace returns the requested denomination.
+  // denom returns the requested denomination.
   Denom denom = 1;
 }
 
-// QueryConnectionsRequest is the request type for the Query/Denoms RPC
+// QueryDenomsRequest is the request type for the Query/Denoms RPC
 // method
 message QueryDenomsRequest {
   // pagination defines an optional pagination for the request.
