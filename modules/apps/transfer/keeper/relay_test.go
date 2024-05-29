@@ -1108,15 +1108,6 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		expAckError error
 	}{
 		{
-			"success: new field v2",
-			func() {
-				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s", "new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packetData = []byte(jsonString)
-			},
-			nil,
-			nil,
-		},
-		{
 			"success: no new field with memo v2",
 			func() {
 				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
@@ -1143,6 +1134,15 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			ibcerrors.ErrInvalidType,
 		},
 		{
+			"failure: new field v2",
+			func() {
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s", "new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+		{
 			"failure: missing field v2",
 			func() {
 				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
@@ -1150,17 +1150,6 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			},
 			types.ErrInvalidDenomForTransfer,
 			ibcerrors.ErrInvalidType,
-		},
-		{
-			"success: new field",
-			func() {
-				path.EndpointA.ChannelConfig.Version = types.V1
-				path.EndpointB.ChannelConfig.Version = types.V1
-				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packetData = []byte(jsonString)
-			},
-			nil,
-			nil,
 		},
 		{
 			"success: no new field with memo",
@@ -1190,6 +1179,17 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 				path.EndpointA.ChannelConfig.Version = types.V1
 				path.EndpointB.ChannelConfig.Version = types.V1
 				packetData = []byte("invalid packet data")
+			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: new field",
+			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
 			},
 			ibcerrors.ErrInvalidType,
 			ibcerrors.ErrInvalidType,
