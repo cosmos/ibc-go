@@ -10,6 +10,7 @@ import (
 
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/lite/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/lite/types"
 )
 
@@ -17,19 +18,15 @@ var _ channeltypes.PacketMsgServer = (*Handler)(nil)
 
 type Handler struct {
 	cdc       codec.BinaryCodec
-	keeper    ChannelKeeper
+	keeper    keeper.Keeper
 	appRouter types.AppRouter
 }
 
-func NewHandler(cdc codec.BinaryCodec, keeper types.IBCLiteKeeper, appRouter types.AppRouter, clientRouter types.ClientRouter) *Handler {
-	ck := ChannelKeeper{
-		cdc:          cdc,
-		keeper:       keeper,
-		clientRouter: clientRouter,
-	}
+func NewHandler(cdc codec.BinaryCodec, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper, appRouter types.AppRouter, clientRouter types.ClientRouter) *Handler {
+	k := keeper.NewKeeper(cdc, channelKeeper, clientKeeper, clientRouter)
 	return &Handler{
 		cdc:       cdc,
-		keeper:    ck,
+		keeper:    *k,
 		appRouter: appRouter,
 	}
 }

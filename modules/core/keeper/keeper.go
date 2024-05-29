@@ -17,8 +17,7 @@ import (
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	portkeeper "github.com/cosmos/ibc-go/v8/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/lite"
-	liteKeeper "github.com/cosmos/ibc-go/v8/modules/core/lite/keeper"
+	litekeeper "github.com/cosmos/ibc-go/v8/modules/core/lite/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
@@ -38,7 +37,7 @@ type Keeper struct {
 
 	// will replace ChannelKeeper if the channel does
 	// not actually exist, to execute IBC lite logic
-	LiteKeeper *lite.ChannelKeeper
+	LiteKeeper *litekeeper.Keeper
 
 	authority string
 }
@@ -71,9 +70,7 @@ func NewKeeper(
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
 
-	liteInternalKeeper := liteKeeper.NewKeeper(cdc, clientKeeper, channelKeeper, clientKeeper.GetRouter())
-
-	liteKeeper := lite.NewChannelKeeper(cdc, liteInternalKeeper, clientKeeper.GetRouter())
+	liteKeeper := litekeeper.NewKeeper(cdc, channelKeeper, clientKeeper, clientKeeper.GetRouter())
 
 	return &Keeper{
 		cdc:              cdc,

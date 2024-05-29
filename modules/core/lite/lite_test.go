@@ -111,12 +111,14 @@ func (suite *LiteTestSuite) TestHappyPath() {
 
 	// check that balance on chain A is updated
 	balance = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
-	suite.Require().Equal(originalBalance.SubAmount(amount).Amount, balance.Amount)
+	suite.Require().Equal(originalBalance.Sub(token), balance)
 	// check that voucher exists on chain B
 	voucherDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
 	balance = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
 	// NOTE: we are using client IDs instead of channel IDs here.
 	coinSentFromAToB := transfertypes.GetTransferCoin(transfertypes.PortID, path.EndpointB.ClientID, sdk.DefaultBondDenom, amount)
 	suite.Require().Equal(coinSentFromAToB, balance)
+
+	// relay send from chain B to chain A
 
 }
