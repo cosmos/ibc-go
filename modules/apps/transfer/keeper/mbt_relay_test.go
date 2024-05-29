@@ -320,10 +320,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)
 			registerDenomFn := func() {
-				denomTrace := types.ParseDenomTrace(tc.packet.Data.Tokens[0].GetFullDenomPath())
-				traceHash := denomTrace.Hash()
-				if !suite.chainB.GetSimApp().TransferKeeper.HasDenomTrace(suite.chainB.GetContext(), traceHash) {
-					suite.chainB.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainB.GetContext(), denomTrace)
+				if !suite.chainB.GetSimApp().TransferKeeper.HasDenom(suite.chainB.GetContext(), tc.packet.Data.Tokens[0].Denom.Hash()) {
+					suite.chainB.GetSimApp().TransferKeeper.SetDenom(suite.chainB.GetContext(), tc.packet.Data.Tokens[0].Denom)
 				}
 			}
 

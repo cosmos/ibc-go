@@ -220,35 +220,26 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// sender chain is not the source, unescrow tokens
 
 			// remove prefix added by sender chain
-			voucherPrefix := types.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
-			unprefixedDenom := fullDenomPath[len(voucherPrefix):]
+			token.Denom.Trace = token.Denom.Trace[1:]
 
-			// coin denomination used in sending from the escrow address
-			denom := unprefixedDenom
-
-			// The denomination used to send the coins is either the native denom or the hash of the path
-			// if the denomination is not native.
-			denomTrace := types.ParseDenomTrace(unprefixedDenom)
-			if !denomTrace.IsNativeDenom() {
-				denom = denomTrace.IBCDenom()
-			}
-			token := sdk.NewCoin(denom, transferAmount)
+			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 			if k.bankKeeper.BlockedAddr(receiver) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 
 			escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-			if err := k.unescrowToken(ctx, escrowAddress, receiver, token); err != nil {
+			if err := k.unescrowToken(ctx, escrowAddress, receiver, coin); err != nil {
 				return err
 			}
 
+			unprefixedDenomPath := token.Denom.GetFullPath()
 			defer func() {
 				if transferAmount.IsInt64() {
 					telemetry.SetGaugeWithLabels(
 						[]string{"ibc", types.ModuleName, "packet", "receive"},
 						float32(transferAmount.Int64()),
-						[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, unprefixedDenom)},
+						[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, unprefixedDenomPath)},
 					)
 				}
 
@@ -267,26 +258,23 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 		// sender chain is the source, mint vouchers
 
-		// since SendPacket did not prefix the denomination, we must prefix denomination here
-		prefixedDenom := types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), fullDenomPath)
+		// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
+		trace := []string{fmt.Sprintf("%s/%s", packet.DestinationPort, packet.DestinationChannel)}
+		token.Denom.Trace = append(trace, token.Denom.Trace...)
 
-		// construct the denomination trace from the full raw denomination
-		denomTrace := types.ParseDenomTrace(prefixedDenom)
-
-		traceHash := denomTrace.Hash()
-		if !k.HasDenomTrace(ctx, traceHash) {
-			k.SetDenomTrace(ctx, denomTrace)
+		if !k.HasDenom(ctx, token.Denom.Hash()) {
+			k.SetDenom(ctx, token.Denom)
 		}
 
-		voucherDenom := denomTrace.IBCDenom()
+		voucherDenom := token.Denom.IBCDenom()
 		if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
-			k.setDenomMetadata(ctx, denomTrace)
+			k.setDenomMetadata(ctx, token.Denom)
 		}
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeDenomTrace,
-				sdk.NewAttribute(types.AttributeKeyTraceHash, traceHash.String()),
+				sdk.NewAttribute(types.AttributeKeyTraceHash, token.Denom.Hash().String()),
 				sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
 			),
 		)
@@ -306,12 +294,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 		}
 
+		prefixedDenomPath := token.Denom.GetFullPath()
 		defer func() {
 			if transferAmount.IsInt64() {
 				telemetry.SetGaugeWithLabels(
 					[]string{"ibc", types.ModuleName, "packet", "receive"},
 					float32(transferAmount.Int64()),
-					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullDenomPath)},
+					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, prefixedDenomPath)},
 				)
 			}
 
@@ -440,20 +429,20 @@ func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAd
 
 // DenomPathFromHash returns the full denomination path prefix from an ibc denom with a hash
 // component.
-func (k Keeper) DenomPathFromHash(ctx sdk.Context, denom string) (string, error) {
+func (k Keeper) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
 	// trim the denomination prefix, by default "ibc/"
-	hexHash := denom[len(types.DenomPrefix+"/"):]
+	hexHash := ibcDenom[len(types.DenomPrefix+"/"):]
 
 	hash, err := types.ParseHexHash(hexHash)
 	if err != nil {
 		return "", errorsmod.Wrap(types.ErrInvalidDenomForTransfer, err.Error())
 	}
 
-	denomTrace, found := k.GetDenomTrace(ctx, hash)
+	denom, found := k.GetDenom(ctx, hash)
 	if !found {
-		return "", errorsmod.Wrap(types.ErrTraceNotFound, hexHash)
+		return "", errorsmod.Wrap(types.ErrDenomNotFound, hexHash)
 	}
 
-	fullDenomPath := denomTrace.GetFullDenomPath()
+	fullDenomPath := denom.GetFullPath()
 	return fullDenomPath, nil
 }
