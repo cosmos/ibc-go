@@ -31,11 +31,6 @@ def run_tests_for_module(module, *runargs):
     
     print(f"Running unit tests for {module}")
 
-    # TODO: temporary skipping of running E2E unit tests
-    if module.endswith("e2e"):
-        print(f"skipping E2E unit tests")
-        return 0
-
     # add runargs to test_command
     test_command = f'go test -mod=readonly {" ".join(runargs)} ./...'
     result = subprocess.run(test_command, shell=True)

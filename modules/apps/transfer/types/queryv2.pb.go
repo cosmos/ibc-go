@@ -80,7 +80,7 @@ func (m *QueryDenomRequest) GetHash() string {
 // QueryDenomResponse is the response type for the Query/Denom RPC
 // method.
 type QueryDenomResponse struct {
-	// denom_trace returns the requested denomination.
+	// denom returns the requested denomination.
 	Denom *Denom `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
 }
 
@@ -124,7 +124,7 @@ func (m *QueryDenomResponse) GetDenom() *Denom {
 	return nil
 }
 
-// QueryConnectionsRequest is the request type for the Query/Denoms RPC
+// QueryDenomsRequest is the request type for the Query/Denoms RPC
 // method
 type QueryDenomsRequest struct {
 	// pagination defines an optional pagination for the request.
@@ -283,9 +283,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryV2Client interface {
-	// Denoms queries all denomination traces.
+	// Denoms queries all denominations
 	Denoms(ctx context.Context, in *QueryDenomsRequest, opts ...grpc.CallOption) (*QueryDenomsResponse, error)
-	// Denom queries a denomination trace information.
+	// Denom queries a denomination
 	Denom(ctx context.Context, in *QueryDenomRequest, opts ...grpc.CallOption) (*QueryDenomResponse, error)
 }
 
@@ -317,9 +317,9 @@ func (c *queryV2Client) Denom(ctx context.Context, in *QueryDenomRequest, opts .
 
 // QueryV2Server is the server API for QueryV2 service.
 type QueryV2Server interface {
-	// Denoms queries all denomination traces.
+	// Denoms queries all denominations
 	Denoms(context.Context, *QueryDenomsRequest) (*QueryDenomsResponse, error)
-	// Denom queries a denomination trace information.
+	// Denom queries a denomination
 	Denom(context.Context, *QueryDenomRequest) (*QueryDenomResponse, error)
 }
 
