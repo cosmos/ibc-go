@@ -1,12 +1,12 @@
 package types_test
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
-func (s *TypesTestSuite) DenomsValidate() {
+func (s *TypesTestSuite) TestDenomsValidate() {
 	testCases := []struct {
 		name     string
 		denoms   types.Denoms
