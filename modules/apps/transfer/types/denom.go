@@ -79,11 +79,11 @@ func (d Denoms) Validate() error {
 	for i, denom := range d {
 		hash := denom.Hash().String()
 		if seenDenoms[hash] {
-			return fmt.Errorf("duplicated denomination trace with hash %s", denom.Hash())
+			return fmt.Errorf("duplicated denomination with hash %s", denom.Hash())
 		}
 
 		if err := denom.Validate(); err != nil {
-			return errorsmod.Wrapf(err, "failed denom trace %d validation", i)
+			return errorsmod.Wrapf(err, "failed denom %d validation", i)
 		}
 		seenDenoms[hash] = true
 	}
@@ -101,7 +101,7 @@ func (d Denoms) Less(i, j int) bool { return d[i].GetFullPath() < d[j].GetFullPa
 // Swap implements sort.Interface for Denoms
 func (d Denoms) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
 
-// Sort is a helper function to sort the set of denomination traces in-place
+// Sort is a helper function to sort the set of denomination in-place
 func (d Denoms) Sort() Denoms {
 	sort.Sort(d)
 	return d
