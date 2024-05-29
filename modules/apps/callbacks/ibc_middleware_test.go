@@ -1007,7 +1007,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 		Tokens: []transfertypes.Token{
 			{
 				Denom: transfertypes.Denom{
-					Base:  ibctesting.TestCoin.Denom,
+					Base:  ibctesting.TestCoin.GetDenom(),
 					Trace: nil,
 				},
 				Amount: ibctesting.TestCoin.Amount.String(),
@@ -1043,7 +1043,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
 		Tokens: []transfertypes.Token{
 			{
 				Denom: transfertypes.Denom{
-					Base:  ibctesting.TestCoin.Denom,
+					Base:  ibctesting.TestCoin.GetDenom(),
 					Trace: nil,
 				},
 				Amount: ibctesting.TestCoin.Amount.String(),
