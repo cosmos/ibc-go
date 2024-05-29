@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
-func (s *TypesTestSuite) Denoms_Validate() {
+func (s *TypesTestSuite) DenomsValidate() {
 	testCases := []struct {
 		name     string
 		denoms   types.Denoms

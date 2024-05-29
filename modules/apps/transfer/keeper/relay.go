@@ -233,12 +233,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return err
 			}
 
+			fullDenomPath := token.Denom.GetFullPath()
 			defer func() {
 				if transferAmount.IsInt64() {
 					telemetry.SetGaugeWithLabels(
 						[]string{"ibc", types.ModuleName, "packet", "receive"},
 						float32(transferAmount.Int64()),
-						[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.Denom.GetFullPath())},
+						[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullDenomPath)},
 					)
 				}
 
@@ -293,12 +294,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 		}
 
+		fullDenomPath := token.Denom.GetFullPath()
 		defer func() {
 			if transferAmount.IsInt64() {
 				telemetry.SetGaugeWithLabels(
 					[]string{"ibc", types.ModuleName, "packet", "receive"},
 					float32(transferAmount.Int64()),
-					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.Denom.GetFullPath())},
+					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullDenomPath)},
 				)
 			}
 

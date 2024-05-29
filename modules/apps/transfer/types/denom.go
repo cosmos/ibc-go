@@ -2,11 +2,12 @@ package types
 
 import (
 	"crypto/sha256"
-	fmt "fmt"
+	"fmt"
 	"sort"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 )
 
