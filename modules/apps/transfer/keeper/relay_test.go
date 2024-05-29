@@ -357,9 +357,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  sdk.DefaultBondDenom,
+						Denom: types.Denom{
+							Base:  sdk.DefaultBondDenom,
+							Trace: []string{},
+						},
 						Amount: amount.String(),
-						Trace:  []string{},
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
@@ -510,9 +512,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: trace,
+						},
 						Amount: amount.String(),
-						Trace:  trace,
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
 			packet = channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
@@ -589,9 +593,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom:  denom,
+				Denom: types.Denom{
+					Base:  denom,
+					Trace: trace,
+				},
 				Amount: amount.String(),
-				Trace:  trace,
 			},
 		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
 	packet := channeltypes.NewPacket(
@@ -721,9 +727,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: trace,
+						},
 						Amount: amount.String(),
-						Trace:  trace,
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
@@ -816,9 +824,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom:  denom,
+				Denom: types.Denom{
+					Base:  denom,
+					Trace: trace,
+				},
 				Amount: amount.String(),
-				Trace:  trace,
 			},
 		},
 		suite.chainB.SenderAccount.GetAddress().String(),
@@ -945,9 +955,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  denom,
+						Denom: types.Denom{
+							Base:  denom,
+							Trace: trace,
+						},
 						Amount: amount.String(),
-						Trace:  trace,
 					},
 				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "")
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
@@ -1033,9 +1045,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom:  denom,
+				Denom: types.Denom{
+					Base:  denom,
+					Trace: trace,
+				},
 				Amount: amount.String(),
-				Trace:  trace,
 			},
 		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "")
 	packet := channeltypes.NewPacket(
