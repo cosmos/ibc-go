@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
-func (s *TypesTestSuite) TestDenomsValidate() {
+func (suite *TypesTestSuite) TestDenomsValidate() {
 	testCases := []struct {
 		name     string
 		denoms   types.Denoms
@@ -41,12 +41,12 @@ func (s *TypesTestSuite) TestDenomsValidate() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.Run(tc.name, func() {
+		suite.Run(tc.name, func() {
 			err := tc.denoms.Validate()
 			if tc.expError == nil {
-				s.Require().NoError(err, tc.name)
+				suite.Require().NoError(err, tc.name)
 			} else {
-				s.Require().ErrorContains(err, tc.expError.Error())
+				suite.Require().ErrorContains(err, tc.expError.Error())
 			}
 		})
 	}
