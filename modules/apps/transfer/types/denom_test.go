@@ -52,7 +52,7 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 	}
 }
 
-func (s *TypesTestSuite) TestFullPath() {
+func (suite *TypesTestSuite) TestFullPath() {
 	testCases := []struct {
 		name    string
 		denom   types.Denom
@@ -113,8 +113,8 @@ func (s *TypesTestSuite) TestFullPath() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.Run(tc.name, func() {
-			s.Require().Equal(tc.expPath, tc.denom.FullPath())
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(tc.expPath, tc.denom.FullPath())
 		})
 	}
 }

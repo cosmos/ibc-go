@@ -59,10 +59,10 @@ func (d Denom) FullPath() string {
 
 	var sb strings.Builder
 	for _, t := range d.Trace {
-		sb.WriteString(t)
-		sb.WriteByte('/')
+		sb.WriteString(t) // nolint:revive // no error returned by WriteString
+		sb.WriteByte('/') //nolint:revive // no error returned by WriteByte
 	}
-	sb.WriteString(d.Base)
+	sb.WriteString(d.Base) //nolint:revive
 	return sb.String()
 }
 
