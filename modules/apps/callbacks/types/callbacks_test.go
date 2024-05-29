@@ -303,7 +303,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: transfertypes.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -326,7 +329,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: transfertypes.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -352,7 +358,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: transfertypes.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -376,7 +385,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: transfertypes.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -402,7 +414,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: transfertypes.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -426,7 +441,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: transfertypes.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -457,7 +475,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: transfertypes.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -475,7 +496,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: transfertypes.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -493,7 +517,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: transfertypes.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -574,7 +601,10 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			transfertypes.FungibleTokenPacketDataV2{
 				Tokens: transfertypes.Tokens{
 					{
-						Denom:  ibctesting.TestCoin.Denom,
+						Denom: transfertypes.Denom{
+							Base:  ibctesting.TestCoin.Denom,
+							Trace: nil,
+						},
 						Amount: ibctesting.TestCoin.Amount.String(),
 					},
 				},
@@ -661,7 +691,10 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			transfertypes.FungibleTokenPacketDataV2{
 				Tokens: transfertypes.Tokens{
 					{
-						Denom:  ibctesting.TestCoin.Denom,
+						Denom: transfertypes.Denom{
+							Base:  ibctesting.TestCoin.Denom,
+							Trace: nil,
+						},
 						Amount: ibctesting.TestCoin.Amount.String(),
 					},
 				},
@@ -712,7 +745,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 }
 
 func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
-	denom := ibctesting.TestCoin.Denom
+	denom := transfertypes.Denom{Base: ibctesting.TestCoin.Denom}
 	amount := ibctesting.TestCoin.Amount.String()
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -725,7 +758,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		{
 			"success: memo has callbacks in json struct and properly formatted src_callback_address which does not match packet sender",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -736,7 +769,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		{
 			"success: valid src_callback address specified in memo that matches sender",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -747,7 +780,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		{
 			"failure: memo is empty",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -758,7 +791,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		{
 			"failure: memo is not json string",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -769,7 +802,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		{
 			"failure: memo has empty src_callback object",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -780,7 +813,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		{
 			"failure: memo does not have callbacks in json struct",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -791,7 +824,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		{
 			"failure:  memo has src_callback in json struct but does not have address key",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -802,7 +835,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		{
 			"failure: memo has src_callback in json struct but does not have string value for address key",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -943,7 +976,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 }
 
 func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
-	denom := ibctesting.TestCoin.Denom
+	denom := transfertypes.Denom{
+		Base:  ibctesting.TestCoin.Denom,
+		Trace: nil,
+	}
 	amount := ibctesting.TestCoin.Amount.String()
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -956,7 +992,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		{
 			"success: memo is empty",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -967,7 +1003,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		{
 			"success: memo has user defined gas limit",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -978,7 +1014,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		{
 			"success: user defined gas limit is zero",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -989,7 +1025,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		{
 			"failure: memo has empty src_callback object",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -1000,7 +1036,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		{
 			"failure: memo has user defined gas limit as json number",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -1011,7 +1047,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		{
 			"failure: memo has user defined gas limit as negative",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -1022,7 +1058,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		{
 			"failure: memo has user defined gas limit as string",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -1033,7 +1069,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		{
 			"failure: memo has user defined gas limit as empty string",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
@@ -1044,7 +1080,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		{
 			"failure: malformed memo",
 			transfertypes.FungibleTokenPacketData{
-				Denom:    denom,
+				Denom:    denom.Base,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
