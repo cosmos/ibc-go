@@ -5,19 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
 	denom  = "atom/pool"
 	amount = "100"
-)
-
-var (
-	sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	receiver = sdk.AccAddress("testaddr2").String()
 )
 
 func TestValidate(t *testing.T) {
@@ -137,7 +129,7 @@ func TestValidate(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base:  "uatom",
-					Trace: []Trace{Trace{}},
+					Trace: []Trace{{}},
 				},
 				Amount: amount,
 			},

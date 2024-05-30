@@ -31,7 +31,8 @@ func (suite *KeeperTestSuite) TestQueryDenom() {
 					Trace: []types.Trace{
 						types.NewTrace("transfer", "channelToA"), //nolint:goconst
 						types.NewTrace("transfer", "channelToB"), //nolint:goconst
-					}}
+					},
+				}
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), expDenom)
 
 				req = &types.QueryDenomRequest{
@@ -48,8 +49,8 @@ func (suite *KeeperTestSuite) TestQueryDenom() {
 					Trace: []types.Trace{
 						types.NewTrace("transfer", "channelToA"), //nolint:goconst
 						types.NewTrace("transfer", "channelToB"), //nolint:goconst
-					}}
-
+					},
+				}
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), expDenom)
 
 				req = &types.QueryDenomRequest{
@@ -75,7 +76,8 @@ func (suite *KeeperTestSuite) TestQueryDenom() {
 					Trace: []types.Trace{
 						types.NewTrace("transfer", "channelToA"), //nolint:goconst
 						types.NewTrace("transfer", "channelToB"), //nolint:goconst
-					}}
+					},
+				}
 
 				req = &types.QueryDenomRequest{
 					Hash: expDenom.IBCDenom(),

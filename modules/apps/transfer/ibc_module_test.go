@@ -605,7 +605,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 						{
 							Denom: types.Denom{
 								Base:  ibctesting.TestCoin.Denom,
-								Trace: []types.Trace{types.Trace{}},
+								Trace: []types.Trace{{}},
 							},
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
