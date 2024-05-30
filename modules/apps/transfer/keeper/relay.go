@@ -229,7 +229,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return err
 			}
 
-			unprefixedDenomPath := token.Denom.GetFullPath()
+			unprefixedDenomPath := token.Denom.FullPath()
 			defer func() {
 				if transferAmount.IsInt64() {
 					telemetry.SetGaugeWithLabels(
@@ -290,7 +290,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 		}
 
-		prefixedDenomPath := token.Denom.GetFullPath()
+		prefixedDenomPath := token.Denom.FullPath()
 		defer func() {
 			if transferAmount.IsInt64() {
 				telemetry.SetGaugeWithLabels(
@@ -439,6 +439,6 @@ func (k Keeper) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, err
 		return "", errorsmod.Wrap(types.ErrDenomNotFound, hexHash)
 	}
 
-	fullDenomPath := denom.GetFullPath()
+	fullDenomPath := denom.FullPath()
 	return fullDenomPath, nil
 }

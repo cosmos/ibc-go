@@ -215,7 +215,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 			suite.SetupTest() // reset
 
 			req = &types.QueryDenomHashRequest{
-				Trace: reqDenom.GetFullPath(),
+				Trace: reqDenom.FullPath(),
 			}
 			suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), reqDenom)
 
