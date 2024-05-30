@@ -58,8 +58,11 @@ func (t Trace) String() string {
 // - "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
 func ParseDenomTrace(rawDenom string) DenomTrace {
 	denom := ExtractDenomFromFullPath(rawDenom)
-	path := denom.FullPath()
-	path = strings.TrimSuffix(path, denom.Base)
+	path := ""
+	if !denom.IsNative() {
+		path = denom.FullPath()
+		path = strings.TrimSuffix(path, "/"+denom.Base)
+	}
 	return DenomTrace{
 		Path:      path,
 		BaseDenom: denom.Base,

@@ -130,7 +130,7 @@ func TestValidate(t *testing.T) {
 				},
 				Amount: amount,
 			},
-			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: [transfer channel-1 randomport]"),
+			fmt.Errorf("invalid token denom: invalid trace: invalid channelID: identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"failure: empty identifier in trace",
@@ -141,7 +141,7 @@ func TestValidate(t *testing.T) {
 				},
 				Amount: amount,
 			},
-			fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: "),
+			fmt.Errorf("invalid token denom: invalid trace: invalid portID: identifier cannot be blank: invalid identifier"),
 		},
 	}
 
@@ -195,7 +195,7 @@ func TestTokens_String(t *testing.T) {
 					Amount: "1",
 				},
 			},
-			`denom:<base:"tree" trace:"portid/channelid" > amount:"1" `,
+			`denom:<base:"tree" trace:<port_id:"portid" channel_id:"channelid" > > amount:"1" `,
 		},
 		{
 			"multiple tokens, no trace",
@@ -250,7 +250,7 @@ func TestTokens_String(t *testing.T) {
 					Amount: "3",
 				},
 			},
-			`denom:<base:"tree" > amount:"1" ,denom:<base:"gas" trace:"portid/channelid" > amount:"2" ,denom:<base:"mineral" trace:"portid/channelid" trace:"transfer/channel-52" > amount:"3" `,
+			`denom:<base:"tree" > amount:"1" ,denom:<base:"gas" trace:<port_id:"portid" channel_id:"channelid" > > amount:"2" ,denom:<base:"mineral" trace:<port_id:"portid" channel_id:"channelid" > trace:<port_id:"transfer" channel_id:"channel-52" > > amount:"3" `,
 		},
 	}
 
