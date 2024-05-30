@@ -84,10 +84,9 @@ func (d Denom) SenderChainIsSource(sourcePort, sourceChannel string) bool {
 // ReceiverChainIsSource returns true if the denomination originally came
 // from the receiving chain and false otherwise.
 func (d Denom) ReceiverChainIsSource(sourcePort, sourceChannel string) bool {
-	// The prefix passed in should contain the SourcePort and SourceChannel.
-	// If  the receiver chain originally sent the token to the sender chain
-	// the denom will have the sender's SourcePort and SourceChannel as the
-	// prefix.
+	// The first element in the Denom's trace should contain the SourcePort and SourceChannel.
+	// If the receiver chain originally sent the token to the sender chain, the first element of
+	// the denom's trace will contain the sender's SourcePort and SourceChannel.
 	if d.IsNative() {
 		return false
 	}
