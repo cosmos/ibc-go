@@ -154,3 +154,26 @@ func TestValidateIBCDenom(t *testing.T) {
 		require.NoError(t, err, tc.name)
 	}
 }
+
+func TestExtractDenomFromFullPath(t *testing.T) {
+	testCases := []struct {
+		name     string
+		fullPath string
+		expDenom types.Denom
+	}{
+		{"native denom no slashes", "atom", types.Denom{Base: "atom"}},
+		{"native denom with trailing slash", "atom/", types.Denom{Base: "atom/"}},
+		{"native denom multiple trailing slash", "foo///bar//baz/atom/", types.Denom{Base: "foo///bar//baz/atom/"}},
+		{"ibc denom one hop", "transfer/channel-0/atom", types.Denom{Base: "atom", Trace: []string{"transfer/channel-0"}}},
+		{"ibc denom one hop trailing slash", "transfer/channel-0/atom/", types.Denom{Base: "atom/", Trace: []string{"transfer/channel-0"}}},
+		{"ibc denom two hops", "transfer/channel-0/transfer/channel-60/atom", types.Denom{Base: "atom", Trace: []string{"transfer/channel-0", "transfer/channel-60"}}},
+		{"ibc denom two hops trailing slash", "transfer/channel-0/transfer/channel-60/atom/", types.Denom{Base: "atom/", Trace: []string{"transfer/channel-0", "transfer/channel-60"}}},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		denom := types.ExtractDenomFromFullPath(tc.fullPath)
+		require.Equal(t, tc.expDenom, denom, tc.name)
+	}
+}
