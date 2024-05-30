@@ -617,7 +617,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 				data = initialPacketData.(types.FungibleTokenPacketDataV2).GetBytes()
 			},
-			errors.New("nvalid token denom: invalid trace: invalid portID: identifier cannot be blank: invalid identifier"),
+			errors.New("invalid token denom: invalid trace: invalid portID: identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"failure: invalid packet data",
