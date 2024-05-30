@@ -17,6 +17,35 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
+// NewTrace returns a Trace type
+func NewTrace(portID, channelID string) Trace {
+	return Trace{
+		PortId:    portID,
+		ChannelId: channelID,
+	}
+}
+
+// Validate does basic validation of the trace portID and channelID.
+func (t Trace) Validate() error {
+	if err := host.PortIdentifierValidator(t.PortId); err != nil {
+		return errorsmod.Wrapf(err, "invalid portID")
+	}
+	if err := host.ChannelIdentifierValidator(t.ChannelId); err != nil {
+		return errorsmod.Wrapf(err, "invalid channelID")
+	}
+	return nil
+}
+
+// String returns the Trace the format:
+// <portID>/<channelID>
+func (t Trace) String() string {
+	var sb strings.Builder
+	sb.WriteString(t.PortId)    // nolint:revive // no error returned by WriteString
+	sb.WriteByte('/')           //nolint:revive // no error returned by WriteByte
+	sb.WriteString(t.ChannelId) // nolint:revive
+	return sb.String()
+}
+
 // ParseDenomTrace parses a string with the ibc prefix (denom trace) and the base denomination
 // into a DenomTrace type.
 //

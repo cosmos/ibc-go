@@ -687,7 +687,7 @@ type QueryClient interface {
 	// Deprecated: Please use the Denoms endpoint instead.
 	DenomTraces(ctx context.Context, in *QueryDenomTracesRequest, opts ...grpc.CallOption) (*QueryDenomTracesResponse, error)
 	// DenomTrace queries a denomination trace information.
-	// Deprecated: Please se the Denom endpoint instead.
+	// Deprecated: Please see the Denom endpoint instead.
 	DenomTrace(ctx context.Context, in *QueryDenomTraceRequest, opts ...grpc.CallOption) (*QueryDenomTraceResponse, error)
 	// Params queries all parameters of the ibc-transfer module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
@@ -769,7 +769,7 @@ type QueryServer interface {
 	// Deprecated: Please use the Denoms endpoint instead.
 	DenomTraces(context.Context, *QueryDenomTracesRequest) (*QueryDenomTracesResponse, error)
 	// DenomTrace queries a denomination trace information.
-	// Deprecated: Please se the Denom endpoint instead.
+	// Deprecated: Please see the Denom endpoint instead.
 	DenomTrace(context.Context, *QueryDenomTraceRequest) (*QueryDenomTraceResponse, error)
 	// Params queries all parameters of the ibc-transfer module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
