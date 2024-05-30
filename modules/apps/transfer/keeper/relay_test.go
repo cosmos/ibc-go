@@ -56,7 +56,11 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer of IBC token",
 			func() {
 				// send IBC token back to chainB
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				denom := types.Denom{
+					Base:  coin.Denom,
+					Trace: []string{path.EndpointA.ChannelConfig.PortID + "/" + path.EndpointA.ChannelID},
+				}
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 			},
 			nil,
 		},
@@ -64,7 +68,11 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer of IBC token with memo",
 			func() {
 				// send IBC token back to chainB
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				denom := types.Denom{
+					Base:  coin.Denom,
+					Trace: []string{path.EndpointA.ChannelConfig.PortID + "/" + path.EndpointA.ChannelID},
+				}
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 				memo = "memo"
 			},
 			nil,
@@ -94,14 +102,22 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failure: denom trace not found",
 			func() {
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, "randomdenom", coin.Amount)
+				denom := types.Denom{
+					Base:  "randomdenom",
+					Trace: []string{path.EndpointA.ChannelConfig.PortID + "/" + path.EndpointA.ChannelID},
+				}
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 			},
 			types.ErrDenomNotFound,
 		},
 		{
 			"failure: bank send from module account failed, insufficient balance",
 			func() {
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdkmath.NewInt(1)))
+				denom := types.Denom{
+					Base:  coin.Denom,
+					Trace: []string{path.EndpointA.ChannelConfig.PortID + "/" + path.EndpointA.ChannelID},
+				}
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount.Add(sdkmath.NewInt(1)))
 			},
 			sdkerrors.ErrInsufficientFunds,
 		},
