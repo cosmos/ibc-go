@@ -36,7 +36,7 @@ func (t Trace) Validate() error {
 	return nil
 }
 
-// String returns the Trace the format:
+// String returns the Trace in the format:
 // <portID>/<channelID>
 func (t Trace) String() string {
 	return fmt.Sprintf("%s/%s", t.PortId, t.ChannelId)
