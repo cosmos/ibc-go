@@ -20,21 +20,21 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 		{
 			"valid multiple trace info",
 			types.Denoms{
-				{Base: "uatom", Trace: []string{"transfer/channel-1", "transfer/channel-2"}},
+				{Base: "uatom", Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}},
 			},
 			nil,
 		},
 		{
 			"valid multiple trace info",
 			types.Denoms{
-				{Base: "uatom", Trace: []string{"transfer/channel-1", "transfer/channel-2"}},
-				{Base: "uatom", Trace: []string{"transfer/channel-1", "transfer/channel-2"}},
+				{Base: "uatom", Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}},
+				{Base: "uatom", Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}},
 			},
 			fmt.Errorf("duplicated denomination with hash"),
 		},
 		{
 			"empty base denom with trace",
-			types.Denoms{{Base: "", Trace: []string{"transfer/channel-1"}}},
+			types.Denoms{{Base: "", Trace: []types.Trace{types.NewTrace("transfer", "channel-1")}}},
 			fmt.Errorf("base denomination cannot be blank"),
 		},
 	}
@@ -81,7 +81,7 @@ func (suite *TypesTestSuite) TestFullPath() {
 			"1 hop denom",
 			types.Denom{
 				Base:  "uatom",
-				Trace: []string{"transfer/channel-0"},
+				Trace: []types.Trace{types.NewTrace("transfer", "channel-0")},
 			},
 			"transfer/channel-0/uatom",
 		},
@@ -89,7 +89,7 @@ func (suite *TypesTestSuite) TestFullPath() {
 			"2 hop denom",
 			types.Denom{
 				Base:  "uatom",
-				Trace: []string{"transfer/channel-0", "transfer/channel-52"},
+				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")},
 			},
 			"transfer/channel-0/transfer/channel-52/uatom",
 		},
@@ -97,7 +97,7 @@ func (suite *TypesTestSuite) TestFullPath() {
 			"3 hop denom",
 			types.Denom{
 				Base:  "uatom",
-				Trace: []string{"transfer/channel-0", "transfer/channel-52", "transfer/channel-52"},
+				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")},
 			},
 			"transfer/channel-0/transfer/channel-52/transfer/channel-52/uatom",
 		},
@@ -105,7 +105,7 @@ func (suite *TypesTestSuite) TestFullPath() {
 			"4 hop denom with base denom slashes",
 			types.Denom{
 				Base:  "other-denom/",
-				Trace: []string{"transfer/channel-0", "transfer/channel-52", "transfer/channel-52", "transfer/channel-49"},
+				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-49")},
 			},
 			"transfer/channel-0/transfer/channel-52/transfer/channel-52/transfer/channel-49/other-denom/",
 		},

@@ -17,6 +17,31 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
+// NewTrace returns a Trace type
+func NewTrace(portID, channelID string) Trace {
+	return Trace{
+		PortId:    portID,
+		ChannelId: channelID,
+	}
+}
+
+// Validate does basic validation of the trace portID and channelID.
+func (t Trace) Validate() error {
+	if err := host.PortIdentifierValidator(t.PortId); err != nil {
+		return errorsmod.Wrapf(err, "invalid portID")
+	}
+	if err := host.ChannelIdentifierValidator(t.ChannelId); err != nil {
+		return errorsmod.Wrapf(err, "invalid channelID")
+	}
+	return nil
+}
+
+// String returns the Trace in the format:
+// <portID>/<channelID>
+func (t Trace) String() string {
+	return fmt.Sprintf("%s/%s", t.PortId, t.ChannelId)
+}
+
 // ParseDenomTrace parses a string with the ibc prefix (denom trace) and the base denomination
 // into a DenomTrace type.
 //
@@ -29,8 +54,13 @@ import (
 // - "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
 func ParseDenomTrace(rawDenom string) DenomTrace {
 	denom := ExtractDenomFromFullPath(rawDenom)
+	path := ""
+	if !denom.IsNative() {
+		path = denom.FullPath()
+		path = strings.TrimSuffix(path, "/"+denom.Base)
+	}
 	return DenomTrace{
-		Path:      strings.Join(denom.Trace, "/"),
+		Path:      path,
 		BaseDenom: denom.Base,
 	}
 }
@@ -79,7 +109,7 @@ func ExtractDenomFromFullPath(fullPath string) Denom {
 	}
 
 	var (
-		trace          []string
+		trace          []Trace
 		baseDenomSlice []string
 	)
 
@@ -95,7 +125,7 @@ func ExtractDenomFromFullPath(fullPath string) Denom {
 		// as an IBC denomination. The hash used to store the token internally on our chain
 		// will be the same value as the base denomination being correctly parsed.
 		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(denomSplit[i+1]) {
-			trace = append(trace, denomSplit[i]+"/"+denomSplit[i+1])
+			trace = append(trace, NewTrace(denomSplit[i], denomSplit[i+1]))
 		} else {
 			baseDenomSlice = denomSplit[i:]
 			break
@@ -142,29 +172,6 @@ func (dt DenomTrace) Validate() error {
 
 	identifiers := strings.Split(dt.Path, "/")
 	return validateTraceIdentifiers(identifiers)
-}
-
-// ValidatePrefixedDenom checks that the denomination for an IBC fungible token packet denom is correctly prefixed.
-// The function will return no error if the given string follows one of the two formats:
-//
-//   - Prefixed denomination: '{portIDN}/{channelIDN}/.../{portID0}/{channelID0}/baseDenom'
-//   - Unprefixed denomination: 'baseDenom'
-//
-// 'baseDenom' may or may not contain '/'s
-func ValidatePrefixedDenom(fullPath string) error {
-	denom := ExtractDenomFromFullPath(fullPath)
-	if strings.TrimSpace(denom.Base) == "" {
-		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
-	}
-
-	path := strings.Join(denom.Trace, "/")
-	if len(denom.Trace) != 0 {
-		identifiers := strings.Split(path, "/")
-		return validateTraceIdentifiers(identifiers)
-
-	}
-
-	return nil
 }
 
 // validateIBCDenom validates that the given denomination is either:

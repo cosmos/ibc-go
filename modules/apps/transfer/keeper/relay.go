@@ -141,7 +141,7 @@ func (k Keeper) sendTransfer(
 				telemetry.SetGaugeWithLabels(
 					[]string{"tx", "msg", "ibc", "transfer"},
 					float32(amount.Int64()),
-					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.GetFullDenomPath())},
+					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.Denom.FullPath())},
 				)
 			}
 		}
@@ -239,7 +239,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		// sender chain is the source, mint vouchers
 
 		// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
-		trace := []string{fmt.Sprintf("%s/%s", packet.DestinationPort, packet.DestinationChannel)}
+		trace := []types.Trace{types.NewTrace(packet.DestinationPort, packet.DestinationChannel)}
 		token.Denom.Trace = append(trace, token.Denom.Trace...)
 
 		if !k.HasDenom(ctx, token.Denom.Hash()) {
