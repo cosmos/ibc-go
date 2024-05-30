@@ -161,13 +161,17 @@ func TestExtractDenomFromFullPath(t *testing.T) {
 		fullPath string
 		expDenom types.Denom
 	}{
-		{"native denom no slashes", "atom", types.Denom{Base: "atom"}},
-		{"native denom with trailing slash", "atom/", types.Denom{Base: "atom/"}},
-		{"native denom multiple trailing slash", "foo///bar//baz/atom/", types.Denom{Base: "foo///bar//baz/atom/"}},
+		{"base denom no slashes", "atom", types.Denom{Base: "atom"}},
+		{"base denom with trailing slash", "atom/", types.Denom{Base: "atom/"}},
+		{"base denom multiple trailing slash", "foo///bar//baz/atom/", types.Denom{Base: "foo///bar//baz/atom/"}},
 		{"ibc denom one hop", "transfer/channel-0/atom", types.Denom{Base: "atom", Trace: []string{"transfer/channel-0"}}},
 		{"ibc denom one hop trailing slash", "transfer/channel-0/atom/", types.Denom{Base: "atom/", Trace: []string{"transfer/channel-0"}}},
 		{"ibc denom two hops", "transfer/channel-0/transfer/channel-60/atom", types.Denom{Base: "atom", Trace: []string{"transfer/channel-0", "transfer/channel-60"}}},
 		{"ibc denom two hops trailing slash", "transfer/channel-0/transfer/channel-60/atom/", types.Denom{Base: "atom/", Trace: []string{"transfer/channel-0", "transfer/channel-60"}}},
+		{"empty prefix", "/uatom", types.Denom{Base: "/uatom"}},
+		{"empty identifiers", "//uatom", types.Denom{Base: "//uatom"}},
+		{"base denom with single '/'", "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", types.Denom{Base: "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA"}},
+		{"single trace identifier", "transfer/", types.Denom{Base: "transfer/"}},
 	}
 
 	for _, tc := range testCases {
