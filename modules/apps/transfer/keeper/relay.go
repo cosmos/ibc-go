@@ -86,7 +86,7 @@ func (k Keeper) sendTransfer(
 	var tokens []types.Token
 
 	for _, coin := range coins {
-		token, err := k.constructTokenFromCoin(ctx, coin)
+		token, err := k.tokenFromCoin(ctx, coin)
 		if err != nil {
 			return 0, err
 		}
@@ -401,8 +401,8 @@ func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAd
 	return nil
 }
 
-// constructTokenFromCoin constructs an IBC token given an SDK coin.
-func (k Keeper) constructTokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
+// tokenFromCoin constructs an IBC token given an SDK coin.
+func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{

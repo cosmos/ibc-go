@@ -269,7 +269,7 @@ func (bank *Bank) NonZeroString() string {
 func BankOfChain(chain *ibctesting.TestChain) Bank {
 	bank := MakeBank()
 	chain.GetSimApp().BankKeeper.IterateAllBalances(chain.GetContext(), func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
-		token, err := chain.GetSimApp().TransferKeeper.ConstructTokenFromCoin(chain.GetContext(), coin)
+		token, err := chain.GetSimApp().TransferKeeper.TokenFromCoin(chain.GetContext(), coin)
 		if err != nil {
 			panic(fmt.Errorf("Failed to construct token from coin: %w", err))
 		}
