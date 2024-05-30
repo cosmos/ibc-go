@@ -19,7 +19,7 @@ The controller submodule keeper exposes two legacy functions that allow respecti
 The authentication module can begin registering interchain accounts by calling `RegisterInterchainAccount`:
 
 ```go
-if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String(), version); err != nil {
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String(), version, channeltypes.UNORDERED); err != nil {
   return err
 }
 
@@ -44,7 +44,7 @@ if err != nil {
   return err
 }
 
-if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(appVersion)); err != nil {
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(appVersion), channeltypes.UNORDERED); err != nil {
   return err
 }
 ```
@@ -75,7 +75,7 @@ if err != nil {
   return err
 }
 
-if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(feeEnabledVersion)); err != nil {
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(feeEnabledVersion), channeltypes.UNORDERED); err != nil {
   return err
 }
 ```

@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/migrations/v6"
+	v6 "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/migrations/v6"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -68,7 +68,7 @@ func (*MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpo
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version, channeltypes.ORDERED); err != nil {
 		return err
 	}
 

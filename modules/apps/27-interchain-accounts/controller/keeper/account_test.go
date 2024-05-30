@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 
 			tc.malleate() // malleate mutates test data
 
-			err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner, TestVersion)
+			err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner, TestVersion, channeltypes.ORDERED)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
 		TxType:                 icatypes.TxTypeSDKMultiMsg,
 	}
 
-	err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToB.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)))
+	err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToB.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)), channeltypes.ORDERED)
 	suite.Require().NoError(err)
 
 	// build ICS27 metadata with connection identifiers for path A->C
@@ -115,6 +115,6 @@ func (suite *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
 		TxType:                 icatypes.TxTypeSDKMultiMsg,
 	}
 
-	err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToC.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)))
+	err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToC.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)), channeltypes.ORDERED)
 	suite.Require().NoError(err)
 }

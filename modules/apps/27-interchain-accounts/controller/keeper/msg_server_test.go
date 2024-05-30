@@ -21,6 +21,7 @@ import (
 func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	var (
 		msg               *types.MsgRegisterInterchainAccount
+		expectedOrderding channeltypes.Order
 		expectedChannelID = "channel-0"
 	)
 
@@ -33,6 +34,14 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			"success",
 			true,
 			func() {},
+		},
+		{
+			"success: ordering falls back to UNORDERED if not specified",
+			true,
+			func() {
+				msg.Ordering = channeltypes.NONE
+				expectedOrderding = channeltypes.UNORDERED
+			},
 		},
 		{
 			"invalid connection id",
@@ -70,6 +79,8 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
+			expectedOrderding = channeltypes.ORDERED
+
 			suite.SetupTest()
 
 			path := NewICAPath(suite.chainA, suite.chainB)
@@ -92,6 +103,11 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 				suite.Require().Len(events, 2)
 				suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
 				suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
+
+				path.EndpointA.ChannelConfig.PortID = res.PortId
+				path.EndpointA.ChannelID = res.ChannelId
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(expectedOrderding, channel.Ordering)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
