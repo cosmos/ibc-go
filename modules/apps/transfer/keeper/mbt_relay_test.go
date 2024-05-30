@@ -269,11 +269,11 @@ func (bank *Bank) NonZeroString() string {
 func BankOfChain(chain *ibctesting.TestChain) Bank {
 	bank := MakeBank()
 	chain.GetSimApp().BankKeeper.IterateAllBalances(chain.GetContext(), func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
-		fullDenom := coin.Denom
-		if strings.HasPrefix(coin.Denom, "ibc/") {
-			fullDenom, _ = chain.GetSimApp().TransferKeeper.DenomPathFromHash(chain.GetContext(), coin.Denom)
+		token, err := chain.GetSimApp().TransferKeeper.TokenFromCoin(chain.GetContext(), coin)
+		if err != nil {
+			panic(fmt.Errorf("Failed to construct token from coin: %w", err))
 		}
-		bank.SetBalance(address.String(), fullDenom, coin.Amount)
+		bank.SetBalance(address.String(), token.Denom.FullPath(), coin.Amount)
 		return false
 	})
 	return bank
