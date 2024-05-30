@@ -56,8 +56,10 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {
 				// send IBC token back to chainB
 				denom := types.Denom{
-					Base:  coin.Denom,
-					Trace: []string{path.EndpointA.ChannelConfig.PortID + "/" + path.EndpointA.ChannelID},
+					Base: coin.Denom,
+					Trace: []types.Trace{
+						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
+					},
 				}
 				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 			},
@@ -68,8 +70,10 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {
 				// send IBC token back to chainB
 				denom := types.Denom{
-					Base:  coin.Denom,
-					Trace: []string{path.EndpointA.ChannelConfig.PortID + "/" + path.EndpointA.ChannelID},
+					Base: coin.Denom,
+					Trace: []types.Trace{
+						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
+					},
 				}
 				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 				memo = "memo"
@@ -102,8 +106,10 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"failure: denom trace not found",
 			func() {
 				denom := types.Denom{
-					Base:  "randomdenom",
-					Trace: []string{path.EndpointA.ChannelConfig.PortID + "/" + path.EndpointA.ChannelID},
+					Base: "randomdenom",
+					Trace: []types.Trace{
+						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
+					},
 				}
 				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 			},
@@ -113,8 +119,10 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"failure: bank send from module account failed, insufficient balance",
 			func() {
 				denom := types.Denom{
-					Base:  coin.Denom,
-					Trace: []string{path.EndpointA.ChannelConfig.PortID + "/" + path.EndpointA.ChannelID},
+					Base: coin.Denom,
+					Trace: []types.Trace{
+						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
+					},
 				}
 				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount.Add(sdkmath.NewInt(1)))
 			},
@@ -374,7 +382,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 					{
 						Denom: types.Denom{
 							Base:  sdk.DefaultBondDenom,
-							Trace: []string{},
+							Trace: []types.Trace{},
 						},
 						Amount: amount.String(),
 					},

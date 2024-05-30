@@ -58,8 +58,10 @@ func (t Trace) String() string {
 // - "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
 func ParseDenomTrace(rawDenom string) DenomTrace {
 	denom := ExtractDenomFromFullPath(rawDenom)
+	path := denom.FullPath()
+	path = strings.TrimSuffix(path, denom.Base)
 	return DenomTrace{
-		Path:      strings.Join(denom.Trace, "/"),
+		Path:      path,
 		BaseDenom: denom.Base,
 	}
 }
@@ -108,7 +110,7 @@ func ExtractDenomFromFullPath(fullPath string) Denom {
 	}
 
 	var (
-		trace          []string
+		trace          []Trace
 		baseDenomSlice []string
 	)
 
@@ -124,7 +126,7 @@ func ExtractDenomFromFullPath(fullPath string) Denom {
 		// as an IBC denomination. The hash used to store the token internally on our chain
 		// will be the same value as the base denomination being correctly parsed.
 		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(denomSplit[i+1]) {
-			trace = append(trace, denomSplit[i]+"/"+denomSplit[i+1])
+			trace = append(trace, NewTrace(denomSplit[i], denomSplit[i+1]))
 		} else {
 			baseDenomSlice = denomSplit[i:]
 			break
@@ -171,29 +173,6 @@ func (dt DenomTrace) Validate() error {
 
 	identifiers := strings.Split(dt.Path, "/")
 	return validateTraceIdentifiers(identifiers)
-}
-
-// ValidatePrefixedDenom checks that the denomination for an IBC fungible token packet denom is correctly prefixed.
-// The function will return no error if the given string follows one of the two formats:
-//
-//   - Prefixed denomination: '{portIDN}/{channelIDN}/.../{portID0}/{channelID0}/baseDenom'
-//   - Unprefixed denomination: 'baseDenom'
-//
-// 'baseDenom' may or may not contain '/'s
-func ValidatePrefixedDenom(fullPath string) error {
-	denom := ExtractDenomFromFullPath(fullPath)
-	if strings.TrimSpace(denom.Base) == "" {
-		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
-	}
-
-	path := strings.Join(denom.Trace, "/")
-	if len(denom.Trace) != 0 {
-		identifiers := strings.Split(path, "/")
-		return validateTraceIdentifiers(identifiers)
-
-	}
-
-	return nil
 }
 
 // validateIBCDenom validates that the given denomination is either:
