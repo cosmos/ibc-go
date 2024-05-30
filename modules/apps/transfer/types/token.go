@@ -7,10 +7,10 @@ import (
 	sdkmath "cosmossdk.io/math"
 )
 
-// Validate validates a token denomination and trace identifiers.
+// Validate validates a token denomination and amount.
 func (t Token) Validate() error {
-	if strings.TrimSpace(t.Denom.Base) == "" {
-		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "denom cannot be empty")
+	if err := t.Denom.Validate(); err != nil {
+		return errorsmod.Wrap(err, "invalid token denom")
 	}
 
 	amount, ok := sdkmath.NewIntFromString(t.Amount)
@@ -22,27 +22,7 @@ func (t Token) Validate() error {
 		return errorsmod.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
 	}
 
-	if len(t.Denom.Trace) != 0 {
-		trace := strings.Join(t.Denom.Trace, "/")
-		identifiers := strings.Split(trace, "/")
-
-		if err := validateTraceIdentifiers(identifiers); err != nil {
-			return err
-		}
-	}
-
 	return nil
-}
-
-// GetFullDenomPath returns the full denomination according to the ICS20 specification:
-// tracePath + "/" + baseDenom
-// If there exists no trace then the base denomination is returned.
-func (t Token) GetFullDenomPath() string {
-	if len(t.Denom.Trace) == 0 {
-		return t.Denom.Base
-	}
-
-	return strings.Join(append(t.Denom.Trace, t.Denom.Base), "/")
 }
 
 // Tokens is a set of Token

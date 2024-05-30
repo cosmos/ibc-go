@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 	testCases := []struct {
 		msg            string
 		malleate       func()
-		expectedTraces transfertypes.Traces
+		expectedTraces []transfertypes.DenomTrace
 	}{
 		{
 			"success: two slashes in base denom",
@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 						BaseDenom: "pool/1", Path: "transfer/channel-0/gamm",
 					})
 			},
-			transfertypes.Traces{
+			[]transfertypes.DenomTrace{
 				{
 					BaseDenom: "gamm/pool/1", Path: "transfer/channel-0",
 				},
@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 						BaseDenom: "0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channel-149/erc",
 					})
 			},
-			transfertypes.Traces{
+			[]transfertypes.DenomTrace{
 				{
 					BaseDenom: "erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channel-149",
 				},
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 						BaseDenom: "1", Path: "transfer/channel-5/gamm//pool",
 					})
 			},
-			transfertypes.Traces{
+			[]transfertypes.DenomTrace{
 				{
 					BaseDenom: "gamm//pool/1", Path: "transfer/channel-5",
 				},
@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 						BaseDenom: "transfer/channel-1/uatom", Path: "transfer/channel-0",
 					})
 			},
-			transfertypes.Traces{
+			[]transfertypes.DenomTrace{
 				{
 					BaseDenom: "uatom", Path: "transfer/channel-0/transfer/channel-1",
 				},
@@ -123,7 +123,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 						BaseDenom: "customport/channel-7/uatom", Path: "transfer/channel-0/transfer/channel-1",
 					})
 			},
-			transfertypes.Traces{
+			[]transfertypes.DenomTrace{
 				{
 					BaseDenom: "uatom", Path: "transfer/channel-0/transfer/channel-1/customport/channel-7",
 				},

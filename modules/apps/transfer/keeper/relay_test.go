@@ -12,7 +12,6 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -56,7 +55,13 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer of IBC token",
 			func() {
 				// send IBC token back to chainB
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				denom := types.Denom{
+					Base: coin.Denom,
+					Trace: []types.Trace{
+						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
+					},
+				}
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 			},
 			nil,
 		},
@@ -64,7 +69,13 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer of IBC token with memo",
 			func() {
 				// send IBC token back to chainB
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				denom := types.Denom{
+					Base: coin.Denom,
+					Trace: []types.Trace{
+						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
+					},
+				}
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 				memo = "memo"
 			},
 			nil,
@@ -94,14 +105,26 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failure: denom trace not found",
 			func() {
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, "randomdenom", coin.Amount)
+				denom := types.Denom{
+					Base: "randomdenom",
+					Trace: []types.Trace{
+						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
+					},
+				}
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 			},
-			types.ErrTraceNotFound,
+			types.ErrDenomNotFound,
 		},
 		{
 			"failure: bank send from module account failed, insufficient balance",
 			func() {
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdkmath.NewInt(1)))
+				denom := types.Denom{
+					Base: coin.Denom,
+					Trace: []types.Trace{
+						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
+					},
+				}
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount.Add(sdkmath.NewInt(1)))
 			},
 			sdkerrors.ErrInsufficientFunds,
 		},
@@ -359,7 +382,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 					{
 						Denom: types.Denom{
 							Base:  sdk.DefaultBondDenom,
-							Trace: []string{},
+							Trace: []types.Trace{},
 						},
 						Amount: amount.String(),
 					},
@@ -508,14 +531,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 
 			tc.malleate()
 
-			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+			denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: trace,
-						},
+						Denom:  denom,
 						Amount: amount.String(),
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
@@ -589,14 +609,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
 
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom: types.Denom{
-					Base:  denom,
-					Trace: trace,
-				},
+				Denom:  denom,
 				Amount: amount.String(),
 			},
 		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
@@ -723,14 +740,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			tc.malleate()
 
-			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+			denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: trace,
-						},
+						Denom:  denom,
 						Amount: amount.String(),
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
@@ -820,14 +834,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		),
 	)
 
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom: types.Denom{
-					Base:  denom,
-					Trace: trace,
-				},
+				Denom:  denom,
 				Amount: amount.String(),
 			},
 		},
@@ -951,14 +962,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			tc.malleate()
 
-			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+			denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: trace,
-						},
+						Denom:  denom,
 						Amount: amount.String(),
 					},
 				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "")
@@ -1041,14 +1049,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		),
 	)
 
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom: types.Denom{
-					Base:  denom,
-					Trace: trace,
-				},
+				Denom:  denom,
 				Amount: amount.String(),
 			},
 		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "")
@@ -1080,50 +1085,113 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 	// doesn't have this field in the packet data. The module should be able to handle
 	// this packet without any issues.
 
+	// the test also ensures that an ack is written for any malformed or bad packet data.
+
 	var packetData []byte
+	var path *ibctesting.Path
 
 	testCases := []struct {
-		msg      string
-		malleate func()
-		expError error
+		msg         string
+		malleate    func()
+		expError    error
+		expAckError error
 	}{
 		{
-			"success: new field",
+			"success: no new field with memo v2",
 			func() {
-				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
 			nil,
-		},
-		{
-			"success: no new field with memo",
-			func() {
-				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packetData = []byte(jsonString)
-			},
 			nil,
 		},
 		{
 			"success: no new field without memo",
 			func() {
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+			nil,
+		},
+		{
+			"failure: invalid packet data v2",
+			func() {
+				packetData = []byte("invalid packet data")
+			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: new field v2",
+			func() {
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s", "new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: missing field v2",
+			func() {
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			types.ErrInvalidDenomForTransfer,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"success: no new field with memo",
+			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+			nil,
+		},
+		{
+			"success: no new field without memo",
+			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
+			nil,
 			nil,
 		},
 		{
 			"failure: invalid packet data",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				packetData = []byte("invalid packet data")
 			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: new field",
+			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			ibcerrors.ErrInvalidType,
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: missing field",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"amount":"100","sender":%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
+			ibcerrors.ErrInvalidType,
 			ibcerrors.ErrInvalidType,
 		},
 	}
@@ -1134,12 +1202,11 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			suite.SetupTest() // reset
 			packetData = nil
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			path.EndpointA.ChannelConfig.Version = types.V1
-			path.EndpointB.ChannelConfig.Version = types.V1
-			path.Setup()
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
+
+			path.Setup()
 
 			timeoutHeight := suite.chainB.GetTimeoutHeight()
 
@@ -1156,6 +1223,13 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorContains(err, tc.expError.Error())
+				ackBz, ok := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
+				suite.Require().True(ok)
+
+				// an ack should be written for the malformed / bad packet data.
+				expectedAck := channeltypes.NewErrorAcknowledgement(tc.expAckError)
+				expBz := channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement())
+				suite.Require().Equal(expBz, ackBz)
 			}
 		})
 	}

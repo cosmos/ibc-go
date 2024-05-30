@@ -4,21 +4,25 @@ package ibc.applications.transfer.v1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/applications/transfer/v1/transfer.proto";
 import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 
 option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 
 // Query provides defines the gRPC querier service.
 service Query {
   // DenomTraces queries all denomination traces.
+  // Deprecated: Please use the Denoms endpoint instead.
   rpc DenomTraces(QueryDenomTracesRequest) returns (QueryDenomTracesResponse) {
+    option deprecated            = true;
     option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces";
   }
 
   // DenomTrace queries a denomination trace information.
+  // Deprecated: Please see the Denom endpoint instead.
   rpc DenomTrace(QueryDenomTraceRequest) returns (QueryDenomTraceResponse) {
+    option deprecated            = true;
     option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{hash=**}";
   }
 
@@ -68,7 +72,7 @@ message QueryDenomTracesRequest {
 // method.
 message QueryDenomTracesResponse {
   // denom_traces returns all denominations trace information.
-  repeated DenomTrace denom_traces = 1 [(gogoproto.castrepeated) = "Traces", (gogoproto.nullable) = false];
+  repeated DenomTrace denom_traces = 1 [(gogoproto.nullable) = false];
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
