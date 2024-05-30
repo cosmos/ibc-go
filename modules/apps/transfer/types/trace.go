@@ -57,19 +57,10 @@ func (t Trace) String() string {
 // - "gamm/pool/1" => DenomTrace{Path: "", BaseDenom: "gamm/pool/1"}
 // - "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
 func ParseDenomTrace(rawDenom string) DenomTrace {
-	denomSplit := strings.Split(rawDenom, "/")
-
-	if denomSplit[0] == rawDenom {
-		return DenomTrace{
-			Path:      "",
-			BaseDenom: rawDenom,
-		}
-	}
-
-	pathSlice, baseDenom := extractPathAndBaseFromFullDenom(denomSplit)
+	denom := ExtractDenomFromFullPath(rawDenom)
 	return DenomTrace{
-		Path:      strings.Join(pathSlice, "/"),
-		BaseDenom: baseDenom,
+		Path:      strings.Join(denom.Trace, "/"),
+		BaseDenom: denom.Base,
 	}
 }
 
@@ -105,15 +96,23 @@ func (dt DenomTrace) GetFullDenomPath() string {
 	return dt.GetPrefix() + dt.BaseDenom
 }
 
-// extractPathAndBaseFromFullDenom returns the trace path and the base denom from
-// the elements that constitute the complete denom.
-func extractPathAndBaseFromFullDenom(fullDenomItems []string) ([]string, string) {
+// ExtractDenomFromFullPath returns the denom from the full path.
+// Used to support v1 denoms.
+func ExtractDenomFromFullPath(fullPath string) Denom {
+	denomSplit := strings.Split(fullPath, "/")
+
+	if denomSplit[0] == fullPath {
+		return Denom{
+			Base: fullPath,
+		}
+	}
+
 	var (
-		pathSlice      []string
+		trace          []string
 		baseDenomSlice []string
 	)
 
-	length := len(fullDenomItems)
+	length := len(denomSplit)
 	for i := 0; i < length; i += 2 {
 		// The IBC specification does not guarantee the expected format of the
 		// destination port or destination channel identifier. A short term solution
@@ -124,17 +123,20 @@ func extractPathAndBaseFromFullDenom(fullDenomItems []string) ([]string, string)
 		// will be incorrectly parsed, but the token will continue to be treated correctly
 		// as an IBC denomination. The hash used to store the token internally on our chain
 		// will be the same value as the base denomination being correctly parsed.
-		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(fullDenomItems[i+1]) {
-			pathSlice = append(pathSlice, fullDenomItems[i], fullDenomItems[i+1])
+		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(denomSplit[i+1]) {
+			trace = append(trace, denomSplit[i]+"/"+denomSplit[i+1])
 		} else {
-			baseDenomSlice = fullDenomItems[i:]
+			baseDenomSlice = denomSplit[i:]
 			break
 		}
 	}
 
-	baseDenom := strings.Join(baseDenomSlice, "/")
+	base := strings.Join(baseDenomSlice, "/")
 
-	return pathSlice, baseDenom
+	return Denom{
+		Base:  base,
+		Trace: trace,
+	}
 }
 
 // validateTraceIdentifiers validates the correctness of the trace associated with a particular base denom.
@@ -178,26 +180,20 @@ func (dt DenomTrace) Validate() error {
 //   - Unprefixed denomination: 'baseDenom'
 //
 // 'baseDenom' may or may not contain '/'s
-func ValidatePrefixedDenom(denom string) error {
-	denomSplit := strings.Split(denom, "/")
-	if denomSplit[0] == denom && strings.TrimSpace(denom) != "" {
-		// NOTE: no base denomination validation
-		return nil
-	}
-
-	pathSlice, baseDenom := extractPathAndBaseFromFullDenom(denomSplit)
-	if strings.TrimSpace(baseDenom) == "" {
+func ValidatePrefixedDenom(fullPath string) error {
+	denom := ExtractDenomFromFullPath(fullPath)
+	if strings.TrimSpace(denom.Base) == "" {
 		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
 	}
 
-	path := strings.Join(pathSlice, "/")
-	if path == "" {
-		// NOTE: base denom contains slashes, so no base denomination validation
-		return nil
+	path := strings.Join(denom.Trace, "/")
+	if len(denom.Trace) != 0 {
+		identifiers := strings.Split(path, "/")
+		return validateTraceIdentifiers(identifiers)
+
 	}
 
-	identifiers := strings.Split(path, "/")
-	return validateTraceIdentifiers(identifiers)
+	return nil
 }
 
 // validateIBCDenom validates that the given denomination is either:

@@ -1,9 +1,6 @@
 package convert
 
 import (
-	"errors"
-	"strings"
-
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -16,14 +13,11 @@ func PacketDataV1ToV2(packetData types.FungibleTokenPacketData) (types.FungibleT
 		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(err, "invalid packet data")
 	}
 
-	v2Denom, trace := ExtractDenomAndTraceFromV1Denom(packetData.Denom)
+	denom := types.ExtractDenomFromFullPath(packetData.Denom)
 	return types.FungibleTokenPacketDataV2{
 		Tokens: []types.Token{
 			{
-				Denom: types.Denom{
-					Base:  v2Denom,
-					Trace: trace,
-				},
+				Denom:  denom,
 				Amount: packetData.Amount,
 			},
 		},
@@ -31,30 +25,4 @@ func PacketDataV1ToV2(packetData types.FungibleTokenPacketData) (types.FungibleT
 		Receiver: packetData.Receiver,
 		Memo:     packetData.Memo,
 	}, nil
-}
-
-// extractDenomAndTraceFromV1Denom extracts the base denom and remaining trace from a v1 IBC denom.
-func ExtractDenomAndTraceFromV1Denom(v1Denom string) (string, []types.Trace) {
-	v1DenomTrace := types.ParseDenomTrace(v1Denom)
-
-	// if the path string is empty, then the base denom is the full native denom.
-	if v1DenomTrace.Path == "" {
-		return v1DenomTrace.BaseDenom, nil
-	}
-
-	splitPath := strings.Split(v1DenomTrace.Path, "/")
-
-	// this condition should never be reached.
-	if len(splitPath)%2 != 0 {
-		panic(errors.New("path slice length is not even"))
-	}
-
-	// the path slices consists of entries of ports and channel ids separately,
-	// we need to combine them to form the trace.
-	var trace []types.Trace
-	for i := 0; i < len(splitPath); i += 2 {
-		trace = append(trace, types.NewTrace(splitPath[i], splitPath[i+1]))
-	}
-
-	return v1DenomTrace.BaseDenom, trace
 }
