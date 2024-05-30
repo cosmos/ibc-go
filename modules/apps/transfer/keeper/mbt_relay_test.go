@@ -341,8 +341,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						panic(errors.New("MBT failed to convert sender address"))
 					}
 					registerDenomFn()
-					denomTrace := types.ParseDenomTrace(tc.packet.Data.Tokens[0].GetFullDenomPath())
-					denom := denomTrace.IBCDenom()
+					denom := tc.packet.Data.Tokens[0].Denom.IBCDenom()
 					err = sdk.ValidateDenom(denom)
 					if err == nil {
 						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Tokens[0].Amount)

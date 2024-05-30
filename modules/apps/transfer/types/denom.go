@@ -16,15 +16,12 @@ func (d Denom) Validate() error {
 	// NOTE: base denom validation cannot be performed as each chain may define
 	// its own base denom validation
 	if strings.TrimSpace(d.Base) == "" {
-		return fmt.Errorf("base denomination cannot be blank")
+		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
 	}
 
-	if len(d.Trace) != 0 {
-		trace := strings.Join(d.Trace, "/")
-		identifiers := strings.Split(trace, "/")
-
-		if err := validateTraceIdentifiers(identifiers); err != nil {
-			return err
+	for _, trace := range d.Trace {
+		if err := trace.Validate(); err != nil {
+			return errorsmod.Wrap(err, "invalid trace")
 		}
 	}
 
@@ -59,8 +56,8 @@ func (d Denom) FullPath() string {
 
 	var sb strings.Builder
 	for _, t := range d.Trace {
-		sb.WriteString(t) // nolint:revive // no error returned by WriteString
-		sb.WriteByte('/') //nolint:revive // no error returned by WriteByte
+		sb.WriteString(t.String()) // nolint:revive // no error returned by WriteString
+		sb.WriteByte('/')          //nolint:revive // no error returned by WriteByte
 	}
 	sb.WriteString(d.Base) //nolint:revive
 	return sb.String()
@@ -74,24 +71,21 @@ func (d Denom) IsNative() bool {
 // SenderChainIsSource returns false if the denomination originally came
 // from the receiving chain and true otherwise.
 func (d Denom) SenderChainIsSource(sourcePort, sourceChannel string) bool {
-	// This is the prefix that would have been prefixed to the denomination
-	// on sender chain IF and only if the token originally came from the
-	// receiving chain.
-
+	// sender chain is source, if the receiver is not source
 	return !d.ReceiverChainIsSource(sourcePort, sourceChannel)
 }
 
 // ReceiverChainIsSource returns true if the denomination originally came
 // from the receiving chain and false otherwise.
 func (d Denom) ReceiverChainIsSource(sourcePort, sourceChannel string) bool {
-	// The first element in the Denom's trace should contain the SourcePort and SourceChannel.
-	// If the receiver chain originally sent the token to the sender chain, the first element of
-	// the denom's trace will contain the sender's SourcePort and SourceChannel.
+	// if the denom is native, then the receiver chain cannot be source
 	if d.IsNative() {
 		return false
 	}
 
-	return d.Trace[0] == sourcePort+"/"+sourceChannel
+	// if the receiver chain originally sent the token to the sender chain, then the first element of
+	// the denom's trace (latest trace) will contain the SourcePort and SourceChannel.
+	return d.Trace[0].PortId == sourcePort && d.Trace[0].ChannelId == sourceChannel
 }
 
 // Denoms defines a wrapper type for a slice of Denom.
