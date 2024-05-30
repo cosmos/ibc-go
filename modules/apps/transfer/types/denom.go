@@ -35,7 +35,7 @@ func (d Denom) Validate() error {
 //
 // hash = sha256(tracePath + "/" + baseDenom)
 func (d Denom) Hash() cmtbytes.HexBytes {
-	hash := sha256.Sum256([]byte(d.GetFullPath()))
+	hash := sha256.Sum256([]byte(d.FullPath()))
 	return hash[:]
 }
 
@@ -49,20 +49,21 @@ func (d Denom) IBCDenom() string {
 	return fmt.Sprintf("%s/%s", DenomPrefix, d.Hash())
 }
 
-// GetFullPath returns the full denomination according to the ICS20 specification:
+// FullPath returns the full denomination according to the ICS20 specification:
 // tracePath + "/" + baseDenom
 // If there exists no trace then the base denomination is returned.
-func (d Denom) GetFullPath() string {
+func (d Denom) FullPath() string {
 	if d.IsNative() {
 		return d.Base
 	}
 
-	path := d.Trace[0]
-	for i := 1; i <= len(d.Trace)-1; i++ {
-		path = fmt.Sprintf("%s/%s", path, d.Trace[i])
+	var sb strings.Builder
+	for _, t := range d.Trace {
+		sb.WriteString(t) // nolint:revive // no error returned by WriteString
+		sb.WriteByte('/') //nolint:revive // no error returned by WriteByte
 	}
-
-	return fmt.Sprintf("%s/%s", path, d.Base)
+	sb.WriteString(d.Base) //nolint:revive
+	return sb.String()
 }
 
 // IsNative returns true if the denomination is native, thus containing no trace history.
@@ -120,7 +121,7 @@ var _ sort.Interface = (*Denoms)(nil)
 func (d Denoms) Len() int { return len(d) }
 
 // Less implements sort.Interface for Denoms
-func (d Denoms) Less(i, j int) bool { return d[i].GetFullPath() < d[j].GetFullPath() }
+func (d Denoms) Less(i, j int) bool { return d[i].FullPath() < d[j].FullPath() }
 
 // Swap implements sort.Interface for Denoms
 func (d Denoms) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
