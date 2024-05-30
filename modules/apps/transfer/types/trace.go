@@ -39,11 +39,7 @@ func (t Trace) Validate() error {
 // String returns the Trace the format:
 // <portID>/<channelID>
 func (t Trace) String() string {
-	var sb strings.Builder
-	sb.WriteString(t.PortId)    // nolint:revive // no error returned by WriteString
-	sb.WriteByte('/')           //nolint:revive // no error returned by WriteByte
-	sb.WriteString(t.ChannelId) // nolint:revive
-	return sb.String()
+	return fmt.Sprintf("%s/%s", t.PortId, t.ChannelId)
 }
 
 // ParseDenomTrace parses a string with the ibc prefix (denom trace) and the base denomination
