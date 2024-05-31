@@ -19,8 +19,8 @@ message Allocation {
       [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   // allow list of receivers, an empty allow list permits any receiver address
   repeated string allow_list = 4;
-  // allow list of packet data keys, an empty list prohibits all packet data keys;
-  // a list only with "*" permits any packet data key
+  // allow list of memo strings, an empty list prohibits all memo strings;
+  // a list only with "*" permits any memo string
   repeated string allowed_packet_data = 5;
 }
 

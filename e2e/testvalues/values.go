@@ -43,6 +43,10 @@ func DefaultTransferAmount(denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
 }
 
+func DefaultTransferCoins(denom string) sdk.Coins {
+	return sdk.NewCoins(DefaultTransferAmount(denom))
+}
+
 func TransferAmount(amount int64, denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(amount)}
 }
@@ -119,4 +123,10 @@ var CapitalEfficientFeeEscrowFeatureReleases = semverutil.FeatureReleases{
 	MinorVersions: []string{
 		"v8.1",
 	},
+}
+
+// TransactionEventQueryFeatureReleases represents the releases the support for --query flag
+// in "query txs" for searching transactions that match exact events (since Cosmos SDK v0.50) was released in.
+var TransactionEventQueryFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 }

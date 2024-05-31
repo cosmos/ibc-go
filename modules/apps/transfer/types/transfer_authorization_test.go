@@ -1,21 +1,26 @@
 package types_test
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authz "github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-const testMemo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
+const (
+	testMemo1 = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
+	testMemo2 = `{"forward":{"channel":"channel-11","port":"transfer","receiver":"stars1twfv52yxcyykx2lcvgl42svw46hsm5dd4ww6xy","retries":2,"timeout":1712146014542131200}}`
+)
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	var (
-		msgTransfer   types.MsgTransfer
+		msgTransfer   *types.MsgTransfer
 		transferAuthz types.TransferAuthorization
 	)
 
@@ -67,15 +72,32 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-			"success: with multiple allocations",
+			"success: with multiple allocations and multidenom transfer",
 			func() {
-				alloc := types.Allocation{
+				coins := sdk.NewCoins(
+					ibctesting.TestCoin,
+					sdk.NewCoin("atom", sdkmath.NewInt(100)),
+					sdk.NewCoin("osmo", sdkmath.NewInt(100)),
+				)
+
+				allocation := types.Allocation{
 					SourcePort:    ibctesting.MockPort,
 					SourceChannel: "channel-9",
-					SpendLimit:    ibctesting.TestCoins,
+					SpendLimit:    coins,
 				}
 
-				transferAuthz.Allocations = append(transferAuthz.Allocations, alloc)
+				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
+
+				msgTransfer = types.NewMsgTransfer(
+					ibctesting.MockPort,
+					"channel-9",
+					coins,
+					suite.chainA.SenderAccount.GetAddress().String(),
+					ibctesting.TestAccAddress,
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -86,7 +108,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
 				suite.Require().True(ok)
 
-				// assert spent spendlimit is removed from the list
+				// assert spent spendlimits are removed from the list
 				suite.Require().Len(updatedAuthz.Allocations, 1)
 			},
 		},
@@ -122,7 +144,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{"*"}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				msgTransfer.Memo = testMemo
+				msgTransfer.Memo = testMemo1
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -135,9 +157,9 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"success: transfer memo allowed",
 			func() {
-				allowedList := []string{"wasm", "forward"}
+				allowedList := []string{testMemo1, testMemo2}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				msgTransfer.Memo = testMemo
+				msgTransfer.Memo = testMemo1
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -152,7 +174,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				msgTransfer.Memo = testMemo
+				msgTransfer.Memo = testMemo1
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)
@@ -161,13 +183,13 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"memo not allowed",
 			func() {
-				allowedList := []string{"forward"}
+				allowedList := []string{testMemo1}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				msgTransfer.Memo = testMemo
+				msgTransfer.Memo = testMemo2
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)
-				suite.Require().ErrorContains(err, "not allowed packet data keys: [wasm]")
+				suite.Require().ErrorContains(err, fmt.Sprintf("not allowed memo: %s", testMemo2))
 			},
 		},
 		{
@@ -233,7 +255,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := NewTransferPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			transferAuthz = types.TransferAuthorization{
@@ -247,18 +269,20 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				},
 			}
 
-			msgTransfer = types.MsgTransfer{
-				SourcePort:    path.EndpointA.ChannelConfig.PortID,
-				SourceChannel: path.EndpointA.ChannelID,
-				Token:         ibctesting.TestCoin,
-				Sender:        suite.chainA.SenderAccount.GetAddress().String(),
-				Receiver:      ibctesting.TestAccAddress,
-				TimeoutHeight: suite.chainB.GetTimeoutHeight(),
-			}
+			msgTransfer = types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				sdk.NewCoins(ibctesting.TestCoin),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				ibctesting.TestAccAddress,
+				suite.chainB.GetTimeoutHeight(),
+				0,
+				"",
+			)
 
 			tc.malleate()
 
-			res, err := transferAuthz.Accept(suite.chainA.GetContext(), &msgTransfer)
+			res, err := transferAuthz.Accept(suite.chainA.GetContext(), msgTransfer)
 			tc.assertResult(res, err)
 		})
 	}
@@ -307,6 +331,13 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			"success: with unlimited spend limit of max uint256",
 			func() {
 				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit()))
+			},
+			true,
+		},
+		{
+			"success: wildcard allowed packet data",
+			func() {
+				transferAuthz.Allocations[0].AllowedPacketData = []string{"*"}
 			},
 			true,
 		},

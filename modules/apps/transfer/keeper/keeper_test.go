@@ -199,7 +199,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 		{
 			"success",
 			func() {
-				denom := "uatom"
+				denom := "uatom" //nolint:goconst
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
@@ -341,13 +341,12 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	// test if the ics4 wrapper is the channel keeper initially
 	ics4Wrapper := suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
 	suite.Require().False(isChannelKeeper)
 
 	// set the ics4 wrapper to the channel keeper
 	suite.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 	ics4Wrapper = suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
-	suite.Require().True(isChannelKeeper)
+	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 }

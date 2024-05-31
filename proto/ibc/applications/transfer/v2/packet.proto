@@ -4,6 +4,9 @@ package ibc.applications.transfer.v2;
 
 option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 
+import "ibc/applications/transfer/v2/token.proto";
+import "gogoproto/gogo.proto";
+
 // FungibleTokenPacketData defines a struct for the packet payload
 // See FungibleTokenPacketData spec:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
@@ -18,4 +21,18 @@ message FungibleTokenPacketData {
   string receiver = 4;
   // optional memo
   string memo = 5;
+}
+
+// FungibleTokenPacketDataV2 defines a struct for the packet payload
+// See FungibleTokenPacketDataV2 spec:
+// https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
+message FungibleTokenPacketDataV2 {
+  // the tokens to be transferred
+  repeated Token tokens = 1 [(gogoproto.nullable) = false];
+  // the sender address
+  string sender = 2;
+  // the recipient address on the destination chain
+  string receiver = 3;
+  // optional memo
+  string memo = 4;
 }

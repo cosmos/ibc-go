@@ -36,8 +36,18 @@ func (k Keeper) OnChanOpenTry(
 
 	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
-		return "", err
+		// Propose the default metadata if the counterparty version is invalid
+		connection, err := k.channelKeeper.GetConnection(ctx, connectionHops[0])
+		if err != nil {
+			return "", errorsmod.Wrapf(err, "failed to retrieve connection %s", connectionHops[0])
+		}
+
+		k.Logger(ctx).Debug("counterparty version is invalid, proposing default metadata")
+		metadata = icatypes.NewDefaultMetadata(connection.Counterparty.ConnectionId, connectionHops[0])
 	}
+
+	// set here the HostConnectionId in case the controller did not set it
+	metadata.HostConnectionId = connectionHops[0]
 
 	if err = icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", err

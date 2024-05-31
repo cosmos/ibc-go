@@ -275,6 +275,38 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			nil,
 		},
 		{
+			"interchain account successfully executes icahosttypes.MsgModuleQuerySafe",
+			func(encoding string) {
+				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
+
+				balanceQuery := banktypes.NewQueryBalanceRequest(suite.chainB.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+				queryBz, err := balanceQuery.Marshal()
+				suite.Require().NoError(err)
+
+				msg := types.NewMsgModuleQuerySafe(interchainAccountAddr, []*types.QueryRequest{
+					{
+						Path: "/cosmos.bank.v1beta1.Query/Balance",
+						Data: queryBz,
+					},
+				})
+
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				suite.Require().NoError(err)
+
+				icaPacketData := icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
+					Data: data,
+				}
+
+				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+			},
+			nil,
+		},
+		{
 			"interchain account successfully executes disttypes.MsgSetWithdrawAddress",
 			func(encoding string) {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
@@ -310,15 +342,16 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				msg := &transfertypes.MsgTransfer{
-					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
-					SourceChannel:    transferPath.EndpointA.ChannelID,
-					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
-					Sender:           interchainAccountAddr,
-					Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
-					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
-					TimeoutTimestamp: uint64(0),
-				}
+				msg := transfertypes.NewMsgTransfer(
+					transferPath.EndpointA.ChannelConfig.PortID,
+					transferPath.EndpointA.ChannelID,
+					sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					interchainAccountAddr,
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 				suite.Require().NoError(err)
@@ -344,15 +377,16 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				msg := &transfertypes.MsgTransfer{
-					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
-					SourceChannel:    transferPath.EndpointA.ChannelID,
-					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
-					Sender:           interchainAccountAddr,
-					Receiver:         "",
-					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
-					TimeoutTimestamp: uint64(0),
-				}
+				msg := transfertypes.NewMsgTransfer(
+					transferPath.EndpointA.ChannelConfig.PortID,
+					transferPath.EndpointA.ChannelID,
+					sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					interchainAccountAddr,
+					"",
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 				suite.Require().NoError(err)

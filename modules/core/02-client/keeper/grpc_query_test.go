@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc/codes"
@@ -12,9 +13,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestQueryClientState() {
@@ -237,7 +241,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientState().GetLatestHeight())
+				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientLatestHeight())
 
 				var err error
 				expConsensusState, err = types.PackConsensusState(cs)
@@ -255,7 +259,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				height := path.EndpointA.GetClientState().GetLatestHeight()
+				height := path.EndpointA.GetClientLatestHeight()
 				cs := path.EndpointA.GetConsensusState(height)
 
 				var err error
@@ -340,7 +344,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				height1 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				height1, ok := path.EndpointA.GetClientLatestHeight().(types.Height)
+				suite.Require().True(ok)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -350,8 +355,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
-
-				height2 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
+				height2, ok := path.EndpointA.GetClientLatestHeight().(types.Height)
+				suite.Require().True(ok)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -445,12 +450,12 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientLatestHeight().(types.Height))
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
+				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientLatestHeight().(types.Height))
 
 				req = &types.QueryConsensusStateHeightsRequest{
 					ClientId: path.EndpointA.ClientID,
@@ -526,7 +531,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: ibctesting.InvalidID,
 				}
 			},
-			false, "",
+			true, exported.Unauthorized.String(),
 		},
 		{
 			"Active client status",
@@ -544,10 +549,12 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 
 				// increment latest height so no consensus state is stored
-				clientState.LatestHeight = clientState.LatestHeight.Increment().(types.Height)
+				clientState.LatestHeight, ok = clientState.LatestHeight.Increment().(types.Height)
+				suite.Require().True(ok)
 				path.EndpointA.SetClientState(clientState)
 
 				req = &types.QueryClientStatusRequest{
@@ -561,7 +568,8 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupClients()
-				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
 
 				clientState.FrozenHeight = types.NewHeight(0, 1)
 				path.EndpointA.SetClientState(clientState)
@@ -632,7 +640,9 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(resp)
 
-				expClientState = clientState.(*ibctm.ClientState)
+				var ok bool
+				expClientState, ok = clientState.(*ibctm.ClientState)
+				suite.Require().True(ok)
 			},
 			nil,
 		},
@@ -769,4 +779,180 @@ func (suite *KeeperTestSuite) TestQueryClientParams() {
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
+}
+
+func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
+	const wasmClientID = "08-wasm-0"
+
+	var (
+		path *ibctesting.Path
+		req  *types.QueryVerifyMembershipRequest
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				bz, err := suite.chainB.Codec.Marshal(&channel)
+				suite.Require().NoError(err)
+
+				channelProof, proofHeight := path.EndpointB.QueryProof(host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+
+				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    path.EndpointA.ClientID,
+					Proof:       channelProof,
+					ProofHeight: proofHeight,
+					MerklePath:  merklePath,
+					Value:       bz,
+				}
+			},
+			nil,
+		},
+		{
+			"req is nil",
+			func() {
+				req = nil
+			},
+			errors.New("empty request"),
+		},
+		{
+			"invalid client ID",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: "//invalid_id",
+				}
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"localhost client ID is denied",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: exported.LocalhostClientID,
+				}
+			},
+			types.ErrInvalidClientType,
+		},
+		{
+			"solomachine client ID is denied",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: types.FormatClientIdentifier(exported.Solomachine, 1),
+				}
+			},
+			types.ErrInvalidClientType,
+		},
+		{
+			"empty proof",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId: ibctesting.FirstClientID,
+					Proof:    []byte{},
+				}
+			},
+			errors.New("empty proof"),
+		},
+		{
+			"invalid proof height",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    ibctesting.FirstClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.ZeroHeight(),
+				}
+			},
+			errors.New("proof height must be non-zero"),
+		},
+		{
+			"empty merkle path",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    ibctesting.FirstClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+				}
+			},
+			errors.New("empty merkle path"),
+		},
+		{
+			"empty value",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    ibctesting.FirstClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+				}
+			},
+			errors.New("empty value"),
+		},
+		{
+			"light client module not found",
+			func() {
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    wasmClientID, // use a client type that is not registered
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					Value:       []byte{0x01},
+				}
+			},
+			errors.New(wasmClientID),
+		},
+		{
+			"client not active",
+			func() {
+				params := types.NewParams("") // disable all clients
+				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+
+				req = &types.QueryVerifyMembershipRequest{
+					ClientId:    path.EndpointA.ClientID,
+					Proof:       []byte{0x01},
+					ProofHeight: types.NewHeight(1, 100),
+					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					Value:       []byte{0x01},
+				}
+			},
+			types.ErrClientNotActive,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			tc.malleate()
+
+			ctx := suite.chainA.GetContext()
+			initialGas := ctx.GasMeter().GasConsumed()
+			res, err := suite.chainA.QueryServer.VerifyMembership(ctx, req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().True(res.Success, "failed to verify membership proof")
+
+				gasConsumed := ctx.GasMeter().GasConsumed()
+				suite.Require().Greater(gasConsumed, initialGas, "gas consumed should be greater than initial gas")
+			} else {
+				suite.Require().ErrorContains(err, tc.expError.Error())
+
+				gasConsumed := ctx.GasMeter().GasConsumed()
+				suite.Require().GreaterOrEqual(gasConsumed, initialGas, "gas consumed should be greater than or equal to initial gas")
+			}
+		})
+	}
 }

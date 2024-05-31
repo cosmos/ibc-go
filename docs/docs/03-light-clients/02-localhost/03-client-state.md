@@ -22,8 +22,12 @@ It calls `CreateLocalhostClient`, declaring a new `ClientState` and initializing
 
 ```go
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-  var clientState localhost.ClientState
-  return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
+  clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
+  if !found {
+    return errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
+  }
+
+  return clientModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
 }
 ```
 
@@ -33,7 +37,7 @@ It is possible to disable the localhost client by removing the `09-localhost` en
 
 The latest height is updated periodically through the ABCI [`BeginBlock`](https://docs.cosmos.network/v0.47/building-modules/beginblock-endblock) interface of the 02-client submodule in core IBC.
 
-[See `BeginBlocker` in abci.go.](https://github.com/cosmos/ibc-go/blob/09-localhost/modules/core/02-client/abci.go#L12)
+[See `BeginBlocker` in abci.go.](https://github.com/cosmos/ibc-go/blob/v8.1.1/modules/core/02-client/abci.go#L12)
 
 ```go
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
