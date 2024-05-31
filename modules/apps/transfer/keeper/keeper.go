@@ -202,7 +202,7 @@ func (k Keeper) IterateDenoms(ctx sdk.Context, cb func(denom types.Denom) bool) 
 // setDenomMetadata sets an IBC token's denomination metadata
 func (k Keeper) setDenomMetadata(ctx sdk.Context, denom types.Denom) {
 	metadata := banktypes.Metadata{
-		Description: fmt.Sprintf("IBC token from %s", denom.FullPath()),
+		Description: fmt.Sprintf("IBC token from %s", denom.Path()),
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    denom.Base,
@@ -213,8 +213,8 @@ func (k Keeper) setDenomMetadata(ctx sdk.Context, denom types.Denom) {
 		// Base as key path and the IBC hash is what gives this token uniqueness
 		// on the executing chain
 		Base:    denom.IBCDenom(),
-		Display: denom.FullPath(),
-		Name:    fmt.Sprintf("%s IBC token", denom.FullPath()),
+		Display: denom.Path(),
+		Name:    fmt.Sprintf("%s IBC token", denom.Path()),
 		Symbol:  strings.ToUpper(denom.Base),
 	}
 
