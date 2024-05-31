@@ -94,68 +94,6 @@ func TestDenomTrace_Validate(t *testing.T) {
 	}
 }
 
-func TestTraces_Validate(t *testing.T) {
-	testCases := []struct {
-		name     string
-		traces   types.Traces
-		expError bool
-	}{
-		{"empty Traces", types.Traces{}, false},
-		{"valid multiple trace info", types.Traces{{BaseDenom: "uatom", Path: "transfer/channel-1/transfer/channel-2"}}, false},
-		{
-			"valid multiple trace info",
-			types.Traces{
-				{BaseDenom: "uatom", Path: "transfer/channel-1/transfer/channel-2"},
-				{BaseDenom: "uatom", Path: "transfer/channel-1/transfer/channel-2"},
-			},
-			true,
-		},
-		{"empty base denom with trace", types.Traces{{BaseDenom: "", Path: "transfer/channel-1"}}, true},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		err := tc.traces.Validate()
-		if tc.expError {
-			require.Error(t, err, tc.name)
-			continue
-		}
-		require.NoError(t, err, tc.name)
-	}
-}
-
-func TestValidatePrefixedDenom(t *testing.T) {
-	testCases := []struct {
-		name     string
-		denom    string
-		expError bool
-	}{
-		{"prefixed denom", "transfer/channel-1/uatom", false},
-		{"prefixed denom with base denom with leading slash", "transfer/channel-1/uatom/", false},
-		{"prefixed denom with '/'", "transfer/channel-1/gamm/pool/1", false},
-		{"empty prefix", "/uatom", false},
-		{"empty identifiers", "//uatom", false},
-		{"base denom", "uatom", false},
-		{"base denom with single '/'", "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", false},
-		{"base denom with multiple '/'s", "gamm/pool/1", false},
-		{"single trace identifier", "transfer/", false},
-		{"invalid port ID", "(transfer)/channel-1/uatom", true},
-		{"empty denom", "", true},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		err := types.ValidatePrefixedDenom(tc.denom)
-		if tc.expError {
-			require.Error(t, err, tc.name)
-		} else {
-			require.NoError(t, err, tc.name)
-		}
-	}
-}
-
 func TestValidateIBCDenom(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -183,5 +121,33 @@ func TestValidateIBCDenom(t *testing.T) {
 			continue
 		}
 		require.NoError(t, err, tc.name)
+	}
+}
+
+func TestExtractDenomFromFullPath(t *testing.T) {
+	testCases := []struct {
+		name     string
+		fullPath string
+		expDenom types.Denom
+	}{
+		{"base denom no slashes", "atom", types.Denom{Base: "atom"}},
+		{"base denom with trailing slash", "atom/", types.Denom{Base: "atom/"}},
+		{"base denom multiple trailing slash", "foo///bar//baz/atom/", types.Denom{Base: "foo///bar//baz/atom/"}},
+		{"ibc denom one hop", "transfer/channel-0/atom", types.Denom{Base: "atom", Trace: []types.Trace{types.NewTrace("transfer", "channel-0")}}},
+		{"ibc denom one hop trailing slash", "transfer/channel-0/atom/", types.Denom{Base: "atom/", Trace: []types.Trace{types.NewTrace("transfer", "channel-0")}}},
+		{"ibc denom one hop multiple slashes", "transfer/channel-0//at/om/", types.Denom{Base: "/at/om/", Trace: []types.Trace{types.NewTrace("transfer", "channel-0")}}},
+		{"ibc denom two hops", "transfer/channel-0/transfer/channel-60/atom", types.Denom{Base: "atom", Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-60")}}},
+		{"ibc denom two hops trailing slash", "transfer/channel-0/transfer/channel-60/atom/", types.Denom{Base: "atom/", Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-60")}}},
+		{"empty prefix", "/uatom", types.Denom{Base: "/uatom"}},
+		{"empty identifiers", "//uatom", types.Denom{Base: "//uatom"}},
+		{"base denom with single '/'", "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", types.Denom{Base: "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA"}},
+		{"single trace identifier", "transfer/", types.Denom{Base: "transfer/"}},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		denom := types.ExtractDenomFromFullPath(tc.fullPath)
+		require.Equal(t, tc.expDenom, denom, tc.name)
 	}
 }

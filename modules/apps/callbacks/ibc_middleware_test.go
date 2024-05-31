@@ -167,9 +167,11 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
 				[]transfertypes.Token{
 					{
-						Denom:  ibctesting.TestCoin.GetDenom(),
+						Denom: transfertypes.Denom{
+							Base:  ibctesting.TestCoin.GetDenom(),
+							Trace: []transfertypes.Trace{},
+						},
 						Amount: ibctesting.TestCoin.Amount.String(),
-						Trace:  []string{},
 					},
 				},
 				ibctesting.TestAccAddress,
@@ -310,9 +312,11 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
 				[]transfertypes.Token{
 					{
-						Denom:  ibctesting.TestCoin.GetDenom(),
+						Denom: transfertypes.Denom{
+							Base:  ibctesting.TestCoin.GetDenom(),
+							Trace: []transfertypes.Trace{},
+						},
 						Amount: ibctesting.TestCoin.Amount.String(),
-						Trace:  []string{},
 					},
 				},
 				ibctesting.TestAccAddress,
@@ -645,9 +649,11 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
 				[]transfertypes.Token{
 					{
-						Denom:  ibctesting.TestCoin.GetDenom(),
+						Denom: transfertypes.Denom{
+							Base:  ibctesting.TestCoin.GetDenom(),
+							Trace: []transfertypes.Trace{},
+						},
 						Amount: ibctesting.TestCoin.Amount.String(),
-						Trace:  []string{},
 					},
 				},
 				ibctesting.TestAccAddress,
@@ -778,9 +784,11 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
 				[]transfertypes.Token{
 					{
-						Denom:  ibctesting.TestCoin.GetDenom(),
+						Denom: transfertypes.Denom{
+							Base:  ibctesting.TestCoin.GetDenom(),
+							Trace: []transfertypes.Trace{},
+						},
 						Amount: ibctesting.TestCoin.Amount.String(),
-						Trace:  []string{},
 					},
 				},
 				ibctesting.TestAccAddress,
@@ -1003,9 +1011,11 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
 		Tokens: []transfertypes.Token{
 			{
-				Denom:  ibctesting.TestCoin.Denom,
+				Denom: transfertypes.Denom{
+					Base:  ibctesting.TestCoin.GetDenom(),
+					Trace: nil,
+				},
 				Amount: ibctesting.TestCoin.Amount.String(),
-				Trace:  nil,
 			},
 		},
 		Sender:         ibctesting.TestAccAddress,
@@ -1038,9 +1048,11 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
 	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
 		Tokens: []transfertypes.Token{
 			{
-				Denom:  ibctesting.TestCoin.Denom,
+				Denom: transfertypes.Denom{
+					Base:  ibctesting.TestCoin.GetDenom(),
+					Trace: nil,
+				},
 				Amount: ibctesting.TestCoin.Amount.String(),
-				Trace:  nil,
 			},
 		},
 		Sender:   ibctesting.TestAccAddress,

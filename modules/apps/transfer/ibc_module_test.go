@@ -555,9 +555,13 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  "atom",
+							Denom: types.Denom{
+								Base: "atom",
+								Trace: []types.Trace{
+									types.NewTrace("transfer", "channel-0"),
+								},
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  []string{"transfer/channel-0"},
 						},
 					},
 					Sender:   sender,
@@ -576,9 +580,11 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: types.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: nil,
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  nil,
 						},
 					},
 					Sender:   sender,
@@ -597,9 +603,11 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom: types.Denom{
+								Base:  ibctesting.TestCoin.Denom,
+								Trace: []types.Trace{{}},
+							},
 							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  []string{""},
 						},
 					},
 					Sender:   sender,
@@ -609,7 +617,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 				data = initialPacketData.(types.FungibleTokenPacketDataV2).GetBytes()
 			},
-			errors.New("trace info must come in pairs of port and channel identifiers"),
+			errors.New("invalid token denom: invalid trace: invalid portID: identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"failure: invalid packet data",

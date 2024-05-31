@@ -20,7 +20,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 		name     string
 		v1Data   types.FungibleTokenPacketData
 		v2Data   types.FungibleTokenPacketDataV2
-		expPanic error
+		expError error
 	}{
 		{
 			"success",
@@ -28,9 +28,13 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom",
+						Denom: types.Denom{
+							Base: "atom",
+							Trace: []types.Trace{
+								types.NewTrace("transfer", "channel-0"),
+							},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, "", nil),
 			nil,
@@ -41,9 +45,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom",
+						Denom: types.Denom{
+							Base:  "atom",
+							Trace: nil,
+						},
 						Amount: "1000",
-						Trace:  nil,
 					},
 				}, sender, receiver, "", nil),
 			nil,
@@ -54,9 +60,13 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/withslash",
+						Denom: types.Denom{
+							Base: "atom/withslash",
+							Trace: []types.Trace{
+								types.NewTrace("transfer", "channel-0"),
+							},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, "", nil),
 			nil,
@@ -67,9 +77,13 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/",
+						Denom: types.Denom{
+							Base: "atom/",
+							Trace: []types.Trace{
+								types.NewTrace("transfer", "channel-0"),
+							},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, "", nil),
 			nil,
@@ -80,9 +94,14 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/pool",
+						Denom: types.Denom{
+							Base: "atom/pool",
+							Trace: []types.Trace{
+								types.NewTrace("transfer", "channel-0"),
+								types.NewTrace("transfer", "channel-1"),
+							},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				}, sender, receiver, "", nil),
 			nil,
@@ -93,9 +112,15 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom",
+						Denom: types.Denom{
+							Base: "atom",
+							Trace: []types.Trace{
+								types.NewTrace("transfer", "channel-0"),
+								types.NewTrace("transfer", "channel-1"),
+								types.NewTrace("transfer-custom", "channel-2"),
+							},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
 				}, sender, receiver, "", nil),
 			nil,
@@ -106,15 +131,21 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/pool",
+						Denom: types.Denom{
+							Base: "atom/pool",
+							Trace: []types.Trace{
+								types.NewTrace("transfer", "channel-0"),
+								types.NewTrace("transfer", "channel-1"),
+								types.NewTrace("transfer-custom", "channel-2"),
+							},
+						},
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
 				}, sender, receiver, "", nil),
 			nil,
 		},
 		{
-			"failure: panics with empty denom",
+			"failure: packet data fails validation with empty denom",
 			types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
 			types.FungibleTokenPacketDataV2{},
 			errorsmod.Wrap(types.ErrInvalidDenomForTransfer, "base denomination cannot be blank"),
@@ -122,14 +153,14 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		expPass := tc.expPanic == nil
+		actualV2Data, err := PacketDataV1ToV2(tc.v1Data)
+
+		expPass := tc.expError == nil
 		if expPass {
-			actualV2Data := PacketDataV1ToV2(tc.v1Data)
+			require.NoError(t, err, "test case: %s", tc.name)
 			require.Equal(t, tc.v2Data, actualV2Data, "test case: %s", tc.name)
 		} else {
-			require.PanicsWithError(t, tc.expPanic.Error(), func() {
-				PacketDataV1ToV2(tc.v1Data)
-			}, "test case: %s", tc.name)
+			require.Error(t, err, "test case: %s", tc.name)
 		}
 	}
 }
