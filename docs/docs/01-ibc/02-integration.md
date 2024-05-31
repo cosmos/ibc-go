@@ -71,7 +71,10 @@ import (
   capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
   capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
   ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+  ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+  "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
   ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+  ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 func NewApp(...args) *App {
@@ -165,6 +168,10 @@ import (
   // other imports
   // ...
   "github.com/cosmos/cosmos-sdk/types/module"
+
+  ibc "github.com/cosmos/ibc-go/v8/modules/core"
+  "github.com/cosmos/ibc-go/modules/capability"
+  "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 )
 
 func NewApp(...args) *App {
@@ -173,9 +180,11 @@ func NewApp(...args) *App {
   app.ModuleManager = module.NewManager(
     // other modules
     // ...
-    capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
-    ibc.NewAppModule(app.IBCKeeper),
-    transfer.NewAppModule(app.TransferKeeper),
+    // highlight-start
++   capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
++   ibc.NewAppModule(app.IBCKeeper),
++   transfer.NewAppModule(app.TransferKeeper),
+    // highlight-end
   )
 
   // ...
@@ -271,6 +280,7 @@ import (
   // ...
   stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
   capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+  ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
   ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
   ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
