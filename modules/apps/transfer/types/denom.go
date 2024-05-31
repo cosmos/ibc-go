@@ -11,6 +11,14 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 )
 
+// NewDenom creates a new Denom instance given the base denomination and trace.
+func NewDenom(base string, trace ...Trace) Denom {
+	return Denom{
+		Base:  base,
+		Trace: trace,
+	}
+}
+
 // Validate performs a basic validation of the Denom fields.
 func (d Denom) Validate() error {
 	// NOTE: base denom validation cannot be performed as each chain may define
