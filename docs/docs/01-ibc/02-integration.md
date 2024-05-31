@@ -239,7 +239,10 @@ import (
 
 clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
 
-tmLightClientModule := ibctm.NewLightClientModule(appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+tmLightClientModule := ibctm.NewLightClientModule(
+  appCodec, 
+  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+)
 clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
 app.ModuleManager = module.NewManager(
