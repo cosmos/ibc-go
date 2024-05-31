@@ -209,11 +209,11 @@ import (
 // app.go
 var (
   // module account permissions
-	maccPerms = map[string][]string{
+  maccPerms = map[string][]string{
     // other module accounts permissions
     // ...
-		ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-	}
+    ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+  }
 )
 ```
 
@@ -280,11 +280,11 @@ func NewApp(...args) *App {
   )
   app.ModuleManager.SetOrderEndBlockers(
     // other modules ...
-		stakingtypes.ModuleName,
-		ibcexported.ModuleName,
-		ibctransfertypes.ModuleName,
+    stakingtypes.ModuleName,
+    ibcexported.ModuleName,
+    ibctransfertypes.ModuleName,
     capabilitytypes.ModuleName,
-	)
+  )
 
   // ...
 
@@ -292,13 +292,13 @@ func NewApp(...args) *App {
   // so that other modules that want to create or claim capabilities afterwards in InitChain
   // can do so safely.
   genesisModuleOrder := []string{
-		capabilitytypes.ModuleName,
-		// other modules
+    capabilitytypes.ModuleName,
+    // other modules
     // ...
-		ibcexported.ModuleName,
+    ibcexported.ModuleName,
     ibctransfertypes.ModuleName,
-	}
-	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
+  }
+  app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 
   // ... continues
 ```
