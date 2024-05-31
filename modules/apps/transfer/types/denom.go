@@ -15,7 +15,7 @@ import (
 func NewDenom(base string, traces ...Trace) Denom {
 	return Denom{
 		Base:  base,
-		Trace: trace,
+		Trace: traces,
 	}
 }
 
