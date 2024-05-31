@@ -371,10 +371,10 @@ The `PacketDataUnmarshaler` interface is defined as follows:
 // PacketDataUnmarshaler defines an optional interface which allows a middleware to
 // request the packet data to be unmarshaled by the base application.
 type PacketDataUnmarshaler interface {
-	// UnmarshalPacketData unmarshals the packet data into a concrete type
+  // UnmarshalPacketData unmarshals the packet data into a concrete type
   // ctx, portID, channelID as provided as argument, so that (if needed)
-	// the packet data can be unmarshaled based on the channel version.
-	UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error)
+  // the packet data can be unmarshaled based on the channel version.
+  UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error)
 }
 ```
 
