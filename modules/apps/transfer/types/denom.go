@@ -11,8 +11,8 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 )
 
-// NewDenom creates a new Denom instance given the base denomination and trace.
-func NewDenom(base string, trace ...Trace) Denom {
+// NewDenom creates a new Denom instance given the base denomination and a variable number of traces.
+func NewDenom(base string, traces ...Trace) Denom {
 	return Denom{
 		Base:  base,
 		Trace: trace,
