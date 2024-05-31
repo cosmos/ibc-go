@@ -95,7 +95,7 @@ func NewApp(...args) *App {
     appCodec,
     keys[ibcexported.StoreKey],
     app.GetSubspace(ibcexported.ModuleName),
-    app.StakingKeeper,
+    ibctm.NewConsensusHost(app.StakingKeeper),
     app.UpgradeKeeper,
     scopedIBCKeeper,
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -219,11 +219,11 @@ var (
 
 #### Integrating light clients
 
-> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below. This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box.
+> Note that from v9 onwards, all light clients are expected to implement the [`LightClientInterface` interface](../03-light-clients/01-developer-guide/02-light-client-module.md#implementing-the-lightclientmodule-interface) defined by core IBC, and have to be explicitly registered in a chain's app.go. This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box. Follow the steps below to integrate the `07-tendermint` light client.
 
-All light clients must be registered with `module.BasicManager` in a chain's app.go file.
+All light clients must be registered with `module.Manager` in a chain's app.go file.
 
-The following code example shows how to register the existing `ibctm.AppModule{}` light client implementation.
+The following code example shows how to instantiate `07-tendermint` light client module and register its `ibctm.AppModule`.
 
 ```go title="app.go"
 import (
@@ -235,6 +235,13 @@ import (
 )
 
 // app.go
+// after sealing the IBC router
+
+clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+
+tmLightClientModule := ibctm.NewLightClientModule(appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+
 app.ModuleManager = module.NewManager(
   // ...
   capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
@@ -243,7 +250,7 @@ app.ModuleManager = module.NewManager(
 
   // register light clients on IBC
   // highlight-next-line
-+ ibctm.NewAppModule(),
++ ibctm.NewAppModule(tmLightClientModule),
 )
 ```
 
