@@ -365,13 +365,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 // acknowledgement was a success then nothing occurs. If the acknowledgement failed,
 // then the sender is refunded their tokens using the refundPacketToken function.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
-	if !ok {
-		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
-
 	prevPacket, found := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if found {
+		channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
+		if !ok {
+			return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		}
+
 		switch ack.Response.(type) {
 		case *channeltypes.Acknowledgement_Result:
 			// the acknowledgement succeeded on the receiving chain so
@@ -410,13 +410,13 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 // packet if the chain acted as a middle hop on a multihop transfer; or refunds
 // the sender if the original packet sent was never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
-	if !ok {
-		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
-
 	prevPacket, found := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if found {
+		channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
+		if !ok {
+			return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		}
+
 		if err := k.revertInFlightChanges(ctx, packet, prevPacket, data); err != nil {
 			return err
 		}
