@@ -518,8 +518,8 @@ func (s *E2ETestSuite) InitiateChannelUpgrade(ctx context.Context, chain ibc.Cha
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
-func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
-	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
+func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.Denom {
+	return transfertypes.ExtractDenomFromFullPath(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
 }
 
 // getValidatorsAndFullNodes returns the number of validators and full nodes respectively that should be used for
