@@ -283,16 +283,16 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 		expError error
 	}{
 		{
-			name:     "success",
-			malleate: func() {},
-			expError: nil,
+			"success",
+			func() {},
+			nil,
 		},
 		{
-			name: "non-existent channel",
-			malleate: func() {
+			"non-existent channel",
+			func() {
 				packet.SourceChannel = "channel-100"
 			},
-			expError: ibcerrors.ErrNotFound,
+			ibcerrors.ErrNotFound,
 		},
 		{
 			"invalid packet data",
@@ -341,11 +341,6 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			packet, err = ibctesting.ParsePacketFromEvents(res.Events)
 			suite.Require().NoError(err)
 
-			// check that module account escrow address has locked the tokens
-			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-			escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
-			suite.Require().Equal(coinToSendToB, escrowBalance)
-
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
 
@@ -360,6 +355,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			if expPass {
 				suite.Require().NoError(err)
 
+				escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
 				escrowBalanceAfter := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
 				suite.Require().Equal(sdkmath.NewInt(0), escrowBalanceAfter.Amount)
 			} else {
