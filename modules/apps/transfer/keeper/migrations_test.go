@@ -207,7 +207,8 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			"success: valid ibc denom escrowed in one channel",
 			func() {
 				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				trace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
+				voucherDenom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				trace := transfertypes.ParseDenomTrace(voucherDenom.FullPath())
 				coin := sdk.NewCoin(trace.IBCDenom(), sdkmath.NewInt(100))
 				denom = trace.IBCDenom()
 
