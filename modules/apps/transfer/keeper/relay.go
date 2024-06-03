@@ -142,7 +142,7 @@ func (k Keeper) sendTransfer(
 	case types.V1:
 		// Length of coins has been checked earlier to be 1 if version is V1.
 		token := tokens[0]
-		packetData := types.NewFungibleTokenPacketData(token.Denom.FullPath(), token.Amount, sender.String(), receiver, memo)
+		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), receiver, memo)
 		packetDataBytes = packetData.GetBytes()
 	case types.V2:
 		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender.String(), receiver, memo)
