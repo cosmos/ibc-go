@@ -66,6 +66,18 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			nil,
 		},
 		{
+			"successful transfer of native token with ics20-1",
+			func() {
+				expEscrowAmount = sdkmath.NewInt(100)
+
+				// Set version to isc20-1.
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.V1
+				})
+			},
+			nil,
+		},
+		{
 			"successful transfer of IBC token with memo",
 			func() {
 				// send IBC token back to chainB
@@ -86,7 +98,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				// channel references wrong ID
 				path.EndpointA.ChannelID = ibctesting.InvalidID
 			},
-			ibcerrors.ErrInvalidRequest,
+			channeltypes.ErrChannelNotFound,
 		},
 		{
 			"failure: sender account is blocked",
