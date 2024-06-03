@@ -99,7 +99,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 
 			path.Setup()
 
-			// configure the channel upgrade to upgrade to an incentivized fee enabled transfer channel
+			// configure the channel upgrade to an incentivized fee enabled transfer channel
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
