@@ -208,7 +208,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			func() {
 				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				voucherDenom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				trace := transfertypes.ParseDenomTrace(voucherDenom.FullPath())
+				trace := transfertypes.ParseDenomTrace(voucherDenom.Path())
 				coin := sdk.NewCoin(trace.IBCDenom(), sdkmath.NewInt(100))
 				denom = trace.IBCDenom()
 
