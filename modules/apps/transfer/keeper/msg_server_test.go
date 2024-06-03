@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			func() {
 				msg.SourceChannel = "channel-100"
 			},
-			ibcerrors.ErrInvalidRequest,
+			channeltypes.ErrChannelNotFound,
 			false,
 		},
 		{
