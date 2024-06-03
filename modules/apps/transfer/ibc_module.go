@@ -1,7 +1,6 @@
 package transfer
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"slices"
@@ -12,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -175,33 +174,6 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
-// unmarshalPacketDataBytesToICS20V2 attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
-// The version of ics20 should be provided and should be either ics20-1 or ics20-2.
-func (IBCModule) unmarshalPacketDataBytesToICS20V2(bz []byte, ics20Version string) (types.FungibleTokenPacketDataV2, error) {
-	switch ics20Version {
-	case types.V1:
-		var datav1 types.FungibleTokenPacketData
-		if err := json.Unmarshal(bz, &datav1); err != nil {
-			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V1 transfer packet data: %s", err.Error())
-		}
-
-		return convertinternal.PacketDataV1ToV2(datav1)
-	case types.V2:
-		var datav2 types.FungibleTokenPacketDataV2
-		if err := json.Unmarshal(bz, &datav2); err != nil {
-			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
-		}
-
-		if err := datav2.ValidateBasic(); err != nil {
-			return types.FungibleTokenPacketDataV2{}, err
-		}
-
-		return datav2, nil
-	default:
-		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrap(types.ErrInvalidVersion, ics20Version)
-	}
-}
-
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
@@ -217,7 +189,7 @@ func (im IBCModule) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.DestinationPort, packet.DestinationChannel))
 	}
 
-	data, ackErr := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
+	data, ackErr := internal.UnmarshalPacketData(packet.GetData(), ics20Version)
 	if ackErr != nil {
 		ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, ackErr.Error())
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
@@ -281,7 +253,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.SourcePort, packet.SourceChannel)
 	}
 
-	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
+	data, err := internal.UnmarshalPacketData(packet.GetData(), ics20Version)
 	if err != nil {
 		return err
 	}
@@ -336,7 +308,7 @@ func (im IBCModule) OnTimeoutPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", packet.SourcePort, packet.SourceChannel)
 	}
 
-	data, err := im.unmarshalPacketDataBytesToICS20V2(packet.GetData(), ics20Version)
+	data, err := internal.UnmarshalPacketData(packet.GetData(), ics20Version)
 	if err != nil {
 		return err
 	}
@@ -411,7 +383,7 @@ func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID strin
 		return nil, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
-	ftpd, err := im.unmarshalPacketDataBytesToICS20V2(bz, ics20Version)
+	ftpd, err := internal.UnmarshalPacketData(bz, ics20Version)
 	if err != nil {
 		return nil, err
 	}
