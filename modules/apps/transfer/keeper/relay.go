@@ -68,6 +68,16 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
+	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, sourcePort, sourceChannel)
+	if !found {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", sourcePort, sourceChannel)
+	}
+
+	// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
+	if appVersion == types.V1 && len(coins) > 1 {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with ics20-1")
+	}
+
 	destinationPort := channel.Counterparty.PortId
 	destinationChannel := channel.Counterparty.ChannelId
 
@@ -127,9 +137,21 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	packetData := types.NewFungibleTokenPacketDataV2(tokens, sender.String(), receiver, memo)
+	var packetDataBytes []byte
+	switch appVersion {
+	case types.V1:
+		// Length of coins has been checked earlier to be 1 if version is V1.
+		token := tokens[0]
+		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), receiver, memo)
+		packetDataBytes = packetData.GetBytes()
+	case types.V2:
+		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender.String(), receiver, memo)
+		packetDataBytes = packetData.GetBytes()
+	default:
+		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
+	}
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
 		return 0, err
 	}
@@ -141,7 +163,7 @@ func (k Keeper) sendTransfer(
 				telemetry.SetGaugeWithLabels(
 					[]string{"tx", "msg", "ibc", "transfer"},
 					float32(amount.Int64()),
-					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.Denom.FullPath())},
+					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.Denom.Path())},
 				)
 			}
 		}
@@ -213,13 +235,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return err
 			}
 
-			unprefixedDenomPath := token.Denom.FullPath()
+			denomPath := token.Denom.Path()
 			defer func() {
 				if transferAmount.IsInt64() {
 					telemetry.SetGaugeWithLabels(
 						[]string{"ibc", types.ModuleName, "packet", "receive"},
 						float32(transferAmount.Int64()),
-						[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, unprefixedDenomPath)},
+						[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, denomPath)},
 					)
 				}
 
@@ -274,13 +296,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 		}
 
-		prefixedDenomPath := token.Denom.FullPath()
+		denomPath := token.Denom.Path()
 		defer func() {
 			if transferAmount.IsInt64() {
 				telemetry.SetGaugeWithLabels(
 					[]string{"ibc", types.ModuleName, "packet", "receive"},
 					float32(transferAmount.Int64()),
-					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, prefixedDenomPath)},
+					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, denomPath)},
 				)
 			}
 
