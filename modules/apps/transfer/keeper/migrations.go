@@ -86,6 +86,7 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 				panic(err)
 			}
 
+			// defense in depth
 			if dt.IBCDenom() != denom.IBCDenom() {
 				// This migration must not change the SDK coin denom.
 				// A panic should occur to prevent the chain from using corrupted state.
