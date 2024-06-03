@@ -100,7 +100,7 @@ func (k Keeper) sendTransfer(
 
 			// obtain the escrow address for the source channel end
 			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-			if err := k.escrowToken(ctx, sender, escrowAddress, coin); err != nil {
+			if err := k.escrowCoin(ctx, sender, escrowAddress, coin); err != nil {
 				return 0, err
 			}
 
@@ -209,7 +209,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			}
 
 			escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-			if err := k.unescrowToken(ctx, escrowAddress, receiver, coin); err != nil {
+			if err := k.unescrowCoin(ctx, escrowAddress, receiver, coin); err != nil {
 				return err
 			}
 
@@ -343,7 +343,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 		if token.Denom.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel()) {
 			// unescrow tokens back to sender
 			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-			if err := k.unescrowToken(ctx, escrowAddress, sender, coin); err != nil {
+			if err := k.unescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
 				return err
 			}
 
@@ -366,26 +366,26 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	return nil
 }
 
-// escrowToken will send the given token from the provided sender to the escrow address. It will also
-// update the total escrowed amount by adding the escrowed token to the current total escrow.
-func (k Keeper) escrowToken(ctx sdk.Context, sender, escrowAddress sdk.AccAddress, token sdk.Coin) error {
-	if err := k.bankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(token)); err != nil {
+// escrowCoin will send the given coin from the provided sender to the escrow address. It will also
+// update the total escrowed amount by adding the escrowed coin's amount to the current total escrow.
+func (k Keeper) escrowCoin(ctx sdk.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
+	if err := k.bankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
 		// failure is expected for insufficient balances
 		return err
 	}
 
 	// track the total amount in escrow keyed by denomination to allow for efficient iteration
-	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-	newTotalEscrow := currentTotalEscrow.Add(token)
+	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, coin.GetDenom())
+	newTotalEscrow := currentTotalEscrow.Add(coin)
 	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 
 	return nil
 }
 
-// unescrowToken will send the given token from the escrow address to the provided receiver. It will also
-// update the total escrow by deducting the unescrowed token from the current total escrow.
-func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAddress, token sdk.Coin) error {
-	if err := k.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(token)); err != nil {
+// unescrowCoin will send the given coin from the escrow address to the provided receiver. It will also
+// update the total escrow by deducting the unescrowed coin's amount from the current total escrow.
+func (k Keeper) unescrowCoin(ctx sdk.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
+	if err := k.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(coin)); err != nil {
 		// NOTE: this error is only expected to occur given an unexpected bug or a malicious
 		// counterparty module. The bug may occur in bank or any part of the code that allows
 		// the escrow address to be drained. A malicious counterparty module could drain the
@@ -394,8 +394,8 @@ func (k Keeper) unescrowToken(ctx sdk.Context, escrowAddress, receiver sdk.AccAd
 	}
 
 	// track the total amount in escrow keyed by denomination to allow for efficient iteration
-	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, token.GetDenom())
-	newTotalEscrow := currentTotalEscrow.Sub(token)
+	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, coin.GetDenom())
+	newTotalEscrow := currentTotalEscrow.Sub(coin)
 	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 
 	return nil
