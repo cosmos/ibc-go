@@ -9,7 +9,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-// UnmarshalPacketDataBytesToICS20V2 attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
+// UnmarshalPacketData attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
 // The version of ics20 should be provided and should be either ics20-1 or ics20-2.
 func UnmarshalPacketData(bz []byte, ics20Version string) (types.FungibleTokenPacketDataV2, error) {
 	switch ics20Version {
