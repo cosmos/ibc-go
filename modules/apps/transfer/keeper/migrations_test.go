@@ -48,25 +48,95 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
+func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 	testCases := []struct {
 		msg            string
 		malleate       func()
-		expectedTraces []transfertypes.DenomTrace
+		expectedDenoms transfertypes.Denoms
 	}{
+		{
+			"success: no trace",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "uatom",
+					})
+			},
+			transfertypes.Denoms{
+				transfertypes.NewDenom("uatom"),
+			},
+		},
+		{
+			"success: single trace",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "uatom", Path: "transfer/channel-49",
+					})
+			},
+			transfertypes.Denoms{
+				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-49")),
+			},
+		},
+		{
+			"success: multiple trace",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "uatom", Path: "transfer/channel-49/transfer/channel-32/transfer/channel-2",
+					})
+			},
+			transfertypes.Denoms{
+				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-49"), transfertypes.NewTrace("transfer", "channel-32"), transfertypes.NewTrace("transfer", "channel-2")),
+			},
+		},
+		{
+			"success: many denoms",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "uatom", Path: "transfer/channel-49",
+					})
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "pineapple", Path: "transfer/channel-0",
+					})
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "apple", Path: "transfer/channel-0",
+					})
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					suite.chainA.GetContext(),
+					transfertypes.DenomTrace{
+						BaseDenom: "cucumber", Path: "transfer/channel-102/transfer/channel-0",
+					})
+
+			},
+			transfertypes.Denoms{
+				transfertypes.NewDenom("apple", transfertypes.NewTrace("transfer", "channel-0")),
+				transfertypes.NewDenom("pineapple", transfertypes.NewTrace("transfer", "channel-0")),
+				transfertypes.NewDenom("cucumber", transfertypes.NewTrace("transfer", "channel-102"), transfertypes.NewTrace("transfer", "channel-0")),
+				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-49")),
+			},
+		},
+
 		{
 			"success: two slashes in base denom",
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
 					transfertypes.DenomTrace{
-						BaseDenom: "pool/1", Path: "transfer/channel-0/gamm",
+						BaseDenom: "gamm/pool/1", Path: "transfer/channel-0",
 					})
 			},
-			[]transfertypes.DenomTrace{
-				{
-					BaseDenom: "gamm/pool/1", Path: "transfer/channel-0",
-				},
+			transfertypes.Denoms{
+				transfertypes.NewDenom("gamm/pool/1", transfertypes.NewTrace("transfer", "channel-0")),
 			},
 		},
 		{
@@ -75,43 +145,11 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
 					transfertypes.DenomTrace{
-						BaseDenom: "0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channel-149/erc",
+						BaseDenom: "erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channel-149",
 					})
 			},
-			[]transfertypes.DenomTrace{
-				{
-					BaseDenom: "erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channel-149",
-				},
-			},
-		},
-		{
-			"success: multiple slashes in a row in base denom",
-			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
-						BaseDenom: "1", Path: "transfer/channel-5/gamm//pool",
-					})
-			},
-			[]transfertypes.DenomTrace{
-				{
-					BaseDenom: "gamm//pool/1", Path: "transfer/channel-5",
-				},
-			},
-		},
-		{
-			"success: multihop base denom",
-			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
-						BaseDenom: "transfer/channel-1/uatom", Path: "transfer/channel-0",
-					})
-			},
-			[]transfertypes.DenomTrace{
-				{
-					BaseDenom: "uatom", Path: "transfer/channel-0/transfer/channel-1",
-				},
+			transfertypes.Denoms{
+				transfertypes.NewDenom("erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", transfertypes.NewTrace("transfer", "channel-149")),
 			},
 		},
 		{
@@ -120,35 +158,33 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
 					transfertypes.DenomTrace{
-						BaseDenom: "customport/channel-7/uatom", Path: "transfer/channel-0/transfer/channel-1",
+						BaseDenom: "uatom", Path: "transfer/channel-0/customport/channel-7",
 					})
 			},
-			[]transfertypes.DenomTrace{
-				{
-					BaseDenom: "uatom", Path: "transfer/channel-0/transfer/channel-1/customport/channel-7",
-				},
+			transfertypes.Denoms{
+				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-0"), transfertypes.NewTrace("customport", "channel-7")),
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
+		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
-			tc.malleate() // explicitly set up denom traces
+			tc.malleate()
 
 			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			err := migrator.MigrateTraces(suite.chainA.GetContext())
+			err := migrator.MigrateDenomTraceToDenom(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 
-			traces := suite.chainA.GetSimApp().TransferKeeper.GetAllDenomTraces(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedTraces, traces)
+			denoms := suite.chainA.GetSimApp().TransferKeeper.GetAllDenoms(suite.chainA.GetContext())
+			suite.Require().Equal(tc.expectedDenoms, denoms)
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
+func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenomCorruptionDetection() {
 	// IBCDenom() previously would return "customport/channel-0/uatom", but now should return ibc/{hash}
 	corruptedDenomTrace := transfertypes.DenomTrace{
 		BaseDenom: "customport/channel-0/uatom",
@@ -158,7 +194,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 
 	migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
 	suite.Panics(func() {
-		migrator.MigrateTraces(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
+		migrator.MigrateDenomTraceToDenom(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
 	})
 }
 
@@ -208,11 +244,8 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			func() {
 				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				voucherDenom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				trace := transfertypes.ParseDenomTrace(voucherDenom.FullPath())
-				coin := sdk.NewCoin(trace.IBCDenom(), sdkmath.NewInt(100))
-				denom = trace.IBCDenom()
-
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), trace)
+				coin := sdk.NewCoin(voucherDenom.IBCDenom(), sdkmath.NewInt(100))
+				denom = voucherDenom.IBCDenom()
 
 				// funds the escrow account to have balance
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrowAddress, sdk.NewCoins(coin)))
