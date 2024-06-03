@@ -132,7 +132,7 @@ Once the `Router` has been set, no new routes can be added.
 func NewApp(...args) *App {
   // .. continuation from above
 
-  // Create static IBC router, add ibc-tranfer module route, then set and seal it
+  // Create static IBC router, add ibc-transfer module route, then set and seal it
   ibcRouter := port.NewRouter()
   ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
   // Setting Router will finalize all routes by sealing router
