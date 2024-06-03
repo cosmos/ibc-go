@@ -28,16 +28,6 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	coins := msg.GetCoins()
 
-	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
-	if !found {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", msg.SourcePort, msg.SourceChannel)
-	}
-
-	// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
-	if appVersion == types.V1 && len(coins) > 1 {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with ics20-1")
-	}
-
 	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
 	}
