@@ -148,7 +148,7 @@ func (k Keeper) sendTransfer(
 		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender.String(), receiver, memo)
 		packetDataBytes = packetData.GetBytes()
 	default:
-		panic(fmt.Errorf("app version must be one of %s or %s", types.V1, types.V2))
+		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
 	}
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
