@@ -98,11 +98,13 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 			return false
 		})
 
-	for _, d := range denoms {
-		m.keeper.SetDenom(ctx, d)
+	if len(denoms) != len(denomTraces) {
+		panic(fmt.Errorf("length of denoms does not match length of denom traces, %d != %d", len(denoms), len(denomTraces)))
 	}
-	for _, dt := range denomTraces {
-		m.keeper.deleteDenomTrace(ctx, dt)
+
+	for i := 0; i < len(denoms); i++ {
+		m.keeper.SetDenom(ctx, denoms[i])
+		m.keeper.deleteDenomTrace(ctx, denomTraces[i])
 	}
 
 	return nil
