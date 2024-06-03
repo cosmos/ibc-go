@@ -116,7 +116,6 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 					transfertypes.DenomTrace{
 						BaseDenom: "cucumber", Path: "transfer/channel-102/transfer/channel-0",
 					})
-
 			},
 			transfertypes.Denoms{
 				transfertypes.NewDenom("apple", transfertypes.NewTrace("transfer", "channel-0")),

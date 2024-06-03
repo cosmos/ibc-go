@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 func TestDenomTrace_IBCDenom(t *testing.T) {

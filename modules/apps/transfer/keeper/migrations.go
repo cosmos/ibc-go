@@ -108,10 +108,6 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 	return nil
 }
 
-func equalTraces(dtA, dtB types.DenomTrace) bool {
-	return dtA.BaseDenom == dtB.BaseDenom && dtA.Path == dtB.Path
-}
-
 // setDenomTrace sets a new {trace hash -> denom trace} pair to the store.
 func (k Keeper) setDenomTrace(ctx sdk.Context, denomTrace types.DenomTrace) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
