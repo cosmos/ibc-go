@@ -355,7 +355,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			// denom trace of tokens received on chain B and the associated expected metadata
 			denomOnB := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 			expDenomMetadataOnB := banktypes.Metadata{
-				Description: fmt.Sprintf("IBC token from %s", denomOnB.FullPath()),
+				Description: fmt.Sprintf("IBC token from %s", denomOnB.Path()),
 				DenomUnits: []*banktypes.DenomUnit{
 					{
 						Denom:    denomOnB.Base,
@@ -363,8 +363,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 					},
 				},
 				Base:    denomOnB.IBCDenom(),
-				Display: denomOnB.FullPath(),
-				Name:    fmt.Sprintf("%s IBC token", denomOnB.FullPath()),
+				Display: denomOnB.Path(),
+				Name:    fmt.Sprintf("%s IBC token", denomOnB.Path()),
 				Symbol:  strings.ToUpper(denomOnB.Base),
 			}
 
