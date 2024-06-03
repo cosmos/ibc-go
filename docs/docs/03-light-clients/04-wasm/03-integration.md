@@ -21,6 +21,7 @@ The following table shows the compatibility matrix between the `08-wasm` module,
 
 |            **Version**           |         **Git commit to import**         |
 |:--------------------------------:|:----------------------------------------:|
+| `v0.2.0+ibc-go-v8.3-wasmvm-v2.0` | 4b45d1822fb6a0698e7621112b92c13679061c40 |
 | `v0.1.1+ibc-go-v7.3-wasmvm-v1.5` | 7ee2a2452b79d0bc8316dc622a1243afa058e8cb |
 | `v0.1.0+ibc-go-v8.0-wasmvm-v1.5` | 57fcdb9a9a9db9b206f7df2f955866dc4e10fef4 |
 | `v0.1.0+ibc-go-v7.3-wasmvm-v1.5` | b306e7a706e1f84a5e11af0540987bd68de9bae5 |
@@ -283,7 +284,7 @@ Currently the only option available is the `WithQueryPlugins` option, which allo
 
 #### `WithQueryPlugins`
 
-By default, the `08-wasm` module does not configure any querier options for light client contracts. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L45) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L54-L61).
+By default, the `08-wasm` module does not configure any querier options for light client contracts. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v2.0.1/packages/std/src/query/mod.rs#L48) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v2.0.1/packages/std/src/query/mod.rs#L57-L65).
 
 Assuming that the keeper is not yet instantiated, the following sample code shows how to register query plugins for the `08-wasm` module.
 

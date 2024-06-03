@@ -272,7 +272,7 @@ Currently the only option available is the `WithQueryPlugins` option, which allo
 
 #### `WithQueryPlugins`
 
-By default, the `08-wasm` module does not support any queries. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L45) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L54-L61).
+By default, the `08-wasm` module does not configure any querier options for light client contracts. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v2.0.1/packages/std/src/query/mod.rs#L48) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v2.0.1/packages/std/src/query/mod.rs#L57-L65).
 
 Assuming that the keeper is not yet instantiated, the following sample code shows how to register query plugins for the `08-wasm` module.
 
@@ -286,6 +286,16 @@ queryPlugins := ibcwasmtypes.QueryPlugins {
   // The `AcceptListStargateQuerier` function will return a query plugin that will only allow queries for the paths in the `myAcceptList`.
   // The query responses are encoded in protobuf unlike the implementation in `x/wasm`.
   Stargate: ibcwasmtypes.AcceptListStargateQuerier(myAcceptList),
+}
+```
+
+Note that the `Stargate` querier appends the user defined accept list of query routes to a default list defined by the `08-wasm` module.
+The `defaultAcceptList` defines a single query route: `"/ibc.core.client.v1.Query/VerifyMembership"`. This allows for light client smart contracts to delegate parts of their workflow to other light clients for auxiliary proof verification. For example, proof of inclusion of block and tx data by a data availability provider.
+
+```go
+// defaultAcceptList defines a set of default allowed queries made available to the Querier.
+var defaultAcceptList = []string{
+  "/ibc.core.client.v1.Query/VerifyMembership",
 }
 ```
 
