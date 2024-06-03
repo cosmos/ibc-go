@@ -100,7 +100,7 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 		})
 
 	if len(denoms) != len(denomTraces) {
-		panic(fmt.Errorf("length of denoms does not match length of denom traces, %d != %d", len(denoms), len(denomTraces)))
+		return fmt.Errorf("length of denoms does not match length of denom traces, %d != %d", len(denoms), len(denomTraces))
 	}
 
 	for i := 0; i < len(denoms); i++ {
