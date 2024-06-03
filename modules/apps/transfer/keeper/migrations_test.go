@@ -180,22 +180,51 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 
 			denoms := suite.chainA.GetSimApp().TransferKeeper.GetAllDenoms(suite.chainA.GetContext())
 			suite.Require().Equal(tc.expectedDenoms, denoms)
+
+			// assert no leftover denom traces
+			suite.chainA.GetSimApp().TransferKeeper.IterateDenomTraces(suite.chainA.GetContext(),
+				func(dt transfertypes.DenomTrace) (stop bool) {
+					suite.FailNow("DenomTrace key still exists", dt)
+					return false
+				},
+			)
 		})
 	}
 }
 
 func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenomCorruptionDetection() {
-	// IBCDenom() previously would return "customport/channel-0/uatom", but now should return ibc/{hash}
-	corruptedDenomTrace := transfertypes.DenomTrace{
-		BaseDenom: "customport/channel-0/uatom",
-		Path:      "",
+	testCases := []struct {
+		name       string
+		denomTrace transfertypes.DenomTrace
+	}{
+		{
+			"corrupted denom trace, denom.IBCHash() does not match",
+			transfertypes.DenomTrace{
+				BaseDenom: "customport/channel-0/uatom",
+				Path:      "",
+			},
+		},
+		{
+			"invalid denom trace, base denom is empty",
+			transfertypes.DenomTrace{
+				BaseDenom: "",
+				Path:      "transfer/channel-0",
+			},
+		},
 	}
-	suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), corruptedDenomTrace)
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
-	migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-	suite.Panics(func() {
-		migrator.MigrateDenomTraceToDenom(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
-	})
+			suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), tc.denomTrace)
+
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			suite.Panics(func() {
+				migrator.MigrateDenomTraceToDenom(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
+			})
+		})
+	}
 }
 
 func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
