@@ -52,7 +52,7 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 	}
 }
 
-func (suite *TypesTestSuite) TestFullPath() {
+func (suite *TypesTestSuite) TestPath() {
 	testCases := []struct {
 		name    string
 		denom   types.Denom
