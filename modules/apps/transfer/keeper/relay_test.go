@@ -66,6 +66,18 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			nil,
 		},
 		{
+			"successful transfer of native token with ics20-1",
+			func() {
+				expEscrowAmount = sdkmath.NewInt(100)
+
+				// Set version to isc20-1.
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.V1
+				})
+			},
+			nil,
+		},
+		{
 			"successful transfer of IBC token with memo",
 			func() {
 				// send IBC token back to chainB
@@ -86,7 +98,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				// channel references wrong ID
 				path.EndpointA.ChannelID = ibctesting.InvalidID
 			},
-			ibcerrors.ErrInvalidRequest,
+			channeltypes.ErrChannelNotFound,
 		},
 		{
 			"failure: sender account is blocked",
@@ -355,7 +367,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			// denom trace of tokens received on chain B and the associated expected metadata
 			denomOnB := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 			expDenomMetadataOnB := banktypes.Metadata{
-				Description: fmt.Sprintf("IBC token from %s", denomOnB.FullPath()),
+				Description: fmt.Sprintf("IBC token from %s", denomOnB.Path()),
 				DenomUnits: []*banktypes.DenomUnit{
 					{
 						Denom:    denomOnB.Base,
@@ -363,8 +375,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 					},
 				},
 				Base:    denomOnB.IBCDenom(),
-				Display: denomOnB.FullPath(),
-				Name:    fmt.Sprintf("%s IBC token", denomOnB.FullPath()),
+				Display: denomOnB.Path(),
+				Name:    fmt.Sprintf("%s IBC token", denomOnB.Path()),
 				Symbol:  strings.ToUpper(denomOnB.Base),
 			}
 
