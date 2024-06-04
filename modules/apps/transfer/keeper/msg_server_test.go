@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			"success: multidenom",
 			func() {
 				coin2 = sdk.NewCoin("bond", sdkmath.NewInt(100))
-				coins := sdk.NewCoins(coin1, coin2)
+				coins := []sdk.Coin{coin1, coin2}
 
 				// send some coins of the second denom from bank module to the sender account as well
 				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2)))
@@ -209,34 +209,28 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			// Verify events
 			events := ctx.EventManager().Events().ToABCIEvents()
 
+			var tokens []types.Token
+			token1, _ := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin1)
+			tokens = append(tokens, token1)
+
 			var expEvents []abci.Event
 			if tc.multiDenom {
-				expEvents = sdk.Events{
-					sdk.NewEvent(types.EventTypeTransfer,
-						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
-						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-						sdk.NewAttribute(types.AttributeKeyTokens, sdk.NewCoins(coin1, coin2).String()),
-					),
-					sdk.NewEvent(
-						sdk.EventTypeMessage,
-						sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-					),
-				}.ToABCIEvents()
-			} else {
-				expEvents = sdk.Events{
-					sdk.NewEvent(types.EventTypeTransfer,
-						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
-						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-						sdk.NewAttribute(types.AttributeKeyTokens, coin1.String()),
-					),
-					sdk.NewEvent(
-						sdk.EventTypeMessage,
-						sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-					),
-				}.ToABCIEvents()
+				token2, _ := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin2)
+				tokens = append(tokens, token2)
 			}
+
+			expEvents = sdk.Events{
+				sdk.NewEvent(types.EventTypeTransfer,
+					sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
+					sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+					sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(tokens).String()),
+					sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+				),
+				sdk.NewEvent(
+					sdk.EventTypeMessage,
+					sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+				),
+			}.ToABCIEvents()
 
 			expPass := tc.expError == nil
 			if expPass {

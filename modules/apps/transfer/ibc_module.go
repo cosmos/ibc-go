@@ -12,6 +12,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -209,7 +210,7 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
-	internal.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
+	events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -241,7 +242,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	internal.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
+	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 
 	return nil
 }
@@ -267,7 +268,7 @@ func (im IBCModule) OnTimeoutPacket(
 		return err
 	}
 
-	internal.EmitOnTimeoutEvent(ctx, data)
+	events.EmitOnTimeoutEvent(ctx, data)
 	return nil
 }
 

@@ -1,4 +1,4 @@
-package internal
+package events
 
 import (
 	"fmt"
@@ -8,6 +8,23 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
+
+// EmitTransferEvent emits a ibc transfer event on successful transfers.
+func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.Tokens, memo string) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeTransfer,
+			sdk.NewAttribute(types.AttributeKeySender, sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
+			sdk.NewAttribute(types.AttributeKeyTokens, tokens.String()),
+			sdk.NewAttribute(types.AttributeKeyMemo, memo),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		),
+	})
+}
 
 // EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
 func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) {
@@ -78,23 +95,6 @@ func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDat
 			sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Sender),
 			sdk.NewAttribute(types.AttributeKeyRefundTokens, types.Tokens(packetData.Tokens).String()),
 			sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
-}
-
-// EmitTransferEvent emits a ibc transfer event on successful transfers.
-func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.Tokens, memo string) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeTransfer,
-			sdk.NewAttribute(types.AttributeKeySender, sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, tokens.String()),
-			sdk.NewAttribute(types.AttributeKeyMemo, memo),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
