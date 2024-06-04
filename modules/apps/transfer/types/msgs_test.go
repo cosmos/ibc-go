@@ -40,8 +40,8 @@ var (
 	receiver  = sdk.AccAddress("testaddr2").String()
 	emptyAddr string
 
-	coin              = sdk.NewCoin("atom", sdkmath.NewInt(100))
-	coins             = sdk.NewCoins(coin)
+	coin              = ibctesting.TestCoin
+	coins             = ibctesting.TestCoins
 	ibcCoins          = sdk.NewCoins(sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.NewInt(100)))
 	invalidIBCCoins   = sdk.NewCoins(sdk.NewCoin("ibc/7F1D3FCF4AE79E1554", sdkmath.NewInt(100)))
 	invalidDenomCoins = []sdk.Coin{{Denom: "0atom", Amount: sdkmath.NewInt(100)}}
