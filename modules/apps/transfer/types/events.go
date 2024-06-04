@@ -6,7 +6,7 @@ const (
 	EventTypePacket       = "fungible_token_packet"
 	EventTypeTransfer     = "ibc_transfer"
 	EventTypeChannelClose = "channel_closed"
-	EventTypeDenomTrace   = "denomination_trace"
+	EventTypeDenom        = "denomination"
 
 	AttributeKeySender         = "sender"
 	AttributeKeyReceiver       = "receiver"

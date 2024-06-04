@@ -275,7 +275,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeDenomTrace,
+				types.EventTypeDenom,
 				sdk.NewAttribute(types.AttributeKeyTraceHash, token.Denom.Hash().String()),
 				sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
 			),
