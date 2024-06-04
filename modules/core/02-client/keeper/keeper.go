@@ -110,14 +110,14 @@ func (k *Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.Clie
 		return nil, false
 	}
 
-	clientState := k.MustUnmarshalClientState(bz)
+	clientState := types.MustUnmarshalClientState(k.cdc, bz)
 	return clientState, true
 }
 
 // SetClientState sets a particular Client to the store
 func (k *Keeper) SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	store := k.ClientStore(ctx, clientID)
-	store.Set(host.ClientStateKey(), k.MustMarshalClientState(clientState))
+	store.Set(host.ClientStateKey(), types.MustMarshalClientState(k.cdc, clientState))
 }
 
 // GetClientConsensusState gets the stored consensus state from a client at a given height.
@@ -128,7 +128,7 @@ func (k *Keeper) GetClientConsensusState(ctx sdk.Context, clientID string, heigh
 		return nil, false
 	}
 
-	consensusState := k.MustUnmarshalConsensusState(bz)
+	consensusState := types.MustUnmarshalConsensusState(k.cdc, bz)
 	return consensusState, true
 }
 
@@ -136,7 +136,7 @@ func (k *Keeper) GetClientConsensusState(ctx sdk.Context, clientID string, heigh
 // height
 func (k *Keeper) SetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height, consensusState exported.ConsensusState) {
 	store := k.ClientStore(ctx, clientID)
-	store.Set(host.ConsensusStateKey(height), k.MustMarshalConsensusState(consensusState))
+	store.Set(host.ConsensusStateKey(height), types.MustMarshalConsensusState(k.cdc, consensusState))
 }
 
 // GetNextClientSequence gets the next client sequence from the store.
@@ -173,7 +173,7 @@ func (k *Keeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string
 		}
 		clientID := keySplit[1]
 		height := types.MustParseHeight(keySplit[3])
-		consensusState := k.MustUnmarshalConsensusState(iterator.Value())
+		consensusState := types.MustUnmarshalConsensusState(k.cdc, iterator.Value())
 
 		consensusStateWithHeight := types.NewConsensusStateWithHeight(height, consensusState)
 
@@ -359,7 +359,7 @@ func (k *Keeper) IterateClientStates(ctx sdk.Context, storePrefix []byte, cb fun
 		}
 
 		clientID := host.MustParseClientStatePath(path)
-		clientState := k.MustUnmarshalClientState(iterator.Value())
+		clientState := types.MustUnmarshalClientState(k.cdc, iterator.Value())
 
 		if cb(clientID, clientState) {
 			break

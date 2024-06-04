@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -42,7 +43,7 @@ func TestDecodeStore(t *testing.T) {
 		Pairs: []kv.Pair{
 			{
 				Key:   host.FullClientStateKey(clientID),
-				Value: app.IBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
+				Value: types.MustMarshalClientState(app.AppCodec(), clientState),
 			},
 			{
 				Key:   host.ConnectionKey(connectionID),
