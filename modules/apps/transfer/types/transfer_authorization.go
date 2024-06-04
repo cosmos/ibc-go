@@ -52,14 +52,13 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
-	allocation := a.Allocations[index]
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !isAllowedAddress(ctx, msgTransfer.Receiver, allocation.AllowList) {
+	if !isAllowedAddress(ctx, msgTransfer.Receiver, a.Allocations[index].AllowList) {
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 	}
 
-	err := validateMemo(ctx, msgTransfer.Memo, allocation.AllowedPacketData)
+	err := validateMemo(ctx, msgTransfer.Memo, a.Allocations[index].AllowedPacketData)
 	if err != nil {
 		return authz.AcceptResponse{}, err
 	}
@@ -71,7 +70,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 	for _, coin := range msgTransfer.GetCoins() {
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
 		// if there is no unlimited spend, then we need to subtract the amount from the spend limit to get the limit left
-		if allocation.SpendLimit.AmountOf(coin.Denom).Equal(UnboundedSpendLimit()) {
+		if a.Allocations[index].SpendLimit.AmountOf(coin.Denom).Equal(UnboundedSpendLimit()) {
 			continue
 		}
 
@@ -83,11 +82,11 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 		allocationModified = true
 
 		a.Allocations[index] = Allocation{
-			SourcePort:        allocation.SourcePort,
-			SourceChannel:     allocation.SourceChannel,
+			SourcePort:        a.Allocations[index].SourcePort,
+			SourceChannel:     a.Allocations[index].SourceChannel,
 			SpendLimit:        limitLeft,
-			AllowList:         allocation.AllowList,
-			AllowedPacketData: allocation.AllowedPacketData,
+			AllowList:         a.Allocations[index].AllowList,
+			AllowedPacketData: a.Allocations[index].AllowedPacketData,
 		}
 	}
 
