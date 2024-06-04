@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/types/kv"
-
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
