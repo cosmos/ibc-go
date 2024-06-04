@@ -276,7 +276,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			k.setDenomMetadata(ctx, token.Denom)
 		}
 
-		events.EmitDenomTraceEvent(ctx, token.Denom.Hash().String(), voucherDenom)
+		events.EmitDenomEvent(ctx, token)
+
 		voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
 		// mint new tokens if the source of the transfer is the same chain

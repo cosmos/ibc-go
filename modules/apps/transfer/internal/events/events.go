@@ -103,13 +103,13 @@ func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDat
 	})
 }
 
-// EmitDenomTraceEvent emits a denomination trace event in the OnRecv callback.
-func EmitDenomTraceEvent(ctx sdk.Context, traceHash string, voucherDenom string) {
+// EmitDenomEvent emits a denomination event in the OnRecv callback.
+func EmitDenomEvent(ctx sdk.Context, token types.Token) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeDenomTrace,
-			sdk.NewAttribute(types.AttributeKeyTraceHash, traceHash),
-			sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
+			types.EventTypeDenom,
+			sdk.NewAttribute(types.AttributeKeyDenomHash, token.Denom.Hash().String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, token.Denom.String()),
 		),
 	)
 }
