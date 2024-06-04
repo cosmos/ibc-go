@@ -209,7 +209,7 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
-	keeper.EmitOnRecvPacketEvents(ctx, data, ack, ackErr)
+	internal.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -241,7 +241,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	keeper.EmitOnAckEvents(ctx, data, ack)
+	internal.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 
 	return nil
 }
@@ -267,7 +267,7 @@ func (im IBCModule) OnTimeoutPacket(
 		return err
 	}
 
-	keeper.EmitOnTimeoutEvents(ctx, data)
+	internal.EmitOnTimeoutEvent(ctx, data)
 	return nil
 }
 

@@ -1,4 +1,4 @@
-package keeper
+package internal
 
 import (
 	"fmt"
@@ -9,7 +9,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
-func EmitOnRecvPacketEvents(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) {
+// EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
+func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) {
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
@@ -34,7 +35,8 @@ func EmitOnRecvPacketEvents(ctx sdk.Context, packetData types.FungibleTokenPacke
 	})
 }
 
-func EmitOnAckEvents(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
+// EmitOnAcknowledgementPacketEvent emits a fungible token packet event in the OnAcknowledgementPacket callback
+func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
@@ -68,7 +70,8 @@ func EmitOnAckEvents(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2
 	}
 }
 
-func EmitOnTimeoutEvents(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2) {
+// EmitOnTimeoutPacketEvent emits a fungible token packet event in the OnTimeoutPacket callback
+func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeout,
@@ -83,7 +86,8 @@ func EmitOnTimeoutEvents(ctx sdk.Context, packetData types.FungibleTokenPacketDa
 	})
 }
 
-func emitTransferEvents(ctx sdk.Context, msg types.MsgTransfer) {
+// EmitTransferEvent emits a ibc transfer event on successful transfers.
+func EmitTransferEvent(ctx sdk.Context, msg types.MsgTransfer) {
 	coins := msg.GetCoins()
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -101,7 +105,8 @@ func emitTransferEvents(ctx sdk.Context, msg types.MsgTransfer) {
 	})
 }
 
-func emitDenomTraceEvent(ctx sdk.Context, traceHash string, voucherDenom string) {
+// EmitDenomTraceEvent emits a denomination trace event in the OnRecv callback.
+func EmitDenomTraceEvent(ctx sdk.Context, traceHash string, voucherDenom string) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDenomTrace,
