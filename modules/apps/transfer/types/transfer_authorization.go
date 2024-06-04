@@ -81,16 +81,13 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 
 		allocationModified = true
 
-		a.Allocations[index] = Allocation{
-			SourcePort:        a.Allocations[index].SourcePort,
-			SourceChannel:     a.Allocations[index].SourceChannel,
-			SpendLimit:        limitLeft,
-			AllowList:         a.Allocations[index].AllowList,
-			AllowedPacketData: a.Allocations[index].AllowedPacketData,
-		}
+		// modify the spend limit with the reduced amount.
+		a.Allocations[index].SpendLimit = limitLeft
 	}
 
 	// if the spend limit is zero of the associated allocation then we delete it.
+	// NOTE: SpendLimit is an array of coins, with each one representing the remaining spend limit for an
+	// individual denomination.
 	if a.Allocations[index].SpendLimit.IsZero() {
 		a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
 	}
