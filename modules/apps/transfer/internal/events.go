@@ -87,16 +87,14 @@ func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDat
 }
 
 // EmitTransferEvent emits a ibc transfer event on successful transfers.
-func EmitTransferEvent(ctx sdk.Context, msg types.MsgTransfer) {
-	coins := msg.GetCoins()
-
+func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.Tokens, memo string) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTransfer,
-			sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, coins.String()),
-			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+			sdk.NewAttribute(types.AttributeKeySender, sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
+			sdk.NewAttribute(types.AttributeKeyTokens, tokens.String()),
+			sdk.NewAttribute(types.AttributeKeyMemo, memo),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

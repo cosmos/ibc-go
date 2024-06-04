@@ -157,6 +157,8 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
+	internal.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo)
+
 	defer func() {
 		for _, token := range tokens {
 			amount, ok := sdkmath.NewIntFromString(token.Amount)
