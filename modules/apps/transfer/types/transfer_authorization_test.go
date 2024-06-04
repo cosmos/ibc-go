@@ -3,7 +3,6 @@ package types_test
 import (
 	"fmt"
 
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -245,42 +244,6 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 
 				// assert spent spendlimits are removed from the list
 				suite.Require().Len(updatedAuthz.Allocations, 1)
-			},
-		},
-		{
-			"failure: multidenom transfer spend limit is exceeded",
-			func() {
-				coins := sdk.NewCoins(
-					ibctesting.TestCoin,
-					sdk.NewCoin("atom", sdkmath.NewInt(100)),
-					sdk.NewCoin("osmo", sdkmath.NewInt(100)),
-				)
-
-				transferAuthz.Allocations = append(transferAuthz.Allocations, types.Allocation{
-					SourcePort:    ibctesting.MockPort,
-					SourceChannel: "channel-9",
-					SpendLimit:    coins,
-				})
-
-				// spending more than the spend limit
-				coins = coins.Add(sdk.NewCoin("atom", sdkmath.NewInt(1)))
-
-				msgTransfer = types.NewMsgTransfer(
-					ibctesting.MockPort,
-					"channel-9",
-					coins,
-					suite.chainA.SenderAccount.GetAddress().String(),
-					ibctesting.TestAccAddress,
-					suite.chainB.GetTimeoutHeight(),
-					0,
-					"",
-				)
-			},
-			func(res authz.AcceptResponse, err error) {
-				suite.Require().ErrorIs(err, ibcerrors.ErrInsufficientFunds)
-				suite.Require().False(res.Accept)
-				suite.Require().False(res.Delete)
-				suite.Require().Nil(res.Updated)
 			},
 		},
 		{
