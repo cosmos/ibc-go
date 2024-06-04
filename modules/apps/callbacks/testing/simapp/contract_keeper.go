@@ -100,7 +100,7 @@ func (k ContractKeeper) GetStateEntryCounter(ctx sdk.Context) uint8 {
 	return bz[0]
 }
 
-// IncrementStatefulCounter increments the stateful callback counter in state.
+// IncrementStateEntryCounter increments the stateful callback counter in state.
 func (k ContractKeeper) IncrementStateEntryCounter(ctx sdk.Context) {
 	count := k.GetStateEntryCounter(ctx)
 	k.SetStateEntryCounter(ctx, count+1)

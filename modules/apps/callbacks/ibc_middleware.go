@@ -99,7 +99,7 @@ func (im IBCMiddleware) SendPacket(
 		return 0, err
 	}
 
-	// packet is created withouth destination information present, GetSourceCallbackData does not use these.
+	// packet is created without destination information present, GetSourceCallbackData does not use these.
 	packet := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
 	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet, im.maxCallbackGas)
