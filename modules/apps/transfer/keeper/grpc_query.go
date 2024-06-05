@@ -96,13 +96,13 @@ func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 	}
 
 	// Convert given request trace path to Denom struct to confirm the path in a valid denom trace format
-	denomTrace := types.ParseDenomTrace(req.Trace)
-	if err := denomTrace.Validate(); err != nil {
+	denom := types.ExtractDenomFromPath(req.Trace)
+	if err := denom.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	denomHash := denomTrace.Hash()
+	denomHash := denom.Hash()
 	found := k.HasDenom(ctx, denomHash)
 	if !found {
 		return nil, status.Error(

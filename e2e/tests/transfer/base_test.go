@@ -33,7 +33,7 @@ type TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
+// QueryTransferParams queries the on-chain send enabled param for the transfer module
 func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
 	res, err := query.GRPCQuery[transfertypes.QueryParamsResponse](ctx, chain, &transfertypes.QueryParamsRequest{})
 	s.Require().NoError(err)

@@ -15,297 +15,304 @@ const (
 )
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
-	var (
-		channel         *channeltypes.Channel
-		path            *ibctesting.Path
-		chanCap         *capabilitytypes.Capability
-		metadata        icatypes.Metadata
-		expectedVersion string
-	)
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		var (
+			channel         *channeltypes.Channel
+			path            *ibctesting.Path
+			chanCap         *capabilitytypes.Capability
+			metadata        icatypes.Metadata
+			expectedVersion string
+		)
 
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {},
-			nil,
-		},
-		{
-			"success: previous active channel closed",
-			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				channel := channeltypes.Channel{
-					State:          channeltypes.CLOSED,
-					Ordering:       channeltypes.ORDERED,
-					Counterparty:   counterparty,
-					ConnectionHops: []string{path.EndpointA.ConnectionID},
-					Version:        TestVersion,
-				}
-
-				path.EndpointA.SetChannel(channel)
+		testCases := []struct {
+			name     string
+			malleate func()
+			expError error
+		}{
+			{
+				"success",
+				func() {},
+				nil,
 			},
-			nil,
-		},
-		{
-			"success: empty channel version returns default metadata JSON string",
-			func() {
-				channel.Version = ""
-				expectedVersion = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			{
+				"success: previous active channel closed",
+				func() {
+					suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+					counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+					channel := channeltypes.Channel{
+						State:          channeltypes.CLOSED,
+						Ordering:       ordering,
+						Counterparty:   counterparty,
+						ConnectionHops: []string{path.EndpointA.ConnectionID},
+						Version:        TestVersion,
+					}
+
+					path.EndpointA.SetChannel(channel)
+				},
+				nil,
 			},
-			nil,
-		},
-		{
-			"success: channel reopening",
-			func() {
-				err := SetupICAPath(path, TestOwnerAddress)
+			{
+				"success: empty channel version returns default metadata JSON string",
+				func() {
+					channel.Version = ""
+					expectedVersion = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+				},
+				nil,
+			},
+			{
+				"success: channel reopening",
+				func() {
+					err := SetupICAPath(path, TestOwnerAddress)
+					suite.Require().NoError(err)
+
+					path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+					path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+
+					path.EndpointA.ChannelID = ""
+					path.EndpointB.ChannelID = ""
+				},
+				nil,
+			},
+			{
+				"failure: different ordering from previous channel",
+				func() {
+					differentOrdering := channeltypes.UNORDERED
+					if ordering == channeltypes.UNORDERED {
+						differentOrdering = channeltypes.ORDERED
+					}
+
+					suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+					counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+					channel := channeltypes.Channel{
+						State:          channeltypes.CLOSED,
+						Ordering:       differentOrdering,
+						Counterparty:   counterparty,
+						ConnectionHops: []string{path.EndpointA.ConnectionID},
+						Version:        TestVersion,
+					}
+
+					path.EndpointA.SetChannel(channel)
+				},
+				channeltypes.ErrInvalidChannelOrdering,
+			},
+			{
+				"invalid metadata -  previous metadata is different",
+				func() {
+					// set active channel to closed
+					suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+					// attempt to downgrade version by reinitializing channel with version 1, but setting channel to version 2
+					metadata.Version = "ics27-2"
+
+					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+					suite.Require().NoError(err)
+
+					counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+					closedChannel := channeltypes.Channel{
+						State:          channeltypes.CLOSED,
+						Ordering:       ordering,
+						Counterparty:   counterparty,
+						ConnectionHops: []string{path.EndpointA.ConnectionID},
+						Version:        string(versionBytes),
+					}
+					path.EndpointA.SetChannel(closedChannel)
+				},
+				icatypes.ErrInvalidVersion,
+			},
+			{
+				"invalid port ID",
+				func() {
+					path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
+				},
+				icatypes.ErrInvalidControllerPort,
+			},
+			{
+				"invalid counterparty port ID",
+				func() {
+					path.EndpointA.SetChannel(*channel)
+					channel.Counterparty.PortId = "invalid-port-id"
+				},
+				icatypes.ErrInvalidHostPort,
+			},
+			{
+				"invalid metadata bytestring",
+				func() {
+					path.EndpointA.SetChannel(*channel)
+					channel.Version = "invalid-metadata-bytestring"
+				},
+				icatypes.ErrUnknownDataType,
+			},
+			{
+				"unsupported encoding format",
+				func() {
+					metadata.Encoding = "invalid-encoding-format"
+
+					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+					suite.Require().NoError(err)
+
+					channel.Version = string(versionBytes)
+					path.EndpointA.SetChannel(*channel)
+				},
+				icatypes.ErrInvalidCodec,
+			},
+			{
+				"unsupported transaction type",
+				func() {
+					metadata.TxType = "invalid-tx-types"
+
+					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+					suite.Require().NoError(err)
+
+					channel.Version = string(versionBytes)
+					path.EndpointA.SetChannel(*channel)
+				},
+				icatypes.ErrUnknownDataType,
+			},
+			{
+				"connection not found",
+				func() {
+					channel.ConnectionHops = []string{"invalid-connnection-id"}
+					path.EndpointA.SetChannel(*channel)
+				},
+				connectiontypes.ErrConnectionNotFound,
+			},
+			{
+				"connection not found with default empty channel version",
+				func() {
+					channel.ConnectionHops = []string{"connection-10"}
+					channel.Version = ""
+				},
+				connectiontypes.ErrConnectionNotFound,
+			},
+			{
+				"invalid controller connection ID",
+				func() {
+					metadata.ControllerConnectionId = "invalid-connnection-id"
+
+					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+					suite.Require().NoError(err)
+
+					channel.Version = string(versionBytes)
+					path.EndpointA.SetChannel(*channel)
+				},
+				connectiontypes.ErrInvalidConnection,
+			},
+			{
+				"invalid host connection ID",
+				func() {
+					metadata.HostConnectionId = "invalid-connnection-id"
+
+					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+					suite.Require().NoError(err)
+
+					channel.Version = string(versionBytes)
+					path.EndpointA.SetChannel(*channel)
+				},
+				connectiontypes.ErrInvalidConnection,
+			},
+			{
+				"invalid version",
+				func() {
+					metadata.Version = "invalid-version"
+
+					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+					suite.Require().NoError(err)
+
+					channel.Version = string(versionBytes)
+					path.EndpointA.SetChannel(*channel)
+				},
+				icatypes.ErrInvalidVersion,
+			},
+			{
+				"channel is already active (OPEN state)",
+				func() {
+					suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+					counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+					channel := channeltypes.Channel{
+						State:          channeltypes.OPEN,
+						Ordering:       ordering,
+						Counterparty:   counterparty,
+						ConnectionHops: []string{path.EndpointA.ConnectionID},
+						Version:        TestVersion,
+					}
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				},
+				icatypes.ErrActiveChannelAlreadySet,
+			},
+			{
+				"channel is already active (FLUSHING state)",
+				func() {
+					suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+					counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+					channel := channeltypes.Channel{
+						State:          channeltypes.FLUSHING,
+						Ordering:       ordering,
+						Counterparty:   counterparty,
+						ConnectionHops: []string{path.EndpointA.ConnectionID},
+						Version:        TestVersion,
+					}
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				},
+				icatypes.ErrActiveChannelAlreadySet,
+			},
+		}
+
+		for _, tc := range testCases {
+			tc := tc
+
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
+
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
+
+				// mock init interchain account
+				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
-				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+				portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
+				suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // this error check isn't needed for tests
+				path.EndpointA.ChannelConfig.PortID = portID
 
-				path.EndpointA.ChannelID = ""
-				path.EndpointB.ChannelID = ""
-			},
-			nil,
-		},
-		{
-			"failure: different ordering from previous channel",
-			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				channel := channeltypes.Channel{
-					State:          channeltypes.CLOSED,
-					Ordering:       channeltypes.UNORDERED,
-					Counterparty:   counterparty,
-					ConnectionHops: []string{path.EndpointA.ConnectionID},
-					Version:        TestVersion,
-				}
-
-				path.EndpointA.SetChannel(channel)
-			},
-			channeltypes.ErrInvalidChannelOrdering,
-		},
-		{
-			"invalid metadata -  previous metadata is different",
-			func() {
-				// set active channel to closed
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				// attempt to downgrade version by reinitializing channel with version 1, but setting channel to version 2
-				metadata.Version = "ics27-2"
-
+				// default values
+				metadata = icatypes.NewMetadata(icatypes.Version, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
+				expectedVersion = string(versionBytes)
+
 				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				closedChannel := channeltypes.Channel{
-					State:          channeltypes.CLOSED,
-					Ordering:       channeltypes.ORDERED,
+				channel = &channeltypes.Channel{
+					State:          channeltypes.INIT,
+					Ordering:       ordering,
 					Counterparty:   counterparty,
 					ConnectionHops: []string{path.EndpointA.ConnectionID},
 					Version:        string(versionBytes),
 				}
-				path.EndpointA.SetChannel(closedChannel)
-			},
-			icatypes.ErrInvalidVersion,
-		},
-		{
-			"invalid port ID",
-			func() {
-				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
-			},
-			icatypes.ErrInvalidControllerPort,
-		},
-		{
-			"invalid counterparty port ID",
-			func() {
-				path.EndpointA.SetChannel(*channel)
-				channel.Counterparty.PortId = "invalid-port-id"
-			},
-			icatypes.ErrInvalidHostPort,
-		},
-		{
-			"invalid metadata bytestring",
-			func() {
-				path.EndpointA.SetChannel(*channel)
-				channel.Version = "invalid-metadata-bytestring"
-			},
-			icatypes.ErrUnknownDataType,
-		},
-		{
-			"unsupported encoding format",
-			func() {
-				metadata.Encoding = "invalid-encoding-format"
 
-				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				suite.Require().NoError(err)
 
-				channel.Version = string(versionBytes)
-				path.EndpointA.SetChannel(*channel)
-			},
-			icatypes.ErrInvalidCodec,
-		},
-		{
-			"unsupported transaction type",
-			func() {
-				metadata.TxType = "invalid-tx-types"
+				tc.malleate() // malleate mutates test data
 
-				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
+				version, err := suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
+					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
+				)
 
-				channel.Version = string(versionBytes)
-				path.EndpointA.SetChannel(*channel)
-			},
-			icatypes.ErrUnknownDataType,
-		},
-		{
-			"connection not found",
-			func() {
-				channel.ConnectionHops = []string{"invalid-connnection-id"}
-				path.EndpointA.SetChannel(*channel)
-			},
-			connectiontypes.ErrConnectionNotFound,
-		},
-		{
-			"connection not found with default empty channel version",
-			func() {
-				channel.ConnectionHops = []string{"connection-10"}
-				channel.Version = ""
-			},
-			connectiontypes.ErrConnectionNotFound,
-		},
-		{
-			"invalid controller connection ID",
-			func() {
-				metadata.ControllerConnectionId = "invalid-connnection-id"
-
-				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
-
-				channel.Version = string(versionBytes)
-				path.EndpointA.SetChannel(*channel)
-			},
-			connectiontypes.ErrInvalidConnection,
-		},
-		{
-			"invalid host connection ID",
-			func() {
-				metadata.HostConnectionId = "invalid-connnection-id"
-
-				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
-
-				channel.Version = string(versionBytes)
-				path.EndpointA.SetChannel(*channel)
-			},
-			connectiontypes.ErrInvalidConnection,
-		},
-		{
-			"invalid version",
-			func() {
-				metadata.Version = "invalid-version"
-
-				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
-
-				channel.Version = string(versionBytes)
-				path.EndpointA.SetChannel(*channel)
-			},
-			icatypes.ErrInvalidVersion,
-		},
-		{
-			"channel is already active (OPEN state)",
-			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				channel := channeltypes.Channel{
-					State:          channeltypes.OPEN,
-					Ordering:       channeltypes.ORDERED,
-					Counterparty:   counterparty,
-					ConnectionHops: []string{path.EndpointA.ConnectionID},
-					Version:        TestVersion,
+				expPass := tc.expError == nil
+				if expPass {
+					suite.Require().NoError(err)
+					suite.Require().Equal(expectedVersion, version)
+				} else {
+					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expError)
 				}
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
-			},
-			icatypes.ErrActiveChannelAlreadySet,
-		},
-		{
-			"channel is already active (FLUSHING state)",
-			func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				channel := channeltypes.Channel{
-					State:          channeltypes.FLUSHING,
-					Ordering:       channeltypes.ORDERED,
-					Counterparty:   counterparty,
-					ConnectionHops: []string{path.EndpointA.ConnectionID},
-					Version:        TestVersion,
-				}
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
-			},
-			icatypes.ErrActiveChannelAlreadySet,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
-
-			// mock init interchain account
-			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // this error check isn't needed for tests
-			path.EndpointA.ChannelConfig.PortID = portID
-
-			// default values
-			metadata = icatypes.NewMetadata(icatypes.Version, path.EndpointA.ConnectionID, path.EndpointB.ConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
-			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-			suite.Require().NoError(err)
-
-			expectedVersion = string(versionBytes)
-
-			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			channel = &channeltypes.Channel{
-				State:          channeltypes.INIT,
-				Ordering:       channeltypes.ORDERED,
-				Counterparty:   counterparty,
-				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        string(versionBytes),
-			}
-
-			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
-
-			tc.malleate() // malleate mutates test data
-
-			version, err := suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
-			)
-
-			expPass := tc.expError == nil
-			if expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(expectedVersion, version)
-			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expError)
-			}
-		})
+			})
+		}
 	}
 }
 
@@ -417,52 +424,54 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
-
-			interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-			suite.Require().True(exists)
-
-			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, interchainAccAddr, icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
-			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-			suite.Require().NoError(err)
-
-			path.EndpointB.ChannelConfig.Version = string(versionBytes)
-
-			tc.malleate() // malleate mutates test data
-
-			err = suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenAck(suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelConfig.Version,
-			)
-
-			if tc.expPass {
+				err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				activeChannelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				err = path.EndpointB.ChanOpenTry()
+				suite.Require().NoError(err)
 
-				suite.Require().Equal(path.EndpointA.ChannelID, activeChannelID)
+				interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(exists)
 
-				interchainAccAddress, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, interchainAccAddr, icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
 
-				suite.Require().Equal(metadata.Address, interchainAccAddress)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+				path.EndpointB.ChannelConfig.Version = string(versionBytes)
+
+				tc.malleate() // malleate mutates test data
+
+				err = suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenAck(suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelConfig.Version,
+				)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+
+					activeChannelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+					suite.Require().True(found)
+
+					suite.Require().Equal(path.EndpointA.ChannelID, activeChannelID)
+
+					interchainAccAddress, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+					suite.Require().True(found)
+
+					suite.Require().Equal(metadata.Address, interchainAccAddress)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
@@ -479,33 +488,35 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			tc.malleate() // malleate mutates test data
-
-			err = suite.chainB.GetSimApp().ICAControllerKeeper.OnChanCloseConfirm(suite.chainB.GetContext(),
-				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-
-			activeChannelID, found := suite.chainB.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointB.ChannelConfig.PortID)
-
-			if tc.expPass {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-				suite.Require().False(found)
-				suite.Require().Empty(activeChannelID)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				tc.malleate() // malleate mutates test data
+
+				err = suite.chainB.GetSimApp().ICAControllerKeeper.OnChanCloseConfirm(suite.chainB.GetContext(),
+					path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				activeChannelID, found := suite.chainB.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointB.ChannelConfig.PortID)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+					suite.Require().False(found)
+					suite.Require().Empty(activeChannelID)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
@@ -640,54 +651,56 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			suite.Require().NoError(err)
-
-			order = channeltypes.ORDERED
-			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-			// use the same address as the previous metadata.
-			metadata.Address = currentMetadata.Address
-
-			// this is the actual change to the version.
-			metadata.Encoding = icatypes.EncodingProto3JSON
-
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-
-			version = path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version
-
-			tc.malleate() // malleate mutates test data
-
-			upgradeVersion, err := path.EndpointA.Chain.GetSimApp().ICAControllerKeeper.OnChanUpgradeInit(
-				path.EndpointA.Chain.GetContext(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				order,
-				[]string{path.EndpointA.ConnectionID},
-				version,
-			)
-
-			expPass := tc.expError == nil
-
-			if expPass {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-				suite.Require().Equal(upgradeVersion, version)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-			}
-		})
+
+				currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().NoError(err)
+
+				order = channeltypes.ORDERED
+				metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+				// use the same address as the previous metadata.
+				metadata.Address = currentMetadata.Address
+
+				// this is the actual change to the version.
+				metadata.Encoding = icatypes.EncodingProto3JSON
+
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+
+				version = path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version
+
+				tc.malleate() // malleate mutates test data
+
+				upgradeVersion, err := path.EndpointA.Chain.GetSimApp().ICAControllerKeeper.OnChanUpgradeInit(
+					path.EndpointA.Chain.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					order,
+					[]string{path.EndpointA.ConnectionID},
+					version,
+				)
+
+				expPass := tc.expError == nil
+
+				if expPass {
+					suite.Require().NoError(err)
+					suite.Require().Equal(upgradeVersion, version)
+				} else {
+					suite.Require().ErrorIs(err, tc.expError)
+				}
+			})
+		}
 	}
 }
 
@@ -806,55 +819,57 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			suite.Require().NoError(err)
-
-			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-			// use the same address as the previous metadata.
-			metadata.Address = currentMetadata.Address
-
-			// this is the actual change to the version.
-			metadata.Encoding = icatypes.EncodingProto3JSON
-
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-
-			err = path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanUpgradeTry()
-			suite.Require().NoError(err)
-
-			counterpartyVersion = path.EndpointB.GetChannel().Version
-
-			tc.malleate() // malleate mutates test data
-
-			err = suite.chainA.GetSimApp().ICAControllerKeeper.OnChanUpgradeAck(
-				suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				counterpartyVersion,
-			)
-
-			expPass := tc.expError == nil
-			if expPass {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-				suite.Require().Equal(path.EndpointA.GetChannel().Version, counterpartyVersion)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-			}
-		})
+
+				currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().NoError(err)
+
+				metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+				// use the same address as the previous metadata.
+				metadata.Address = currentMetadata.Address
+
+				// this is the actual change to the version.
+				metadata.Encoding = icatypes.EncodingProto3JSON
+
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+
+				err = path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.ChanUpgradeTry()
+				suite.Require().NoError(err)
+
+				counterpartyVersion = path.EndpointB.GetChannel().Version
+
+				tc.malleate() // malleate mutates test data
+
+				err = suite.chainA.GetSimApp().ICAControllerKeeper.OnChanUpgradeAck(
+					suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					counterpartyVersion,
+				)
+
+				expPass := tc.expError == nil
+				if expPass {
+					suite.Require().NoError(err)
+					suite.Require().Equal(path.EndpointA.GetChannel().Version, counterpartyVersion)
+				} else {
+					suite.Require().ErrorIs(err, tc.expError)
+				}
+			})
+		}
 	}
 }

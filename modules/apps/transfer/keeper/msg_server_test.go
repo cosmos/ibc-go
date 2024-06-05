@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 
@@ -40,7 +41,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			"success: multidenom",
 			func() {
 				coin2 = sdk.NewCoin("bond", sdkmath.NewInt(100))
-				coins := sdk.NewCoins(coin1, coin2)
+				coins := []sdk.Coin{coin1, coin2}
 
 				// send some coins of the second denom from bank module to the sender account as well
 				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2)))
@@ -204,39 +205,39 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
+
+			var tokens []types.Token
+			token1, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin1)
+			suite.Require().NoError(err)
+			tokens = append(tokens, token1)
+
+			var expEvents []abci.Event
+			if tc.multiDenom {
+				token2, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin2)
+				suite.Require().NoError(err)
+				tokens = append(tokens, token2)
+			}
+
+			jsonTokens, err := json.Marshal(types.Tokens(tokens))
+			suite.Require().NoError(err)
+
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
 
 			// Verify events
 			events := ctx.EventManager().Events().ToABCIEvents()
 
-			var expEvents []abci.Event
-			if tc.multiDenom {
-				expEvents = sdk.Events{
-					sdk.NewEvent(types.EventTypeTransfer,
-						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
-						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-						sdk.NewAttribute(types.AttributeKeyTokens, sdk.NewCoins(coin1, coin2).String()),
-					),
-					sdk.NewEvent(
-						sdk.EventTypeMessage,
-						sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-					),
-				}.ToABCIEvents()
-			} else {
-				expEvents = sdk.Events{
-					sdk.NewEvent(types.EventTypeTransfer,
-						sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
-						sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-						sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-						sdk.NewAttribute(types.AttributeKeyTokens, coin1.String()),
-					),
-					sdk.NewEvent(
-						sdk.EventTypeMessage,
-						sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-					),
-				}.ToABCIEvents()
-			}
+			expEvents = sdk.Events{
+				sdk.NewEvent(types.EventTypeTransfer,
+					sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
+					sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+					sdk.NewAttribute(types.AttributeKeyTokens, string(jsonTokens)),
+					sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+				),
+				sdk.NewEvent(
+					sdk.EventTypeMessage,
+					sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+				),
+			}.ToABCIEvents()
 
 			expPass := tc.expError == nil
 			if expPass {
