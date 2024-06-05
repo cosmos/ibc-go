@@ -20,7 +20,7 @@ const (
 )
 
 // open and close channel is a helper function for TestOnChanOpenTry for reopening accounts
-func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path, ordering channeltypes.Order) {
+func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	err := path.EndpointB.ChanOpenTry()
 	suite.Require().NoError(err)
 
@@ -70,7 +70,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
 					suite.Require().NoError(err)
 
-					suite.openAndCloseChannel(path, ordering)
+					suite.openAndCloseChannel(path)
 				},
 				true,
 			},
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
 					suite.Require().NoError(err)
 
-					suite.openAndCloseChannel(path, ordering)
+					suite.openAndCloseChannel(path)
 
 					// delete interchain account address
 					store := suite.chainB.GetContext().KVStore(suite.chainB.GetSimApp().GetKey(hosttypes.SubModuleName))
@@ -135,7 +135,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
 					suite.Require().NoError(err)
 
-					suite.openAndCloseChannel(path, ordering)
+					suite.openAndCloseChannel(path)
 
 					// delete existing account
 					addr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
@@ -155,7 +155,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
 					suite.Require().NoError(err)
 
-					suite.openAndCloseChannel(path, ordering)
+					suite.openAndCloseChannel(path)
 
 					addr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 					suite.Require().True(found)
