@@ -48,10 +48,16 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
 	chainA, chainB := suite.GetChains()
-
+	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions(transferVersion))
 
 	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granterAddress := granterWallet.FormattedAddress()
@@ -205,11 +211,16 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
 	chainA, chainB := suite.GetChains()
-
 	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions(transferVersion))
 
 	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granterAddress := granterWallet.FormattedAddress()

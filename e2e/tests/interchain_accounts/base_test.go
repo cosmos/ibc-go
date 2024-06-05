@@ -25,6 +25,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -62,10 +63,17 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 	t := s.T()
 	ctx := context.TODO()
 
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
@@ -161,10 +169,17 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 	t := s.T()
 	ctx := context.TODO()
 
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
@@ -251,10 +266,17 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	t := s.T()
 	ctx := context.TODO()
 
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
@@ -440,10 +462,17 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 	t := s.T()
 	ctx := context.TODO()
 
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered

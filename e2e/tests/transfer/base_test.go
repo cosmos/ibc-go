@@ -47,10 +47,17 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
-
 	chainADenom := chainA.Config().Denom
+	chainAVersion := chainA.Config().Images[0].Version
+	chainBVersion := chainB.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -65,9 +72,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().NoError(chainA.(*cosmos.CosmosChain).StartAllNodes(ctx))
 		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
 	})
-
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
@@ -157,10 +161,16 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
-
 	chainADenom := chainA.Config().Denom
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -201,8 +211,16 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, _ := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
+
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
@@ -249,10 +267,15 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	chainA, chainB := s.GetChains()
+	chainA, _ := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
-	chainADenom := chainA.Config().Denom
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	_, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -260,7 +283,6 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
-	chainAVersion := chainA.Config().Images[0].Version
 	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
@@ -309,8 +331,15 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -428,10 +457,16 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
-
 	chainADenom := chainA.Config().Denom
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()

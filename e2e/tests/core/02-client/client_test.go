@@ -34,6 +34,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
@@ -65,8 +66,16 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
+
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	const planHeight = int64(300)
@@ -172,7 +181,15 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
+		chainA, _ := s.GetChains()
+		chainAVersion := chainA.Config().Images[0].Version
+
+		transferVersion := transfertypes.V1
+		if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+			transferVersion = transfertypes.V2
+		}
+
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
@@ -255,7 +272,15 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
+		chainA, _ := s.GetChains()
+		chainAVersion := chainA.Config().Images[0].Version
+
+		transferVersion := transfertypes.V1
+		if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+			transferVersion = transfertypes.V2
+		}
+
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
@@ -341,8 +366,15 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err             error
 	)
 
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
@@ -437,9 +469,15 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 

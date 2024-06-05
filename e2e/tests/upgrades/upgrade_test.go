@@ -120,8 +120,16 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	var (
 		chainADenom    = chainA.Config().Denom
@@ -283,8 +291,16 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	var (
 		chainADenom    = chainA.Config().Denom
@@ -437,10 +453,17 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
 
+	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -528,10 +551,17 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
 
+	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -748,14 +778,20 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
-
 	chainADenom := chainA.Config().Denom
 	chainBDenom := chainB.Config().Denom
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
+	channelB := channelA.Counterparty
+
 	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)
-	_ = chainAIBCToken
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelB.PortID, channelB.ChannelID)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)

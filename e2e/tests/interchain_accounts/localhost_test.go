@@ -23,6 +23,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -42,8 +43,15 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, _ := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainADenom := chainA.Config().Denom
 
@@ -196,9 +204,16 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t := s.T()
 	ctx := context.TODO()
 
-	// relayer and channel output is discarded, only a single chain is required
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, _ := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	// relayer and channel output is discarded, only a single chain is required
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	chainADenom := chainA.Config().Denom
 

@@ -35,10 +35,16 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, _ := s.GetChains()
-
 	chainADenom := chainA.Config().Denom
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 
 	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)

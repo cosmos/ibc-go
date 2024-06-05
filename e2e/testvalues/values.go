@@ -130,3 +130,8 @@ var CapitalEfficientFeeEscrowFeatureReleases = semverutil.FeatureReleases{
 var TransactionEventQueryFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
+
+// ICS20v2FeatureReleases represents the releases the support for ICS20 v2 was released in.
+var ICS20v2FeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v9",
+}

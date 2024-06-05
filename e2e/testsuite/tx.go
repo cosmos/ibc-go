@@ -280,7 +280,23 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, sdk.NewCoins(token), sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	var msg *transfertypes.MsgTransfer
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		msg = transfertypes.NewMsgTransfer(portID, channelID, sdk.NewCoins(token), sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	} else {
+		msg = &transfertypes.MsgTransfer{
+			SourcePort:       portID,
+			SourceChannel:    channelID,
+			Token:            token,
+			Sender:           sender,
+			Receiver:         receiver,
+			TimeoutHeight:    timeoutHeight,
+			TimeoutTimestamp: timeoutTimestamp,
+			Memo:             memo,
+			Tokens:           sdk.NewCoins(),
+		}
+	}
+
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 

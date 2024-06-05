@@ -25,6 +25,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -51,9 +52,15 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	// create chains with specified chain configuration options
 	chainA, chainB := s.GetChains(chainOpts)
+	chainAVersion := chainA.Config().Images[0].Version
+
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) {
+		transferVersion = transfertypes.V2
+	}
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(transferVersion))
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
