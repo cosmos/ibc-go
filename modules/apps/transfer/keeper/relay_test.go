@@ -622,7 +622,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
 
-	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
@@ -846,7 +846,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		),
 	)
 
-	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
@@ -1060,7 +1060,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		),
 	)
 
-	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
