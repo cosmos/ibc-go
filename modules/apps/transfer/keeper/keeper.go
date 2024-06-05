@@ -7,8 +7,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
