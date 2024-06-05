@@ -47,21 +47,3 @@ func ReportOnRecvPacketTelemetry(transferAmount sdkmath.Int, denomPath string, l
 		),
 	)
 }
-
-func ReportSomething(transferAmount sdkmath.Int, denomPath string, labels []metrics.Label) {
-	if transferAmount.IsInt64() {
-		telemetry.SetGaugeWithLabels(
-			[]string{"ibc", types.ModuleName, "packet", "receive"},
-			float32(transferAmount.Int64()),
-			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, denomPath)},
-		)
-	}
-
-	telemetry.IncrCounterWithLabels(
-		[]string{"ibc", types.ModuleName, "receive"},
-		1,
-		append(
-			labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
-		),
-	)
-}
