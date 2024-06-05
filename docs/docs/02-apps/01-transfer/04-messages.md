@@ -15,12 +15,14 @@ A fungible token cross chain transfer is achieved by using the `MsgTransfer`:
 type MsgTransfer struct {
   SourcePort        string
   SourceChannel     string
+  // Deprecated: Use Tokens instead.
   Token             sdk.Coin
   Sender            string
   Receiver          string
   TimeoutHeight     ibcexported.Height
   TimeoutTimestamp  uint64
   Memo              string
+  Tokens            []sdk.Coin
 }
 ```
 
@@ -28,9 +30,9 @@ This message is expected to fail if:
 
 - `SourcePort` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
 - `SourceChannel` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
-- `Token` is invalid (denom is invalid or amount is negative)
-    - `Token.Amount` is not positive.
-    - `Token.Denom` is not a valid IBC denomination as per [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
+- `Token` is invalid (denom is invalid or amount is negative) and `Tokens` is empty. Or if a `Coin` contained within the list `Tokens` does not satisfy the following:
+    - `Coin.Amount` is not positive.
+    - `Coin.Denom` is not a valid IBC denomination as per [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
 - `Sender` is empty.
 - `Receiver` is empty.
 - `TimeoutHeight` and `TimeoutTimestamp` are both zero.
