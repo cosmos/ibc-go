@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	metrics "github.com/hashicorp/go-metrics"
+	"github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
+	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -147,24 +148,7 @@ func (k Keeper) sendTransfer(
 
 	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo)
 
-	defer func() {
-		for _, token := range tokens {
-			amount, ok := sdkmath.NewIntFromString(token.Amount)
-			if ok && amount.IsInt64() {
-				telemetry.SetGaugeWithLabels(
-					[]string{"tx", "msg", "ibc", "transfer"},
-					float32(amount.Int64()),
-					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.Denom.Path())},
-				)
-			}
-		}
-
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", types.ModuleName, "send"},
-			1,
-			labels,
-		)
-	}()
+	defer internaltelemetry.ReportTransferTelemetry(tokens, labels)
 
 	return sequence, nil
 }
@@ -227,23 +211,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			}
 
 			denomPath := token.Denom.Path()
-			defer func() {
-				if transferAmount.IsInt64() {
-					telemetry.SetGaugeWithLabels(
-						[]string{"ibc", types.ModuleName, "packet", "receive"},
-						float32(transferAmount.Int64()),
-						[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, denomPath)},
-					)
-				}
-
-				telemetry.IncrCounterWithLabels(
-					[]string{"ibc", types.ModuleName, "receive"},
-					1,
-					append(
-						labels, telemetry.NewLabel(coretypes.LabelSource, "true"),
-					),
-				)
-			}()
+			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
+			defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
 
 			// Continue processing rest of tokens in packet data.
 			continue
@@ -283,23 +252,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		denomPath := token.Denom.Path()
-		defer func() {
-			if transferAmount.IsInt64() {
-				telemetry.SetGaugeWithLabels(
-					[]string{"ibc", types.ModuleName, "packet", "receive"},
-					float32(transferAmount.Int64()),
-					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, denomPath)},
-				)
-			}
-
-			telemetry.IncrCounterWithLabels(
-				[]string{"ibc", types.ModuleName, "receive"},
-				1,
-				append(
-					labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
-				),
-			)
-		}()
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
+		defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
 	}
 
 	return nil
