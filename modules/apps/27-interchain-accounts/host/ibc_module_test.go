@@ -2,6 +2,7 @@ package host_test
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -507,7 +508,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				expectedAttributes := []sdk.Attribute{
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 					sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(ack.Success())),
 				}
 
 				if tc.expAckSuccess {
