@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -137,24 +138,14 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	var packetDataBytes []byte
-	switch appVersion {
-	case types.V1:
-		// Length of coins has been checked earlier to be 1 if version is V1.
-		token := tokens[0]
-		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), receiver, memo)
-		packetDataBytes = packetData.GetBytes()
-	case types.V2:
-		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender.String(), receiver, memo)
-		packetDataBytes = packetData.GetBytes()
-	default:
-		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
-	}
+	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens)
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
 		return 0, err
 	}
+
+	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo)
 
 	defer func() {
 		for _, token := range tokens {
@@ -273,13 +264,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			k.setDenomMetadata(ctx, token.Denom)
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeDenomTrace,
-				sdk.NewAttribute(types.AttributeKeyTraceHash, token.Denom.Hash().String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
-			),
-		)
+		events.EmitDenomEvent(ctx, token)
+
 		voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
 		// mint new tokens if the source of the transfer is the same chain
@@ -452,4 +438,27 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 		Denom:  denom,
 		Amount: coin.Amount.String(),
 	}, nil
+}
+
+// createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
+func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens) []byte {
+	var packetDataBytes []byte
+	switch appVersion {
+	case types.V1:
+		// Sanity check, tokens must always be of length 1 if using app version V1.
+		if len(tokens) != 1 {
+			panic(fmt.Errorf("length of tokens must be equal to 1 if using %s version", types.V1))
+		}
+
+		token := tokens[0]
+		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender, receiver, memo)
+		packetDataBytes = packetData.GetBytes()
+	case types.V2:
+		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo)
+		packetDataBytes = packetData.GetBytes()
+	default:
+		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
+	}
+
+	return packetDataBytes
 }
