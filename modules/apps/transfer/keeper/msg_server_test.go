@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 
@@ -204,26 +205,32 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
+
+			var tokens []types.Token
+			token1, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin1)
+			suite.Require().NoError(err)
+			tokens = append(tokens, token1)
+
+			var expEvents []abci.Event
+			if tc.multiDenom {
+				token2, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin2)
+				suite.Require().NoError(err)
+				tokens = append(tokens, token2)
+			}
+
+			jsonTokens, err := json.Marshal(types.Tokens(tokens))
+			suite.Require().NoError(err)
+
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
 
 			// Verify events
 			events := ctx.EventManager().Events().ToABCIEvents()
 
-			var tokens []types.Token
-			token1, _ := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin1)
-			tokens = append(tokens, token1)
-
-			var expEvents []abci.Event
-			if tc.multiDenom {
-				token2, _ := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin2)
-				tokens = append(tokens, token2)
-			}
-
 			expEvents = sdk.Events{
 				sdk.NewEvent(types.EventTypeTransfer,
 					sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
 					sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-					sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(tokens).String()),
+					sdk.NewAttribute(types.AttributeKeyTokens, string(jsonTokens)),
 					sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
 				),
 				sdk.NewEvent(
