@@ -31,3 +31,8 @@ func (k Keeper) GetAllDenomTraces(ctx sdk.Context) []types.DenomTrace {
 func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
 	return k.tokenFromCoin(ctx, coin)
 }
+
+// CreatePacketDataBytesFromVersion is a wrapper around createPacketDataBytesFromVersion for testing purposes
+func CreatePacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens) []byte {
+	return createPacketDataBytesFromVersion(appVersion, sender, receiver, memo, tokens)
+}
