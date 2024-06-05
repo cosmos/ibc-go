@@ -42,8 +42,6 @@ func ReportOnRecvPacketTelemetry(transferAmount sdkmath.Int, denomPath string, l
 	telemetry.IncrCounterWithLabels(
 		[]string{"ibc", types.ModuleName, "receive"},
 		1,
-		append(
-			labels, telemetry.NewLabel(coretypes.LabelSource, "true"),
-		),
+		labels,
 	)
 }
