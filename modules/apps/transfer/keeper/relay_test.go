@@ -105,7 +105,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"SendPacket fails, timeout height and timeout timestamp are zero",
 			func() {
 				timeoutHeight = clienttypes.ZeroHeight()
-				expEscrowAmount = sdkmath.NewInt(100)
 			}, false,
 		},
 	}
@@ -146,7 +145,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				memo,
 			)
 
-			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(suite.chainA.GetContext(), msg)
+			res, err := suite.chainA.SendMsgs(msg)
 
 			// check total amount in escrow of sent token denom on sending chain
 			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
@@ -157,7 +156,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.Require().NotNil(res)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Nil(res)
+				suite.Require().Nil(res.Data)
 			}
 		})
 	}

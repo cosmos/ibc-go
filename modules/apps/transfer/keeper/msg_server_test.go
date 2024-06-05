@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/gogoproto/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -102,11 +103,9 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
+			res, err := suite.chainA.SendMsgs(msg)
 
 			// Verify events
-			actualEvents := ctx.EventManager().Events().ToABCIEvents()
 			expectedEvents := sdk.Events{
 				sdk.NewEvent(
 					types.EventTypeTransfer,
@@ -121,12 +120,23 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().NotEqual(res.Sequence, uint64(0))
-				ibctesting.AssertEvents(&suite.Suite, expectedEvents, actualEvents)
+				suite.Require().NoError(err)
+
+				// get sequence from msg response
+				var msgData sdk.TxMsgData
+				err = proto.Unmarshal(res.Data, &msgData)
+				suite.Require().NoError(err)
+				msgResponse := msgData.MsgResponses[0]
+				var transferResponse types.MsgTransferResponse
+				err = proto.Unmarshal(msgResponse.Value, &transferResponse)
+				suite.Require().NoError(err)
+
+				suite.Require().NotEqual(transferResponse.Sequence, uint64(0))
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, res.Events)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Nil(res)
-				suite.Require().Len(actualEvents, 0)
+				suite.Require().Nil(res.Data)
+				ibctesting.AssertNotEvents(&suite.Suite, expectedEvents, res.Events)
 			}
 		})
 	}

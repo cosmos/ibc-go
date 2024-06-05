@@ -204,6 +204,36 @@ func AssertEvents(
 	}
 }
 
+// AssertEvents asserts that expected events are not present in the actual events.
+func AssertNotEvents(
+	suite *testifysuite.Suite,
+	expected []abci.Event,
+	actual []abci.Event,
+) {
+	foundEvents := make(map[int]bool)
+
+	for i, actualEvent := range actual {
+		for _, expectedEvent := range expected {
+			if shouldProcessEvent(expectedEvent, actualEvent) {
+				attributeMatch := true
+				for _, expectedAttr := range expectedEvent.Attributes {
+					// any expected attributes that are not contained in the actual events will cause this event
+					// not to match
+					attributeMatch = attributeMatch && containsAttribute(actualEvent.Attributes, expectedAttr.Key, expectedAttr.Value)
+				}
+
+				if attributeMatch {
+					foundEvents[i] = true
+				}
+			}
+		}
+	}
+
+	for i, expectedEvent := range expected {
+		suite.Require().False(foundEvents[i], "event: %s was found in events", expectedEvent.Type)
+	}
+}
+
 // shouldProcessEvent returns true if the given expected event should be processed based on event type.
 func shouldProcessEvent(expectedEvent abci.Event, actualEvent abci.Event) bool {
 	if expectedEvent.Type != actualEvent.Type {
