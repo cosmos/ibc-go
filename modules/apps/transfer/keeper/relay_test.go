@@ -12,11 +12,13 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 // TestSendTransfer tests sending from chainA to chainB using both coin
@@ -620,7 +622,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
 
-	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
@@ -844,7 +846,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		),
 	)
 
-	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
@@ -1058,7 +1060,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		),
 	)
 
-	denom := types.ExtractDenomFromFullPath(denomTrace.GetFullDenomPath())
+	denom := types.ExtractDenomFromPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
@@ -1239,6 +1241,78 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 				expectedAck := channeltypes.NewErrorAcknowledgement(tc.expAckError)
 				expBz := channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement())
 				suite.Require().Equal(expBz, ackBz)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
+	var (
+		bz     []byte
+		tokens types.Tokens
+	)
+
+	testCases := []struct {
+		name        string
+		appVersion  string
+		malleate    func()
+		expResult   func(bz []byte)
+		expPanicErr error
+	}{
+		{
+			"success",
+			types.V1,
+			func() {},
+			func(bz []byte) {
+				expPacketData := types.NewFungibleTokenPacketData("", "", "", "", "")
+				suite.Require().Equal(bz, expPacketData.GetBytes())
+			},
+			nil,
+		},
+		{
+			"success: version 2",
+			types.V2,
+			func() {},
+			func(bz []byte) {
+				expPacketData := types.NewFungibleTokenPacketDataV2(types.Tokens{types.Token{}}, "", "", "")
+				suite.Require().Equal(bz, expPacketData.GetBytes())
+			},
+			nil,
+		},
+		{
+			"failure: must have single coin if using version 1.",
+			types.V1,
+			func() {
+				tokens = types.Tokens{}
+			},
+			nil,
+			fmt.Errorf("length of tokens must be equal to 1 if using %s version", types.V1),
+		},
+		{
+			"failure: invalid version",
+			ibcmock.Version,
+			func() {},
+			nil,
+			fmt.Errorf("app version must be one of %s", types.SupportedVersions),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tokens = types.Tokens{types.Token{}}
+
+			tc.malleate()
+
+			createFunc := func() {
+				bz = transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, "", "", "", tokens)
+			}
+
+			expPanic := tc.expPanicErr != nil
+			if expPanic {
+				suite.Require().PanicsWithError(tc.expPanicErr.Error(), createFunc)
+			} else {
+				createFunc()
+				tc.expResult(bz)
 			}
 		})
 	}

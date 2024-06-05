@@ -80,7 +80,7 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 	m.keeper.iterateDenomTraces(ctx,
 		func(dt types.DenomTrace) (stop bool) {
 			// convert denomTrace to denom
-			denom := types.ExtractDenomFromFullPath(dt.GetFullDenomPath())
+			denom := types.ExtractDenomFromPath(dt.GetFullDenomPath())
 			err := denom.Validate()
 			if err != nil {
 				panic(err)

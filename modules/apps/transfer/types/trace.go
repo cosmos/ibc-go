@@ -41,9 +41,9 @@ func (t Trace) String() string {
 	return fmt.Sprintf("%s/%s", t.PortId, t.ChannelId)
 }
 
-// ExtractDenomFromFullPath returns the denom from the full path.
+// ExtractDenomFromPath returns the denom from the full path.
 // Used to support v1 denoms.
-func ExtractDenomFromFullPath(fullPath string) Denom {
+func ExtractDenomFromPath(fullPath string) Denom {
 	denomSplit := strings.Split(fullPath, "/")
 
 	if denomSplit[0] == fullPath {
