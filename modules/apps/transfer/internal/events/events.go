@@ -1,6 +1,7 @@
 package events
 
 import (
+	"encoding/json"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,12 +12,14 @@ import (
 
 // EmitTransferEvent emits a ibc transfer event on successful transfers.
 func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.Tokens, memo string) {
+	jsonTokens := mustMarshalTokens(tokens)
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTransfer,
 			sdk.NewAttribute(types.AttributeKeySender, sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, tokens.String()),
+			sdk.NewAttribute(types.AttributeKeyTokens, string(jsonTokens)),
 			sdk.NewAttribute(types.AttributeKeyMemo, memo),
 		),
 		sdk.NewEvent(
@@ -28,10 +31,12 @@ func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.To
 
 // EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
 func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) {
+	jsonTokens := mustMarshalTokens(types.Tokens(packetData.Tokens))
+
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
-		sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(packetData.Tokens).String()),
+		sdk.NewAttribute(types.AttributeKeyTokens, string(jsonTokens)),
 		sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}
@@ -54,12 +59,14 @@ func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacket
 
 // EmitOnAcknowledgementPacketEvent emits a fungible token packet event in the OnAcknowledgementPacket callback
 func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
+	jsonTokens := mustMarshalTokens(types.Tokens(packetData.Tokens))
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeySender, packetData.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, types.Tokens(packetData.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyTokens, string(jsonTokens)),
 			sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
 			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
@@ -89,11 +96,13 @@ func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.Fungible
 
 // EmitOnTimeoutPacketEvent emits a fungible token packet event in the OnTimeoutPacket callback
 func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2) {
+	jsonTokens := mustMarshalTokens(types.Tokens(packetData.Tokens))
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeout,
 			sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Sender),
-			sdk.NewAttribute(types.AttributeKeyRefundTokens, types.Tokens(packetData.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyRefundTokens, string(jsonTokens)),
 			sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
 		),
 		sdk.NewEvent(
@@ -112,4 +121,14 @@ func EmitDenomEvent(ctx sdk.Context, token types.Token) {
 			sdk.NewAttribute(types.AttributeKeyDenom, token.Denom.String()),
 		),
 	)
+}
+
+// mustMarshalTokens json marshals the given tokens and panics on failure.
+func mustMarshalTokens(tokens types.Tokens) []byte {
+	bz, err := json.Marshal(tokens)
+	if err != nil {
+		panic(fmt.Errorf("could not marshal tokens %w", err))
+	}
+
+	return bz
 }
