@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -153,10 +154,17 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 
 	pathName := s.generatePathName()
 
+	chainAVersion := chainA.Config().Images[0].Version
+	chainBVersion := chainB.Config().Images[0].Version
+
+	// select the transfer version based on the chain versions
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
+		transferVersion = transfertypes.V2
+	}
+
 	channelOptions := ibc.DefaultChannelOpts()
-	// For now, set the version to the latest transfer module version
-	// DefaultChannelOpts uses V1 at the moment
-	channelOptions.Version = transfertypes.V2
+	channelOptions.Version = transferVersion
 
 	if channelOpts != nil {
 		channelOpts(&channelOptions)
