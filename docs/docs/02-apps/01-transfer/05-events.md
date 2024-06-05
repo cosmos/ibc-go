@@ -28,7 +28,8 @@ slug: /apps/transfer/events
 | fungible_token_packet | amount        | \{amount\}      | 
 | fungible_token_packet | success       | \{ackSuccess\}  | 
 | fungible_token_packet | memo          | \{memo\}        | 
-| denomination_trace    | trace_hash    | \{hex_hash\}    | 
+| denomination          | denom_hash    | \{hex_hash\}    |
+| denomination          | denom         | \{denom\}       |
 
 ## `OnAcknowledgePacket` callback
 
