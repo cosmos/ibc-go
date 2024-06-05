@@ -12,6 +12,7 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -617,7 +618,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	path2.Setup()
 
 	// denomTrace path: {transfer/channel-1/transfer/channel-0}
-	denomTrace := types.DenomTrace{
+	denomTrace := internaltypes.DenomTrace{
 		BaseDenom: sdk.DefaultBondDenom,
 		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
@@ -642,7 +643,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 
 	// fund escrow account for transfer and channel-1 on chain B
 	// denomTrace path: transfer/channel-0
-	denomTrace = types.DenomTrace{
+	denomTrace = internaltypes.DenomTrace{
 		BaseDenom: sdk.DefaultBondDenom,
 		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
@@ -831,7 +832,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 
 	// fund escrow account for transfer and channel-1 on chain B
 	// denomTrace path = transfer/channel-0
-	denomTrace := types.DenomTrace{
+	denomTrace := internaltypes.DenomTrace{
 		BaseDenom: sdk.DefaultBondDenom,
 		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
@@ -1045,7 +1046,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	path2.Setup()
 
 	// fund escrow account for transfer and channel-1 on chain B
-	denomTrace := types.DenomTrace{
+	denomTrace := internaltypes.DenomTrace{
 		BaseDenom: sdk.DefaultBondDenom,
 		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	}
