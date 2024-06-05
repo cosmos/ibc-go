@@ -65,48 +65,32 @@ func (suite *TypesTestSuite) TestPath() {
 		},
 		{
 			"only base denom",
-			types.Denom{
-				Base: "uatom",
-			},
+			types.NewDenom("uatom"),
 			"uatom",
 		},
 		{
 			"base with slashes",
-			types.Denom{
-				Base: "gamm/pool/osmo",
-			},
+			types.NewDenom("gamm/pool/osmo"),
 			"gamm/pool/osmo",
 		},
 		{
 			"1 hop denom",
-			types.Denom{
-				Base:  "uatom",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0")},
-			},
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
 			"transfer/channel-0/uatom",
 		},
 		{
 			"2 hop denom",
-			types.Denom{
-				Base:  "uatom",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")},
-			},
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
 			"transfer/channel-0/transfer/channel-52/uatom",
 		},
 		{
 			"3 hop denom",
-			types.Denom{
-				Base:  "uatom",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")},
-			},
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")),
 			"transfer/channel-0/transfer/channel-52/transfer/channel-52/uatom",
 		},
 		{
 			"4 hop denom with base denom slashes",
-			types.Denom{
-				Base:  "other-denom/",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-49")},
-			},
+			types.NewDenom("other-denom/", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-49")),
 			"transfer/channel-0/transfer/channel-52/transfer/channel-52/transfer/channel-49/other-denom/",
 		},
 	}
@@ -129,73 +113,52 @@ func (suite *TypesTestSuite) TestDenomChainSource() {
 	}{
 		{
 			"sender chain is source: empty trace",
-			types.Denom{
-				Base:  "uatom",
-				Trace: []types.Trace{},
-			},
+			types.NewDenom("uatom"),
 			"transfer",
 			"channel-0",
 			false,
 		},
 		{
 			"sender chain is source: nil trace",
-			types.Denom{
-				Base:  "uatom",
-				Trace: nil,
-			},
+			types.NewDenom("uatom"),
 			"transfer",
 			"channel-0",
 			false,
 		},
 		{
 			"sender chain is source: single trace",
-			types.Denom{
-				Base:  "ubtc",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-1")},
-			},
+			types.NewDenom("ubtc", types.NewTrace("transfer", "channel-1")),
 			"transfer",
 			"channel-0",
 			false,
 		},
 		{
 			"sender chain is source: swapped portID and channelID",
-			types.Denom{
-				Base:  "uatom",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0")},
-			},
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
 			"channel-0",
 			"transfer",
 			false,
 		},
 		{
 			"sender chain is source: multi-trace",
-			types.Denom{
-				Base: "uatom",
-				Trace: []types.Trace{
-					types.NewTrace("transfer", "channel-0"),
-					types.NewTrace("transfer", "channel-52"),
-				},
-			},
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
 			"transfer",
 			"channel-1",
 			false,
 		},
 		{
 			"receiver chain is source: single trace",
-			types.Denom{
-				Base:  "factory/stars16da2uus9zrsy83h23ur42v3lglg5rmyrpqnju4/dust",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0")},
-			},
+			types.NewDenom(
+				"factory/stars16da2uus9zrsy83h23ur42v3lglg5rmyrpqnju4/dust",
+				types.NewTrace("transfer", "channel-0"),
+			),
 			"transfer",
 			"channel-0",
 			true,
 		},
 		{
 			"receiver chain is source: multi-trace",
-			types.Denom{
-				Base:  "uatom",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")},
-			},
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
 			"transfer",
 			"channel-0",
 			true,

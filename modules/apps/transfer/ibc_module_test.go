@@ -653,12 +653,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom: types.Denom{
-								Base: "atom",
-								Trace: []types.Trace{
-									types.NewTrace("transfer", "channel-0"),
-								},
-							},
+							Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -678,10 +673,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom: types.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  types.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -701,10 +693,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom: types.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: []types.Trace{{}},
-							},
+							Denom:  types.NewDenom(ibctesting.TestCoin.Denom, []types.Trace{{}}...),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
