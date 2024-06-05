@@ -75,45 +75,46 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			expectedOrderding = channeltypes.ORDERED
+			suite.Run(tc.name, func() {
+				expectedOrderding = ordering
 
-			suite.SetupTest()
+				suite.SetupTest()
 
-			path := NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path := NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", channeltypes.ORDERED)
+				msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", ordering)
 
-			tc.malleate()
+				tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-			res, err := msgServer.RegisterInterchainAccount(ctx, msg)
+				ctx := suite.chainA.GetContext()
+				msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+				res, err := msgServer.RegisterInterchainAccount(ctx, msg)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(expectedChannelID, res.ChannelId)
+				if tc.expPass {
+					suite.Require().NoError(err)
+					suite.Require().NotNil(res)
+					suite.Require().Equal(expectedChannelID, res.ChannelId)
 
-				events := ctx.EventManager().Events()
-				suite.Require().Len(events, 2)
-				suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
-				suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
+					events := ctx.EventManager().Events()
+					suite.Require().Len(events, 2)
+					suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
+					suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
 
-				path.EndpointA.ChannelConfig.PortID = res.PortId
-				path.EndpointA.ChannelID = res.ChannelId
-				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(expectedOrderding, channel.Ordering)
-			} else {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-			}
-		})
-
+					path.EndpointA.ChannelConfig.PortID = res.PortId
+					path.EndpointA.ChannelID = res.ChannelId
+					channel := path.EndpointA.GetChannel()
+					suite.Require().Equal(expectedOrderding, channel.Ordering)
+				} else {
+					suite.Require().Error(err)
+					suite.Require().Nil(res)
+				}
+			})
+		}
 	}
 }
 
@@ -165,61 +166,63 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
 
-			owner := TestOwnerAddress
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				owner := TestOwnerAddress
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, owner)
-			suite.Require().NoError(err)
-
-			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			// get the address of the interchain account stored in state during handshake step
-			interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID)
-			suite.Require().True(found)
-
-			// create bank transfer message that will execute on the host chain
-			icaMsg := &banktypes.MsgSend{
-				FromAddress: interchainAccountAddr,
-				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
-			}
-
-			data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{icaMsg}, icatypes.EncodingProtobuf)
-			suite.Require().NoError(err)
-
-			packetData := icatypes.InterchainAccountPacketData{
-				Type: icatypes.EXECUTE_TX,
-				Data: data,
-				Memo: "memo",
-			}
-
-			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
-			connectionID := path.EndpointA.ConnectionID
-
-			msg = types.NewMsgSendTx(owner, connectionID, timeoutTimestamp, packetData)
-
-			tc.malleate() // malleate mutates test data
-
-			ctx := suite.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-			res, err := msgServer.SendTx(ctx, msg)
-
-			if tc.expPass {
+				err := SetupICAPath(path, owner)
 				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-			} else {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-			}
-		})
+
+				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+				suite.Require().NoError(err)
+
+				// get the address of the interchain account stored in state during handshake step
+				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID)
+				suite.Require().True(found)
+
+				// create bank transfer message that will execute on the host chain
+				icaMsg := &banktypes.MsgSend{
+					FromAddress: interchainAccountAddr,
+					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+				}
+
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{icaMsg}, icatypes.EncodingProtobuf)
+				suite.Require().NoError(err)
+
+				packetData := icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
+					Data: data,
+					Memo: "memo",
+				}
+
+				timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
+				connectionID := path.EndpointA.ConnectionID
+
+				msg = types.NewMsgSendTx(owner, connectionID, timeoutTimestamp, packetData)
+
+				tc.malleate() // malleate mutates test data
+
+				ctx := suite.chainA.GetContext()
+				msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+				res, err := msgServer.SendTx(ctx, msg)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+					suite.Require().NotNil(res)
+				} else {
+					suite.Require().Error(err)
+					suite.Require().Nil(res)
+				}
+			})
+		}
 	}
 }
 
