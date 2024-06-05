@@ -12,7 +12,6 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -642,6 +641,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		timeout, 0,
 	)
 
+	// fund escrow account for transfer and channel-1 on chain B
 	// denom path: transfer/channel-0
 	denom = types.NewDenom(
 		sdk.DefaultBondDenom,
