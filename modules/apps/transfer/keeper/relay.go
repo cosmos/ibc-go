@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -156,6 +157,8 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
+	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo)
+
 	defer func() {
 		for _, token := range tokens {
 			amount, ok := sdkmath.NewIntFromString(token.Amount)
@@ -273,13 +276,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			k.setDenomMetadata(ctx, token.Denom)
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeDenomTrace,
-				sdk.NewAttribute(types.AttributeKeyTraceHash, token.Denom.Hash().String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
-			),
-		)
+		events.EmitDenomTraceEvent(ctx, token.Denom.Hash().String(), voucherDenom)
 		voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
 		// mint new tokens if the source of the transfer is the same chain
@@ -322,7 +319,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 // OnAcknowledgementPacket responds to the success or failure of a packet
 // acknowledgement written on the receiving chain. If the acknowledgement
 // was a success then nothing occurs. If the acknowledgement failed, then
-// the sender is refunded their tokens using the refundPacketToken function.
+// the sender is refunded their tokens using the refundPacketTokens function.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
@@ -330,7 +327,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 		// needs to be executed and no error needs to be returned
 		return nil
 	case *channeltypes.Acknowledgement_Error:
-		return k.refundPacketToken(ctx, packet, data)
+		return k.refundPacketTokens(ctx, packet, data)
 	default:
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 	}
@@ -339,14 +336,14 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 // OnTimeoutPacket refunds the sender since the original packet sent was
 // never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
-	return k.refundPacketToken(ctx, packet, data)
+	return k.refundPacketTokens(ctx, packet, data)
 }
 
-// refundPacketToken will unescrow and send back the tokens back to sender
+// refundPacketTokens will unescrow and send back the tokens back to sender
 // if the sending chain was the source chain. Otherwise, the sent tokens
 // were burnt in the original send so new tokens are minted and sent to
 // the sending address.
-func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
+func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
 	for _, token := range data.Tokens {
