@@ -278,9 +278,28 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 
 // Transfer broadcasts a MsgTransfer message.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
-	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
+	portID, channelID, version string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, sdk.NewCoins(token), sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	var msg *transfertypes.MsgTransfer
+	switch version {
+	case transfertypes.V1:
+		msg = &transfertypes.MsgTransfer{
+			SourcePort:       portID,
+			SourceChannel:    channelID,
+			Token:            token,
+			Sender:           sender,
+			Receiver:         receiver,
+			TimeoutHeight:    timeoutHeight,
+			TimeoutTimestamp: timeoutTimestamp,
+			Memo:             memo,
+			Tokens:           sdk.NewCoins(),
+		}
+	case transfertypes.V2:
+		msg = transfertypes.NewMsgTransfer(portID, channelID, sdk.NewCoins(token), sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	default:
+		panic(fmt.Errorf("unsupported transfer version: %s", version))
+	}
+
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 

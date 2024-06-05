@@ -258,7 +258,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 
 	// trying to create some inflight packets, although they might get relayed before the upgrade starts
 	t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, channelA.Version, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 

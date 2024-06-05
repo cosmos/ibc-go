@@ -108,7 +108,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 
 	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
 		t.Run("send tokens from chainB to chainA", func(t *testing.T) {
-			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, channelA.Version, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 			s.AssertTxSuccess(transferTxResp)
 		})
 
