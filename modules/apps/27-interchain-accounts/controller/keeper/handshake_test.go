@@ -317,7 +317,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 }
 
 func (suite *KeeperTestSuite) TestOnChanOpenAck() {
-
 	var (
 		path     *ibctesting.Path
 		metadata icatypes.Metadata
