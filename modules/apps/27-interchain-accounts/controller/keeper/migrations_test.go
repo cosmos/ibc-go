@@ -43,37 +43,39 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
 
-			path := NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path := NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, ibctesting.TestAccAddress)
-			suite.Require().NoError(err)
-
-			tc.malleate()
-
-			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
-			err = migrator.AssertChannelCapabilityMigrations(suite.chainA.GetContext())
-
-			if tc.expPass {
+				err := SetupICAPath(path, ibctesting.TestAccAddress)
 				suite.Require().NoError(err)
 
-				isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(
-					suite.chainA.GetContext(),
-					path.EndpointA.ChannelConfig.PortID,
-					path.EndpointA.ConnectionID,
-				)
+				tc.malleate()
 
-				suite.Require().True(isMiddlewareEnabled)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+				migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
+				err = migrator.AssertChannelCapabilityMigrations(suite.chainA.GetContext())
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+
+					isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(
+						suite.chainA.GetContext(),
+						path.EndpointA.ChannelConfig.PortID,
+						path.EndpointA.ConnectionID,
+					)
+
+					suite.Require().True(isMiddlewareEnabled)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
