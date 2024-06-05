@@ -69,6 +69,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (apps/transfer) [\#XXXX](https://github.com/cosmos/ibc-go/pull/XXXX) Added new `Tokens` field to `MsgTransfer` to enable sending of multiple denoms, and deprecated the `Token` field.
+
 ### Bug Fixes
 
 ## [v8.3.0](https://github.com/cosmos/ibc-go/releases/tag/v8.3.0) - 2024-05-16
