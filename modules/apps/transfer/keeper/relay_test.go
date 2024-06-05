@@ -616,13 +616,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	path2 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 	path2.Setup()
 
-	// denomTrace path: {transfer/channel-1/transfer/channel-0}
-	denomTrace := types.DenomTrace{
-		BaseDenom: sdk.DefaultBondDenom,
-		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
-	}
+	// denom path: {transfer/channel-1/transfer/channel-0}
+	denom := types.NewDenom(
+		sdk.DefaultBondDenom,
+		types.NewTrace(path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID),
+		types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
+	)
 
-	denom := types.ExtractDenomFromPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
@@ -630,6 +630,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 				Amount: amount.String(),
 			},
 		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
+
 	packet := channeltypes.NewPacket(
 		data.GetBytes(),
 		seq,
@@ -641,13 +642,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	)
 
 	// fund escrow account for transfer and channel-1 on chain B
-	// denomTrace path: transfer/channel-0
-	denomTrace = types.DenomTrace{
-		BaseDenom: sdk.DefaultBondDenom,
-		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
-	}
+	// denom path: transfer/channel-0
+	denom = types.NewDenom(
+		sdk.DefaultBondDenom,
+		types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
+	)
+
 	escrowAddress := types.GetEscrowAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID)
-	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
+	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
 			suite.chainB.GetContext(),
@@ -830,13 +832,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	path2.Setup()
 
 	// fund escrow account for transfer and channel-1 on chain B
-	// denomTrace path = transfer/channel-0
-	denomTrace := types.DenomTrace{
-		BaseDenom: sdk.DefaultBondDenom,
-		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
-	}
+	// denom path: transfer/channel-0
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID))
+
 	escrowAddress := types.GetEscrowAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID)
-	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
+	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
 			suite.chainB.GetContext(),
@@ -846,7 +846,6 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		),
 	)
 
-	denom := types.ExtractDenomFromPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
@@ -1045,12 +1044,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	path2.Setup()
 
 	// fund escrow account for transfer and channel-1 on chain B
-	denomTrace := types.DenomTrace{
-		BaseDenom: sdk.DefaultBondDenom,
-		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
-	}
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID))
+
 	escrowAddress := types.GetEscrowAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID)
-	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
+	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
 			suite.chainB.GetContext(),
@@ -1060,7 +1057,6 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		),
 	)
 
-	denom := types.ExtractDenomFromPath(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
