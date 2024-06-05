@@ -30,12 +30,14 @@ This message is expected to fail if:
 
 - `SourcePort` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
 - `SourceChannel` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
-- `Token` is invalid (denom is invalid or amount is negative) and `Tokens` is empty. Or if a `Coin` contained within the list `Tokens` does not satisfy the following:
-    - `Coin.Amount` is not positive.
-    - `Coin.Denom` is not a valid IBC denomination as per [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
+- `Tokens` is empty or a `Coin` contained within the slice does not satisfy the following:
+    - `Coin.Amount` must be positive.
+    - `Coin.Denom` must be a valid IBC denomination as per [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
 - `Sender` is empty.
 - `Receiver` is empty.
 - `TimeoutHeight` and `TimeoutTimestamp` are both zero.
+
+Please note that the `Token` field is deprecated and users should now use `Tokens` instead. If `Token` is used then `Tokens` must be empty. Similarly if `Tokens` is used then `Token` should be left empty.
 
 This message will send a fungible token to the counterparty chain represented by the counterparty Channel End connected to the Channel End with the identifiers `SourcePort` and `SourceChannel`.
 
