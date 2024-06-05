@@ -47,7 +47,7 @@ type E2ETestSuite struct {
 
 	// proposalIDs keeps track of the active proposal ID for each chain.
 	proposalIDs    map[string]uint64
-	paths          map[string]pathPair
+	paths          map[string][]ibc.Chain
 	relayers       relayer.Map
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
@@ -56,19 +56,6 @@ type E2ETestSuite struct {
 
 	// pathNameIndex is the latest index to be used for generating paths
 	pathNameIndex int64
-}
-
-// pathPair is a pairing of two chains which will be used in a test.
-type pathPair struct {
-	chainA, chainB ibc.Chain
-}
-
-// newPath returns a path built from the given chains.
-func newPath(chainA, chainB ibc.Chain) pathPair {
-	return pathPair{
-		chainA: chainA,
-		chainB: chainB,
-	}
 }
 
 func (s *E2ETestSuite) SetupTest() {
@@ -116,8 +103,9 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
-func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOptionConfiguration) (ibc.Wallet, ibc.Wallet) {
-	chainA, chainB := s.GetChains(chainOpts...)
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOptionConfiguration) []ibc.Wallet {
+	chains := s.GetAllChains(chainOpts...)
+	chainA, chainB := chains[0], chains[1]
 	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
 	s.Require().NoError(err)
 
@@ -133,7 +121,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
 	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
 
-	return chainARelayerUser, chainBRelayerUser
+	return []ibc.Wallet{chainARelayerUser, chainBRelayerUser}
 }
 
 // SetupChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
@@ -141,7 +129,8 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 // with E2ETestSuite.StartRelayer if needed.
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
-	chainA, chainB := s.GetChains(chainSpecOpts...)
+	chains := s.GetAllChains(chainSpecOpts...)
+	chainA, chainB := chains[0], chains[1]
 	r := s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
 	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 	s.Require().NoError(err)
@@ -202,7 +191,9 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 // TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
 // issue: https://github.com/strangelove-ventures/interchaintest/issues/401
 func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
-	chainA, chainB := s.GetChains()
+
+	chains := s.GetAllChains()
+	chainA, chainB := chains[0], chains[1]
 
 	ic := interchaintest.NewInterchain().AddChain(chainA).AddChain(chainB)
 
@@ -232,8 +223,9 @@ func (s *E2ETestSuite) GetPathName(idx int64) string {
 }
 
 // generatePath generates the path name using the test suites name
-func (s *E2ETestSuite) generatePath(ctx context.Context, ibcrelayer ibc.Relayer) string {
-	chainA, chainB := s.GetChains()
+func (s *E2ETestSuite) generatePath(ctx context.Context, ibcrelayer ibc.Relayer, chainAIdx, chainBIdx int) string {
+	chains := s.GetAllChains()
+	chainA, chainB := chains[chainAIdx], chains[chainBIdx]
 	chainAID := chainA.Config().ChainID
 	chainBID := chainB.Config().ChainID
 
@@ -247,7 +239,7 @@ func (s *E2ETestSuite) generatePath(ctx context.Context, ibcrelayer ibc.Relayer)
 
 // SetupClients creates clients on chainA and chainB using the provided create client options
 func (s *E2ETestSuite) SetupClients(ctx context.Context, ibcrelayer ibc.Relayer, opts ibc.CreateClientOptions) {
-	pathName := s.generatePath(ctx, ibcrelayer)
+	pathName := s.generatePath(ctx, ibcrelayer, 0, 1)
 	err := ibcrelayer.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, opts)
 	s.Require().NoError(err)
 }
@@ -261,13 +253,20 @@ func (s *E2ETestSuite) UpdateClients(ctx context.Context, ibcrelayer ibc.Relayer
 // GetChains returns two chains that can be used in a test. The pair returned
 // is unique to the current test being run. Note: this function does not create containers.
 func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Chain, ibc.Chain) {
+	chains := s.GetAllChains(chainOpts...)
+	return chains[0], chains[1]
+}
+
+// GetChains returns two chains that can be used in a test. The pair returned
+// is unique to the current test being run. Note: this function does not create containers.
+func (s *E2ETestSuite) GetAllChains(chainOpts ...ChainOptionConfiguration) []ibc.Chain {
 	if s.paths == nil {
-		s.paths = map[string]pathPair{}
+		s.paths = map[string][]ibc.Chain{}
 	}
 
-	suitePath, ok := s.paths[s.T().Name()]
+	chains, ok := s.paths[s.T().Name()]
 	if ok {
-		return suitePath.chainA, suitePath.chainB
+		return chains
 	}
 
 	chainOptions := DefaultChainOptions()
@@ -275,23 +274,24 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 		opt(&chainOptions)
 	}
 
-	chainA, chainB := s.createChains(chainOptions)
-	suitePath = newPath(chainA, chainB)
-	s.paths[s.T().Name()] = suitePath
+	s.paths[s.T().Name()] = s.createChains(chainOptions)
 
 	if s.proposalIDs == nil {
 		s.proposalIDs = map[string]uint64{}
 	}
 
-	s.proposalIDs[chainA.Config().ChainID] = 1
-	s.proposalIDs[chainB.Config().ChainID] = 1
+	// initialise proposal ids for all chains.
+	for _, chain := range chains {
+		s.proposalIDs[chain.Config().ChainID] = 1
+	}
 
-	return suitePath.chainA, suitePath.chainB
+	return s.paths[s.T().Name()]
 }
 
 // GetRelayerWallets returns the ibcrelayer wallets associated with the chains.
 func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
-	chainA, chainB := s.GetChains()
+	chains := s.GetAllChains()
+	chainA, chainB := chains[0], chains[1]
 	chainARelayerWallet, ok := ibcrelayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
 		return nil, nil, fmt.Errorf("unable to find chain A relayer wallet")
@@ -312,7 +312,8 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc
 		return err
 	}
 
-	chainA, chainB := s.GetChains()
+	chains := s.GetAllChains()
+	chainA, chainB := chains[0], chains[1]
 
 	if err := chainA.RecoverKey(ctx, ChainARelayerName, chainARelayerWallet.Mnemonic()); err != nil {
 		return fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
@@ -346,19 +347,19 @@ func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relaye
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
 func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
-	chainA, _ := s.GetChains()
+	chainA := s.GetAllChains()[0]
 	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
 func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
-	_, chainB := s.GetChains()
+	chainB := s.GetAllChains()[1]
 	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chainB)[0]
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
 func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
-	chainA, _ := s.GetChains()
+	chainA := s.GetAllChains()[0]
 
 	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainA, &banktypes.QueryBalanceRequest{
 		Address: user.FormattedAddress(),
@@ -373,7 +374,7 @@ func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wall
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
 func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
-	_, chainB := s.GetChains()
+	chainB := s.GetAllChains()[1]
 
 	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainB, &banktypes.QueryBalanceRequest{
 		Address: user.FormattedAddress(),
@@ -418,7 +419,7 @@ func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.C
 
 // createChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
-func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.Chain) {
+func (s *E2ETestSuite) createChains(chainOptions ChainOptions) []ibc.Chain {
 	client, network := interchaintest.DockerSetup(s.T())
 	t := s.T()
 
@@ -426,7 +427,7 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.C
 	s.DockerClient = client
 	s.network = network
 
-	cf := interchaintest.NewBuiltinChainFactory(s.logger, []*interchaintest.ChainSpec{chainOptions.ChainASpec, chainOptions.ChainBSpec})
+	cf := interchaintest.NewBuiltinChainFactory(s.logger, chainOptions.ChainSpecs)
 
 	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
 	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
@@ -440,7 +441,7 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.C
 	chains, err := cf.Chains(t.Name())
 	s.Require().NoError(err)
 
-	return chains[0], chains[1]
+	return chains
 }
 
 // GetRelayerExecReporter returns a testreporter.RelayerExecReporter instances
