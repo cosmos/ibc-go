@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -156,6 +157,8 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
+	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo)
+
 	defer func() {
 		for _, token := range tokens {
 			amount, ok := sdkmath.NewIntFromString(token.Amount)
@@ -273,13 +276,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			k.setDenomMetadata(ctx, token.Denom)
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeDenomTrace,
-				sdk.NewAttribute(types.AttributeKeyTraceHash, token.Denom.Hash().String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
-			),
-		)
+		events.EmitDenomTraceEvent(ctx, token.Denom.Hash().String(), voucherDenom)
 		voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
 		// mint new tokens if the source of the transfer is the same chain
