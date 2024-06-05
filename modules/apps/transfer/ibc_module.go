@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal"t
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
