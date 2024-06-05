@@ -42,7 +42,7 @@ func TestDecodeStore(t *testing.T) {
 		Pairs: []kv.Pair{
 			{
 				Key:   host.FullClientStateKey(clientID),
-				Value: app.IBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
+				Value: clienttypes.MustMarshalClientState(app.AppCodec(), clientState),
 			},
 			{
 				Key:   host.ConnectionKey(connectionID),
