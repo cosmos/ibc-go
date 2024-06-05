@@ -282,7 +282,7 @@ func newModuleQuerySafeAllowList() []string {
 		panic(err)
 	}
 	// create the files using 'AllowUnresolvable' to avoid
-	// unnecessary panic
+	// unnecessary panic: https://github.com/cosmos/ibc-go/issues/6435
 	protoFiles, err := protodesc.FileOptions{
 		AllowUnresolvable: true,
 	}.NewFiles(fds)
