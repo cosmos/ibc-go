@@ -138,6 +138,16 @@ func (suite *TypesTestSuite) TestDenomChainSource() {
 			false,
 		},
 		{
+			"sender chain is source: nil trace",
+			types.Denom{
+				Base:  "uatom",
+				Trace: nil,
+			},
+			"transfer",
+			"channel-0",
+			false,
+		},
+		{
 			"sender chain is source: single trace",
 			types.Denom{
 				Base:  "ubtc",
@@ -145,6 +155,16 @@ func (suite *TypesTestSuite) TestDenomChainSource() {
 			},
 			"transfer",
 			"channel-0",
+			false,
+		},
+		{
+			"sender chain is source: swapped portID and channelID",
+			types.Denom{
+				Base:  "uatom",
+				Trace: []types.Trace{types.NewTrace("transfer", "channel-0")},
+			},
+			"channel-0",
+			"transfer",
 			false,
 		},
 		{
