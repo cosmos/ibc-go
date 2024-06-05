@@ -48,7 +48,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace ty
 	}
 }
 
-// Codec returns the IBC module codec.
+// Codec returns the IBC Client module codec.
 func (k *Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
