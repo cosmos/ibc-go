@@ -15,10 +15,7 @@ import (
 func TestDecodeStore(t *testing.T) {
 	dec := simulation.NewDecodeStore()
 
-	trace := types.DenomTrace{
-		BaseDenom: "uatom",
-		Path:      "transfer/channelToA",
-	}
+	denom := types.NewDenom("uatom", types.NewTrace("transfer", "channelToA"))
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
@@ -27,8 +24,8 @@ func TestDecodeStore(t *testing.T) {
 				Value: []byte(types.PortID),
 			},
 			{
-				Key:   types.DenomTraceKey,
-				Value: types.ModuleCdc.MustMarshal(&trace),
+				Key:   types.DenomKey,
+				Value: types.ModuleCdc.MustMarshal(&denom),
 			},
 			{
 				Key:   []byte{0x99},
@@ -41,7 +38,7 @@ func TestDecodeStore(t *testing.T) {
 		expectedLog string
 	}{
 		{"PortID", fmt.Sprintf("Port A: %s\nPort B: %s", types.PortID, types.PortID)},
-		{"DenomTrace", fmt.Sprintf("DenomTrace A: %s\nDenomTrace B: %s", trace.IBCDenom(), trace.IBCDenom())},
+		{"Denom", fmt.Sprintf("Denom A: %s\nDenom B: %s", denom.IBCDenom(), denom.IBCDenom())},
 		{"other", ""},
 	}
 
