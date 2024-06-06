@@ -19,22 +19,20 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 		},
 		{
 			"valid multiple trace info",
-			types.Denoms{
-				{Base: "uatom", Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}},
-			},
+			types.Denoms{types.NewDenom("uatom", types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2"))},
 			nil,
 		},
 		{
 			"valid multiple trace info",
 			types.Denoms{
-				{Base: "uatom", Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}},
-				{Base: "uatom", Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}},
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")),
 			},
 			fmt.Errorf("duplicated denomination with hash"),
 		},
 		{
 			"empty base denom with trace",
-			types.Denoms{{Base: "", Trace: []types.Trace{types.NewTrace("transfer", "channel-1")}}},
+			types.Denoms{types.NewDenom("", types.NewTrace("transfer", "channel-1"))},
 			fmt.Errorf("base denomination cannot be blank"),
 		},
 	}
