@@ -130,7 +130,6 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
 	chains := s.GetAllChains(chainSpecOpts...)
-	//chainA, chainB := chains[0], chains[1]
 
 	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
 
@@ -142,10 +141,6 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		NetworkID: s.network,
 	}
 
-	//for _, opt := range buildOptions {
-	//	opt(&buildOpts)
-	//}
-
 	s.Require().NoError(ic.Build(ctx, s.GetRelayerExecReporter(), buildOpts))
 
 	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chains[0].Config().ChainID)
@@ -154,9 +149,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 }
 
 // newInterchain constructs a new interchain instance that creates channels between the chains.
-func (s *E2ETestSuite) newInterchain(ctx context.Context, relayer ibc.Relayer, chains []ibc.Chain, channelOpts func(*ibc.CreateChannelOptions)) *interchaintest.Interchain {
-	pathName := s.generatePathName()
-
+func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains []ibc.Chain, channelOpts func(*ibc.CreateChannelOptions)) *interchaintest.Interchain {
 	channelOptions := ibc.DefaultChannelOpts()
 	// For now, set the version to the latest transfer module version
 	// DefaultChannelOpts uses V1 at the moment
@@ -170,26 +163,28 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, relayer ibc.Relayer, c
 	for _, chain := range chains {
 		ic.AddChain(chain)
 	}
-	ic.AddRelayer(relayer, "r")
+	ic.AddRelayer(r, "r")
+
+	var pathNames []string
 
 	// iterate through all chains, and create links such that there is a channel between
 	// - chainA and chainB
 	// - chainB and chainC
 	// - chainC and chainD etc
 	for i := 0; i < len(chains)-1; i++ {
+		pathName := s.generatePathName()
+		pathNames = append(pathNames, pathName)
 		ic.AddLink(interchaintest.InterchainLink{
 			Chain1:            chains[i],
 			Chain2:            chains[i+1],
-			Relayer:           relayer,
+			Relayer:           r,
 			Path:              pathName,
 			CreateChannelOpts: channelOptions,
 		})
 	}
 
-	eRep := s.GetRelayerExecReporter()
-
 	s.startRelayerFn = func(relayer ibc.Relayer) {
-		err := relayer.StartRelayer(ctx, eRep, pathName)
+		err := relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), pathNames...)
 		s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
 
 		var chainHeighters []test.ChainHeighter
@@ -258,7 +253,6 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 // TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
 // issue: https://github.com/strangelove-ventures/interchaintest/issues/401
 func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
-
 	chains := s.GetAllChains()
 	chainA, chainB := chains[0], chains[1]
 
@@ -414,14 +408,23 @@ func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relaye
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
 func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
-	chainA := s.GetAllChains()[0]
-	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chainA)[0]
+	return s.createWalletOnChainIndex(ctx, amount, 0)
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
 func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
-	chainB := s.GetAllChains()[1]
-	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chainB)[0]
+	return s.createWalletOnChainIndex(ctx, amount, 1)
+}
+
+// CreateUserOnChainC creates a user with the given amount of funds on chain C.
+func (s *E2ETestSuite) CreateUserOnChainC(ctx context.Context, amount int64) ibc.Wallet {
+	return s.createWalletOnChainIndex(ctx, amount, 2)
+}
+
+// createWalletOnChainIndex creates a wallet with the given amount of funds on the chain of the given index.
+func (s *E2ETestSuite) createWalletOnChainIndex(ctx context.Context, amount, chainIndex int64) ibc.Wallet {
+	chain := s.GetAllChains()[chainIndex]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chain)[0]
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
