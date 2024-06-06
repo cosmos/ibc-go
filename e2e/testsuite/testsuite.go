@@ -434,8 +434,11 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) []ibc.Chain {
 	// this allows us to process the logs before the containers are removed.
 	t.Cleanup(func() {
 		dumpLogs := LoadConfig().DebugConfig.DumpLogs
-		chains := []string{chainOptions.ChainASpec.ChainConfig.Name, chainOptions.ChainBSpec.ChainConfig.Name}
-		diagnostics.Collect(t, s.DockerClient, dumpLogs, chains...)
+		var chainNames []string
+		for _, chain := range chainOptions.ChainSpecs {
+			chainNames = append(chainNames, chain.Name)
+		}
+		diagnostics.Collect(t, s.DockerClient, dumpLogs, chainNames...)
 	})
 
 	chains, err := cf.Chains(t.Name())

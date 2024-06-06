@@ -46,7 +46,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	appTomlOverrides["halt-height"] = haltHeight
 	configFileOverrides["config/app.toml"] = appTomlOverrides
 	chainOpts := func(options *testsuite.ChainOptions) {
-		options.ChainASpec.ConfigFileOverrides = configFileOverrides
+		options.ChainSpecs[0].ConfigFileOverrides = configFileOverrides
 	}
 
 	// create chains with specified chain configuration options

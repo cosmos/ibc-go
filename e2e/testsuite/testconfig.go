@@ -525,10 +525,6 @@ func IsFork() bool {
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
 type ChainOptions struct {
-	ChainASpec *interchaintest.ChainSpec
-	ChainBSpec *interchaintest.ChainSpec
-	ChainCSpec *interchaintest.ChainSpec
-
 	ChainSpecs       []*interchaintest.ChainSpec
 	SkipPathCreation bool
 }
@@ -561,8 +557,6 @@ func DefaultChainOptions() ChainOptions {
 
 	return ChainOptions{
 		ChainSpecs: []*interchaintest.ChainSpec{chainASpec, chainBSpec},
-		ChainASpec: chainASpec,
-		ChainBSpec: chainBSpec,
 	}
 }
 
