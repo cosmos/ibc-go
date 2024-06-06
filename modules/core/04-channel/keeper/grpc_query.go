@@ -480,7 +480,7 @@ func (k *Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceived
 	default:
 		return nil, status.Error(
 			codes.InvalidArgument,
-			errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel order %s is not supported", channel.Ordering.String()).Error())
+			errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel order %s is not supported", channel.Ordering).Error())
 	}
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
