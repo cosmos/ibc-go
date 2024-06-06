@@ -199,7 +199,7 @@ func (suite *TypesTestSuite) TestSort() {
 			},
 		},
 		{
-			"muliple base denoms and multiple traces",
+			"multiple base denoms and multiple traces",
 			types.Denoms{
 				types.Denom{
 					Base:  "uatom",
