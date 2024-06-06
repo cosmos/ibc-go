@@ -120,8 +120,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 			},
 			transfertypes.Denoms{
 				transfertypes.NewDenom("apple", transfertypes.NewTrace("transfer", "channel-0")),
-				transfertypes.NewDenom("pineapple", transfertypes.NewTrace("transfer", "channel-0")),
 				transfertypes.NewDenom("cucumber", transfertypes.NewTrace("transfer", "channel-102"), transfertypes.NewTrace("transfer", "channel-0")),
+				transfertypes.NewDenom("pineapple", transfertypes.NewTrace("transfer", "channel-0")),
 				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-49")),
 			},
 		},

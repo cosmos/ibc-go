@@ -2,7 +2,7 @@ package events
 
 import (
 	"encoding/json"
-	"fmt"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -38,7 +38,7 @@ func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacket
 		sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
 		sdk.NewAttribute(types.AttributeKeyTokens, jsonTokens),
 		sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
-		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+		sdk.NewAttribute(types.AttributeKeyAckSuccess, strconv.FormatBool(ack.Success())),
 	}
 
 	if ackErr != nil {
