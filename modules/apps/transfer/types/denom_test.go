@@ -211,7 +211,7 @@ func (suite *TypesTestSuite) TestSort() {
 				},
 				types.Denom{
 					Base:  "gamm",
-					Trace: []types.Trace{types.NewTrace("pool", "channel-0"), types.NewTrace("transfer", "channel-52"),},
+					Trace: []types.Trace{types.NewTrace("pool", "channel-0"), types.NewTrace("transfer", "channel-52")},
 				},
 				types.Denom{
 					Base:  "uatom",
@@ -232,7 +232,7 @@ func (suite *TypesTestSuite) TestSort() {
 				},
 				types.Denom{
 					Base:  "gamm",
-					Trace: []types.Trace{types.NewTrace("pool", "channel-0"), types.NewTrace("transfer", "channel-52"),},
+					Trace: []types.Trace{types.NewTrace("pool", "channel-0"), types.NewTrace("transfer", "channel-52")},
 				},
 				types.Denom{
 					Base:  "gamm",
