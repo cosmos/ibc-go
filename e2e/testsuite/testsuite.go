@@ -103,7 +103,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
-func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOptionConfiguration) []ibc.Wallet {
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOptionConfiguration) (ibc.Wallet, ibc.Wallet) {
 	chains := s.GetAllChains(chainOpts...)
 	chainA, chainB := chains[0], chains[1]
 	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
@@ -121,7 +121,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
 	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
 
-	return []ibc.Wallet{chainARelayerUser, chainBRelayerUser}
+	return chainARelayerUser, chainBRelayerUser
 }
 
 // SetupChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
