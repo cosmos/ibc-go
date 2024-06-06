@@ -47,7 +47,8 @@ func (*AuthzTransferTestSuite) QueryGranterGrants(ctx context.Context, chain ibc
 func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
-	chainA, chainB := s.GetChains()
+
+	chainA, chainB := suite.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 	chainBVersion := chainB.Config().Images[0].Version
 
@@ -209,7 +210,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChains()
+	chainA, chainB := suite.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 	chainBVersion := chainB.Config().Images[0].Version
 
