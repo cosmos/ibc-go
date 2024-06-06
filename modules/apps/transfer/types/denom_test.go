@@ -170,6 +170,10 @@ func (suite *TypesTestSuite) TestSort() {
 				},
 				types.Denom{
 					Base:  "uatom",
+					Trace: []types.Trace{types.NewTrace("mountain", "channel-0")},
+				},
+				types.Denom{
+					Base:  "uatom",
 					Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")},
 				},
 				types.Denom{
@@ -186,6 +190,10 @@ func (suite *TypesTestSuite) TestSort() {
 				},
 				types.Denom{
 					Base:  "uatom",
+					Trace: []types.Trace{types.NewTrace("mountain", "channel-0")},
+				},
+				types.Denom{
+					Base:  "uatom",
 					Trace: []types.Trace{types.NewTrace("transfer", "channel-0")},
 				},
 				types.Denom{
@@ -199,7 +207,7 @@ func (suite *TypesTestSuite) TestSort() {
 			},
 		},
 		{
-			"multiple base denoms and multiple traces",
+			"different base denoms and different traces",
 			types.Denoms{
 				types.Denom{
 					Base:  "uatom",
