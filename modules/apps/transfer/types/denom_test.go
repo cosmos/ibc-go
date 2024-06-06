@@ -199,11 +199,102 @@ func (suite *TypesTestSuite) TestSort() {
 			},
 		},
 	}
-
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expDenoms, tc.denoms.Sort())
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestDenomChainSource() {
+	testCases := []struct {
+		name                     string
+		denom                    types.Denom
+		sourcePort               string
+		sourceChannel            string
+		expReceiverChainIsSource bool
+	}{
+		{
+			"sender chain is source: empty trace",
+			types.Denom{
+				Base:  "uatom",
+				Trace: []types.Trace{},
+			},
+			"transfer",
+			"channel-0",
+			false,
+		},
+		{
+			"sender chain is source: nil trace",
+			types.Denom{
+				Base:  "uatom",
+				Trace: nil,
+			},
+			"transfer",
+			"channel-0",
+			false,
+		},
+		{
+			"sender chain is source: single trace",
+			types.Denom{
+				Base:  "ubtc",
+				Trace: []types.Trace{types.NewTrace("transfer", "channel-1")},
+			},
+			"transfer",
+			"channel-0",
+			false,
+		},
+		{
+			"sender chain is source: swapped portID and channelID",
+			types.Denom{
+				Base:  "uatom",
+				Trace: []types.Trace{types.NewTrace("transfer", "channel-0")},
+			},
+			"channel-0",
+			"transfer",
+			false,
+		},
+		{
+			"sender chain is source: multi-trace",
+			types.Denom{
+				Base: "uatom",
+				Trace: []types.Trace{
+					types.NewTrace("transfer", "channel-0"),
+					types.NewTrace("transfer", "channel-52"),
+				},
+			},
+			"transfer",
+			"channel-1",
+			false,
+		},
+		{
+			"receiver chain is source: single trace",
+			types.Denom{
+				Base:  "factory/stars16da2uus9zrsy83h23ur42v3lglg5rmyrpqnju4/dust",
+				Trace: []types.Trace{types.NewTrace("transfer", "channel-0")},
+			},
+			"transfer",
+			"channel-0",
+			true,
+		},
+		{
+			"receiver chain is source: multi-trace",
+			types.Denom{
+				Base:  "uatom",
+				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")},
+			},
+			"transfer",
+			"channel-0",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(tc.expReceiverChainIsSource, tc.denom.ReceiverChainIsSource(tc.sourcePort, tc.sourceChannel))
+			suite.Require().Equal(!tc.expReceiverChainIsSource, tc.denom.SenderChainIsSource(tc.sourcePort, tc.sourceChannel))
 		})
 	}
 }
