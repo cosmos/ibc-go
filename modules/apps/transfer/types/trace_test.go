@@ -38,7 +38,7 @@ func TestValidateIBCDenom(t *testing.T) {
 	}
 }
 
-func TestExtractDenomFromFullPath(t *testing.T) {
+func TestExtractDenomFromPath(t *testing.T) {
 	testCases := []struct {
 		name     string
 		fullPath string
@@ -68,7 +68,7 @@ func TestExtractDenomFromFullPath(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		denom := types.ExtractDenomFromFullPath(tc.fullPath)
+		denom := types.ExtractDenomFromPath(tc.fullPath)
 		require.Equal(t, tc.expDenom, denom, tc.name)
 	}
 }
