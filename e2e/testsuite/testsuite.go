@@ -325,8 +325,7 @@ func (s *E2ETestSuite) GetAllChains(chainOpts ...ChainOptionConfiguration) []ibc
 		s.paths = map[string][]ibc.Chain{}
 	}
 
-	chains, ok := s.paths[s.T().Name()]
-	if ok {
+	if chains, ok := s.paths[s.T().Name()]; ok {
 		return chains
 	}
 
@@ -335,7 +334,8 @@ func (s *E2ETestSuite) GetAllChains(chainOpts ...ChainOptionConfiguration) []ibc
 		opt(&chainOptions)
 	}
 
-	s.paths[s.T().Name()] = s.createChains(chainOptions)
+	chains := s.createChains(chainOptions)
+	s.paths[s.T().Name()] = chains
 
 	if s.proposalIDs == nil {
 		s.proposalIDs = map[string]uint64{}
@@ -346,7 +346,7 @@ func (s *E2ETestSuite) GetAllChains(chainOpts ...ChainOptionConfiguration) []ibc
 		s.proposalIDs[chain.Config().ChainID] = 1
 	}
 
-	return s.paths[s.T().Name()]
+	return chains
 }
 
 // GetRelayerWallets returns the ibcrelayer wallets associated with the chains.
