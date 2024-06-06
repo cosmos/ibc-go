@@ -2,6 +2,7 @@ package simulation_test
 
 import (
 	"math/rand"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,7 @@ import (
 	controllerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	hostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/simulation"
 )
 
@@ -28,58 +29,75 @@ func TestProposalMsgs(t *testing.T) {
 	accounts := simtypes.RandomAccounts(r, 3)
 
 	tests := []struct {
-		controller   *controllerkeeper.Keeper
-		host         *hostkeeper.Keeper
-		proposalMsgs int
-		isHost       []bool
+		name       string
+		controller *controllerkeeper.Keeper
+		host       *hostkeeper.Keeper
+		expMsgs    []interface{}
 	}{
 		{
-			controller:   &controllerkeeper.Keeper{},
-			host:         &hostkeeper.Keeper{},
-			proposalMsgs: 2,
-			isHost:       []bool{true, false},
+			name:       "host and controller keepers are both enabled",
+			controller: &controllerkeeper.Keeper{},
+			host:       &hostkeeper.Keeper{},
+			expMsgs: []interface{}{
+				hosttypes.MsgUpdateParams{
+					Signer: sdk.AccAddress(address.Module("gov")).String(),
+					Params: hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
+				},
+				controllertypes.MsgUpdateParams{
+					Signer: sdk.AccAddress(address.Module("gov")).String(),
+					Params: controllertypes.NewParams(false),
+				},
+			},
 		},
 		{
-			controller:   nil,
-			host:         nil,
-			proposalMsgs: 0,
+			name:       "host and controller keepers are not enabled",
+			controller: nil,
+			host:       nil,
 		},
 		{
-			controller:   &controllerkeeper.Keeper{},
-			proposalMsgs: 1,
-			isHost:       []bool{false},
+			name:       "only controller keeper is enabled",
+			controller: &controllerkeeper.Keeper{},
+			expMsgs: []interface{}{
+				controllertypes.MsgUpdateParams{
+					Signer: sdk.AccAddress(address.Module("gov")).String(),
+					Params: controllertypes.NewParams(false),
+				},
+			},
 		},
 		{
-			host:         &hostkeeper.Keeper{},
-			proposalMsgs: 1,
-			isHost:       []bool{true},
+			name: "only host keeper is enabled",
+			host: &hostkeeper.Keeper{},
+			expMsgs: []interface{}{
+				hosttypes.MsgUpdateParams{
+					Signer: sdk.AccAddress(address.Module("gov")).String(),
+					Params: hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
+				},
+			},
 		},
 	}
 
-	for _, test := range tests {
-		// execute ProposalMsgs function
-		weightedProposalMsgs := simulation.ProposalMsgs(test.controller, test.host)
-		require.Equal(t, test.proposalMsgs, len(weightedProposalMsgs))
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// execute ProposalMsgs function
+			weightedProposalMsgs := simulation.ProposalMsgs(tc.controller, tc.host)
+			require.Equal(t, len(tc.expMsgs), len(weightedProposalMsgs))
 
-		for idx, weightedMsg := range weightedProposalMsgs {
-			// tests weighted interface:
-			require.Equal(t, simulation.OpWeightMsgUpdateParams, weightedMsg.AppParamsKey())
-			require.Equal(t, simulation.DefaultWeightMsgUpdateParams, weightedMsg.DefaultWeight())
+			for idx, weightedMsg := range weightedProposalMsgs {
+				// tests weighted interface:
+				require.Equal(t, simulation.OpWeightMsgUpdateParams, weightedMsg.AppParamsKey())
+				require.Equal(t, simulation.DefaultWeightMsgUpdateParams, weightedMsg.DefaultWeight())
 
-			msg := weightedMsg.MsgSimulatorFn()(r, ctx, accounts)
-			if test.isHost[idx] {
-				msgUpdateHostParams, ok := msg.(*types.MsgUpdateParams)
-				require.True(t, ok)
-
-				require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateHostParams.Signer)
-				require.Equal(t, msgUpdateHostParams.Params.HostEnabled, false)
-			} else {
-				msgUpdateControllerParams, ok := msg.(*controllertypes.MsgUpdateParams)
-				require.True(t, ok)
-
-				require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateControllerParams.Signer)
-				require.Equal(t, msgUpdateControllerParams.Params.ControllerEnabled, false)
+				msg := weightedMsg.MsgSimulatorFn()(r, ctx, accounts)
+				if reflect.TypeOf(tc.expMsgs[idx]) == reflect.TypeOf(hosttypes.MsgUpdateParams{}) {
+					msgUpdateHostParams, ok := msg.(*hosttypes.MsgUpdateParams)
+					require.True(t, ok)
+					require.Equal(t, tc.expMsgs[idx], *msgUpdateHostParams)
+				} else {
+					msgUpdateControllerParams, ok := msg.(*controllertypes.MsgUpdateParams)
+					require.True(t, ok)
+					require.Equal(t, tc.expMsgs[idx], *msgUpdateControllerParams)
+				}
 			}
-		}
+		})
 	}
 }
