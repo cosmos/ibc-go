@@ -437,9 +437,11 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
+	chainBVersion := chainB.Config().Images[0].Version
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(chainAVersion, chainBVersion))
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 

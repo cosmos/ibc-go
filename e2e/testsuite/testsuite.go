@@ -19,6 +19,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -458,19 +459,31 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
+func (*E2ETestSuite) TransferChannelOptions(chainAVersion, chainBVersion string) func(options *ibc.CreateChannelOptions) {
+	// select the transfer version based on the chain versions
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
+		transferVersion = transfertypes.V2
+	}
+
 	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transfertypes.V2
+		opts.Version = transferVersion
 		opts.SourcePortName = transfertypes.PortID
 		opts.DestPortName = transfertypes.PortID
 	}
 }
 
 // FeeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
-func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
+func (s *E2ETestSuite) FeeMiddlewareChannelOptions(chainAVersion, chainBVersion string) func(options *ibc.CreateChannelOptions) {
+	// select the transfer version based on the chain versions
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
+		transferVersion = transfertypes.V2
+	}
+
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: transfertypes.V2,
+		AppVersion: transferVersion,
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
@@ -539,4 +552,33 @@ func getValidatorsAndFullNodes(chainIdx int) (int, int) {
 	}
 	tc := LoadConfig()
 	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
+}
+
+// GetMsgTransfer returns a MsgTransfer that is constructed based on the channel version
+func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string) *transfertypes.MsgTransfer {
+	if len(tokens) == 0 {
+		panic(errors.New("tokens cannot be empty"))
+	}
+
+	var msg *transfertypes.MsgTransfer
+	switch version {
+	case transfertypes.V1:
+		msg = &transfertypes.MsgTransfer{
+			SourcePort:       portID,
+			SourceChannel:    channelID,
+			Token:            tokens[0],
+			Sender:           sender,
+			Receiver:         receiver,
+			TimeoutHeight:    timeoutHeight,
+			TimeoutTimestamp: timeoutTimestamp,
+			Memo:             memo,
+			Tokens:           sdk.NewCoins(),
+		}
+	case transfertypes.V2:
+		msg = transfertypes.NewMsgTransfer(portID, channelID, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	default:
+		panic(fmt.Errorf("unsupported transfer version: %s", version))
+	}
+
+	return msg
 }
