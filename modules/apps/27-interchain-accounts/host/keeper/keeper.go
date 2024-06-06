@@ -7,6 +7,7 @@ import (
 
 	gogoproto "github.com/cosmos/gogoproto/proto"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	msgv1 "cosmossdk.io/api/cosmos/msg/v1"
@@ -282,7 +283,15 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 // newModuleQuerySafeAllowList returns a list of all query paths labeled with module_query_safe in the proto files.
 func newModuleQuerySafeAllowList() []string {
-	protoFiles, err := gogoproto.MergedRegistry()
+	fds, err := gogoproto.MergedGlobalFileDescriptors()
+	if err != nil {
+		panic(err)
+	}
+	// create the files using 'AllowUnresolvable' to avoid
+	// unnecessary panic: https://github.com/cosmos/ibc-go/issues/6435
+	protoFiles, err := protodesc.FileOptions{
+		AllowUnresolvable: true,
+	}.NewFiles(fds)
 	if err != nil {
 		panic(err)
 	}
