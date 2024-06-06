@@ -119,8 +119,8 @@ func EmitDenomEvent(ctx sdk.Context, token types.Token) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDenom,
-			sdk.NewAttribute(types.AttributeKeyDenomHash, jsonDenom),
-			sdk.NewAttribute(types.AttributeKeyDenom, token.Denom.String()),
+			sdk.NewAttribute(types.AttributeKeyDenomHash, token.Denom.Hash().String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, jsonDenom),
 		),
 	)
 }
