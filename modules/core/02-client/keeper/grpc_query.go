@@ -73,7 +73,7 @@ func (k *Keeper) ClientStates(c context.Context, req *types.QueryClientStatesReq
 			return false, nil
 		}
 
-		clientState, err := k.UnmarshalClientState(value)
+		clientState, err := types.UnmarshalClientState(k.cdc, value)
 		if err != nil {
 			return false, err
 		}
@@ -172,7 +172,7 @@ func (k *Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusSta
 			return false, err
 		}
 
-		consensusState, err := k.UnmarshalConsensusState(value)
+		consensusState, err := types.UnmarshalConsensusState(k.cdc, value)
 		if err != nil {
 			return false, err
 		}
