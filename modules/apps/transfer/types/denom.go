@@ -127,7 +127,7 @@ func (d Denoms) Less(i, j int) bool {
 		return d[i].Base < d[j].Base
 	}
 
-	if len(d[i].Trace) != len(d[j].Base) {
+	if len(d[i].Trace) != len(d[j].Trace) {
 		return len(d[i].Trace) < len(d[j].Trace)
 	}
 
