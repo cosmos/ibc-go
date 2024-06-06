@@ -156,19 +156,13 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 	pathName := s.generatePathName()
 
 	channelOptions := ibc.DefaultChannelOpts()
+	// For now, set the version to the latest transfer module version
+	// DefaultChannelOpts uses V1 at the moment
+	channelOptions.Version = transfertypes.V2
+
 	if channelOpts != nil {
 		channelOpts(&channelOptions)
 	}
-
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	// select the transfer version based on the chain versions
-	transferVersion := transfertypes.V1
-	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
-		transferVersion = transfertypes.V2
-	}
-	channelOptions.Version = transferVersion
 
 	ic := interchaintest.NewInterchain().
 		AddChain(chainA).
