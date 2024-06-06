@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
+	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simulation"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
@@ -15,7 +16,7 @@ import (
 func TestDecodeStore(t *testing.T) {
 	dec := simulation.NewDecodeStore()
 
-	trace := types.DenomTrace{
+	trace := internaltypes.DenomTrace{
 		BaseDenom: "uatom",
 		Path:      "transfer/channelToA",
 	}
