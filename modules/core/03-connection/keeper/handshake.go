@@ -47,7 +47,7 @@ func (k *Keeper) ConnOpenInit(
 	connection := types.NewConnectionEnd(types.INIT, clientID, counterparty, versions, delayPeriod)
 	k.SetConnection(ctx, connectionID, connection)
 
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.INIT.String())
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED, "new-state", types.INIT)
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-init")
 
@@ -142,7 +142,7 @@ func (k *Keeper) ConnOpenTry(
 	}
 
 	k.SetConnection(ctx, connectionID, connection)
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.TRYOPEN.String())
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED, "new-state", types.TRYOPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-try")
 
@@ -187,7 +187,7 @@ func (k *Keeper) ConnOpenAck(
 	if connection.State != types.INIT {
 		return errorsmod.Wrapf(
 			types.ErrInvalidConnectionState,
-			"connection state is not INIT (got %s)", connection.State.String(),
+			"connection state is not INIT (got %s)", connection.State,
 		)
 	}
 
@@ -234,7 +234,7 @@ func (k *Keeper) ConnOpenAck(
 		return err
 	}
 
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.INIT.String(), "new-state", types.OPEN.String())
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.INIT, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-ack")
 
@@ -269,7 +269,7 @@ func (k *Keeper) ConnOpenConfirm(
 	if connection.State != types.TRYOPEN {
 		return errorsmod.Wrapf(
 			types.ErrInvalidConnectionState,
-			"connection state is not TRYOPEN (got %s)", connection.State.String(),
+			"connection state is not TRYOPEN (got %s)", connection.State,
 		)
 	}
 
@@ -288,7 +288,7 @@ func (k *Keeper) ConnOpenConfirm(
 	// Update ChainB's connection to Open
 	connection.State = types.OPEN
 	k.SetConnection(ctx, connectionID, connection)
-	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.TRYOPEN.String(), "new-state", types.OPEN.String())
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
 
