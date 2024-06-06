@@ -28,7 +28,7 @@ slug: /apps/transfer/events
 | fungible_token_packet | error         | \{ackError\}     |
 | fungible_token_packet | memo          | \{memo\}         | 
 | denomination          | trace_hash    | \{hex_hash\}     |
-| denomination          | denom         | \{voucherDenom\} |
+| denomination          | denom         | \{jsonDenom\}    |
 | message               | module        | transfer         |
 
 ## `OnAcknowledgePacket` callback
