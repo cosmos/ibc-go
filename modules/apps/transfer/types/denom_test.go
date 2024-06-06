@@ -260,7 +260,7 @@ func (suite *TypesTestSuite) TestDenomChainSource() {
 	}{
 		{
 			"sender chain is source: empty trace",
-			types.NewDenom("uatom", []types.Trace{}),
+			types.NewDenom("uatom", []types.Trace{}...),
 			"transfer",
 			"channel-0",
 			false,

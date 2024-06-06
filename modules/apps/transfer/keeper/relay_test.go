@@ -374,7 +374,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(sdk.DefaultBondDenom, []types.Trace{}),
+						Denom:  types.NewDenom(sdk.DefaultBondDenom, []types.Trace{}...),
 						Amount: amount.String(),
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
