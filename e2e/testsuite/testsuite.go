@@ -130,11 +130,78 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
 	chains := s.GetAllChains(chainSpecOpts...)
-	chainA, chainB := chains[0], chains[1]
-	r := s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
-	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+	//chainA, chainB := chains[0], chains[1]
+
+	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
+
+	ic := s.newInterchain(ctx, r, chains, channelOpts)
+
+	buildOpts := interchaintest.InterchainBuildOptions{
+		TestName:  s.T().Name(),
+		Client:    s.DockerClient,
+		NetworkID: s.network,
+	}
+
+	//for _, opt := range buildOptions {
+	//	opt(&buildOpts)
+	//}
+
+	s.Require().NoError(ic.Build(ctx, s.GetRelayerExecReporter(), buildOpts))
+
+	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chains[0].Config().ChainID)
 	s.Require().NoError(err)
 	return r, chainAChannels[len(chainAChannels)-1]
+}
+
+// newInterchain constructs a new interchain instance that creates channels between the chains.
+func (s *E2ETestSuite) newInterchain(ctx context.Context, relayer ibc.Relayer, chains []ibc.Chain, channelOpts func(*ibc.CreateChannelOptions)) *interchaintest.Interchain {
+	pathName := s.generatePathName()
+
+	channelOptions := ibc.DefaultChannelOpts()
+	// For now, set the version to the latest transfer module version
+	// DefaultChannelOpts uses V1 at the moment
+	channelOptions.Version = transfertypes.V2
+
+	if channelOpts != nil {
+		channelOpts(&channelOptions)
+	}
+
+	ic := interchaintest.NewInterchain()
+	for _, chain := range chains {
+		ic.AddChain(chain)
+	}
+	ic.AddRelayer(relayer, "r")
+
+	// iterate through all chains, and create links such that there is a channel between
+	// - chainA and chainB
+	// - chainB and chainC
+	// - chainC and chainD etc
+	for i := 0; i < len(chains)-1; i++ {
+		ic.AddLink(interchaintest.InterchainLink{
+			Chain1:            chains[i],
+			Chain2:            chains[i+1],
+			Relayer:           relayer,
+			Path:              pathName,
+			CreateChannelOpts: channelOptions,
+		})
+	}
+
+	eRep := s.GetRelayerExecReporter()
+
+	s.startRelayerFn = func(relayer ibc.Relayer) {
+		err := relayer.StartRelayer(ctx, eRep, pathName)
+		s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
+
+		var chainHeighters []test.ChainHeighter
+		for _, c := range chains {
+			chainHeighters = append(chainHeighters, c)
+		}
+
+		// wait for every chain to produce some blocks before using the relayer.
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainHeighters...), "failed to wait for blocks")
+	}
+
+	return ic
 }
 
 func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.Chain, channelOpts func(*ibc.CreateChannelOptions), buildOptions ...func(options *interchaintest.InterchainBuildOptions)) ibc.Relayer {
