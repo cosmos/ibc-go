@@ -202,10 +202,13 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
 
 	t.Run("send IBC transfer", func(t *testing.T) {
+		version, err := feetypes.MetadataFromVersion(channelA.Version)
+		s.Require().NoError(err)
+
 		msgTransfer := testsuite.GetMsgTransfer(
 			channelA.PortID,
 			channelA.ChannelID,
-			channelA.Version,
+			version.AppVersion,
 			sdk.NewCoins(transferAmount),
 			chainAWallet.FormattedAddress(),
 			testvalues.InvalidAddress,
@@ -338,11 +341,14 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		s.Require().Empty(packets)
 	})
 
+	version, err := feetypes.MetadataFromVersion(channelA.Version)
+	s.Require().NoError(err)
+
 	msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.FormattedAddress(), nil)
 	msgTransfer := testsuite.GetMsgTransfer(
 		channelA.PortID,
 		channelA.ChannelID,
-		channelA.Version,
+		version.AppVersion,
 		sdk.NewCoins(transferAmount),
 		chainAWallet.FormattedAddress(),
 		chainBWallet.FormattedAddress(),
