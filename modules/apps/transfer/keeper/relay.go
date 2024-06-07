@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	metrics "github.com/hashicorp/go-metrics"
+	"github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -12,6 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
+	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -137,43 +139,16 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	var packetDataBytes []byte
-	switch appVersion {
-	case types.V1:
-		// Length of coins has been checked earlier to be 1 if version is V1.
-		token := tokens[0]
-		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), receiver, memo)
-		packetDataBytes = packetData.GetBytes()
-	case types.V2:
-		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender.String(), receiver, memo)
-		packetDataBytes = packetData.GetBytes()
-	default:
-		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
-	}
+	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens)
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
 		return 0, err
 	}
 
-	defer func() {
-		for _, token := range tokens {
-			amount, ok := sdkmath.NewIntFromString(token.Amount)
-			if ok && amount.IsInt64() {
-				telemetry.SetGaugeWithLabels(
-					[]string{"tx", "msg", "ibc", "transfer"},
-					float32(amount.Int64()),
-					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.Denom.Path())},
-				)
-			}
-		}
+	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo)
 
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", types.ModuleName, "send"},
-			1,
-			labels,
-		)
-	}()
+	defer internaltelemetry.ReportTransferTelemetry(tokens, labels)
 
 	return sequence, nil
 }
@@ -236,23 +211,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			}
 
 			denomPath := token.Denom.Path()
-			defer func() {
-				if transferAmount.IsInt64() {
-					telemetry.SetGaugeWithLabels(
-						[]string{"ibc", types.ModuleName, "packet", "receive"},
-						float32(transferAmount.Int64()),
-						[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, denomPath)},
-					)
-				}
-
-				telemetry.IncrCounterWithLabels(
-					[]string{"ibc", types.ModuleName, "receive"},
-					1,
-					append(
-						labels, telemetry.NewLabel(coretypes.LabelSource, "true"),
-					),
-				)
-			}()
+			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
+			defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
 
 			// Continue processing rest of tokens in packet data.
 			continue
@@ -273,13 +233,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			k.setDenomMetadata(ctx, token.Denom)
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeDenomTrace,
-				sdk.NewAttribute(types.AttributeKeyTraceHash, token.Denom.Hash().String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
-			),
-		)
+		events.EmitDenomEvent(ctx, token)
+
 		voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
 		// mint new tokens if the source of the transfer is the same chain
@@ -297,23 +252,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		denomPath := token.Denom.Path()
-		defer func() {
-			if transferAmount.IsInt64() {
-				telemetry.SetGaugeWithLabels(
-					[]string{"ibc", types.ModuleName, "packet", "receive"},
-					float32(transferAmount.Int64()),
-					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, denomPath)},
-				)
-			}
-
-			telemetry.IncrCounterWithLabels(
-				[]string{"ibc", types.ModuleName, "receive"},
-				1,
-				append(
-					labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
-				),
-			)
-		}()
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
+		defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
 	}
 
 	return nil
@@ -322,7 +262,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 // OnAcknowledgementPacket responds to the success or failure of a packet
 // acknowledgement written on the receiving chain. If the acknowledgement
 // was a success then nothing occurs. If the acknowledgement failed, then
-// the sender is refunded their tokens using the refundPacketToken function.
+// the sender is refunded their tokens using the refundPacketTokens function.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
@@ -330,7 +270,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 		// needs to be executed and no error needs to be returned
 		return nil
 	case *channeltypes.Acknowledgement_Error:
-		return k.refundPacketToken(ctx, packet, data)
+		return k.refundPacketTokens(ctx, packet, data)
 	default:
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 	}
@@ -339,14 +279,14 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 // OnTimeoutPacket refunds the sender since the original packet sent was
 // never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
-	return k.refundPacketToken(ctx, packet, data)
+	return k.refundPacketTokens(ctx, packet, data)
 }
 
-// refundPacketToken will unescrow and send back the tokens back to sender
+// refundPacketTokens will unescrow and send back the tokens back to sender
 // if the sending chain was the source chain. Otherwise, the sent tokens
 // were burnt in the original send so new tokens are minted and sent to
 // the sending address.
-func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
+func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
 	for _, token := range data.Tokens {
@@ -428,9 +368,7 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{
-			Denom: types.Denom{
-				Base: coin.Denom,
-			},
+			Denom:  types.NewDenom(coin.Denom),
 			Amount: coin.Amount.String(),
 		}, nil
 	}
@@ -452,4 +390,27 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 		Denom:  denom,
 		Amount: coin.Amount.String(),
 	}, nil
+}
+
+// createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
+func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens) []byte {
+	var packetDataBytes []byte
+	switch appVersion {
+	case types.V1:
+		// Sanity check, tokens must always be of length 1 if using app version V1.
+		if len(tokens) != 1 {
+			panic(fmt.Errorf("length of tokens must be equal to 1 if using %s version", types.V1))
+		}
+
+		token := tokens[0]
+		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender, receiver, memo)
+		packetDataBytes = packetData.GetBytes()
+	case types.V2:
+		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo)
+		packetDataBytes = packetData.GetBytes()
+	default:
+		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
+	}
+
+	return packetDataBytes
 }

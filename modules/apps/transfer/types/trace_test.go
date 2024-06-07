@@ -38,37 +38,37 @@ func TestValidateIBCDenom(t *testing.T) {
 	}
 }
 
-func TestExtractDenomFromFullPath(t *testing.T) {
+func TestExtractDenomFromPath(t *testing.T) {
 	testCases := []struct {
 		name     string
 		fullPath string
 		expDenom types.Denom
 	}{
 		{"empty denom", "", types.Denom{}},
-		{"base denom no slashes", "atom", types.Denom{Base: "atom"}},
-		{"base denom with trailing slash", "atom/", types.Denom{Base: "atom/"}},
-		{"base denom multiple trailing slash", "foo///bar//baz/atom/", types.Denom{Base: "foo///bar//baz/atom/"}},
-		{"ibc denom one hop", "transfer/channel-0/atom", types.Denom{Base: "atom", Trace: []types.Trace{types.NewTrace("transfer", "channel-0")}}},
-		{"ibc denom one hop trailing slash", "transfer/channel-0/atom/", types.Denom{Base: "atom/", Trace: []types.Trace{types.NewTrace("transfer", "channel-0")}}},
-		{"ibc denom one hop multiple slashes", "transfer/channel-0//at/om/", types.Denom{Base: "/at/om/", Trace: []types.Trace{types.NewTrace("transfer", "channel-0")}}},
-		{"ibc denom two hops", "transfer/channel-0/transfer/channel-60/atom", types.Denom{Base: "atom", Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-60")}}},
-		{"ibc denom two hops trailing slash", "transfer/channel-0/transfer/channel-60/atom/", types.Denom{Base: "atom/", Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-60")}}},
-		{"empty prefix", "/uatom", types.Denom{Base: "/uatom"}},
-		{"empty identifiers", "//uatom", types.Denom{Base: "//uatom"}},
-		{"base denom with single '/'", "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", types.Denom{Base: "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA"}},
-		{"trace info and base denom with single '/'", "transfer/channel-1/erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", types.Denom{Base: "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Trace: []types.Trace{types.NewTrace("transfer", "channel-1")}}},
-		{"single trace identifier", "transfer/", types.Denom{Base: "transfer/"}},
-		{"trace info with custom port", "customtransfer/channel-1/uatom", types.Denom{Base: "uatom", Trace: []types.Trace{types.NewTrace("customtransfer", "channel-1")}}},
-		{"invalid path (1)", "channel-1/transfer/uatom", types.Denom{Base: "channel-1/transfer/uatom"}},
-		{"invalid path (2)", "transfer/channel-1", types.Denom{Base: "transfer/channel-1"}},
-		{"invalid path (3)", "transfer/channel-1/transfer/channel-2", types.Denom{Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}}},
-		{"invalid path (4)", "transfer/channelToA/uatom", types.Denom{Base: "transfer/channelToA/uatom"}},
+		{"base denom no slashes", "atom", types.NewDenom("atom")},
+		{"base denom with trailing slash", "atom/", types.NewDenom("atom/")},
+		{"base denom multiple trailing slash", "foo///bar//baz/atom/", types.NewDenom("foo///bar//baz/atom/")},
+		{"ibc denom one hop", "transfer/channel-0/atom", types.NewDenom("atom", types.NewTrace("transfer", "channel-0"))},
+		{"ibc denom one hop trailing slash", "transfer/channel-0/atom/", types.NewDenom("atom/", types.NewTrace("transfer", "channel-0"))},
+		{"ibc denom one hop multiple slashes", "transfer/channel-0//at/om/", types.NewDenom("/at/om/", types.NewTrace("transfer", "channel-0"))},
+		{"ibc denom two hops", "transfer/channel-0/transfer/channel-60/atom", types.NewDenom("atom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-60"))},
+		{"ibc denom two hops trailing slash", "transfer/channel-0/transfer/channel-60/atom/", types.NewDenom("atom/", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-60"))},
+		{"empty prefix", "/uatom", types.NewDenom("/uatom")},
+		{"empty identifiers", "//uatom", types.NewDenom("//uatom")},
+		{"base denom with single '/'", "erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", types.NewDenom("erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA")},
+		{"trace info and base denom with single '/'", "transfer/channel-1/erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", types.NewDenom("erc20/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", types.NewTrace("transfer", "channel-1"))},
+		{"single trace identifier", "transfer/", types.NewDenom("transfer/")},
+		{"trace info with custom port", "customtransfer/channel-1/uatom", types.NewDenom("uatom", types.NewTrace("customtransfer", "channel-1"))},
+		{"invalid path (1)", "channel-1/transfer/uatom", types.NewDenom("channel-1/transfer/uatom")},
+		{"invalid path (2)", "transfer/channel-1", types.NewDenom("transfer/channel-1")},
+		{"invalid path (3)", "transfer/channel-1/transfer/channel-2", types.NewDenom("", types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2"))},
+		{"invalid path (4)", "transfer/channelToA/uatom", types.NewDenom("transfer/channelToA/uatom")},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		denom := types.ExtractDenomFromFullPath(tc.fullPath)
+		denom := types.ExtractDenomFromPath(tc.fullPath)
 		require.Equal(t, tc.expDenom, denom, tc.name)
 	}
 }
