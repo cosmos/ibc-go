@@ -150,7 +150,7 @@ func (suite *TypesTestSuite) TestSort() {
 				types.NewDenom("gamm", types.NewTrace("pool", "channel-0"), types.NewTrace("transfer", "channel-52")),
 				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")),
 				types.NewDenom("utia"),
-				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
+				types.NewDenom("gamm", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
 			},
 			types.Denoms{
 				types.NewDenom("gamm", types.NewTrace("pool", "channel-0")),
