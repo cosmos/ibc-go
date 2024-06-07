@@ -11,30 +11,27 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestGenesis() {
-	getTrace := func(index uint) string {
-		return fmt.Sprintf("transfer/channelToChain%d", index)
+	getTrace := func(index uint) types.Trace {
+		return types.NewTrace("transfer", fmt.Sprintf("channelToChain%d", index))
 	}
 
 	var (
 		denoms                types.Denoms
 		escrows               sdk.Coins
 		traceAndEscrowAmounts = []struct {
-			trace  []string
+			trace  []types.Trace
 			escrow string
 		}{
-			{[]string{getTrace(0)}, "10"},
-			{[]string{getTrace(1), getTrace(0)}, "100000"},
-			{[]string{getTrace(2), getTrace(1), getTrace(0)}, "10000000000"},
-			{[]string{getTrace(3), getTrace(2), getTrace(1), getTrace(0)}, "1000000000000000"},
-			{[]string{getTrace(4), getTrace(3), getTrace(2), getTrace(1), getTrace(0)}, "100000000000000000000"},
+			{[]types.Trace{getTrace(0)}, "10"},
+			{[]types.Trace{getTrace(1), getTrace(0)}, "100000"},
+			{[]types.Trace{getTrace(2), getTrace(1), getTrace(0)}, "10000000000"},
+			{[]types.Trace{getTrace(3), getTrace(2), getTrace(1), getTrace(0)}, "1000000000000000"},
+			{[]types.Trace{getTrace(4), getTrace(3), getTrace(2), getTrace(1), getTrace(0)}, "100000000000000000000"},
 		}
 	)
 
 	for _, traceAndEscrowAmount := range traceAndEscrowAmounts {
-		denom := types.Denom{
-			Base:  "uatom",
-			Trace: traceAndEscrowAmount.trace,
-		}
+		denom := types.NewDenom("uatom", traceAndEscrowAmount.trace...)
 		denoms = append(denoms, denom)
 		suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
 

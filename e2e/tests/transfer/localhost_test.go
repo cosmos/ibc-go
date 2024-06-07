@@ -9,8 +9,6 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -37,9 +35,9 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, _ := s.GetChains()
+	_, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 
+	chainA, _ := s.GetChains()
 	chainADenom := chainA.Config().Denom
 
 	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -72,7 +70,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	t.Run("channel open init localhost", func(t *testing.T) {
 		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
-			transfertypes.PortID, transfertypes.V2,
+			transfertypes.PortID, channelA.Version,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, rlyWallet.FormattedAddress(),
 		)
@@ -87,10 +85,10 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	t.Run("channel open try localhost", func(t *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
-			transfertypes.PortID, transfertypes.V2,
+			transfertypes.PortID, channelA.Version,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
-			transfertypes.V2, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+			channelA.Version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
@@ -102,7 +100,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
-			msgChanOpenTryRes.ChannelId, transfertypes.V2,
+			msgChanOpenTryRes.ChannelId, channelA.Version,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -134,7 +132,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	t.Run("send packet localhost ibc transfer", func(t *testing.T) {
 		var err error
-		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, sdk.NewCoins(testvalues.DefaultTransferAmount(chainADenom)), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
+		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferCoins(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
 		s.AssertTxSuccess(txResp)
 
 		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)

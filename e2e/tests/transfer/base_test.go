@@ -33,7 +33,7 @@ type TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
+// QueryTransferParams queries the on-chain send enabled param for the transfer module
 func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
 	res, err := query.GRPCQuery[transfertypes.QueryParamsResponse](ctx, chain, &transfertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
@@ -47,9 +47,11 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+	chainBVersion := chainB.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -66,11 +68,8 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
 	})
 
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, sdk.NewCoins(testvalues.DefaultTransferAmount(chainADenom)), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -113,7 +112,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	}
 
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, sdk.NewCoins(testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom())), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferCoins(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -366,9 +365,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 
+	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -377,7 +376,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("native IBC token transfer from chainA to invalid address", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, sdk.NewCoins(testvalues.DefaultTransferAmount(chainADenom)), chainAAddress, testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -412,6 +411,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, _ := s.GetChains()
+
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
@@ -458,9 +458,10 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
+	_, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -469,7 +470,6 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
-	chainAVersion := chainA.Config().Images[0].Version
 	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
@@ -484,7 +484,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	})
 
 	t.Run("ensure packets can be sent", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, sdk.NewCoins(testvalues.DefaultTransferAmount(chainADenom)), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -508,7 +508,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	})
 
 	t.Run("ensure ics20 transfer fails", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, sdk.NewCoins(testvalues.DefaultTransferAmount(chainADenom)), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxFailure(transferTxResp, transfertypes.ErrSendDisabled)
 	})
 }
@@ -518,8 +518,10 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -532,7 +534,6 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		chainBAddress = chainBWallet.FormattedAddress()
 	)
 
-	chainAVersion := chainA.Config().Images[0].Version
 	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
@@ -548,7 +549,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 
 	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
 		t.Run("send from chainB to chainA", func(t *testing.T) {
-			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, sdk.NewCoins(testvalues.DefaultTransferAmount(chainBDenom)), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferCoins(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 			s.AssertTxSuccess(transferTxResp)
 		})
 
@@ -600,7 +601,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 
 	t.Run("ensure ics20 transfer fails", func(t *testing.T) {
 		t.Run("send from chainB to chainA", func(t *testing.T) {
-			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, sdk.NewCoins(testvalues.DefaultTransferAmount(chainBDenom)), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferCoins(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 			s.AssertTxSuccess(transferTxResp)
 		})
 
@@ -637,9 +638,9 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, chainB := s.GetChains()
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 
+	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -651,7 +652,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("IBC token transfer with memo from chainA to chainB", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, sdk.NewCoins(testvalues.DefaultTransferAmount(chainADenom)), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "memo")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "memo")
 		s.AssertTxSuccess(transferTxResp)
 	})
 

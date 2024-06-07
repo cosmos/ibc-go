@@ -96,13 +96,13 @@ func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 	}
 
 	// Convert given request trace path to Denom struct to confirm the path in a valid denom trace format
-	denomTrace := types.ParseDenomTrace(req.Trace)
-	if err := denomTrace.Validate(); err != nil {
+	denom := types.ExtractDenomFromPath(req.Trace)
+	if err := denom.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	denomHash := denomTrace.Hash()
+	denomHash := denom.Hash()
 	found := k.HasDenom(ctx, denomHash)
 	if !found {
 		return nil, status.Error(
@@ -158,16 +158,4 @@ func (k Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscr
 	return &types.QueryTotalEscrowForDenomResponse{
 		Amount: amount,
 	}, nil
-}
-
-// DenomTrace implements the Query/DenomTrace gRPC method
-// Deprecated: Please use Denom instead.
-func (Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest) (*types.QueryDenomTraceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "unsupported rpc")
-}
-
-// DenomTraces implements the Query/DenomTraces gRPC method
-// Deprecated: Please use Denoms instead.
-func (Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesRequest) (*types.QueryDenomTracesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "unsupported rpc")
 }

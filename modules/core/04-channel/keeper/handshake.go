@@ -89,7 +89,7 @@ func (k *Keeper) WriteOpenInitChannel(
 	k.SetNextSequenceRecv(ctx, portID, channelID, 1)
 	k.SetNextSequenceAck(ctx, portID, channelID, 1)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.INIT.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED, "new-state", types.INIT)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-init")
 
@@ -197,7 +197,7 @@ func (k *Keeper) WriteOpenTryChannel(
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.TRYOPEN.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED, "new-state", types.TRYOPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-try")
 
@@ -222,7 +222,7 @@ func (k *Keeper) ChanOpenAck(
 	}
 
 	if channel.State != types.INIT {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "channel state should be INIT (got %s)", channel.State.String())
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "channel state should be INIT (got %s)", channel.State)
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
@@ -272,7 +272,7 @@ func (k *Keeper) WriteOpenAckChannel(
 	channel.Counterparty.ChannelId = counterpartyChannelID
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT.String(), "new-state", types.OPEN.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
 
@@ -297,7 +297,7 @@ func (k *Keeper) ChanOpenConfirm(
 	if channel.State != types.TRYOPEN {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
-			"channel state is not TRYOPEN (got %s)", channel.State.String(),
+			"channel state is not TRYOPEN (got %s)", channel.State,
 		)
 	}
 
@@ -344,7 +344,7 @@ func (k *Keeper) WriteOpenConfirmChannel(
 
 	channel.State = types.OPEN
 	k.SetChannel(ctx, portID, channelID, channel)
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.TRYOPEN.String(), "new-state", types.OPEN.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 
@@ -390,7 +390,7 @@ func (k *Keeper) ChanCloseInit(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", types.CLOSED.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State, "new-state", types.CLOSED)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "close-init")
 
@@ -466,7 +466,7 @@ func (k *Keeper) ChanCloseConfirm(
 		)
 	}
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", types.CLOSED.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State, "new-state", types.CLOSED)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
 

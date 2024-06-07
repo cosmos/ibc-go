@@ -6,6 +6,10 @@ on:
       - '.github/workflows/e2emodule.yml'
       - 'e2e/**'
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -13,10 +17,14 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+          cache-dependency-path: 'e2e/go.sum'
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: golangci/golangci-lint-action@v6.0.1
         with:
           version: v1.57.2
+          only-new-issues: true
           args: --timeout 5m
           working-directory: e2e/
 
@@ -27,6 +35,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+          cache-dependency-path: 'e2e/go.sum'
       - name: Go Test
         run: |
           cd e2e

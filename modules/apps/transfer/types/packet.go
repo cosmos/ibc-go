@@ -49,7 +49,8 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	if strings.TrimSpace(ftpd.Receiver) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "receiver address cannot be blank")
 	}
-	return ValidatePrefixedDenom(ftpd.Denom)
+	denom := ExtractDenomFromPath(ftpd.Denom)
+	return denom.Validate()
 }
 
 // GetBytes is a helper for serialising the packet to bytes.

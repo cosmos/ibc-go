@@ -19,14 +19,14 @@ The controller submodule keeper exposes two legacy functions that allow respecti
 The authentication module can begin registering interchain accounts by calling `RegisterInterchainAccount`:
 
 ```go
-if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String(), version); err != nil {
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, connectionID, owner.String(), version, channeltypes.UNORDERED); err != nil {
   return err
 }
 
 return nil
 ```
 
-The `version` argument is used to support ICS-29 fee middleware for relayer incentivization of ICS-27 packets. Consumers of the `RegisterInterchainAccount` are expected to build the appropriate JSON encoded version string themselves and pass it accordingly. If an empty string is passed in the `version` argument, then the version will be initialized to a default value in the `OnChanOpenInit` callback of the controller's handler, so that channel handshake can proceed.
+The `version` argument is used to support ICS-29 fee middleware for relayer incentivization of ICS-27 packets. The `ordering` argument allows to specify the ordering of the channel that is created; if `NONE` is passed, then the default ordering will be `UNORDERED`. Consumers of the `RegisterInterchainAccount` are expected to build the appropriate JSON encoded version string themselves and pass it accordingly. If an empty string is passed in the `version` argument, then the version will be initialized to a default value in the `OnChanOpenInit` callback of the controller's handler, so that channel handshake can proceed.
 
 The following code snippet illustrates how to construct an appropriate interchain accounts `Metadata` and encode it as a JSON bytestring:
 
@@ -44,7 +44,7 @@ if err != nil {
   return err
 }
 
-if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(appVersion)); err != nil {
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(appVersion), channeltypes.UNORDERED); err != nil {
   return err
 }
 ```
@@ -75,7 +75,7 @@ if err != nil {
   return err
 }
 
-if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(feeEnabledVersion)); err != nil {
+if err := keeper.icaControllerKeeper.RegisterInterchainAccount(ctx, controllerConnectionID, owner.String(), string(feeEnabledVersion), channeltypes.UNORDERED); err != nil {
   return err
 }
 ```

@@ -1,7 +1,6 @@
 package transfer_test
 
 import (
-	"fmt"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -70,10 +69,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().Equal(coinToSendToB, balance)
 
 	// check that voucher exists on chain B
-	denom := types.Denom{
-		Base:  sdk.DefaultBondDenom,
-		Trace: []string{fmt.Sprintf("%s/%s", packet.DestinationPort, packet.DestinationChannel)},
-	}
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(packet.DestinationPort, packet.DestinationChannel))
 	balance = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 	coinSentFromAToB := sdk.NewCoin(denom.IBCDenom(), amount)
 	suite.Require().Equal(coinSentFromAToB, balance)
@@ -97,7 +93,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().NoError(err) // relay committed
 
 	// NOTE: fungible token is prefixed with the full trace in order to verify the packet commitment
-	trace := []string{fmt.Sprintf("%s/%s", pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}
+	trace := []types.Trace{types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}
 	denom.Trace = append(trace, denom.Trace...)
 
 	// check that the balance is updated on chainC
