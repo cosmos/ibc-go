@@ -1,6 +1,7 @@
 name: Wasm Light-Client
 # This workflow runs when a PR is opened that targets code that is part of the wasm light-client.
 on:
+  merge_group:
   pull_request:
   push:
     branches:

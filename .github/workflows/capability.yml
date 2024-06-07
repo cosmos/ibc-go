@@ -1,6 +1,7 @@
 name: Capability Module
 # This workflow runs when a PR is opened that targets code that is part of the capability module.
 on:
+  merge_group:
   pull_request:
     paths:
       - '.github/workflows/capability.yml'

@@ -1,10 +1,12 @@
 name: Callbacks Module
 # This workflow runs when a PR is opened that targets code that is part of the callbacks module.
 on:
+  merge_group:
   pull_request:
   push:
     branches:
       - main
+
 permissions:
   contents: read
 
