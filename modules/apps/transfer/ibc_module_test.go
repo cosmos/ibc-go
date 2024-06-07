@@ -278,17 +278,27 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 	var packet channeltypes.Packet
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
+		name           string
+		coinsToSendToB sdk.Coins
+		malleate       func()
+		expError       error
 	}{
 		{
 			"success",
+			sdk.NewCoins(ibctesting.TestCoin),
+			func() {},
+			nil,
+		},
+		{
+
+			"success with multiple coins",
+			sdk.NewCoins(ibctesting.TestCoin, ibctesting.SecondaryTestCoin),
 			func() {},
 			nil,
 		},
 		{
 			"non-existent channel",
+			sdk.NewCoins(ibctesting.TestCoin),
 			func() {
 				packet.SourceChannel = "channel-100"
 			},
@@ -296,6 +306,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"invalid packet data",
+			sdk.NewCoins(ibctesting.TestCoin),
 			func() {
 				packet.Data = []byte("invalid data")
 			},
@@ -303,6 +314,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"already timed-out packet",
+			sdk.NewCoins(ibctesting.TestCoin),
 			func() {
 				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 				suite.Require().NoError(err)
@@ -324,12 +336,11 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(42))
 			timeoutHeight := suite.chainA.GetTimeoutHeight()
 			msg := types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				sdk.NewCoins(coinToSendToB),
+				tc.coinsToSendToB,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				timeoutHeight,
