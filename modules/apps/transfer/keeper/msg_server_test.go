@@ -22,56 +22,41 @@ import (
 func (suite *KeeperTestSuite) TestMsgTransfer() {
 	var msg *types.MsgTransfer
 	var path *ibctesting.Path
-	var coin1 sdk.Coin
-	var coin2 sdk.Coin
+
+	coin2 := sdk.NewCoin("bond", sdkmath.NewInt(100))
+	testCoins := append(ibctesting.TestCoins, coin2) //nolint:gocritic
 
 	testCases := []struct {
-		name       string
-		malleate   func()
-		expError   error
-		multiDenom bool
+		name     string
+		malleate func()
+		expError error
 	}{
 		{
-			"success: single denom",
+			"success: multiple coins",
 			func() {},
 			nil,
-			false,
 		},
 		{
-			"success: multidenom",
+			"success: single coin",
 			func() {
-				coin2 = sdk.NewCoin("bond", sdkmath.NewInt(100))
-				coins := []sdk.Coin{coin1, coin2}
-
-				// send some coins of the second denom from bank module to the sender account as well
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2)))
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin2)))
-
-				msg = types.NewMsgTransfer(
-					path.EndpointA.ChannelConfig.PortID,
-					path.EndpointA.ChannelID,
-					coins,
-					suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainB.SenderAccount.GetAddress().String(),
-					suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
-					"memo",
-				)
+				msg.Tokens = []sdk.Coin{ibctesting.TestCoin}
 			},
 			nil,
-			true,
 		},
 		{
-			"bank send enabled for denom",
+			"bank send enabled for denoms",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
-						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
+						SendEnabled: []*banktypes.SendEnabled{
+							{Denom: sdk.DefaultBondDenom, Enabled: true},
+							{Denom: "bond", Enabled: true},
+						},
 					},
 				)
 				suite.Require().NoError(err)
 			},
 			nil,
-			false,
 		},
 		{
 			"failure: send transfers disabled",
@@ -83,7 +68,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				)
 			},
 			types.ErrSendDisabled,
-			false,
 		},
 		{
 			"failure: invalid sender",
@@ -91,7 +75,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				msg.Sender = "address"
 			},
 			errors.New("decoding bech32 failed"),
-			false,
 		},
 		{
 			"failure: sender is a blocked address",
@@ -99,10 +82,9 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
-			false,
 		},
 		{
-			"failure: bank send disabled for denom",
+			"failure: bank send disabled for one of the denoms",
 			func() {
 				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
@@ -112,37 +94,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.Require().NoError(err)
 			},
 			types.ErrSendDisabled,
-			false,
-		},
-		{
-			"failure: bank send disabled for coin in multi coin transfer",
-			func() {
-				coin2 = sdk.NewCoin("bond", sdkmath.NewInt(100))
-				coins := sdk.NewCoins(coin1, coin2)
-
-				// send some coins of the second denom from bank module to the sender account as well
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2)))
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin2)))
-
-				msg = types.NewMsgTransfer(
-					path.EndpointA.ChannelConfig.PortID,
-					path.EndpointA.ChannelID,
-					coins,
-					suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainB.SenderAccount.GetAddress().String(),
-					suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
-					"memo",
-				)
-
-				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
-					banktypes.Params{
-						SendEnabled: []*banktypes.SendEnabled{{Denom: coin2.Denom, Enabled: false}},
-					},
-				)
-				suite.Require().NoError(err)
-			},
-			types.ErrSendDisabled,
-			true,
 		},
 		{
 			"failure: channel does not exist",
@@ -150,35 +101,14 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				msg.SourceChannel = "channel-100"
 			},
 			channeltypes.ErrChannelNotFound,
-			false,
 		},
 		{
 			"failure: multidenom with ics20-1",
 			func() {
-				coin2 = sdk.NewCoin("bond", sdkmath.NewInt(100))
-				coins := sdk.NewCoins(coin1, coin2)
-
-				// send some coins of the second denom from bank module to the sender account as well
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2)))
-				suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin2)))
-
-				msg = types.NewMsgTransfer(
-					path.EndpointA.ChannelConfig.PortID,
-					path.EndpointA.ChannelID,
-					coins,
-					suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainB.SenderAccount.GetAddress().String(),
-					suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
-					"memo",
-				)
-
 				// explicitly set to ics20-1 which does not support multi-denom
-				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
-					channel.Version = types.V1
-				})
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = types.V1 })
 			},
 			ibcerrors.ErrInvalidRequest,
-			true,
 		},
 	}
 
@@ -191,31 +121,31 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			coin1 = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 			msg = types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				sdk.NewCoins(coin1),
+				testCoins,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 				"memo",
 			)
 
+			// send some coins of the second denom from bank module to the sender account as well
+			err := suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2))
+			suite.Require().NoError(err)
+			err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin2))
+			suite.Require().NoError(err)
+
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
 
 			var tokens []types.Token
-			token1, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin1)
-			suite.Require().NoError(err)
-			tokens = append(tokens, token1)
-
-			var expEvents []abci.Event
-			if tc.multiDenom {
-				token2, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin2)
+			for _, coin := range msg.GetCoins() {
+				token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(ctx, coin)
 				suite.Require().NoError(err)
-				tokens = append(tokens, token2)
+				tokens = append(tokens, token)
 			}
 
 			jsonTokens, err := json.Marshal(types.Tokens(tokens))
@@ -224,6 +154,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
 
 			// Verify events
+			var expEvents []abci.Event
 			events := ctx.EventManager().Events().ToABCIEvents()
 
 			expEvents = sdk.Events{
@@ -247,7 +178,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Nil(res)
-				suite.Require().Error(err)
 				suite.Require().True(errors.Is(err, tc.expError) || strings.Contains(err.Error(), tc.expError.Error()), err.Error())
 				suite.Require().Len(events, 0)
 			}
