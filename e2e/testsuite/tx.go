@@ -283,8 +283,11 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 	s.Require().NoError(err)
 	s.Require().NotNil(channel)
 
-	feeEnabled, err := query.FeeEnabledChannel(ctx, chain, portID, channelID)
-	s.Require().NoError(err)
+	feeEnabled := false
+	if testvalues.FeeMiddlewareFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		feeEnabled, err = query.FeeEnabledChannel(ctx, chain, portID, channelID)
+		s.Require().NoError(err)
+	}
 
 	transferVersion := channel.Version
 	if feeEnabled {

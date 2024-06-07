@@ -59,6 +59,11 @@ func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
 }
 
+// FeeMiddlewareFeatureReleases represents the releases the support for fee middleware was released in.
+var FeeMiddlewareFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v4",
+}
+
 // TokenMetadataFeatureReleases represents the releases the token metadata was released in.
 var TokenMetadataFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
