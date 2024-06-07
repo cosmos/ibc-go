@@ -277,9 +277,24 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 
 // Transfer broadcasts a MsgTransfer message.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
-	portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
+	portID, channelID string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
-	msg := GetMsgTransfer(portID, channelID, version, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	channel, err := query.Channel(ctx, chain, portID, channelID)
+	s.Require().NoError(err)
+	s.Require().NotNil(channel)
+
+	feeEnabled, err := query.FeeEnabledChannel(ctx, chain, portID, channelID)
+	s.Require().NoError(err)
+
+	transferVersion := channel.Version
+	if feeEnabled {
+		version, err := feetypes.MetadataFromVersion(channel.Version)
+		s.Require().NoError(err)
+
+		transferVersion = version.AppVersion
+	}
+
+	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
