@@ -12,7 +12,7 @@ require (
 	cosmossdk.io/x/upgrade v0.1.3
 	github.com/cometbft/cometbft v0.38.7
 	github.com/cosmos/cosmos-sdk v0.50.7
-	github.com/cosmos/gogoproto v1.4.12
+	github.com/cosmos/gogoproto v1.5.0
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0-00010101000000-000000000000
 	github.com/cosmos/ibc-go/v8 v8.1.0
 	github.com/docker/docker v24.0.7+incompatible
