@@ -120,6 +120,18 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
+			"success: multiple denoms",
+			func() {
+				packetData.Tokens = append(packetData.Tokens, transfertypes.Token{
+					Denom:  transfertypes.NewDenom(ibctesting.SecondaryDenom),
+					Amount: ibctesting.SecondaryTestCoin.Amount.String(),
+				})
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			nil,
+		},
+		{
 			"failure: ics4Wrapper SendPacket call fails",
 			func() {
 				s.path.EndpointA.ChannelID = "invalid-channel"
