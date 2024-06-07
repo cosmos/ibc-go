@@ -40,11 +40,8 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	t := s.T()
 	ctx := context.TODO()
 
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions(chainAVersion, chainBVersion))
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -160,11 +157,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	t := s.T()
 	ctx := context.TODO()
 
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions(chainAVersion, chainBVersion))
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -289,11 +284,9 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	t := s.T()
 	ctx := context.TODO()
 
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions(chainAVersion, chainBVersion))
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -410,11 +403,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	t := s.T()
 	ctx := context.TODO()
 
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions(chainAVersion, chainBVersion))
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -528,11 +519,9 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChains()
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions(chainAVersion, chainBVersion))
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -631,11 +620,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	t := s.T()
 	ctx := context.TODO()
 
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions(chainAVersion, chainBVersion))
 
 	var (
 		chainADenom        = chainA.Config().Denom

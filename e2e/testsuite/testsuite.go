@@ -459,7 +459,11 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (*E2ETestSuite) TransferChannelOptions(chainAVersion, chainBVersion string) func(options *ibc.CreateChannelOptions) {
+func (s *E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+	chainBVersion := chainB.Config().Images[0].Version
+
 	// select the transfer version based on the chain versions
 	transferVersion := transfertypes.V1
 	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
@@ -474,7 +478,11 @@ func (*E2ETestSuite) TransferChannelOptions(chainAVersion, chainBVersion string)
 }
 
 // FeeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
-func (s *E2ETestSuite) FeeMiddlewareChannelOptions(chainAVersion, chainBVersion string) func(options *ibc.CreateChannelOptions) {
+func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+	chainBVersion := chainB.Config().Images[0].Version
+
 	// select the transfer version based on the chain versions
 	transferVersion := transfertypes.V1
 	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {

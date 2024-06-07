@@ -61,11 +61,10 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t := s.T()
 	ctx := context.TODO()
 
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(chainAVersion, chainBVersion))
 
 	chainBDenom := chainB.Config().Denom
 	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)

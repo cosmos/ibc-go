@@ -35,14 +35,11 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(chainAVersion, chainBVersion))
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 
 	channelB := channelA.Counterparty
 
+	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
 	chainBDenom := chainB.Config().Denom
 	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)
@@ -255,14 +252,11 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(chainAVersion, chainBVersion))
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 
 	channelB := channelA.Counterparty
 
+	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -348,11 +342,8 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(chainAVersion, chainBVersion))
 
 	channelB := channelA.Counterparty
 

@@ -35,12 +35,9 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
+	_, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 
-	_, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(chainAVersion, chainBVersion))
-
+	chainA, _ := s.GetChains()
 	chainADenom := chainA.Config().Denom
 
 	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
