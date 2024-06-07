@@ -25,8 +25,11 @@
 ## Adding a new test
 
 All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
-to an existing test suite **_in the same file_**, or create a new test suite in a new file and add test functions there.
+to an existing test suite ***in the same file***, or create a new test suite in a new file and add test functions there.
 New test files should follow the convention of `module_name_test.go`.
+
+After creating a new test file, be sure to add a build constraint that ensures this file will **not** be included in the package to be built when
+running tests locally via `make test`. For an example of this, see any of the existing test files.
 
 New test suites should be composed of `testsuite.E2ETestSuite`. This type has lots of useful helper functionality that will
 be quite common in most tests.
@@ -48,19 +51,19 @@ options specified in your config file.
 | Environment Variable | Description                               | Default Value |
 |----------------------|-------------------------------------------|---------------|
 | CHAIN_IMAGE          | The image that will be used for the chain | ibc-go-simd   |
-| CHAIN_A_TAG          | The tag used for chain B                  | latest        |
-| CHAIN_B_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_A_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_B_TAG          | The tag used for chain B                  | latest        |
 | CHAIN_BINARY         | The binary used in the container          | simd          |
 | RELAYER_TAG          | The tag used for the relayer              | main          |
-| RELAYER_TYPE         | The type of relayer to use (rly/hermes)   | rly           |
+| RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes        |
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
 
-These environment variables allow us to run tests with arbitrary verions (from branches or released) of simd
+These environment variables allow us to run tests with arbitrary versions (from branches or released) of simd
 and the go relayer.
 
-Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd).
+Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/orgs/cosmos/packages?repo_name=ibc-go).
 
 ### Example Command
 
@@ -72,7 +75,6 @@ export CHAIN_BINARY="simd"
 # We can also specify different values for the chains if needed.
 # they will default to the same as chain a.
 # export CHAIN_B_TAG="main"
-# export CHAIN_BINARY="icad"
 
 export RELAYER_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
@@ -113,7 +115,7 @@ Both chains have started, but the relayer is not yet started.
 The relayer should be started as part of the test if required. See [Starting the Relayer](#starting-the-relayer)
 
 ```go
-relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 chainA, chainB := s.GetChains()
 ```
 
@@ -152,16 +154,16 @@ We can broadcast arbitrary messages which are signed on behalf of users created 
 This example shows a multi message transaction being broadcast on chainA and signed on behalf of chainAWallet.
 
 ```go
-relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 chainA, chainB := s.GetChains()
 
 chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 t.Run("broadcast multi message transaction", func(t *testing.T){
-  payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
-  transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
-  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
+  msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+  msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
+  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 
   s.AssertValidTxResponse(resp)
   s.Require().NoError(err)
@@ -230,7 +232,7 @@ There are two main github actions for e2e tests.
 
 [e2e-fork.yaml](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-fork.yml) which runs when forks are created.
 
-In `e2e.yaml`, the `simd` image is built and pushed to [a registry](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd) and every test
+In `e2e.yaml`, the `simd` image is built and pushed to [a registry](https://github.com/orgs/cosmos/packages?repo_name=ibc-go) and every test
 that is run uses the image that was built.
 
 In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain local to the host runner.
@@ -370,13 +372,13 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
 
 ### Accessing Logs
 
-- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There 
+- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There
   may be some discrepancy in the logs collected and the output of interchain test. The containers may run for a some
   time after the logs are collected, resulting in the displayed logs to differ slightly.
 
 ## Importable Workflow
 
-This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/bc963bcfd115a0e06b8196b114496db5ea011247/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
+This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/185a220244663457372185992cfc85ed9e458bf1/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
 can be used to test both non-IBC chains, and also IBC-enabled chains.
 
 ### Prerequisites

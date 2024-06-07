@@ -5,11 +5,13 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // CheckSubstituteAndUpdateState will try to update the client with the state of the
@@ -26,7 +28,7 @@ import (
 // the FrozenHeight to the zero Height.
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
-	substituteClientStore sdk.KVStore, substituteClient exported.ClientState,
+	substituteClientStore storetypes.KVStore, substituteClient exported.ClientState,
 ) error {
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
@@ -44,7 +46,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	// copy consensus states and processed time from substitute to subject
 	// starting from initial height and ending on the latest height (inclusive)
-	height := substituteClientState.GetLatestHeight()
+	height := substituteClientState.LatestHeight
 
 	consensusState, found := GetConsensusState(substituteClientStore, cdc, height)
 	if !found {

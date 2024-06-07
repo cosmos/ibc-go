@@ -1,15 +1,11 @@
 package types
 
 import (
+	"slices"
+
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-)
-
-var (
-	_ exported.ChannelI             = (*Channel)(nil)
-	_ exported.CounterpartyChannelI = (*Counterparty)(nil)
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // NewChannel creates a new Channel instance
@@ -23,32 +19,9 @@ func NewChannel(
 		Counterparty:   counterparty,
 		ConnectionHops: hops,
 		Version:        version,
+		// UpgradeSequence is intentionally left empty as a new channel has not performed an upgrade.
+		UpgradeSequence: 0,
 	}
-}
-
-// GetState implements Channel interface.
-func (ch Channel) GetState() int32 {
-	return int32(ch.State)
-}
-
-// GetOrdering implements Channel interface.
-func (ch Channel) GetOrdering() int32 {
-	return int32(ch.Ordering)
-}
-
-// GetCounterparty implements Channel interface.
-func (ch Channel) GetCounterparty() exported.CounterpartyChannelI {
-	return ch.Counterparty
-}
-
-// GetConnectionHops implements Channel interface.
-func (ch Channel) GetConnectionHops() []string {
-	return ch.ConnectionHops
-}
-
-// GetVersion implements Channel interface.
-func (ch Channel) GetVersion() string {
-	return ch.Version
 }
 
 // ValidateBasic performs a basic validation of the channel fields
@@ -56,7 +29,7 @@ func (ch Channel) ValidateBasic() error {
 	if ch.State == UNINITIALIZED {
 		return ErrInvalidChannelState
 	}
-	if !(ch.Ordering == ORDERED || ch.Ordering == UNORDERED) {
+	if !slices.Contains([]Order{ORDERED, UNORDERED}, ch.Ordering) {
 		return errorsmod.Wrap(ErrInvalidChannelOrdering, ch.Ordering.String())
 	}
 	if len(ch.ConnectionHops) != 1 {
@@ -79,16 +52,6 @@ func NewCounterparty(portID, channelID string) Counterparty {
 	}
 }
 
-// GetPortID implements CounterpartyChannelI interface
-func (c Counterparty) GetPortID() string {
-	return c.PortId
-}
-
-// GetChannelID implements CounterpartyChannelI interface
-func (c Counterparty) GetChannelID() string {
-	return c.ChannelId
-}
-
 // ValidateBasic performs a basic validation check of the identifiers
 func (c Counterparty) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(c.PortId); err != nil {
@@ -105,13 +68,14 @@ func (c Counterparty) ValidateBasic() error {
 // NewIdentifiedChannel creates a new IdentifiedChannel instance
 func NewIdentifiedChannel(portID, channelID string, ch Channel) IdentifiedChannel {
 	return IdentifiedChannel{
-		State:          ch.State,
-		Ordering:       ch.Ordering,
-		Counterparty:   ch.Counterparty,
-		ConnectionHops: ch.ConnectionHops,
-		Version:        ch.Version,
-		PortId:         portID,
-		ChannelId:      channelID,
+		State:           ch.State,
+		Ordering:        ch.Ordering,
+		Counterparty:    ch.Counterparty,
+		ConnectionHops:  ch.ConnectionHops,
+		Version:         ch.Version,
+		UpgradeSequence: ch.UpgradeSequence,
+		PortId:          portID,
+		ChannelId:       channelID,
 	}
 }
 

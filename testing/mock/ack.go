@@ -13,11 +13,11 @@ func NewEmptyAcknowledgement() EmptyAcknowledgement {
 }
 
 // Success implements the Acknowledgement interface
-func (ack EmptyAcknowledgement) Success() bool {
+func (EmptyAcknowledgement) Success() bool {
 	return true
 }
 
 // Acknowledgement implements the Acknowledgement interface
-func (ack EmptyAcknowledgement) Acknowledgement() []byte {
+func (EmptyAcknowledgement) Acknowledgement() []byte {
 	return []byte{}
 }

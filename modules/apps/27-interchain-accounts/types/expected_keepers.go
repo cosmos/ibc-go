@@ -1,20 +1,22 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"context"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // AccountKeeper defines the expected account keeper
 type AccountKeeper interface {
-	NewAccount(ctx sdk.Context, acc authtypes.AccountI) authtypes.AccountI
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
-	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
-	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
+	NewAccount(ctx context.Context, acc sdk.AccountI) sdk.AccountI
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	SetAccount(ctx context.Context, acc sdk.AccountI)
+	GetModuleAccount(ctx context.Context, name string) sdk.ModuleAccountI
 	GetModuleAddress(name string) sdk.AccAddress
 }
 
@@ -22,7 +24,7 @@ type AccountKeeper interface {
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
-	GetConnection(ctx sdk.Context, connectionID string) (ibcexported.ConnectionI, error)
+	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, error)
 	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
 }
 
@@ -30,4 +32,10 @@ type ChannelKeeper interface {
 type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
 	IsBound(ctx sdk.Context, portID string) bool
+}
+
+// ParamSubspace defines the expected Subspace interface for module parameters.
+type ParamSubspace interface {
+	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
+	GetParamSetIfExists(ctx sdk.Context, ps paramtypes.ParamSet)
 }

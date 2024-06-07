@@ -1,11 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
@@ -36,9 +36,9 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 
 			// open incentivized channels
 			// setup pathAToC (chainA -> chainC) first in order to have different channel IDs for chainA & chainB
-			suite.coordinator.Setup(suite.pathAToC)
+			suite.pathAToC.Setup()
 			// setup path for chainA -> chainB
-			suite.coordinator.Setup(suite.path)
+			suite.path.Setup()
 
 			// build packet
 			timeoutTimestamp := ^uint64(0)
@@ -67,8 +67,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 				suite.Require().False(found)
 
 				expectedAck := types.NewIncentivizedAcknowledgement(suite.chainB.SenderAccount.GetAddress().String(), ack.Acknowledgement(), ack.Success())
-				commitedAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
-				suite.Require().Equal(commitedAck, channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement()))
+				committedAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
+				suite.Require().Equal(committedAck, channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement()))
 			} else {
 				suite.Require().Error(err)
 			}
@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 
 func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 	// open incentivized channel
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 	suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
 
 	// build packet
@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestGetAppVersion() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
 				// by default a new path uses a non fee channel
-				suite.coordinator.Setup(path)
+				path.Setup()
 				portID = path.EndpointA.ChannelConfig.PortID
 				channelID = path.EndpointA.ChannelID
 
@@ -150,7 +150,7 @@ func (suite *KeeperTestSuite) TestGetAppVersion() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path)
+			suite.path.Setup()
 
 			portID = suite.path.EndpointA.ChannelConfig.PortID
 			channelID = suite.path.EndpointA.ChannelID

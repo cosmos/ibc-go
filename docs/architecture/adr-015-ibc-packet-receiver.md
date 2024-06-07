@@ -96,7 +96,7 @@ func (pvr ProofVerificationDecorator) AnteHandle(ctx Context, tx Tx, simulate bo
       err = pvr.clientKeeper.UpdateClient(msg.ClientID, msg.Header)
     case channel.MsgPacket:
       err = pvr.channelKeeper.RecvPacket(msg.Packet, msg.Proofs, msg.ProofHeight)
-    case chanel.MsgAcknowledgement:
+    case channel.MsgAcknowledgement:
       err = pvr.channelKeeper.AcknowledgementPacket(msg.Acknowledgement, msg.Proof, msg.ProofHeight)
     case channel.MsgTimeoutPacket:
       err = pvr.channelKeeper.TimeoutPacket(msg.Packet, msg.Proof, msg.ProofHeight, msg.NextSequenceRecv)
@@ -176,7 +176,7 @@ logic, whereas application can misbehave(in terms of IBC protocol) by
 mistake.
 
 The `ProofVerificationDecorator` should come right after the default sybil attack
-resistent layer from the current `auth.NewAnteHandler`:
+resistant layer from the current `auth.NewAnteHandler`:
 
 ```go
 // add IBC ProofVerificationDecorator to the Chain of

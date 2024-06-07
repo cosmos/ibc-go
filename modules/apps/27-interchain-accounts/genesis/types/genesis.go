@@ -1,10 +1,10 @@
 package types
 
 import (
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // DefaultGenesis creates and returns the interchain accounts GenesisState
@@ -77,7 +77,7 @@ func (gs ControllerGenesisState) Validate() error {
 		}
 	}
 
-	return gs.Params.Validate()
+	return nil
 }
 
 // DefaultHostGenesis creates and returns the default interchain accounts HostGenesisState

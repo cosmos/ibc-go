@@ -4,11 +4,13 @@ import (
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // CheckSubstituteAndUpdateState verifies that the subject is allowed to be updated by
@@ -20,7 +22,7 @@ import (
 // the new public key.
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
-	_ sdk.KVStore, substituteClient exported.ClientState,
+	_ storetypes.KVStore, substituteClient exported.ClientState,
 ) error {
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {

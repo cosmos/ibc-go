@@ -1,10 +1,11 @@
 package cli
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/cosmos-sdk/client"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // GetQueryCmd returns the query commands for IBC channels
@@ -30,6 +31,9 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryUnreceivedAcks(),
 		GetCmdQueryNextSequenceReceive(),
 		GetCmdQueryNextSequenceSend(),
+		GetCmdQueryUpgradeError(),
+		GetCmdQueryUpgrade(),
+		GetCmdChannelParams(),
 	)
 
 	return queryCmd
@@ -45,7 +49,10 @@ func NewTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	txCmd.AddCommand()
+	txCmd.AddCommand(
+		newUpgradeChannelsTxCmd(),
+		newPruneAcknowledgementsTxCmd(),
+	)
 
 	return txCmd
 }

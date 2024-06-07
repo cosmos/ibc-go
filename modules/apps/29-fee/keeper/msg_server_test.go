@@ -1,15 +1,19 @@
 package keeper_test
 
 import (
+	"fmt"
+
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
@@ -56,8 +60,10 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.SetupTest()
-		suite.coordinator.Setup(suite.path)
+		suite.path.Setup()
 
 		msg = types.NewMsgRegisterPayee(
 			suite.path.EndpointA.ChannelConfig.PortID,
@@ -68,7 +74,8 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 
 		tc.malleate()
 
-		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterPayee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+		ctx := suite.chainA.GetContext()
+		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterPayee(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -82,6 +89,19 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 
 			suite.Require().True(found)
 			suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), payeeAddr)
+
+			expectedEvents := sdk.Events{
+				sdk.NewEvent(
+					types.EventTypeRegisterPayee,
+					sdk.NewAttribute(types.AttributeKeyRelayer, suite.chainA.SenderAccount.GetAddress().String()),
+					sdk.NewAttribute(types.AttributeKeyPayee, payeeAddr),
+					sdk.NewAttribute(types.AttributeKeyChannelID, suite.path.EndpointA.ChannelID),
+				),
+			}.ToABCIEvents()
+
+			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+
 		} else {
 			suite.Require().Error(err)
 		}
@@ -129,8 +149,10 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.SetupTest()
-		suite.coordinator.Setup(suite.path) // setup channel
+		suite.path.Setup() // setup channel
 
 		expCounterpartyPayee = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String()
 		msg = types.NewMsgRegisterCounterpartyPayee(
@@ -142,7 +164,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 
 		tc.malleate()
 
-		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+		ctx := suite.chainA.GetContext()
+		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -156,6 +179,19 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 
 			suite.Require().True(found)
 			suite.Require().Equal(expCounterpartyPayee, counterpartyPayee)
+
+			expectedEvents := sdk.Events{
+				sdk.NewEvent(
+					types.EventTypeRegisterCounterpartyPayee,
+					sdk.NewAttribute(types.AttributeKeyRelayer, suite.chainA.SenderAccount.GetAddress().String()),
+					sdk.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
+					sdk.NewAttribute(types.AttributeKeyChannelID, ibctesting.FirstChannelID),
+				),
+			}.ToABCIEvents()
+
+			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+
 		} else {
 			suite.Require().Error(err)
 		}
@@ -168,6 +204,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		expFeesInEscrow  []types.PacketFee
 		msg              *types.MsgPayPacketFee
 		fee              types.Fee
+		eventFee         types.Fee
 	)
 
 	testCases := []struct {
@@ -183,18 +220,20 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"success with existing packet fees in escrow",
 			func() {
-				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+				escrowFee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
+				packetFee := types.NewPacketFee(escrowFee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
 
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, feesInEscrow)
-				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, escrowFee.Total())
 				suite.Require().NoError(err)
 
-				expEscrowBalance = expEscrowBalance.Add(fee.Total()...)
+				expEscrowBalance = expEscrowBalance.Add(escrowFee.Total()...)
 				expFeesInEscrow = append(expFeesInEscrow, packetFee)
+
+				eventFee = types.NewFee(defaultRecvFee.Add(escrowFee.RecvFee...), defaultAckFee.Add(escrowFee.AckFee...), defaultTimeoutFee.Add(escrowFee.TimeoutFee...))
 			},
 			true,
 		},
@@ -297,7 +336,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path) // setup channel
+			suite.path.Setup() // setup channel
 
 			fee = types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			msg = types.NewMsgPayPacketFee(
@@ -311,10 +350,12 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			expEscrowBalance = fee.Total()
 			expPacketFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 			expFeesInEscrow = []types.PacketFee{expPacketFee}
+			eventFee = fee
 
 			tc.malleate()
 
-			_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+			ctx := suite.chainA.GetContext()
+			_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFee(ctx, msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err) // message committed
@@ -326,11 +367,27 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(expEscrowBalance.AmountOf(sdk.DefaultBondDenom), escrowBalance.Amount)
+
+				expectedEvents := sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeIncentivizedPacket,
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, packetID.PortId),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, packetID.ChannelId),
+						sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprint(packetID.Sequence)),
+						sdk.NewAttribute(types.AttributeKeyRecvFee, eventFee.RecvFee.String()),
+						sdk.NewAttribute(types.AttributeKeyAckFee, eventFee.AckFee.String()),
+						sdk.NewAttribute(types.AttributeKeyTimeoutFee, eventFee.TimeoutFee.String()),
+					),
+				}.ToABCIEvents()
+
+				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+
 			} else {
 				suite.Require().Error(err)
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
-				suite.Require().Equal(sdk.NewInt(0), escrowBalance.Amount)
+				suite.Require().Equal(sdkmath.NewInt(0), escrowBalance.Amount)
 			}
 		})
 	}
@@ -509,7 +566,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path) // setup channel
+			suite.path.Setup() // setup channel
 
 			timeoutHeight := clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), 100)
 
@@ -528,7 +585,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 			tc.malleate()
 
-			_, err = suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFeeAsync(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+			_, err = suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFeeAsync(suite.chainA.GetContext(), msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err) // message committed
@@ -543,7 +600,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				suite.Require().Error(err)
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
-				suite.Require().Equal(sdk.NewInt(0), escrowBalance.Amount)
+				suite.Require().Equal(sdkmath.NewInt(0), escrowBalance.Amount)
 			}
 		})
 	}

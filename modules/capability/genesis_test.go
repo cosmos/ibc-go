@@ -1,14 +1,8 @@
 package capability_test
 
 import (
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -16,6 +10,9 @@ import (
 )
 
 func (suite *CapabilityTestSuite) TestGenesis() {
+	// InitGenesis must be called in order to set the initial index to 1.
+	capability.InitGenesis(suite.ctx, *suite.keeper, *types.DefaultGenesis())
+
 	sk1 := suite.keeper.ScopeToModule(banktypes.ModuleName)
 	sk2 := suite.keeper.ScopeToModule(stakingtypes.ModuleName)
 
@@ -32,16 +29,10 @@ func (suite *CapabilityTestSuite) TestGenesis() {
 
 	genState := capability.ExportGenesis(suite.ctx, *suite.keeper)
 
-	// create new app that does not share persistent or in-memory state
-	// and initialize app from exported genesis state above.
-	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	newApp := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simtestutil.EmptyAppOptions{})
-
-	newKeeper := keeper.NewKeeper(suite.cdc, newApp.GetKey(types.StoreKey), newApp.GetMemKey(types.MemStoreKey))
+	newKeeper := keeper.NewKeeper(suite.cdc, suite.storeKey, suite.memStoreKey)
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
 	newSk2 := newKeeper.ScopeToModule(stakingtypes.ModuleName)
-	deliverCtx, _ := newApp.BaseApp.NewUncachedContext(false, tmproto.Header{}).WithBlockGasMeter(sdk.NewInfiniteGasMeter()).CacheContext()
+	deliverCtx := suite.NewTestContext()
 
 	capability.InitGenesis(deliverCtx, *newKeeper, *genState)
 

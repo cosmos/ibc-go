@@ -11,6 +11,9 @@ const (
 	// StoreKey is the store key string for the interchain accounts host module
 	StoreKey = SubModuleName
 
+	// ParamsKey is the key to use for the storing params.
+	ParamsKey = "params"
+
 	// AllowAllHostMsgs holds the string key that allows all message types on interchain accounts host module
 	AllowAllHostMsgs = "*"
 )

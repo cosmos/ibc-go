@@ -3,13 +3,14 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"cosmossdk.io/log"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
@@ -20,19 +21,19 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(sck exported.ScopedKeeper) Keeper {
-	return Keeper{
+func NewKeeper(sck exported.ScopedKeeper) *Keeper {
+	return &Keeper{
 		scopedKeeper: sck,
 	}
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // IsBound checks a given port ID is already bounded.
-func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
+func (k *Keeper) IsBound(ctx sdk.Context, portID string) bool {
 	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
 }
@@ -47,7 +48,7 @@ func (k *Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capab
 	}
 
 	if k.IsBound(ctx, portID) {
-		panic(fmt.Sprintf("port %s is already bound", portID))
+		panic(fmt.Errorf("port %s is already bound", portID))
 	}
 
 	key, err := k.scopedKeeper.NewCapability(ctx, host.PortPath(portID))
@@ -63,7 +64,7 @@ func (k *Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capab
 // by checking if the memory address of the capability was previously
 // generated and bound to the port (provided as a parameter) which the capability
 // is being authenticated against.
-func (k Keeper) Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, portID string) bool {
+func (k *Keeper) Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, portID string) bool {
 	if err := host.PortIdentifierValidator(portID); err != nil {
 		panic(err.Error())
 	}
@@ -72,11 +73,17 @@ func (k Keeper) Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, p
 }
 
 // LookupModuleByPort will return the IBCModule along with the capability associated with a given portID
-func (k Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *capabilitytypes.Capability, error) {
+func (k *Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *capabilitytypes.Capability, error) {
 	modules, capability, err := k.scopedKeeper.LookupModules(ctx, host.PortPath(portID))
 	if err != nil {
 		return "", nil, err
 	}
 
 	return types.GetModuleOwner(modules), capability, nil
+}
+
+// Route returns a IBCModule for a given module, and a boolean indicating
+// whether or not the route is present.
+func (k *Keeper) Route(module string) (types.IBCModule, bool) {
+	return k.Router.GetRoute(module)
 }

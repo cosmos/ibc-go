@@ -1,24 +1,26 @@
 package keeper_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -39,7 +41,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 // MockStakingKeeper implements clienttypes.StakingKeeper used in ibckeeper.NewKeeper
@@ -47,31 +49,22 @@ type MockStakingKeeper struct {
 	mockField string
 }
 
-func (d MockStakingKeeper) GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool) {
-	return stakingtypes.HistoricalInfo{}, true
+func (MockStakingKeeper) GetHistoricalInfo(_ context.Context, _ int64) (stakingtypes.HistoricalInfo, error) {
+	return stakingtypes.HistoricalInfo{}, nil
 }
 
-func (d MockStakingKeeper) UnbondingTime(ctx sdk.Context) time.Duration {
-	return 0
+func (MockStakingKeeper) UnbondingTime(_ context.Context) (time.Duration, error) {
+	return 0, nil
 }
 
 // Test ibckeeper.NewKeeper used to initialize IBCKeeper when creating an app instance.
 // It verifies if ibckeeper.NewKeeper panic when any of the keepers passed in is empty.
 func (suite *KeeperTestSuite) TestNewKeeper() {
 	var (
-		stakingKeeper  clienttypes.StakingKeeper
+		consensusHost  clienttypes.ConsensusHost
 		upgradeKeeper  clienttypes.UpgradeKeeper
 		scopedKeeper   capabilitykeeper.ScopedKeeper
-		newIBCKeeperFn = func() {
-			ibckeeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
-				suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
-				stakingKeeper,
-				upgradeKeeper,
-				scopedKeeper,
-			)
-		}
+		newIBCKeeperFn func()
 	)
 
 	testCases := []struct {
@@ -79,21 +72,11 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		malleate func()
 		expPass  bool
 	}{
-		{"failure: empty staking keeper value", func() {
-			emptyStakingKeeperValue := stakingkeeper.Keeper{}
-
-			stakingKeeper = emptyStakingKeeperValue
+		{"failure: empty consensus host value", func() {
+			consensusHost = &ibctm.ConsensusHost{}
 		}, false},
-		{"failure: empty staking keeper pointer", func() {
-			emptyStakingKeeperPointer := &stakingkeeper.Keeper{}
-
-			stakingKeeper = emptyStakingKeeperPointer
-		}, false},
-		{"failure: empty mock staking keeper", func() {
-			// use a different implementation of clienttypes.StakingKeeper
-			emptyMockStakingKeeper := MockStakingKeeper{}
-
-			stakingKeeper = emptyMockStakingKeeper
+		{"failure: nil consensus host value", func() {
+			consensusHost = nil
 		}, false},
 		{"failure: empty upgrade keeper value", func() {
 			emptyUpgradeKeeperValue := upgradekeeper.Keeper{}
@@ -110,11 +93,23 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 			scopedKeeper = emptyScopedKeeper
 		}, false},
+		{"failure: empty authority", func() {
+			newIBCKeeperFn = func() {
+				ibckeeper.NewKeeper(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
+					consensusHost,
+					upgradeKeeper,
+					scopedKeeper,
+					"", // authority
+				)
+			}
+		}, false},
 		{"success: replace stakingKeeper with non-empty MockStakingKeeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
 			mockStakingKeeper := MockStakingKeeper{"not empty"}
-
-			stakingKeeper = mockStakingKeeper
+			consensusHost = ibctm.NewConsensusHost(mockStakingKeeper)
 		}, true},
 	}
 
@@ -123,7 +118,20 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
-			stakingKeeper = suite.chainA.GetSimApp().StakingKeeper
+			// set default behaviour
+			newIBCKeeperFn = func() {
+				ibckeeper.NewKeeper(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
+					consensusHost,
+					upgradeKeeper,
+					scopedKeeper,
+					suite.chainA.App.GetIBCKeeper().GetAuthority(),
+				)
+			}
+
+			consensusHost = ibctm.NewConsensusHost(suite.chainA.GetSimApp().StakingKeeper)
 			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
 			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper
 

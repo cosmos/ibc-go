@@ -1,30 +1,40 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	gogoproto "github.com/cosmos/gogoproto/proto"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
-	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	msgv1 "cosmossdk.io/api/cosmos/msg/v1"
+	queryv1 "cosmossdk.io/api/cosmos/query/v1"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Keeper defines the IBC interchain accounts host keeper
 type Keeper struct {
-	storeKey   storetypes.StoreKey
-	cdc        codec.BinaryCodec
-	paramSpace paramtypes.Subspace
+	storeKey       storetypes.StoreKey
+	cdc            codec.Codec
+	legacySubspace icatypes.ParamSubspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
@@ -33,49 +43,79 @@ type Keeper struct {
 
 	scopedKeeper exported.ScopedKeeper
 
-	msgRouter icatypes.MessageRouter
+	msgRouter   icatypes.MessageRouter
+	queryRouter icatypes.QueryRouter
+
+	// mqsAllowList is a list of all module safe query paths
+	mqsAllowList []string
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
+	cdc codec.Codec, key storetypes.StoreKey, legacySubspace icatypes.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
+	queryRouter icatypes.QueryRouter, authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
-		panic("the Interchain Accounts module account has not been set")
+		panic(errors.New("the Interchain Accounts module account has not been set"))
 	}
 
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	if strings.TrimSpace(authority) == "" {
+		panic(errors.New("authority must be non-empty"))
 	}
 
 	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		paramSpace:    paramSpace,
-		ics4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
-		accountKeeper: accountKeeper,
-		scopedKeeper:  scopedKeeper,
-		msgRouter:     msgRouter,
+		storeKey:       key,
+		cdc:            cdc,
+		legacySubspace: legacySubspace,
+		ics4Wrapper:    ics4Wrapper,
+		channelKeeper:  channelKeeper,
+		portKeeper:     portKeeper,
+		accountKeeper:  accountKeeper,
+		scopedKeeper:   scopedKeeper,
+		msgRouter:      msgRouter,
+		queryRouter:    queryRouter,
+		mqsAllowList:   newModuleQuerySafeAllowList(),
+		authority:      authority,
 	}
 }
 
+// WithICS4Wrapper sets the ICS4Wrapper. This function may be used after
+// the keepers creation to set the middleware which is above this module
+// in the IBC application stack.
+func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = wrapper
+}
+
+// GetICS4Wrapper returns the ICS4Wrapper.
+func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
+	return k.ics4Wrapper
+}
+
 // Logger returns the application logger, scoped to the associated module
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
 }
 
-// BindPort stores the provided portID and binds to it, returning the associated capability
-func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
+// getConnectionID returns the connection id for the given port and channelIDs.
+func (k Keeper) getConnectionID(ctx sdk.Context, portID, channelID string) (string, error) {
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return "", errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+	return channel.ConnectionHops[0], nil
+}
+
+// setPort sets the provided portID in state.
+func (k Keeper) setPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyPort(portID), []byte{0x01})
-
-	return k.portKeeper.BindPort(ctx, portID)
 }
 
 // hasCapability checks if the interchain account host module owns the port capability for the desired port
@@ -97,6 +137,16 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 // GetAppVersion calls the ICS4Wrapper GetAppVersion function.
 func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
+}
+
+// getAppMetadata retrieves the interchain accounts channel metadata from the store associated with the provided portID and channelID
+func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
+	appVersion, found := k.GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
+	}
+
+	return icatypes.MetadataFromVersion(appVersion)
 }
 
 // GetActiveChannelID retrieves the active channelID from the store keyed by the provided connectionID and portID
@@ -130,7 +180,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 // GetAllActiveChannels returns a list of all active interchain accounts host channels and their associated connection and port identifiers
 func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []genesistypes.ActiveChannel {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(icatypes.ActiveChannelKeyPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(icatypes.ActiveChannelKeyPrefix))
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var activeChannels []genesistypes.ActiveChannel
@@ -176,7 +226,7 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 // GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated connection and controller port identifiers
 func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []genesistypes.RegisteredInterchainAccount {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(icatypes.OwnerKeyPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(icatypes.OwnerKeyPrefix))
 
 	var interchainAccounts []genesistypes.RegisteredInterchainAccount
 	for ; iterator.Valid(); iterator.Next() {
@@ -198,4 +248,80 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []genesistypes.Registe
 func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portID, address string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
+}
+
+// GetAuthority returns the 27-interchain-accounts host submodule's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
+}
+
+// GetParams returns the total set of the host submodule parameters.
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.ParamsKey))
+	if bz == nil { // only panic on unset params and not on empty params
+		panic(errors.New("ica/host params are not set in store"))
+	}
+
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
+}
+
+// SetParams sets the total set of the host submodule parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set([]byte(types.ParamsKey), bz)
+}
+
+// newModuleQuerySafeAllowList returns a list of all query paths labeled with module_query_safe in the proto files.
+func newModuleQuerySafeAllowList() []string {
+	fds, err := gogoproto.MergedGlobalFileDescriptors()
+	if err != nil {
+		panic(err)
+	}
+	// create the files using 'AllowUnresolvable' to avoid
+	// unnecessary panic: https://github.com/cosmos/ibc-go/issues/6435
+	protoFiles, err := protodesc.FileOptions{
+		AllowUnresolvable: true,
+	}.NewFiles(fds)
+	if err != nil {
+		panic(err)
+	}
+
+	allowList := []string{}
+	protoFiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		for i := 0; i < fd.Services().Len(); i++ {
+			// Get the service descriptor
+			sd := fd.Services().Get(i)
+
+			// Skip services that are annotated with the "cosmos.msg.v1.service" option.
+			if ext := proto.GetExtension(sd.Options(), msgv1.E_Service); ext != nil {
+				val, ok := ext.(bool)
+				if !ok {
+					panic(fmt.Errorf("cannot convert %T to %T", ext, ok))
+				}
+				if val {
+					continue
+				}
+			}
+
+			for j := 0; j < sd.Methods().Len(); j++ {
+				// Get the method descriptor
+				md := sd.Methods().Get(j)
+
+				// Skip methods that are not annotated with the "cosmos.query.v1.module_query_safe" option.
+				if ext := proto.GetExtension(md.Options(), queryv1.E_ModuleQuerySafe); ext == nil || !ext.(bool) {
+					continue
+				}
+
+				// Add the method to the whitelist
+				allowList = append(allowList, fmt.Sprintf("/%s/%s", sd.FullName(), md.Name()))
+			}
+		}
+		return true
+	})
+
+	return allowList
 }

@@ -4,7 +4,7 @@
 
 If the PR is the result of a related GitHub issue, please include `closes: #<issue number>` in the PR’s description in order to auto-close the related issue once the PR is merged. This will also link the issue and the PR together so that if anyone looks at either in the future, they won’t have any problem trying to find the corresponding issue/PR as it will be recorded in the sidebar.
 
-If the PR is not the result of an existing issue and it fixes a bug, please provide a detailed description of the bug. For feature addtions, we recommend opening an issue first and have it discussed and agreed upon, before working on it and opening a PR.
+If the PR is not the result of an existing issue and it fixes a bug, please provide a detailed description of the bug. For feature additions, we recommend opening an issue first and have it discussed and agreed upon, before working on it and opening a PR.
 
 If possible, [tick the "Allow edits from maintainers" box](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when opening your PR from your fork of ibc-go. This allows us to directly make minor edits / refactors and speeds up the merging process.
 
@@ -45,10 +45,10 @@ The commit message type should be one of:
 All PRs require an approval from at least one CODEOWNER before merge. PRs which cause significant changes require two approvals from CODEOWNERS. When reviewing PRs please use the following review guidelines:
 
 - `Approval` through the GitHub UI with the following comments:
-  - `Concept ACK` means that you agree with the overall proposed concept, but have neither reviewed the code nor tested it.
-  - `LGTM` means the above and besides you have superficially reviewed the code without considering how logic affects other parts the codebase.
-  - `utACK` (aka. `Untested ACK`) means the above and besides have thoroughly reviewed the code and considered the safety of logic changes, but have not tested it.
-  - `Tested ACK` means the above and besides you have tested the code.
+    - `Concept ACK` means that you agree with the overall proposed concept, but have neither reviewed the code nor tested it.
+    - `LGTM` means the above and besides you have superficially reviewed the code without considering how logic affects other parts the codebase.
+    - `utACK` (aka. `Untested ACK`) means the above and besides have thoroughly reviewed the code and considered the safety of logic changes, but have not tested it.
+    - `Tested ACK` means the above and besides you have tested the code.
 - If you are only making "surface level" reviews, submit any notes as `Comments` without submitting an approval.
 
 A thorough review means that:

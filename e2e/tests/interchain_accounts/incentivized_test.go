@@ -1,29 +1,35 @@
-package interchain_accounts
+//go:build !test_e2e
+
+package interchainaccounts
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestIncentivizedInterchainAccountsTestSuite(t *testing.T) {
-	suite.Run(t, new(IncentivizedInterchainAccountsTestSuite))
+	testifysuite.Run(t, new(IncentivizedInterchainAccountsTestSuite))
 }
 
 type IncentivizedInterchainAccountsTestSuite struct {
@@ -36,7 +42,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -66,12 +72,11 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
+		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version, channeltypes.ORDERED)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -81,7 +86,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 	var channelOutput ibc.ChannelOutput
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAcc, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
+		interchainAcc, err = query.InterchainAccount(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAcc))
 
@@ -100,26 +105,25 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			// fund the interchain account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: interchainAcc,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
 		})
 
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(resp)
+			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.AssertTxSuccess(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
-			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
+			address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 		})
 
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -143,7 +147,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -154,22 +158,21 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
+			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
@@ -177,20 +180,20 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		})
 
 		t.Run("packets are relayed", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
 
 		t.Run("verify interchain account sent tokens", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			_, err = chainB.GetBalance(ctx, interchainAcc, chainB.Config().Denom)
+			_, err = query.Balance(ctx, chainB, interchainAcc, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
+			s.Require().Equal(expected, balance.Int64())
 		})
 
 		t.Run("timeout fee is refunded", func(t *testing.T) {
@@ -217,7 +220,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -247,12 +250,11 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
+		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version, channeltypes.ORDERED)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -262,7 +264,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	var channelOutput ibc.ChannelOutput
 	t.Run("verify interchain account", func(t *testing.T) {
 		var err error
-		interchainAcc, err = s.QueryInterchainAccount(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
+		interchainAcc, err = query.InterchainAccount(ctx, chainA, controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(interchainAcc))
 
@@ -278,19 +280,18 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(resp)
+			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.AssertTxSuccess(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
-			address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
+			address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelOutput.Counterparty.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 		})
 
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -315,7 +316,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -326,22 +327,21 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
+			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
@@ -349,20 +349,20 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 		})
 
 		t.Run("packets are relayed", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
 
 		t.Run("verify interchain account did not send tokens", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			_, err = chainB.GetBalance(ctx, interchainAcc, chainB.Config().Denom)
+			_, err = query.Balance(ctx, chainB, interchainAcc, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance, "tokens should not have been sent as interchain account was not funded")
+			s.Require().Equal(expected, balance.Int64(), "tokens should not have been sent as interchain account was not funded")
 		})
 
 		t.Run("timeout fee is refunded", func(t *testing.T) {

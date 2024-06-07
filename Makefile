@@ -86,13 +86,13 @@ ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
 endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
-
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
 endif
 
+#? all: Run tools build lint test
 all: build lint test
 
 # The below include contains the tools and runsim targets.
@@ -104,7 +104,14 @@ include contrib/devtools/Makefile
 
 BUILD_TARGETS := build install
 
+#? tidy-all: Run go mod tidy for all modules
+tidy-all:
+	./scripts/go-mod-tidy-all.sh
+
+#? build: Build simapp and build_test_matrix
 build: BUILD_ARGS=-o $(BUILDDIR)/
+
+#? build-linux: Build simapp and build_test_matrix for GOOS=linux GOARCH=amd64
 build-linux:
 	GOOS=linux GOARCH=amd64 LEDGER_ENABLED=false $(MAKE) build
 
@@ -116,7 +123,10 @@ $(BUILDDIR)/:
 
 .PHONY: build build-linux
 
+#? distclean: Run `make clean`
 distclean: clean 
+
+#? clean: Clean some auto generated directories
 clean:
 	rm -rf \
     $(BUILDDIR)/ \
@@ -124,6 +134,12 @@ clean:
     tmp-swagger-gen/
 
 .PHONY: distclean clean
+
+#? build-docker-wasm: Build wasm simapp with specified tag.
+build-docker-wasm:
+	./scripts/build-wasm-simapp-docker.sh $(tag)
+
+.PHONY: build-docker-wasm
 
 ###############################################################################
 ###                          Tools & Dependencies                           ###
@@ -134,53 +150,58 @@ go.sum: go.mod
 	go mod verify
 	go mod tidy
 
+#? python-install-deps: Install python dependencies
+python-install-deps:
+	@echo "Installing python dependencies..."
+	@pip3 install --upgrade pip
+	@pip3 install -r requirements.txt
+
 ###############################################################################
 ###                              Documentation                              ###
 ###############################################################################
 
-update-swagger-docs: statik
-	$(BINDIR)/statik -src=docs/client/swagger-ui -dest=docs/client -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-        exit 1;\
-    else \
-        echo "\033[92mSwagger docs are in sync\033[0m";\
-    fi
-.PHONY: update-swagger-docs
-
+#? godocs: Generate go documentation
 godocs:
 	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/cosmos/cosmos-sdk/types"
 	godoc -http=:6060
 
-# This builds a docs site for each branch/tag in `./docs/versions`
-# and copies each site to a version prefixed path. The last entry inside
-# the `versions` file will be the default root index.html.
+#? build-docs: Build documentation
 build-docs:
-	@cd docs && \
-	while read -r branch path_prefix; do \
-		echo "building branch $${branch}" ; \
-		(git clean -fdx && git reset --hard && git checkout $${branch} && npm install && VUEPRESS_BASE="/$${path_prefix}/" npm run build) ; \
-		mkdir -p ~/output/$${path_prefix} ; \
-		cp -r .vuepress/dist/* ~/output/$${path_prefix}/ ; \
-		cp ~/output/$${path_prefix}/index.html ~/output ; \
-		cp ~/output/$${path_prefix}/404.html ~/output ; \
-	done < versions ;
+	@cd docs && npm ci && npm run build
 
-view-docs: 
-		@cd docs && \
-    npm install && npm run serve
+#? serve-docs: Run docs server
+serve-docs:
+	@cd docs && npm run serve
 
+# If the DOCS_VERSION variable is not set, display an error message and exit
+ifndef DOCS_VERSION
+#? tag-docs-version: Tag the docs version
+tag-docs-version:
+	@echo "Error: DOCS_VERSION is not set. Use 'make tag-docs-version DOCS_VERSION=<version>' to set it. For example: 'make tag-docs-version DOCS_VERSION=v8.0.x'"
+	@exit 1
+else
+tag-docs-version:
+	@cd docs && npm run docusaurus docs:version $(DOCS_VERSION)
+endif
 
-changelog:
-	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)
-
-.PHONY: build-docs
+.PHONY: build-docs serve-docs tag-docs-version
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
 ###############################################################################
 
+# make init-simapp initializes a single local node network
+# it is useful for testing and development
+# Usage: make install && make init-simapp && simd start
+# Warning: make init-simapp will remove all data in simapp home directory
+#? init-simapp: Run scripts/init-simapp.sh
+init-simapp:
+	./scripts/init-simapp.sh
+
+#? test: Run make test-unit
 test: test-unit
+
+#? test-all: Run all test
 test-all: test-unit test-ledger-mock test-race test-cover
 
 TEST_PACKAGES=./...
@@ -189,7 +210,7 @@ TEST_TARGETS := test-unit test-unit-amino test-unit-proto test-ledger-mock test-
 # Test runs-specific rules. To add a new test target, just add
 # a new rule, customise ARGS or TEST_PACKAGES ad libitum, and
 # append the new rule to the TEST_TARGETS list.
-test-unit: ARGS=-tags='cgo ledger test_ledger_mock'
+test-unit: ARGS=-tags='cgo ledger test_ledger_mock test_e2e'
 test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino'
 test-ledger: ARGS=-tags='cgo ledger'
 test-ledger-mock: ARGS=-tags='ledger test_ledger_mock'
@@ -205,15 +226,14 @@ check-test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino'
 $(CHECK_TEST_TARGETS): EXTRA_ARGS=-run=none
 $(CHECK_TEST_TARGETS): run-tests
 
-run-tests:
-ifneq (,$(shell which tparse 2>/dev/null))
-	go test -mod=readonly -json $(ARGS) $(EXTRA_ARGS) $(TEST_PACKAGES) | tparse
-else
-	go test -mod=readonly $(ARGS)  $(EXTRA_ARGS) $(TEST_PACKAGES)
-endif
+ARGS += -tags "$(test_tags)"
+#? run-tests: Runs the go test command for all modules
+run-tests: 
+	@ARGS="$(ARGS)" TEST_PACKAGES=$(TEST_PACKAGES) EXTRA_ARGS="$(EXTRA_ARGS)" python3 ./scripts/go-test-all.py
 
 .PHONY: run-tests test test-all $(TEST_TARGETS)
 
+#? test-sim-nondeterminism: Run non-determinism test for simapp
 test-sim-nondeterminism:
 	@echo "Running non-determinism test..."
 	@go test -mod=readonly $(SIMAPP) -run TestAppStateDeterminism -Enabled=true \
@@ -266,11 +286,13 @@ SIM_NUM_BLOCKS ?= 500
 SIM_BLOCK_SIZE ?= 200
 SIM_COMMIT ?= true
 
+#? test-sim-benchmark: Run application benchmark
 test-sim-benchmark:
 	@echo "Running application benchmark for numBlocks=$(SIM_NUM_BLOCKS), blockSize=$(SIM_BLOCK_SIZE). This may take awhile!"
 	@go test -mod=readonly -benchmem -run=^$$ $(SIMAPP) -bench ^BenchmarkFullAppSimulation$$  \
 		-Enabled=true -NumBlocks=$(SIM_NUM_BLOCKS) -BlockSize=$(SIM_BLOCK_SIZE) -Commit=$(SIM_COMMIT) -timeout 24h
 
+#? test-sim-profile: Run application benchmark and output cpuprofile, memprofile
 test-sim-profile:
 	@echo "Running application benchmark for numBlocks=$(SIM_NUM_BLOCKS), blockSize=$(SIM_BLOCK_SIZE). This may take awhile!"
 	@go test -mod=readonly -benchmem -run=^$$ $(SIMAPP) -bench ^BenchmarkFullAppSimulation$$ \
@@ -278,10 +300,12 @@ test-sim-profile:
 
 .PHONY: test-sim-profile test-sim-benchmark
 
+#? test-cover: Run contrib/test_cover.sh
 test-cover:
 	@export VERSION=$(VERSION); bash -x contrib/test_cover.sh
 .PHONY: test-cover
 
+#? benchmark: Run benchmark tests
 benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
@@ -290,57 +314,85 @@ benchmark:
 ###                                Linting                                  ###
 ###############################################################################
 
+#? setup-pre-commit: Set pre commit git hook
+setup-pre-commit:
+	@cp .git/hooks/pre-commit .git/hooks/pre-commit.bak 2>/dev/null || true
+	@echo "Installing pre-commit hook..."
+	@ln -sf ../../scripts/hooks/pre-commit.sh .git/hooks/pre-commit
+	@echo "Pre-commit hook was installed at .git/hooks/pre-commit"
+
+#? lint: Run golangci-lint on all modules
 lint:
-	golangci-lint run --out-format=tab
+	@echo "--> Running linter"
+	@./scripts/go-lint-all.sh --timeout=15m
 
+#? lint-fix: Run golangci-lint and fix issues on all modules
 lint-fix:
-	golangci-lint run --fix --out-format=tab --issues-exit-code=0
+	@echo "--> Running linter"
+	@./scripts/go-lint-all.sh --fix
 
-lint-fix-changed:
-	./scripts/linting/lint-changed-go-files.sh
-
+#? format: Run gofumpt and misspell
 format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
 .PHONY: format
 
+#? docs-lint: Lint markdown documentation files
 docs-lint:
-	markdownlint . --fix
+	markdownlint-cli2 "**.md"
 
-docs-lint-changed:
-	./scripts/linting/lint-changed-md-files.sh
+#? docs-lint-fix: Lint markdown documentation files and fix
+docs-lint-fix:
+	markdownlint-cli2 "**.md" --fix
 
-.PHONY: lint lint-fix lint-fix-changed docs-lint docs-lint-changed
+#? docs-link-check: Run markdown-link-check
+docs-link-check:
+	find . -name 'node_modules' -prune -o -name '*.md' -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
+
+.PHONY: lint lint-fix docs-lint docs-lint-fix docs-link-check
 
 ###############################################################################
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.11.6
+protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
+#? proto-all: Format, lint and generate Protobuf files
 proto-all: proto-format proto-lint proto-gen
 
+#? proto-gen: Generate Protobuf files
 proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoImage) sh ./scripts/protocgen.sh
 
+#? proto-swagger-gen: Generate Protobuf Swagger
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
 	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
 
+#? proto-format: Format Protobuf files
 proto-format:
 	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
 
+#? proto-lint: Lint Protobuf files
 proto-lint:
 	@$(protoImage) buf lint --error-format=json
 
+#? proto-check-breaking: Check if Protobuf file contains breaking changes
 proto-check-breaking:
 	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
 
+#? proto-update-deps: Update Protobuf dependencies
 proto-update-deps:
 	@echo "Updating Protobuf dependencies"
 	$(DOCKER) run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps
+
+#? help: Get more info on make commands
+help: Makefile
+	@echo " Choose a command run in "$(PROJECT_NAME)":"
+	@sed -n 's/^#?//p' $< | column -t -s ':' |  sort | sed -e 's/^/ /'
+.PHONY: help

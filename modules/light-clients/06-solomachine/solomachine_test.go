@@ -4,28 +4,30 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	storetypes "cosmossdk.io/store/types"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 var channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
 
 type SoloMachineTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	solomachine      *ibctesting.Solomachine // singlesig public key
 	solomachineMulti *ibctesting.Solomachine // multisig public key
@@ -35,7 +37,7 @@ type SoloMachineTestSuite struct {
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 
-	store sdk.KVStore
+	store storetypes.KVStore
 }
 
 func (suite *SoloMachineTestSuite) SetupTest() {
@@ -43,14 +45,14 @@ func (suite *SoloMachineTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
-	suite.solomachineMulti = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinemulti", "testing", 4)
+	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
+	suite.solomachineMulti = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4)
 
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Solomachine)
 }
 
 func TestSoloMachineTestSuite(t *testing.T) {
-	suite.Run(t, new(SoloMachineTestSuite))
+	testifysuite.Run(t, new(SoloMachineTestSuite))
 }
 
 func (suite *SoloMachineTestSuite) SetupSolomachine() string {
@@ -142,7 +144,11 @@ func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 	var clientState exported.ClientState
 	err := suite.chainA.Codec.UnmarshalInterface(bz, &clientState)
 	suite.Require().NoError(err)
-	return clientState.GetLatestHeight().GetRevisionHeight()
+
+	smClientState, ok := clientState.(*solomachine.ClientState)
+	suite.Require().True(ok)
+
+	return smClientState.Sequence
 }
 
 func (suite *SoloMachineTestSuite) GetInvalidProof() []byte {

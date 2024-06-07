@@ -2,40 +2,37 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // ClientKeeper expected account IBC client keeper
 type ClientKeeper interface {
-	GetClientStatus(ctx sdk.Context, clientState exported.ClientState, clientID string) exported.Status
+	GetClientStatus(ctx sdk.Context, clientID string) exported.Status
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
-	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
+	GetClientLatestHeight(ctx sdk.Context, clientID string) clienttypes.Height
+	GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error)
 }
 
 // ConnectionKeeper expected account IBC connection keeper
 type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
-	GetTimestampAtHeight(
-		ctx sdk.Context,
-		connection connectiontypes.ConnectionEnd,
-		height exported.Height,
-	) (uint64, error)
 	VerifyChannelState(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
 		channelID string,
-		channel exported.ChannelI,
+		channel Channel,
 	) error
 	VerifyPacketCommitment(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
@@ -45,7 +42,7 @@ type ConnectionKeeper interface {
 	) error
 	VerifyPacketAcknowledgement(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
@@ -55,7 +52,7 @@ type ConnectionKeeper interface {
 	) error
 	VerifyPacketReceiptAbsence(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
@@ -64,12 +61,30 @@ type ConnectionKeeper interface {
 	) error
 	VerifyNextSequenceRecv(
 		ctx sdk.Context,
-		connection exported.ConnectionI,
+		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
 		portID,
 		channelID string,
 		nextSequenceRecv uint64,
+	) error
+	VerifyChannelUpgrade(
+		ctx sdk.Context,
+		connection connectiontypes.ConnectionEnd,
+		height exported.Height,
+		proof []byte,
+		portID,
+		channelID string,
+		upgrade Upgrade,
+	) error
+	VerifyChannelUpgradeError(
+		ctx sdk.Context,
+		connection connectiontypes.ConnectionEnd,
+		height exported.Height,
+		proof []byte,
+		portID,
+		channelID string,
+		errorReceipt ErrorReceipt,
 	) error
 }
 

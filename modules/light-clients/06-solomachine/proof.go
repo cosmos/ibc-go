@@ -2,12 +2,13 @@ package solomachine
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 )
 
-// VerifySignature verifies if the the provided public key generated the signature
+// VerifySignature verifies if the provided public key generated the signature
 // over the given data. Single and Multi signature public keys are supported.
 // The signature data type must correspond to the public key type. An error is
 // returned if signature verification fails or an invalid SignatureData type is
@@ -25,7 +26,7 @@ func VerifySignature(pubKey cryptotypes.PubKey, signBytes []byte, sigData signin
 		if err := pubKey.VerifyMultisignature(func(signing.SignMode) ([]byte, error) {
 			return signBytes, nil
 		}, data); err != nil {
-			return err
+			return errorsmod.Wrapf(ErrSignatureVerificationFailed, err.Error())
 		}
 
 	default:

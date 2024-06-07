@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,7 +24,7 @@ func NewRouter() *Router {
 // Seal will panic if called more than once.
 func (rtr *Router) Seal() {
 	if rtr.sealed {
-		panic("router already sealed")
+		panic(errors.New("router already sealed"))
 	}
 	rtr.sealed = true
 }
@@ -37,13 +38,13 @@ func (rtr Router) Sealed() bool {
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
 func (rtr *Router) AddRoute(module string, cbs IBCModule) *Router {
 	if rtr.sealed {
-		panic(fmt.Sprintf("router sealed; cannot register %s route callbacks", module))
+		panic(fmt.Errorf("router sealed; cannot register %s route callbacks", module))
 	}
 	if !sdk.IsAlphaNumeric(module) {
-		panic("route expressions can only contain alphanumeric characters")
+		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
 	if rtr.HasRoute(module) {
-		panic(fmt.Sprintf("route %s has already been registered", module))
+		panic(fmt.Errorf("route %s has already been registered", module))
 	}
 
 	rtr.routes[module] = cbs

@@ -4,25 +4,28 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
 
 // ClientState implements the Query/ClientState gRPC method
-func (k Keeper) ClientState(c context.Context, req *types.QueryClientStateRequest) (*types.QueryClientStateResponse, error) {
+func (k *Keeper) ClientState(c context.Context, req *types.QueryClientStateRequest) (*types.QueryClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -53,7 +56,7 @@ func (k Keeper) ClientState(c context.Context, req *types.QueryClientStateReques
 }
 
 // ClientStates implements the Query/ClientStates gRPC method
-func (k Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequest) (*types.QueryClientStatesResponse, error) {
+func (k *Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequest) (*types.QueryClientStatesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -70,7 +73,7 @@ func (k Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 			return false, nil
 		}
 
-		clientState, err := k.UnmarshalClientState(value)
+		clientState, err := types.UnmarshalClientState(k.cdc, value)
 		if err != nil {
 			return false, err
 		}
@@ -97,7 +100,7 @@ func (k Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 }
 
 // ConsensusState implements the Query/ConsensusState gRPC method
-func (k Keeper) ConsensusState(c context.Context, req *types.QueryConsensusStateRequest) (*types.QueryConsensusStateResponse, error) {
+func (k *Keeper) ConsensusState(c context.Context, req *types.QueryConsensusStateRequest) (*types.QueryConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -144,7 +147,7 @@ func (k Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 }
 
 // ConsensusStates implements the Query/ConsensusStates gRPC method
-func (k Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStatesRequest) (*types.QueryConsensusStatesResponse, error) {
+func (k *Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStatesRequest) (*types.QueryConsensusStatesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -169,7 +172,7 @@ func (k Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 			return false, err
 		}
 
-		consensusState, err := k.UnmarshalConsensusState(value)
+		consensusState, err := types.UnmarshalConsensusState(k.cdc, value)
 		if err != nil {
 			return false, err
 		}
@@ -188,7 +191,7 @@ func (k Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 }
 
 // ConsensusStateHeights implements the Query/ConsensusStateHeights gRPC method
-func (k Keeper) ConsensusStateHeights(c context.Context, req *types.QueryConsensusStateHeightsRequest) (*types.QueryConsensusStateHeightsResponse, error) {
+func (k *Keeper) ConsensusStateHeights(c context.Context, req *types.QueryConsensusStateHeightsRequest) (*types.QueryConsensusStateHeightsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -227,7 +230,7 @@ func (k Keeper) ConsensusStateHeights(c context.Context, req *types.QueryConsens
 }
 
 // ClientStatus implements the Query/ClientStatus gRPC method
-func (k Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequest) (*types.QueryClientStatusResponse, error) {
+func (k *Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequest) (*types.QueryClientStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -237,23 +240,15 @@ func (k Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	clientState, found := k.GetClientState(ctx, req.ClientId)
-	if !found {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
-		)
-	}
-
-	status := k.GetClientStatus(ctx, clientState, req.ClientId)
+	clientStatus := k.GetClientStatus(ctx, req.ClientId)
 
 	return &types.QueryClientStatusResponse{
-		Status: status.String(),
+		Status: clientStatus.String(),
 	}, nil
 }
 
 // ClientParams implements the Query/ClientParams gRPC method
-func (k Keeper) ClientParams(c context.Context, _ *types.QueryClientParamsRequest) (*types.QueryClientParamsResponse, error) {
+func (k *Keeper) ClientParams(c context.Context, _ *types.QueryClientParamsRequest) (*types.QueryClientParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := k.GetParams(ctx)
 
@@ -263,23 +258,21 @@ func (k Keeper) ClientParams(c context.Context, _ *types.QueryClientParamsReques
 }
 
 // UpgradedClientState implements the Query/UpgradedClientState gRPC method
-func (k Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedClientStateRequest) (*types.QueryUpgradedClientStateResponse, error) {
+func (k *Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedClientStateRequest) (*types.QueryUpgradedClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	plan, found := k.GetUpgradePlan(ctx)
-	if !found {
-		return nil, status.Error(
-			codes.NotFound, "upgrade plan not found",
-		)
+	plan, err := k.GetUpgradePlan(ctx)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	bz, found := k.GetUpgradedClient(ctx, plan.Height)
-	if !found {
-		return nil, status.Error(codes.NotFound, types.ErrClientNotFound.Error())
+	bz, err := k.GetUpgradedClient(ctx, plan.Height)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
 	clientState, err := types.UnmarshalClientState(k.cdc, bz)
@@ -300,16 +293,16 @@ func (k Keeper) UpgradedClientState(c context.Context, req *types.QueryUpgradedC
 }
 
 // UpgradedConsensusState implements the Query/UpgradedConsensusState gRPC method
-func (k Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
+func (k *Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	bz, found := k.GetUpgradedConsensusState(ctx, ctx.BlockHeight())
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "%s, height %d", types.ErrConsensusStateNotFound.Error(), ctx.BlockHeight())
+	bz, err := k.GetUpgradedConsensusState(ctx, ctx.BlockHeight())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "%s, height %d", err.Error(), ctx.BlockHeight())
 	}
 
 	consensusState, err := types.UnmarshalConsensusState(k.cdc, bz)
@@ -326,5 +319,81 @@ func (k Keeper) UpgradedConsensusState(c context.Context, req *types.QueryUpgrad
 
 	return &types.QueryUpgradedConsensusStateResponse{
 		UpgradedConsensusState: protoAny,
+	}, nil
+}
+
+// VerifyMembership implements the Query/VerifyMembership gRPC method
+// NOTE: Any state changes made within this handler are discarded by leveraging a cached context. Gas is consumed for underlying state access.
+// This gRPC method is intended to be used within the context of the state machine and delegates to light clients to verify proofs.
+func (k *Keeper) VerifyMembership(c context.Context, req *types.QueryVerifyMembershipRequest) (*types.QueryVerifyMembershipResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	clientType, _, err := types.ParseClientIdentifier(req.ClientId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	denyClients := []string{exported.Localhost, exported.Solomachine}
+	if slices.Contains(denyClients, clientType) {
+		return nil, status.Error(codes.InvalidArgument, errorsmod.Wrapf(types.ErrInvalidClientType, "verify membership is disabled for client types %s", denyClients).Error())
+	}
+
+	if len(req.Proof) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty proof")
+	}
+
+	if req.ProofHeight.IsZero() {
+		return nil, status.Error(codes.InvalidArgument, "proof height must be non-zero")
+	}
+
+	if req.MerklePath.Empty() {
+		return nil, status.Error(codes.InvalidArgument, "empty merkle path")
+	}
+
+	if len(req.Value) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty value")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// cache the context to ensure clientState.VerifyMembership does not change state
+	cachedCtx, _ := ctx.CacheContext()
+
+	// make sure we charge the higher level context even on panic
+	defer func() {
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
+	}()
+
+	clientModule, found := k.Route(req.ClientId)
+	if !found {
+		return nil, status.Error(codes.NotFound, req.ClientId)
+	}
+
+	if clientStatus := k.GetClientStatus(ctx, req.ClientId); clientStatus != exported.Active {
+		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
+	}
+
+	// consume flat gas fee for proof verification queries.
+	// NOTE: consuming gas prior to method invocation also provides protection against recursive calls reaching stack overflow
+	ctx.GasMeter().ConsumeGas(
+		3*ctx.KVGasConfig().ReadCostPerByte*uint64(len(req.Proof)),
+		"verify membership query",
+	)
+
+	if err := clientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
+		k.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
+		return &types.QueryVerifyMembershipResponse{
+			Success: false,
+		}, nil
+	}
+
+	return &types.QueryVerifyMembershipResponse{
+		Success: true,
 	}, nil
 }

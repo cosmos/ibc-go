@@ -15,16 +15,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.19'
-          
+          go-version: '1.22'
+
       - name: Release
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v6
         if: startsWith(github.ref, 'refs/tags/')
         with:
           version: latest
@@ -35,27 +35,27 @@ jobs:
   publish-docker-image:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Log in to the Container registry
-      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to the Container registry
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@c4ee3adeed93b1fa6a762f209fb01608c1a22f1e
-      with:
-        images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81
+        with:
+          images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-      with:
-        context: .
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        build-args: |
-          IBC_GO_VERSION=${{ github.ref_name }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            IBC_GO_VERSION=${{ github.ref_name }}

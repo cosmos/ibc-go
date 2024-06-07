@@ -2,13 +2,15 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // SendTx takes pre-built packet data containing messages to be executed on the host chain from an authentication module and attempts to send the packet.
@@ -18,7 +20,7 @@ import (
 // In the case of channel closure, a new channel may be reopened to reconnect to the host chain.
 //
 // Deprecated: this is a legacy API that is only intended to function correctly in workflows where an underlying application has been set.
-// Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
+// Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
 func (k Keeper) SendTx(ctx sdk.Context, _ *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
@@ -26,6 +28,10 @@ func (k Keeper) SendTx(ctx sdk.Context, _ *capabilitytypes.Capability, connectio
 }
 
 func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
+	if !k.GetParams(ctx).ControllerEnabled {
+		return 0, types.ErrControllerSubModuleDisabled
+	}
+
 	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
 	if !found {
 		return 0, errorsmod.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
@@ -54,6 +60,6 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed
 // due to the semantics of ORDERED channels
-func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
+func (Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	return nil
 }

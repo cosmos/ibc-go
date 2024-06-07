@@ -11,25 +11,22 @@ import (
 
 	dockertypes "github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
-	"github.com/cosmos/ibc-go/e2e/testconfig"
+	"github.com/cosmos/ibc-go/e2e/internal/directories"
 )
 
 const (
 	dockerInspectFileName = "docker-inspect.json"
-	e2eDir                = "e2e"
 	defaultFilePerm       = 0o750
 )
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
 // into e2e/<test-suite>/<test-name>.log. These log files will be uploaded to GH upon test failure.
-func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions) {
+func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chainNames ...string) {
 	t.Helper()
 
-	debugCfg := testconfig.LoadConfig().DebugConfig
-	if !debugCfg.DumpLogs {
+	if !debugModeEnabled {
 		// when we are not forcing log collection, we only upload upon test failing.
 		if !t.Failed() {
 			t.Logf("test passed, not uploading logs")
@@ -40,7 +37,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 	t.Logf("writing logs for test: %s", t.Name())
 
 	ctx := context.TODO()
-	e2eDir, err := getE2EDir(t)
+	e2eDir, err := directories.E2E(t)
 	if err != nil {
 		t.Logf("failed finding log directory: %s", err)
 		return
@@ -53,9 +50,9 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 		return
 	}
 
-	testContainers, err := dockerutil.GetTestContainers(t, ctx, dc)
+	testContainers, err := dockerutil.GetTestContainers(ctx, t, dc)
 	if err != nil {
-		t.Logf("failed listing containers test cleanup: %s", err)
+		t.Logf("failed listing containers during test cleanup: %s", err)
 		return
 	}
 
@@ -75,18 +72,20 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 
 		logFile := fmt.Sprintf("%s/%s.log", containerDir, containerName)
 		if err := os.WriteFile(logFile, logsBz, defaultFilePerm); err != nil {
-			t.Logf("failed writing log file for container %s in test cleanup: %s", containerName, err)
 			continue
 		}
 
 		t.Logf("successfully wrote log file %s", logFile)
-		diagnosticFiles := chainDiagnosticAbsoluteFilePaths(*cfg.ChainAConfig)
-		diagnosticFiles = append(diagnosticFiles, chainDiagnosticAbsoluteFilePaths(*cfg.ChainBConfig)...)
+
+		var diagnosticFiles []string
+		for _, chainName := range chainNames {
+			diagnosticFiles = append(diagnosticFiles, chainDiagnosticAbsoluteFilePaths(chainName)...)
+		}
+		diagnosticFiles = append(diagnosticFiles, relayerDiagnosticAbsoluteFilePaths()...)
 
 		for _, absoluteFilePathInContainer := range diagnosticFiles {
 			localFilePath := ospath.Join(containerDir, ospath.Base(absoluteFilePathInContainer))
 			if err := fetchAndWriteDiagnosticsFile(ctx, dc, container.ID, localFilePath, absoluteFilePathInContainer); err != nil {
-				t.Logf("failed to fetch and write file %s for container %s in test cleanup: %s", absoluteFilePathInContainer, containerName, err)
 				continue
 			}
 			t.Logf("successfully wrote diagnostics file %s", absoluteFilePathInContainer)
@@ -94,7 +93,6 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 
 		localFilePath := ospath.Join(containerDir, dockerInspectFileName)
 		if err := fetchAndWriteDockerInspectOutput(ctx, dc, container.ID, localFilePath); err != nil {
-			t.Logf("failed to fetch docker inspect output: %s", err)
 			continue
 		}
 		t.Logf("successfully wrote docker inspect output")
@@ -147,35 +145,19 @@ func fetchAndWriteDockerInspectOutput(ctx context.Context, dc *dockerclient.Clie
 
 // chainDiagnosticAbsoluteFilePaths returns a slice of absolute file paths (in the containers) which are the files that should be
 // copied locally when fetching diagnostics.
-func chainDiagnosticAbsoluteFilePaths(cfg ibc.ChainConfig) []string {
+func chainDiagnosticAbsoluteFilePaths(chainName string) []string {
 	return []string{
-		fmt.Sprintf("/var/cosmos-chain/%s/config/genesis.json", cfg.Name),
-		fmt.Sprintf("/var/cosmos-chain/%s/config/app.toml", cfg.Name),
-		fmt.Sprintf("/var/cosmos-chain/%s/config/config.toml", cfg.Name),
-		fmt.Sprintf("/var/cosmos-chain/%s/config/client.toml", cfg.Name),
+		fmt.Sprintf("/var/cosmos-chain/%s/config/genesis.json", chainName),
+		fmt.Sprintf("/var/cosmos-chain/%s/config/app.toml", chainName),
+		fmt.Sprintf("/var/cosmos-chain/%s/config/config.toml", chainName),
+		fmt.Sprintf("/var/cosmos-chain/%s/config/client.toml", chainName),
 	}
 }
 
-// getE2EDir finds the e2e directory above the test.
-func getE2EDir(t *testing.T) (string, error) {
-	t.Helper()
-
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", err
+// relayerDiagnosticAbsoluteFilePaths returns a slice of absolute file paths (in the containers) which are the files that should be
+// copied locally when fetching diagnostics.
+func relayerDiagnosticAbsoluteFilePaths() []string {
+	return []string{
+		"/home/hermes/.hermes/config.toml",
 	}
-
-	const maxAttempts = 100
-	count := 0
-	for ; !strings.HasSuffix(wd, e2eDir) || count > maxAttempts; wd = ospath.Dir(wd) {
-		count++
-	}
-
-	// arbitrary value to avoid getting stuck in an infinite loop if this is called
-	// in a context where the e2e directory does not exist.
-	if count > maxAttempts {
-		return "", fmt.Errorf("unable to find e2e directory after %d tries", maxAttempts)
-	}
-
-	return wd, nil
 }

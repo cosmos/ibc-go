@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types";
+option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
@@ -19,6 +19,9 @@ message Allocation {
       [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
   // allow list of receivers, an empty allow list permits any receiver address
   repeated string allow_list = 4;
+  // allow list of memo strings, an empty list prohibits all memo strings;
+  // a list only with "*" permits any memo string
+  repeated string allowed_packet_data = 5;
 }
 
 // TransferAuthorization allows the grantee to spend up to spend_limit coins from

@@ -9,14 +9,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 // Simulation parameter constants
 const port = "port_id"
 
-// RadomEnabled randomized send or receive enabled param with 75% prob of being true.
-func RadomEnabled(r *rand.Rand) bool {
+// RandomEnabled randomized send or receive enabled param with 75% prob of being true.
+func RandomEnabled(r *rand.Rand) bool {
 	return r.Int63n(101) <= 75
 }
 
@@ -24,26 +24,26 @@ func RadomEnabled(r *rand.Rand) bool {
 func RandomizedGenState(simState *module.SimulationState) {
 	var portID string
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, port, &portID, simState.Rand,
+		port, &portID, simState.Rand,
 		func(r *rand.Rand) { portID = strings.ToLower(simtypes.RandStringOfLength(r, 20)) },
 	)
 
 	var sendEnabled bool
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, string(types.KeySendEnabled), &sendEnabled, simState.Rand,
-		func(r *rand.Rand) { sendEnabled = RadomEnabled(r) },
+		string(types.KeySendEnabled), &sendEnabled, simState.Rand,
+		func(r *rand.Rand) { sendEnabled = RandomEnabled(r) },
 	)
 
 	var receiveEnabled bool
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, string(types.KeyReceiveEnabled), &receiveEnabled, simState.Rand,
-		func(r *rand.Rand) { receiveEnabled = RadomEnabled(r) },
+		string(types.KeyReceiveEnabled), &receiveEnabled, simState.Rand,
+		func(r *rand.Rand) { receiveEnabled = RandomEnabled(r) },
 	)
 
 	transferGenesis := types.GenesisState{
-		PortId:      portID,
-		DenomTraces: types.Traces{},
-		Params:      types.NewParams(sendEnabled, receiveEnabled),
+		PortId: portID,
+		Denoms: types.Denoms{},
+		Params: types.NewParams(sendEnabled, receiveEnabled),
 	}
 
 	bz, err := json.MarshalIndent(&transferGenesis, "", " ")

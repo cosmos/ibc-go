@@ -3,16 +3,18 @@ package types_test
 import (
 	"testing"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/store/iavl"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/stretchr/testify/suite"
+	dbm "github.com/cosmos/cosmos-db"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/log"
+	"cosmossdk.io/store/iavl"
+	"cosmossdk.io/store/metrics"
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
 )
 
 type MerkleTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	store     *rootmulti.Store
 	storeKey  *storetypes.KVStoreKey
@@ -21,8 +23,7 @@ type MerkleTestSuite struct {
 
 func (suite *MerkleTestSuite) SetupTest() {
 	db := dbm.NewMemDB()
-	dblog := log.TestingLogger()
-	suite.store = rootmulti.NewStore(db, dblog)
+	suite.store = rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 
 	suite.storeKey = storetypes.NewKVStoreKey("iavlStoreKey")
 
@@ -30,9 +31,11 @@ func (suite *MerkleTestSuite) SetupTest() {
 	err := suite.store.LoadVersion(0)
 	suite.Require().NoError(err)
 
-	suite.iavlStore = suite.store.GetCommitStore(suite.storeKey).(*iavl.Store)
+	var ok bool
+	suite.iavlStore, ok = suite.store.GetCommitStore(suite.storeKey).(*iavl.Store)
+	suite.Require().True(ok)
 }
 
 func TestMerkleTestSuite(t *testing.T) {
-	suite.Run(t, new(MerkleTestSuite))
+	testifysuite.Run(t, new(MerkleTestSuite))
 }

@@ -2,12 +2,13 @@ package migrations
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 // PruneExpiredConsensusStates prunes all expired tendermint consensus states. This function
@@ -39,8 +40,7 @@ func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientK
 		totalPruned += ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
 	}
 
-	clientLogger := clientKeeper.Logger(ctx)
-	clientLogger.Info("pruned expired tendermint consensus states", "total", totalPruned)
+	clientKeeper.Logger(ctx).Info("pruned expired tendermint consensus states", "total", totalPruned)
 
 	return totalPruned, nil
 }

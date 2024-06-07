@@ -2,25 +2,16 @@ package types
 
 import (
 	"fmt"
+	"slices"
 	"strings"
-
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var (
-	// DefaultAllowedClients are the default clients for the AllowedClients parameter.
-	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Localhost}
+// Maximum length of the allowed clients list
+const MaxAllowedClientsLength = 200
 
-	// KeyAllowedClients is store's key for AllowedClients Params
-	KeyAllowedClients = []byte("AllowedClients")
-)
-
-// ParamKeyTable type declaration for parameters
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
+// DefaultAllowedClients are the default clients for the AllowedClients parameter.
+// By default it allows all client types.
+var DefaultAllowedClients = []string{AllowAllClients}
 
 // NewParams creates a new parameter configuration for the ibc client module
 func NewParams(allowedClients ...string) Params {
@@ -39,33 +30,42 @@ func (p Params) Validate() error {
 	return validateClients(p.AllowedClients)
 }
 
-// ParamSetPairs implements params.ParamSet
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyAllowedClients, p.AllowedClients, validateClients),
-	}
-}
-
 // IsAllowedClient checks if the given client type is registered on the allowlist.
 func (p Params) IsAllowedClient(clientType string) bool {
-	for _, allowedClient := range p.AllowedClients {
-		if allowedClient == clientType {
-			return true
-		}
+	// Still need to check for blank client type
+	if strings.TrimSpace(clientType) == "" {
+		return false
 	}
-	return false
+
+	// Check for allow all client wildcard
+	// If exist then allow all type of client
+	if len(p.AllowedClients) == 1 && p.AllowedClients[0] == AllowAllClients {
+		return true
+	}
+
+	return slices.Contains(p.AllowedClients, clientType)
 }
 
-func validateClients(i interface{}) error {
-	clients, ok := i.([]string)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+// validateClients checks that the given clients are not blank and there are no duplicates.
+// If AllowAllClients wildcard (*) is used, then there should no other client types in the allow list
+func validateClients(clients []string) error {
+	if len(clients) > MaxAllowedClientsLength {
+		return fmt.Errorf("allowed clients length must not exceed %d items", MaxAllowedClientsLength)
 	}
 
+	if slices.Contains(clients, AllowAllClients) && len(clients) > 1 {
+		return fmt.Errorf("allow list must have only one element because the allow all clients wildcard (%s) is present", AllowAllClients)
+	}
+
+	foundClients := make(map[string]bool, len(clients))
 	for i, clientType := range clients {
 		if strings.TrimSpace(clientType) == "" {
 			return fmt.Errorf("client type %d cannot be blank", i)
 		}
+		if foundClients[clientType] {
+			return fmt.Errorf("duplicate client type: %s", clientType)
+		}
+		foundClients[clientType] = true
 	}
 
 	return nil

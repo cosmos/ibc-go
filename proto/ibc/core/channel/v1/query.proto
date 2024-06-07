@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.channel.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types";
+option go_package = "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types";
 
 import "ibc/core/client/v1/client.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
@@ -10,6 +10,7 @@ import "ibc/core/channel/v1/channel.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
+import "ibc/core/channel/v1/upgrade.proto";
 
 // Query provides defines the gRPC querier service
 service Query {
@@ -103,6 +104,23 @@ service Query {
   rpc NextSequenceSend(QueryNextSequenceSendRequest) returns (QueryNextSequenceSendResponse) {
     option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
                                    "ports/{port_id}/next_sequence_send";
+  }
+
+  // UpgradeError returns the error receipt if the upgrade handshake failed.
+  rpc UpgradeError(QueryUpgradeErrorRequest) returns (QueryUpgradeErrorResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
+                                   "ports/{port_id}/upgrade_error";
+  }
+
+  // Upgrade returns the upgrade for a given port and channel id.
+  rpc Upgrade(QueryUpgradeRequest) returns (QueryUpgradeResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
+                                   "ports/{port_id}/upgrade";
+  }
+
+  // ChannelParams queries all parameters of the ibc channel submodule.
+  rpc ChannelParams(QueryChannelParamsRequest) returns (QueryChannelParamsResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v1/params";
   }
 }
 
@@ -370,7 +388,7 @@ message QueryNextSequenceReceiveRequest {
   string channel_id = 2;
 }
 
-// QuerySequenceResponse is the request type for the
+// QuerySequenceResponse is the response type for the
 // Query/QueryNextSequenceReceiveResponse RPC method
 message QueryNextSequenceReceiveResponse {
   // next sequence receive number
@@ -399,4 +417,43 @@ message QueryNextSequenceSendResponse {
   bytes proof = 2;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryUpgradeErrorRequest is the request type for the Query/QueryUpgradeError RPC method
+message QueryUpgradeErrorRequest {
+  string port_id    = 1;
+  string channel_id = 2;
+}
+
+// QueryUpgradeErrorResponse is the response type for the Query/QueryUpgradeError RPC method
+message QueryUpgradeErrorResponse {
+  ErrorReceipt error_receipt = 1 [(gogoproto.nullable) = false];
+  // merkle proof of existence
+  bytes proof = 2;
+  // height at which the proof was retrieved
+  ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryUpgradeRequest is the request type for the QueryUpgradeRequest RPC method
+message QueryUpgradeRequest {
+  string port_id    = 1;
+  string channel_id = 2;
+}
+
+// QueryUpgradeResponse is the response type for the QueryUpgradeResponse RPC method
+message QueryUpgradeResponse {
+  Upgrade upgrade = 1 [(gogoproto.nullable) = false];
+  // merkle proof of existence
+  bytes proof = 2;
+  // height at which the proof was retrieved
+  ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryChannelParamsRequest is the request type for the Query/ChannelParams RPC method.
+message QueryChannelParamsRequest {}
+
+// QueryChannelParamsResponse is the response type for the Query/ChannelParams RPC method.
+message QueryChannelParamsResponse {
+  // params defines the parameters of the module.
+  Params params = 1;
 }

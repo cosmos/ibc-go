@@ -6,7 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 const (
@@ -28,6 +28,9 @@ const (
 
 	// ChannelPrefix is the prefix used when creating a channel identifier
 	ChannelPrefix = "channel-"
+
+	// ParamsKey defines the key to store the params in the keeper.
+	ParamsKey = "channelParams"
 )
 
 // FormatChannelIdentifier returns the channel identifier with the sequence appended.

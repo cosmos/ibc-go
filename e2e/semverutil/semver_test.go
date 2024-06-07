@@ -37,6 +37,7 @@ func TestIsSupported(t *testing.T) {
 		{"supported semantic version", "v6.1.0", true},
 		{"supported semantic version", "v7.1.0", true},
 		{"supported semantic version", "v22.5.1", true},
+		{"supported semantic version pre-release", "v6.0.0-rc.0", false},
 		{"supported semantic version without v", "2.5.0", true},
 		{"unsupported semantic version", "v1.5.0", false},
 		{"unsupported semantic version", "v2.4.5", false},

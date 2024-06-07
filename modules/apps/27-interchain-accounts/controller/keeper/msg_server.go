@@ -4,10 +4,13 @@ import (
 	"context"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 var _ types.MsgServer = (*msgServer)(nil)
@@ -37,7 +40,13 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 	s.SetMiddlewareDisabled(ctx, portID, msg.ConnectionId)
 
-	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
+	// use ORDER_UNORDERED as default in case msg's ordering is NONE
+	order := msg.Ordering
+	if order == channeltypes.NONE {
+		order = channeltypes.UNORDERED
+	}
+
+	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version, order)
 	if err != nil {
 		s.Logger(ctx).Error("error registering interchain account", "error", err.Error())
 		return nil, err
@@ -69,4 +78,16 @@ func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.M
 	}
 
 	return &types.MsgSendTxResponse{Sequence: seq}, nil
+}
+
+// UpdateParams defines an rpc handler method for MsgUpdateParams. Updates the ica/controller submodule's parameters.
+func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.SetParams(ctx, msg.Params)
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

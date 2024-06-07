@@ -4,22 +4,23 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // ChanOpenInit is called by a module to initiate a channel opening handshake with
 // a module on another chain. The counterparty channel identifier is validated to be
 // empty in msg validation.
-func (k Keeper) ChanOpenInit(
+func (k *Keeper) ChanOpenInit(
 	ctx sdk.Context,
 	order types.Order,
 	connectionHops []string,
@@ -34,7 +35,7 @@ func (k Keeper) ChanOpenInit(
 		return "", nil, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
-	getVersions := connectionEnd.GetVersions()
+	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
 		return "", nil, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
@@ -51,12 +52,7 @@ func (k Keeper) ChanOpenInit(
 		)
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
-	if !found {
-		return "", nil, errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.ClientId); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, connectionEnd.ClientId); status != exported.Active {
 		return "", nil, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
 	}
 
@@ -77,7 +73,7 @@ func (k Keeper) ChanOpenInit(
 // WriteOpenInitChannel writes a channel which has successfully passed the OpenInit handshake step.
 // The channel is set in state and all the associated Send and Recv sequences are set to 1.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteOpenInitChannel(
+func (k *Keeper) WriteOpenInitChannel(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -93,7 +89,7 @@ func (k Keeper) WriteOpenInitChannel(
 	k.SetNextSequenceRecv(ctx, portID, channelID, 1)
 	k.SetNextSequenceAck(ctx, portID, channelID, 1)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.INIT.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED, "new-state", types.INIT)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-init")
 
@@ -102,7 +98,7 @@ func (k Keeper) WriteOpenInitChannel(
 
 // ChanOpenTry is called by a module to accept the first step of a channel opening
 // handshake initiated by a module on another chain.
-func (k Keeper) ChanOpenTry(
+func (k *Keeper) ChanOpenTry(
 	ctx sdk.Context,
 	order types.Order,
 	connectionHops []string,
@@ -110,7 +106,7 @@ func (k Keeper) ChanOpenTry(
 	portCap *capabilitytypes.Capability,
 	counterparty types.Counterparty,
 	counterpartyVersion string,
-	proofInit []byte,
+	initProof []byte,
 	proofHeight exported.Height,
 ) (string, *capabilitytypes.Capability, error) {
 	// connection hops only supports a single connection
@@ -130,14 +126,11 @@ func (k Keeper) ChanOpenTry(
 		return "", nil, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return "", nil, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return "", nil, errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	getVersions := connectionEnd.GetVersions()
+	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
 		return "", nil, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
@@ -154,7 +147,7 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	// expectedCounterpaty is the counterparty of the counterparty's channel end
 	// (i.e self)
@@ -165,7 +158,7 @@ func (k Keeper) ChanOpenTry(
 	)
 
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofInit,
+		ctx, connectionEnd, proofHeight, initProof,
 		counterparty.PortId, counterparty.ChannelId, expectedChannel,
 	); err != nil {
 		return "", nil, err
@@ -187,7 +180,7 @@ func (k Keeper) ChanOpenTry(
 // WriteOpenTryChannel writes a channel which has successfully passed the OpenTry handshake step.
 // The channel is set in state. If a previous channel state did not exist, all the Send and Recv
 // sequences are set to 1. An event is emitted for the handshake step.
-func (k Keeper) WriteOpenTryChannel(
+func (k *Keeper) WriteOpenTryChannel(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -204,7 +197,7 @@ func (k Keeper) WriteOpenTryChannel(
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.TRYOPEN.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED, "new-state", types.TRYOPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-try")
 
@@ -213,14 +206,14 @@ func (k Keeper) WriteOpenTryChannel(
 
 // ChanOpenAck is called by the handshake-originating module to acknowledge the
 // acceptance of the initial request by the counterparty module on the other chain.
-func (k Keeper) ChanOpenAck(
+func (k *Keeper) ChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
 	counterpartyVersion,
 	counterpartyChannelID string,
-	proofTry []byte,
+	tryProof []byte,
 	proofHeight exported.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -229,7 +222,7 @@ func (k Keeper) ChanOpenAck(
 	}
 
 	if channel.State != types.INIT {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "channel state should be INIT (got %s)", channel.State.String())
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "channel state should be INIT (got %s)", channel.State)
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
@@ -241,14 +234,11 @@ func (k Keeper) ChanOpenAck(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	// counterparty of the counterparty channel end (i.e self)
 	expectedCounterparty := types.NewCounterparty(portID, channelID)
@@ -258,14 +248,14 @@ func (k Keeper) ChanOpenAck(
 	)
 
 	return k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofTry,
+		ctx, connectionEnd, proofHeight, tryProof,
 		channel.Counterparty.PortId, counterpartyChannelID,
 		expectedChannel)
 }
 
 // WriteOpenAckChannel writes an updated channel state for the successful OpenAck handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteOpenAckChannel(
+func (k *Keeper) WriteOpenAckChannel(
 	ctx sdk.Context,
 	portID,
 	channelID,
@@ -274,7 +264,7 @@ func (k Keeper) WriteOpenAckChannel(
 ) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanOpenAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanOpenAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	channel.State = types.OPEN
@@ -282,21 +272,21 @@ func (k Keeper) WriteOpenAckChannel(
 	channel.Counterparty.ChannelId = counterpartyChannelID
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT.String(), "new-state", types.OPEN.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
 
 	emitChannelOpenAckEvent(ctx, portID, channelID, channel)
 }
 
-// ChanOpenConfirm is called by the counterparty module to close their end of the
-// channel, since the other end has been closed.
-func (k Keeper) ChanOpenConfirm(
+// ChanOpenConfirm is called by the handshake-accepting module to confirm the acknowledgement
+// of the handshake-originating module on the other chain and finish the channel opening handshake.
+func (k *Keeper) ChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	proofAck []byte,
+	ackProof []byte,
 	proofHeight exported.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -307,7 +297,7 @@ func (k Keeper) ChanOpenConfirm(
 	if channel.State != types.TRYOPEN {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
-			"channel state is not TRYOPEN (got %s)", channel.State.String(),
+			"channel state is not TRYOPEN (got %s)", channel.State,
 		)
 	}
 
@@ -320,14 +310,11 @@ func (k Keeper) ChanOpenConfirm(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	counterparty := types.NewCounterparty(portID, channelID)
 	expectedChannel := types.NewChannel(
@@ -335,27 +322,29 @@ func (k Keeper) ChanOpenConfirm(
 		counterpartyHops, channel.Version,
 	)
 
+	// NOTE: If the counterparty has initialized an upgrade in the same block as performing the
+	// ACK handshake step, this channel end will be incapable of opening.
 	return k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofAck,
+		ctx, connectionEnd, proofHeight, ackProof,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 		expectedChannel)
 }
 
 // WriteOpenConfirmChannel writes an updated channel state for the successful OpenConfirm handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteOpenConfirmChannel(
+func (k *Keeper) WriteOpenConfirmChannel(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanOpenConfirm step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanOpenConfirm step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	channel.State = types.OPEN
 	k.SetChannel(ctx, portID, channelID, channel)
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.TRYOPEN.String(), "new-state", types.OPEN.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 
@@ -369,7 +358,7 @@ func (k Keeper) WriteOpenConfirmChannel(
 //
 // ChanCloseInit is called by either module to close their end of the channel. Once
 // closed, channels cannot be reopened.
-func (k Keeper) ChanCloseInit(
+func (k *Keeper) ChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -393,23 +382,15 @@ func (k Keeper) ChanCloseInit(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
-	if !found {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID (%s)", connectionEnd.ClientId)
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, connectionEnd.ClientId); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, connectionEnd.ClientId); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", types.CLOSED.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State, "new-state", types.CLOSED)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "close-init")
 
@@ -423,13 +404,14 @@ func (k Keeper) ChanCloseInit(
 
 // ChanCloseConfirm is called by the counterparty module to close their end of the
 // channel, since the other end has been closed.
-func (k Keeper) ChanCloseConfirm(
+func (k *Keeper) ChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	proofInit []byte,
+	initProof []byte,
 	proofHeight exported.Height,
+	counterpartyUpgradeSequence uint64,
 ) error {
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
 		return errorsmod.Wrap(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)")
@@ -449,30 +431,42 @@ func (k Keeper) ChanCloseConfirm(
 		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
-		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
-			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
-		)
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	counterparty := types.NewCounterparty(portID, channelID)
-	expectedChannel := types.NewChannel(
-		types.CLOSED, channel.Ordering, counterparty,
-		counterpartyHops, channel.Version,
-	)
+	expectedChannel := types.Channel{
+		State:           types.CLOSED,
+		Ordering:        channel.Ordering,
+		Counterparty:    counterparty,
+		ConnectionHops:  counterpartyHops,
+		Version:         channel.Version,
+		UpgradeSequence: counterpartyUpgradeSequence,
+	}
 
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofInit,
+		ctx, connectionEnd, proofHeight, initProof,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 		expectedChannel,
 	); err != nil {
 		return err
 	}
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State.String(), "new-state", types.CLOSED.String())
+	// If the channel is closing during an upgrade, then we can delete all upgrade information.
+	if k.hasUpgrade(ctx, portID, channelID) {
+		k.deleteUpgradeInfo(ctx, portID, channelID)
+		k.Logger(ctx).Info(
+			"upgrade info deleted",
+			"port_id", portID,
+			"channel_id", channelID,
+			"upgrade_sequence", channel.UpgradeSequence,
+		)
+	}
+
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State, "new-state", types.CLOSED)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
 

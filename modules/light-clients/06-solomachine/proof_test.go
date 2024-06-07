@@ -4,7 +4,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 )
 
 func (suite *SoloMachineTestSuite) TestVerifySignature() {

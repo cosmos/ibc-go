@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	ibc "github.com/cosmos/ibc-go/v7/modules/core"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/core/types"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/cosmos/cosmos-sdk/codec"
+
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/types"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 const (
@@ -36,7 +36,7 @@ const (
 var clientHeight = clienttypes.NewHeight(1, 10)
 
 type IBCTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -53,11 +53,11 @@ func (suite *IBCTestSuite) SetupTest() {
 }
 
 func TestIBCTestSuite(t *testing.T) {
-	suite.Run(t, new(IBCTestSuite))
+	testifysuite.Run(t, new(IBCTestSuite))
 }
 
 func (suite *IBCTestSuite) TestValidateGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.ProposedHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.ProposedHeader.Height-1)), suite.chainA.ProposedHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
 	testCases := []struct {
 		name     string
@@ -142,6 +142,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 						channeltypes.NewPacketSequence(port2, channel2, 1),
 					},
 					0,
+					channeltypes.Params{UpgradeTimeout: channeltypes.DefaultTimeout},
 				),
 			},
 			expPass: true,
@@ -217,7 +218,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 }
 
 func (suite *IBCTestSuite) TestInitGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.ProposedHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.ProposedHeader.Height-1)), suite.chainA.ProposedHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
 	testCases := []struct {
 		name     string
@@ -300,16 +301,19 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 						channeltypes.NewPacketSequence(port2, channel2, 1),
 					},
 					0,
+					channeltypes.Params{UpgradeTimeout: channeltypes.DefaultTimeout},
 				),
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		app := simapp.Setup(false)
+		tc := tc
+
+		app := simapp.Setup(suite.T(), false)
 
 		suite.NotPanics(func() {
-			ibc.InitGenesis(app.BaseApp.NewContext(false, tmproto.Header{Height: 1}), *app.IBCKeeper, tc.genState)
+			ibc.InitGenesis(app.BaseApp.NewContext(false), *app.IBCKeeper, tc.genState)
 		})
 	}
 }
@@ -323,15 +327,17 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			"success",
 			func() {
 				// creates clients
-				suite.coordinator.Setup(ibctesting.NewPath(suite.chainA, suite.chainB))
+				ibctesting.NewPath(suite.chainA, suite.chainB).Setup()
 				// create extra clients
-				suite.coordinator.SetupClients(ibctesting.NewPath(suite.chainA, suite.chainB))
-				suite.coordinator.SetupClients(ibctesting.NewPath(suite.chainA, suite.chainB))
+				ibctesting.NewPath(suite.chainA, suite.chainB).SetupClients()
+				ibctesting.NewPath(suite.chainA, suite.chainB).SetupClients()
 			},
 		},
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest()
 

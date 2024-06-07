@@ -1,6 +1,11 @@
-go 1.19
+go 1.22.0
+
+toolchain go1.22.0
 
 use (
 	./
+	./modules/capability
+	./modules/apps/callbacks
+	./modules/light-clients/08-wasm
 	./e2e
 )

@@ -5,19 +5,19 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var _ exported.ClientMessage = (*Misbehaviour)(nil)
 
 // ClientType is a Solo Machine light client.
-func (misbehaviour Misbehaviour) ClientType() string {
+func (Misbehaviour) ClientType() string {
 	return exported.Solomachine
 }
 
 // Type implements Misbehaviour interface.
-func (misbehaviour Misbehaviour) Type() string {
+func (Misbehaviour) Type() string {
 	return exported.TypeClientMisbehaviour
 }
 

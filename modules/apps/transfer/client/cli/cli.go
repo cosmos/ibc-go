@@ -1,8 +1,9 @@
 package cli
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/cosmos-sdk/client"
 )
 
 // GetQueryCmd returns the query commands for IBC connections
@@ -15,11 +16,12 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	queryCmd.AddCommand(
-		GetCmdQueryDenomTrace(),
-		GetCmdQueryDenomTraces(),
+		GetCmdQueryDenom(),
+		GetCmdQueryDenoms(),
 		GetCmdParams(),
 		GetCmdQueryEscrowAddress(),
 		GetCmdQueryDenomHash(),
+		GetCmdQueryTotalEscrowForDenom(),
 	)
 
 	return queryCmd

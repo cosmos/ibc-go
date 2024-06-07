@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // tests ParseChannelSequence and IsValidChannelID
@@ -31,6 +31,7 @@ func TestParseChannelSequence(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 
 		seq, err := types.ParseChannelSequence(tc.channelID)
 		valid := types.IsValidChannelID(tc.channelID)

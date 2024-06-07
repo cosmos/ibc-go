@@ -29,7 +29,7 @@ Perhaps more key for code readability than good commenting is having the right s
 - Use a space after the comment deliminter (ex. `// your comment`).
 - Many comments are not sentences. These should begin with a lower case letter and end without a period.
 - Conversely, sentences in comments should be sentenced-cased and end with a period.
-- Comments should explain _why_ something is being done rather than _what_ the code is doing. For example:
+- Comments should explain *why* something is being done rather than *what* the code is doing. For example:
 
  The comments in
 
@@ -69,7 +69,7 @@ type middleware struct {
 ## Importing libraries
 
 - Use [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports).
-- Separate imports into blocks: one for the standard lib, one for external libs and one for application libs. For example:
+- Separate imports into blocks. For example:
 
 ```go
 import (
@@ -79,12 +79,16 @@ import (
       
   // external library imports
   "github.com/stretchr/testify/require"
+
+  // Cosmos-SDK imports
   abci "github.com/cometbft/cometbft/abci/types"
       
   // ibc-go library imports
   "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
 )
 ```
+
+Run `make lint-fix` to get the imports ordered and grouped automatically. 
 
 ## Dependencies
 

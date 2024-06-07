@@ -6,7 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 const (
@@ -28,6 +28,9 @@ const (
 
 	// ConnectionPrefix is the prefix used when creating a connection identifier
 	ConnectionPrefix = "connection-"
+
+	// ParamsKey is the store key for the IBC connection parameters
+	ParamsKey = "connectionParams"
 )
 
 // FormatConnectionIdentifier returns the connection identifier with the sequence appended.

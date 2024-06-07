@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.channel.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types";
+option go_package = "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
@@ -24,6 +24,9 @@ message Channel {
   repeated string connection_hops = 4;
   // opaque channel version, which is agreed upon during the handshake
   string version = 5;
+  // upgrade sequence indicates the latest upgrade attempt performed by this channel
+  // the value of 0 indicates the channel has never been upgraded
+  uint64 upgrade_sequence = 6;
 }
 
 // IdentifiedChannel defines a channel with additional port and channel
@@ -46,10 +49,13 @@ message IdentifiedChannel {
   string port_id = 6;
   // channel identifier
   string channel_id = 7;
+  // upgrade sequence indicates the latest upgrade attempt performed by this channel
+  // the value of 0 indicates the channel has never been upgraded
+  uint64 upgrade_sequence = 8;
 }
 
 // State defines if a channel is in one of the following states:
-// CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+// CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or UNINITIALIZED.
 enum State {
   option (gogoproto.goproto_enum_prefix) = false;
 
@@ -65,6 +71,10 @@ enum State {
   // A channel has been closed and can no longer be used to send or receive
   // packets.
   STATE_CLOSED = 4 [(gogoproto.enumvalue_customname) = "CLOSED"];
+  // A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+  STATE_FLUSHING = 5 [(gogoproto.enumvalue_customname) = "FLUSHING"];
+  // A channel has just completed flushing any in-flight packets.
+  STATE_FLUSHCOMPLETE = 6 [(gogoproto.enumvalue_customname) = "FLUSHCOMPLETE"];
 }
 
 // Order defines if a channel is ORDERED or UNORDERED
@@ -131,7 +141,7 @@ message PacketState {
   bytes data = 4;
 }
 
-// PacketId is an identifer for a unique Packet
+// PacketId is an identifier for a unique Packet
 // Source chains refer to packets by source port/channel
 // Destination chains refer to packets by destination port/channel
 message PacketId {
@@ -158,4 +168,20 @@ message Acknowledgement {
     bytes  result = 21;
     string error  = 22;
   }
+}
+
+// Timeout defines an execution deadline structure for 04-channel handlers.
+// This includes packet lifecycle handlers as well as the upgrade handshake handlers.
+// A valid Timeout contains either one or both of a timestamp and block height (sequence).
+message Timeout {
+  // block height after which the packet or upgrade times out
+  ibc.core.client.v1.Height height = 1 [(gogoproto.nullable) = false];
+  // block timestamp (in nanoseconds) after which the packet or upgrade times out
+  uint64 timestamp = 2;
+}
+
+// Params defines the set of IBC channel parameters.
+message Params {
+  // the relative timeout after which channel upgrades will time out.
+  Timeout upgrade_timeout = 1 [(gogoproto.nullable) = false];
 }

@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/cosmos/cosmos-sdk/types/kv"
+
+	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
-	dec := simulation.NewDecodeStore(app.TransferKeeper)
+	dec := simulation.NewDecodeStore()
 
-	trace := types.DenomTrace{
+	trace := internaltypes.DenomTrace{
 		BaseDenom: "uatom",
 		Path:      "transfer/channelToA",
 	}
@@ -29,7 +29,7 @@ func TestDecodeStore(t *testing.T) {
 			},
 			{
 				Key:   types.DenomTraceKey,
-				Value: app.TransferKeeper.MustMarshalDenomTrace(trace),
+				Value: types.ModuleCdc.MustMarshal(&trace),
 			},
 			{
 				Key:   []byte{0x99},

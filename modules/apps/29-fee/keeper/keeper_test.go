@@ -4,24 +4,28 @@ import (
 	"fmt"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var (
-	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
-	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
-	invalidCoins      = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdk.NewInt(100)}}
+	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}}
+	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(200)}}
+	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(300)}}
+	invalidCoins      = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdkmath.NewInt(100)}}
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -40,24 +44,15 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
-	path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	path := ibctesting.NewPathWithFeeEnabled(suite.chainA, suite.chainB)
 	suite.path = path
 
-	path = ibctesting.NewPath(suite.chainA, suite.chainC)
-	path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	path = ibctesting.NewPathWithFeeEnabled(suite.chainA, suite.chainC)
 	suite.pathAToC = path
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 // helper function
@@ -85,7 +80,7 @@ func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetPayeeAddress() {
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 
 	payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
 	suite.Require().False(found)
@@ -104,7 +99,7 @@ func (suite *KeeperTestSuite) TestGetSetPayeeAddress() {
 }
 
 func (suite *KeeperTestSuite) TestFeesInEscrow() {
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 
 	// escrow five fees for packet sequence 1
 	packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
@@ -136,7 +131,7 @@ func (suite *KeeperTestSuite) TestIsLocked() {
 }
 
 func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
@@ -200,7 +195,7 @@ func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
@@ -293,4 +288,24 @@ func (suite *KeeperTestSuite) TestGetAllCounterpartyPayees() {
 	counterpartyPayeeAddr := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllCounterpartyPayees(suite.chainA.GetContext())
 	suite.Require().Len(counterpartyPayeeAddr, len(expectedCounterpartyPayee))
 	suite.Require().Equal(counterpartyPayeeAddr, expectedCounterpartyPayee)
+}
+
+func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
+	suite.SetupTest()
+
+	// test if the ics4 wrapper is the channel keeper initially
+	ics4Wrapper := suite.chainA.GetSimApp().IBCFeeKeeper.GetICS4Wrapper()
+
+	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
+	_, isFeeKeeper := ics4Wrapper.(keeper.Keeper)
+	suite.Require().False(isFeeKeeper)
+
+	// set the ics4 wrapper to itself (don't do this in production)
+	suite.chainA.GetSimApp().IBCFeeKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCFeeKeeper)
+	ics4Wrapper = suite.chainA.GetSimApp().IBCFeeKeeper.GetICS4Wrapper()
+
+	_, isFeeKeeper = ics4Wrapper.(keeper.Keeper)
+	suite.Require().True(isFeeKeeper)
+	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
+	suite.Require().False(isChannelKeeper)
 }
