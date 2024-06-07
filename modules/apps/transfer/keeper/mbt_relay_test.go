@@ -143,7 +143,7 @@ func BalancesFromTla(tla []TlaBalance) []Balance {
 }
 
 func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPacket {
-	denom := types.ExtractDenomFromFullPath(DenomFromTla(packet.Data.Denom))
+	denom := types.ExtractDenomFromPath(DenomFromTla(packet.Data.Denom))
 	return FungibleTokenPacket{
 		SourceChannel: packet.SourceChannel,
 		SourcePort:    packet.SourcePort,
@@ -270,7 +270,7 @@ func BankOfChain(chain *ibctesting.TestChain) Bank {
 		if err != nil {
 			panic(fmt.Errorf("Failed to construct token from coin: %w", err))
 		}
-		bank.SetBalance(address.String(), token.Denom.FullPath(), coin.Amount)
+		bank.SetBalance(address.String(), token.Denom.Path(), coin.Amount)
 		return false
 	})
 	return bank

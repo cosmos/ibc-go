@@ -13,7 +13,7 @@ func PacketDataV1ToV2(packetData types.FungibleTokenPacketData) (types.FungibleT
 		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(err, "invalid packet data")
 	}
 
-	denom := types.ExtractDenomFromFullPath(packetData.Denom)
+	denom := types.ExtractDenomFromPath(packetData.Denom)
 	return types.FungibleTokenPacketDataV2{
 		Tokens: []types.Token{
 			{

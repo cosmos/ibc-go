@@ -1,7 +1,6 @@
 package types
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -42,64 +41,9 @@ func (t Trace) String() string {
 	return fmt.Sprintf("%s/%s", t.PortId, t.ChannelId)
 }
 
-// ParseDenomTrace parses a string with the ibc prefix (denom trace) and the base denomination
-// into a DenomTrace type.
-//
-// Examples:
-//
-// - "portidone/channel-0/uatom" => DenomTrace{Path: "portidone/channel-0", BaseDenom: "uatom"}
-// - "portidone/channel-0/portidtwo/channel-1/uatom" => DenomTrace{Path: "portidone/channel-0/portidtwo/channel-1", BaseDenom: "uatom"}
-// - "portidone/channel-0/gamm/pool/1" => DenomTrace{Path: "portidone/channel-0", BaseDenom: "gamm/pool/1"}
-// - "gamm/pool/1" => DenomTrace{Path: "", BaseDenom: "gamm/pool/1"}
-// - "uatom" => DenomTrace{Path: "", BaseDenom: "uatom"}
-func ParseDenomTrace(rawDenom string) DenomTrace {
-	denom := ExtractDenomFromFullPath(rawDenom)
-	path := ""
-	if !denom.IsNative() {
-		path = denom.FullPath()
-		path = strings.TrimSuffix(path, "/"+denom.Base)
-	}
-	return DenomTrace{
-		Path:      path,
-		BaseDenom: denom.Base,
-	}
-}
-
-// Hash returns the hex bytes of the SHA256 hash of the DenomTrace fields using the following formula:
-//
-// hash = sha256(tracePath + "/" + baseDenom)
-func (dt DenomTrace) Hash() cmtbytes.HexBytes {
-	hash := sha256.Sum256([]byte(dt.GetFullDenomPath()))
-	return hash[:]
-}
-
-// GetPrefix returns the receiving denomination prefix composed by the trace info and a separator.
-func (dt DenomTrace) GetPrefix() string {
-	return dt.Path + "/"
-}
-
-// IBCDenom a coin denomination for an ICS20 fungible token in the format
-// 'ibc/{hash(tracePath + baseDenom)}'. If the trace is empty, it will return the base denomination.
-func (dt DenomTrace) IBCDenom() string {
-	if dt.Path != "" {
-		return fmt.Sprintf("%s/%s", DenomPrefix, dt.Hash())
-	}
-	return dt.BaseDenom
-}
-
-// GetFullDenomPath returns the full denomination according to the ICS20 specification:
-// tracePath + "/" + baseDenom
-// If there exists no trace then the base denomination is returned.
-func (dt DenomTrace) GetFullDenomPath() string {
-	if dt.Path == "" {
-		return dt.BaseDenom
-	}
-	return dt.GetPrefix() + dt.BaseDenom
-}
-
-// ExtractDenomFromFullPath returns the denom from the full path.
+// ExtractDenomFromPath returns the denom from the full path.
 // Used to support v1 denoms.
-func ExtractDenomFromFullPath(fullPath string) Denom {
+func ExtractDenomFromPath(fullPath string) Denom {
 	denomSplit := strings.Split(fullPath, "/")
 
 	if denomSplit[0] == fullPath {
@@ -138,40 +82,6 @@ func ExtractDenomFromFullPath(fullPath string) Denom {
 		Base:  base,
 		Trace: trace,
 	}
-}
-
-// validateTraceIdentifiers validates the correctness of the trace associated with a particular base denom.
-func validateTraceIdentifiers(identifiers []string) error {
-	if len(identifiers) == 0 || len(identifiers)%2 != 0 {
-		return fmt.Errorf("trace info must come in pairs of port and channel identifiers '{portID}/{channelID}', got the identifiers: %s", identifiers)
-	}
-
-	// validate correctness of port and channel identifiers
-	for i := 0; i < len(identifiers); i += 2 {
-		if err := host.PortIdentifierValidator(identifiers[i]); err != nil {
-			return errorsmod.Wrapf(err, "invalid port ID at position %d", i)
-		}
-		if err := host.ChannelIdentifierValidator(identifiers[i+1]); err != nil {
-			return errorsmod.Wrapf(err, "invalid channel ID at position %d", i)
-		}
-	}
-	return nil
-}
-
-// Validate performs a basic validation of the DenomTrace fields.
-func (dt DenomTrace) Validate() error {
-	// empty trace is accepted when token lives on the original chain
-	switch {
-	case dt.Path == "" && dt.BaseDenom != "":
-		return nil
-	case strings.TrimSpace(dt.BaseDenom) == "":
-		return fmt.Errorf("base denomination cannot be blank")
-	}
-
-	// NOTE: no base denomination validation
-
-	identifiers := strings.Split(dt.Path, "/")
-	return validateTraceIdentifiers(identifiers)
 }
 
 // validateIBCDenom validates that the given denomination is either:

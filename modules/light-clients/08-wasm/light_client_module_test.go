@@ -380,7 +380,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 		{
 			"success",
 			func() {
-				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
+				expClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.ContractResult, uint64, error) {
@@ -526,7 +526,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 		{
 			"success",
 			func() {
-				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
+				expClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.ContractResult, uint64, error) {

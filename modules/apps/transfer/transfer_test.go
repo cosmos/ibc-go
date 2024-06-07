@@ -69,12 +69,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().Equal(coinToSendToB, balance)
 
 	// check that voucher exists on chain B
-	denom := types.Denom{
-		Base: sdk.DefaultBondDenom,
-		Trace: []types.Trace{
-			types.NewTrace(packet.DestinationPort, packet.DestinationChannel),
-		},
-	}
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(packet.DestinationPort, packet.DestinationChannel))
 	balance = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 	coinSentFromAToB := sdk.NewCoin(denom.IBCDenom(), amount)
 	suite.Require().Equal(coinSentFromAToB, balance)
