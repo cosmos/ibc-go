@@ -290,7 +290,6 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			nil,
 		},
 		{
-
 			"success with multiple coins",
 			sdk.NewCoins(ibctesting.TestCoin, ibctesting.SecondaryTestCoin),
 			func() {},
