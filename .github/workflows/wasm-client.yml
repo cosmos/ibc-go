@@ -7,6 +7,7 @@ on:
       - main
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   lint:
@@ -16,9 +17,12 @@ jobs:
         with:
           go-version: '1.22'
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: golangci/golangci-lint-action@v6.0.1
         with:
           version: v1.57.2
+          only-new-issues: true
           args: --timeout 10m
           working-directory: modules/light-clients/08-wasm
 
