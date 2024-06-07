@@ -31,10 +31,7 @@ func (suite *KeeperTestSuite) TestGenesis() {
 	)
 
 	for _, traceAndEscrowAmount := range traceAndEscrowAmounts {
-		denom := types.Denom{
-			Base:  "uatom",
-			Trace: traceAndEscrowAmount.trace,
-		}
+		denom := types.NewDenom("uatom", traceAndEscrowAmount.trace...)
 		denoms = append(denoms, denom)
 		suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
 
