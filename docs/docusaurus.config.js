@@ -355,9 +355,9 @@ const config = {
           "data-modal-disclaimer-text-color": "#000000",
           "data-modal-disclaimer-font-size": "14px",
           "data-modal-image":
-            "img/black-ibc-logo-400x400.svg",
+            "/img/black-ibc-logo-400x400.svg",
           "data-project-logo":
-            "img/white-ibc-logo-400x400.svg",
+            "/img/white-ibc-logo-400x400.svg",
           async: true,
         },
   ],
