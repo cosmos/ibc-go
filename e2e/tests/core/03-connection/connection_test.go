@@ -14,7 +14,6 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 

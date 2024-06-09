@@ -1,0 +1,17 @@
+{
+  "chain-a": [
+    "main"
+  ],
+  "chain-b": [
+    "main"
+  ],
+  "entrypoint": [
+    "TestTransferTestSuite"
+  ],
+  "test": [
+    "TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

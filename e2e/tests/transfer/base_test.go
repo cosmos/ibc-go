@@ -235,7 +235,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 			s.Require().Equal(expected, actualBalance)
 		})
 
-		t.Run("chain B ibc denom", func(t *testing.T) {
+		t.Run("chain B IBC denom", func(t *testing.T) {
 			actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 			s.Require().NoError(err)
 
