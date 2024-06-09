@@ -583,7 +583,7 @@ func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender,
 			Tokens:           sdk.NewCoins(),
 		}
 	case transfertypes.V2:
-		msg = transfertypes.NewMsgTransfer(portID, channelID, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+		msg = transfertypes.NewMsgTransfer(portID, channelID, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, nil)
 	default:
 		panic(fmt.Errorf("unsupported transfer version: %s", version))
 	}
