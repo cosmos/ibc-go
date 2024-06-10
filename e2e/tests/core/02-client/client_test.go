@@ -438,9 +438,9 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	ctx := context.TODO()
 
 	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
-
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
