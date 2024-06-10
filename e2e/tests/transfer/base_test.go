@@ -332,15 +332,11 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
-
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 	})
 
-	t.Run("token are returned to sender on chainB", func(t *testing.T) {
+	t.Run("tokens are returned to sender on chainB", func(t *testing.T) {
 		t.Run("non-native chainA ibc denom", func(t *testing.T) {
 			actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 			s.Require().NoError(err)
