@@ -151,6 +151,6 @@ func (ClientState) UpdateStateOnMisbehaviour(_ sdk.Context, _ codec.BinaryCodec,
 
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, _ exported.ClientMessage) []exported.Height {
+func (ClientState) UpdateState(ctx sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) []exported.Height {
 	return []exported.Height{clienttypes.GetSelfHeight(ctx)}
 }

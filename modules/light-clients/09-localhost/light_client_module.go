@@ -38,7 +38,7 @@ func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientS
 // Initialize ensures that initial consensus state for localhost is nil.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, _, consensusStateBz []byte) error {
+func (LightClientModule) Initialize(ctx sdk.Context, clientID string, _, consensusStateBz []byte) error {
 	if len(consensusStateBz) != 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
@@ -66,7 +66,7 @@ func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID str
 // UpdateState obtains the localhost client state and calls into the clientState.UpdateState method.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+func (LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	return []exported.Height{clienttypes.GetSelfHeight(ctx)}
 }
 
@@ -118,7 +118,7 @@ func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Statu
 // If no client is present for the provided client identifier a zero value height is returned.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+func (LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
 	return clienttypes.GetSelfHeight(ctx)
 }
 

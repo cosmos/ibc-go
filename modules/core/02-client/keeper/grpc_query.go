@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	"slices"
 	"sort"
 	"strings"
@@ -21,6 +20,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
