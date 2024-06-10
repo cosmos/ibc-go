@@ -16,8 +16,8 @@ pull_request_rules:
         name: default
         method: squash
         commit_message_template: |
-           {{ title }} (#{{ number }})
-           {{ body }}
+          {{ title }} (#{{ number }})
+          {{ body }}
   - name: backport patches to v1.0.x capability branch
     conditions:
       - base=main
