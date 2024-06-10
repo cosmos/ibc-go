@@ -511,7 +511,7 @@ func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain ibc.Chain) cl
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
 }
 
-// CreateUpgradeFields creates upgrade fields for channel with fee middleware.
+// CreateUpgradeFields creates upgrade fields for channel with fee middleware
 func (s *E2ETestSuite) CreateUpgradeFields(channel channeltypes.Channel) channeltypes.UpgradeFields {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
