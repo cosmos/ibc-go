@@ -16,6 +16,9 @@ import (
 func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientKeeper ClientKeeper) (int, error) {
 	var clientIDs []string
 	clientKeeper.IterateClientStates(ctx, []byte(exported.Tendermint), func(clientID string, _ exported.ClientState) bool {
+		if clientID == exported.Localhost {
+			return false
+		}
 		clientIDs = append(clientIDs, clientID)
 		return false
 	})

@@ -26,7 +26,6 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
@@ -143,10 +142,9 @@ func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 
 func (suite *KeeperTestSuite) TestGetAllGenesisClients() {
 	clientIDs := []string{
-		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
+		testClientID2, testClientID3, testClientID,
 	}
 	expClients := []exported.ClientState{
-		localhost.NewClientState(types.GetSelfHeight(suite.chainA.GetContext())),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
@@ -315,14 +313,16 @@ func (suite *KeeperTestSuite) TestIterateClientStates() {
 			"tendermint clientIDs",
 			[]byte(exported.Tendermint),
 			func() []string {
-				return expTMClientIDs
+				clientIDs := []string{exported.LocalhostClientID}
+				return append(clientIDs, expTMClientIDs...)
 			},
 		},
 		{
 			"solo machine clientIDs",
 			[]byte(exported.Solomachine),
 			func() []string {
-				return expSMClientIDs
+				clientIDs := []string{exported.LocalhostClientID}
+				return append(clientIDs, expSMClientIDs...)
 			},
 		},
 	}

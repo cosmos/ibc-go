@@ -109,6 +109,10 @@ func (k *Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) st
 
 // GetClientState gets a particular client from the store
 func (k *Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
+	if clientID == exported.LocalhostClientID {
+		return localhost.NewClientState(types.GetSelfHeight(ctx)), true
+	}
+
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ClientStateKey())
 	if len(bz) == 0 {
@@ -228,6 +232,9 @@ func (k *Keeper) iterateMetadata(ctx sdk.Context, cb func(clientID string, key, 
 func (k *Keeper) GetAllGenesisClients(ctx sdk.Context) types.IdentifiedClientStates {
 	var genClients types.IdentifiedClientStates
 	k.IterateClientStates(ctx, nil, func(clientID string, cs exported.ClientState) bool {
+		if clientID == exported.LocalhostClientID {
+			return false
+		}
 		genClients = append(genClients, types.NewIdentifiedClientState(clientID, cs))
 		return false
 	})
@@ -354,6 +361,10 @@ func (k *Keeper) SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz
 func (k *Keeper) IterateClientStates(ctx sdk.Context, storePrefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(storePrefix))
+
+	if cb(exported.LocalhostClientID, localhost.NewClientState(types.GetSelfHeight(ctx))) {
+		return
+	}
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
