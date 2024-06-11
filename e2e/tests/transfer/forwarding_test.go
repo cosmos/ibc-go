@@ -52,7 +52,7 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 	chainCAddress := chainCWallet.FormattedAddress()
 
 	t.Run("IBC transfer from A to B", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -64,7 +64,7 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 	chainBtoCChannel := chainBChannels[0]
 
 	t.Run("IBC transfer from B to C", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, chainBtoCChannel.PortID, chainBtoCChannel.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainCAddress, s.GetTimeoutHeight(ctx, chainC), 0, "")
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, chainBtoCChannel.PortID, chainBtoCChannel.ChannelID, testvalues.DefaultTransferCoins(chainBDenom), chainBAddress, chainCAddress, s.GetTimeoutHeight(ctx, chainC), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
