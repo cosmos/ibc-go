@@ -151,10 +151,6 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 		}
 	}
 
-	if ftpd.ForwardingPath != nil && len(ftpd.ForwardingPath.Hops) > 0 && ftpd.Memo != "" {
-		return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", ftpd.Memo, ftpd.ForwardingPath.Hops)
-	}
-
 	return nil
 }
 
