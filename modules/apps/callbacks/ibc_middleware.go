@@ -38,7 +38,7 @@ type IBCMiddleware struct {
 	maxCallbackGas uint64
 }
 
-// NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application.
+// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application.
 // The underlying application must implement the required callback interfaces.
 func NewIBCMiddleware(
 	app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper,

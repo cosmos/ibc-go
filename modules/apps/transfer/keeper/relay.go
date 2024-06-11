@@ -368,9 +368,7 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{
-			Denom: types.Denom{
-				Base: coin.Denom,
-			},
+			Denom:  types.NewDenom(coin.Denom),
 			Amount: coin.Amount.String(),
 		}, nil
 	}
