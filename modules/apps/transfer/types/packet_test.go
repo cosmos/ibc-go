@@ -234,19 +234,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				&types.ForwardingInfo{
-					Hops: []*types.Hop{
-						{
-							PortId:    "transfer",
-							ChannelId: "channel-1",
-						},
-						{
-							PortId:    "transfer",
-							ChannelId: "channel-0",
-						},
-					},
-					Memo: "",
-				},
+				types.NewForwardingInfo("", validHop, validHop),
 			),
 			nil,
 		},
@@ -265,15 +253,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				&types.ForwardingInfo{
-					Hops: []*types.Hop{
-						{
-							PortId:    "transfer",
-							ChannelId: "channel-1",
-						},
-					},
-					Memo: "memo",
-				},
+				types.NewForwardingInfo("memo", validHop),
 			),
 			nil,
 		},
@@ -431,15 +411,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"memo",
-				&types.ForwardingInfo{
-					Hops: []*types.Hop{
-						{
-							PortId:    "transfer",
-							ChannelId: "channel-1",
-						},
-					},
-					Memo: "",
-				},
+				types.NewForwardingInfo("", validHop),
 			),
 			types.ErrInvalidMemo,
 		},
@@ -455,15 +427,13 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				&types.ForwardingInfo{
-					Hops: []*types.Hop{
-						{
-							PortId:    invalidPort,
-							ChannelId: "channel-1",
-						},
+				types.NewForwardingInfo(
+					"",
+					&types.Hop{
+						PortId:    invalidPort,
+						ChannelId: "channel-1",
 					},
-					Memo: "",
-				},
+				),
 			),
 			host.ErrInvalidID,
 		},
@@ -479,15 +449,13 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				&types.ForwardingInfo{
-					Hops: []*types.Hop{
-						{
-							PortId:    "transfer",
-							ChannelId: invalidChannel,
-						},
+				types.NewForwardingInfo(
+					"",
+					&types.Hop{
+						PortId:    "transfer",
+						ChannelId: invalidChannel,
 					},
-					Memo: "",
-				},
+				),
 			),
 			host.ErrInvalidID,
 		},
@@ -503,10 +471,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				&types.ForwardingInfo{
-					Hops: generateHops(types.MaximumNumberOfForwardingHops + 1),
-					Memo: "",
-				},
+				types.NewForwardingInfo("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
 			),
 			types.ErrInvalidForwardingInfo,
 		},
@@ -522,15 +487,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				&types.ForwardingInfo{
-					Hops: []*types.Hop{
-						{
-							PortId:    "transfer",
-							ChannelId: "channel-1",
-						},
-					},
-					Memo: ibctesting.GenerateString(types.MaximumMemoLength + 1),
-				},
+				types.NewForwardingInfo(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
 			),
 			types.ErrInvalidMemo,
 		},

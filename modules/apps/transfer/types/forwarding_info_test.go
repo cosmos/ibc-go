@@ -10,171 +10,116 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+var validHop = &types.Hop{
+	PortId:    "transfer",
+	ChannelId: "channel-0",
+}
+
 func TestForwardingInfo_Validate(t *testing.T) {
 	tests := []struct {
 		name           string
-		forwardingInfo types.ForwardingInfo
+		forwardingInfo *types.ForwardingInfo
 		expError       error
 	}{
 		{
 			"valid msg no hops",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{},
-				Memo: "",
-			},
-			nil,
-		},
-		{
-			"valid msg nil hops",
-			types.ForwardingInfo{
-				Hops: nil,
-				Memo: "",
-			},
+			types.NewForwardingInfo(""),
 			nil,
 		},
 		{
 			"valid msg with hops",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{
-					{
-						PortId:    "transfer",
-						ChannelId: "channel-0",
-					},
-				},
-				Memo: "",
-			},
+			types.NewForwardingInfo("", validHop),
 			nil,
 		},
 		{
 			"valid msg with memo",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{
-					{
-						PortId:    "transfer",
-						ChannelId: "channel-0",
-					},
-					{
-						PortId:    "transfer",
-						ChannelId: "channel-1",
-					},
-				},
-				Memo: testMemo1,
-			},
+			types.NewForwardingInfo(testMemo1, validHop, validHop),
 			nil,
 		},
 		{
 			"valid msg with max hops",
-			types.ForwardingInfo{
-				Hops: generateHops(types.MaximumNumberOfForwardingHops),
-				Memo: "",
-			},
+			types.NewForwardingInfo("", generateHops(types.MaximumNumberOfForwardingHops)...),
 			nil,
 		},
 		{
 			"valid msg with max memo length",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{},
-				Memo: ibctesting.GenerateString(types.MaximumMemoLength),
-			},
+			types.NewForwardingInfo(ibctesting.GenerateString(types.MaximumMemoLength), validHop),
 			nil,
 		},
 		{
 			"invalid msg with too many hops",
-			types.ForwardingInfo{
-				Hops: generateHops(types.MaximumNumberOfForwardingHops + 1),
-				Memo: "",
-			},
+			types.NewForwardingInfo("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
 			types.ErrInvalidForwardingInfo,
 		},
 		{
 			"invalid msg with too long memo",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{
-					{
-						PortId:    "transfer",
-						ChannelId: "channel-0",
-					},
-				},
-				Memo: ibctesting.GenerateString(types.MaximumMemoLength + 1),
-			},
+			types.NewForwardingInfo(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
 			types.ErrInvalidMemo,
 		},
 		{
 			"invalid msg with too short hop port ID",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{
-					{
-						PortId:    invalidShortPort,
-						ChannelId: "channel-0",
-					},
+			types.NewForwardingInfo(
+				"",
+				&types.Hop{
+					PortId:    invalidShortPort,
+					ChannelId: "channel-0",
 				},
-				Memo: "",
-			},
+			),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid msg with too long hop port ID",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{
-					{
-						PortId:    invalidLongPort,
-						ChannelId: "channel-0",
-					},
+			types.NewForwardingInfo(
+				"",
+				&types.Hop{
+					PortId:    invalidLongPort,
+					ChannelId: "channel-0",
 				},
-				Memo: "",
-			},
+			),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid msg with non-alpha hop port ID",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{
-					{
-						PortId:    invalidPort,
-						ChannelId: "channel-0",
-					},
+			types.NewForwardingInfo(
+				"",
+				&types.Hop{
+					PortId:    invalidPort,
+					ChannelId: "channel-0",
 				},
-				Memo: "",
-			},
+			),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid msg with too long hop channel ID",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{
-					{
-						PortId:    "transfer",
-						ChannelId: invalidLongChannel,
-					},
+			types.NewForwardingInfo(
+				"",
+				&types.Hop{
+					PortId:    "transfer",
+					ChannelId: invalidLongChannel,
 				},
-				Memo: "",
-			},
+			),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid msg with too short hop channel ID",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{
-					{
-						PortId:    "transfer",
-						ChannelId: invalidShortChannel,
-					},
+			types.NewForwardingInfo(
+				"",
+				&types.Hop{
+					PortId:    "transfer",
+					ChannelId: invalidShortChannel,
 				},
-				Memo: "",
-			},
+			),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid msg with non-alpha hop channel ID",
-			types.ForwardingInfo{
-				Hops: []*types.Hop{
-					{
-						PortId:    "transfer",
-						ChannelId: invalidChannel,
-					},
+			types.NewForwardingInfo(
+				"",
+				&types.Hop{
+					PortId:    "transfer",
+					ChannelId: invalidChannel,
 				},
-				Memo: "",
-			},
+			),
 			host.ErrInvalidID,
 		},
 	}

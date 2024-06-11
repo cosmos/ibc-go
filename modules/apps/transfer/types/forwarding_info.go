@@ -8,6 +8,13 @@ import (
 
 const MaximumNumberOfForwardingHops = 64
 
+func NewForwardingInfo(memo string, hops ...*Hop) *ForwardingInfo {
+	return &ForwardingInfo{
+		Memo: memo,
+		Hops: hops,
+	}
+}
+
 func (fi ForwardingInfo) Validate() error {
 	if len(fi.Hops) > MaximumNumberOfForwardingHops {
 		return errorsmod.Wrapf(ErrInvalidForwardingInfo, "number of hops in forwarding path cannot exceed %d", MaximumNumberOfForwardingHops)
