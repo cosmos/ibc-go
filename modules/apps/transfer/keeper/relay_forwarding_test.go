@@ -565,8 +565,8 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 
 	// Check that Escrow B has been refunded amount
 	coin = sdk.NewCoin(denomAB.IBCDenom(), amount)
-	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(sdkmath.NewInt(100), totalEscrowChainB.Amount)
+	allEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetAllTotalEscrowed(suite.chainB.GetContext())
+	suite.Require().Empty(allEscrowChainB)
 
 	denom := types.ExtractDenomFromPath(denomABC.Path())
 	data = types.NewFungibleTokenPacketDataV2(
