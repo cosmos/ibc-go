@@ -60,7 +60,7 @@ func (suite *TypesTestSuite) TestGetSelfConsensusState() {
 			consensusHost, err = types.NewWasmConsensusHost(suite.chainA.Codec, consensusHost)
 			suite.Require().NoError(err)
 
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetConsensusHost(
 				consensusHost,
 			)
 
@@ -134,7 +134,7 @@ func (suite *TypesTestSuite) TestValidateSelfClient() {
 			consensusHost, err = types.NewWasmConsensusHost(suite.chainA.Codec, consensusHost)
 			suite.Require().NoError(err)
 
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetSelfConsensusHost(
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetConsensusHost(
 				consensusHost,
 			)
 

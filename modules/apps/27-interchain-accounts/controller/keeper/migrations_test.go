@@ -92,6 +92,23 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			},
 			icacontrollertypes.DefaultParams(),
 		},
+		{
+			"success: no legacy params pre-migration",
+			func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
+					suite.chainA.Codec,
+					suite.chainA.GetSimApp().GetKey(icacontrollertypes.StoreKey),
+					nil, // assign a nil legacy param subspace
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+					suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+					suite.chainA.GetSimApp().ScopedICAControllerKeeper,
+					suite.chainA.GetSimApp().MsgServiceRouter(),
+					suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
+				)
+			},
+			icacontrollertypes.DefaultParams(),
+		},
 	}
 
 	for _, tc := range testCases {

@@ -28,6 +28,14 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 			true,
 		},
 		{
+			"success: relayer and payee are equal",
+			func() {
+				msg.Relayer = defaultAccAddress
+				msg.Payee = defaultAccAddress
+			},
+			true,
+		},
+		{
 			"invalid portID",
 			func() {
 				msg.PortId = ""
@@ -38,14 +46,6 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 			"invalid channelID",
 			func() {
 				msg.ChannelId = ""
-			},
-			false,
-		},
-		{
-			"invalid request relayer and payee are equal",
-			func() {
-				msg.Relayer = defaultAccAddress
-				msg.Payee = defaultAccAddress
 			},
 			false,
 		},

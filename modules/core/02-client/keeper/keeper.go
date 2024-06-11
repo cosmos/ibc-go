@@ -17,7 +17,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
@@ -26,12 +25,9 @@ import (
 type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.BinaryCodec
-<<<<<<< HEAD
-=======
-	router         *types.Router
 	consensusHost  types.ConsensusHost
->>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
 	legacySubspace types.ParamSubspace
+	stakingKeeper  types.StakingKeeper
 	upgradeKeeper  types.UpgradeKeeper
 }
 
@@ -40,12 +36,8 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace ty
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,
-<<<<<<< HEAD
-=======
-		router:         router,
-		consensusHost:  ibctm.NewConsensusHost(sk),
->>>>>>> 50d2a087 (feat: adding `ConsensusHost` interface for custom self client/consensus state validation (#6055))
 		legacySubspace: legacySubspace,
+		stakingKeeper:  sk,
 		upgradeKeeper:  uk,
 	}
 }
@@ -66,8 +58,8 @@ func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.Clie
 	return clientState.UpdateState(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
 }
 
-// SetSelfConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
-func (k *Keeper) SetSelfConsensusHost(consensusHost types.ConsensusHost) {
+// SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
+func (k *Keeper) SetConsensusHost(consensusHost types.ConsensusHost) {
 	if consensusHost == nil {
 		panic(fmt.Errorf("cannot set a nil self consensus host"))
 	}
@@ -86,7 +78,7 @@ func (k Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) str
 }
 
 // GetClientState gets a particular client from the store
-func (k *Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
+func (k Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ClientStateKey())
 	if len(bz) == 0 {
@@ -98,13 +90,13 @@ func (k *Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.Clie
 }
 
 // SetClientState sets a particular Client to the store
-func (k *Keeper) SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+func (k Keeper) SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	store := k.ClientStore(ctx, clientID)
 	store.Set(host.ClientStateKey(), k.MustMarshalClientState(clientState))
 }
 
 // GetClientConsensusState gets the stored consensus state from a client at a given height.
-func (k *Keeper) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
+func (k Keeper) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ConsensusStateKey(height))
 	if len(bz) == 0 {

@@ -55,7 +55,15 @@ func (app *SimApp) registerUpgradeHandlers() {
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V8,
-		upgrades.CreateV8UpgradeHandler(
+		upgrades.CreateDefaultUpgradeHandler(
+			app.ModuleManager,
+			app.configurator,
+		),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V8_1,
+		upgrades.CreateDefaultUpgradeHandler(
 			app.ModuleManager,
 			app.configurator,
 		),
