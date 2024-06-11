@@ -24,7 +24,7 @@ const config = {
   organizationName: "cosmos", // Usually your GitHub org/user name.
   projectName: "ibc-go", // Usually your repo name.
   deploymentBranch: "gh-pages",
-  trailingSlash: false,
+  trailingSlash: true,
 
   onBrokenLinks: "log",
   onBrokenMarkdownLinks: "log",
