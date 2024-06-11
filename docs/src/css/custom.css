@@ -228,6 +228,12 @@ html {
       @apply bg-none;
     }
   }
+  .breadcrumbs__link {
+    color: black !important;
+  }
+  &[data-theme="dark"] .breadcrumbs__link {
+    color: white !important;
+  }
   .theme-doc-breadcrumbs {
     @media (min-width: 997px) {
       @apply pt-[calc(theme(spacing.7)-1rem)];
