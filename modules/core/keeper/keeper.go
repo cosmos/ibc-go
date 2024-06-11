@@ -30,7 +30,7 @@ type Keeper struct {
 
 	cdc codec.BinaryCodec
 
-	ClientKeeper     *clientkeeper.Keeper
+	ClientKeeper     clientkeeper.Keeper
 	ConnectionKeeper connectionkeeper.Keeper
 	ChannelKeeper    channelkeeper.Keeper
 	PortKeeper       *portkeeper.Keeper
@@ -62,13 +62,13 @@ func NewKeeper(
 	}
 
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, &clientKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
-	channelKeeper := channelkeeper.NewKeeper(cdc, key, &clientKeeper, &connectionKeeper, &portKeeper, scopedKeeper)
+	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, &portKeeper, scopedKeeper)
 
 	keeper := &Keeper{
 		cdc:              cdc,
-		ClientKeeper:     &clientKeeper,
+		ClientKeeper:     clientKeeper,
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
 		PortKeeper:       &portKeeper,
