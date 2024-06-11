@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/go-metrics"
 
@@ -277,40 +276,37 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	// Adding forwarding logic
 	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
 		memo := ""
-		var nextForwardingPath types.ForwardingInfo
 
+
+		var nextForwardingPath *types.ForwardingInfo
 		if len(data.ForwardingPath.Hops) == 1 {
 			memo = data.ForwardingPath.Memo
-			nextForwardingPath = types.ForwardingInfo{
-				Hops: nil,
-				Memo: data.ForwardingPath.Memo,
-			}
+			nextForwardingPath = nil
 		} else {
-			nextForwardingPath = types.ForwardingInfo{
+			nextForwardingPath = &types.ForwardingInfo{
 				Hops: data.ForwardingPath.Hops[1:],
 				Memo: data.ForwardingPath.Memo,
 			}
 		}
 
-		// Assign to timestamp --> current + 1 h
-		timeoutTimestamp := uint64(ctx.BlockTime().Add(time.Hour).UnixNano())
-		sequence, err := k.sendTransfer(
-			ctx,
+		msg := types.NewMsgTransfer(
 			data.ForwardingPath.Hops[0].PortId,
 			data.ForwardingPath.Hops[0].ChannelId,
 			receivedCoins,
-			receiver,
+			receiver.String(),
 			finalReceiver.String(),
-			clienttypes.Height{},
-			timeoutTimestamp,
+			packet.TimeoutHeight,
+			packet.TimeoutTimestamp,
 			memo,
-			&nextForwardingPath,
+			nextForwardingPath,
 		)
+
+		resp, err := k.Transfer(ctx, msg)
 		if err != nil {
 			return false, err
 		}
 
-		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortId, data.ForwardingPath.Hops[0].ChannelId, sequence, packet)
+		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortId, data.ForwardingPath.Hops[0].ChannelId, resp.Sequence, packet)
 		return true, nil
 	}
 
