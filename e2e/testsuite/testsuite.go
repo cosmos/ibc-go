@@ -664,3 +664,16 @@ func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender,
 
 	return msg
 }
+
+// ThreeChainSetup provides the default behaviour to wire up 3 chains in the tests.
+func ThreeChainSetup() func(*ChainOptions) {
+	// copy all values of existing chains and tweak to make unique to new chain.
+	return func(options *ChainOptions) {
+		chainCSpec := *options.ChainSpecs[0] // nolint
+
+		chainCSpec.ChainID = "chainC-1"
+		chainCSpec.Name = "simapp-c"
+
+		options.ChainSpecs = append(options.ChainSpecs, &chainCSpec)
+	}
+}

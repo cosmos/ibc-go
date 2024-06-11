@@ -28,14 +28,7 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 	ctx := context.TODO()
 	t := s.T()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(), func(options *testsuite.ChainOptions) {
-		// copy all values of existing chains and tweak to make unique to new chain.
-		chainCSpec := *options.ChainSpecs[0] // nolint
-
-		chainCSpec.ChainID = "chainC-1"
-		chainCSpec.Name = "simapp-c"
-		options.ChainSpecs = append(options.ChainSpecs, &chainCSpec)
-	})
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(), testsuite.ThreeChainSetup())
 	chains := s.GetAllChains()
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
