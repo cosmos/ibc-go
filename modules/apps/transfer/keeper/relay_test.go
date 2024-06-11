@@ -12,12 +12,13 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	convertinternal "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/convert"
+	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 // TestSendTransfer tests sending from chainA to chainB using both coin
@@ -56,7 +57,20 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer of IBC token",
 			func() {
 				// send IBC token back to chainB
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				denom := types.NewDenom(coin.Denom, types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
+			},
+			nil,
+		},
+		{
+			"successful transfer of native token with ics20-1",
+			func() {
+				expEscrowAmount = sdkmath.NewInt(100)
+
+				// Set version to isc20-1.
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.V1
+				})
 			},
 			nil,
 		},
@@ -64,7 +78,8 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer of IBC token with memo",
 			func() {
 				// send IBC token back to chainB
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				denom := types.NewDenom(coin.Denom, types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 				memo = "memo"
 			},
 			nil,
@@ -75,7 +90,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				// channel references wrong ID
 				path.EndpointA.ChannelID = ibctesting.InvalidID
 			},
-			ibcerrors.ErrInvalidRequest,
+			channeltypes.ErrChannelNotFound,
 		},
 		{
 			"failure: sender account is blocked",
@@ -94,14 +109,16 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failure: denom trace not found",
 			func() {
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, "randomdenom", coin.Amount)
+				denom := types.NewDenom("randomdenom", types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 			},
-			types.ErrTraceNotFound,
+			types.ErrDenomNotFound,
 		},
 		{
 			"failure: bank send from module account failed, insufficient balance",
 			func() {
-				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdkmath.NewInt(1)))
+				denom := types.NewDenom(coin.Denom, types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount.Add(sdkmath.NewInt(1)))
 			},
 			sdkerrors.ErrInsufficientFunds,
 		},
@@ -240,8 +257,8 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 	suite.Require().NoError(err)
 
 	// execute
-	trace := types.ParseDenomTrace(types.GetPrefixedDenom(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, sdk.DefaultBondDenom))
-	coin = sdk.NewCoin(trace.IBCDenom(), sdkmath.NewInt(100))
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID))
+	coin = sdk.NewCoin(denom.IBCDenom(), sdkmath.NewInt(100))
 	msg := types.NewMsgTransfer(
 		path2.EndpointB.ChannelConfig.PortID,
 		path2.EndpointB.ChannelID,
@@ -330,19 +347,19 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			expEscrowAmount = sdkmath.ZeroInt()                         // total amount in escrow of voucher denom on receiving chain
 
 			// denom trace of tokens received on chain B and the associated expected metadata
-			denomTraceOnB := types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.DefaultBondDenom))
+			denomOnB := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 			expDenomMetadataOnB := banktypes.Metadata{
-				Description: fmt.Sprintf("IBC token from %s", denomTraceOnB.GetFullDenomPath()),
+				Description: fmt.Sprintf("IBC token from %s", denomOnB.Path()),
 				DenomUnits: []*banktypes.DenomUnit{
 					{
-						Denom:    denomTraceOnB.GetBaseDenom(),
+						Denom:    denomOnB.Base,
 						Exponent: 0,
 					},
 				},
-				Base:    denomTraceOnB.IBCDenom(),
-				Display: denomTraceOnB.GetFullDenomPath(),
-				Name:    fmt.Sprintf("%s IBC token", denomTraceOnB.GetFullDenomPath()),
-				Symbol:  strings.ToUpper(denomTraceOnB.GetBaseDenom()),
+				Base:    denomOnB.IBCDenom(),
+				Display: denomOnB.Path(),
+				Name:    fmt.Sprintf("%s IBC token", denomOnB.Path()),
+				Symbol:  strings.ToUpper(denomOnB.Base),
 			}
 
 			// send coin from chainA to chainB
@@ -357,9 +374,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  sdk.DefaultBondDenom,
+						Denom:  types.NewDenom(sdk.DefaultBondDenom, []types.Trace{}...),
 						Amount: amount.String(),
-						Trace:  []string{},
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
@@ -374,7 +390,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				denomMetadata, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denomTraceOnB.IBCDenom())
+				denomMetadata, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denomOnB.IBCDenom())
 				suite.Require().True(found)
 				suite.Require().Equal(expDenomMetadataOnB, denomMetadata)
 			} else {
@@ -391,7 +407,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 // for all cases. The malleate function allows for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 	var (
-		denomTrace      types.DenomTrace
+		denom           types.Denom
 		amount          sdkmath.Int
 		receiver        string
 		memo            string
@@ -434,7 +450,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 		{
 			"failure: empty denom",
 			func() {
-				denomTrace = types.DenomTrace{}
+				denom = types.Denom{}
 				expEscrowAmount = sdkmath.NewInt(100)
 			},
 			types.ErrInvalidDenomForTransfer,
@@ -496,23 +512,21 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 			seq++
 
 			// NOTE: trace must be explicitly changed in malleate to test invalid cases
-			denomTrace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
+			denom = types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 
 			// send coin back from chainA to chainB
-			coin = sdk.NewCoin(denomTrace.IBCDenom(), amount)
+			coin = sdk.NewCoin(denom.IBCDenom(), amount)
 			transferMsg = types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoins(coin), suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(1, 110), 0, memo)
 			_, err = suite.chainA.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
 			tc.malleate()
 
-			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
-						Trace:  trace,
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
 			packet = channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
@@ -579,21 +593,21 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	path2 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 	path2.Setup()
 
-	// denomTrace path: {transfer/channel-1/transfer/channel-0}
-	denomTrace := types.DenomTrace{
-		BaseDenom: sdk.DefaultBondDenom,
-		Path:      fmt.Sprintf("%s/%s/%s/%s", path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
-	}
+	// denom path: {transfer/channel-1/transfer/channel-0}
+	denom := types.NewDenom(
+		sdk.DefaultBondDenom,
+		types.NewTrace(path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID),
+		types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
+	)
 
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
-				Trace:  trace,
 			},
 		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
+
 	packet := channeltypes.NewPacket(
 		data.GetBytes(),
 		seq,
@@ -605,13 +619,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	)
 
 	// fund escrow account for transfer and channel-1 on chain B
-	// denomTrace path: transfer/channel-0
-	denomTrace = types.DenomTrace{
-		BaseDenom: sdk.DefaultBondDenom,
-		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
-	}
+	// denom path: transfer/channel-0
+	denom = types.NewDenom(
+		sdk.DefaultBondDenom,
+		types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
+	)
+
 	escrowAddress := types.GetEscrowAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID)
-	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
+	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
 			suite.chainB.GetContext(),
@@ -642,7 +657,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		successAck      = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 		failedAck       = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
-		denomTrace      types.DenomTrace
+		denom           types.Denom
 		amount          sdkmath.Int
 		path            *ibctesting.Path
 		expEscrowAmount sdkmath.Int
@@ -658,7 +673,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			"success ack: no-op",
 			successAck,
 			func() {
-				denomTrace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.DefaultBondDenom))
+				denom = types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 			},
 			nil,
 		},
@@ -667,7 +682,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			failedAck,
 			func() {
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				denomTrace = types.ParseDenomTrace(sdk.DefaultBondDenom)
+				denom = types.NewDenom(sdk.DefaultBondDenom)
 				coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrow, sdk.NewCoins(coin)))
@@ -682,8 +697,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			failedAck,
 			func() {
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				denomTrace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
-				coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
+				denom = types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				coin := sdk.NewCoin(denom.IBCDenom(), amount)
 
 				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrow, sdk.NewCoins(coin)))
 			},
@@ -693,7 +708,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			"failed ack: funds cannot be refunded because escrow account has zero balance",
 			failedAck,
 			func() {
-				denomTrace = types.ParseDenomTrace(sdk.DefaultBondDenom)
+				denom = types.NewDenom(sdk.DefaultBondDenom)
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
@@ -717,28 +732,26 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			tc.malleate()
 
-			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
 						Denom:  denom,
 						Amount: amount.String(),
-						Trace:  trace,
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
-			preAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denomTrace.IBCDenom())
+			preAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
 			err := suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, tc.ack)
 
 			// check total amount in escrow of sent token denom on sending chain
-			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denomTrace.IBCDenom())
+			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom.IBCDenom())
 			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				postAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denomTrace.IBCDenom())
+				postAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 				deltaAmount := postAcknowledgementBalance.Amount.Sub(preAcknowledgementBalance.Amount)
 
 				if tc.ack.Success() {
@@ -796,13 +809,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	path2.Setup()
 
 	// fund escrow account for transfer and channel-1 on chain B
-	// denomTrace path = transfer/channel-0
-	denomTrace := types.DenomTrace{
-		BaseDenom: sdk.DefaultBondDenom,
-		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
-	}
+	// denom path: transfer/channel-0
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID))
+
 	escrowAddress := types.GetEscrowAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID)
-	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
+	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
 			suite.chainB.GetContext(),
@@ -812,13 +823,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		),
 	)
 
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
-				Trace:  trace,
 			},
 		},
 		suite.chainB.SenderAccount.GetAddress().String(),
@@ -854,9 +863,9 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	var (
 		path            *ibctesting.Path
-		amount          sdkmath.Int
+		amount          string
 		sender          string
-		denomTrace      types.DenomTrace
+		denom           types.Denom
 		expEscrowAmount sdkmath.Int
 	)
 
@@ -869,8 +878,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			"successful timeout: sender is source of coin",
 			func() {
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				denomTrace = types.ParseDenomTrace(sdk.DefaultBondDenom)
-				coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
+				denom = types.NewDenom(sdk.DefaultBondDenom)
+				coinAmount, ok := sdkmath.NewIntFromString(amount)
+				suite.Require().True(ok)
+				coin := sdk.NewCoin(denom.IBCDenom(), coinAmount)
 				expEscrowAmount = sdkmath.ZeroInt()
 
 				// funds the escrow account to have balance
@@ -884,8 +895,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			"successful timeout: sender is not source of coin",
 			func() {
 				escrow := types.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				denomTrace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
-				coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
+				denom = types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				coinAmount, ok := sdkmath.NewIntFromString(amount)
+				suite.Require().True(ok)
+				coin := sdk.NewCoin(denom.IBCDenom(), coinAmount)
 				expEscrowAmount = sdkmath.ZeroInt()
 
 				// funds the escrow account to have balance
@@ -896,33 +909,45 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: funds cannot be refunded because escrow account has no balance for non-native coin",
 			func() {
-				denomTrace = types.ParseDenomTrace("bitcoin")
-				expEscrowAmount = amount
+				denom = types.NewDenom("bitcoin")
+				var ok bool
+				expEscrowAmount, ok = sdkmath.NewIntFromString(amount)
+				suite.Require().True(ok)
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(denomTrace.IBCDenom(), amount))
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(denom.IBCDenom(), expEscrowAmount))
 			},
 			sdkerrors.ErrInsufficientFunds,
 		},
 		{
 			"failure: funds cannot be refunded because escrow account has no balance for native coin",
 			func() {
-				denomTrace = types.ParseDenomTrace(sdk.DefaultBondDenom)
-				expEscrowAmount = amount
+				denom = types.NewDenom(sdk.DefaultBondDenom)
+				var ok bool
+				expEscrowAmount, ok = sdkmath.NewIntFromString(amount)
+				suite.Require().True(ok)
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(denomTrace.IBCDenom(), amount))
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(denom.IBCDenom(), expEscrowAmount))
 			},
 			sdkerrors.ErrInsufficientFunds,
 		},
 		{
 			"failure: cannot mint because sender address is invalid",
 			func() {
-				denomTrace = types.ParseDenomTrace(sdk.DefaultBondDenom)
-				amount = sdkmath.OneInt()
+				denom = types.NewDenom(sdk.DefaultBondDenom)
+				amount = sdkmath.OneInt().String()
 				sender = "invalid address"
 			},
 			errors.New("decoding bech32 failed"),
+		},
+		{
+			"failure: invalid amount",
+			func() {
+				denom = types.NewDenom(sdk.DefaultBondDenom)
+				amount = "invalid"
+			},
+			types.ErrInvalidAmount,
 		},
 	}
 
@@ -935,37 +960,37 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			amount = sdkmath.NewInt(100) // must be explicitly changed
+			amount = sdkmath.NewInt(100).String() // must be explicitly changed
 			sender = suite.chainA.SenderAccount.GetAddress().String()
 			expEscrowAmount = sdkmath.ZeroInt()
 
 			tc.malleate()
 
-			denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
 						Denom:  denom,
-						Amount: amount.String(),
-						Trace:  trace,
+						Amount: amount,
 					},
 				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "")
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
-			preTimeoutBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denomTrace.IBCDenom())
+			preTimeoutBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
 			err := suite.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet, data)
 
-			postTimeoutBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denomTrace.IBCDenom())
+			postTimeoutBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 			deltaAmount := postTimeoutBalance.Amount.Sub(preTimeoutBalance.Amount)
 
 			// check total amount in escrow of sent token denom on sending chain
-			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denomTrace.IBCDenom())
+			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom.IBCDenom())
 			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(amount.Int64(), deltaAmount.Int64(), "successful timeout did not trigger refund")
+				amountParsed, ok := sdkmath.NewIntFromString(amount)
+				suite.Require().True(ok)
+				suite.Require().Equal(amountParsed, deltaAmount, "successful timeout did not trigger refund")
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorContains(err, tc.expError.Error())
@@ -1014,12 +1039,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	path2.Setup()
 
 	// fund escrow account for transfer and channel-1 on chain B
-	denomTrace := types.DenomTrace{
-		BaseDenom: sdk.DefaultBondDenom,
-		Path:      fmt.Sprintf("%s/%s", path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
-	}
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID))
+
 	escrowAddress := types.GetEscrowAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID)
-	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
+	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
 			suite.chainB.GetContext(),
@@ -1029,13 +1052,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		),
 	)
 
-	denom, trace := convertinternal.ExtractDenomAndTraceFromV1Denom(denomTrace.GetFullDenomPath())
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
 				Denom:  denom,
 				Amount: amount.String(),
-				Trace:  trace,
 			},
 		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "")
 	packet := channeltypes.NewPacket(
@@ -1066,50 +1087,113 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 	// doesn't have this field in the packet data. The module should be able to handle
 	// this packet without any issues.
 
+	// the test also ensures that an ack is written for any malformed or bad packet data.
+
 	var packetData []byte
+	var path *ibctesting.Path
 
 	testCases := []struct {
-		msg      string
-		malleate func()
-		expError error
+		msg         string
+		malleate    func()
+		expError    error
+		expAckError error
 	}{
 		{
-			"success: new field",
+			"success: no new field with memo v2",
 			func() {
-				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
 			nil,
-		},
-		{
-			"success: no new field with memo",
-			func() {
-				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packetData = []byte(jsonString)
-			},
 			nil,
 		},
 		{
 			"success: no new field without memo",
 			func() {
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+			nil,
+		},
+		{
+			"failure: invalid packet data v2",
+			func() {
+				packetData = []byte("invalid packet data")
+			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: new field v2",
+			func() {
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s", "new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: missing field v2",
+			func() {
+				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			types.ErrInvalidDenomForTransfer,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"success: no new field with memo",
+			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			nil,
+			nil,
+		},
+		{
+			"success: no new field without memo",
+			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
+			nil,
 			nil,
 		},
 		{
 			"failure: invalid packet data",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				packetData = []byte("invalid packet data")
 			},
+			ibcerrors.ErrInvalidType,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: new field",
+			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
+				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
+				packetData = []byte(jsonString)
+			},
+			ibcerrors.ErrInvalidType,
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: missing field",
 			func() {
+				path.EndpointA.ChannelConfig.Version = types.V1
+				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"amount":"100","sender":%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
+			ibcerrors.ErrInvalidType,
 			ibcerrors.ErrInvalidType,
 		},
 	}
@@ -1120,12 +1204,11 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			suite.SetupTest() // reset
 			packetData = nil
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			path.EndpointA.ChannelConfig.Version = types.V1
-			path.EndpointB.ChannelConfig.Version = types.V1
-			path.Setup()
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
+
+			path.Setup()
 
 			timeoutHeight := suite.chainB.GetTimeoutHeight()
 
@@ -1142,6 +1225,85 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorContains(err, tc.expError.Error())
+				ackBz, ok := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
+				suite.Require().True(ok)
+
+				// an ack should be written for the malformed / bad packet data.
+				expectedAck := channeltypes.NewErrorAcknowledgement(tc.expAckError)
+				expBz := channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement())
+				suite.Require().Equal(expBz, ackBz)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
+	var (
+		bz     []byte
+		tokens types.Tokens
+	)
+
+	testCases := []struct {
+		name        string
+		appVersion  string
+		malleate    func()
+		expResult   func(bz []byte)
+		expPanicErr error
+	}{
+		{
+			"success",
+			types.V1,
+			func() {},
+			func(bz []byte) {
+				expPacketData := types.NewFungibleTokenPacketData("", "", "", "", "")
+				suite.Require().Equal(bz, expPacketData.GetBytes())
+			},
+			nil,
+		},
+		{
+			"success: version 2",
+			types.V2,
+			func() {},
+			func(bz []byte) {
+				expPacketData := types.NewFungibleTokenPacketDataV2(types.Tokens{types.Token{}}, "", "", "")
+				suite.Require().Equal(bz, expPacketData.GetBytes())
+			},
+			nil,
+		},
+		{
+			"failure: must have single coin if using version 1.",
+			types.V1,
+			func() {
+				tokens = types.Tokens{}
+			},
+			nil,
+			fmt.Errorf("length of tokens must be equal to 1 if using %s version", types.V1),
+		},
+		{
+			"failure: invalid version",
+			ibcmock.Version,
+			func() {},
+			nil,
+			fmt.Errorf("app version must be one of %s", types.SupportedVersions),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tokens = types.Tokens{types.Token{}}
+
+			tc.malleate()
+
+			createFunc := func() {
+				bz = transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, "", "", "", tokens)
+			}
+
+			expPanic := tc.expPanicErr != nil
+			if expPanic {
+				suite.Require().PanicsWithError(tc.expPanicErr.Error(), createFunc)
+			} else {
+				createFunc()
+				tc.expResult(bz)
 			}
 		})
 	}

@@ -8,7 +8,9 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	controllerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	hostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 )
 
@@ -20,19 +22,23 @@ const (
 )
 
 // ProposalMsgs defines the module weighted proposals' contents
-func ProposalMsgs() []simtypes.WeightedProposalMsg {
-	return []simtypes.WeightedProposalMsg{
-		simulation.NewWeightedProposalMsg(
+func ProposalMsgs(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) []simtypes.WeightedProposalMsg {
+	msgs := make([]simtypes.WeightedProposalMsg, 0, 2)
+	if hostKeeper != nil {
+		msgs = append(msgs, simulation.NewWeightedProposalMsg(
 			OpWeightMsgUpdateParams,
 			DefaultWeightMsgUpdateParams,
 			SimulateHostMsgUpdateParams,
-		),
-		simulation.NewWeightedProposalMsg(
+		))
+	}
+	if controllerKeeper != nil {
+		msgs = append(msgs, simulation.NewWeightedProposalMsg(
 			OpWeightMsgUpdateParams,
 			DefaultWeightMsgUpdateParams,
 			SimulateControllerMsgUpdateParams,
-		),
+		))
 	}
+	return msgs
 }
 
 // SimulateHostMsgUpdateParams returns a MsgUpdateParams for the host module

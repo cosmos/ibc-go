@@ -115,7 +115,10 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		// add sender account
 		balance := banktypes.Balance{
 			Address: acc.GetAddress().String(),
-			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount)),
+			Coins: sdk.NewCoins(
+				sdk.NewCoin(sdk.DefaultBondDenom, amount),
+				sdk.NewCoin(SecondaryDenom, amount),
+			),
 		}
 
 		genAccs = append(genAccs, acc)
@@ -613,7 +616,7 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 }
 
 // GetClientLatestHeight returns the latest height for the client state with the given client identifier.
-// If an invalid client identifier is provided then a zero value height will be returned and testing wil fail.
+// If an invalid client identifier is provided then a zero value height will be returned and testing will fail.
 func (chain *TestChain) GetClientLatestHeight(clientID string) exported.Height {
 	latestHeight := chain.App.GetIBCKeeper().ClientKeeper.GetClientLatestHeight(chain.GetContext(), clientID)
 	require.False(chain.TB, latestHeight.IsZero())

@@ -1,4 +1,4 @@
-package convert
+package internal
 
 import (
 	"testing"
@@ -10,7 +10,68 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
-func TestConvertPacketV1ToPacketV2(t *testing.T) {
+func TestUnmarshalPacketData(t *testing.T) {
+	var (
+		packetDataBz []byte
+		version      string
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: v1 -> v2",
+			func() {},
+			nil,
+		},
+		{
+			"success: v2",
+			func() {
+				packetData := types.NewFungibleTokenPacketDataV2(
+					[]types.Token{
+						{
+							Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
+							Amount: "1000",
+						},
+					}, "sender", "receiver", "")
+
+				packetDataBz = packetData.GetBytes()
+				version = types.V2
+			},
+			nil,
+		},
+		{
+			"invalid version",
+			func() {
+				version = "ics20-100"
+			},
+			types.ErrInvalidVersion,
+		},
+	}
+
+	for _, tc := range testCases {
+
+		packetDataV1 := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", "sender", "receiver", "")
+
+		packetDataBz = packetDataV1.GetBytes()
+		version = types.V1
+
+		tc.malleate()
+
+		packetData, err := UnmarshalPacketData(packetDataBz, version)
+
+		expPass := tc.expError == nil
+		if expPass {
+			require.IsType(t, types.FungibleTokenPacketDataV2{}, packetData)
+		} else {
+			require.ErrorIs(t, err, tc.expError)
+		}
+	}
+}
+
+func TestPacketV1ToPacketV2(t *testing.T) {
 	const (
 		sender   = "sender"
 		receiver = "receiver"
@@ -20,7 +81,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 		name     string
 		v1Data   types.FungibleTokenPacketData
 		v2Data   types.FungibleTokenPacketDataV2
-		expPanic error
+		expError error
 	}{
 		{
 			"success",
@@ -28,9 +89,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom",
+						Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -41,9 +101,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom",
+						Denom:  types.NewDenom("atom"),
 						Amount: "1000",
-						Trace:  nil,
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -54,9 +113,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/withslash",
+						Denom:  types.NewDenom("atom/withslash", types.NewTrace("transfer", "channel-0")),
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -67,9 +125,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/",
+						Denom:  types.NewDenom("atom/", types.NewTrace("transfer", "channel-0")),
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -80,9 +137,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/pool",
+						Denom:  types.NewDenom("atom/pool", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -93,9 +149,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom",
+						Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer-custom", "channel-2")),
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
 				}, sender, receiver, ""),
 			nil,
@@ -106,15 +161,14 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  "atom/pool",
+						Denom:  types.NewDenom("atom/pool", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer-custom", "channel-2")),
 						Amount: "1000",
-						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
 				}, sender, receiver, ""),
 			nil,
 		},
 		{
-			"failure: panics with empty denom",
+			"failure: packet data fails validation with empty denom",
 			types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
 			types.FungibleTokenPacketDataV2{},
 			errorsmod.Wrap(types.ErrInvalidDenomForTransfer, "base denomination cannot be blank"),
@@ -122,14 +176,14 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		expPass := tc.expPanic == nil
+		actualV2Data, err := packetDataV1ToV2(tc.v1Data)
+
+		expPass := tc.expError == nil
 		if expPass {
-			actualV2Data := PacketDataV1ToV2(tc.v1Data)
+			require.NoError(t, err, "test case: %s", tc.name)
 			require.Equal(t, tc.v2Data, actualV2Data, "test case: %s", tc.name)
 		} else {
-			require.PanicsWithError(t, tc.expPanic.Error(), func() {
-				PacketDataV1ToV2(tc.v1Data)
-			}, "test case: %s", tc.name)
+			require.Error(t, err, "test case: %s", tc.name)
 		}
 	}
 }
