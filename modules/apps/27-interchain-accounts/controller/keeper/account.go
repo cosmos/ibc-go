@@ -29,7 +29,7 @@ import (
 // Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string) error {
+func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string, ordering channeltypes.Order) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
 		return err
@@ -41,7 +41,12 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 
 	k.SetMiddlewareEnabled(ctx, portID, connectionID)
 
-	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version, channeltypes.ORDERED)
+	// use ORDER_UNORDERED as default in case ordering is NONE
+	if ordering == channeltypes.NONE {
+		ordering = channeltypes.UNORDERED
+	}
+
+	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version, ordering)
 	if err != nil {
 		return err
 	}

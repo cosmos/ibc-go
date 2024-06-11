@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -58,12 +59,12 @@ func (suite *InterchainAccountsTestSuite) SetupTest() {
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 }
 
-func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+func NewICAPath(chainA, chainB *ibctesting.TestChain, ordering channeltypes.Order) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
-	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
-	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
+	path.EndpointA.ChannelConfig.Order = ordering
+	path.EndpointB.ChannelConfig.Order = ordering
 	path.EndpointA.ChannelConfig.Version = TestVersion
 	path.EndpointB.ChannelConfig.Version = TestVersion
 
@@ -78,7 +79,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, TestVersion, endpoint.ChannelConfig.Order); err != nil {
 		return err
 	}
 
@@ -185,67 +186,69 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			isNilApp = false
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
+				isNilApp = false
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			// mock init interchain account
-			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // checking this error isn't needed for the test
-
-			path.EndpointA.ChannelConfig.PortID = portID
-			path.EndpointA.ChannelID = ibctesting.FirstChannelID
-
-			suite.chainA.GetSimApp().ICAControllerKeeper.SetMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
-
-			// default values
-			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			channel = &channeltypes.Channel{
-				State:          channeltypes.INIT,
-				Ordering:       channeltypes.ORDERED,
-				Counterparty:   counterparty,
-				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        path.EndpointA.ChannelConfig.Version,
-			}
-
-			tc.malleate() // malleate mutates test data
-
-			// ensure channel on chainA is set in state
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *channel)
-
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-
-			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
-			}
-
-			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
-			)
-
-			if tc.expPass {
-				suite.Require().Equal(TestVersion, version)
+				// mock init interchain account
+				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
+				suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // checking this error isn't needed for the test
+
+				path.EndpointA.ChannelConfig.PortID = portID
+				path.EndpointA.ChannelID = ibctesting.FirstChannelID
+
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
+
+				// default values
+				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				channel = &channeltypes.Channel{
+					State:          channeltypes.INIT,
+					Ordering:       ordering,
+					Counterparty:   counterparty,
+					ConnectionHops: []string{path.EndpointA.ConnectionID},
+					Version:        path.EndpointA.ChannelConfig.Version,
+				}
+
+				tc.malleate() // malleate mutates test data
+
+				// ensure channel on chainA is set in state
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *channel)
+
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().NoError(err)
+
+				chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				suite.Require().NoError(err)
+
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
+				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
+					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
+				)
+
+				if tc.expPass {
+					suite.Require().Equal(TestVersion, version)
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
@@ -256,48 +259,50 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 // core IBC checks not passing, so a call to the application callback is also
 // done directly.
 func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
-	suite.SetupTest() // reset
-	path := NewICAPath(suite.chainA, suite.chainB)
-	path.SetupConnections()
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		suite.SetupTest() // reset
+		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path.SetupConnections()
 
-	err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
-	suite.Require().NoError(err)
+		err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
+		suite.Require().NoError(err)
 
-	// chainB also creates a controller port
-	err = RegisterInterchainAccount(path.EndpointB, TestOwnerAddress)
-	suite.Require().NoError(err)
+		// chainB also creates a controller port
+		err = RegisterInterchainAccount(path.EndpointB, TestOwnerAddress)
+		suite.Require().NoError(err)
 
-	err = path.EndpointA.UpdateClient()
-	suite.Require().NoError(err)
+		err = path.EndpointA.UpdateClient()
+		suite.Require().NoError(err)
 
-	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-	initProof, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
+		channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+		initProof, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
-	// use chainA (controller) for ChanOpenTry
-	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, initProof, proofHeight, icatypes.ModuleName)
-	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
-	_, err = handler(suite.chainA.GetContext(), msg)
+		// use chainA (controller) for ChanOpenTry
+		msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, ordering, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, initProof, proofHeight, icatypes.ModuleName)
+		handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
+		_, err = handler(suite.chainA.GetContext(), msg)
 
-	suite.Require().Error(err)
+		suite.Require().Error(err)
 
-	// call application callback directly
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointB.ChannelConfig.PortID)
-	suite.Require().NoError(err)
+		// call application callback directly
+		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointB.ChannelConfig.PortID)
+		suite.Require().NoError(err)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-	suite.Require().True(ok)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		suite.Require().True(ok)
 
-	counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-	chanCap, found := suite.chainA.App.GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-	suite.Require().True(found)
+		counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+		chanCap, found := suite.chainA.App.GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+		suite.Require().True(found)
 
-	version, err := cbs.OnChanOpenTry(
-		suite.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
-		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap,
-		counterparty, path.EndpointB.ChannelConfig.Version,
-	)
-	suite.Require().Error(err)
-	suite.Require().Equal("", version)
+		version, err := cbs.OnChanOpenTry(
+			suite.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
+			path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap,
+			counterparty, path.EndpointB.ChannelConfig.Version,
+		)
+		suite.Require().Error(err)
+		suite.Require().Equal("", version)
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
@@ -351,42 +356,44 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			isNilApp = false
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
+				isNilApp = false
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
-
-			tc.malleate() // malleate mutates test data
-
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-
-			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelID, path.EndpointB.ChannelConfig.Version)
-
-			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
-			}
-
-			if tc.expPass {
+				err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				err = path.EndpointB.ChanOpenTry()
+				suite.Require().NoError(err)
+
+				tc.malleate() // malleate mutates test data
+
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().NoError(err)
+
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+
+				err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelID, path.EndpointB.ChannelConfig.Version)
+
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
@@ -396,69 +403,75 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 // core IBC checks not passing, so a call to the application callback is also
 // done directly.
 func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
-	suite.SetupTest() // reset
-	path := NewICAPath(suite.chainA, suite.chainB)
-	path.SetupConnections()
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		suite.SetupTest() // reset
+		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path.SetupConnections()
 
-	err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
-	suite.Require().NoError(err)
+		err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
+		suite.Require().NoError(err)
 
-	err = path.EndpointB.ChanOpenTry()
-	suite.Require().NoError(err)
+		err = path.EndpointB.ChanOpenTry()
+		suite.Require().NoError(err)
 
-	// chainB maliciously sets channel to OPEN
-	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, TestVersion)
-	suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
+		// chainB maliciously sets channel to OPEN
+		channel := channeltypes.NewChannel(channeltypes.OPEN, ordering, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointB.ConnectionID}, TestVersion)
+		suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
 
-	// commit state changes so proof can be created
-	suite.chainB.NextBlock()
+		// commit state changes so proof can be created
+		suite.chainB.NextBlock()
 
-	err = path.EndpointA.UpdateClient()
-	suite.Require().NoError(err)
+		err = path.EndpointA.UpdateClient()
+		suite.Require().NoError(err)
 
-	// query proof from ChainB
-	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-	ackProof, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
+		// query proof from ChainB
+		channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+		ackProof, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
-	// use chainA (controller) for ChanOpenConfirm
-	msg := channeltypes.NewMsgChannelOpenConfirm(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ackProof, proofHeight, icatypes.ModuleName)
-	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
-	_, err = handler(suite.chainA.GetContext(), msg)
+		// use chainA (controller) for ChanOpenConfirm
+		msg := channeltypes.NewMsgChannelOpenConfirm(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ackProof, proofHeight, icatypes.ModuleName)
+		handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
+		_, err = handler(suite.chainA.GetContext(), msg)
 
-	suite.Require().Error(err)
+		suite.Require().Error(err)
 
-	// call application callback directly
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-	suite.Require().NoError(err)
+		// call application callback directly
+		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+		suite.Require().NoError(err)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-	suite.Require().True(ok)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		suite.Require().True(ok)
 
-	err = cbs.OnChanOpenConfirm(
-		suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-	)
-	suite.Require().Error(err)
+		err = cbs.OnChanOpenConfirm(
+			suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+		)
+		suite.Require().Error(err)
+	}
 }
 
 // OnChanCloseInit on controller (chainA)
 func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
-	path := NewICAPath(suite.chainA, suite.chainB)
-	path.SetupConnections()
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		suite.SetupTest() // reset
 
-	err := SetupICAPath(path, TestOwnerAddress)
-	suite.Require().NoError(err)
+		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path.SetupConnections()
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-	suite.Require().NoError(err)
+		err := SetupICAPath(path, TestOwnerAddress)
+		suite.Require().NoError(err)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-	suite.Require().True(ok)
+		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+		suite.Require().NoError(err)
 
-	err = cbs.OnChanCloseInit(
-		suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-	)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		suite.Require().True(ok)
 
-	suite.Require().Error(err)
+		err = cbs.OnChanCloseInit(
+			suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+		)
+
+		suite.Require().Error(err)
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
@@ -482,39 +495,41 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			isNilApp = false
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
+				isNilApp = false
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			tc.malleate() // malleate mutates test data
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-
-			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
-			}
-
-			err = cbs.OnChanCloseConfirm(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-			if tc.expPass {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				tc.malleate() // malleate mutates test data
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().NoError(err)
+
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
+				err = cbs.OnChanCloseConfirm(
+					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
@@ -529,54 +544,56 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
 
-			path := NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path := NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
+				err := SetupICAPath(path, TestOwnerAddress)
+				suite.Require().NoError(err)
 
-			tc.malleate() // malleate mutates test data
+				tc.malleate() // malleate mutates test data
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
 
-			packet := channeltypes.NewPacket(
-				[]byte("empty packet data"),
-				suite.chainB.SenderAccount.GetSequence(),
-				path.EndpointB.ChannelConfig.PortID,
-				path.EndpointB.ChannelID,
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				clienttypes.NewHeight(0, 100),
-				0,
-			)
+				packet := channeltypes.NewPacket(
+					[]byte("empty packet data"),
+					suite.chainB.SenderAccount.GetSequence(),
+					path.EndpointB.ChannelConfig.PortID,
+					path.EndpointB.ChannelID,
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					clienttypes.NewHeight(0, 100),
+					0,
+				)
 
-			ctx := suite.chainA.GetContext()
-			ack := cbs.OnRecvPacket(ctx, packet, nil)
-			suite.Require().Equal(tc.expPass, ack.Success())
+				ctx := suite.chainA.GetContext()
+				ack := cbs.OnRecvPacket(ctx, packet, nil)
+				suite.Require().Equal(tc.expPass, ack.Success())
 
-			expectedEvents := sdk.Events{
-				sdk.NewEvent(
-					icatypes.EventTypePacket,
-					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
-					sdk.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
-					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", false)),
-					sdk.NewAttribute(icatypes.AttributeKeyAckError, "cannot receive packet on controller chain: invalid message sent to channel end"),
-				),
-			}.ToABCIEvents()
+				expectedEvents := sdk.Events{
+					sdk.NewEvent(
+						icatypes.EventTypePacket,
+						sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+						sdk.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
+						sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(false)),
+						sdk.NewAttribute(icatypes.AttributeKeyAckError, "cannot receive packet on controller chain: invalid message sent to channel end"),
+					),
+				}.ToABCIEvents()
 
-			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
-			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
-		})
+				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+			})
+		}
 	}
 }
 
@@ -628,50 +645,52 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.msg, func() {
-			suite.SetupTest() // reset
-			isNilApp = false
+			suite.Run(tc.msg, func() {
+				suite.SetupTest() // reset
+				isNilApp = false
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			packet := channeltypes.NewPacket(
-				[]byte("empty packet data"),
-				suite.chainA.SenderAccount.GetSequence(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				path.EndpointB.ChannelConfig.PortID,
-				path.EndpointB.ChannelID,
-				clienttypes.NewHeight(0, 100),
-				0,
-			)
-
-			tc.malleate() // malleate mutates test data
-
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-
-			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
-			}
-
-			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, []byte("ack"), nil)
-
-			if tc.expPass {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				packet := channeltypes.NewPacket(
+					[]byte("empty packet data"),
+					suite.chainA.SenderAccount.GetSequence(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					path.EndpointB.ChannelConfig.PortID,
+					path.EndpointB.ChannelID,
+					clienttypes.NewHeight(0, 100),
+					0,
+				)
+
+				tc.malleate() // malleate mutates test data
+
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().NoError(err)
+
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
+				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, []byte("ack"), nil)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
@@ -723,59 +742,60 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.msg, func() {
-			suite.SetupTest() // reset
-			isNilApp = false
+			suite.Run(tc.msg, func() {
+				suite.SetupTest() // reset
+				isNilApp = false
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			packet := channeltypes.NewPacket(
-				[]byte("empty packet data"),
-				suite.chainA.SenderAccount.GetSequence(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				path.EndpointB.ChannelConfig.PortID,
-				path.EndpointB.ChannelID,
-				clienttypes.NewHeight(0, 100),
-				0,
-			)
-
-			tc.malleate() // malleate mutates test data
-
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-
-			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
-			}
-
-			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
-
-			if tc.expPass {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				packet := channeltypes.NewPacket(
+					[]byte("empty packet data"),
+					suite.chainA.SenderAccount.GetSequence(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					path.EndpointB.ChannelConfig.PortID,
+					path.EndpointB.ChannelID,
+					clienttypes.NewHeight(0, 100),
+					0,
+				)
+
+				tc.malleate() // malleate mutates test data
+
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().NoError(err)
+
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
+				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 	var (
-		path         *ibctesting.Path
-		isNilApp     bool
-		version      string
-		channelOrder channeltypes.Order
+		path     *ibctesting.Path
+		isNilApp bool
+		version  string
 	)
 
 	testCases := []struct {
@@ -784,12 +804,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		expError error
 	}{
 		{
-			"success w/ ORDERED channel", func() {}, nil,
-		},
-		{
-			"success w/ UNORDERED channel", func() {
-				channelOrder = channeltypes.UNORDERED
-			}, nil,
+			"success", func() {}, nil,
 		},
 		{
 			"success: nil underlying app",
@@ -825,81 +840,83 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			isNilApp = false
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
+				isNilApp = false
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			version = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-
-			tc.malleate() // malleate mutates test data
-
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-			cbs, ok := app.(porttypes.UpgradableModule)
-			suite.Require().True(ok)
-
-			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
-			}
-
-			channelOrder = channeltypes.ORDERED
-
-			version, err = cbs.OnChanUpgradeInit(
-				suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				channelOrder,
-				[]string{path.EndpointA.ConnectionID},
-				version,
-			)
-
-			if tc.expError == nil {
+				err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-				suite.Require().Empty(version)
-			}
-		})
+
+				version = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+
+				tc.malleate() // malleate mutates test data
+
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().NoError(err)
+
+				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+				cbs, ok := app.(porttypes.UpgradableModule)
+				suite.Require().True(ok)
+
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
+				version, err = cbs.OnChanUpgradeInit(
+					suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					ordering,
+					[]string{path.EndpointA.ConnectionID},
+					version,
+				)
+
+				if tc.expError == nil {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().ErrorIs(err, tc.expError)
+					suite.Require().Empty(version)
+				}
+			})
+		}
 	}
 }
 
 // OnChanUpgradeTry callback returns error on controller chains
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
-	suite.SetupTest() // reset
-	path := NewICAPath(suite.chainA, suite.chainB)
-	path.SetupConnections()
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		suite.SetupTest() // reset
+		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path.SetupConnections()
 
-	err := SetupICAPath(path, TestOwnerAddress)
-	suite.Require().NoError(err)
+		err := SetupICAPath(path, TestOwnerAddress)
+		suite.Require().NoError(err)
 
-	// call application callback directly
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-	suite.Require().NoError(err)
+		// call application callback directly
+		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+		suite.Require().NoError(err)
 
-	app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-	suite.Require().True(ok)
-	cbs, ok := app.(porttypes.UpgradableModule)
-	suite.Require().True(ok)
+		app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		suite.Require().True(ok)
+		cbs, ok := app.(porttypes.UpgradableModule)
+		suite.Require().True(ok)
 
-	version, err := cbs.OnChanUpgradeTry(
-		suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-		path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.Version,
-	)
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, icatypes.ErrInvalidChannelFlow)
-	suite.Require().Equal("", version)
+		version, err := cbs.OnChanUpgradeTry(
+			suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+			path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.Version,
+		)
+		suite.Require().Error(err)
+		suite.Require().ErrorIs(err, icatypes.ErrInvalidChannelFlow)
+		suite.Require().Equal("", version)
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
@@ -951,48 +968,50 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			isNilApp = false
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
+				isNilApp = false
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			counterpartyVersion = path.EndpointB.GetChannel().Version
-
-			tc.malleate() // malleate mutates test data
-
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-			cbs, ok := app.(porttypes.UpgradableModule)
-			suite.Require().True(ok)
-
-			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
-			}
-
-			err = cbs.OnChanUpgradeAck(
-				suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				counterpartyVersion,
-			)
-
-			if tc.expError == nil {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-			}
-		})
+
+				counterpartyVersion = path.EndpointB.GetChannel().Version
+
+				tc.malleate() // malleate mutates test data
+
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().NoError(err)
+
+				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+				cbs, ok := app.(porttypes.UpgradableModule)
+				suite.Require().True(ok)
+
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
+				err = cbs.OnChanUpgradeAck(
+					suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					counterpartyVersion,
+				)
+
+				if tc.expError == nil {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().ErrorIs(err, tc.expError)
+				}
+			})
+		}
 	}
 }
 
@@ -1001,7 +1020,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 		path                *ibctesting.Path
 		isNilApp            bool
 		counterpartyVersion string
-		channelOrder        channeltypes.Order
 	)
 
 	testCases := []struct {
@@ -1010,13 +1028,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 		expPanic error
 	}{
 		{
-			"success w/ ORDERED channel", func() {}, nil,
-		},
-		{
-			"success w/ UNORDERED channel", func() {
-				channelOrder = channeltypes.UNORDERED
-			},
-			nil,
+			"success", func() {}, nil,
 		},
 		{
 			"success: nil app", func() {
@@ -1046,56 +1058,58 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			isNilApp = false
+			suite.Run(tc.name, func() {
+				suite.SetupTest() // reset
+				isNilApp = false
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
+				err := SetupICAPath(path, TestOwnerAddress)
+				suite.Require().NoError(err)
 
-			counterpartyVersion = path.EndpointB.GetChannel().Version
+				counterpartyVersion = path.EndpointB.GetChannel().Version
 
-			tc.malleate() // malleate mutates test data
+				tc.malleate() // malleate mutates test data
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-			suite.Require().NoError(err)
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+				suite.Require().NoError(err)
 
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-			cbs, ok := app.(porttypes.UpgradableModule)
-			suite.Require().True(ok)
+				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+				cbs, ok := app.(porttypes.UpgradableModule)
+				suite.Require().True(ok)
 
-			upgradeOpenCb := func(cbs porttypes.UpgradableModule) {
-				cbs.OnChanUpgradeOpen(
-					suite.chainA.GetContext(),
-					path.EndpointA.ChannelConfig.PortID,
-					path.EndpointA.ChannelID,
-					channelOrder,
-					[]string{path.EndpointA.ConnectionID},
-					counterpartyVersion,
-				)
-			}
-
-			if tc.expPanic != nil {
-				mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
-				mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
-				cbs = controller.NewIBCMiddleware(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
-
-				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { upgradeOpenCb(cbs) })
-			} else {
-				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				upgradeOpenCb := func(cbs porttypes.UpgradableModule) {
+					cbs.OnChanUpgradeOpen(
+						suite.chainA.GetContext(),
+						path.EndpointA.ChannelConfig.PortID,
+						path.EndpointA.ChannelID,
+						ordering,
+						[]string{path.EndpointA.ConnectionID},
+						counterpartyVersion,
+					)
 				}
 
-				upgradeOpenCb(cbs)
-			}
-		})
+				if tc.expPanic != nil {
+					mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
+					mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
+					cbs = controller.NewIBCMiddleware(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
+
+					suite.Require().PanicsWithError(tc.expPanic.Error(), func() { upgradeOpenCb(cbs) })
+				} else {
+					if isNilApp {
+						cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					}
+
+					upgradeOpenCb(cbs)
+				}
+			})
+		}
 	}
 }
 
@@ -1117,172 +1131,198 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.msg, func() {
-			suite.SetupTest() // reset
+			suite.Run(tc.msg, func() {
+				// reset
+				suite.SetupTest()
+				TestVersion = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 
-			// Setup a new path from A(controller) -> B(host)
-			pathAToB = NewICAPath(suite.chainA, suite.chainB)
-			pathAToB.SetupConnections()
+				// Setup a new path from A(controller) -> B(host)
+				pathAToB = NewICAPath(suite.chainA, suite.chainB, ordering)
+				pathAToB.SetupConnections()
 
-			err := SetupICAPath(pathAToB, TestOwnerAddress)
-			suite.Require().NoError(err)
+				err := SetupICAPath(pathAToB, TestOwnerAddress)
+				suite.Require().NoError(err)
 
-			// Setup a new path from C(controller) -> B(host)
-			pathCToB = NewICAPath(suite.chainC, suite.chainB)
-			pathCToB.SetupConnections()
+				// Setup a new path from C(controller) -> B(host)
+				pathCToB = NewICAPath(suite.chainC, suite.chainB, ordering)
+				pathCToB.SetupConnections()
 
-			// NOTE: Here the version metadata is overridden to include to the next host connection sequence (i.e. chainB's connection to chainC)
-			// SetupICAPath() will set endpoint.ChannelConfig.Version to TestVersion
-			TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
-				Version:                icatypes.Version,
-				ControllerConnectionId: pathCToB.EndpointA.ConnectionID,
-				HostConnectionId:       pathCToB.EndpointB.ConnectionID,
-				Encoding:               icatypes.EncodingProtobuf,
-				TxType:                 icatypes.TxTypeSDKMultiMsg,
-			}))
+				// NOTE: Here the version metadata is overridden to include to the next host connection sequence (i.e. chainB's connection to chainC)
+				// SetupICAPath() will set endpoint.ChannelConfig.Version to TestVersion
+				TestVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&icatypes.Metadata{
+					Version:                icatypes.Version,
+					ControllerConnectionId: pathCToB.EndpointA.ConnectionID,
+					HostConnectionId:       pathCToB.EndpointB.ConnectionID,
+					Encoding:               icatypes.EncodingProtobuf,
+					TxType:                 icatypes.TxTypeSDKMultiMsg,
+				}))
 
-			err = SetupICAPath(pathCToB, TestOwnerAddress)
-			suite.Require().NoError(err)
+				err = SetupICAPath(pathCToB, TestOwnerAddress)
+				suite.Require().NoError(err)
 
-			tc.malleate() // malleate mutates test data
+				tc.malleate() // malleate mutates test data
 
-			accAddressChainA, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), pathAToB.EndpointB.ConnectionID, pathAToB.EndpointA.ChannelConfig.PortID)
-			suite.Require().True(found)
+				accAddressChainA, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), pathAToB.EndpointB.ConnectionID, pathAToB.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
 
-			accAddressChainC, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), pathCToB.EndpointB.ConnectionID, pathCToB.EndpointA.ChannelConfig.PortID)
-			suite.Require().True(found)
+				accAddressChainC, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), pathCToB.EndpointB.ConnectionID, pathCToB.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
 
-			suite.Require().NotEqual(accAddressChainA, accAddressChainC)
+				suite.Require().NotEqual(accAddressChainA, accAddressChainC)
 
-			chainAChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), pathAToB.EndpointB.ConnectionID, pathAToB.EndpointA.ChannelConfig.PortID)
-			suite.Require().True(found)
+				chainAChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), pathAToB.EndpointB.ConnectionID, pathAToB.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
 
-			chainCChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), pathCToB.EndpointB.ConnectionID, pathCToB.EndpointA.ChannelConfig.PortID)
-			suite.Require().True(found)
+				chainCChannelID, found := suite.chainB.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainB.GetContext(), pathCToB.EndpointB.ConnectionID, pathCToB.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
 
-			suite.Require().NotEqual(chainAChannelID, chainCChannelID)
-		})
+				suite.Require().NotEqual(chainAChannelID, chainCChannelID)
+			})
+		}
 	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
-	path := NewICAPath(suite.chainA, suite.chainB)
-	path.SetupConnections()
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		suite.SetupTest() // reset
 
-	err := SetupICAPath(path, TestOwnerAddress)
-	suite.Require().NoError(err)
+		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path.SetupConnections()
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-	suite.Require().NoError(err)
+		err := SetupICAPath(path, TestOwnerAddress)
+		suite.Require().NoError(err)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-	suite.Require().True(ok)
+		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
+		suite.Require().NoError(err)
 
-	controllerStack, ok := cbs.(porttypes.ICS4Wrapper)
-	suite.Require().True(ok)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		suite.Require().True(ok)
 
-	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	suite.Require().True(found)
-	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
+		controllerStack, ok := cbs.(porttypes.ICS4Wrapper)
+		suite.Require().True(ok)
+
+		appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+		suite.Require().True(found)
+		suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICaller() {
-	path := NewICAPath(suite.chainA, suite.chainB)
-	path.SetupConnections()
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		suite.SetupTest() // reset
 
-	// initiate a channel handshake such that channel.State == INIT
-	err := RegisterInterchainAccount(path.EndpointA, suite.chainA.SenderAccount.GetAddress().String())
-	suite.Require().NoError(err)
+		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path.SetupConnections()
 
-	// attempt to start a second handshake via the controller msg server
-	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, channeltypes.ORDERED)
+		// initiate a channel handshake such that channel.State == INIT
+		err := RegisterInterchainAccount(path.EndpointA, suite.chainA.SenderAccount.GetAddress().String())
+		suite.Require().NoError(err)
 
-	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
-	suite.Require().Error(err)
-	suite.Require().Nil(res)
+		// attempt to start a second handshake via the controller msg server
+		msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, ordering)
+
+		res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
+		suite.Require().Error(err)
+		suite.Require().Nil(res)
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServerCaller() {
-	path := NewICAPath(suite.chainA, suite.chainB)
-	path.SetupConnections()
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		suite.SetupTest() // reset
 
-	// initiate a channel handshake such that channel.State == INIT
-	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, channeltypes.ORDERED)
+		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path.SetupConnections()
 
-	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
-	suite.Require().NotNil(res)
-	suite.Require().NoError(err)
+		// initiate a channel handshake such that channel.State == INIT
+		msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, ordering)
 
-	// attempt to start a second handshake via the legacy Go API
-	err = RegisterInterchainAccount(path.EndpointA, suite.chainA.SenderAccount.GetAddress().String())
-	suite.Require().Error(err)
+		res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
+		suite.Require().NotNil(res)
+		suite.Require().NoError(err)
+
+		// attempt to start a second handshake via the legacy Go API
+		err = RegisterInterchainAccount(path.EndpointA, suite.chainA.SenderAccount.GetAddress().String())
+		suite.Require().Error(err)
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer() {
-	path := NewICAPath(suite.chainA, suite.chainB)
-	path.SetupConnections()
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		suite.SetupTest() // reset
 
-	err := SetupICAPath(path, suite.chainA.SenderAccount.GetAddress().String())
-	suite.Require().NoError(err)
+		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path.SetupConnections()
 
-	// set the channel state to closed
-	path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
-	path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+		err := SetupICAPath(path, suite.chainA.SenderAccount.GetAddress().String())
+		suite.Require().NoError(err)
 
-	// reset endpoint channel ids
-	path.EndpointA.ChannelID = ""
-	path.EndpointB.ChannelID = ""
+		// set the channel state to closed
+		path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
+		path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 
-	// fetch the next channel sequence before reinitiating the channel handshake
-	channelSeq := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
+		// reset endpoint channel ids
+		path.EndpointA.ChannelID = ""
+		path.EndpointB.ChannelID = ""
 
-	// route a new MsgRegisterInterchainAccount in order to reopen the
-	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-	msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), path.EndpointA.ChannelConfig.Version, channeltypes.ORDERED)
+		// fetch the next channel sequence before reinitiating the channel handshake
+		channelSeq := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
 
-	res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
-	suite.Require().NoError(err)
-	suite.Require().Equal(channeltypes.FormatChannelIdentifier(channelSeq), res.ChannelId)
+		// route a new MsgRegisterInterchainAccount in order to reopen the
+		msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), path.EndpointA.ChannelConfig.Version, ordering)
 
-	// assign the channel sequence to endpointA before generating proofs and initiating the TRY step
-	path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSeq)
+		res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
+		suite.Require().NoError(err)
+		suite.Require().Equal(channeltypes.FormatChannelIdentifier(channelSeq), res.ChannelId)
 
-	path.EndpointA.Chain.NextBlock()
+		// assign the channel sequence to endpointA before generating proofs and initiating the TRY step
+		path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSeq)
 
-	err = path.EndpointB.ChanOpenTry()
-	suite.Require().NoError(err)
+		path.EndpointA.Chain.NextBlock()
 
-	err = path.EndpointA.ChanOpenAck()
-	suite.Require().NoError(err)
+		err = path.EndpointB.ChanOpenTry()
+		suite.Require().NoError(err)
 
-	err = path.EndpointB.ChanOpenConfirm()
-	suite.Require().NoError(err)
+		err = path.EndpointA.ChanOpenAck()
+		suite.Require().NoError(err)
+
+		err = path.EndpointB.ChanOpenConfirm()
+		suite.Require().NoError(err)
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
-	path := NewICAPath(suite.chainA, suite.chainB)
-	path.SetupConnections()
-	err := SetupICAPath(path, TestOwnerAddress)
-	suite.Require().NoError(err)
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		suite.SetupTest() // reset
 
-	expPacketData := icatypes.InterchainAccountPacketData{
-		Type: icatypes.EXECUTE_TX,
-		Data: []byte("data"),
-		Memo: "",
+		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path.SetupConnections()
+		err := SetupICAPath(path, TestOwnerAddress)
+		suite.Require().NoError(err)
+
+		expPacketData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: []byte("data"),
+			Memo: "",
+		}
+
+		// Context, port identifier and channel identifier are unused for controller.
+		packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", expPacketData.GetBytes())
+		suite.Require().NoError(err)
+		suite.Require().Equal(expPacketData, packetData)
+
+		// test invalid packet data
+		invalidPacketData := []byte("invalid packet data")
+		// Context, port identifier and channel identifier are not used for controller.
+		packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", invalidPacketData)
+		suite.Require().Error(err)
+		suite.Require().Nil(packetData)
 	}
-
-	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(expPacketData.GetBytes())
-	suite.Require().NoError(err)
-	suite.Require().Equal(expPacketData, packetData)
-
-	// test invalid packet data
-	invalidPacketData := []byte("invalid packet data")
-	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(invalidPacketData)
-	suite.Require().Error(err)
-	suite.Require().Nil(packetData)
 }

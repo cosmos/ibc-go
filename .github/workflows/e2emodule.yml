@@ -1,10 +1,15 @@
 name: E2E Unit tests/Lint.
 # This workflow runs when a PR is opened that targets code that is part of the e2e module.
 on:
+  merge_group:
   pull_request:
     paths:
       - '.github/workflows/e2emodule.yml'
       - 'e2e/**'
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   lint:
@@ -12,11 +17,15 @@ jobs:
     steps:
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
+          cache-dependency-path: 'e2e/go.sum'
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: golangci/golangci-lint-action@v6.0.1
         with:
           version: v1.57.2
+          only-new-issues: true
           args: --timeout 5m
           working-directory: e2e/
 
@@ -26,7 +35,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
+          cache-dependency-path: 'e2e/go.sum'
       - name: Go Test
         run: |
           cd e2e

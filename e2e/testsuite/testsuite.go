@@ -19,6 +19,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -156,6 +158,16 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 	channelOptions := ibc.DefaultChannelOpts()
 	if channelOpts != nil {
 		channelOpts(&channelOptions)
+	} else {
+		chainAVersion := chainA.Config().Images[0].Version
+		chainBVersion := chainB.Config().Images[0].Version
+
+		// select the transfer version based on the chains' version
+		transferVersion := transfertypes.V1
+		if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
+			transferVersion = transfertypes.V2
+		}
+		channelOptions.Version = transferVersion
 	}
 
 	ic := interchaintest.NewInterchain().
@@ -447,9 +459,19 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
+func (s *E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+	chainBVersion := chainB.Config().Images[0].Version
+
+	// select the transfer version based on the chain versions
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
+		transferVersion = transfertypes.V2
+	}
+
 	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transfertypes.Version
+		opts.Version = transferVersion
 		opts.SourcePortName = transfertypes.PortID
 		opts.DestPortName = transfertypes.PortID
 	}
@@ -457,9 +479,19 @@ func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOpt
 
 // FeeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
 func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+	chainBVersion := chainB.Config().Images[0].Version
+
+	// select the transfer version based on the chain versions
+	transferVersion := transfertypes.V1
+	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
+		transferVersion = transfertypes.V2
+	}
+
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: transfertypes.Version,
+		AppVersion: transferVersion,
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
@@ -514,8 +546,8 @@ func (s *E2ETestSuite) InitiateChannelUpgrade(ctx context.Context, chain ibc.Cha
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
-func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.DenomTrace {
-	return transfertypes.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
+func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.Denom {
+	return transfertypes.ExtractDenomFromPath(fmt.Sprintf("%s/%s/%s", portID, channelID, fullTokenDenom))
 }
 
 // getValidatorsAndFullNodes returns the number of validators and full nodes respectively that should be used for
@@ -528,4 +560,33 @@ func getValidatorsAndFullNodes(chainIdx int) (int, int) {
 	}
 	tc := LoadConfig()
 	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
+}
+
+// GetMsgTransfer returns a MsgTransfer that is constructed based on the channel version
+func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string) *transfertypes.MsgTransfer {
+	if len(tokens) == 0 {
+		panic(errors.New("tokens cannot be empty"))
+	}
+
+	var msg *transfertypes.MsgTransfer
+	switch version {
+	case transfertypes.V1:
+		msg = &transfertypes.MsgTransfer{
+			SourcePort:       portID,
+			SourceChannel:    channelID,
+			Token:            tokens[0],
+			Sender:           sender,
+			Receiver:         receiver,
+			TimeoutHeight:    timeoutHeight,
+			TimeoutTimestamp: timeoutTimestamp,
+			Memo:             memo,
+			Tokens:           sdk.NewCoins(),
+		}
+	case transfertypes.V2:
+		msg = transfertypes.NewMsgTransfer(portID, channelID, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	default:
+		panic(fmt.Errorf("unsupported transfer version: %s", version))
+	}
+
+	return msg
 }

@@ -112,7 +112,7 @@ func (k *Keeper) TimeoutPacket(
 			packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		)
 	default:
-		panic(errorsmod.Wrapf(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
+		panic(errorsmod.Wrap(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
 	}
 
 	if err != nil {
@@ -299,7 +299,7 @@ func (k *Keeper) TimeoutOnClose(
 			packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		)
 	default:
-		panic(errorsmod.Wrapf(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
+		panic(errorsmod.Wrap(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
 	}
 
 	if err != nil {

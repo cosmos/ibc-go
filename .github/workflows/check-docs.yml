@@ -4,6 +4,7 @@ name: Check docs build
 # This workflow runs when a PR is labeled with `docs`
 # This will check if the docs build successfully by running `npm run build`
 on:
+  merge_group:
   pull_request:
     branches:
       - main

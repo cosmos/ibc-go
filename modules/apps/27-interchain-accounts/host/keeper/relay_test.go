@@ -25,7 +25,9 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
+	testedOrderings := []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED}
 	testedEncodings := []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}
+
 	var (
 		path       *ibctesting.Path
 		packetData []byte
@@ -342,15 +344,16 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				msg := &transfertypes.MsgTransfer{
-					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
-					SourceChannel:    transferPath.EndpointA.ChannelID,
-					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
-					Sender:           interchainAccountAddr,
-					Receiver:         suite.chainA.SenderAccount.GetAddress().String(),
-					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
-					TimeoutTimestamp: uint64(0),
-				}
+				msg := transfertypes.NewMsgTransfer(
+					transferPath.EndpointA.ChannelConfig.PortID,
+					transferPath.EndpointA.ChannelID,
+					sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					interchainAccountAddr,
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 				suite.Require().NoError(err)
@@ -376,15 +379,16 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				msg := &transfertypes.MsgTransfer{
-					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
-					SourceChannel:    transferPath.EndpointA.ChannelID,
-					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
-					Sender:           interchainAccountAddr,
-					Receiver:         "",
-					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
-					TimeoutTimestamp: uint64(0),
-				}
+				msg := transfertypes.NewMsgTransfer(
+					transferPath.EndpointA.ChannelConfig.PortID,
+					transferPath.EndpointA.ChannelID,
+					sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					interchainAccountAddr,
+					"",
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 				suite.Require().NoError(err)
@@ -521,59 +525,61 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		},
 	}
 
-	for _, encoding := range testedEncodings {
-		for _, tc := range testCases {
-			tc := tc
+	for _, ordering := range testedOrderings {
+		for _, encoding := range testedEncodings {
+			for _, tc := range testCases {
+				tc := tc
 
-			suite.Run(tc.msg, func() {
-				suite.SetupTest() // reset
+				suite.Run(tc.msg, func() {
+					suite.SetupTest() // reset
 
-				path = NewICAPath(suite.chainA, suite.chainB, encoding)
-				path.SetupConnections()
+					path = NewICAPath(suite.chainA, suite.chainB, encoding, ordering)
+					path.SetupConnections()
 
-				err := SetupICAPath(path, TestOwnerAddress)
-				suite.Require().NoError(err)
-
-				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-				suite.Require().NoError(err)
-
-				// Get the address of the interchain account stored in state during handshake step
-				storedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, portID)
-				suite.Require().True(found)
-
-				icaAddr, err := sdk.AccAddressFromBech32(storedAddr)
-				suite.Require().NoError(err)
-
-				// Check if account is created
-				interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
-				suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
-
-				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000000))))
-
-				tc.malleate(encoding) // malleate mutates test data
-
-				packet := channeltypes.NewPacket(
-					packetData,
-					suite.chainA.SenderAccount.GetSequence(),
-					path.EndpointA.ChannelConfig.PortID,
-					path.EndpointA.ChannelID,
-					path.EndpointB.ChannelConfig.PortID,
-					path.EndpointB.ChannelID,
-					suite.chainB.GetTimeoutHeight(),
-					0,
-				)
-
-				txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
-
-				expPass := tc.expErr == nil
-				if expPass {
+					err := SetupICAPath(path, TestOwnerAddress)
 					suite.Require().NoError(err)
-					suite.Require().NotNil(txResponse)
-				} else {
-					suite.Require().ErrorIs(err, tc.expErr)
-					suite.Require().Nil(txResponse)
-				}
-			})
+
+					portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+					suite.Require().NoError(err)
+
+					// Get the address of the interchain account stored in state during handshake step
+					storedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, portID)
+					suite.Require().True(found)
+
+					icaAddr, err := sdk.AccAddressFromBech32(storedAddr)
+					suite.Require().NoError(err)
+
+					// Check if account is created
+					interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
+					suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
+
+					suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000000))))
+
+					tc.malleate(encoding) // malleate mutates test data
+
+					packet := channeltypes.NewPacket(
+						packetData,
+						suite.chainA.SenderAccount.GetSequence(),
+						path.EndpointA.ChannelConfig.PortID,
+						path.EndpointA.ChannelID,
+						path.EndpointB.ChannelConfig.PortID,
+						path.EndpointB.ChannelID,
+						suite.chainB.GetTimeoutHeight(),
+						0,
+					)
+
+					txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
+
+					expPass := tc.expErr == nil
+					if expPass {
+						suite.Require().NoError(err)
+						suite.Require().NotNil(txResponse)
+					} else {
+						suite.Require().ErrorIs(err, tc.expErr)
+						suite.Require().Nil(txResponse)
+					}
+				})
+			}
 		}
 	}
 }
@@ -872,51 +878,53 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.msg, func() {
-			suite.SetupTest() // reset
+			suite.Run(tc.msg, func() {
+				suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			// Get the address of the interchain account stored in state during handshake step
-			icaAddress, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, portID)
-			suite.Require().True(found)
-
-			suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000000))))
-
-			tc.malleate(icaAddress) // malleate mutates test data
-
-			packet := channeltypes.NewPacket(
-				packetData,
-				suite.chainA.SenderAccount.GetSequence(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				path.EndpointB.ChannelConfig.PortID,
-				path.EndpointB.ChannelID,
-				suite.chainB.GetTimeoutHeight(),
-				0,
-			)
-
-			txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
-
-			expPass := tc.expErr == nil
-			if expPass {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-				suite.Require().NotNil(txResponse)
-			} else {
-				suite.Require().ErrorIs(err, tc.expErr)
-				suite.Require().Nil(txResponse)
-			}
-		})
+
+				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
+				suite.Require().NoError(err)
+
+				// Get the address of the interchain account stored in state during handshake step
+				icaAddress, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, portID)
+				suite.Require().True(found)
+
+				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000000))))
+
+				tc.malleate(icaAddress) // malleate mutates test data
+
+				packet := channeltypes.NewPacket(
+					packetData,
+					suite.chainA.SenderAccount.GetSequence(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					path.EndpointB.ChannelConfig.PortID,
+					path.EndpointB.ChannelID,
+					suite.chainB.GetTimeoutHeight(),
+					0,
+				)
+
+				txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
+
+				expPass := tc.expErr == nil
+				if expPass {
+					suite.Require().NoError(err)
+					suite.Require().NotNil(txResponse)
+				} else {
+					suite.Require().ErrorIs(err, tc.expErr)
+					suite.Require().Nil(txResponse)
+				}
+			})
+		}
 	}
 }
 

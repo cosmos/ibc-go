@@ -73,70 +73,72 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			// reset suite
-			suite.SetupTest()
-			suite.path.SetupConnections()
+			suite.Run(tc.name, func() {
+				// reset suite
+				suite.SetupTest()
+				suite.path.SetupConnections()
 
-			// setup mock callback
-			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-				portID, channelID string, chanCap *capabilitytypes.Capability,
-				counterparty channeltypes.Counterparty, version string,
-			) (string, error) {
-				if version != ibcmock.Version {
-					return "", fmt.Errorf("incorrect mock version")
+				// setup mock callback
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, version string,
+				) (string, error) {
+					if version != ibcmock.Version {
+						return "", fmt.Errorf("incorrect mock version")
+					}
+					return ibcmock.Version, nil
 				}
-				return ibcmock.Version, nil
-			}
 
-			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
+				suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
-			counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
-			channel := &channeltypes.Channel{
-				State:          channeltypes.INIT,
-				Ordering:       channeltypes.UNORDERED,
-				Counterparty:   counterparty,
-				ConnectionHops: []string{suite.path.EndpointA.ConnectionID},
-				Version:        tc.version,
-			}
+				counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+				channel := &channeltypes.Channel{
+					State:          channeltypes.INIT,
+					Ordering:       ordering,
+					Counterparty:   counterparty,
+					ConnectionHops: []string{suite.path.EndpointA.ConnectionID},
+					Version:        tc.version,
+				}
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+				suite.Require().NoError(err)
 
-			chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
+				chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
+				suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
 
-			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
+				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
 
-			if tc.expPass {
-				// check if the channel is fee enabled. If so version string should include metaData
-				if tc.isFeeEnabled {
-					versionMetadata := types.Metadata{
-						FeeVersion: types.Version,
-						AppVersion: ibcmock.Version,
+				if tc.expPass {
+					// check if the channel is fee enabled. If so version string should include metaData
+					if tc.isFeeEnabled {
+						versionMetadata := types.Metadata{
+							FeeVersion: types.Version,
+							AppVersion: ibcmock.Version,
+						}
+
+						versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
+						suite.Require().NoError(err)
+
+						suite.Require().Equal(version, string(versionBytes))
+					} else {
+						suite.Require().Equal(ibcmock.Version, version)
 					}
 
-					versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-					suite.Require().NoError(err)
-
-					suite.Require().Equal(version, string(versionBytes))
+					suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 				} else {
-					suite.Require().Equal(ibcmock.Version, version)
+					suite.Require().Error(err, "error not returned for version: %s", tc.version)
+					suite.Require().Equal("", version)
 				}
-
-				suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
-			} else {
-				suite.Require().Error(err, "error not returned for version: %s", tc.version)
-				suite.Require().Equal("", version)
-			}
-		})
+			})
+		}
 	}
 }
 
@@ -169,61 +171,63 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			// reset suite
-			suite.SetupTest()
-			suite.path.SetupConnections()
-			err := suite.path.EndpointB.ChanOpenInit()
-			suite.Require().NoError(err)
-
-			// setup mock callback
-			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-				portID, channelID string, chanCap *capabilitytypes.Capability,
-				counterparty channeltypes.Counterparty, counterpartyVersion string,
-			) (string, error) {
-				if counterpartyVersion != ibcmock.Version {
-					return "", fmt.Errorf("incorrect mock version")
-				}
-				return ibcmock.Version, nil
-			}
-
-			var (
-				chanCap *capabilitytypes.Capability
-				ok      bool
-			)
-
-			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
-
-			suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
-
-			counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
-			channel := &channeltypes.Channel{
-				State:          channeltypes.INIT,
-				Ordering:       channeltypes.UNORDERED,
-				Counterparty:   counterparty,
-				ConnectionHops: []string{suite.path.EndpointA.ConnectionID},
-				Version:        tc.cpVersion,
-			}
-
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-
-			_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.cpVersion)
-
-			if tc.expPass {
+			suite.Run(tc.name, func() {
+				// reset suite
+				suite.SetupTest()
+				suite.path.SetupConnections()
+				err := suite.path.EndpointB.ChanOpenInit()
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				// setup mock callback
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string, chanCap *capabilitytypes.Capability,
+					counterparty channeltypes.Counterparty, counterpartyVersion string,
+				) (string, error) {
+					if counterpartyVersion != ibcmock.Version {
+						return "", fmt.Errorf("incorrect mock version")
+					}
+					return ibcmock.Version, nil
+				}
+
+				var (
+					chanCap *capabilitytypes.Capability
+					ok      bool
+				)
+
+				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
+				suite.Require().NoError(err)
+
+				suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
+
+				counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+				channel := &channeltypes.Channel{
+					State:          channeltypes.INIT,
+					Ordering:       ordering,
+					Counterparty:   counterparty,
+					ConnectionHops: []string{suite.path.EndpointA.ConnectionID},
+					Version:        tc.cpVersion,
+				}
+
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+				suite.Require().NoError(err)
+
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+
+				_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.cpVersion)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
@@ -1573,7 +1577,8 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
 	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)
 	suite.Require().True(ok)
 
-	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
+	// Context, port identifier, channel identifier are not used in current wiring of fee.
+	packetData, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
 	suite.Require().NoError(err)
 	suite.Require().Equal(ibcmock.MockPacketData, packetData)
 }
@@ -1582,7 +1587,8 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
 	// test the case when the underlying application cannot be casted to a PacketDataUnmarshaler
 	mockFeeMiddleware := ibcfee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
-	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
+	// Context, port identifier, channel identifier are not used in mockFeeMiddleware.
+	_, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
 	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	suite.Require().ErrorIs(err, expError)
 }

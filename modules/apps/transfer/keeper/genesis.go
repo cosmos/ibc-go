@@ -12,9 +12,9 @@ import (
 func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	k.SetPort(ctx, state.PortId)
 
-	for _, trace := range state.DenomTraces {
-		k.SetDenomTrace(ctx, trace)
-		k.setDenomMetadata(ctx, trace)
+	for _, denom := range state.Denoms {
+		k.SetDenom(ctx, denom)
+		k.setDenomMetadata(ctx, denom)
 	}
 
 	// Only try to bind to port if it is not already bound, since we may already own
@@ -41,7 +41,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
 		PortId:        k.GetPort(ctx),
-		DenomTraces:   k.GetAllDenomTraces(ctx),
+		Denoms:        k.GetAllDenoms(ctx),
 		Params:        k.GetParams(ctx),
 		TotalEscrowed: k.GetAllTotalEscrowed(ctx),
 	}

@@ -16,10 +16,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
@@ -198,7 +198,20 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		version, err := feetypes.MetadataFromVersion(channelA.Version)
+		s.Require().NoError(err)
+
+		msgTransfer := testsuite.GetMsgTransfer(
+			channelA.PortID,
+			channelA.ChannelID,
+			version.AppVersion,
+			sdk.NewCoins(transferAmount),
+			chainAWallet.FormattedAddress(),
+			testvalues.InvalidAddress,
+			s.GetTimeoutHeight(ctx, chainB),
+			0,
+			"",
+		)
 		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgTransfer)
 		// this message should be successful, as receiver account is not validated on the sending chain.
 		s.AssertTxSuccess(txResp)
@@ -322,8 +335,21 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		s.Require().Empty(packets)
 	})
 
+	version, err := feetypes.MetadataFromVersion(channelA.Version)
+	s.Require().NoError(err)
+
 	msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.FormattedAddress(), nil)
-	msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
+	msgTransfer := testsuite.GetMsgTransfer(
+		channelA.PortID,
+		channelA.ChannelID,
+		version.AppVersion,
+		sdk.NewCoins(transferAmount),
+		chainAWallet.FormattedAddress(),
+		chainBWallet.FormattedAddress(),
+		s.GetTimeoutHeight(ctx, chainB),
+		0,
+		"",
+	)
 	resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 	s.AssertTxSuccess(resp)
 
