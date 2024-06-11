@@ -75,7 +75,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccountWithOrdering(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version, channeltypes.ORDERED); err != nil {
 		return err
 	}
 
@@ -179,6 +179,31 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	// as chainA.SenderAccount is used as the msg signer and refund address for msgPayPacketFee above as well as the relyer account for acknowledgements in path.RelayPacket()
 	postDistBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	suite.Require().Equal(preEscrowBalance.SubAmount(defaultRecvFee.AmountOf(sdk.DefaultBondDenom)), postDistBalance)
+}
+
+func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareICAHandshake() {
+	RemoveFeeMiddleware(suite.chainB) // remove fee middleware from chainB
+
+	path := NewIncentivizedICAPath(suite.chainA, suite.chainB)
+
+	suite.coordinator.SetupConnections(path)
+
+	err := SetupPath(path, defaultOwnerAddress)
+	suite.Require().NoError(err)
+
+	// assert the newly established channel is not fee enabled on chainB
+	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+	suite.Require().True(found)
+
+	expVersionMetadata, err := icatypes.MetadataFromVersion(defaultICAVersion)
+	suite.Require().NoError(err)
+
+	expVersionMetadata.Address = interchainAccountAddr
+
+	expVersion := string(icatypes.ModuleCdc.MustMarshalJSON(&expVersionMetadata))
+
+	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, expVersion)
+	suite.Require().Equal(path.EndpointB.ChannelConfig.Version, expVersion)
 }
 
 func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint64) channeltypes.Packet {
