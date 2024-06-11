@@ -112,7 +112,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 
 	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
 
-	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version); err != nil {
+	if err := endpoint.Chain.GetSimApp().ICAControllerKeeper.RegisterInterchainAccountWithOrdering(endpoint.Chain.GetContext(), endpoint.ConnectionID, owner, endpoint.ChannelConfig.Version, channeltypes.ORDERED); err != nil {
 		return err
 	}
 
@@ -196,6 +196,31 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
+	// Currently, all queries in bank, staking, auth, and circuit are marked safe
+	// Notably, the gov and distribution modules are not marked safe
+
+	var allowList []string
+	suite.Require().NotPanics(func() {
+		allowList = keeper.NewModuleQuerySafeAllowList()
+	})
+
+	suite.Require().NotEmpty(allowList)
+	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/Balance")
+	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/AllBalances")
+	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validator")
+	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validators")
+	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/Account")
+	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/DisabledList")
+	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/Accounts")
+	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/ModuleAccountByName")
+	suite.Require().Contains(allowList, "/ibc.core.client.v1.Query/VerifyMembership")
+	suite.Require().NotContains(allowList, "/cosmos.gov.v1beta1.Query/Proposals")
+	suite.Require().NotContains(allowList, "/cosmos.gov.v1.Query/Proposals")
+	suite.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/Params")
+	suite.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/DelegationRewards")
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {

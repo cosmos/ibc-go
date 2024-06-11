@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,6 +11,11 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
+)
+
+const (
+	testMemo1 = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
+	testMemo2 = `{"forward":{"channel":"channel-11","port":"transfer","receiver":"stars1twfv52yxcyykx2lcvgl42svw46hsm5dd4ww6xy","retries":2,"timeout":1712146014542131200}}`
 )
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
@@ -99,6 +106,73 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.Require().True(res.Accept)
 				suite.Require().False(res.Delete)
 				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"success: empty AllowedPacketData and empty memo",
+			func() {
+				allowedList := []string{}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"success: AllowedPacketData allows any packet",
+			func() {
+				allowedList := []string{"*"}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Memo = testMemo1
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"success: transfer memo allowed",
+			func() {
+				allowedList := []string{testMemo1, testMemo2}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Memo = testMemo1
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"empty AllowedPacketData but not empty memo",
+			func() {
+				allowedList := []string{}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Memo = testMemo1
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
+		},
+		{
+			"memo not allowed",
+			func() {
+				allowedList := []string{testMemo1}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Memo = testMemo2
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, fmt.Sprintf("not allowed memo: %s", testMemo2))
 			},
 		},
 		{
@@ -238,6 +312,13 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			"success: with unlimited spend limit of max uint256",
 			func() {
 				transferAuthz.Allocations[0].SpendLimit = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.UnboundedSpendLimit()))
+			},
+			true,
+		},
+		{
+			"success: wildcard allowed packet data",
+			func() {
+				transferAuthz.Allocations[0].AllowedPacketData = []string{"*"}
 			},
 			true,
 		},
