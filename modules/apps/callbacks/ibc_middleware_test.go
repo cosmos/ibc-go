@@ -110,16 +110,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
-			"success: no-op on callback data is not valid",
-			func() {
-				//nolint:goconst
-				packetData.Memo = `{"src_callback": {"address": ""}}`
-			},
-			"none", // improperly formatted callback data should result in no callback execution
-			false,
-			nil,
-		},
-		{
 			"success: multiple denoms",
 			func() {
 				packetData.Tokens = append(packetData.Tokens, transfertypes.Token{
@@ -128,6 +118,16 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				})
 			},
 			types.CallbackTypeSendPacket,
+			false,
+			nil,
+		},
+		{
+			"success: no-op on callback data is not valid",
+			func() {
+				//nolint:goconst
+				packetData.Memo = `{"src_callback": {"address": ""}}`
+			},
+			"none", // improperly formatted callback data should result in no callback execution
 			false,
 			nil,
 		},
