@@ -556,7 +556,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 	}
 }
 
-
 func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCToken() {
 	/*
 		Given the following flow of tokens:
@@ -1088,7 +1087,6 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.ZeroInt(), totalEscrowChainB.Amount)
 }
-
 
 func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 	// We are testing a scenario where a packet in the future has a new populated
