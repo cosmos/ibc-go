@@ -326,8 +326,8 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 	return chains[0], chains[1]
 }
 
-// GetChains returns two chains that can be used in a test. The pair returned
-// is unique to the current test being run. Note: this function does not create containers.
+// GetAllChains returns all chains that can be used in a test. The chains returned
+// are unique to the current test being run. Note: this function does not create containers.
 func (s *E2ETestSuite) GetAllChains(chainOpts ...ChainOptionConfiguration) []ibc.Chain {
 	if s.paths == nil {
 		s.paths = map[string][]ibc.Chain{}
@@ -533,8 +533,8 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (s *E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
-	chainA, chainB := s.GetChains()
+func (s *E2ETestSuite) TransferChannelOptions(chainOpts ...ChainOptionConfiguration) func(options *ibc.CreateChannelOptions) {
+	chainA, chainB := s.GetChains(chainOpts...)
 	chainAVersion := chainA.Config().Images[0].Version
 	chainBVersion := chainB.Config().Images[0].Version
 
@@ -666,7 +666,7 @@ func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender,
 }
 
 // ThreeChainSetup provides the default behaviour to wire up 3 chains in the tests.
-func ThreeChainSetup() func(*ChainOptions) {
+func ThreeChainSetup() ChainOptionConfiguration {
 	// copy all values of existing chains and tweak to make unique to new chain.
 	return func(options *ChainOptions) {
 		chainCSpec := *options.ChainSpecs[0] // nolint

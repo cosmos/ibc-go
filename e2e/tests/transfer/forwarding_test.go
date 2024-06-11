@@ -28,7 +28,10 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 	ctx := context.TODO()
 	t := s.T()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(), testsuite.ThreeChainSetup())
+	// TODO: note the ThreeChainSetup fn needs to be passed to TransferChannelOptions since it calls
+	// GetChains which will requires those settings. We should be able to update the function to accept
+	// the chain version rather than calling GetChains.
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(testsuite.ThreeChainSetup()), testsuite.ThreeChainSetup())
 	chains := s.GetAllChains()
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
