@@ -1557,7 +1557,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 
 	// Now we want to trigger C -> B -> A
 	// The coin we want to send out is exactly the one we received on C
-	//coin = sdk.NewCoin(denomTraceBC.IBCDenom(), amount)
+	// coin = sdk.NewCoin(denomTraceBC.IBCDenom(), amount)
 
 	sender = suite.chainC.SenderAccounts[0].SenderAccount
 	receiver = suite.chainA.SenderAccounts[0].SenderAccount // Receiver is the A chain account
@@ -1602,7 +1602,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	// We have succesfully received the packet on B and forwarded it to A.
+	// We have successfully received the packet on B and forwarded it to A.
 	// Lets try to retrieve it in order to save it
 	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, packet.Sequence)
 	suite.Require().True(found)
@@ -1630,7 +1630,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 
 	err = path1.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
-	//suite.Require().Equal(packet, forwardedPacket)
+	// suite.Require().Equal(packet, forwardedPacket)
 
 	result, err = path1.EndpointA.RecvPacketWithResult(packet)
 	suite.Require().Error(err)
@@ -1653,7 +1653,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().NoError(err)
 	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
 
-	//err = path1.EndpointA.AcknowledgePacket(packetRecv, ack.Acknowledgement())
+	// err = path1.EndpointA.AcknowledgePacket(packetRecv, ack.Acknowledgement())
 	err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packetRecv, data, ack)
 	suite.Require().NoError(err)
 
@@ -1673,7 +1673,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 				Amount: amount.String(),
 			},
 		}, suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
-	//suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String() This should be forward account of B
+	// suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String() This should be forward account of B
 	packet = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	err = path2.EndpointB.UpdateClient()
@@ -1686,7 +1686,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 
 	// Execute ack
 	err = suite.chainC.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainC.GetContext(), packet, data, ack)
-	//err = path2.EndpointB.AcknowledgePacket(packet, ack.Acknowledgement())
+	// err = path2.EndpointB.AcknowledgePacket(packet, ack.Acknowledgement())
 	suite.Require().NoError(err)
 
 	// Check that everythig has been reverted

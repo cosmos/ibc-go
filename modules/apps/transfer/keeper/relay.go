@@ -277,7 +277,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
 		memo := ""
 
-
 		var nextForwardingPath *types.ForwardingInfo
 		if len(data.ForwardingPath.Hops) == 1 {
 			memo = data.ForwardingPath.Memo
