@@ -234,7 +234,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				receiver,
 				"",
 				&types.ForwardingInfo{
-					Hops: []*types.Hop{
+					Hops: []types.Hop{
 						{
 							PortId:    "transfer",
 							ChannelId: "channel-1",
@@ -400,7 +400,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				receiver,
 				"memo",
 				&types.ForwardingInfo{
-					Hops: []*types.Hop{
+					Hops: []types.Hop{
 						{
 							PortId:    "transfer",
 							ChannelId: "channel-1",

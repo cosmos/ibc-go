@@ -571,7 +571,7 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
 	forwardingPath := types.ForwardingInfo{
-		Hops: []*types.Hop{
+		Hops: []types.Hop{
 			{
 				PortId:    path2.EndpointA.ChannelConfig.PortID,
 				ChannelId: path2.EndpointA.ChannelID,
@@ -1168,7 +1168,7 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
 	forwardingPath := types.ForwardingInfo{
-		Hops: []*types.Hop{
+		Hops: []types.Hop{
 			{
 				PortId:    path2.EndpointB.ChannelConfig.PortID,
 				ChannelId: path2.EndpointB.ChannelID,
@@ -1253,7 +1253,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
 	forwardingPath := types.ForwardingInfo{
-		Hops: []*types.Hop{
+		Hops: []types.Hop{
 			{
 				PortId:    path2.EndpointB.ChannelConfig.PortID,
 				ChannelId: path2.EndpointB.ChannelID,
@@ -1364,7 +1364,7 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
 	forwardingPath := types.ForwardingInfo{
-		Hops: []*types.Hop{
+		Hops: []types.Hop{
 			{
 				PortId:    path2.EndpointB.ChannelConfig.PortID,
 				ChannelId: path2.EndpointB.ChannelID,
@@ -1563,7 +1563,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	receiver = suite.chainA.SenderAccounts[0].SenderAccount // Receiver is the A chain account
 
 	forwardingPath := types.ForwardingInfo{
-		Hops: []*types.Hop{
+		Hops: []types.Hop{
 			{
 				PortId:    path1.EndpointB.ChannelConfig.PortID,
 				ChannelId: path1.EndpointB.ChannelID,
