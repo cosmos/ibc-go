@@ -335,7 +335,6 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 		if err := k.refundPacketTokens(ctx, packet, data); err != nil {
 			return err
 		}
-		// if this is not a forwarded packet, then we are done
 		if !isForwarded {
 			return nil
 		}

@@ -472,7 +472,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 
 	// Now we want to trigger C -> B -> A
 	// The coin we want to send out is exactly the one we received on C
-	// coin = sdk.NewCoin(denomTraceBC.IBCDenom(), amount)
+	coin = sdk.NewCoin(denomABC.IBCDenom(), amount)
 
 	sender = suite.chainC.SenderAccounts[0].SenderAccount
 	receiver = suite.chainA.SenderAccounts[0].SenderAccount // Receiver is the A chain account
@@ -572,13 +572,10 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packetRecv, data, ack)
 	suite.Require().NoError(err)
 
-	// Check that Escrow B has been refunded amount
-	// NOTE This is failing. The revertInFlightsChanges sohuld mint back voucher to chainBescrow
-	// but this is not happening. It may be a problem related with how we're writing async acks.
-	//
+	// Check that Escrow B is empty the revertInFlightsChanges should burn the entire token since it is not native to Chain B.
 	coin = sdk.NewCoin(denomAB.IBCDenom(), amount)
-	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-	suite.Require().Equal(sdkmath.NewInt(100), totalEscrowChainB.Amount)
+	allEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetAllTotalEscrowed(suite.chainB.GetContext())
+	suite.Require().Empty(allEscrowChainB)
 
 	denom = types.ExtractDenomFromPath(denomABC.Path())
 	data = types.NewFungibleTokenPacketDataV2(
