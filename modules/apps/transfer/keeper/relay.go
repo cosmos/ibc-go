@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -322,14 +320,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 // then the sender is refunded their tokens using the refundPacketToken function.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
 	prevPacket, isForwarded := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	var prevCapability *capabilitytypes.Capability
-	if isForwarded {
-		var ok bool
-		prevCapability, ok = k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(prevPacket.DestinationPort, prevPacket.DestinationChannel))
-		if !ok {
-			return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-		}
-	}
 
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
@@ -338,11 +328,8 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			// needs to be executed and no error needs to be returned
 			return nil
 		}
-		// the acknowledgement succeeded on the receiving chain so
-		// we write the asynchronous acknowledgement for the sender
-		// of the previous packet.
-		fungibleTokenPacketAcknowledgement := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
-		return k.ics4Wrapper.WriteAcknowledgement(ctx, prevCapability, prevPacket, fungibleTokenPacketAcknowledgement)
+
+		return k.onForwardedPacketResultAck(ctx, prevPacket)
 	case *channeltypes.Acknowledgement_Error:
 		// We refund the tokens from the escrow address to the sender
 		if err := k.refundPacketTokens(ctx, packet, data); err != nil {
@@ -352,15 +339,8 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 		if !isForwarded {
 			return nil
 		}
-		// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
-		// we must revert the changes that came from successfully receiving the tokens on our chain
-		// before propogating the error acknowledgement back to original sender chain
-		if err := k.revertInFlightChanges(ctx, prevPacket, data); err != nil {
-			return err
-		}
 
-		fungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
-		return k.ics4Wrapper.WriteAcknowledgement(ctx, prevCapability, prevPacket, fungibleTokenPacketAcknowledgement)
+		return k.onForwardedPacketErrorAck(ctx, prevPacket, data)
 	default:
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 	}
@@ -370,22 +350,17 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 // packet if the chain acted as a middle hop on a multihop transfer; or refunds
 // the sender if the original packet sent was never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
-	prevPacket, found := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	if found {
-		channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
-		if !ok {
-			return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-		}
-
-		if err := k.revertInFlightChanges(ctx, prevPacket, data); err != nil {
-			return err
-		}
-
-		fungibleTokenPacketAcknowledgement := channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarded packet timed out"))
-		return k.ics4Wrapper.WriteAcknowledgement(ctx, channelCap, prevPacket, fungibleTokenPacketAcknowledgement)
+	if err := k.refundPacketTokens(ctx, packet, data); err != nil {
+		return err
 	}
 
-	return k.refundPacketTokens(ctx, packet, data)
+	prevPacket, isForwarded := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	if !isForwarded {
+		// return if not a forwarded packet
+		return nil
+	}
+
+	return k.onForwardedPacketTimeout(ctx, prevPacket, data)
 }
 
 // refundPacketTokens will unescrow and send back the tokens back to sender
@@ -431,49 +406,6 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 		}
 	}
 
-	return nil
-}
-
-// revertInFlightChanges reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.
-// If an error occurs further down the line, the state changes on this chain must be reverted before sending back the error
-// acknowledgement to ensure atomic packet forwarding.
-func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
-	/*
-		Recall that RecvPacket handles an incoming packet depending on the denom of the received funds:
-			1. If the funds are native, then the amount is sent to the receiver from the escrow.
-			2. If the funds are foreign, then a voucher token is minted.
-		We revert it in this function by:
-			1. Sending funds back to escrow if the funds are native.
-			2. Burning voucher tokens if the funds are foreign
-	*/
-
-	intermediateSenderAddr := types.GetForwardAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
-	escrow := types.GetEscrowAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
-
-	// we can iterate over the received tokens of prevPacket by iterating over the sent tokens of failedPacketData
-	for _, token := range failedPacketData.Tokens {
-		// parse the transfer amount
-		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
-		if !ok {
-			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", transferAmount)
-		}
-		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
-
-		// check if the packet we received was a native token
-		if token.Denom.IsNative() {
-			// then send it back to the escrow address
-			if err := k.escrowCoin(ctx, intermediateSenderAddr, escrow, coin); err != nil {
-				return err
-			}
-
-			continue
-		}
-
-		// otherwise burn it
-		if err := k.burnCoin(ctx, intermediateSenderAddr, coin); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
