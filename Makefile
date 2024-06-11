@@ -345,12 +345,9 @@ proto-update-deps:
 	$(DOCKER) run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps
-<<<<<<< HEAD
-=======
 
 #? help: Get more info on make commands
 help: Makefile
 	@echo " Choose a command run in "$(PROJECT_NAME)":"
 	@sed -n 's/^#?//p' $< | column -t -s ':' |  sort | sed -e 's/^/ /'
 .PHONY: help
->>>>>>> 031c2b83 (imp: adding 08-wasm build opts with libwasmvm linking disabled (#5923))

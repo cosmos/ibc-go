@@ -33,6 +33,10 @@ func NewKeeperWithVM(
 		panic(errors.New("client keeper must not be nil"))
 	}
 
+	if queryRouter == nil {
+		panic(errors.New("query router must not be nil"))
+	}
+
 	if vm == nil {
 		panic(errors.New("wasm VM must not be nil"))
 	}
