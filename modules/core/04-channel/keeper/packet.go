@@ -503,6 +503,10 @@ func (k *Keeper) AcknowledgePacket(
 	return nil
 }
 
+// handleFlushState is called when a packet is acknowledged or timed out and the channel is in
+// FLUSHING state. It checks if the upgrade has timed out and if so, aborts the upgrade. If all
+// packets have completed their lifecycle, it sets the channel state to FLUSHCOMPLETE and
+// emits a channel_flush_complete event. Returns true if the upgrade was aborted, false otherwise.
 func (k *Keeper) handleFlushState(ctx sdk.Context, packet *types.Packet, channel *types.Channel) bool {
 	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
@@ -514,7 +518,7 @@ func (k *Keeper) handleFlushState(ctx sdk.Context, packet *types.Packet, channel
 
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		// packet flushing timeout has expired, abort the upgrade
-		// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
+		// committing an error receipt to state, deleting upgrade information and restoring the channel.
 		k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
 		return true
 	}
