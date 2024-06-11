@@ -176,6 +176,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		finalReceiver string // final receiver of tokens if there is forwarding info
 	)
 
+
 	receiver, err = sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
 		return false, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
