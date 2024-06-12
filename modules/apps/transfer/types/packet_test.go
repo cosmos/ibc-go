@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -223,25 +224,30 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")},
-						},
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
 				"",
-				&types.ForwardingInfo{
-					Hops: []types.Hop{
-						{
-							PortId:    "transfer",
-							ChannelId: "channel-1",
-						},
+				types.NewForwardingInfo("", validHop, validHop),
+			),
+			nil,
+		},
+		{
+			"success: valid packet with forwarding path hops with memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
 					},
-					Memo: "",
 				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingInfo("memo", validHop),
 			),
 			nil,
 		},
@@ -389,25 +395,90 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")},
-						},
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
 				"memo",
-				&types.ForwardingInfo{
-					Hops: []types.Hop{
-						{
-							PortId:    "transfer",
-							ChannelId: "channel-1",
-						},
+				types.NewForwardingInfo("", validHop),
+			),
+			types.ErrInvalidMemo,
+		},
+		{
+			"failure: invalid forwarding path port ID",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
 					},
-					Memo: "",
 				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingInfo(
+					"",
+					types.Hop{
+						PortId:    invalidPort,
+						ChannelId: "channel-1",
+					},
+				),
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: invalid forwarding path channel ID",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingInfo(
+					"",
+					types.Hop{
+						PortId:    "transfer",
+						ChannelId: invalidChannel,
+					},
+				),
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: invalid forwarding path too many hops",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingInfo("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
+			),
+			types.ErrInvalidForwardingInfo,
+		},
+		{
+			"failure: invalid forwarding path too long memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingInfo(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
 			),
 			types.ErrInvalidMemo,
 		},
