@@ -495,8 +495,9 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 	return packetDataBytes
 }
 
-// burnCoin only works with a module account in SDK v0.50, the next version of the SDK will allow burning coins from any account.
-// This function will send coins from the account to the module account and then burn them.
+// This function sends coins from the account to the transfer module account and then burn them.
+// We do this because bankKeeper.BurnCoins only works with a module account in SDK v0.50,
+// the next version of the SDK will allow burning coins from any account.
 // TODO: remove this function once we switch forwarding address to a module account (#6561)
 func (k Keeper) burnCoin(ctx sdk.Context, account sdk.AccAddress, coin sdk.Coin) error {
 	coins := sdk.NewCoins(coin)
