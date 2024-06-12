@@ -19,7 +19,7 @@ func (k Keeper) onForwardedPacketErrorAck(ctx sdk.Context, prevPacket channeltyp
 	// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 	// we must revert the changes that came from successfully receiving the tokens on our chain
 	// before propagating the error acknowledgement back to original sender chain
-	if err := k.revertInFlightChanges(ctx, prevPacket, failedPacketData); err != nil {
+	if err := k.revertForwardedPacket(ctx, prevPacket, failedPacketData); err != nil {
 		return err
 	}
 
@@ -35,7 +35,7 @@ func (k Keeper) onForwardedPacketResultAck(ctx sdk.Context, prevPacket channelty
 
 // onForwardedPacketTimeout reverts the receive packet logic that occurs in the middle chain and asynchronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketTimeout(ctx sdk.Context, prevPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
-	if err := k.revertInFlightChanges(ctx, prevPacket, timeoutPacketData); err != nil {
+	if err := k.revertForwardedPacket(ctx, prevPacket, timeoutPacketData); err != nil {
 		return err
 	}
 
@@ -53,10 +53,10 @@ func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet channeltypes.
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, capability, packet, ack)
 }
 
-// revertInFlightChanges reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.
+// revertForwardedPacket reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.
 // If an error occurs further down the line, the state changes on this chain must be reverted before sending back the error
 // acknowledgement to ensure atomic packet forwarding.
-func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
+func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	/*
 		Recall that RecvPacket handles an incoming packet depending on the denom of the received funds:
 			1. If the funds are native, then the amount is sent to the receiver from the escrow.
