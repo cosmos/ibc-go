@@ -464,7 +464,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				"",
 				types.NewForwarding("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
 			),
-			types.ErrInvalidForwardingInfo,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"failure: invalid forwarding path too long memo",

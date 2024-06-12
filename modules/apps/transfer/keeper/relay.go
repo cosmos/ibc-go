@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-metrics"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/hashicorp/go-metrics"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
@@ -172,8 +170,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 	var (
 		err           error
-		receiver      sdk.AccAddress // final receiver of tokens if there is no forwarding info, otherwise, receiver in the next hop
-		finalReceiver sdk.AccAddress // final receiver of tokens if there is forwarding info
+		receiver      sdk.AccAddress // final receiver of tokens if there is no forwarding, otherwise, receiver in the next hop
+		finalReceiver sdk.AccAddress // final receiver of tokens if there is forwarding
 	)
 
 	receiver, err = sdk.AccAddressFromBech32(data.Receiver)

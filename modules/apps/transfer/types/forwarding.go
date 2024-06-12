@@ -16,10 +16,10 @@ func NewForwarding(memo string, hops ...Hop) *Forwarding {
 	}
 }
 
-// Validate performs a basic validation of the ForwardingInfo fields.
+// Validate performs a basic validation of the Forwarding fields.
 func (fi Forwarding) Validate() error {
 	if len(fi.Hops) > MaximumNumberOfForwardingHops {
-		return errorsmod.Wrapf(ErrInvalidForwardingInfo, "number of hops in forwarding path cannot exceed %d", MaximumNumberOfForwardingHops)
+		return errorsmod.Wrapf(ErrInvalidForwarding, "number of hops in forwarding path cannot exceed %d", MaximumNumberOfForwardingHops)
 	}
 
 	for _, hop := range fi.Hops {
