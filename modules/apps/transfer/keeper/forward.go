@@ -79,7 +79,9 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.P
 		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 		// check if the packet we received was a native token
-		if token.Denom.IsNative() {
+		// note that the DestinationPort and DestinationChannel of prevPacket are the
+		// SourcePort and SourceChannel of failed packet
+		if token.Denom.SenderChainIsSource(prevPacket.DestinationPort, prevPacket.DestinationChannel) {
 			// then send it back to the escrow address
 			if err := k.escrowCoin(ctx, intermediateSenderAddr, escrow, coin); err != nil {
 				return err
