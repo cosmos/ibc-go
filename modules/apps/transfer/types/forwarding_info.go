@@ -9,7 +9,7 @@ import (
 const MaximumNumberOfForwardingHops = 64
 
 // NewForwardingInfo creates a new ForwardingInfo instance given a memo and a variable number of hops.
-func NewForwardingInfo(memo string, hops ...*Hop) *ForwardingInfo {
+func NewForwardingInfo(memo string, hops ...Hop) *ForwardingInfo {
 	return &ForwardingInfo{
 		Memo: memo,
 		Hops: hops,

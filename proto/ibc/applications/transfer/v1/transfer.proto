@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v1;
 
+import "gogoproto/gogo.proto";
+
 option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 
 // Params defines the set of IBC transfer parameters.
@@ -21,7 +23,7 @@ message Params {
 // through which a packet must be forwarded, and the memo string to be used in the
 // final destination of the tokens.
 message ForwardingInfo {
-  repeated Hop hops = 1;
+  repeated Hop hops = 1 [(gogoproto.nullable) = false];
   string       memo = 2;
 }
 

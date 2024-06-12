@@ -10,7 +10,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-var validHop = &types.Hop{
+var validHop = types.Hop{
 	PortId:    types.PortID,
 	ChannelId: ibctesting.FirstChannelID,
 }
@@ -60,7 +60,7 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			"invalid forwarding info with too short hop port ID",
 			types.NewForwardingInfo(
 				"",
-				&types.Hop{
+				types.Hop{
 					PortId:    invalidShortPort,
 					ChannelId: ibctesting.FirstChannelID,
 				},
@@ -71,7 +71,7 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			"invalid forwarding info with too long hop port ID",
 			types.NewForwardingInfo(
 				"",
-				&types.Hop{
+				types.Hop{
 					PortId:    invalidLongPort,
 					ChannelId: ibctesting.FirstChannelID,
 				},
@@ -82,7 +82,7 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			"invalid forwarding info with non-alpha hop port ID",
 			types.NewForwardingInfo(
 				"",
-				&types.Hop{
+				types.Hop{
 					PortId:    invalidPort,
 					ChannelId: ibctesting.FirstChannelID,
 				},
@@ -93,7 +93,7 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			"invalid forwarding info with too long hop channel ID",
 			types.NewForwardingInfo(
 				"",
-				&types.Hop{
+				types.Hop{
 					PortId:    types.PortID,
 					ChannelId: invalidLongChannel,
 				},
@@ -104,7 +104,7 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			"invalid forwarding info with too short hop channel ID",
 			types.NewForwardingInfo(
 				"",
-				&types.Hop{
+				types.Hop{
 					PortId:    types.PortID,
 					ChannelId: invalidShortChannel,
 				},
@@ -115,7 +115,7 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			"invalid forwarding info with non-alpha hop channel ID",
 			types.NewForwardingInfo(
 				"",
-				&types.Hop{
+				types.Hop{
 					PortId:    types.PortID,
 					ChannelId: invalidChannel,
 				},
@@ -139,10 +139,10 @@ func TestForwardingInfo_Validate(t *testing.T) {
 	}
 }
 
-func generateHops(n int) []*types.Hop {
-	hops := make([]*types.Hop, n)
+func generateHops(n int) []types.Hop {
+	hops := make([]types.Hop, n)
 	for i := 0; i < n; i++ {
-		hops[i] = &types.Hop{
+		hops[i] = types.Hop{
 			PortId:    types.PortID,
 			ChannelId: ibctesting.FirstChannelID,
 		}
