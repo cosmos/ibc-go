@@ -416,7 +416,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.ErrInvalidMemo,
 		},
 		{
-			"failure: invalid forwarding path port",
+			"failure: invalid forwarding path port ID",
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
@@ -438,7 +438,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			host.ErrInvalidID,
 		},
 		{
-			"failure: invalid forwarding path channel",
+			"failure: invalid forwarding path channel ID",
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{

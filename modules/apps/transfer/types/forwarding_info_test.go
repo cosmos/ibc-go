@@ -11,8 +11,8 @@ import (
 )
 
 var validHop = &types.Hop{
-	PortId:    "transfer",
-	ChannelId: "channel-0",
+	PortId:    types.PortID,
+	ChannelId: ibctesting.FirstChannelID,
 }
 
 func TestForwardingInfo_Validate(t *testing.T) {
@@ -22,101 +22,101 @@ func TestForwardingInfo_Validate(t *testing.T) {
 		expError       error
 	}{
 		{
-			"valid msg no hops",
+			"valid forwarding info with no hops",
 			types.NewForwardingInfo(""),
 			nil,
 		},
 		{
-			"valid msg with hops",
+			"valid forwarding info with hops",
 			types.NewForwardingInfo("", validHop),
 			nil,
 		},
 		{
-			"valid msg with memo",
+			"valid forwarding info with memo",
 			types.NewForwardingInfo(testMemo1, validHop, validHop),
 			nil,
 		},
 		{
-			"valid msg with max hops",
+			"valid forwarding info with max hops",
 			types.NewForwardingInfo("", generateHops(types.MaximumNumberOfForwardingHops)...),
 			nil,
 		},
 		{
-			"valid msg with max memo length",
+			"valid forwarding info with max memo length",
 			types.NewForwardingInfo(ibctesting.GenerateString(types.MaximumMemoLength), validHop),
 			nil,
 		},
 		{
-			"invalid msg with too many hops",
+			"invalid forwarding info with too many hops",
 			types.NewForwardingInfo("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
 			types.ErrInvalidForwardingInfo,
 		},
 		{
-			"invalid msg with too long memo",
+			"invalid forwarding info with too long memo",
 			types.NewForwardingInfo(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
 			types.ErrInvalidMemo,
 		},
 		{
-			"invalid msg with too short hop port ID",
+			"invalid forwarding info with too short hop port ID",
 			types.NewForwardingInfo(
 				"",
 				&types.Hop{
 					PortId:    invalidShortPort,
-					ChannelId: "channel-0",
+					ChannelId: ibctesting.FirstChannelID,
 				},
 			),
 			host.ErrInvalidID,
 		},
 		{
-			"invalid msg with too long hop port ID",
+			"invalid forwarding info with too long hop port ID",
 			types.NewForwardingInfo(
 				"",
 				&types.Hop{
 					PortId:    invalidLongPort,
-					ChannelId: "channel-0",
+					ChannelId: ibctesting.FirstChannelID,
 				},
 			),
 			host.ErrInvalidID,
 		},
 		{
-			"invalid msg with non-alpha hop port ID",
+			"invalid forwarding info with non-alpha hop port ID",
 			types.NewForwardingInfo(
 				"",
 				&types.Hop{
 					PortId:    invalidPort,
-					ChannelId: "channel-0",
+					ChannelId: ibctesting.FirstChannelID,
 				},
 			),
 			host.ErrInvalidID,
 		},
 		{
-			"invalid msg with too long hop channel ID",
+			"invalid forwarding info with too long hop channel ID",
 			types.NewForwardingInfo(
 				"",
 				&types.Hop{
-					PortId:    "transfer",
+					PortId:    types.PortID,
 					ChannelId: invalidLongChannel,
 				},
 			),
 			host.ErrInvalidID,
 		},
 		{
-			"invalid msg with too short hop channel ID",
+			"invalid forwarding info with too short hop channel ID",
 			types.NewForwardingInfo(
 				"",
 				&types.Hop{
-					PortId:    "transfer",
+					PortId:    types.PortID,
 					ChannelId: invalidShortChannel,
 				},
 			),
 			host.ErrInvalidID,
 		},
 		{
-			"invalid msg with non-alpha hop channel ID",
+			"invalid forwarding info with non-alpha hop channel ID",
 			types.NewForwardingInfo(
 				"",
 				&types.Hop{
-					PortId:    "transfer",
+					PortId:    types.PortID,
 					ChannelId: invalidChannel,
 				},
 			),
@@ -127,7 +127,7 @@ func TestForwardingInfo_Validate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc := tc
 
-			err := tc.forwardingInfo.Validate()
+			err := tc.forwardingInfo.ValidateBasic()
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -143,8 +143,8 @@ func generateHops(n int) []*types.Hop {
 	hops := make([]*types.Hop, n)
 	for i := 0; i < n; i++ {
 		hops[i] = &types.Hop{
-			PortId:    "transfer",
-			ChannelId: "channel-0",
+			PortId:    types.PortID,
+			ChannelId: ibctesting.FirstChannelID,
 		}
 	}
 	return hops

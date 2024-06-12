@@ -8,6 +8,7 @@ import (
 
 const MaximumNumberOfForwardingHops = 64
 
+// NewForwardingInfo creates a new ForwardingInfo instance given a memo and a variable number of hops.
 func NewForwardingInfo(memo string, hops ...*Hop) *ForwardingInfo {
 	return &ForwardingInfo{
 		Memo: memo,
@@ -15,7 +16,8 @@ func NewForwardingInfo(memo string, hops ...*Hop) *ForwardingInfo {
 	}
 }
 
-func (fi ForwardingInfo) Validate() error {
+// ValidateBasic performs a basic validation of the ForwardingInfo fields.
+func (fi ForwardingInfo) ValidateBasic() error {
 	if len(fi.Hops) > MaximumNumberOfForwardingHops {
 		return errorsmod.Wrapf(ErrInvalidForwardingInfo, "number of hops in forwarding path cannot exceed %d", MaximumNumberOfForwardingHops)
 	}
