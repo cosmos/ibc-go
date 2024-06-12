@@ -37,5 +37,5 @@ message FungibleTokenPacketDataV2 {
   // optional memo
   string memo = 4;
   // optional forwarding information
-  ibc.applications.transfer.v1.Forwarding forwarding_path = 5;
+  ibc.applications.transfer.v1.ForwardingInfo forwarding_path = 5;
 }

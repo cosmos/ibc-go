@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -26,7 +27,7 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwardingPath := types.Forwarding{
+	forwardingPath := types.ForwardingInfo{
 		Hops: []*types.Hop{
 			{
 				PortId:    path2.EndpointA.ChannelConfig.PortID,
@@ -88,7 +89,7 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwardingPath := types.Forwarding{
+	forwardingPath := types.ForwardingInfo{
 		Hops: []*types.Hop{
 			{
 				PortId:    path2.EndpointB.ChannelConfig.PortID,
@@ -171,7 +172,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	coin = sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwardingPath := types.Forwarding{
+	forwardingPath := types.ForwardingInfo{
 		Hops: []*types.Hop{
 			{
 				PortId:    path2.EndpointB.ChannelConfig.PortID,
@@ -279,7 +280,7 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwardingPath := types.Forwarding{
+	forwardingPath := types.ForwardingInfo{
 		Hops: []*types.Hop{
 			{
 				PortId:    path2.EndpointB.ChannelConfig.PortID,
@@ -476,7 +477,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	sender = suite.chainC.SenderAccounts[0].SenderAccount
 	receiver = suite.chainA.SenderAccounts[0].SenderAccount // Receiver is the A chain account
 
-	forwardingPath := types.Forwarding{
+	forwardingPath := types.ForwardingInfo{
 		Hops: []*types.Hop{
 			{
 				PortId:    path1.EndpointB.ChannelConfig.PortID,

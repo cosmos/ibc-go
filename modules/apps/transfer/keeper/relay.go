@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-metrics"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/hashicorp/go-metrics"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
@@ -63,7 +65,7 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	memo string,
-	forwardingPath *types.Forwarding,
+	forwardingPath *types.ForwardingInfo,
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -275,12 +277,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
 		memo := ""
 
-		var nextForwardingPath *types.Forwarding
+		var nextForwardingPath *types.ForwardingInfo
 		if len(data.ForwardingPath.Hops) == 1 {
 			memo = data.ForwardingPath.Memo
 			nextForwardingPath = nil
 		} else {
-			nextForwardingPath = &types.Forwarding{
+			nextForwardingPath = &types.ForwardingInfo{
 				Hops: data.ForwardingPath.Hops[1:],
 				Memo: data.ForwardingPath.Memo,
 			}
@@ -549,7 +551,7 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 }
 
 // createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
-func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, forwardingPath *types.Forwarding) []byte {
+func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, forwardingPath *types.ForwardingInfo) []byte {
 	var packetDataBytes []byte
 	switch appVersion {
 	case types.V1:

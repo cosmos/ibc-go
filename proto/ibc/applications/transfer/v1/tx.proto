@@ -52,7 +52,7 @@ message MsgTransfer {
   // tokens to be transferred
   repeated cosmos.base.v1beta1.Coin tokens = 9 [(gogoproto.nullable) = false];
   // optional forwarding information
-  Forwarding forwarding_path = 10;
+  ForwardingInfo forwarding_path = 10;
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.

@@ -8,14 +8,6 @@ import (
 	"path"
 	"strings"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -25,11 +17,21 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 const (
@@ -561,7 +563,7 @@ func getValidatorsAndFullNodes(chainIdx int) (int, int) {
 }
 
 // GetMsgTransfer returns a MsgTransfer that is constructed based on the channel version
-func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string, forwardingPath *transfertypes.Forwarding) *transfertypes.MsgTransfer {
+func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string, forwardingPath *transfertypes.ForwardingInfo) *transfertypes.MsgTransfer {
 	if len(tokens) == 0 {
 		panic(errors.New("tokens cannot be empty"))
 	}

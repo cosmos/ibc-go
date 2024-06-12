@@ -17,10 +17,10 @@ message Params {
   bool receive_enabled = 2;
 }
 
-// Forwarding defines a list of hops determining the path
+// ForwardingInfo defines a list of port ID, channel ID pairs determining the path
 // through which a packet must be forwarded, and the memo string to be used in the
 // final destination of the tokens.
-message Forwarding {
+message ForwardingInfo {
   repeated Hop hops = 1;
   string       memo = 2;
 }
