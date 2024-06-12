@@ -90,7 +90,6 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 			continue
 		}
 
-		// otherwise burn it
 		if err := k.burnCoin(ctx, forwardingAddr, coin); err != nil {
 			return err
 		}
