@@ -323,23 +323,23 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
-		if !isForwarded {
-			// the acknowledgement succeeded on the receiving chain so nothing
-			// needs to be executed and no error needs to be returned
-			return nil
+		if isForwarded {
+			return k.onForwardedPacketResultAck(ctx, prevPacket)
 		}
 
-		return k.onForwardedPacketResultAck(ctx, prevPacket)
+		// the acknowledgement succeeded on the receiving chain so nothing
+		// needs to be executed and no error needs to be returned
+		return nil
 	case *channeltypes.Acknowledgement_Error:
 		// We refund the tokens from the escrow address to the sender
 		if err := k.refundPacketTokens(ctx, packet, data); err != nil {
 			return err
 		}
-		if !isForwarded {
-			return nil
+		if isForwarded {
+			return k.onForwardedPacketErrorAck(ctx, prevPacket, data)
 		}
 
-		return k.onForwardedPacketErrorAck(ctx, prevPacket, data)
+		return nil
 	default:
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 	}
@@ -354,12 +354,11 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 	}
 
 	prevPacket, isForwarded := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	if !isForwarded {
-		// return if not a forwarded packet
-		return nil
+	if isForwarded {
+		return k.onForwardedPacketTimeout(ctx, prevPacket, data)
 	}
 
-	return k.onForwardedPacketTimeout(ctx, prevPacket, data)
+	return nil
 }
 
 // refundPacketTokens will unescrow and send back the tokens back to sender
