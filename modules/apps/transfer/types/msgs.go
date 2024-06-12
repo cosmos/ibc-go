@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -49,7 +48,7 @@ func NewMsgTransfer(
 	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
-	forwardingPath *ForwardingInfo,
+	forwardingPath *Forwarding,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,

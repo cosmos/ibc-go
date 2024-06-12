@@ -103,7 +103,7 @@ func NewFungibleTokenPacketDataV2(
 	tokens []Token,
 	sender, receiver string,
 	memo string,
-	forwardingPath *ForwardingInfo,
+	forwardingPath *Forwarding,
 ) FungibleTokenPacketDataV2 {
 	return FungibleTokenPacketDataV2{
 		Tokens:         tokens,
