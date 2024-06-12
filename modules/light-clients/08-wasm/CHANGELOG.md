@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* [\#5923](https://github.com/cosmos/ibc-go/pull/5923) imp: adding 08-wasm build opts for libwasmvm linking disabled 
+
 ### Features
 
 ### Bug Fixes
