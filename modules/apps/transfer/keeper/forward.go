@@ -13,11 +13,11 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
-// onForwardedPacketErrorAck reverts the receive packet logic that occurs in the middle chain and asyncronously acknowledges the prevPacket
+// onForwardedPacketErrorAck reverts the receive packet logic that occurs in the middle chain and asynchronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketErrorAck(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 	// we must revert the changes that came from successfully receiving the tokens on our chain
-	// before propogating the error acknowledgement back to original sender chain
+	// before propagating the error acknowledgement back to original sender chain
 	if err := k.revertInFlightChanges(ctx, prevPacket, failedPacketData); err != nil {
 		return err
 	}
@@ -26,13 +26,13 @@ func (k Keeper) onForwardedPacketErrorAck(ctx sdk.Context, prevPacket channeltyp
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// onForwardedPacketResultAck asyncronously acknowledges the prevPacket
+// onForwardedPacketResultAck asynchronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketResultAck(ctx sdk.Context, prevPacket channeltypes.Packet) error {
 	forwardAck := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// onForwardedPacketTimeout reverts the receive packet logic that occurs in the middle chain and asyncronously acknowledges the prevPacket
+// onForwardedPacketTimeout reverts the receive packet logic that occurs in the middle chain and asynchronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketTimeout(ctx sdk.Context, prevPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
 	if err := k.revertInFlightChanges(ctx, prevPacket, timeoutPacketData); err != nil {
 		return err
@@ -42,7 +42,7 @@ func (k Keeper) onForwardedPacketTimeout(ctx sdk.Context, prevPacket channeltype
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// writes acknowledgement for a forwarded packet asyncronously
+// writes acknowledgement for a forwarded packet asynchronously
 func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
 	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.DestinationPort, packet.DestinationChannel))
 	if !ok {
