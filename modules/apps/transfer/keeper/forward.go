@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 // reverts the receive packet logic that occurs in the middle chain and asyncronously acknowledges the prevPacket
@@ -93,4 +94,63 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.P
 		}
 	}
 	return nil
+}
+
+// forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
+func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
+	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
+	}
+
+	// sending from the forward escrow address to the original receiver address.
+	sender := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
+
+	var memo string
+
+	var nextForwardingPath *types.ForwardingInfo
+	if len(data.ForwardingPath.Hops) == 1 {
+		memo = data.ForwardingPath.Memo
+		nextForwardingPath = nil
+	} else {
+		nextForwardingPath = &types.ForwardingInfo{
+			Hops: data.ForwardingPath.Hops[1:],
+			Memo: data.ForwardingPath.Memo,
+		}
+	}
+
+	msg := types.NewMsgTransfer(
+		data.ForwardingPath.Hops[0].PortId,
+		data.ForwardingPath.Hops[0].ChannelId,
+		receivedCoins,
+		sender.String(),
+		receiver.String(),
+		packet.TimeoutHeight,
+		packet.TimeoutTimestamp,
+		memo,
+		nextForwardingPath,
+	)
+
+	resp, err := k.Transfer(ctx, msg)
+	if err != nil {
+		return err
+	}
+
+	k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortId, data.ForwardingPath.Hops[0].ChannelId, resp.Sequence, packet)
+	return nil
+}
+
+// getReceiverFromPacketData returns either the sender specified in the packet data or the forwarding address
+// if there are still hops left to perform.
+func getReceiverFromPacketData(data types.FungibleTokenPacketDataV2, portID, channelID string) (sdk.AccAddress, error) {
+	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
+	if err != nil {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
+	}
+
+	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
+		receiver = types.GetForwardAddress(portID, channelID)
+	}
+
+	return receiver, nil
 }
