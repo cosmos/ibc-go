@@ -14,12 +14,12 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-// reverts the receive packet logic that occurs in the middle chain and asyncronously acknowledges the prevPacket
+// onForwardedPacketErrorAck reverts the receive packet logic that occurs in the middle chain and asynchronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketErrorAck(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 	// we must revert the changes that came from successfully receiving the tokens on our chain
-	// before propogating the error acknowledgement back to original sender chain
-	if err := k.revertInFlightChanges(ctx, prevPacket, failedPacketData); err != nil {
+	// before propagating the error acknowledgement back to original sender chain
+	if err := k.revertForwardedPacket(ctx, prevPacket, failedPacketData); err != nil {
 		return err
 	}
 
@@ -27,15 +27,15 @@ func (k Keeper) onForwardedPacketErrorAck(ctx sdk.Context, prevPacket channeltyp
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// asyncronously acknowledges the prevPacket
+// onForwardedPacketResultAck asynchronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketResultAck(ctx sdk.Context, prevPacket channeltypes.Packet) error {
 	forwardAck := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// reverts the receive packet logic that occurs in the middle chain and asyncronously acknowledges the prevPacket
+// onForwardedPacketTimeout reverts the receive packet logic that occurs in the middle chain and asynchronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketTimeout(ctx sdk.Context, prevPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
-	if err := k.revertInFlightChanges(ctx, prevPacket, timeoutPacketData); err != nil {
+	if err := k.revertForwardedPacket(ctx, prevPacket, timeoutPacketData); err != nil {
 		return err
 	}
 
@@ -43,7 +43,7 @@ func (k Keeper) onForwardedPacketTimeout(ctx sdk.Context, prevPacket channeltype
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// writes acknowledgement for a forwarded packet asyncronously
+// acknowledgeForwardedPacket writes acknowledgement for a forwarded packet asynchronously
 func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
 	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.DestinationPort, packet.DestinationChannel))
 	if !ok {
@@ -53,10 +53,10 @@ func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet channeltypes.
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, capability, packet, ack)
 }
 
-// revertInFlightChanges reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.
+// revertForwardedPacket reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.
 // If an error occurs further down the line, the state changes on this chain must be reverted before sending back the error
 // acknowledgement to ensure atomic packet forwarding.
-func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
+func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	/*
 		Recall that RecvPacket handles an incoming packet depending on the denom of the received funds:
 			1. If the funds are native, then the amount is sent to the receiver from the escrow.
@@ -66,7 +66,7 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.P
 			2. Burning voucher tokens if the funds are foreign
 	*/
 
-	intermediateSenderAddr := types.GetForwardAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
+	forwardingAddr := types.GetForwardAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
 	escrow := types.GetEscrowAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
 
 	// we can iterate over the received tokens of prevPacket by iterating over the sent tokens of failedPacketData
@@ -78,18 +78,19 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.P
 		}
 		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-		// check if the packet we received was a native token
-		if token.Denom.IsNative() {
+		// check if the token we received was a source token
+		// note that the DestinationPort and DestinationChannel of prevPacket are the
+		// SourcePort and SourceChannel of failed packet
+		if token.Denom.SenderChainIsSource(prevPacket.DestinationPort, prevPacket.DestinationChannel) {
 			// then send it back to the escrow address
-			if err := k.escrowCoin(ctx, intermediateSenderAddr, escrow, coin); err != nil {
+			if err := k.escrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
 				return err
 			}
 
 			continue
 		}
 
-		// otherwise burn it
-		if err := k.burnCoin(ctx, intermediateSenderAddr, coin); err != nil {
+		if err := k.burnCoin(ctx, forwardingAddr, coin); err != nil {
 			return err
 		}
 	}
