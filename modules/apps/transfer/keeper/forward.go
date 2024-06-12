@@ -13,7 +13,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
-// reverts the receive packet logic that occurs in the middle chain and asyncronously acknowledges the prevPacket
+// onForwardedPacketErrorAck reverts the receive packet logic that occurs in the middle chain and asyncronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketErrorAck(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 	// we must revert the changes that came from successfully receiving the tokens on our chain
@@ -26,13 +26,13 @@ func (k Keeper) onForwardedPacketErrorAck(ctx sdk.Context, prevPacket channeltyp
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// asyncronously acknowledges the prevPacket
+// onForwardedPacketResultAck asyncronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketResultAck(ctx sdk.Context, prevPacket channeltypes.Packet) error {
 	forwardAck := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// reverts the receive packet logic that occurs in the middle chain and asyncronously acknowledges the prevPacket
+// onForwardedPacketTimeout reverts the receive packet logic that occurs in the middle chain and asyncronously acknowledges the prevPacket
 func (k Keeper) onForwardedPacketTimeout(ctx sdk.Context, prevPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
 	if err := k.revertInFlightChanges(ctx, prevPacket, timeoutPacketData); err != nil {
 		return err
