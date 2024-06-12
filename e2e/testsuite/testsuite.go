@@ -152,11 +152,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 
 // newInterchain constructs a new interchain instance that creates channels between the chains.
 func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains []ibc.Chain, channelOpts func(*ibc.CreateChannelOptions)) *interchaintest.Interchain {
-	channelOptions := ibc.DefaultChannelOpts()
-	// For now, set the version to the latest transfer module version
-	// DefaultChannelOpts uses V1 at the moment
-	channelOptions.Version = transfertypes.V2
-
+	channelOptions := defaultChannelOpts(chains)
 	if channelOpts != nil {
 		channelOpts(&channelOptions)
 	}
@@ -206,19 +202,9 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 
 	pathName := s.generatePathName()
 
-	channelOptions := ibc.DefaultChannelOpts()
+	channelOptions := defaultChannelOpts([]ibc.Chain{chainA, chainB})
 	if channelOpts != nil {
 		channelOpts(&channelOptions)
-	} else {
-		chainAVersion := chainA.Config().Images[0].Version
-		chainBVersion := chainB.Config().Images[0].Version
-
-		// select the transfer version based on the chains' version
-		transferVersion := transfertypes.V1
-		if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
-			transferVersion = transfertypes.V2
-		}
-		channelOptions.Version = transferVersion
 	}
 
 	ic := interchaintest.NewInterchain().
@@ -291,7 +277,9 @@ func (s *E2ETestSuite) GetPathName(idx int64) string {
 	return strings.ReplaceAll(pathName, "/", "-")
 }
 
-// generatePath generates the path name using the test suites name
+// generatePath generates the path name using the test suites name. The indices provided specify which chains should be
+// used. E.g. to generate a path between chain A and B, you would use 0 and 1, to specify between A and C, you would
+// use 0 and 2 etc.
 func (s *E2ETestSuite) generatePath(ctx context.Context, ibcrelayer ibc.Relayer, chainAIdx, chainBIdx int) string {
 	chains := s.GetAllChains()
 	chainA, chainB := chains[chainAIdx], chains[chainBIdx]
@@ -676,4 +664,23 @@ func ThreeChainSetup() ChainOptionConfiguration {
 
 		options.ChainSpecs = append(options.ChainSpecs, &chainCSpec)
 	}
+}
+
+// DefaultChainOptions returns the default chain options for the test suite based on the provided chains.
+func defaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
+	channelOptions := ibc.DefaultChannelOpts()
+	channelOptions.Version = determineDefaultTransferVersion(chains)
+	return channelOptions
+}
+
+// determineDefaultTransferVersion determines the version of transfer that should be used with an arbitrary number of chains.
+// the default is V2, but if any chain does not support V2, then V1 is used.
+func determineDefaultTransferVersion(chains []ibc.Chain) string {
+	for _, chain := range chains {
+		chainVersion := chain.Config().Images[0].Version
+		if !testvalues.ICS20v2FeatureReleases.IsSupported(chainVersion) {
+			return transfertypes.V1
+		}
+	}
+	return transfertypes.V2
 }

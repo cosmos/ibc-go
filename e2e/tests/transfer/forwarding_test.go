@@ -21,7 +21,7 @@ type TransferForwardingTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// TODO: replace this with actual tests
+// TODO: replace this with actual tests https://github.com/cosmos/ibc-go/issues/6578
 // this test verifies that three chains can be set up, and the relayer will relay
 // packets between them as configured in the newInterchain function.
 func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
@@ -31,6 +31,7 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 	// TODO: note the ThreeChainSetup fn needs to be passed to TransferChannelOptions since it calls
 	// GetChains which will requires those settings. We should be able to update the function to accept
 	// the chain version rather than calling GetChains.
+	// https://github.com/cosmos/ibc-go/issues/6577
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions(testsuite.ThreeChainSetup()), testsuite.ThreeChainSetup())
 	chains := s.GetAllChains()
 
