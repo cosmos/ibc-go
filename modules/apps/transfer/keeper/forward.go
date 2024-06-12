@@ -98,7 +98,6 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.P
 
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
-
 	var memo string
 
 	var nextForwardingPath *types.ForwardingInfo
