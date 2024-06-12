@@ -42,7 +42,7 @@ func (k Keeper) onForwardedPacketTimeout(ctx sdk.Context, prevPacket channeltype
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// writes acknowledgement for a forwarded packet asynchronously
+// acknowledgeForwardedPacket writes acknowledgement for a forwarded packet asynchronously
 func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
 	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.DestinationPort, packet.DestinationChannel))
 	if !ok {
@@ -65,7 +65,7 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.P
 			2. Burning voucher tokens if the funds are foreign
 	*/
 
-	intermediateSenderAddr := types.GetForwardAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
+	forwardingAddr := types.GetForwardAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
 	escrow := types.GetEscrowAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
 
 	// we can iterate over the received tokens of prevPacket by iterating over the sent tokens of failedPacketData
@@ -82,7 +82,7 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.P
 		// SourcePort and SourceChannel of failed packet
 		if token.Denom.SenderChainIsSource(prevPacket.DestinationPort, prevPacket.DestinationChannel) {
 			// then send it back to the escrow address
-			if err := k.escrowCoin(ctx, intermediateSenderAddr, escrow, coin); err != nil {
+			if err := k.escrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
 				return err
 			}
 
@@ -90,7 +90,7 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.P
 		}
 
 		// otherwise burn it
-		if err := k.burnCoin(ctx, intermediateSenderAddr, coin); err != nil {
+		if err := k.burnCoin(ctx, forwardingAddr, coin); err != nil {
 			return err
 		}
 	}
