@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/gogoproto/proto"
-
 	sdkmath "cosmossdk.io/math"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -15,6 +12,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
@@ -798,7 +796,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"timeout_height": { "revision_number": 1, "revision_height": 100 },
 							"timeout_timestamp": 0,
 							"memo": "",
-							"forwarding_path": { "hops": [], "memo": "" }
+							"forwarding": { "hops": [], "memo": "" }
 						}
 					]
 				}`)

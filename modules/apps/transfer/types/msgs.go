@@ -48,7 +48,7 @@ func NewMsgTransfer(
 	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
-	forwardingPath *Forwarding,
+	forwarding *Forwarding,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -59,7 +59,7 @@ func NewMsgTransfer(
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             memo,
 		Tokens:           tokens,
-		ForwardingPath:   forwardingPath,
+		Forwarding:       forwarding,
 	}
 }
 
