@@ -98,13 +98,6 @@ func (k Keeper) revertInFlightChanges(ctx sdk.Context, prevPacket channeltypes.P
 
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
-	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
-	}
-
-	// sending from the forward escrow address to the original receiver address.
-	sender := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
 
 	var memo string
 
@@ -119,12 +112,15 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 		}
 	}
 
+	// sending from the forward escrow address to the original receiver address.
+	sender := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
+
 	msg := types.NewMsgTransfer(
 		data.ForwardingPath.Hops[0].PortId,
 		data.ForwardingPath.Hops[0].ChannelId,
 		receivedCoins,
 		sender.String(),
-		receiver.String(),
+		data.Receiver,
 		packet.TimeoutHeight,
 		packet.TimeoutTimestamp,
 		memo,
