@@ -57,12 +57,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer of IBC token",
 			func() {
 				// send IBC token back to chainB
-				denom := types.Denom{
-					Base: coin.Denom,
-					Trace: []types.Trace{
-						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
-					},
-				}
+				denom := types.NewDenom(coin.Denom, types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 			},
 			nil,
@@ -83,12 +78,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer of IBC token with memo",
 			func() {
 				// send IBC token back to chainB
-				denom := types.Denom{
-					Base: coin.Denom,
-					Trace: []types.Trace{
-						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
-					},
-				}
+				denom := types.NewDenom(coin.Denom, types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 				memo = "memo"
 			},
@@ -119,12 +109,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failure: denom trace not found",
 			func() {
-				denom := types.Denom{
-					Base: "randomdenom",
-					Trace: []types.Trace{
-						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
-					},
-				}
+				denom := types.NewDenom("randomdenom", types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount)
 			},
 			types.ErrDenomNotFound,
@@ -132,12 +117,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failure: bank send from module account failed, insufficient balance",
 			func() {
-				denom := types.Denom{
-					Base: coin.Denom,
-					Trace: []types.Trace{
-						types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID),
-					},
-				}
+				denom := types.NewDenom(coin.Denom, types.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				coin = sdk.NewCoin(denom.IBCDenom(), coin.Amount.Add(sdkmath.NewInt(1)))
 			},
 			sdkerrors.ErrInsufficientFunds,
@@ -394,10 +374,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			data := types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  sdk.DefaultBondDenom,
-							Trace: []types.Trace{},
-						},
+						Denom:  types.NewDenom(sdk.DefaultBondDenom, []types.Trace{}...),
 						Amount: amount.String(),
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
