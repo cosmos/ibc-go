@@ -141,7 +141,7 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 	}
 
 	if ftpd.ForwardingPath != nil {
-		if err := ftpd.ForwardingPath.ValidateBasic(); err != nil {
+		if err := ftpd.ForwardingPath.Validate(); err != nil {
 			return err
 		}
 

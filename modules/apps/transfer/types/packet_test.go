@@ -224,10 +224,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")},
-						},
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -243,10 +240,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")},
-						},
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -401,10 +395,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom: types.Denom{
-							Base:  denom,
-							Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")},
-						},
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},

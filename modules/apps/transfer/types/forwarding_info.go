@@ -16,8 +16,8 @@ func NewForwardingInfo(memo string, hops ...*Hop) *ForwardingInfo {
 	}
 }
 
-// ValidateBasic performs a basic validation of the ForwardingInfo fields.
-func (fi ForwardingInfo) ValidateBasic() error {
+// Validate performs a basic validation of the ForwardingInfo fields.
+func (fi ForwardingInfo) Validate() error {
 	if len(fi.Hops) > MaximumNumberOfForwardingHops {
 		return errorsmod.Wrapf(ErrInvalidForwardingInfo, "number of hops in forwarding path cannot exceed %d", MaximumNumberOfForwardingHops)
 	}

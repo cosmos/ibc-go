@@ -127,7 +127,7 @@ func TestForwardingInfo_Validate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc := tc
 
-			err := tc.forwardingInfo.ValidateBasic()
+			err := tc.forwardingInfo.Validate()
 
 			expPass := tc.expError == nil
 			if expPass {
