@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -349,9 +350,6 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 }
 
 // This test replicates the Acknowledgement Failure Scenario 5
-// Currently seems like the middle hop is not reverting state changes when an error occurs.
-// In turn the final hop properly reverts changes. There may be an error in the way async ack are managed
-// or in the way i'm trying to activate the OnAck function.
 func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	amount := sdkmath.NewInt(100)
 	/*
@@ -472,7 +470,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 
 	// Now we want to trigger C -> B -> A
 	// The coin we want to send out is exactly the one we received on C
-	// coin = sdk.NewCoin(denomTraceBC.IBCDenom(), amount)
+	coin = sdk.NewCoin(denomABC.IBCDenom(), amount)
 
 	sender = suite.chainC.SenderAccounts[0].SenderAccount
 	receiver = suite.chainA.SenderAccounts[0].SenderAccount // Receiver is the A chain account
@@ -554,33 +552,23 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	// NOW WE HAVE TO SEND ACK TO B, PROPAGTE ACK TO C, CHECK FINAL RESULTS
 
 	// Reconstruct packet data
-	denom := types.ExtractDenomFromPath(denomAB.Path())
-	data := types.NewFungibleTokenPacketDataV2(
-		[]types.Token{
-			{
-				Denom:  denom,
-				Amount: amount.String(),
-			},
-		}, types.GetForwardAddress(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID).String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
-	packetRecv := channeltypes.NewPacket(data.GetBytes(), 3, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
+	data, err := internal.UnmarshalPacketData(packet.Data, types.V2)
+	suite.Require().NoError(err)
 
 	err = path1.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
 
 	// err = path1.EndpointA.AcknowledgePacket(packetRecv, ack.Acknowledgement())
-	err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packetRecv, data, ack)
+	err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, data, ack)
 	suite.Require().NoError(err)
 
 	// Check that Escrow B has been refunded amount
-	// NOTE This is failing. The revertInFlightsChanges sohuld mint back voucher to chainBescrow
-	// but this is not happening. It may be a problem related with how we're writing async acks.
-	//
 	coin = sdk.NewCoin(denomAB.IBCDenom(), amount)
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.NewInt(100), totalEscrowChainB.Amount)
 
-	denom = types.ExtractDenomFromPath(denomABC.Path())
+	denom := types.ExtractDenomFromPath(denomABC.Path())
 	data = types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
