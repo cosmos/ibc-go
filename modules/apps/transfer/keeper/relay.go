@@ -262,7 +262,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		receivedCoins = append(receivedCoins, voucher)
 	}
 
-	if shouldForwardPacketData(data) {
+	if data.ShouldBeForwarded() {
 		// we are now sending from the forward escrow address to the final receiver address.
 		if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
 			return false, err
