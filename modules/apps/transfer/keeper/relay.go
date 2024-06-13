@@ -64,7 +64,7 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	memo string,
-	forwardingPath *types.ForwardingInfo,
+	forwarding *types.Forwarding,
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -140,7 +140,7 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwardingPath)
+	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwarding)
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
@@ -169,19 +169,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return false, types.ErrReceiveDisabled
 	}
 
-	var (
-		err           error
-		receiver      sdk.AccAddress // final receiver of tokens if there is no forwarding info, otherwise, receiver in the next hop
-		finalReceiver sdk.AccAddress // final receiver of tokens if there is forwarding info
-	)
-
-	receiver, err = sdk.AccAddressFromBech32(data.Receiver)
+	receiver, err := getReceiverFromPacketData(data, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
-		return false, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
-	}
-	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
-		finalReceiver = receiver // , _ = sdk.AccAddressFromBech32(data.Receiver)
-		receiver = types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
+		return false, err
 	}
 
 	var receivedCoins sdk.Coins
@@ -272,39 +262,11 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		receivedCoins = append(receivedCoins, voucher)
 	}
 
-	// Adding forwarding logic
-	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
-		memo := ""
-
-		var nextForwardingPath *types.ForwardingInfo
-		if len(data.ForwardingPath.Hops) == 1 {
-			memo = data.ForwardingPath.Memo
-			nextForwardingPath = nil
-		} else {
-			nextForwardingPath = &types.ForwardingInfo{
-				Hops: data.ForwardingPath.Hops[1:],
-				Memo: data.ForwardingPath.Memo,
-			}
-		}
-
-		msg := types.NewMsgTransfer(
-			data.ForwardingPath.Hops[0].PortId,
-			data.ForwardingPath.Hops[0].ChannelId,
-			receivedCoins,
-			receiver.String(),
-			finalReceiver.String(),
-			packet.TimeoutHeight,
-			packet.TimeoutTimestamp,
-			memo,
-			nextForwardingPath,
-		)
-
-		resp, err := k.Transfer(ctx, msg)
-		if err != nil {
+	if data.ShouldBeForwarded() {
+		// we are now sending from the forward escrow address to the final receiver address.
+		if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
 			return false, err
 		}
-
-		k.SetForwardedPacket(ctx, data.ForwardingPath.Hops[0].PortId, data.ForwardingPath.Hops[0].ChannelId, resp.Sequence, packet)
 		return true, nil
 	}
 
@@ -472,7 +434,7 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 }
 
 // createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
-func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, forwardingPath *types.ForwardingInfo) []byte {
+func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, forwarding *types.Forwarding) []byte {
 	var packetDataBytes []byte
 	switch appVersion {
 	case types.V1:
@@ -485,7 +447,7 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender, receiver, memo)
 		packetDataBytes = packetData.GetBytes()
 	case types.V2:
-		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo, forwardingPath)
+		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo, forwarding)
 		packetDataBytes = packetData.GetBytes()
 	default:
 		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))

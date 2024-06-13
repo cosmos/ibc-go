@@ -110,6 +110,18 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
+			"success: multiple denoms",
+			func() {
+				packetData.Tokens = append(packetData.Tokens, transfertypes.Token{
+					Denom:  transfertypes.NewDenom(ibctesting.SecondaryDenom),
+					Amount: ibctesting.SecondaryTestCoin.Amount.String(),
+				})
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			nil,
+		},
+		{
 			"success: no-op on callback data is not valid",
 			func() {
 				//nolint:goconst
@@ -1003,10 +1015,10 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 				Amount: ibctesting.TestCoin.Amount.String(),
 			},
 		},
-		Sender:         ibctesting.TestAccAddress,
-		Receiver:       ibctesting.TestAccAddress,
-		Memo:           fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
-		ForwardingPath: nil,
+		Sender:     ibctesting.TestAccAddress,
+		Receiver:   ibctesting.TestAccAddress,
+		Memo:       fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
+		Forwarding: nil,
 	}
 
 	portID := s.path.EndpointA.ChannelConfig.PortID
