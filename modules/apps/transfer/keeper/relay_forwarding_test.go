@@ -649,7 +649,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	amount := sdkmath.NewInt(100)
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
-	receiver := suite.chainC.SenderAccounts[0].SenderAccount // Conferm whether it's B or C
+	receiver := suite.chainC.SenderAccounts[0].SenderAccount
 
 	denomA := types.NewDenom(coin.Denom)
 	denomAB := types.NewDenom(coin.Denom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
@@ -688,6 +688,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	err = pathAtoB.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
+	// Receive packet on B.
 	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packet)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
@@ -698,8 +699,9 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	err = pathBtoC.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
+	// Make sure founds went from A to B's escrow account.
 	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount.Sub(amount), denomA.IBCDenom(), "Chain A should have less funds")
-	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomAB.IBCDenom(), "Chain B's forwarding address should have coins")
+	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomAB.IBCDenom(), "Chain B's escrow should have coins")
 
 	address := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel).String()
 	data := types.NewFungibleTokenPacketDataV2(
@@ -772,5 +774,3 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 
 	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount, coin.Denom, "Chain A should have their funds back")
 }
-
-//Test that fails verification if no forwarding address
