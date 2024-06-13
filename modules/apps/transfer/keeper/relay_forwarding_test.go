@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
@@ -612,3 +613,109 @@ Test async ack is properly relayed to middle hop after forwarding transfer compl
 // TODO
 Tiemout during forwarding after middle hop execution reverts properly the state changes
 */
+
+func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
+	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	path1.Setup()
+
+	path2 := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+	path2.Setup()
+
+	amount := sdkmath.NewInt(100)
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	sender := suite.chainA.SenderAccounts[0].SenderAccount
+	receiver := suite.chainC.SenderAccounts[0].SenderAccount // Conferm whether it's B or C
+
+	transferMsg := types.NewMsgTransfer(
+		path1.EndpointA.ChannelConfig.PortID,
+		path1.EndpointA.ChannelID,
+		sdk.NewCoins(coin),
+		sender.GetAddress().String(),
+		receiver.GetAddress().String(),
+		suite.chainA.GetTimeoutHeight(),
+		0, "",
+		&types.ForwardingInfo{
+			Hops: []types.Hop{
+				{
+					PortId:    path2.EndpointA.ChannelConfig.PortID,
+					ChannelId: path2.EndpointA.ChannelID,
+				},
+			},
+		},
+	)
+
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	// parse the packet from result events and recv packet on chainB
+	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packet)
+
+	err = path1.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = path1.EndpointB.RecvPacketWithResult(packet)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	err = path2.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = path2.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	// packet, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, 1)
+	// suite.Require().True(found)
+
+	// bytes := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetPacketCommitment(suite.chainB.GetContext(), path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, 1)
+
+	// packet.SourceChannel = path2.EndpointA.ChannelID
+
+	// bytes2 := channeltypes.CommitPacket(suite.chainB.Codec, packet)
+	// suite.Require().Equal(bytes, bytes2)
+	//
+	// [{Denom:{Base:stake Trace:[]} Amount:100}]
+
+	address := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel).String()
+	data := types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
+			{
+				Denom:  types.NewDenom("stake", types.NewTrace(path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID)),
+				Amount: "100",
+			},
+		},
+		address,
+		suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(),
+		"", nil,
+	).GetBytes()
+
+	packet = channeltypes.NewPacket(
+		data,
+		1,
+		path2.EndpointA.ChannelConfig.PortID,
+		path2.EndpointA.ChannelID,
+		path2.EndpointB.ChannelConfig.PortID,
+		path2.EndpointB.ChannelID,
+		packet.TimeoutHeight,
+		packet.TimeoutTimestamp)
+
+	// retrieve module callbacks
+	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path2.EndpointA.ChannelConfig.PortID)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+	suite.Require().True(ok)
+
+	err = cbs.OnTimeoutPacket(suite.chainB.GetContext(), packet, nil)
+	suite.Require().NoError(err)
+
+	res := suite.chainB.GetAcknowledgement(packet)
+	suite.Require().NotNil(res, "chainB does not have an ack")
+
+	ack := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
+	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
+	suite.Require().Equal(ackbytes, res)
+}
+
+//Test that fails verification if no forwarding address
