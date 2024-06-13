@@ -102,6 +102,17 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 
+	if msg.ForwardingPath != nil {
+		if err := msg.ForwardingPath.Validate(); err != nil {
+			return err
+		}
+
+		// We cannot have non-empty memo and non-empty forwarding path hops at the same time.
+		if len(msg.ForwardingPath.Hops) > 0 && msg.Memo != "" {
+			return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", msg.Memo, msg.ForwardingPath.Hops)
+		}
+	}
+
 	for _, coin := range msg.GetCoins() {
 		if err := validateIBCCoin(coin); err != nil {
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "%s: %s", err.Error(), coin.String())
