@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-metrics"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/hashicorp/go-metrics"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
