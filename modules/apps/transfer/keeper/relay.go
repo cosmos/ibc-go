@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -181,10 +180,11 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		// parse the transfer amount
-		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
-		if !ok {
-			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", token.Amount)
+		coin, err := token.ConvertToCoin()
+		if err != nil {
+			return err
 		}
+		transferAmount := coin.Amount
 
 		// This is the prefix that would have been prefixed to the denomination
 		// on sender chain IF and only if the token originally came from the
@@ -198,8 +198,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			// remove prefix added by sender chain
 			token.Denom.Trace = token.Denom.Trace[1:]
-
-			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 			if k.bankKeeper.BlockedAddr(receiver) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
@@ -290,12 +288,10 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 	// NOTE: packet data type already checked in handler.go
 
 	for _, token := range data.Tokens {
-		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
-		if !ok {
-			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", transferAmount)
+		coin, err := token.ConvertToCoin()
+		if err != nil {
+			return err
 		}
-
-		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 		sender, err := sdk.AccAddressFromBech32(data.Sender)
 		if err != nil {

@@ -3,6 +3,7 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Tokens is a slice of Tokens
@@ -24,4 +25,14 @@ func (t Token) Validate() error {
 	}
 
 	return nil
+}
+
+func (t Token) ConvertToCoin() (sdk.Coin, error) {
+	transferAmount, ok := sdkmath.NewIntFromString(t.Amount)
+	if !ok {
+		return sdk.Coin{}, errorsmod.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", transferAmount)
+	}
+
+	coin := sdk.NewCoin(t.Denom.IBCDenom(), transferAmount)
+	return coin, nil
 }
