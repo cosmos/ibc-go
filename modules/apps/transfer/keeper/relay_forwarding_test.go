@@ -626,6 +626,15 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount // Conferm whether it's B or C
 
+	hops := &types.ForwardingInfo{
+		Hops: []types.Hop{
+			{
+				PortId:    path2.EndpointA.ChannelConfig.PortID,
+				ChannelId: path2.EndpointA.ChannelID,
+			},
+		},
+	}
+
 	transferMsg := types.NewMsgTransfer(
 		path1.EndpointA.ChannelConfig.PortID,
 		path1.EndpointA.ChannelID,
@@ -634,14 +643,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&types.ForwardingInfo{
-			Hops: []types.Hop{
-				{
-					PortId:    path2.EndpointA.ChannelConfig.PortID,
-					ChannelId: path2.EndpointA.ChannelID,
-				},
-			},
-		},
+		hops,
 	)
 
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -688,10 +690,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 		address,
 		suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(),
 		"", nil,
-	).GetBytes()
+	)
 
 	packet = channeltypes.NewPacket(
-		data,
+		data.GetBytes(),
 		1,
 		path2.EndpointA.ChannelConfig.PortID,
 		path2.EndpointA.ChannelID,
@@ -716,6 +718,31 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	ack := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
 	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
 	suite.Require().Equal(ackbytes, res)
+
+	data = types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
+			{
+				Denom:  types.NewDenom("stake"),
+				Amount: "100",
+			},
+		},
+		suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+		suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(),
+		"", hops,
+	)
+
+	packet = channeltypes.NewPacket(
+		data.GetBytes(),
+		1,
+		path1.EndpointA.ChannelConfig.PortID,
+		path1.EndpointA.ChannelID,
+		path1.EndpointB.ChannelConfig.PortID,
+		path1.EndpointB.ChannelID,
+		packet.TimeoutHeight,
+		packet.TimeoutTimestamp)
+
+	err = suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, ack)
+	suite.Require().NoError(err)
 }
 
 //Test that fails verification if no forwarding address
