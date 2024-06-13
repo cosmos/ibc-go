@@ -3,7 +3,6 @@ package keeper
 import (
 	"errors"
 
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
@@ -145,9 +144,14 @@ func getReceiverFromPacketData(data types.FungibleTokenPacketDataV2, portID, cha
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
 	}
 
-	if data.Forwarding != nil && len(data.Forwarding.Hops) > 0 {
+	if shouldForwardPacketData(data) {
 		receiver = types.GetForwardAddress(portID, channelID)
 	}
 
 	return receiver, nil
+}
+
+// shouldForwardPacketData determines if the packet should be forwarded to the next hop.
+func shouldForwardPacketData(data types.FungibleTokenPacketDataV2) bool {
+	return data.Forwarding != nil && len(data.Forwarding.Hops) > 0
 }
