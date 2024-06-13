@@ -733,12 +733,15 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 	suite.Require().True(ok)
 
+	// Trigger OnTimeoutPacket for chainB
 	err = cbs.OnTimeoutPacket(suite.chainB.GetContext(), packet, nil)
 	suite.Require().NoError(err)
 
+	// Ensure that chainB has an ack.
 	res := suite.chainB.GetAcknowledgement(packet)
 	suite.Require().NotNil(res, "chainB does not have an ack")
 
+	// And that this ack is of the type we expect (Error due to time out)
 	ack := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
 	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
 	suite.Require().Equal(ackbytes, res)
@@ -765,12 +768,15 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 		packet.TimeoutHeight,
 		packet.TimeoutTimestamp)
 
+	// Send the ack to chain A.
 	err = suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, ack)
 	suite.Require().NoError(err)
 
+	// Finally, check that A,B, and C escrow accounts do not have fund.
 	suite.assertAmountOnChain(suite.chainB, escrow, sdkmath.NewInt(0), denomAB.IBCDenom(), "Escrow account for chain B should be empty")
 	suite.assertAmountOnChain(suite.chainC, escrow, sdkmath.NewInt(0), denomABC.IBCDenom(), "Escrow account for chain C should be empty")
 	suite.assertAmountOnChain(suite.chainA, escrow, sdkmath.NewInt(0), denomA.IBCDenom(), "Escrow account for chain a should be empty")
 
+	// And that A hsa its original balance back.
 	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount, coin.Denom, "Chain A should have their funds back")
 }
