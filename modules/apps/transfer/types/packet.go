@@ -103,14 +103,14 @@ func NewFungibleTokenPacketDataV2(
 	tokens []Token,
 	sender, receiver string,
 	memo string,
-	forwardingPath *ForwardingInfo,
+	forwarding *Forwarding,
 ) FungibleTokenPacketDataV2 {
 	return FungibleTokenPacketDataV2{
-		Tokens:         tokens,
-		Sender:         sender,
-		Receiver:       receiver,
-		Memo:           memo,
-		ForwardingPath: forwardingPath,
+		Tokens:     tokens,
+		Sender:     sender,
+		Receiver:   receiver,
+		Memo:       memo,
+		Forwarding: forwarding,
 	}
 }
 
@@ -140,14 +140,14 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 
-	if ftpd.ForwardingPath != nil {
-		if err := ftpd.ForwardingPath.Validate(); err != nil {
+	if ftpd.Forwarding != nil {
+		if err := ftpd.Forwarding.Validate(); err != nil {
 			return err
 		}
 
 		// We cannot have non-empty memo and non-empty forwarding path hops at the same time.
-		if len(ftpd.ForwardingPath.Hops) > 0 && ftpd.Memo != "" {
-			return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", ftpd.Memo, ftpd.ForwardingPath.Hops)
+		if len(ftpd.Forwarding.Hops) > 0 && ftpd.Memo != "" {
+			return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", ftpd.Memo, ftpd.Forwarding.Hops)
 		}
 	}
 

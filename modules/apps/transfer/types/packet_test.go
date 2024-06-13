@@ -231,7 +231,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				types.NewForwardingInfo("", validHop, validHop),
+				types.NewForwarding("", validHop, validHop),
 			),
 			nil,
 		},
@@ -247,7 +247,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				types.NewForwardingInfo("memo", validHop),
+				types.NewForwarding("memo", validHop),
 			),
 			nil,
 		},
@@ -402,7 +402,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"memo",
-				types.NewForwardingInfo("", validHop),
+				types.NewForwarding("", validHop),
 			),
 			types.ErrInvalidMemo,
 		},
@@ -418,7 +418,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				types.NewForwardingInfo(
+				types.NewForwarding(
 					"",
 					types.Hop{
 						PortId:    invalidPort,
@@ -440,7 +440,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				types.NewForwardingInfo(
+				types.NewForwarding(
 					"",
 					types.Hop{
 						PortId:    "transfer",
@@ -462,9 +462,9 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				types.NewForwardingInfo("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
+				types.NewForwarding("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
 			),
-			types.ErrInvalidForwardingInfo,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"failure: invalid forwarding path too long memo",
@@ -478,7 +478,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
-				types.NewForwardingInfo(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
+				types.NewForwarding(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
 			),
 			types.ErrInvalidMemo,
 		},

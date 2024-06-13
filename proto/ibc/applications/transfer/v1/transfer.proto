@@ -19,10 +19,10 @@ message Params {
   bool receive_enabled = 2;
 }
 
-// ForwardingInfo defines a list of port ID, channel ID pairs determining the path
+// Forwarding defines a list of port ID, channel ID pairs determining the path
 // through which a packet must be forwarded, and the memo string to be used in the
 // final destination of the tokens.
-message ForwardingInfo {
+message Forwarding {
   repeated Hop hops = 1 [(gogoproto.nullable) = false];
   string       memo = 2;
 }

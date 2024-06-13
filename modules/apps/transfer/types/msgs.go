@@ -49,7 +49,7 @@ func NewMsgTransfer(
 	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
-	forwardingPath *ForwardingInfo,
+	forwarding *Forwarding,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -60,7 +60,7 @@ func NewMsgTransfer(
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             memo,
 		Tokens:           tokens,
-		ForwardingPath:   forwardingPath,
+		Forwarding:       forwarding,
 	}
 }
 
@@ -102,14 +102,14 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 
-	if msg.ForwardingPath != nil {
-		if err := msg.ForwardingPath.Validate(); err != nil {
+	if msg.Forwarding != nil {
+		if err := msg.Forwarding.Validate(); err != nil {
 			return err
 		}
 
-		// We cannot have non-empty memo and non-empty forwarding path hops at the same time.
-		if len(msg.ForwardingPath.Hops) > 0 && msg.Memo != "" {
-			return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", msg.Memo, msg.ForwardingPath.Hops)
+		// We cannot have non-empty memo and non-empty forwarding hops at the same time.
+		if len(msg.Forwarding.Hops) > 0 && msg.Memo != "" {
+			return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", msg.Memo, msg.Forwarding.Hops)
 		}
 	}
 

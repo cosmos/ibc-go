@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwardingPath := types.ForwardingInfo{
+	forwarding := types.Forwarding{
 		Hops: []types.Hop{
 			{
 				PortId:    path2.EndpointA.ChannelConfig.PortID,
@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwardingPath,
+		&forwarding,
 	)
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwardingPath := types.ForwardingInfo{
+	forwarding := types.Forwarding{
 		Hops: []types.Hop{
 			{
 				PortId:    path2.EndpointB.ChannelConfig.PortID,
@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwardingPath,
+		&forwarding,
 	)
 
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -173,7 +173,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	coin = sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwardingPath := types.ForwardingInfo{
+	forwarding := types.Forwarding{
 		Hops: []types.Hop{
 			{
 				PortId:    path2.EndpointB.ChannelConfig.PortID,
@@ -191,7 +191,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwardingPath,
+		&forwarding,
 	)
 
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", &forwardingPath)
+		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", &forwarding)
 	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	var async bool
@@ -281,7 +281,7 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwardingPath := types.ForwardingInfo{
+	forwarding := types.Forwarding{
 		Hops: []types.Hop{
 			{
 				PortId:    path2.EndpointB.ChannelConfig.PortID,
@@ -299,7 +299,7 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwardingPath,
+		&forwarding,
 	)
 
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -475,7 +475,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	sender = suite.chainC.SenderAccounts[0].SenderAccount
 	receiver = suite.chainA.SenderAccounts[0].SenderAccount // Receiver is the A chain account
 
-	forwardingPath := types.ForwardingInfo{
+	forwarding := types.Forwarding{
 		Hops: []types.Hop{
 			{
 				PortId:    path1.EndpointB.ChannelConfig.PortID,
@@ -493,7 +493,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwardingPath,
+		&forwarding,
 	)
 
 	result, err = suite.chainC.SendMsgs(transferMsg)

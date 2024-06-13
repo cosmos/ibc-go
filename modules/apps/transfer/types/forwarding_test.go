@@ -15,50 +15,50 @@ var validHop = types.Hop{
 	ChannelId: ibctesting.FirstChannelID,
 }
 
-func TestForwardingInfo_Validate(t *testing.T) {
+func TestForwarding_Validate(t *testing.T) {
 	tests := []struct {
-		name           string
-		forwardingInfo *types.ForwardingInfo
-		expError       error
+		name       string
+		forwarding *types.Forwarding
+		expError   error
 	}{
 		{
-			"valid forwarding info with no hops",
-			types.NewForwardingInfo(""),
+			"valid forwarding with no hops",
+			types.NewForwarding(""),
 			nil,
 		},
 		{
-			"valid forwarding info with hops",
-			types.NewForwardingInfo("", validHop),
+			"valid forwarding with hops",
+			types.NewForwarding("", validHop),
 			nil,
 		},
 		{
-			"valid forwarding info with memo",
-			types.NewForwardingInfo(testMemo1, validHop, validHop),
+			"valid forwarding with memo",
+			types.NewForwarding(testMemo1, validHop, validHop),
 			nil,
 		},
 		{
-			"valid forwarding info with max hops",
-			types.NewForwardingInfo("", generateHops(types.MaximumNumberOfForwardingHops)...),
+			"valid forwarding with max hops",
+			types.NewForwarding("", generateHops(types.MaximumNumberOfForwardingHops)...),
 			nil,
 		},
 		{
-			"valid forwarding info with max memo length",
-			types.NewForwardingInfo(ibctesting.GenerateString(types.MaximumMemoLength), validHop),
+			"valid forwarding with max memo length",
+			types.NewForwarding(ibctesting.GenerateString(types.MaximumMemoLength), validHop),
 			nil,
 		},
 		{
-			"invalid forwarding info with too many hops",
-			types.NewForwardingInfo("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
-			types.ErrInvalidForwardingInfo,
+			"invalid forwarding with too many hops",
+			types.NewForwarding("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
+			types.ErrInvalidForwarding,
 		},
 		{
-			"invalid forwarding info with too long memo",
-			types.NewForwardingInfo(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
+			"invalid forwarding with too long memo",
+			types.NewForwarding(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
 			types.ErrInvalidMemo,
 		},
 		{
-			"invalid forwarding info with too short hop port ID",
-			types.NewForwardingInfo(
+			"invalid forwarding with too short hop port ID",
+			types.NewForwarding(
 				"",
 				types.Hop{
 					PortId:    invalidShortPort,
@@ -68,8 +68,8 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			host.ErrInvalidID,
 		},
 		{
-			"invalid forwarding info with too long hop port ID",
-			types.NewForwardingInfo(
+			"invalid forwarding with too long hop port ID",
+			types.NewForwarding(
 				"",
 				types.Hop{
 					PortId:    invalidLongPort,
@@ -79,8 +79,8 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			host.ErrInvalidID,
 		},
 		{
-			"invalid forwarding info with non-alpha hop port ID",
-			types.NewForwardingInfo(
+			"invalid forwarding with non-alpha hop port ID",
+			types.NewForwarding(
 				"",
 				types.Hop{
 					PortId:    invalidPort,
@@ -90,8 +90,8 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			host.ErrInvalidID,
 		},
 		{
-			"invalid forwarding info with too long hop channel ID",
-			types.NewForwardingInfo(
+			"invalid forwarding with too long hop channel ID",
+			types.NewForwarding(
 				"",
 				types.Hop{
 					PortId:    types.PortID,
@@ -101,8 +101,8 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			host.ErrInvalidID,
 		},
 		{
-			"invalid forwarding info with too short hop channel ID",
-			types.NewForwardingInfo(
+			"invalid forwarding with too short hop channel ID",
+			types.NewForwarding(
 				"",
 				types.Hop{
 					PortId:    types.PortID,
@@ -112,8 +112,8 @@ func TestForwardingInfo_Validate(t *testing.T) {
 			host.ErrInvalidID,
 		},
 		{
-			"invalid forwarding info with non-alpha hop channel ID",
-			types.NewForwardingInfo(
+			"invalid forwarding with non-alpha hop channel ID",
+			types.NewForwarding(
 				"",
 				types.Hop{
 					PortId:    types.PortID,
@@ -127,7 +127,7 @@ func TestForwardingInfo_Validate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc := tc
 
-			err := tc.forwardingInfo.Validate()
+			err := tc.forwarding.Validate()
 
 			expPass := tc.expError == nil
 			if expPass {
