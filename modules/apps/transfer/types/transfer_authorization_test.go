@@ -100,11 +100,41 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
+			"success: empty AllowedPacketData and empty memo in forwarding path",
+			func() {
+				allowedList := []string{}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Forwarding = types.NewForwarding("", validHop)
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
 			"success: AllowedPacketData allows any packet",
 			func() {
 				allowedList := []string{"*"}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
 				msgTransfer.Memo = testMemo1
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"success: AllowedPacketData allows any packet in forwarding path",
+			func() {
+				allowedList := []string{"*"}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Forwarding = types.NewForwarding(testMemo1, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -130,6 +160,21 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
+			"success: transfer memo allowed in forwarding path",
+			func() {
+				allowedList := []string{testMemo1, testMemo2}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Forwarding = types.NewForwarding(testMemo1, validHop)
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
 			"empty AllowedPacketData but not empty memo",
 			func() {
 				allowedList := []string{}
@@ -141,11 +186,34 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
+			"empty AllowedPacketData but not empty memo in forwarding path",
+			func() {
+				allowedList := []string{}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Forwarding = types.NewForwarding(testMemo1, validHop)
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
+		},
+		{
 			"memo not allowed",
 			func() {
 				allowedList := []string{testMemo1}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
 				msgTransfer.Memo = testMemo2
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, fmt.Sprintf("not allowed memo: %s", testMemo2))
+			},
+		},
+		{
+			"memo not allowed in forwarding path",
+			func() {
+				allowedList := []string{testMemo1}
+				transferAuthz.Allocations[0].AllowedPacketData = allowedList
+				msgTransfer.Forwarding = types.NewForwarding(testMemo2, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)
