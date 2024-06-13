@@ -18,6 +18,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -305,4 +306,25 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// SetForwardedPacket sets the forwarded packet in the store.
+func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&packet)
+	store.Set(types.PacketForwardKey(portID, channelID, sequence), bz)
+}
+
+// GetForwardedPacket gets the forwarded packet from the store.
+func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.PacketForwardKey(portID, channelID, sequence))
+	if bz == nil {
+		return channeltypes.Packet{}, false
+	}
+
+	var storedPacket channeltypes.Packet
+	k.cdc.MustUnmarshal(bz, &storedPacket)
+
+	return storedPacket, true
 }

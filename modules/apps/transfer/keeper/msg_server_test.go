@@ -129,6 +129,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.chainB.SenderAccount.GetAddress().String(),
 				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 				"memo",
+				nil,
 			)
 
 			// send some coins of the second denom from bank module to the sender account as well

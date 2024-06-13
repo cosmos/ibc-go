@@ -344,7 +344,9 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 				suite.chainB.SenderAccount.GetAddress().String(),
 				timeoutHeight,
 				0,
-				"")
+				"",
+				nil,
+			)
 			res, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 

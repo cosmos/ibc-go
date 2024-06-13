@@ -297,7 +297,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 		transferVersion = version.AppVersion
 	}
 
-	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, nil)
 
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }

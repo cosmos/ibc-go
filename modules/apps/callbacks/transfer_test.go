@@ -193,6 +193,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, memo,
+		nil,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)
@@ -227,6 +228,7 @@ func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string) {
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		timeoutHeight, timeoutTimestamp, memo,
+		nil,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)

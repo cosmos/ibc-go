@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -182,6 +183,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
+				nil,
 			),
 			nil,
 		},
@@ -197,6 +199,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"memo",
+				nil,
 			),
 			nil,
 		},
@@ -212,6 +215,39 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"memo",
+				nil,
+			),
+			nil,
+		},
+		{
+			"success: valid packet with forwarding path hops",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwarding("", validHop, validHop),
+			),
+			nil,
+		},
+		{
+			"success: valid packet with forwarding path hops with memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwarding("memo", validHop),
 			),
 			nil,
 		},
@@ -227,6 +263,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
+				nil,
 			),
 			types.ErrInvalidDenomForTransfer,
 		},
@@ -242,6 +279,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -252,6 +290,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -267,6 +306,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -282,6 +322,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -297,6 +338,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"memo",
+				nil,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -312,6 +354,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				"",
 				receiver,
 				"memo",
+				nil,
 			),
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -327,6 +370,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				"",
 				"",
+				nil,
 			),
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -342,6 +386,99 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				ibctesting.GenerateString(types.MaximumMemoLength+1),
+				nil,
+			),
+			types.ErrInvalidMemo,
+		},
+		{
+			"failure: memo must be empty if forwarding path hops is not empty",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"memo",
+				types.NewForwarding("", validHop),
+			),
+			types.ErrInvalidMemo,
+		},
+		{
+			"failure: invalid forwarding path port ID",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwarding(
+					"",
+					types.Hop{
+						PortId:    invalidPort,
+						ChannelId: "channel-1",
+					},
+				),
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: invalid forwarding path channel ID",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwarding(
+					"",
+					types.Hop{
+						PortId:    "transfer",
+						ChannelId: invalidChannel,
+					},
+				),
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: invalid forwarding path too many hops",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwarding("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
+			),
+			types.ErrInvalidForwarding,
+		},
+		{
+			"failure: invalid forwarding path too long memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwarding(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
 			),
 			types.ErrInvalidMemo,
 		},
@@ -379,6 +516,7 @@ func TestGetPacketSender(t *testing.T) {
 				sender,
 				receiver,
 				"",
+				nil,
 			),
 			sender,
 		},
@@ -394,6 +532,7 @@ func TestGetPacketSender(t *testing.T) {
 				"",
 				receiver,
 				"abc",
+				nil,
 			),
 			"",
 		},
@@ -423,7 +562,9 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver)),
+				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
+				nil,
+			),
 
 			map[string]interface{}{
 				"address": receiver,
@@ -440,7 +581,9 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver)),
+				fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver),
+				nil,
+			),
 			map[string]interface{}{
 				"address":   receiver,
 				"gas_limit": "200000",
@@ -457,7 +600,9 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				`{"src_callback": "string"}`),
+				`{"src_callback": "string"}`,
+				nil,
+			),
 			"string",
 		},
 		{
@@ -471,7 +616,9 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				fmt.Sprintf(`{"dest_callback": {"address": "%s", "min_gas": "200000"}}`, receiver)),
+				fmt.Sprintf(`{"dest_callback": {"address": "%s", "min_gas": "200000"}}`, receiver),
+				nil,
+			),
 			nil,
 		},
 		{
@@ -485,7 +632,9 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				""),
+				"",
+				nil,
+			),
 			nil,
 		},
 		{
@@ -499,7 +648,9 @@ func TestPacketDataProvider(t *testing.T) {
 				},
 				sender,
 				receiver,
-				"invalid"),
+				"invalid",
+				nil,
+			),
 			nil,
 		},
 	}
@@ -530,6 +681,7 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 				sender,
 				receiver,
 				"",
+				nil,
 			),
 			false,
 		},
@@ -545,6 +697,7 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 				sender,
 				receiver,
 				"abc",
+				nil,
 			),
 			true,
 		},

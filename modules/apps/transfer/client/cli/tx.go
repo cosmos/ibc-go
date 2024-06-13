@@ -111,7 +111,7 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 			}
 
 			msg := types.NewMsgTransfer(
-				srcPort, srcChannel, coins, sender, receiver, timeoutHeight, timeoutTimestamp, memo,
+				srcPort, srcChannel, coins, sender, receiver, timeoutHeight, timeoutTimestamp, memo, nil,
 			)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

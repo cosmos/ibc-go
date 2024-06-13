@@ -49,6 +49,7 @@ func NewMsgTransfer(
 	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
+	forwarding *Forwarding,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -59,6 +60,7 @@ func NewMsgTransfer(
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             memo,
 		Tokens:           tokens,
+		Forwarding:       forwarding,
 	}
 }
 
@@ -98,6 +100,17 @@ func (msg MsgTransfer) ValidateBasic() error {
 	}
 	if len(msg.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
+	}
+
+	if msg.Forwarding != nil {
+		if err := msg.Forwarding.Validate(); err != nil {
+			return err
+		}
+
+		// We cannot have non-empty memo and non-empty forwarding hops at the same time.
+		if len(msg.Forwarding.Hops) > 0 && msg.Memo != "" {
+			return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", msg.Memo, msg.Forwarding.Hops)
+		}
 	}
 
 	for _, coin := range msg.GetCoins() {

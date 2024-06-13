@@ -6,6 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 
 import "ibc/applications/transfer/v2/token.proto";
 import "gogoproto/gogo.proto";
+import "ibc/applications/transfer/v1/transfer.proto";
 
 // FungibleTokenPacketData defines a struct for the packet payload
 // See FungibleTokenPacketData spec:
@@ -35,4 +36,6 @@ message FungibleTokenPacketDataV2 {
   string receiver = 3;
   // optional memo
   string memo = 4;
+  // optional forwarding information
+  ibc.applications.transfer.v1.Forwarding forwarding = 5;
 }
