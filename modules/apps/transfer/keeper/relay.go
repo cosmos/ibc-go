@@ -64,7 +64,7 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	memo string,
-	forwardingPath *types.ForwardingInfo,
+	forwarding *types.Forwarding,
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -140,7 +140,7 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwardingPath)
+	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwarding)
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
@@ -262,7 +262,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		receivedCoins = append(receivedCoins, voucher)
 	}
 
-	if data.ForwardingPath != nil && len(data.ForwardingPath.Hops) > 0 {
+	if data.Forwarding != nil && len(data.Forwarding.Hops) > 0 {
 		// we are now sending from the forward escrow address to the final receiver address.
 		if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
 			return false, err
@@ -286,7 +286,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
 		if isForwarded {
-			return k.onForwardedPacketResultAck(ctx, prevPacket)
+			return k.ackForwardPacketSuccess(ctx, prevPacket)
 		}
 
 		// the acknowledgement succeeded on the receiving chain so nothing
@@ -298,7 +298,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			return err
 		}
 		if isForwarded {
-			return k.onForwardedPacketErrorAck(ctx, prevPacket, data)
+			return k.ackForwardPacketError(ctx, prevPacket, data)
 		}
 
 		return nil
@@ -317,7 +317,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 
 	prevPacket, isForwarded := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if isForwarded {
-		return k.onForwardedPacketTimeout(ctx, prevPacket, data)
+		return k.ackForwardPacketTimeout(ctx, prevPacket, data)
 	}
 
 	return nil
@@ -434,7 +434,7 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 }
 
 // createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
-func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, forwardingPath *types.ForwardingInfo) []byte {
+func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, forwarding *types.Forwarding) []byte {
 	var packetDataBytes []byte
 	switch appVersion {
 	case types.V1:
@@ -447,7 +447,7 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender, receiver, memo)
 		packetDataBytes = packetData.GetBytes()
 	case types.V2:
-		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo, forwardingPath)
+		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo, forwarding)
 		packetDataBytes = packetData.GetBytes()
 	default:
 		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
@@ -456,7 +456,7 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 	return packetDataBytes
 }
 
-// This function sends coins from the account to the transfer module account and then burn them.
+// burnCoin sends coins from the account to the transfer module account and then burn them.
 // We do this because bankKeeper.BurnCoins only works with a module account in SDK v0.50,
 // the next version of the SDK will allow burning coins from any account.
 // TODO: remove this function once we switch forwarding address to a module account (#6561)

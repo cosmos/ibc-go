@@ -1003,10 +1003,10 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 				Amount: ibctesting.TestCoin.Amount.String(),
 			},
 		},
-		Sender:         ibctesting.TestAccAddress,
-		Receiver:       ibctesting.TestAccAddress,
-		Memo:           fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
-		ForwardingPath: nil,
+		Sender:     ibctesting.TestAccAddress,
+		Receiver:   ibctesting.TestAccAddress,
+		Memo:       fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
+		Forwarding: nil,
 	}
 
 	portID := s.path.EndpointA.ChannelConfig.PortID
