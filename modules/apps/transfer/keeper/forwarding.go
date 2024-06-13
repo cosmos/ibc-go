@@ -26,18 +26,20 @@ func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.P
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// ackForwardPacketSuccess writes the async acknowledgement the prevPacket
+// ackForwardPacketSuccess writes a successful async acknowledgement for the prevPacket
 func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket channeltypes.Packet) error {
 	forwardAck := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// ackForwardPacketTimeout reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
+// ackForwardPacketTimeout reverts the receive packet logic that occurs in the middle chain and writes a failed async ack for the prevPacket
 func (k Keeper) ackForwardPacketTimeout(ctx sdk.Context, prevPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
 	if err := k.revertForwardedPacket(ctx, prevPacket, timeoutPacketData); err != nil {
 		return err
 	}
 
+	// the timeout is converted into an error acknowledgement in order to propagate the failed packet forwarding
+	// back to the original sender
 	forwardAck := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
@@ -53,8 +55,8 @@ func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet channeltypes.
 }
 
 // revertForwardedPacket reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.
-// If an error occurs further down the line, the state changes on this chain must be reverted before sending back the error
-// acknowledgement to ensure atomic packet forwarding.
+// If the packet fails to be forwarded all the way to the final destination, the state changes on this chain must be reverted
+// before sending back the error acknowledgement to ensure atomic packet forwarding.
 func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	/*
 		Recall that RecvPacket handles an incoming packet depending on the denom of the received funds:
@@ -77,9 +79,9 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 		}
 		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-		// check if the token we received was a source token
-		// note that the DestinationPort and DestinationChannel of prevPacket are the
-		// SourcePort and SourceChannel of failed packet
+		// check if the token we received originated on the sender
+		// given that the packet is being reversed, we check the DestinationChannel and DestinationPort
+		// of the prevPacket to see if a hop was added to the trace during the receive step
 		if token.Denom.SenderChainIsSource(prevPacket.DestinationPort, prevPacket.DestinationChannel) {
 			// then send it back to the escrow address
 			if err := k.escrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
