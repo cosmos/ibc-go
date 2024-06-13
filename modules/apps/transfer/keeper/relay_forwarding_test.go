@@ -614,30 +614,61 @@ Test async ack is properly relayed to middle hop after forwarding transfer compl
 Tiemout during forwarding after middle hop execution reverts properly the state changes
 */
 
-func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
-	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+func (suite *KeeperTestSuite) setUpForwardingPaths() (path1, path2 *ibctesting.Path) {
+	path1 = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	path2 = ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 	path1.Setup()
-
-	path2 := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 	path2.Setup()
+	return path1, path2
+}
+
+type amountType int
+
+const (
+	escrow amountType = iota
+	balance
+)
+
+func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string, errorMsg string) {
+	var total sdk.Coin
+	switch balanceType {
+	case escrow:
+		total = chain.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(chain.GetContext(), denom)
+	case balance:
+		total = chain.GetSimApp().BankKeeper.GetBalance(chain.GetContext(), chain.SenderAccounts[0].SenderAccount.GetAddress(), denom)
+	default:
+		suite.Fail("invalid amountType %s", balanceType)
+	}
+	suite.Require().Equal(amount, total.Amount, errorMsg)
+}
+
+func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
+
+	pathAtoB, pathBtoC := suite.setUpForwardingPaths()
 
 	amount := sdkmath.NewInt(100)
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount // Conferm whether it's B or C
 
+	denomA := types.NewDenom(coin.Denom)
+	denomAB := types.NewDenom(coin.Denom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denomABC := types.NewDenom(coin.Denom, types.NewTrace(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID), types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID))
+
+	originalABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), sender.GetAddress(), coin.Denom)
+
 	hops := &types.ForwardingInfo{
 		Hops: []types.Hop{
 			{
-				PortId:    path2.EndpointA.ChannelConfig.PortID,
-				ChannelId: path2.EndpointA.ChannelID,
+				PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
+				ChannelId: pathBtoC.EndpointA.ChannelID,
 			},
 		},
 	}
 
 	transferMsg := types.NewMsgTransfer(
-		path1.EndpointA.ChannelConfig.PortID,
-		path1.EndpointA.ChannelID,
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
@@ -654,36 +685,27 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packet)
 
-	err = path1.EndpointB.UpdateClient()
+	err = pathAtoB.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	result, err = path1.EndpointB.RecvPacketWithResult(packet)
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packet)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	err = path2.EndpointA.UpdateClient()
+	err = pathBtoC.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	err = path2.EndpointB.UpdateClient()
+	err = pathBtoC.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	// packet, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, 1)
-	// suite.Require().True(found)
-
-	// bytes := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetPacketCommitment(suite.chainB.GetContext(), path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, 1)
-
-	// packet.SourceChannel = path2.EndpointA.ChannelID
-
-	// bytes2 := channeltypes.CommitPacket(suite.chainB.Codec, packet)
-	// suite.Require().Equal(bytes, bytes2)
-	//
-	// [{Denom:{Base:stake Trace:[]} Amount:100}]
+	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount.Sub(amount), denomA.IBCDenom(), "Chain A should have less funds")
+	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomAB.IBCDenom(), "Chain B's forwarding address should have coins")
 
 	address := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel).String()
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom:  types.NewDenom("stake", types.NewTrace(path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID)),
+				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID)),
 				Amount: "100",
 			},
 		},
@@ -695,15 +717,15 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	packet = channeltypes.NewPacket(
 		data.GetBytes(),
 		1,
-		path2.EndpointA.ChannelConfig.PortID,
-		path2.EndpointA.ChannelID,
-		path2.EndpointB.ChannelConfig.PortID,
-		path2.EndpointB.ChannelID,
+		pathBtoC.EndpointA.ChannelConfig.PortID,
+		pathBtoC.EndpointA.ChannelID,
+		pathBtoC.EndpointB.ChannelConfig.PortID,
+		pathBtoC.EndpointB.ChannelID,
 		packet.TimeoutHeight,
 		packet.TimeoutTimestamp)
 
 	// retrieve module callbacks
-	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path2.EndpointA.ChannelConfig.PortID)
+	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID)
 	suite.Require().NoError(err)
 
 	cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
@@ -734,15 +756,21 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	packet = channeltypes.NewPacket(
 		data.GetBytes(),
 		1,
-		path1.EndpointA.ChannelConfig.PortID,
-		path1.EndpointA.ChannelID,
-		path1.EndpointB.ChannelConfig.PortID,
-		path1.EndpointB.ChannelID,
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		pathAtoB.EndpointB.ChannelConfig.PortID,
+		pathAtoB.EndpointB.ChannelID,
 		packet.TimeoutHeight,
 		packet.TimeoutTimestamp)
 
 	err = suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, ack)
 	suite.Require().NoError(err)
+
+	suite.assertAmountOnChain(suite.chainB, escrow, sdkmath.NewInt(0), denomAB.IBCDenom(), "Escrow account for chain B should be empty")
+	suite.assertAmountOnChain(suite.chainC, escrow, sdkmath.NewInt(0), denomABC.IBCDenom(), "Escrow account for chain C should be empty")
+	suite.assertAmountOnChain(suite.chainA, escrow, sdkmath.NewInt(0), denomA.IBCDenom(), "Escrow account for chain a should be empty")
+
+	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount, coin.Denom, "Chain A should have their funds back")
 }
 
 //Test that fails verification if no forwarding address
