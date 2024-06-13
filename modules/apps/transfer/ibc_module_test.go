@@ -385,7 +385,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
 					sdk.NewAttribute(types.AttributeKeyTokens, string(tokensBz)),
 					sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
-					sdk.NewAttribute(types.AttributeKeyAckSuccess, strconv.FormatBool(tc.expAckSuccess)),
+					sdk.NewAttribute(types.AttributeKeyAckSuccess, "true"),
 				}
 
 				expectedEvents := sdk.Events{
@@ -409,7 +409,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					sdk.NewAttribute(types.AttributeKeyReceiver, ""),
 					sdk.NewAttribute(types.AttributeKeyTokens, "null"),
 					sdk.NewAttribute(types.AttributeKeyMemo, ""),
-					sdk.NewAttribute(types.AttributeKeyAckSuccess, strconv.FormatBool(tc.expAckSuccess)),
+					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
 					sdk.NewAttribute(types.AttributeKeyAckError, tc.eventErrorMsg),
 				}
 
