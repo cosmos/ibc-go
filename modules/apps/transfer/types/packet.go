@@ -196,3 +196,8 @@ func (ftpd FungibleTokenPacketDataV2) GetCustomPacketData(key string) interface{
 func (ftpd FungibleTokenPacketDataV2) GetPacketSender(sourcePortID string) string {
 	return ftpd.Sender
 }
+
+// ShouldBeForwarded determines if the packet should be forwarded to the next hop.
+func (ftpd FungibleTokenPacketDataV2) ShouldBeForwarded() bool {
+	return ftpd.Forwarding != nil && len(ftpd.Forwarding.Hops) > 0
+}
