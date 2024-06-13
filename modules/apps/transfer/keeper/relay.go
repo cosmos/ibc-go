@@ -324,7 +324,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
 		if isForwarded {
-			return k.onForwardedPacketResultAck(ctx, prevPacket)
+			return k.ackForwardPacketSuccess(ctx, prevPacket)
 		}
 
 		// the acknowledgement succeeded on the receiving chain so nothing
@@ -336,7 +336,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			return err
 		}
 		if isForwarded {
-			return k.onForwardedPacketErrorAck(ctx, prevPacket, data)
+			return k.ackForwardPacketError(ctx, prevPacket, data)
 		}
 
 		return nil
@@ -355,7 +355,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 
 	prevPacket, isForwarded := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if isForwarded {
-		return k.onForwardedPacketTimeout(ctx, prevPacket, data)
+		return k.ackForwardPacketTimeout(ctx, prevPacket, data)
 	}
 
 	return nil
@@ -494,7 +494,7 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 	return packetDataBytes
 }
 
-// This function sends coins from the account to the transfer module account and then burn them.
+// burnCoin sends coins from the account to the transfer module account and then burn them.
 // We do this because bankKeeper.BurnCoins only works with a module account in SDK v0.50,
 // the next version of the SDK will allow burning coins from any account.
 // TODO: remove this function once we switch forwarding address to a module account (#6561)

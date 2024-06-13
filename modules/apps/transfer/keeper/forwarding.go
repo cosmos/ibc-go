@@ -13,8 +13,8 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
-// onForwardedPacketErrorAck reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
-func (k Keeper) onForwardedPacketErrorAck(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
+// ackForwardPacketError reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
+func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 	// we must revert the changes that came from successfully receiving the tokens on our chain
 	// before propagating the error acknowledgement back to original sender chain
@@ -26,14 +26,14 @@ func (k Keeper) onForwardedPacketErrorAck(ctx sdk.Context, prevPacket channeltyp
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// onForwardedPacketResultAck writes the async acknowledgement the prevPacket
-func (k Keeper) onForwardedPacketResultAck(ctx sdk.Context, prevPacket channeltypes.Packet) error {
+// ackForwardPacketSuccess writes the async acknowledgement the prevPacket
+func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket channeltypes.Packet) error {
 	forwardAck := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
-// onForwardedPacketTimeout reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
-func (k Keeper) onForwardedPacketTimeout(ctx sdk.Context, prevPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
+// ackForwardPacketTimeout reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
+func (k Keeper) ackForwardPacketTimeout(ctx sdk.Context, prevPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
 	if err := k.revertForwardedPacket(ctx, prevPacket, timeoutPacketData); err != nil {
 		return err
 	}
