@@ -180,7 +180,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		// parse the transfer amount
-		coin, err := token.ConvertToCoin()
+		coin, err := token.ToCoin()
 		if err != nil {
 			return err
 		}
@@ -288,7 +288,7 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 	// NOTE: packet data type already checked in handler.go
 
 	for _, token := range data.Tokens {
-		coin, err := token.ConvertToCoin()
+		coin, err := token.ToCoin()
 		if err != nil {
 			return err
 		}
