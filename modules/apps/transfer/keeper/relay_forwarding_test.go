@@ -643,7 +643,6 @@ func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, b
 }
 
 func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
-
 	pathAtoB, pathBtoC := suite.setUpForwardingPaths()
 
 	amount := sdkmath.NewInt(100)
