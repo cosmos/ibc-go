@@ -158,7 +158,7 @@ func TestToCoin(t *testing.T) {
 	testCases := []struct {
 		name     string
 		token    Token
-		expCoins sdk.Coin
+		expCoin  sdk.Coin
 		expError error
 	}{
 		{
@@ -191,7 +191,7 @@ func TestToCoin(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			coin, err := tc.token.ToCoin()
 
-			require.Equal(t, tc.expCoins, coin, tc.name)
+			require.Equal(t, tc.expCoin, coin, tc.name)
 
 			expPass := tc.expError == nil
 			if expPass {
