@@ -626,7 +626,7 @@ const (
 	balance
 )
 
-func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string, errorMsg string) {
+func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string) {
 	var total sdk.Coin
 	switch balanceType {
 	case escrow:
@@ -636,7 +636,7 @@ func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, b
 	default:
 		suite.Fail("invalid amountType %s", balanceType)
 	}
-	suite.Require().Equal(amount, total.Amount, errorMsg)
+	suite.Require().Equal(amount, total.Amount, fmt.Sprintf("Chain %s: got balance of %d, wanted %d", chain.Name(), total.Amount, amount))
 }
 
 // TestOnTimeoutPacketForwarding tests the scenario in which a packet goes from
@@ -699,8 +699,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().NoError(err)
 
 	// Make sure funds went from A to B's escrow account.
-	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount.Sub(amount), denomA.IBCDenom(), "Chain A should have less funds")
-	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomAB.IBCDenom(), "Chain B's escrow should have coins")
+	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount.Sub(amount), denomA.IBCDenom())
+	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomAB.IBCDenom())
 
 	address := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel).String()
 	data := types.NewFungibleTokenPacketDataV2(
@@ -772,10 +772,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().NoError(err)
 
 	// Finally, check that A,B, and C escrow accounts do not have fund.
-	suite.assertAmountOnChain(suite.chainC, escrow, sdkmath.NewInt(0), denomABC.IBCDenom(), "Escrow account for chain C should be empty")
-	suite.assertAmountOnChain(suite.chainB, escrow, sdkmath.NewInt(0), denomAB.IBCDenom(), "Escrow account for chain B should be empty")
-	suite.assertAmountOnChain(suite.chainA, escrow, sdkmath.NewInt(0), denomA.IBCDenom(), "Escrow account for chain a should be empty")
+	suite.assertAmountOnChain(suite.chainC, escrow, sdkmath.NewInt(0), denomABC.IBCDenom())
+	suite.assertAmountOnChain(suite.chainB, escrow, sdkmath.NewInt(0), denomAB.IBCDenom())
+	suite.assertAmountOnChain(suite.chainA, escrow, sdkmath.NewInt(0), denomA.IBCDenom())
 
 	// And that A has its original balance back.
-	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount, coin.Denom, "Chain A should have their funds back")
+	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount, coin.Denom)
 }
