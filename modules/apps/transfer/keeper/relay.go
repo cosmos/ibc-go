@@ -331,12 +331,10 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 	// NOTE: packet data type already checked in handler.go
 
 	for _, token := range data.Tokens {
-		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
-		if !ok {
-			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", transferAmount)
+		coin, err := token.ToCoin()
+		if err != nil {
+			return err
 		}
-
-		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 		sender, err := sdk.AccAddressFromBech32(data.Sender)
 		if err != nil {
