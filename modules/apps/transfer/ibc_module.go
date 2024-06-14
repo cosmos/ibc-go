@@ -184,9 +184,10 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	var data types.FungibleTokenPacketDataV2
 	var ackErr error
+
+	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
 	defer func() {
 		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
