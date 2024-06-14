@@ -748,7 +748,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	data = types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom:  types.NewDenom("stake"),
+				Denom:  types.NewDenom(sdk.DefaultBondDenom),
 				Amount: "100",
 			},
 		},
