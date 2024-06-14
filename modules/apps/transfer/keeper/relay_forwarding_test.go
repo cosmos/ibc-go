@@ -698,7 +698,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	err = pathBtoC.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	// Make sure founds went from A to B's escrow account.
+	// Make sure funds went from A to B's escrow account.
 	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount.Sub(amount), denomA.IBCDenom(), "Chain A should have less funds")
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomAB.IBCDenom(), "Chain B's escrow should have coins")
 
