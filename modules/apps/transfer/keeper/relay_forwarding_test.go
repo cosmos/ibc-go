@@ -657,7 +657,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 
 	originalABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), sender.GetAddress(), coin.Denom)
 
-	hops := &types.ForwardingInfo{
+	hops := &types.Forwarding{
 		Hops: []types.Hop{
 			{
 				PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
