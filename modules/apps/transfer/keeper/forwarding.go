@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"errors"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
@@ -23,7 +21,7 @@ func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.P
 		return err
 	}
 
-	forwardAck := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
+	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
@@ -39,7 +37,7 @@ func (k Keeper) ackForwardPacketTimeout(ctx sdk.Context, prevPacket channeltypes
 		return err
 	}
 
-	forwardAck := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
+	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketTimedOut)
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
