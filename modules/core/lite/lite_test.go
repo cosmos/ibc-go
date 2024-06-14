@@ -7,8 +7,6 @@ import (
 
 	"cosmossdk.io/math"
 
-	"cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -48,7 +46,7 @@ func (s *LiteTestSuite) TestHappyPath() {
 	pathAtoB := ibctesting.NewPath(s.chainA, s.chainB)
 	pathAtoB.SetupClients()
 
-	cosmosMerklePath := suite.chainA.GetPrefix() // ChainA and B have the same prefix
+	cosmosMerklePath := s.chainA.GetPrefix() // ChainA and B have the same prefix
 	provideCounterpartyMsgA := clienttypes.MsgProvideCounterparty{
 		ClientId:         pathAtoB.EndpointA.ClientID,
 		CounterpartyId:   pathAtoB.EndpointB.ClientID,
