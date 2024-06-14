@@ -159,7 +159,7 @@ message MsgProvideCounterparty {
   // merklePath prefix is the prefix added to the ICS24 path before it is ready to be proven
   // the ICS24 path will be appended to the last element, then the total merkle path will be passed
   // directly to the client for verification
-  ibc.core.commitment.v1.MerklePath merkle_path_prefix = 3;
+  ibc.core.commitment.v1.MerklePrefix merkle_path_prefix = 3;
   // signer address
   string signer = 4;
 }
