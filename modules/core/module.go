@@ -207,7 +207,7 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 }
 
 // RegisterStoreDecoder registers a decoder for ibc module's types
-func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	// sdr[exported.StoreKey] = simulation.NewDecodeStore(*am.keeper)
 }
 

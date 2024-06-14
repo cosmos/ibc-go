@@ -66,7 +66,6 @@ func (k Keeper) sendTransfer(
 	timeoutTimestamp uint64,
 	memo string,
 ) (uint64, error) {
-
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
 
