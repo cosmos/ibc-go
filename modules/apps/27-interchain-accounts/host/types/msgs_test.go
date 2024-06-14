@@ -77,7 +77,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 }
 
 func TestMsgModuleQuerySafeValidateBasic(t *testing.T) {
-	queryRequest := &types.QueryRequest{
+	queryRequest := types.QueryRequest{
 		Path: "/cosmos.bank.v1beta1.Query/Balance",
 		Data: []byte{},
 	}
@@ -89,17 +89,17 @@ func TestMsgModuleQuerySafeValidateBasic(t *testing.T) {
 	}{
 		{
 			"success: valid signer address",
-			types.NewMsgModuleQuerySafe(sdk.AccAddress(ibctesting.TestAccAddress).String(), []*types.QueryRequest{queryRequest}),
+			types.NewMsgModuleQuerySafe(sdk.AccAddress(ibctesting.TestAccAddress).String(), []types.QueryRequest{queryRequest}),
 			nil,
 		},
 		{
 			"failure: invalid signer address",
-			types.NewMsgModuleQuerySafe("signer", []*types.QueryRequest{queryRequest}),
+			types.NewMsgModuleQuerySafe("signer", []types.QueryRequest{queryRequest}),
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
 			"failure: empty query requests",
-			types.NewMsgModuleQuerySafe(sdk.AccAddress(ibctesting.TestAccAddress).String(), []*types.QueryRequest{}),
+			types.NewMsgModuleQuerySafe(sdk.AccAddress(ibctesting.TestAccAddress).String(), []types.QueryRequest{}),
 			ibcerrors.ErrInvalidRequest,
 		},
 	}
@@ -135,7 +135,7 @@ func TestMsgModuleQuerySafeGetSigners(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			msg := types.NewMsgModuleQuerySafe(tc.address.String(), []*types.QueryRequest{})
+			msg := types.NewMsgModuleQuerySafe(tc.address.String(), []types.QueryRequest{})
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
 			signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 			if tc.expPass {

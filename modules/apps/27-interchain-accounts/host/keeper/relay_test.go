@@ -286,7 +286,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				queryBz, err := balanceQuery.Marshal()
 				suite.Require().NoError(err)
 
-				msg := types.NewMsgModuleQuerySafe(interchainAccountAddr, []*types.QueryRequest{
+				msg := types.NewMsgModuleQuerySafe(interchainAccountAddr, []types.QueryRequest{
 					{
 						Path: "/cosmos.bank.v1beta1.Query/Balance",
 						Data: queryBz,

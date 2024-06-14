@@ -35,7 +35,7 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 }
 
 // NewMsgModuleQuerySafe creates a new MsgModuleQuerySafe instance
-func NewMsgModuleQuerySafe(signer string, requests []*QueryRequest) *MsgModuleQuerySafe {
+func NewMsgModuleQuerySafe(signer string, requests []QueryRequest) *MsgModuleQuerySafe {
 	return &MsgModuleQuerySafe{
 		Signer:   signer,
 		Requests: requests,
