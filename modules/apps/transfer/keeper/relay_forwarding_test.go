@@ -212,10 +212,8 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", &forwarding)
 	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
-	var async bool
-	async, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
+	err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
 	// If forwarding has been triggered then the async must be true.
-	suite.Require().True(async)
 	suite.Require().Nil(err)
 
 	// denomTrace path: transfer/channel-0
@@ -248,8 +246,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	packetRecv = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	// execute onRecvPacket, when chaninA receives the tokens the escrow amount on B should increase to amount
-	async, err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packetRecv, data)
-	suite.Require().False(async)
+	err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packetRecv, data)
 	suite.Require().NoError(err)
 
 	// Check that the final receiver has received the expected tokens.
