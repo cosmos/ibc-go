@@ -317,7 +317,7 @@ func (k *Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) 
 }
 
 // SetCounterparty sets the Litecounterparty for a given client identifier.
-func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID, counterpartyClientID string, merklePathPrefix *commitmenttypes.MerklePath) {
+func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID, counterpartyClientID string, merklePathPrefix *commitmenttypes.MerklePrefix) {
 	counterparty := types.NewLiteCounterparty(counterpartyClientID, merklePathPrefix)
 	bz := k.cdc.MustMarshal(&counterparty)
 	k.ClientStore(ctx, clientID).Set(host.CounterpartyKey(), bz)

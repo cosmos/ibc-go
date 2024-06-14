@@ -4,12 +4,15 @@ import (
 	"bytes"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/core/lite/types"
@@ -138,8 +141,11 @@ func (k Keeper) RecvPacket(
 	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
 
 	// TODO: allow for custom prefix
-	path := host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	path := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence))
+	merklePath, err := commitmenttypes.ApplyPrefix(counterparty.MerklePathPrefix, path)
+	if err != nil {
+		return err
+	}
 
 	commitment := channeltypes.CommitLitePacket(k.cdc, packet)
 
@@ -239,8 +245,11 @@ func (k Keeper) AcknowledgePacket(
 		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
-	path := host.PacketAcknowledgementPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	path := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+	merklePath, err := commitmenttypes.ApplyPrefix(counterparty.MerklePathPrefix, path)
+	if err != nil {
+		return err
+	}
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
@@ -311,8 +320,11 @@ func (k Keeper) TimeoutPacket(
 		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
-	path := host.PacketReceiptPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	path := commitmenttypes.NewMerklePath(host.PacketReceiptPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+	merklePath, err := commitmenttypes.ApplyPrefix(counterparty.MerklePathPrefix, path)
+	if err != nil {
+		return err
+	}
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter

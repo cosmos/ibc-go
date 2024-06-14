@@ -73,7 +73,7 @@ func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
 }
 
 // NewLiteCounterparty creates a new LiteCounterparty instance
-func NewLiteCounterparty(clientID string, merklePathPrefix *commitmenttypes.MerklePath) LiteCounterparty {
+func NewLiteCounterparty(clientID string, merklePathPrefix *commitmenttypes.MerklePrefix) LiteCounterparty {
 	return LiteCounterparty{
 		ClientId:         clientID,
 		MerklePathPrefix: merklePathPrefix,

@@ -3,15 +3,15 @@ package lite_test
 import (
 	"testing"
 
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -47,7 +47,7 @@ func (suite *LiteTestSuite) TestHappyPath() {
 	pathAtoB := ibctesting.NewPath(suite.chainA, suite.chainB)
 	pathAtoB.SetupClients()
 
-	cosmosMerklePath := commitmenttypes.NewMerklePath("ibc", "")
+	cosmosMerklePath := suite.chainA.GetPrefix() // ChainA and B have the same prefix
 	provideCounterpartyMsgA := clienttypes.MsgProvideCounterparty{
 		ClientId:         pathAtoB.EndpointA.ClientID,
 		CounterpartyId:   pathAtoB.EndpointB.ClientID,
