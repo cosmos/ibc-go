@@ -60,4 +60,7 @@ var (
 
 	// ErrNotFound defines an error when requested entity doesn't exist in the state.
 	ErrNotFound = errorsmod.Register(codespace, 16, "not found")
+
+	// ErrUnauthorizedHops defines an error when the hops provided are not authorized.
+	ErrUnauthorizedHops = errorsmod.Register(codespace, 17, "unauthorized hops")
 )
