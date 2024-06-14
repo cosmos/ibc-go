@@ -27,7 +27,7 @@ func (fi Forwarding) Validate() error {
 	}
 
 	if len(fi.Hops) == 0 && fi.Memo != "" {
-		return errorsmod.Wrap(ErrInvalidForwarding, "memo specified when forwarding hops are zero")
+		return errorsmod.Wrap(ErrInvalidForwarding, "memo specified when forwarding hops is empty")
 	}
 
 	for _, hop := range fi.Hops {

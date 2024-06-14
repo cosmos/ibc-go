@@ -57,7 +57,7 @@ func TestForwarding_Validate(t *testing.T) {
 			types.ErrInvalidMemo,
 		},
 		{
-			"invalid forwarding with zero hops and specified memo",
+			"invalid forwarding with empty hops and specified memo",
 			types.NewForwarding("memo"),
 			types.ErrInvalidForwarding,
 		},
