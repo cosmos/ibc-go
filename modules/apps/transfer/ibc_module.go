@@ -184,8 +184,10 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	var data types.FungibleTokenPacketDataV2
-	var ackErr error
+	var (
+	  data types.FungibleTokenPacketDataV2
+	  ackErr error
+	)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
