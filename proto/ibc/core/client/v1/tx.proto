@@ -55,8 +55,8 @@ message MsgCreateClient {
   string signer = 3;
   // optional counterparty client identifier
   string counterparty_id = 4;
-  // merklePath prefix is the prefix added to the ICS24 path before it is ready to be proven
-  ibc.core.commitment.v1.MerklePath merkle_path_prefix = 5;
+  // merklePathPrefix is the prefix added to the ICS24 path before it is ready to be proven
+  ibc.core.commitment.v1.MerklePrefix merkle_path_prefix = 5;
 }
 
 // MsgCreateClientResponse defines the Msg/CreateClient response type.
