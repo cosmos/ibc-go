@@ -32,7 +32,7 @@ it becomes a proper solution to port the code for ibc-go to interpret without re
 
 ## Objectives
 
-The objective of this module is to have allow two chains with heterogenous consensus algorithms being connected through light clients that are not necessarily written in Go, but compiled to Wasm instead.
+The objective of this module is to have allow two chains with heterogeneous consensus algorithms being connected through light clients that are not necessarily written in Go, but compiled to Wasm instead.
 
 ## Scope
 
