@@ -46,6 +46,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgRecoverClient{},
 		&MsgIBCSoftwareUpgrade{},
 		&MsgUpdateParams{},
+		&MsgProvideCounterparty{},
 	)
 	registry.RegisterImplementations(
 		(*govtypesv1beta1.Content)(nil),
