@@ -5,6 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -140,6 +144,55 @@ func TestValidate(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.token.Validate()
+			expPass := tc.expError == nil
+			if expPass {
+				require.NoError(t, err, tc.name)
+			} else {
+				require.ErrorContains(t, err, tc.expError.Error(), tc.name)
+			}
+		})
+	}
+}
+
+func TestToCoin(t *testing.T) {
+	testCases := []struct {
+		name     string
+		token    Token
+		expCoin  sdk.Coin
+		expError error
+	}{
+		{
+			"success: convert token to coin",
+			Token{
+				Denom: Denom{
+					Base:  denom,
+					Trace: []Trace{},
+				},
+				Amount: amount,
+			},
+			sdk.NewCoin(denom, sdkmath.NewInt(100)),
+			nil,
+		},
+		{
+			"failure: invalid amount string",
+			Token{
+				Denom: Denom{
+					Base:  denom,
+					Trace: []Trace{},
+				},
+				Amount: "value",
+			},
+			sdk.Coin{},
+			ErrInvalidAmount,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			coin, err := tc.token.ToCoin()
+
+			require.Equal(t, tc.expCoin, coin, tc.name)
+
 			expPass := tc.expError == nil
 			if expPass {
 				require.NoError(t, err, tc.name)
