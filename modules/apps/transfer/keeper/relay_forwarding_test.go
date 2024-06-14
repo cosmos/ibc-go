@@ -776,6 +776,6 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.assertAmountOnChain(suite.chainC, escrow, sdkmath.NewInt(0), denomABC.IBCDenom(), "Escrow account for chain C should be empty")
 	suite.assertAmountOnChain(suite.chainA, escrow, sdkmath.NewInt(0), denomA.IBCDenom(), "Escrow account for chain a should be empty")
 
-	// And that A hsa its original balance back.
+	// And that A has its original balance back.
 	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount, coin.Denom, "Chain A should have their funds back")
 }
