@@ -1,12 +1,11 @@
 package transfer_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"encoding/json"
 	"errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"math"
-	"strconv"
-
-	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -280,15 +279,15 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 	// This test suite mostly covers the top-level logic of the ibc module OnRecvPacket function
 	// The core logic is covered in keeper OnRecvPacket
 	var packet channeltypes.Packet
+	var expectedAttributes []sdk.Attribute
 	testCases := []struct {
-		name          string
-		malleate      func()
-		expAckSuccess bool
-		expAsyncAck   bool
-		eventErrorMsg string
+		name             string
+		malleate         func()
+		expAck           exported.Acknowledgement
+		expEventErrorMsg string
 	}{
 		{
-			"success", func() {}, true, false, "",
+			"success", func() {}, channeltypes.NewResultAcknowledgement([]byte{byte(1)}), "",
 		},
 		{
 			"success: async aknowledgment with forwarding path",
@@ -307,28 +306,34 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				)
 				packet.Data = packetData.GetBytes()
 			},
-			true,
-			true,
+			nil,
 			"",
 		},
 		{
 			"failure: invalid packet data bytes",
 			func() {
 				packet.Data = []byte("invalid data")
+
+				// Override expected attributes because this fails on unmarshaling packet data (so can't get the attributes)
+				expectedAttributes = []sdk.Attribute{
+					sdk.NewAttribute(types.AttributeKeySender, ""),
+					sdk.NewAttribute(types.AttributeKeyReceiver, ""),
+					sdk.NewAttribute(types.AttributeKeyTokens, "null"),
+					sdk.NewAttribute(types.AttributeKeyMemo, ""),
+					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
+					sdk.NewAttribute(types.AttributeKeyAckError, "cannot unmarshal ICS20-V2 transfer packet data: invalid character 'i' looking for beginning of value: invalid type: invalid type"),
+				}
 			},
-			false,
-			false,
+			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType),
 			"cannot unmarshal ICS20-V2 transfer packet data: invalid character 'i' looking for beginning of value: invalid type: invalid type",
 		},
 		{
-			"failure: invalid token packet",
+			"failure: receive disabled",
 			func() {
-				invalidPacket := types.FungibleTokenPacketDataV2{}
-				packet.Data = invalidPacket.GetBytes()
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{SendEnabled: false})
 			},
-			false,
-			false,
-			"sender address cannot be blank: invalid address: invalid type",
+			channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled),
+			"fungible token transfers to this chain are disabled",
 		},
 	}
 
@@ -352,6 +357,23 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				nil,
 			)
 
+			tokensBz, err := json.Marshal(packetData.Tokens)
+			suite.Require().NoError(err)
+			expectedAttributes = []sdk.Attribute{
+				sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
+				sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
+				sdk.NewAttribute(types.AttributeKeyTokens, string(tokensBz)),
+				sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
+			}
+			if tc.expAck == nil || tc.expAck.Success() {
+				expectedAttributes = append(expectedAttributes, sdk.NewAttribute(types.AttributeKeyAckSuccess, "true"))
+			} else {
+				expectedAttributes = append(expectedAttributes,
+					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
+					sdk.NewAttribute(types.AttributeKeyAckError, tc.expEventErrorMsg),
+				)
+			}
+
 			seq := uint64(1)
 			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
@@ -366,63 +388,17 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			ctx := suite.chainA.GetContext()
 			ack := cbs.OnRecvPacket(ctx, packet, suite.chainA.SenderAccount.GetAddress())
 
-			if tc.expAckSuccess {
-				if tc.expAsyncAck {
-					suite.Require().Nil(ack)
-				} else {
-					suite.Require().True(ack.Success())
+			suite.Require().Equal(tc.expAck, ack)
 
-					expectedAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-					suite.Require().Equal(expectedAck, ack)
-				}
+			expectedEvents := sdk.Events{
+				sdk.NewEvent(
+					types.EventTypePacket,
+					expectedAttributes...,
+				),
+			}.ToABCIEvents()
 
-				tokensBz, err := json.Marshal(packetData.Tokens)
-				suite.Require().NoError(err)
-
-				// In 6585 this needs to change to account for forwarded packets
-				expectedAttributes := []sdk.Attribute{
-					sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
-					sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
-					sdk.NewAttribute(types.AttributeKeyTokens, string(tokensBz)),
-					sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
-					sdk.NewAttribute(types.AttributeKeyAckSuccess, "true"),
-				}
-
-				expectedEvents := sdk.Events{
-					sdk.NewEvent(
-						types.EventTypePacket,
-						expectedAttributes...,
-					),
-				}.ToABCIEvents()
-
-				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
-				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
-			} else {
-				if tc.expAsyncAck {
-					suite.Require().Nil(ack)
-				} else {
-					suite.Require().False(ack.Success())
-				}
-
-				expectedAttributes := []sdk.Attribute{
-					sdk.NewAttribute(types.AttributeKeySender, ""),
-					sdk.NewAttribute(types.AttributeKeyReceiver, ""),
-					sdk.NewAttribute(types.AttributeKeyTokens, "null"),
-					sdk.NewAttribute(types.AttributeKeyMemo, ""),
-					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
-					sdk.NewAttribute(types.AttributeKeyAckError, tc.eventErrorMsg),
-				}
-
-				expectedEvents := sdk.Events{
-					sdk.NewEvent(
-						types.EventTypePacket,
-						expectedAttributes...,
-					),
-				}.ToABCIEvents()
-
-				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
-				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
-			}
+			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 		})
 	}
 }
