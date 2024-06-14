@@ -655,7 +655,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 
 	denomA := types.NewDenom(coin.Denom)
 	denomAB := types.NewDenom(coin.Denom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
-	denomABC := types.NewDenom(coin.Denom, types.NewTrace(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID), types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID))
+	denomABC := types.NewDenom(coin.Denom, append(denomAB.Trace, types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID))...)
 
 	originalABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), sender.GetAddress(), coin.Denom)
 
