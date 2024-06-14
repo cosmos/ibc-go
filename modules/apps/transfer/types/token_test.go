@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -156,7 +158,7 @@ func TestToCoin(t *testing.T) {
 	testCases := []struct {
 		name     string
 		token    Token
-		coins    sdk.Coin
+		expCoins sdk.Coin
 		expError error
 	}{
 		{
@@ -188,10 +190,12 @@ func TestToCoin(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			coin, err := tc.token.ToCoin()
+
+			require.Equal(t, tc.expCoins, coin, tc.name)
+
 			expPass := tc.expError == nil
 			if expPass {
 				require.NoError(t, err, tc.name)
-				require.Equal(t, tc.coins, coin, tc.name)
 			} else {
 				require.ErrorContains(t, err, tc.expError.Error(), tc.name)
 			}

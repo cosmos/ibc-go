@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -181,11 +182,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		// parse the transfer amount
-		coin, err := token.ToCoin()
-		if err != nil {
-			return false, err
+		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
+		if !ok {
+			return false, errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", token.Amount)
 		}
-		transferAmount := coin.Amount
 
 		// This is the prefix that would have been prefixed to the denomination
 		// on sender chain IF and only if the token originally came from the
@@ -199,6 +199,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			// remove prefix added by sender chain
 			token.Denom.Trace = token.Denom.Trace[1:]
+
+			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 			if k.bankKeeper.BlockedAddr(receiver) {
 				return false, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)

@@ -3,6 +3,7 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -29,9 +30,8 @@ func (t Token) Validate() error {
 
 // ToCoin converts a Token to an sdk.Coin.
 //
-// It takes a Token as a parameter and returns an sdk.Coin and an error. The function
-// parses the Amount field of the Token into an sdkmath.Int and creates a new
-// sdk.Coin with the IBCDenom of the Token's Denom field and the parsed Amount.
+// The function parses the Amount field of the Token into an sdkmath.Int and returns a new sdk.Coin with
+// the IBCDenom of the Token's Denom field and the parsed Amount.
 // If the Amount cannot be parsed, an error is returned with a wrapped error message.
 func (t Token) ToCoin() (sdk.Coin, error) {
 	transferAmount, ok := sdkmath.NewIntFromString(t.Amount)
