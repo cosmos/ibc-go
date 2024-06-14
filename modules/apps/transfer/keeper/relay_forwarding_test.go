@@ -772,8 +772,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().NoError(err)
 
 	// Finally, check that A,B, and C escrow accounts do not have fund.
-	suite.assertAmountOnChain(suite.chainB, escrow, sdkmath.NewInt(0), denomAB.IBCDenom(), "Escrow account for chain B should be empty")
 	suite.assertAmountOnChain(suite.chainC, escrow, sdkmath.NewInt(0), denomABC.IBCDenom(), "Escrow account for chain C should be empty")
+	suite.assertAmountOnChain(suite.chainB, escrow, sdkmath.NewInt(0), denomAB.IBCDenom(), "Escrow account for chain B should be empty")
 	suite.assertAmountOnChain(suite.chainA, escrow, sdkmath.NewInt(0), denomA.IBCDenom(), "Escrow account for chain a should be empty")
 
 	// And that A has its original balance back.
