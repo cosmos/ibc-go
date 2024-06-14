@@ -642,6 +642,9 @@ func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, b
 	suite.Require().Equal(amount, total.Amount, errorMsg)
 }
 
+// TestOnTimeoutPacketForwarding tests the scenario in which a packet goes from
+// A to C, using B as a forwarding hop. The packet times out when going to B
+// from C and we verify that funds are properly returned to A.
 func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	pathAtoB, pathBtoC := suite.setUpForwardingPaths()
 
@@ -656,7 +659,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 
 	originalABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), sender.GetAddress(), coin.Denom)
 
-	hops := &types.Forwarding{
+	forwarding := &types.Forwarding{
 		Hops: []types.Hop{
 			{
 				PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
@@ -673,7 +676,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		hops,
+		forwarding,
 	)
 
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -754,7 +757,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 		},
 		suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
 		suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(),
-		"", hops,
+		"", forwarding,
 	)
 
 	packet = channeltypes.NewPacket(
