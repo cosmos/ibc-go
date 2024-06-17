@@ -611,12 +611,12 @@ Test async ack is properly relayed to middle hop after forwarding transfer compl
 Tiemout during forwarding after middle hop execution reverts properly the state changes
 */
 
-func (suite *KeeperTestSuite) setUpForwardingPaths() (path1, path2 *ibctesting.Path) {
-	path1 = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	path2 = ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-	path1.Setup()
-	path2.Setup()
-	return path1, path2
+func (suite *KeeperTestSuite) setUpForwardingPaths() (pathAtoB, pathBtoC *ibctesting.Path) {
+	pathAtoB = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	pathBtoC = ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+	pathAtoB.Setup()
+	pathBtoC.Setup()
+	return pathAtoB, pathBtoC
 }
 
 type amountType int
@@ -701,6 +701,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	// Make sure funds went from A to B's escrow account.
 	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount.Sub(amount), denomA.IBCDenom())
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomAB.IBCDenom())
+
+	// Check that forwarded packet exists
+	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, packet.Sequence)
+	suite.Require().True(found, "Chain B has no forwarded packet")
+	suite.Require().Equal(packet, forwardedPacket, "ForwardedPacket stored in ChainB is not the same that was sent")
 
 	address := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel).String()
 	data := types.NewFungibleTokenPacketDataV2(
