@@ -49,7 +49,7 @@ func NewMsgTransfer(
 	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
-	forwarding *Forwarding,
+	forwarding Forwarding,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -102,7 +102,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 
-	if msg.Forwarding != nil {
+	if len(msg.Forwarding.Hops) > 0 || msg.Forwarding.Memo != "" {
 		if err := msg.Forwarding.Validate(); err != nil {
 			return err
 		}

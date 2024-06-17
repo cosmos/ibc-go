@@ -355,7 +355,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				"",
-				nil,
+				types.Forwarding{},
 			)
 
 			tokensBz, err := json.Marshal(packetData.Tokens)
@@ -476,7 +476,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 				timeoutHeight,
 				0,
 				"",
-				nil,
+				types.Forwarding{},
 			)
 			res, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed

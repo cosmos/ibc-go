@@ -103,7 +103,7 @@ func NewFungibleTokenPacketDataV2(
 	tokens []Token,
 	sender, receiver string,
 	memo string,
-	forwarding *Forwarding,
+	forwarding Forwarding,
 ) FungibleTokenPacketDataV2 {
 	return FungibleTokenPacketDataV2{
 		Tokens:     tokens,
@@ -140,7 +140,7 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 
-	if ftpd.Forwarding != nil {
+	if len(ftpd.Forwarding.Hops) > 0 || ftpd.Forwarding.Memo != "" {
 		if err := ftpd.Forwarding.Validate(); err != nil {
 			return err
 		}
@@ -199,5 +199,5 @@ func (ftpd FungibleTokenPacketDataV2) GetPacketSender(sourcePortID string) strin
 
 // ShouldBeForwarded determines if the packet should be forwarded to the next hop.
 func (ftpd FungibleTokenPacketDataV2) ShouldBeForwarded() bool {
-	return ftpd.Forwarding != nil && len(ftpd.Forwarding.Hops) > 0
+	return len(ftpd.Forwarding.Hops) > 0
 }
