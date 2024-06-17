@@ -50,7 +50,12 @@ func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet channeltypes.
 		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	return k.ics4Wrapper.WriteAcknowledgement(ctx, capability, packet, ack)
+	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, capability, packet, ack); err != nil {
+		return err
+	}
+
+	k.deleteForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	return nil
 }
 
 // revertForwardedPacket reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.

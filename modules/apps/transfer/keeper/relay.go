@@ -286,11 +286,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
 		if isForwarded {
-			if err := k.ackForwardPacketSuccess(ctx, prevPacket); err != nil {
-				return err
-			}
-			// Delete the previous packet.
-			return k.DeleteForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+			return k.ackForwardPacketSuccess(ctx, prevPacket)
 		}
 
 		// the acknowledgement succeeded on the receiving chain so nothing
@@ -302,12 +298,8 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			return err
 		}
 		if isForwarded {
-			if err := k.ackForwardPacketError(ctx, prevPacket, data); err != nil {
-				// Delete the previous packet.
-				return k.DeleteForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
-			}
+			return k.ackForwardPacketError(ctx, prevPacket, data)
 		}
-
 		return nil
 	default:
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
@@ -324,11 +316,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 
 	prevPacket, isForwarded := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if isForwarded {
-		if err := k.ackForwardPacketTimeout(ctx, prevPacket, data); err != nil {
-			return err
-		}
-		// Delete the previous packet.
-		return k.DeleteForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+		return k.ackForwardPacketTimeout(ctx, prevPacket, data)
 	}
 
 	return nil
