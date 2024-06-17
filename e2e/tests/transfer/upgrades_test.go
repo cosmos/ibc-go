@@ -35,7 +35,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, testsuite.TransferChannelOptions())
 
 	channelB := channelA.Counterparty
 
@@ -253,7 +253,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, testsuite.TransferChannelOptions())
 
 	channelB := channelA.Counterparty
 
@@ -343,7 +343,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, testsuite.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 
 	channelB := channelA.Counterparty

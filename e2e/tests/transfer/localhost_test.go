@@ -35,7 +35,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	_, channelA := s.SetupChainsRelayerAndChannel(ctx, testsuite.TransferChannelOptions())
 
 	chainA, _ := s.GetChains()
 	chainADenom := chainA.Config().Denom

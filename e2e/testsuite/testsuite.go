@@ -43,6 +43,8 @@ const (
 	DefaultGasValue = 500_000_0000
 )
 
+type ChannelOptionsConfiguration func(*ibc.CreateChannelOptions, ibc.Chain, ibc.Chain)
+
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
 type E2ETestSuite struct {
 	testifysuite.Suite
@@ -130,7 +132,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 // using the given channel options. The relayer returned by this function has not yet started. It should be started
 // with E2ETestSuite.StartRelayer if needed.
 // This should be called at the start of every test, unless fine grained control is required.
-func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
+func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ChannelOptionsConfiguration, chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
 	chains := s.GetAllChains(chainSpecOpts...)
 
 	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
@@ -151,12 +153,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 }
 
 // newInterchain constructs a new interchain instance that creates channels between the chains.
-func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains []ibc.Chain, channelOpts func(*ibc.CreateChannelOptions)) *interchaintest.Interchain {
-	channelOptions := defaultChannelOpts(chains)
-	if channelOpts != nil {
-		channelOpts(&channelOptions)
-	}
-
+func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains []ibc.Chain, channelOpts ChannelOptionsConfiguration) *interchaintest.Interchain {
 	ic := interchaintest.NewInterchain()
 	for _, chain := range chains {
 		ic.AddChain(chain)
@@ -172,9 +169,17 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains 
 	for i := 0; i < len(chains)-1; i++ {
 		pathName := s.generatePathName()
 		pathNames = append(pathNames, pathName)
+
+		chain1 := chains[i]
+		chain2 := chains[i+1]
+		channelOptions := defaultChannelOpts(chains)
+		if channelOpts != nil {
+			channelOpts(&channelOptions, chain1, chain2)
+		}
+
 		ic.AddLink(interchaintest.InterchainLink{
-			Chain1:            chains[i],
-			Chain2:            chains[i+1],
+			Chain1:            chain1,
+			Chain2:            chain2,
 			Relayer:           r,
 			Path:              pathName,
 			CreateChannelOpts: channelOptions,
@@ -520,45 +525,24 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 	return rep.RelayerExecReporter(s.T())
 }
 
-// TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (s *E2ETestSuite) TransferChannelOptions(chainOpts ...ChainOptionConfiguration) func(options *ibc.CreateChannelOptions) {
-	chainA, chainB := s.GetChains(chainOpts...)
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	// select the transfer version based on the chain versions
-	transferVersion := transfertypes.V1
-	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
-		transferVersion = transfertypes.V2
-	}
-
-	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transferVersion
-		opts.SourcePortName = transfertypes.PortID
-		opts.DestPortName = transfertypes.PortID
-	}
-}
-
 // FeeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
-func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
-	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
+func (s *E2ETestSuite) FeeMiddlewareChannelOptions() ChannelOptionsConfiguration {
+	return func(opts *ibc.CreateChannelOptions, chainA, chainB ibc.Chain) {
+		chainAVersion := chainA.Config().Images[0].Version
+		chainBVersion := chainB.Config().Images[0].Version
 
-	// select the transfer version based on the chain versions
-	transferVersion := transfertypes.V1
-	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
-		transferVersion = transfertypes.V2
-	}
+		// select the transfer version based on the chain versions
+		transferVersion := transfertypes.V1
+		if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
+			transferVersion = transfertypes.V2
+		}
 
-	versionMetadata := feetypes.Metadata{
-		FeeVersion: feetypes.Version,
-		AppVersion: transferVersion,
-	}
-	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
-	s.Require().NoError(err)
-
-	return func(opts *ibc.CreateChannelOptions) {
+		versionMetadata := feetypes.Metadata{
+			FeeVersion: feetypes.Version,
+			AppVersion: transferVersion,
+		}
+		versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
+		s.Require().NoError(err)
 		opts.Version = string(versionBytes)
 		opts.DestPortName = transfertypes.PortID
 		opts.SourcePortName = transfertypes.PortID
@@ -663,6 +647,24 @@ func ThreeChainSetup() ChainOptionConfiguration {
 		chainCSpec.Name = "simapp-c"
 
 		options.ChainSpecs = append(options.ChainSpecs, &chainCSpec)
+	}
+}
+
+// TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
+func TransferChannelOptions() ChannelOptionsConfiguration {
+	return func(opts *ibc.CreateChannelOptions, chainA, chainB ibc.Chain) {
+		chainAVersion := chainA.Config().Images[0].Version
+		chainBVersion := chainB.Config().Images[0].Version
+
+		// select the transfer version based on the chain versions
+		transferVersion := transfertypes.V1
+		if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
+			transferVersion = transfertypes.V2
+		}
+
+		opts.Version = transferVersion
+		opts.SourcePortName = transfertypes.PortID
+		opts.DestPortName = transfertypes.PortID
 	}
 }
 
