@@ -159,19 +159,19 @@ func (k Keeper) sendTransfer(
 // and sent to the receiving address. Otherwise if the sender chain is sending
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) (bool, error) {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
-		return false, errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
+		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
 	}
 
 	if !k.GetParams(ctx).ReceiveEnabled {
-		return false, types.ErrReceiveDisabled
+		return types.ErrReceiveDisabled
 	}
 
 	receiver, err := getReceiverFromPacketData(data, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	var receivedCoins sdk.Coins
@@ -184,7 +184,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		// parse the transfer amount
 		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
 		if !ok {
-			return false, errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", token.Amount)
+			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", token.Amount)
 		}
 
 		// This is the prefix that would have been prefixed to the denomination
@@ -203,12 +203,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 			if k.bankKeeper.BlockedAddr(receiver) {
-				return false, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 
 			escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 			if err := k.unescrowCoin(ctx, escrowAddress, receiver, coin); err != nil {
-				return false, err
+				return err
 			}
 
 			denomPath := token.Denom.Path()
@@ -245,14 +245,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		if err := k.bankKeeper.MintCoins(
 			ctx, types.ModuleName, sdk.NewCoins(voucher),
 		); err != nil {
-			return false, errorsmod.Wrap(err, "failed to mint IBC tokens")
+			return errorsmod.Wrap(err, "failed to mint IBC tokens")
 		}
 
 		// send to receiver
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 			ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 		); err != nil {
-			return false, errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
+			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 		}
 
 		denomPath := token.Denom.Path()
@@ -265,13 +265,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if data.ShouldBeForwarded() {
 		// we are now sending from the forward escrow address to the final receiver address.
 		if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
-			return false, err
+			return err
 		}
-		return true, nil
 	}
 
 	// The ibc_module.go module will return the proper ack.
-	return false, nil
+	return nil
 }
 
 // OnAcknowledgementPacket either reverts the state changes executed in receive
