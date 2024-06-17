@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -76,11 +75,10 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 	// we can iterate over the received tokens of prevPacket by iterating over the sent tokens of failedPacketData
 	for _, token := range failedPacketData.Tokens {
 		// parse the transfer amount
-		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
-		if !ok {
-			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", transferAmount)
+		coin, err := token.ToCoin()
+		if err != nil {
+			return err
 		}
-		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 		// check if the token we received originated on the sender
 		// given that the packet is being reversed, we check the DestinationChannel and DestinationPort
@@ -110,10 +108,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 		memo = data.Forwarding.Memo
 		nextForwardingPath = nil
 	} else {
-		nextForwardingPath = &types.Forwarding{
-			Hops: data.Forwarding.Hops[1:],
-			Memo: data.Forwarding.Memo,
-		}
+		nextForwardingPath = types.NewForwarding(data.Forwarding.Memo, data.Forwarding.Hops[1:]...)
 	}
 
 	// sending from the forward escrow address to the original receiver address.

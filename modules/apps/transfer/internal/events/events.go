@@ -31,7 +31,7 @@ func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.To
 
 // EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
 func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) {
-	jsonTokens := mustMarshalType[types.Tokens](types.Tokens(packetData.Tokens))
+	jsonTokens := mustMarshalType[types.Tokens](packetData.Tokens)
 
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),

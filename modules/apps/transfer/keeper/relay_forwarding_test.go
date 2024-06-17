@@ -28,15 +28,10 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwarding := types.Forwarding{
-		Hops: []types.Hop{
-			{
-				PortId:    path2.EndpointA.ChannelConfig.PortID,
-				ChannelId: path2.EndpointA.ChannelID,
-			},
-		},
-		Memo: "",
-	}
+	forwarding := types.NewForwarding("", types.Hop{
+		PortId:    path2.EndpointA.ChannelConfig.PortID,
+		ChannelId: path2.EndpointA.ChannelID,
+	})
 
 	transferMsg := types.NewMsgTransfer(
 		path1.EndpointA.ChannelConfig.PortID,
@@ -46,7 +41,7 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwarding,
+		forwarding,
 	)
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
@@ -90,15 +85,10 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwarding := types.Forwarding{
-		Hops: []types.Hop{
-			{
-				PortId:    path2.EndpointB.ChannelConfig.PortID,
-				ChannelId: path2.EndpointB.ChannelID,
-			},
-		},
-		Memo: "",
-	}
+	forwarding := types.NewForwarding("", types.Hop{
+		PortId:    path2.EndpointB.ChannelConfig.PortID,
+		ChannelId: path2.EndpointB.ChannelID,
+	})
 
 	transferMsg := types.NewMsgTransfer(
 		path1.EndpointA.ChannelConfig.PortID,
@@ -108,7 +98,7 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwarding,
+		forwarding,
 	)
 
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -173,15 +163,10 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	coin = sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwarding := types.Forwarding{
-		Hops: []types.Hop{
-			{
-				PortId:    path2.EndpointB.ChannelConfig.PortID,
-				ChannelId: path2.EndpointB.ChannelID,
-			},
-		},
-		Memo: "",
-	}
+	forwarding := types.NewForwarding("", types.Hop{
+		PortId:    path2.EndpointB.ChannelConfig.PortID,
+		ChannelId: path2.EndpointB.ChannelID,
+	})
 
 	transferMsg := types.NewMsgTransfer(
 		path1.EndpointA.ChannelConfig.PortID,
@@ -191,7 +176,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwarding,
+		forwarding,
 	)
 
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -209,13 +194,11 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", &forwarding)
+		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", forwarding)
 	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
-	var async bool
-	async, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
+	err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
 	// If forwarding has been triggered then the async must be true.
-	suite.Require().True(async)
 	suite.Require().Nil(err)
 
 	// denomTrace path: transfer/channel-0
@@ -248,8 +231,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	packetRecv = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	// execute onRecvPacket, when chaninA receives the tokens the escrow amount on B should increase to amount
-	async, err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packetRecv, data)
-	suite.Require().False(async)
+	err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packetRecv, data)
 	suite.Require().NoError(err)
 
 	// Check that the final receiver has received the expected tokens.
@@ -281,15 +263,10 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwarding := types.Forwarding{
-		Hops: []types.Hop{
-			{
-				PortId:    path2.EndpointB.ChannelConfig.PortID,
-				ChannelId: path2.EndpointB.ChannelID,
-			},
-		},
-		Memo: "",
-	}
+	forwarding := types.NewForwarding("", types.Hop{
+		PortId:    path2.EndpointB.ChannelConfig.PortID,
+		ChannelId: path2.EndpointB.ChannelID,
+	})
 
 	transferMsg := types.NewMsgTransfer(
 		path1.EndpointA.ChannelConfig.PortID,
@@ -299,7 +276,7 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwarding,
+		forwarding,
 	)
 
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -475,15 +452,10 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	sender = suite.chainC.SenderAccounts[0].SenderAccount
 	receiver = suite.chainA.SenderAccounts[0].SenderAccount // Receiver is the A chain account
 
-	forwarding := types.Forwarding{
-		Hops: []types.Hop{
-			{
-				PortId:    path1.EndpointB.ChannelConfig.PortID,
-				ChannelId: path1.EndpointB.ChannelID,
-			},
-		},
-		Memo: "",
-	}
+	forwarding := types.NewForwarding("", types.Hop{
+		PortId:    path1.EndpointB.ChannelConfig.PortID,
+		ChannelId: path1.EndpointB.ChannelID,
+	})
 
 	transferMsg = types.NewMsgTransfer(
 		path2.EndpointB.ChannelConfig.PortID,
@@ -493,7 +465,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		&forwarding,
+		forwarding,
 	)
 
 	result, err = suite.chainC.SendMsgs(transferMsg)
