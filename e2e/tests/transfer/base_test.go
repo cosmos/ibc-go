@@ -317,6 +317,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 		transferCoins = append(transferCoins, testvalues.DefaultTransferAmount(denom))
 	}
 
+	t.Run("stop relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
+	})
+
 	t.Run("native token from chain B and non-native IBC token from chainA, both to chainA", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoins, chainBAddress, testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(transferTxResp)
@@ -324,33 +328,45 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("native chainB tokens are escrowed", func(t *testing.T) {
-		actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
-		s.Require().NoError(err)
+	t.Run("tokens are sent from chain B", func(t *testing.T) {
+		t.Run("native chainB tokens are escrowed", func(t *testing.T) {
+			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
+			s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+			s.Require().Equal(expected, actualBalance)
+		})
+
+		t.Run("non-native chainA IBC denom are burned", func(t *testing.T) {
+			actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+			s.Require().NoError(err)
+			s.Require().Equal(0, actualBalance.Int64())
+		})
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+		s.AssertPacketRelayed(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 	})
 
 	t.Run("tokens are returned to sender on chainB", func(t *testing.T) {
-		t.Run("non-native chainA ibc denom", func(t *testing.T) {
-			actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
-			s.Require().NoError(err)
-
-			expected := testvalues.IBCTransferAmount
-			s.Require().Equal(expected, actualBalance.Int64())
-		})
-
 		t.Run("native chainB denom", func(t *testing.T) {
 			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount
 			s.Require().Equal(expected, actualBalance)
+		})
+
+		t.Run("non-native chainA IBC denom", func(t *testing.T) {
+			actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+			s.Require().NoError(err)
+
+			expected := testvalues.IBCTransferAmount
+			s.Require().Equal(expected, actualBalance.Int64())
 		})
 	})
 }
