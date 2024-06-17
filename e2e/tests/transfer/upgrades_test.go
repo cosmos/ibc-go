@@ -255,8 +255,6 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, func(opts *ibc.CreateChannelOptions) {
 		opts.Version = transfertypes.V1
-		opts.SourcePortName = transfertypes.PortID
-		opts.DestPortName = transfertypes.PortID
 	})
 
 	channelB := channelA.Counterparty
@@ -346,10 +344,9 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 	})
 
 	// send the native chainB denom and also the ibc token from chainA
-	denoms := []string{chainBIBCToken.IBCDenom(), chainBDenom}
-	var transferCoins []sdk.Coin
-	for _, denom := range denoms {
-		transferCoins = append(transferCoins, testvalues.DefaultTransferAmount(denom))
+	transferCoins := []sdk.Coin{
+		testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()),
+		testvalues.DefaultTransferAmount(chainBDenom),
 	}
 
 	t.Run("native token from chain B and non-native IBC token from chainA, both to chainA", func(t *testing.T) {
@@ -380,9 +377,17 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithICS20v2_Succee
 	})
 
 	t.Run("tokens are un-escrowed", func(t *testing.T) {
-		actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
-		s.Require().NoError(err)
-		s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
+		t.Run("chain A escrow", func(t *testing.T) {
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
+			s.Require().NoError(err)
+			s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
+		})
+
+		t.Run("chain B escrow", func(t *testing.T) {
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainB, chainBDenom)
+			s.Require().NoError(err)
+			s.Require().Equal(sdk.NewCoin(chainBDenom, sdkmath.NewInt(testvalues.IBCTransferAmount)), actualTotalEscrow)
+		})
 	})
 }
 

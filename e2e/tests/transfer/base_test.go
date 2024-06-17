@@ -211,10 +211,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 	})
 
 	// send the native chainB denom and also the ibc token from chainA
-	denoms := []string{chainBIBCToken.IBCDenom(), chainBDenom}
-	var transferCoins []sdk.Coin
-	for _, denom := range denoms {
-		transferCoins = append(transferCoins, testvalues.DefaultTransferAmount(denom))
+	transferCoins := []sdk.Coin{
+		testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()),
+		testvalues.DefaultTransferAmount(chainBDenom),
 	}
 
 	t.Run("native token from chain B and non-native IBC token from chainA, both to chainA", func(t *testing.T) {
@@ -311,10 +310,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 	})
 
 	// send the native chainB denom and also the ibc token from chainA
-	denoms := []string{chainBIBCToken.IBCDenom(), chainBDenom}
-	var transferCoins []sdk.Coin
-	for _, denom := range denoms {
-		transferCoins = append(transferCoins, testvalues.DefaultTransferAmount(denom))
+	transferCoins := []sdk.Coin{
+		testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()),
+		testvalues.DefaultTransferAmount(chainBDenom),
 	}
 
 	t.Run("stop relayer", func(t *testing.T) {
