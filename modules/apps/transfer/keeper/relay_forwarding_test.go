@@ -640,8 +640,8 @@ func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, b
 }
 
 // TestOnTimeoutPacketForwarding tests the scenario in which a packet goes from
-// A to C, using B as a forwarding hop. The packet times out when going to B
-// from C and we verify that funds are properly returned to A.
+// A to C, using B as a forwarding hop. The packet times out when going to C
+// from B and we verify that funds are properly returned to A.
 func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	pathAtoB, pathBtoC := suite.setUpForwardingPaths()
 
