@@ -340,7 +340,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 		t.Run("non-native chainA IBC denom are burned", func(t *testing.T) {
 			actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 			s.Require().NoError(err)
-			s.Require().Equal(0, actualBalance.Int64())
+			s.Require().Equal(int64(0), actualBalance.Int64())
 		})
 	})
 
