@@ -7,6 +7,7 @@ option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "ibc/applications/transfer/v1/transfer.proto";
 
 // Allocation defines the spend limit for a particular port and channel
 message Allocation {
@@ -21,12 +22,14 @@ message Allocation {
   repeated string allow_list = 4;
   // allow list of memo strings, an empty list prohibits all memo strings;
   // a list only with "*" permits any memo string
-  repeated string allowed_packet_data     = 5;
-  repeated Hops   allowed_forwarding_hops = 6;
+  repeated string allowed_packet_data = 5;
+  // a list of Allowed hops
+  repeated Hops allowed_forwarding_hops = 6;
 }
 
+// Hops represent a list of Hop
 message Hops {
-  repeated Hop hops = 1 [(gogoproto.nullable) = false]
+  repeated ibc.applications.transfer.v1.Hop hops = 1 [(gogoproto.nullable) = false];
 }
 
 // TransferAuthorization allows the grantee to spend up to spend_limit coins from
