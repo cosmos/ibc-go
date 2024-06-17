@@ -663,6 +663,14 @@ func ThreeChainSetup() ChainOptionConfiguration {
 		chainCSpec.Name = "simapp-c"
 
 		options.ChainSpecs = append(options.ChainSpecs, &chainCSpec)
+
+		// TODO(chatton): temporarily reduce number of validators to reduce flakiness in CI.
+		for i := range options.ChainSpecs {
+			nf := 0
+			nv := 1
+			options.ChainSpecs[i].NumFullNodes = &nf
+			options.ChainSpecs[i].NumValidators = &nv
+		}
 	}
 }
 
