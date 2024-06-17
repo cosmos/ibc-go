@@ -104,10 +104,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 		memo = data.Forwarding.Memo
 		nextForwardingPath = nil
 	} else {
-		nextForwardingPath = &types.Forwarding{
-			Hops: data.Forwarding.Hops[1:],
-			Memo: data.Forwarding.Memo,
-		}
+		nextForwardingPath = types.NewForwarding(data.Forwarding.Memo, data.Forwarding.Hops[1:]...)
 	}
 
 	// sending from the forward escrow address to the original receiver address.
