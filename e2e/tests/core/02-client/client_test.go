@@ -177,7 +177,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
 		// TODO: replace with better handling of path names
-		pathName = fmt.Sprintf("%s-path-%d", s.T().Name(), 0)
+		pathName = fmt.Sprintf("path-%d", 0)
 		pathName = strings.ReplaceAll(pathName, "/", "-")
 	})
 
@@ -258,9 +258,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		// TODO: replace with better handling of path names
-		pathName = fmt.Sprintf("%s-path-%d", s.T().Name(), 0)
-		pathName = strings.ReplaceAll(pathName, "/", "-")
+		pathName = testsuite.GetPathName(0)
 	})
 
 	chainA, chainB := s.GetChains()
@@ -344,7 +342,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), testsuite.GetPathName(0))
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
@@ -360,7 +358,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), testsuite.GetPathName(0))
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)

@@ -379,6 +379,12 @@ func (s *E2ETestSuite) generatePathName() string {
 	return pathName
 }
 
+func (s *E2ETestSuite) GetPaths() []string {
+	paths, ok := s.testPaths[s.T().Name()]
+	s.Require().True(ok, "paths not found for test %s", s.T().Name())
+	return paths
+}
+
 // GetPathName returns the name of a path at a specific index. This can be used in tests
 // when the path name is required.
 func GetPathName(idx int64) string {
