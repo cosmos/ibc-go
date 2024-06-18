@@ -160,7 +160,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer, channelA := s.GetRelayer(), s.GetChannel()
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -260,7 +260,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer, channelA := s.GetRelayer(), s.GetChannel()
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
