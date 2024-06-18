@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"math/big"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -52,7 +53,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
-	if !areHopsAllowed(msgTransfer.Forwarding.Hops, a.Allocations[index].AllowedForwardingHops) {
+	if msgTransfer.Forwarding != nil && !areHopsAllowed(msgTransfer.Forwarding.Hops, a.Allocations[index].AllowedForwardingHops) {
 		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrUnauthorizedHops, "forwarding hops are not authorized")
 	}
 
@@ -175,28 +176,14 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	return false
 }
 
-func areHopsEqual(providedHops []Hop, allowedHops []Hop) bool {
-	if len(providedHops) != len(allowedHops) {
-		return false
-	}
-
-	for i, providedHop := range providedHops {
-		allowedHop := allowedHops[i]
-		if providedHop.PortId != allowedHop.PortId || providedHop.ChannelId != allowedHop.ChannelId {
-			return false
-		}
-	}
-
-	return true
-}
-
+// areHopsAllowed returns whether the provided slice of Hop matches one of the allowed ones.
 func areHopsAllowed(provided []Hop, allowed []*Hops) bool {
 	if len(allowed) == 0 {
 		return true
 	}
 
 	for _, allowedHops := range allowed {
-		if areHopsEqual(provided, allowedHops.Hops) {
+		if reflect.DeepEqual(provided, allowedHops.Hops) {
 			return true
 		}
 	}
