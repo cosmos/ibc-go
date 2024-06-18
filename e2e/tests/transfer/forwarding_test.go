@@ -23,7 +23,7 @@ type TransferForwardingTestSuite struct {
 
 // SetupSuite explicitly sets up three chains for this test suite.
 func (s *TransferForwardingTestSuite) SetupSuite() {
-	s.SetupChains(context.TODO(), testsuite.ThreeChainSetup())
+	s.SetupChains(context.TODO(), nil, testsuite.ThreeChainSetup())
 }
 
 // TODO: replace this with actual tests https://github.com/cosmos/ibc-go/issues/6578

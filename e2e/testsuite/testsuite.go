@@ -99,7 +99,7 @@ func (s *E2ETestSuite) initDockerClient() {
 // SetupSuite will by default create chains with no additional options. If additional options are required,
 // the test suite must define the SetupSuite function and provide the required options.
 func (s *E2ETestSuite) SetupSuite() {
-	s.SetupChains(context.TODO())
+	s.SetupChains(context.TODO(), nil)
 }
 
 // configureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
@@ -143,7 +143,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 
 // SetupChains creates the chains for the test suite, and also a relayer that is wired up to establish
 // connections and channels between the chains.
-func (s *E2ETestSuite) SetupChains(ctx context.Context, chainSpecOpts ...ChainOptionConfiguration) {
+func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier ChainOptionModifier, chainSpecOpts ...ChainOptionConfiguration) {
 	s.T().Logf("Setting up chains: %s", s.T().Name())
 	s.initState()
 	s.configureGenesisDebugExport()
@@ -158,7 +158,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, chainSpecOpts ...ChainOp
 	// TODO: we need to create a relayer for each test that will run
 	// having a single relayer for all tests will cause issues when running tests in parallel.
 	s.relayer = relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
-	ic := s.newInterchain(ctx, s.relayer, s.chains, func(options *ibc.CreateChannelOptions) {})
+	ic := s.newInterchain(ctx, s.relayer, s.chains, channelOptionsModifier)
 
 	buildOpts := interchaintest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
@@ -179,7 +179,6 @@ func (s *E2ETestSuite) SetupTest() {
 
 // SetupPath creates a path between the chains using the provided client and channel options.
 func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
-
 	s.T().Logf("Setting up path for: %s", s.T().Name())
 
 	r := s.relayer
@@ -188,7 +187,6 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 	allChains := s.GetAllChains()
 	for i := 0; i < len(allChains)-1; i++ {
 		chainA, chainB := allChains[i], allChains[i+1]
-		//pathName := s.GetPathName(int64(i))
 		pathName := s.generatePathName()
 		s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
 
@@ -271,13 +269,12 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 	return chainARelayerUser, chainBRelayerUser
 }
 
-// newInterchain constructs a new interchain instance that creates channels between the chains.
-func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains []ibc.Chain, channelOpts func(*ibc.CreateChannelOptions)) *interchaintest.Interchain {
-	channelOptions := defaultChannelOpts(chains)
-	if channelOpts != nil {
-		channelOpts(&channelOptions)
-	}
+// ChainOptionModifier is a function which accepts 2 chains as inputs, and returns a channel creation modifier function
+// in order to conditionally modify the channel options based on the chains being used.
+type ChainOptionModifier func(chainA, chainB ibc.Chain) func(options *ibc.CreateChannelOptions)
 
+// newInterchain constructs a new interchain instance that creates channels between the chains.
+func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains []ibc.Chain, modificationProvider ChainOptionModifier) *interchaintest.Interchain {
 	ic := interchaintest.NewInterchain()
 	for _, chain := range chains {
 		ic.AddChain(chain)
@@ -294,12 +291,21 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains 
 		pathName := s.generatePathName()
 		pathNames = append(pathNames, pathName)
 
+		channelOpts := defaultChannelOpts(chains)
+		chain1, chain2 := chains[i], chains[i+1]
+
+		if modificationProvider != nil {
+			// make a modification to the channel options based on the chains which are being used.
+			modificationFn := modificationProvider(chain1, chain2)
+			modificationFn(&channelOpts)
+		}
+
 		ic.AddLink(interchaintest.InterchainLink{
 			Chain1:            chains[i],
 			Chain2:            chains[i+1],
 			Relayer:           r,
 			Path:              pathName,
-			CreateChannelOpts: channelOptions,
+			CreateChannelOpts: channelOpts,
 		})
 	}
 
@@ -387,7 +393,7 @@ func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
 
 // generatePathName generates the path name using the test suites name
 func (s *E2ETestSuite) generatePathName() string {
-	pathName := s.GetPathName(s.pathNameIndex)
+	pathName := GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
 	s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
 	return pathName
@@ -395,7 +401,7 @@ func (s *E2ETestSuite) generatePathName() string {
 
 // GetPathName returns the name of a path at a specific index. This can be used in tests
 // when the path name is required.
-func (s *E2ETestSuite) GetPathName(idx int64) string {
+func GetPathName(idx int64) string {
 	pathName := fmt.Sprintf("path-%d", idx)
 	return strings.ReplaceAll(pathName, "/", "-")
 }

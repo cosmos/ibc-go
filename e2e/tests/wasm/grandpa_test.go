@@ -122,7 +122,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		Amount:  sdkmath.NewInt(amountToSend),
 	}
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
@@ -275,7 +275,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 		Amount:  sdkmath.NewInt(amountToSend),
 	}
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
@@ -317,7 +317,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 		s.Require().Equal(expected, actualBalance.Int64())
 
 		// start relayer
-		s.Require().NoError(r.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPathName(0)))
+		s.Require().NoError(r.StartRelayer(ctx, s.GetRelayerExecReporter(), testsuite.GetPathName(0)))
 		err = testutil.WaitForBlocks(ctx, 15, polkadotChain, cosmosChain)
 		s.Require().NoError(err)
 
@@ -377,7 +377,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
 	s.Require().NoError(err, "polkadot chain failed to make blocks")
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
@@ -464,7 +464,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
 	s.Require().NoError(err, "polkadot chain failed to make blocks")
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
@@ -561,7 +561,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	fundAmount := int64(12_333_000_000_000)
 	_, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
 
