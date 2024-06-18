@@ -52,7 +52,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
-	if err := validateHops(msgTransfer.Forwarding.Hops, a.Allocations[index].AllowedForwardingHops); err != nil {
+	if !areHopsAllowed(msgTransfer.Forwarding.Hops, a.Allocations[index].AllowedForwardingHops) {
 		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrUnauthorizedHops, "forwarding hops are not authorized")
 	}
 
@@ -175,8 +175,27 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	return false
 }
 
-func validateHops(providedHops []Hop, allowedHops []*Hops) error {
-	return nil
+func containsHop(hops Hops, hop Hop) bool {
+	for _, h := range hops.Hops {
+		if h.ChannelId == hop.ChannelId && h.PortId == hop.PortId {
+			return true
+		}
+	}
+	return false
+}
+
+func areHopsAllowed(providedHops []Hop, allowedHops []*Hops) bool {
+	if len(allowedHops) == 0 {
+		return true // Or false? Need to clarify
+	}
+	// For now I only work with the assumption that len(allowedHops) == 1
+	allowed := allowedHops[0]
+	for _, hop := range providedHops {
+		if !containsHop(*allowed, hop) {
+			return false
+		}
+	}
+	return true
 }
 
 // validateMemo returns a nil error indicating if the memo is valid for transfer.
