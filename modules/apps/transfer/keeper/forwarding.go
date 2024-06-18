@@ -99,10 +99,9 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
 	var memo string
 
-	var nextForwardingPath *types.Forwarding
+	var nextForwardingPath types.Forwarding
 	if len(data.Forwarding.Hops) == 1 {
 		memo = data.Forwarding.Memo
-		nextForwardingPath = nil
 	} else {
 		nextForwardingPath = types.NewForwarding(data.Forwarding.Memo, data.Forwarding.Hops[1:]...)
 	}
