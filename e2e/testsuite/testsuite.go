@@ -48,7 +48,11 @@ type E2ETestSuite struct {
 	testifysuite.Suite
 
 	// proposalIDs keeps track of the active proposal ID for each chain.
-	proposalIDs    map[string]uint64
+	proposalIDs map[string]uint64
+
+	// chains is a list of chains that are created for the test suite.
+	// each test suite has a single slice of chains that are used for all individual test
+	// cases.
 	chains         []ibc.Chain
 	relayers       relayer.Map
 	logger         *zap.Logger
@@ -64,9 +68,10 @@ type E2ETestSuite struct {
 	// this needs to be refactored to use a different relayer per test.
 	relayer ibc.Relayer
 
+	// testSuiteName is the name of the test suite, used to store chains under the test suite name.
 	testSuiteName string
-	testPaths     map[string]string
-	channels      map[string]ibc.ChannelOutput
+	testPaths     map[string][]string
+	channels      map[string]map[ibc.Chain][]ibc.ChannelOutput
 }
 
 // initState populates variables that are used across the test suite.
@@ -74,8 +79,8 @@ type E2ETestSuite struct {
 func (s *E2ETestSuite) initState() {
 	s.initDockerClient()
 	s.proposalIDs = map[string]uint64{}
-	s.testPaths = make(map[string]string)
-	s.channels = make(map[string]ibc.ChannelOutput)
+	s.testPaths = make(map[string][]string)
+	s.channels = make(map[string]map[ibc.Chain][]ibc.ChannelOutput)
 
 	// testSuiteName gets populated in the context of SetupSuite and stored as s.T().Name()
 	// will return the name of the suite and test when called from SetupTest or within the body of tests.
@@ -174,46 +179,67 @@ func (s *E2ETestSuite) SetupTest() {
 
 // SetupPath creates a path between the chains using the provided client and channel options.
 func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
+
 	s.T().Logf("Setting up path for: %s", s.T().Name())
 
-	chainA, chainB := s.GetChains()
-
-	pathName := s.generatePathName()
+	r := s.relayer
 
 	ctx := context.TODO()
-	r := s.relayer
-	err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
-	s.Require().NoError(err)
+	allChains := s.GetAllChains()
+	for i := 0; i < len(allChains)-1; i++ {
+		chainA, chainB := allChains[i], allChains[i+1]
+		//pathName := s.GetPathName(int64(i))
+		pathName := s.generatePathName()
+		s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
 
-	// Create new clients
-	err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
-	s.Require().NoError(err)
-	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-	s.Require().NoError(err)
+		err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+		s.Require().NoError(err)
 
-	err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
-	s.Require().NoError(err)
-	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-	s.Require().NoError(err)
+		// Create new clients
+		err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
+		s.Require().NoError(err)
+		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+		s.Require().NoError(err)
 
-	err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
-	s.Require().NoError(err)
-	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-	s.Require().NoError(err)
+		err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
+		s.Require().NoError(err)
+		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+		s.Require().NoError(err)
 
-	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-	s.Require().NoError(err)
+		err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
+		s.Require().NoError(err)
+		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+		s.Require().NoError(err)
 
-	// map the channel that has been created to the path for this specific test.
-	// this channel can be fetched from the test suite using s.GetChannel().
-	s.channels[pathName] = chainAChannels[len(chainAChannels)-1]
+		channelsA, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+		s.Require().NoError(err)
+
+		channelsB, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
+		s.Require().NoError(err)
+
+		if s.channels[s.T().Name()] == nil {
+			s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
+		}
+
+		// keep track of channels associated with a given chain for access within the tests.
+		s.channels[s.T().Name()][chainA] = channelsA
+		s.channels[s.T().Name()][chainB] = channelsB
+	}
 }
 
+// GetChannel returns the ibc.ChannelOutput for the current test.
+// this defaults to the first entry in the list, and will be what is needed in the case of
+// a single channel test.
 func (s *E2ETestSuite) GetChannel() ibc.ChannelOutput {
-	pathName := s.GetPathNameForTest()
-	channel, ok := s.channels[pathName]
+	chainA := s.GetAllChains()[0]
+	return s.GetChannels(chainA)[0]
+}
+
+// GetChannels returns all channels for the current test.
+func (s *E2ETestSuite) GetChannels(chain ibc.Chain) []ibc.ChannelOutput {
+	channels, ok := s.channels[s.T().Name()][chain]
 	s.Require().True(ok, "channel not found for test %s", s.T().Name())
-	return channel
+	return channels
 }
 
 // GetRelayer returns the relayer to be used in the specific test.
@@ -363,7 +389,7 @@ func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
 func (s *E2ETestSuite) generatePathName() string {
 	pathName := s.GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
-	s.testPaths[s.T().Name()] = pathName
+	s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
 	return pathName
 }
 
@@ -372,15 +398,15 @@ func (s *E2ETestSuite) generatePathName() string {
 // if a test needs finegrained control over the path name, the SetupTest function can be explicitly defined
 // in that test.
 func (s *E2ETestSuite) GetPathNameForTest() string {
-	pathName, ok := s.testPaths[s.T().Name()]
+	pathNames, ok := s.testPaths[s.T().Name()]
 	s.Require().True(ok, "path name not found for test %s", s.T().Name())
-	return pathName
+	return pathNames[0]
 }
 
 // GetPathName returns the name of a path at a specific index. This can be used in tests
 // when the path name is required.
 func (s *E2ETestSuite) GetPathName(idx int64) string {
-	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), idx)
+	pathName := fmt.Sprintf("path-%d", idx)
 	return strings.ReplaceAll(pathName, "/", "-")
 }
 
