@@ -155,7 +155,7 @@ func (suite *MigrationsV7TestSuite) createLocalhostClients() {
 	}
 }
 
-// assertLocalhostClients asserts that all localhost information has been deleted
+// assertNoLocalhostClients asserts that all localhost information has been deleted
 func (suite *MigrationsV7TestSuite) assertNoLocalhostClients() {
 	for numClients := uint64(0); numClients < numCreations; numClients++ {
 		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)
