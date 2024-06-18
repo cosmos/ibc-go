@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -611,7 +612,7 @@ Test async ack is properly relayed to middle hop after forwarding transfer compl
 Tiemout during forwarding after middle hop execution reverts properly the state changes
 */
 
-func (suite *KeeperTestSuite) setUpForwardingPaths() (pathAtoB, pathBtoC *ibctesting.Path) {
+func (suite *KeeperTestSuite) setupForwardingPaths() (pathAtoB, pathBtoC *ibctesting.Path) {
 	pathAtoB = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 	pathBtoC = ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 	pathAtoB.Setup()
@@ -643,7 +644,7 @@ func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, b
 // A to C, using B as a forwarding hop. The packet times out when going to C
 // from B and we verify that funds are properly returned to A.
 func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
-	pathAtoB, pathBtoC := suite.setUpForwardingPaths()
+	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
 	amount := sdkmath.NewInt(100)
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
@@ -671,8 +672,9 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute*5).UnixNano()),
+		"",
 		forwarding,
 	)
 
@@ -716,7 +718,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 			},
 		},
 		address,
-		suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(),
+		receiver.GetAddress().String(),
 		"", nil,
 	)
 
@@ -741,37 +743,14 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	err = cbs.OnTimeoutPacket(suite.chainB.GetContext(), packet, nil)
 	suite.Require().NoError(err)
 
-	// Now we construct the packet for which B should have an ack.
-	ackData := types.NewFungibleTokenPacketDataV2(
-		[]types.Token{
-			{
-				Denom:  types.NewDenom(sdk.DefaultBondDenom),
-				Amount: "100",
-			},
-		},
-		address,
-		suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(),
-		"", nil,
-	)
-
-	ackPacket := channeltypes.NewPacket(
-		ackData.GetBytes(),
-		1,
-		pathAtoB.EndpointA.ChannelConfig.PortID,
-		pathAtoB.EndpointA.ChannelID,
-		pathAtoB.EndpointB.ChannelConfig.PortID,
-		pathAtoB.EndpointB.ChannelID,
-		packet.TimeoutHeight,
-		packet.TimeoutTimestamp)
-
 	// Ensure that chainB has an ack.
-	res := suite.chainB.GetAcknowledgement(ackPacket)
-	suite.Require().NotNil(res, "chainB does not have an ack")
+	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
 	ack := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
 	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
-	suite.Require().Equal(ackbytes, res)
+	suite.Require().Equal(ackbytes, storedAck)
 
 	data = types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
@@ -780,8 +759,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 				Amount: "100",
 			},
 		},
-		suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
-		suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(),
+		sender.GetAddress().String(),
+		receiver.GetAddress().String(),
 		"", forwarding,
 	)
 
