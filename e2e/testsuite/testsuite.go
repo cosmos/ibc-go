@@ -281,16 +281,12 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains 
 	}
 	ic.AddRelayer(r, "r")
 
-	var pathNames []string
-
 	// iterate through all chains, and create links such that there is a channel between
 	// - chainA and chainB
 	// - chainB and chainC
 	// - chainC and chainD etc
 	for i := 0; i < len(chains)-1; i++ {
 		pathName := s.generatePathName()
-		pathNames = append(pathNames, pathName)
-
 		channelOpts := defaultChannelOpts(chains)
 		chain1, chain2 := chains[i], chains[i+1]
 
@@ -310,6 +306,11 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains 
 	}
 
 	s.startRelayerFn = func(relayer ibc.Relayer) {
+		// depending on the test, the path names will be different.
+		// whenever a relayer is started, it should use the paths associated with the test the relayer is running in.
+		pathNames, ok := s.testPaths[s.T().Name()]
+		s.Require().True(ok, "path names not found for test %s", s.T().Name())
+
 		err := relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), pathNames...)
 		s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
 
