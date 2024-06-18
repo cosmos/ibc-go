@@ -18,7 +18,7 @@ var validHop = types.Hop{
 func TestForwarding_Validate(t *testing.T) {
 	tests := []struct {
 		name       string
-		forwarding types.Forwarding
+		forwarding *types.Forwarding
 		expError   error
 	}{
 		{

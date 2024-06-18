@@ -353,7 +353,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
-					transfertypes.Forwarding{},
+					nil,
 				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -389,7 +389,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
-					transfertypes.Forwarding{},
+					nil,
 				)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)

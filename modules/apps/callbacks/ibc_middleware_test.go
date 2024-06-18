@@ -24,8 +24,6 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-var emptyForwarding = transfertypes.Forwarding{}
-
 func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 	testCases := []struct {
 		name          string
@@ -188,7 +186,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				ibctesting.TestAccAddress,
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
-				emptyForwarding,
+				nil,
 			)
 
 			chanCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
@@ -330,7 +328,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				ibctesting.TestAccAddress,
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
-				emptyForwarding,
+				nil,
 			)
 
 			packet = channeltypes.Packet{
@@ -496,7 +494,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				sdk.NewCoins(ibctesting.TestCoin), s.chainA.SenderAccount.GetAddress().String(),
 				s.chainB.SenderAccount.GetAddress().String(), clienttypes.ZeroHeight(), timeoutTimestamp,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit), // set user gas limit above panic level in mock contract keeper
-				emptyForwarding,
+				nil,
 			)
 
 			res, err := s.chainA.SendMsgs(msg)
@@ -664,7 +662,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				ibctesting.TestAccAddress,
 				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit),
-				emptyForwarding,
+				nil,
 			)
 
 			packet = channeltypes.Packet{
@@ -796,7 +794,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				ibctesting.TestAccAddress,
 				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress),
-				emptyForwarding,
+				nil,
 			)
 
 			packet = channeltypes.Packet{
@@ -1020,7 +1018,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 		Sender:     ibctesting.TestAccAddress,
 		Receiver:   ibctesting.TestAccAddress,
 		Memo:       fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
-		Forwarding: emptyForwarding,
+		Forwarding: nil,
 	}
 
 	portID := s.path.EndpointA.ChannelConfig.PortID

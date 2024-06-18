@@ -198,7 +198,7 @@ func (m *QueryIncentivizedPacketRequest) GetQueryHeight() uint64 {
 	return 0
 }
 
-// QueryIncentivizedPacketResponse defines the response type for the IncentivizedPacket rpc
+// QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc
 type QueryIncentivizedPacketResponse struct {
 	// the identified fees for the incentivized packet
 	IncentivizedPacket IdentifiedPacketFees `protobuf:"bytes,1,opt,name=incentivized_packet,json=incentivizedPacket,proto3" json:"incentivized_packet"`
@@ -320,8 +320,7 @@ func (m *QueryIncentivizedPacketsForChannelRequest) GetQueryHeight() uint64 {
 	return 0
 }
 
-// QueryIncentivizedPacketsForChannelResponse defines the response type for querying for all incentivized packets
-// for a specific channel
+// QueryIncentivizedPacketsResponse defines the response type for the incentivized packets RPC
 type QueryIncentivizedPacketsForChannelResponse struct {
 	// Map of all incentivized_packets
 	IncentivizedPackets []*IdentifiedPacketFees `protobuf:"bytes,1,rep,name=incentivized_packets,json=incentivizedPackets,proto3" json:"incentivized_packets,omitempty"`

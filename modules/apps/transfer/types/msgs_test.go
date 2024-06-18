@@ -47,8 +47,7 @@ var (
 	invalidDenomCoins = []sdk.Coin{{Denom: "0atom", Amount: sdkmath.NewInt(100)}}
 	zeroCoins         = []sdk.Coin{{Denom: "atoms", Amount: sdkmath.NewInt(0)}}
 
-	timeoutHeight   = clienttypes.NewHeight(0, 10)
-	emptyForwarding = types.Forwarding{}
+	timeoutHeight = clienttypes.NewHeight(0, 10)
 )
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
@@ -58,28 +57,28 @@ func TestMsgTransferValidation(t *testing.T) {
 		msg      *types.MsgTransfer
 		expError error
 	}{
-		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), nil},
-		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), nil},
-		{"multidenom", types.NewMsgTransfer(validPort, validChannel, coins.Add(ibcCoins...), sender, receiver, timeoutHeight, 0, "", emptyForwarding), nil},
-		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
-		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), host.ErrInvalidID},
-		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), host.ErrInvalidID},
-		{"port id contains non-alpha", types.NewMsgTransfer(invalidPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), host.ErrInvalidID},
-		{"too short channel id", types.NewMsgTransfer(validPort, invalidShortChannel, coins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), host.ErrInvalidID},
-		{"too long channel id", types.NewMsgTransfer(validPort, invalidLongChannel, coins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), host.ErrInvalidID},
-		{"too long memo", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 0, ibctesting.GenerateString(types.MaximumMemoLength+1), emptyForwarding), types.ErrInvalidMemo},
-		{"channel id contains non-alpha", types.NewMsgTransfer(validPort, invalidChannel, coins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), host.ErrInvalidID},
-		{"invalid denom", types.NewMsgTransfer(validPort, validChannel, invalidDenomCoins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
-		{"zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
-		{"missing sender address", types.NewMsgTransfer(validPort, validChannel, coins, emptyAddr, receiver, timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidAddress},
-		{"missing recipient address", types.NewMsgTransfer(validPort, validChannel, coins, sender, "", timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidAddress},
-		{"too long recipient address", types.NewMsgTransfer(validPort, validChannel, coins, sender, ibctesting.GenerateString(types.MaximumReceiverLength+1), timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidAddress},
-		{"empty coins", types.NewMsgTransfer(validPort, validChannel, sdk.NewCoins(), sender, receiver, timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
-		{"multidenom: invalid denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidDenomCoins...), sender, receiver, timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
-		{"multidenom: invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidIBCCoins...), sender, receiver, timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
-		{"multidenom: zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
-		{"multidenom: too many coins", types.NewMsgTransfer(validPort, validChannel, make([]sdk.Coin, types.MaximumTokensLength+1), sender, receiver, timeoutHeight, 0, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
-		{"multidenom: both token and tokens are set", &types.MsgTransfer{validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, "", coins, emptyForwarding}, ibcerrors.ErrInvalidCoins},
+		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", nil), nil},
+		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoins, sender, receiver, timeoutHeight, 0, "", nil), nil},
+		{"multidenom", types.NewMsgTransfer(validPort, validChannel, coins.Add(ibcCoins...), sender, receiver, timeoutHeight, 0, "", nil), nil},
+		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoins, sender, receiver, timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidCoins},
+		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", nil), host.ErrInvalidID},
+		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", nil), host.ErrInvalidID},
+		{"port id contains non-alpha", types.NewMsgTransfer(invalidPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", nil), host.ErrInvalidID},
+		{"too short channel id", types.NewMsgTransfer(validPort, invalidShortChannel, coins, sender, receiver, timeoutHeight, 0, "", nil), host.ErrInvalidID},
+		{"too long channel id", types.NewMsgTransfer(validPort, invalidLongChannel, coins, sender, receiver, timeoutHeight, 0, "", nil), host.ErrInvalidID},
+		{"too long memo", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 0, ibctesting.GenerateString(types.MaximumMemoLength+1), nil), types.ErrInvalidMemo},
+		{"channel id contains non-alpha", types.NewMsgTransfer(validPort, invalidChannel, coins, sender, receiver, timeoutHeight, 0, "", nil), host.ErrInvalidID},
+		{"invalid denom", types.NewMsgTransfer(validPort, validChannel, invalidDenomCoins, sender, receiver, timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidCoins},
+		{"zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidCoins},
+		{"missing sender address", types.NewMsgTransfer(validPort, validChannel, coins, emptyAddr, receiver, timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidAddress},
+		{"missing recipient address", types.NewMsgTransfer(validPort, validChannel, coins, sender, "", timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidAddress},
+		{"too long recipient address", types.NewMsgTransfer(validPort, validChannel, coins, sender, ibctesting.GenerateString(types.MaximumReceiverLength+1), timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidAddress},
+		{"empty coins", types.NewMsgTransfer(validPort, validChannel, sdk.NewCoins(), sender, receiver, timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidCoins},
+		{"multidenom: invalid denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidDenomCoins...), sender, receiver, timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidCoins},
+		{"multidenom: invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidIBCCoins...), sender, receiver, timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidCoins},
+		{"multidenom: zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidCoins},
+		{"multidenom: too many coins", types.NewMsgTransfer(validPort, validChannel, make([]sdk.Coin, types.MaximumTokensLength+1), sender, receiver, timeoutHeight, 0, "", nil), ibcerrors.ErrInvalidCoins},
+		{"multidenom: both token and tokens are set", &types.MsgTransfer{validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, "", coins, nil}, ibcerrors.ErrInvalidCoins},
 		{"memo must be empty if forwarding path hops is not empty", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "memo", types.NewForwarding("", validHop)), types.ErrInvalidMemo},
 		{"invalid forwarding info port", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", types.NewForwarding("", types.Hop{PortId: invalidPort, ChannelId: validChannel})), host.ErrInvalidID},
 		{"invalid forwarding info channel", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 0, "", types.NewForwarding("", types.Hop{PortId: validPort, ChannelId: invalidChannel})), host.ErrInvalidID},
@@ -104,7 +103,7 @@ func TestMsgTransferValidation(t *testing.T) {
 // TestMsgTransferGetSigners tests GetSigners for MsgTransfer
 func TestMsgTransferGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	msg := types.NewMsgTransfer(validPort, validChannel, coins, addr.String(), receiver, timeoutHeight, 0, "", emptyForwarding)
+	msg := types.NewMsgTransfer(validPort, validChannel, coins, addr.String(), receiver, timeoutHeight, 0, "", nil)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
