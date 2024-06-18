@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"math/rand"
 	"testing"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -20,4 +21,13 @@ func ApplyValSetChanges(t *testing.T, valSet *tmtypes.ValidatorSet, valUpdates [
 	require.NoError(t, err)
 
 	return newVals
+}
+
+// GenerateString generates a random string of the given length in bytes
+func GenerateString(length uint) string {
+	bytes := make([]byte, length)
+	for i := range bytes {
+		bytes[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(bytes)
 }

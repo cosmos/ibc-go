@@ -15,4 +15,5 @@ var (
 	ErrReceiveDisabled         = sdkerrors.Register(ModuleName, 8, "fungible token transfers to this chain are disabled")
 	ErrMaxTransferChannels     = sdkerrors.Register(ModuleName, 9, "max transfer channels")
 	ErrInvalidAuthorization    = sdkerrors.Register(ModuleName, 10, "invalid transfer authorization")
+	ErrInvalidMemo             = sdkerrors.Register(ModuleName, 11, "invalid memo")
 )

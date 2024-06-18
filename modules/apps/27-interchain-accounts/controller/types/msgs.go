@@ -11,7 +11,12 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
-var _ sdk.Msg = &MsgRegisterInterchainAccount{}
+const MaximumOwnerLength = 2048 // maximum length of the owner in bytes (value chosen arbitrarily)
+
+var (
+	_ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
+	_ sdk.Msg = (*MsgSendTx)(nil)
+)
 
 // NewMsgRegisterInterchainAccountWithOrdering creates a new instance of MsgRegisterInterchainAccount.
 func NewMsgRegisterInterchainAccountWithOrdering(connectionID, owner, version string, ordering channeltypes.Order) *MsgRegisterInterchainAccount {
@@ -45,6 +50,10 @@ func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 
+	if len(msg.Owner) > MaximumOwnerLength {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
+	}
+
 	return nil
 }
 
@@ -76,6 +85,10 @@ func (msg MsgSendTx) ValidateBasic() error {
 
 	if strings.TrimSpace(msg.Owner) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
+	}
+
+	if len(msg.Owner) > MaximumOwnerLength {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
 	}
 
 	if err := msg.PacketData.ValidateBasic(); err != nil {
