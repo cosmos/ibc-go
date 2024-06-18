@@ -175,27 +175,33 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	return false
 }
 
-func containsHop(hops Hops, hop Hop) bool {
-	for _, h := range hops.Hops {
-		if h.ChannelId == hop.ChannelId && h.PortId == hop.PortId {
-			return true
-		}
+func areHopsEqual(providedHops []Hop, allowedHops []Hop) bool {
+	if len(providedHops) != len(allowedHops) {
+		return false
 	}
-	return false
-}
 
-func areHopsAllowed(providedHops []Hop, allowedHops []*Hops) bool {
-	if len(allowedHops) == 0 {
-		return true // Or false? Need to clarify
-	}
-	// For now I only work with the assumption that len(allowedHops) == 1
-	allowed := allowedHops[0]
-	for _, hop := range providedHops {
-		if !containsHop(*allowed, hop) {
+	for i, providedHop := range providedHops {
+		allowedHop := allowedHops[i]
+		if providedHop.PortId != allowedHop.PortId || providedHop.ChannelId != allowedHop.ChannelId {
 			return false
 		}
 	}
+
 	return true
+}
+
+func areHopsAllowed(provided []Hop, allowed []*Hops) bool {
+	if len(allowed) == 0 {
+		return true
+	}
+
+	for _, allowedHops := range allowed {
+		if areHopsEqual(provided, allowedHops.Hops) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // validateMemo returns a nil error indicating if the memo is valid for transfer.

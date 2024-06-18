@@ -389,6 +389,67 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.Require().Nil(res.Updated)
 			},
 		},
+		{
+			"success - allowed forwarding hops",
+			func() {
+				msgTransfer.Forwarding = types.NewForwarding("", types.Hop{PortId: "1", ChannelId: "channel-1"}, types.Hop{PortId: "2", ChannelId: "channel-2"})
+				transferAuthz.Allocations[0].AllowedForwardingHops = []*types.Hops{
+					{
+						Hops: []types.Hop{
+							{PortId: "1", ChannelId: "channel-1"},
+							{PortId: "2", ChannelId: "channel-2"},
+						},
+					},
+				}
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().True(res.Accept)
+			},
+		},
+		{
+			"failure - allowed forwarding hops is longer",
+			func() {
+				msgTransfer.Forwarding = types.NewForwarding("",
+					types.Hop{PortId: "1", ChannelId: "channel-1"},
+					types.Hop{PortId: "2", ChannelId: "channel-2"},
+					types.Hop{PortId: "3", ChannelId: "channel-3"},
+				)
+				transferAuthz.Allocations[0].AllowedForwardingHops = []*types.Hops{
+					{
+						Hops: []types.Hop{
+							{PortId: "1", ChannelId: "channel-1"},
+							{PortId: "2", ChannelId: "channel-2"},
+						},
+					},
+				}
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().False(res.Accept)
+			},
+		},
+		{
+			"failure - One of the hops is different",
+			func() {
+				msgTransfer.Forwarding = types.NewForwarding("",
+					types.Hop{PortId: "1", ChannelId: "channel-1"},
+					types.Hop{PortId: "3", ChannelId: "channel-3"},
+				)
+				transferAuthz.Allocations[0].AllowedForwardingHops = []*types.Hops{
+					{
+						Hops: []types.Hop{
+							{PortId: "1", ChannelId: "channel-1"},
+							{PortId: "2", ChannelId: "channel-2"},
+						},
+					},
+				}
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().False(res.Accept)
+			},
+		},
 	}
 
 	for _, tc := range testCases {

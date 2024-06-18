@@ -27,6 +27,7 @@ message Allocation {
   repeated Hops allowed_forwarding_hops = 6;
 }
 
+
 // Hops represent a list of Hop
 message Hops {
   repeated ibc.applications.transfer.v1.Hop hops = 1 [(gogoproto.nullable) = false];
