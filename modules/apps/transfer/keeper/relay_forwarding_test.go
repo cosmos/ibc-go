@@ -716,8 +716,31 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	err = cbs.OnTimeoutPacket(suite.chainB.GetContext(), packet, nil)
 	suite.Require().NoError(err)
 
+	// Now we construct the packet for which B should have an ack.
+	ackData := types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
+			{
+				Denom:  types.NewDenom(sdk.DefaultBondDenom),
+				Amount: "100",
+			},
+		},
+		address,
+		suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(),
+		"", nil,
+	)
+
+	ackPacket := channeltypes.NewPacket(
+		ackData.GetBytes(),
+		1,
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		pathAtoB.EndpointB.ChannelConfig.PortID,
+		pathAtoB.EndpointB.ChannelID,
+		packet.TimeoutHeight,
+		packet.TimeoutTimestamp)
+
 	// Ensure that chainB has an ack.
-	res := suite.chainB.GetAcknowledgement(packet)
+	res := suite.chainB.GetAcknowledgement(ackPacket)
 	suite.Require().NotNil(res, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
