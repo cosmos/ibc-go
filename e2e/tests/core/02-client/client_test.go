@@ -163,12 +163,13 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 
 	var (
 		pathName           string
-		relayer            ibc.Relayer
 		subjectClientID    string
 		substituteClientID string
 		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
 		badTrustingPeriod = time.Second * 10
 	)
+
+	relayer := s.GetRelayer()
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
@@ -244,12 +245,13 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 
 	var (
 		pathName           string
-		relayer            ibc.Relayer
 		subjectClientID    string
 		substituteClientID string
 		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
 		badTrustingPeriod = time.Second * 10
 	)
+
+	relayer := s.GetRelayer()
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
