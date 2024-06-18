@@ -30,12 +30,16 @@ type TransferChannelUpgradesTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+func (s *TransferChannelUpgradesTestSuite) SetupTest() {
+	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions())
+}
+
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware
 func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChannel()
 
 	channelB := channelA.Counterparty
 
@@ -252,7 +256,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChannel()
 
 	channelB := channelA.Counterparty
 
@@ -342,7 +346,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChannel()
 	chainA, chainB := s.GetChains()
 
 	channelB := channelA.Counterparty

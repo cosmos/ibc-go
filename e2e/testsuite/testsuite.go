@@ -169,7 +169,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, chainSpecOpts ...ChainOp
 // SetupTest will by default use the default channel options to create a path between the chains.
 // if non default channel options are required, the test suite must override the `SetupTest` function.
 func (s *E2ETestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), ibc.DefaultChannelOpts())
+	s.SetupPath(ibc.DefaultClientOpts(), defaultChannelOpts(s.GetAllChains()))
 }
 
 // SetupPath creates a path between the chains using the provided client and channel options.
@@ -207,7 +207,6 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 	// map the channel that has been created to the path for this specific test.
 	// this channel can be fetched from the test suite using s.GetChannel().
 	s.channels[pathName] = chainAChannels[len(chainAChannels)-1]
-
 }
 
 func (s *E2ETestSuite) GetChannel() ibc.ChannelOutput {
@@ -244,30 +243,6 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
 
 	return chainARelayerUser, chainBRelayerUser
-}
-
-// SetupChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
-// using the given channel options. The relayer returned by this function has not yet started. It should be started
-// with E2ETestSuite.StartRelayer if needed.
-// This should be called at the start of every test, unless fine grained control is required.
-func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
-	chains := s.GetAllChains(chainSpecOpts...)
-
-	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
-
-	ic := s.newInterchain(ctx, r, chains, channelOpts)
-
-	buildOpts := interchaintest.InterchainBuildOptions{
-		TestName:  s.T().Name(),
-		Client:    s.DockerClient,
-		NetworkID: s.network,
-	}
-
-	s.Require().NoError(ic.Build(ctx, s.GetRelayerExecReporter(), buildOpts))
-
-	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chains[0].Config().ChainID)
-	s.Require().NoError(err)
-	return r, chainAChannels[len(chainAChannels)-1]
 }
 
 // newInterchain constructs a new interchain instance that creates channels between the chains.
@@ -630,48 +605,24 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (s *E2ETestSuite) TransferChannelOptions(chainOpts ...ChainOptionConfiguration) func(options *ibc.CreateChannelOptions) {
-	chainA, chainB := s.GetChains(chainOpts...)
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	// select the transfer version based on the chain versions
-	transferVersion := transfertypes.V1
-	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
-		transferVersion = transfertypes.V2
-	}
-
-	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = transferVersion
-		opts.SourcePortName = transfertypes.PortID
-		opts.DestPortName = transfertypes.PortID
-	}
+func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
+	opts := ibc.DefaultChannelOpts()
+	opts.Version = determineDefaultTransferVersion(s.GetAllChains())
+	return opts
 }
 
 // FeeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
-func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
-	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
-	// select the transfer version based on the chain versions
-	transferVersion := transfertypes.V1
-	if testvalues.ICS20v2FeatureReleases.IsSupported(chainAVersion) && testvalues.ICS20v2FeatureReleases.IsSupported(chainBVersion) {
-		transferVersion = transfertypes.V2
-	}
-
+func (s *E2ETestSuite) FeeMiddlewareChannelOptions() ibc.CreateChannelOptions {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: transferVersion,
+		AppVersion: determineDefaultTransferVersion(s.GetAllChains()),
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
 
-	return func(opts *ibc.CreateChannelOptions) {
-		opts.Version = string(versionBytes)
-		opts.DestPortName = transfertypes.PortID
-		opts.SourcePortName = transfertypes.PortID
-	}
+	opts := ibc.DefaultChannelOpts()
+	opts.Version = string(versionBytes)
+	return opts
 }
 
 // GetTimeoutHeight returns a timeout height of 1000 blocks above the current block height.
