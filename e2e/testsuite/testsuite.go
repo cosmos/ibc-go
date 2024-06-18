@@ -49,19 +49,106 @@ type E2ETestSuite struct {
 
 	// proposalIDs keeps track of the active proposal ID for each chain.
 	proposalIDs    map[string]uint64
-	paths          map[string][]ibc.Chain
+	chains         []ibc.Chain
 	relayers       relayer.Map
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
 	startRelayerFn func(relayer ibc.Relayer)
 
-	// pathNameIndex is the latest index to be used for generating paths
+	// pathNameIndex is the latest index to be used for generating chains
 	pathNameIndex int64
+
+	// TODO: refactor this to use a relayer per test
+	// relayer is a single relayer which only works when running tests one per host.
+	// this needs to be refactored to use a different relayer per test.
+	relayer ibc.Relayer
+
+	testSuiteName string
+	testPaths     map[string]string
+}
+
+// initState populates variables that are used across the test suite.
+// note: this should be called only from SetupSuite.
+func (s *E2ETestSuite) initState() {
+	s.initDockerClient()
+	s.proposalIDs = map[string]uint64{}
+	s.testPaths = make(map[string]string)
+
+	// testSuiteName gets populated in the context of SetupSuite and stored as s.T().Name()
+	// will return the name of the suite and test when called from SetupTest or within the body of tests.
+	// the chains will be stored under the test suite name, so we need to store this for future use.
+	s.testSuiteName = s.T().Name()
+}
+
+func (s *E2ETestSuite) SetupSuite() {
+	s.T().Logf("Setting up suite: %s", s.T().Name())
+	s.initState()
+	s.configureGenesisDebugExport()
+	s.setupChains(context.TODO())
+}
+
+// initDockerClient creates a docker client and populates the network to be used for the test.
+func (s *E2ETestSuite) initDockerClient() {
+	client, network := interchaintest.DockerSetup(s.T())
+	s.logger = zap.NewExample()
+	s.DockerClient = client
+	s.network = network
+}
+
+// setupChains creates the chains for the test suite, and also a relayer that is wired up to establish
+// connections and channels between the chains.
+func (s *E2ETestSuite) setupChains(ctx context.Context, chainSpecOpts ...ChainOptionConfiguration) {
+	chainOptions := DefaultChainOptions()
+	for _, opt := range chainSpecOpts {
+		opt(&chainOptions)
+	}
+
+	s.chains = s.createChains(chainOptions)
+
+	// TODO: we need to create a relayer for each test that will run
+	// having a single relayer for all tests will cause issues when running tests in parallel.
+	s.relayer = relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
+	ic := s.newInterchain(ctx, s.relayer, s.chains, func(options *ibc.CreateChannelOptions) {})
+
+	buildOpts := interchaintest.InterchainBuildOptions{
+		TestName:  s.T().Name(),
+		Client:    s.DockerClient,
+		NetworkID: s.network,
+		// we skip path creation because we are just creating the chains and not connections/channels
+		SkipPathCreation: true,
+	}
+
+	s.Require().NoError(ic.Build(ctx, s.GetRelayerExecReporter(), buildOpts))
 }
 
 func (s *E2ETestSuite) SetupTest() {
-	s.configureGenesisDebugExport()
+	s.T().Logf("Setting up test: %s", s.T().Name())
+
+	chainA, chainB := s.GetChains()
+
+	pathName := s.generatePathName()
+
+	ctx := context.TODO()
+	r := s.relayer
+	err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+	s.Require().NoError(err)
+
+	// Create new clients
+	err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, ibc.DefaultClientOpts())
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, ibc.DefaultChannelOpts())
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
 }
 
 // configureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
@@ -172,6 +259,7 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains 
 	for i := 0; i < len(chains)-1; i++ {
 		pathName := s.generatePathName()
 		pathNames = append(pathNames, pathName)
+
 		ic.AddLink(interchaintest.InterchainLink{
 			Chain1:            chains[i],
 			Chain2:            chains[i+1],
@@ -267,6 +355,17 @@ func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
 func (s *E2ETestSuite) generatePathName() string {
 	pathName := s.GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
+	s.testPaths[s.T().Name()] = pathName
+	return pathName
+}
+
+// GetPathNameForTest returns the path name for the current test. The path name is dynamically generated
+// in SetupTest, so it is stored in the testPaths map there.
+// if a test needs finegrained control over the path name, the SetupTest function can be explicitly defined
+// in that test.
+func (s *E2ETestSuite) GetPathNameForTest() string {
+	pathName, ok := s.testPaths[s.T().Name()]
+	s.Require().True(ok, "path name not found for test %s", s.T().Name())
 	return pathName
 }
 
@@ -317,31 +416,9 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 // GetAllChains returns all chains that can be used in a test. The chains returned
 // are unique to the current test being run. Note: this function does not create containers.
 func (s *E2ETestSuite) GetAllChains(chainOpts ...ChainOptionConfiguration) []ibc.Chain {
-	if s.paths == nil {
-		s.paths = map[string][]ibc.Chain{}
-	}
-
-	if chains, ok := s.paths[s.T().Name()]; ok {
-		return chains
-	}
-
-	chainOptions := DefaultChainOptions()
-	for _, opt := range chainOpts {
-		opt(&chainOptions)
-	}
-
-	chains := s.createChains(chainOptions)
-	s.paths[s.T().Name()] = chains
-
-	if s.proposalIDs == nil {
-		s.proposalIDs = map[string]uint64{}
-	}
-
-	// initialise proposal ids for all chains.
-	for _, chain := range chains {
-		s.proposalIDs[chain.Config().ChainID] = 1
-	}
-
+	// chains are stored on a per test suite level
+	chains := s.chains
+	s.Require().NotEmpty(chains, "chains not found for test %s", s.testSuiteName)
 	return chains
 }
 
@@ -486,13 +563,7 @@ func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.C
 // createChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
 func (s *E2ETestSuite) createChains(chainOptions ChainOptions) []ibc.Chain {
-	client, network := interchaintest.DockerSetup(s.T())
 	t := s.T()
-
-	s.logger = zap.NewExample()
-	s.DockerClient = client
-	s.network = network
-
 	cf := interchaintest.NewBuiltinChainFactory(s.logger, chainOptions.ChainSpecs)
 
 	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
@@ -509,6 +580,11 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) []ibc.Chain {
 
 	chains, err := cf.Chains(t.Name())
 	s.Require().NoError(err)
+
+	// initialise proposal ids for all chains.
+	for _, chain := range chains {
+		s.proposalIDs[chain.Config().ChainID] = 1
+	}
 
 	return chains
 }
