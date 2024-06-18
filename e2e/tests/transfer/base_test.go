@@ -429,7 +429,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChannel()
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
@@ -457,60 +457,6 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
-	})
-
-	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-
-	t.Run("packets relayed", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
-		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
-
-		s.Require().NoError(err)
-		s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
-	})
-}
-
-func (s *TransferTestSuite) TestFoo() {
-	t := s.T()
-	ctx := context.TODO()
-
-	chainA, chainB := s.GetChains()
-
-	chainADenom := chainA.Config().Denom
-
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.FormattedAddress()
-
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.FormattedAddress()
-
-	relayer, ok := s.TestRelayers[t.Name()]
-	s.Require().True(ok)
-
-	chainAChannels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-	s.Require().NoError(err)
-	channelA := chainAChannels[len(chainAChannels)-1]
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
-	t.Run("IBC token transfer with memo from chainA to chainB", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "memo")
-		s.AssertTxSuccess(transferTxResp)
-	})
-
-	t.Run("tokens are escrowed", func(t *testing.T) {
-		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-		s.Require().NoError(err)
-
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
-	})
-
-	t.Run("start relayer", func(t *testing.T) {
-		path := s.GetPathNameForTest()
-		err := relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), path)
-		s.Require().NoError(err)
-		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 	})
 
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
