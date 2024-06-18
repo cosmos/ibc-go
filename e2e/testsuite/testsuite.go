@@ -393,16 +393,6 @@ func (s *E2ETestSuite) generatePathName() string {
 	return pathName
 }
 
-// GetPathNameForTest returns the path name for the current test. The path name is dynamically generated
-// in SetupTest, so it is stored in the testPaths map there.
-// if a test needs finegrained control over the path name, the SetupTest function can be explicitly defined
-// in that test.
-func (s *E2ETestSuite) GetPathNameForTest() string {
-	pathNames, ok := s.testPaths[s.T().Name()]
-	s.Require().True(ok, "path name not found for test %s", s.T().Name())
-	return pathNames[0]
-}
-
 // GetPathName returns the name of a path at a specific index. This can be used in tests
 // when the path name is required.
 func (s *E2ETestSuite) GetPathName(idx int64) string {
