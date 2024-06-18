@@ -180,7 +180,6 @@ func (s *E2ETestSuite) SetupTest() {
 // SetupPath creates a path between the chains using the provided client and channel options.
 func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
 	s.T().Logf("Setting up path for: %s", s.T().Name())
-
 	r := s.relayer
 
 	ctx := context.TODO()
@@ -222,6 +221,7 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 		// keep track of channels associated with a given chain for access within the tests.
 		s.channels[s.T().Name()][chainA] = channelsA
 		s.channels[s.T().Name()][chainB] = channelsB
+		s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
 	}
 }
 
@@ -375,7 +375,6 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 func (s *E2ETestSuite) generatePathName() string {
 	pathName := GetPathName(s.pathNameIndex)
 	s.pathNameIndex++
-	s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
 	return pathName
 }
 

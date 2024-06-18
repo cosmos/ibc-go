@@ -176,9 +176,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		// TODO: replace with better handling of path names
-		pathName = fmt.Sprintf("path-%d", 0)
-		pathName = strings.ReplaceAll(pathName, "/", "-")
+		pathName = s.GetPaths()[0]
 	})
 
 	chainA, chainB := s.GetChains()
@@ -258,7 +256,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		pathName = testsuite.GetPathName(0)
+		pathName = s.GetPaths()[0]
 	})
 
 	chainA, chainB := s.GetChains()
