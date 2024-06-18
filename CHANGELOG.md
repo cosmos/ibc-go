@@ -42,9 +42,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-### Improvements
+* (apps/transfer, apps/27-interchain-accounts, app/29-fee) #4992 Set validation for length of string fields.
 
-* (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
+### Improvements
 
 ### Features
 
