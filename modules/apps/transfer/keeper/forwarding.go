@@ -53,7 +53,10 @@ func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet channeltypes.
 		return err
 	}
 
-	return k.deleteForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	// During a middlehop, we make a mapping creating a pointer in the "reverse" direction with PortID and ChannelID.
+	// Thus, when processing the ack, we need to delete the packet based on destination port and channel.
+	k.deleteForwardedPacket(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	return nil
 }
 
 // revertForwardedPacket reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.
