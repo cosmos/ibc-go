@@ -570,8 +570,9 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().NoError(err)
 
 	errorAckOnB := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
+	errorAckCommitmentOnB := channeltypes.CommitAcknowledgement(errorAckOnB.Acknowledgement())
 	ackOnB := suite.chainB.GetAcknowledgement(packetFromCtoB)
-	suite.Require().Equal(channeltypes.CommitAcknowledgement(errorAckOnB.Acknowledgement()), ackOnB)
+	suite.Require().Equal(errorAckCommitmentOnB, ackOnB)
 
 	// Check the status of account on chain C before executing ack.
 	coin = sdk.NewCoin(denomABC.IBCDenom(), amount)
