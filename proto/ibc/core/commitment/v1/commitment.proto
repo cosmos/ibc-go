@@ -26,7 +26,7 @@ message MerklePrefix {
 // arbitrary structured object (defined by a commitment type).
 // MerklePath is represented from root-to-leaf
 message MerklePath {
-  repeated string key_path = 1;
+  repeated bytes key_path = 1;
 }
 
 // MerkleProof is a wrapper type over a chain of CommitmentProofs.

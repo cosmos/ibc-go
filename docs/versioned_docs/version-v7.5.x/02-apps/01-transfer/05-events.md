@@ -14,7 +14,9 @@ slug: /apps/transfer/events
 |--------------|---------------|-----------------|
 | ibc_transfer | sender        | \{sender\}      |
 | ibc_transfer | receiver      | \{receiver\}    |
-| message      | action        | transfer        |
+| ibc_transfer | amount        | \{amount\}      |
+| ibc_transfer | denom         | \{denom\}       |
+| ibc_transfer | memo          | \{memo\}        |
 | message      | module        | transfer        |
 
 ## `OnRecvPacket` callback
@@ -26,22 +28,24 @@ slug: /apps/transfer/events
 | fungible_token_packet | receiver      | \{receiver\}    |
 | fungible_token_packet | denom         | \{denom\}       |
 | fungible_token_packet | amount        | \{amount\}      |
-| fungible_token_packet | success       | \{ackSuccess\}  |
 | fungible_token_packet | memo          | \{memo\}        |
+| fungible_token_packet | success       | \{ackSuccess\}  |
+| fungible_token_packet | error         | \{ackError\}    |
 | denomination_trace    | trace_hash    | \{hex_hash\}    |
+| denomination_trace    | denom         | \{voucherDenom\}|
 
 ## `OnAcknowledgePacket` callback
 
-| Type                  | Attribute Key   | Attribute Value   |
-|-----------------------|-----------------|-------------------|
-| fungible_token_packet | module          | transfer          |
-| fungible_token_packet | sender          | \{sender\}        |
-| fungible_token_packet | receiver        | \{receiver\}      |
-| fungible_token_packet | denom           | \{denom\}         |
-| fungible_token_packet | amount          | \{amount\}        |
-| fungible_token_packet | memo            | \{memo\}          |
-| fungible_token_packet | acknowledgement | \{ack.String()\}  |
-| fungible_token_packet | success / error | \{ack.Response\}  |
+| Type                  | Attribute Key   | Attribute Value  |
+|-----------------------|-----------------|------------------|
+| fungible_token_packet | module          | transfer         |
+| fungible_token_packet | sender          | \{sender\}       |
+| fungible_token_packet | receiver        | \{receiver\}     |
+| fungible_token_packet | denom           | \{denom\}        |
+| fungible_token_packet | amount          | \{amount\}       |
+| fungible_token_packet | memo            | \{memo\}         |
+| fungible_token_packet | acknowledgement | \{ack.String()\} |
+| fungible_token_packet | success / error | \{ack.Response\} |
 
 ## `OnTimeoutPacket` callback
 

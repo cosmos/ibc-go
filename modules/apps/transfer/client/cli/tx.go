@@ -60,8 +60,8 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 
 			for i, coin := range coins {
 				if !strings.HasPrefix(coin.Denom, "ibc/") {
-					denomTrace := types.ParseDenomTrace(coin.Denom)
-					coins[i].Denom = denomTrace.IBCDenom()
+					denom := types.ExtractDenomFromPath(coin.Denom)
+					coins[i].Denom = denom.IBCDenom()
 				}
 			}
 

@@ -53,7 +53,8 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 	t := s.T()
 
 	ctx := context.Background()
-	chain := s.SetupSingleChain(ctx)
+	// TODO(chatton): this test is still creating a relayer and a channel, but it is not using them.
+	chain := s.GetAllChains()[0]
 	checksum := ""
 
 	userWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)

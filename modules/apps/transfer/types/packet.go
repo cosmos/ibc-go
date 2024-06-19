@@ -49,7 +49,7 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	if strings.TrimSpace(ftpd.Receiver) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "receiver address cannot be blank")
 	}
-	denom := ExtractDenomFromFullPath(ftpd.Denom)
+	denom := ExtractDenomFromPath(ftpd.Denom)
 	return denom.Validate()
 }
 

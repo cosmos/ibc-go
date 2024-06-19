@@ -145,7 +145,7 @@ func TestApplyPrefix(t *testing.T) {
 
 	pathStr := "pathone/pathtwo/paththree/key"
 	path := types.MerklePath{
-		KeyPath: []string{pathStr},
+		KeyPath: [][]byte{[]byte(pathStr)},
 	}
 
 	prefixedPath, err := types.ApplyPrefix(prefix, path)
