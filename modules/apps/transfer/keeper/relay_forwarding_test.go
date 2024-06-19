@@ -433,8 +433,8 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 		sdk.NewCoins(coinOnC),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainC.GetTimeoutHeight(),
-		0,
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(),
 		"",
 		forwarding,
 	)
