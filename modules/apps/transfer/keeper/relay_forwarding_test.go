@@ -501,8 +501,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 	err = path1.EndpointB.AcknowledgePacket(packetFromBtoA, errorAckOnA.Acknowledgement())
 	suite.Require().NoError(err)
 
-	// TODO: Change to new error after #6586 is finished
-	errorAckOnB := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
+	errorAckOnB := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
 	errorAckCommitmentOnB := channeltypes.CommitAcknowledgement(errorAckOnB.Acknowledgement())
 	ackOnB := suite.chainB.GetAcknowledgement(packetFromCtoB)
 	suite.Require().Equal(errorAckCommitmentOnB, ackOnB)
