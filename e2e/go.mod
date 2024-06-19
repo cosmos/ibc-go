@@ -22,6 +22,7 @@ require (
 	golang.org/x/mod v0.18.0
 	google.golang.org/grpc v1.64.0
 	gopkg.in/yaml.v2 v2.4.0
+	github.com/pelletier/go-toml" v1.9.5
 )
 
 require (

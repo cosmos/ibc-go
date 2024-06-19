@@ -527,6 +527,7 @@ func IsFork() bool {
 type ChainOptions struct {
 	ChainSpecs       []*interchaintest.ChainSpec
 	SkipPathCreation bool
+	RelayerCount     int
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
@@ -556,7 +557,8 @@ func DefaultChainOptions() ChainOptions {
 	}
 
 	return ChainOptions{
-		ChainSpecs: []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		ChainSpecs:   []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		RelayerCount: 10, //TODO: find nicer way of doing this
 	}
 }
 

@@ -4,18 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"path"
-	"strings"
-
+	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/relayer/hermes"
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+	"os"
+	"path"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -69,9 +70,11 @@ type E2ETestSuite struct {
 	relayer ibc.Relayer
 
 	// testSuiteName is the name of the test suite, used to store chains under the test suite name.
-	testSuiteName string
-	testPaths     map[string][]string
-	channels      map[string]map[ibc.Chain][]ibc.ChannelOutput
+	testSuiteName  string
+	testPaths      map[string][]string
+	channels       map[string]map[ibc.Chain][]ibc.ChannelOutput
+	relayerPool    chan ibc.Relayer
+	testRelayerMap map[string]ibc.Relayer
 }
 
 // initState populates variables that are used across the test suite.
@@ -81,6 +84,8 @@ func (s *E2ETestSuite) initState() {
 	s.proposalIDs = map[string]uint64{}
 	s.testPaths = make(map[string][]string)
 	s.channels = make(map[string]map[ibc.Chain][]ibc.ChannelOutput)
+	s.relayerPool = make(chan ibc.Relayer)
+	s.testRelayerMap = make(map[string]ibc.Relayer)
 
 	// testSuiteName gets populated in the context of SetupSuite and stored as s.T().Name()
 	// will return the name of the suite and test when called from SetupTest or within the body of tests.
@@ -141,6 +146,16 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
 }
 
+func (s *E2ETestSuite) createNRelayers(n int) []ibc.Relayer {
+	var relayers []ibc.Relayer
+	for i := 0; i < n; i++ {
+		r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
+		s.relayerPool <- r
+		relayers = append(relayers, r)
+	}
+	return relayers
+}
+
 // SetupChains creates the chains for the test suite, and also a relayer that is wired up to establish
 // connections and channels between the chains.
 func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier ChainOptionModifier, chainSpecOpts ...ChainOptionConfiguration) {
@@ -155,10 +170,8 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 
 	s.chains = s.createChains(chainOptions)
 
-	// TODO: we need to create a relayer for each test that will run
-	// having a single relayer for all tests will cause issues when running tests in parallel.
-	s.relayer = relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
-	ic := s.newInterchain(ctx, s.relayer, s.chains, channelOptionsModifier)
+	relayers := s.createNRelayers(chainOptions.RelayerCount)
+	ic := s.newInterchain(ctx, relayers, s.chains, channelOptionsModifier)
 
 	buildOpts := interchaintest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
@@ -180,7 +193,7 @@ func (s *E2ETestSuite) SetupTest() {
 // SetupPath creates a path between the chains using the provided client and channel options.
 func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
 	s.T().Logf("Setting up path for: %s", s.T().Name())
-	r := s.relayer
+	r := s.GetRelayer()
 
 	ctx := context.TODO()
 	allChains := s.GetAllChains()
@@ -218,6 +231,16 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 			s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
 		}
 
+		// configure relayer to only watch the channels associated with the current test.
+		if h, ok := r.(*hermes.Relayer); ok {
+
+			h.Name()
+			dockerutil.GetFileContentsFromContainer()
+
+			err := h.WriteFileToHomeDir(ctx, ".hermes/config.toml", nil)
+			s.Require().NoError(err, "failed to write config file")
+		}
+
 		// keep track of channels associated with a given chain for access within the tests.
 		s.channels[s.T().Name()][chainA] = channelsA
 		s.channels[s.T().Name()][chainB] = channelsB
@@ -240,10 +263,20 @@ func (s *E2ETestSuite) GetChannels(chain ibc.Chain) []ibc.ChannelOutput {
 	return channels
 }
 
-// GetRelayer returns the relayer to be used in the specific test.
-// TODO: for now a single instance is still used, preventing parallel test runs.
 func (s *E2ETestSuite) GetRelayer() ibc.Relayer {
-	return s.relayer
+	if r, ok := s.testRelayerMap[s.T().Name()]; ok {
+		return r
+	}
+
+	if len(s.relayerPool) == 0 {
+		panic(errors.New("relayer pool is empty"))
+	}
+
+	r := <-s.relayerPool
+	s.testRelayerMap[s.T().Name()] = r
+
+	return r
+
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
@@ -274,12 +307,15 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 type ChainOptionModifier func(chainA, chainB ibc.Chain) func(options *ibc.CreateChannelOptions)
 
 // newInterchain constructs a new interchain instance that creates channels between the chains.
-func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains []ibc.Chain, modificationProvider ChainOptionModifier) *interchaintest.Interchain {
+func (s *E2ETestSuite) newInterchain(ctx context.Context, relayers []ibc.Relayer, chains []ibc.Chain, modificationProvider ChainOptionModifier) *interchaintest.Interchain {
 	ic := interchaintest.NewInterchain()
 	for _, chain := range chains {
 		ic.AddChain(chain)
 	}
-	ic.AddRelayer(r, "r")
+
+	for i, r := range relayers {
+		ic.AddRelayer(r, fmt.Sprintf("r-%d", i))
+	}
 
 	// iterate through all chains, and create links such that there is a channel between
 	// - chainA and chainB
@@ -296,13 +332,15 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains 
 			modificationFn(&channelOpts)
 		}
 
-		ic.AddLink(interchaintest.InterchainLink{
-			Chain1:            chains[i],
-			Chain2:            chains[i+1],
-			Relayer:           r,
-			Path:              pathName,
-			CreateChannelOpts: channelOpts,
-		})
+		for _, r := range relayers {
+			ic.AddLink(interchaintest.InterchainLink{
+				Chain1:            chains[i],
+				Chain2:            chains[i+1],
+				Relayer:           r,
+				Path:              pathName,
+				CreateChannelOpts: channelOpts,
+			})
+		}
 	}
 
 	s.startRelayerFn = func(relayer ibc.Relayer) {

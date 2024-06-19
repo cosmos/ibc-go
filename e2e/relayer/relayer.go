@@ -1,7 +1,11 @@
 package relayer
 
 import (
+	"context"
 	"fmt"
+	"github.com/cosmos/ibc-go/e2e/dockerutil"
+	"github.com/pelletier/go-toml"
+	"github.com/strangelove-ventures/interchaintest/v8/relayer/hermes"
 	"testing"
 
 	dockerclient "github.com/docker/docker/client"
@@ -49,6 +53,45 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 	default:
 		panic(fmt.Errorf("unknown relayer specified: %s", cfg.ID))
 	}
+}
+
+func WatchPortAndChannel(ctx context.Context, h *hermes.Relayer, dockerClient *dockerclient.Client, portID, channelID string) error {
+
+	// configure relayer to only watch the channels associated with the current test.
+	bz, err := fetchHermesConfigBytes(ctx, dockerClient)
+	if err != nil {
+		return fmt.Errorf("failed to fetch hermes config bytes: %w", err)
+	}
+	//err := h.WriteFileToHomeDir(ctx, ".hermes/config.toml", nil)
+	_ = h
+	_ = bz
+
+	//h.Name()
+	//dockerutil.GetFileContentsFromContainer()
+	//
+	//err := h.WriteFileToHomeDir(ctx, ".hermes/config.toml", nil)
+
+	return modifyHermesConfigBytes(ctx, h, bz, portID, channelID)
+}
+
+func fetchHermesConfigBytes(ctx context.Context, dockerClient *dockerclient.Client) ([]byte, error) {
+	return dockerutil.GetFileContentsFromContainer(ctx, dockerClient, "", "")
+}
+
+func modifyHermesConfigBytes(ctx context.Context, h hermes.Relayer, bz []byte, portID, channelID string) error {
+	var config map[string]interface{}
+	if err := toml.Unmarshal(bz, &config); err != nil {
+		return fmt.Errorf("failed to unmarshal hermes config bytes")
+	}
+
+	// modify bz
+
+	bz, err := toml.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal hermes config bytes")
+	}
+
+	return h.WriteFileToHomeDir(ctx, ".hermes/config.toml", bz)
 }
 
 // newCosmosRelayer returns an instance of the go relayer.
