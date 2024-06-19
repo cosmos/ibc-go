@@ -62,6 +62,13 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"owner address is too long",
+			func() {
+				msg.Owner = ibctesting.GenerateString(types.MaximumOwnerLength + 1)
+			},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -115,6 +122,13 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			"owner address is empty",
 			func() {
 				msg.Owner = ""
+			},
+			false,
+		},
+		{
+			"owner address is too long",
+			func() {
+				msg.Owner = ibctesting.GenerateString(types.MaximumOwnerLength + 1)
 			},
 			false,
 		},

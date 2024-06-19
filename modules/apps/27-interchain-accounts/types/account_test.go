@@ -78,7 +78,7 @@ func (suite *TypesTestSuite) TestValidateAccountAddress() {
 		},
 		{
 			"address is too long",
-			ibctesting.LongString,
+			ibctesting.GenerateString(uint(types.DefaultMaxAddrLength) + 1),
 			false,
 		},
 	}
