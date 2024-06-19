@@ -53,7 +53,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
-	if msgTransfer.Forwarding != nil && !areHopsAllowed(msgTransfer.Forwarding.Hops, a.Allocations[index].AllowedForwardingHops) {
+	if !areHopsAllowed(msgTransfer.Forwarding.Hops, a.Allocations[index].AllowedForwardingHops) {
 		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrUnauthorizedHops, "forwarding hops are not authorized")
 	}
 
