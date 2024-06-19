@@ -419,7 +419,6 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 	suite.Require().Equal(amount, balanceOnC.Amount)
 
 	// Now we start the transfer from C -> B -> A
-	// denomTrace path: transfer/channel-1
 	sender := suite.chainC.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[0].SenderAccount
 
@@ -470,11 +469,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 	suite.Require().True(found)
 	suite.Require().Equal(packetFromCtoB, forwardedPacket)
 
-	// Now we can receive the packet on A.
-	// To trigger an error during the OnRecv, we have to manipulate the balance present in the escrow of A
-	// of denom
-
-	// parse the packet from result events and recv packet on chainA
+	// Now we can receive the packet on A where we want to trigger an error
 	packetFromBtoA, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packetFromBtoA)
@@ -490,9 +485,9 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 
 	result, err = path1.EndpointA.RecvPacketWithResult(packetFromBtoA)
 	suite.Require().NoError(err)
+
 	// An error ack is now written on chainA
 	// Now we need to propagate the error to b and c
-
 	packetSequenceOnA, err := ibctesting.ParsePacketSequenceFromEvents(result.Events)
 	suite.Require().NoError(err)
 
