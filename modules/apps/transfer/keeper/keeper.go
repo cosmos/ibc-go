@@ -308,8 +308,8 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
-// SetForwardedPacket sets the forwarded packet in the store.
-func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
+// setForwardedPacket sets the forwarded packet in the store.
+func (k Keeper) setForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&packet)
 	store.Set(types.PacketForwardKey(portID, channelID, sequence), bz)
