@@ -480,7 +480,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			path = commitmenttypes.NewMerklePath("/ibc/key/path")
+			path = commitmenttypes.NewMerklePath([]byte("/ibc/key/path"))
 			proof = wasmtesting.MockValidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 			value = []byte("value")
@@ -647,7 +647,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			path = commitmenttypes.NewMerklePath("/ibc/key/path")
+			path = commitmenttypes.NewMerklePath([]byte("/ibc/key/path"))
 			proof = wasmtesting.MockInvalidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 

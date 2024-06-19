@@ -213,7 +213,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 				suite.coordinator.CommitBlock(suite.chainA)
 				proof, proofHeight := endpoint.QueryProofAtHeight(proofKey, uint64(suite.chainA.GetContext().BlockHeight()))
 
-				merklePath := commitmenttypes.NewMerklePath(string(proofKey))
+				merklePath := commitmenttypes.NewMerklePath(proofKey)
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chainA.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
