@@ -734,6 +734,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 		}, true},
 		{"channel doesn't exist", func() {
+			path.Setup()
 			// any non-nil values work for connections
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			path.EndpointB.ChannelID = ibctesting.FirstChannelID
@@ -822,12 +823,14 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 
 			tc.malleate()
 
-			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			fmt.Println(path.EndpointA.ChannelID)
+			fmt.Println(path.EndpointB.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
 			ctx := suite.chainB.GetContext()
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
-				ctx, path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
+				ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channelCap,
 				proof, malleateHeight(proofHeight, heightDiff), counterpartyUpgradeSequence,
 			)
 

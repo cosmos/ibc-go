@@ -323,8 +323,16 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	return clientState, clientProof, consensusProof, consensusHeight, connectionProof, proofHeight
 }
 
+var sequenceNumber int
+
+func (endpoint *Endpoint) incrementNextChannelSequence() {
+	sequenceNumber++
+	endpoint.Chain.GetSimApp().IBCKeeper.ChannelKeeper.SetNextChannelSequence(endpoint.Chain.GetContext(), uint64(sequenceNumber))
+}
+
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenInit() error {
+	endpoint.incrementNextChannelSequence()
 	msg := channeltypes.NewMsgChannelOpenInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
@@ -349,6 +357,7 @@ func (endpoint *Endpoint) ChanOpenInit() error {
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenTry() error {
+	endpoint.incrementNextChannelSequence()
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
