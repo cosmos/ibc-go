@@ -107,12 +107,12 @@ func (msg MsgTransfer) ValidateBasic() error {
 	}
 
 	if len(msg.Forwarding.Hops) > 0 {
-		// We cannot have non-zero timeout height and non-empty forwarding hops at the same time.
+		// when forwarding, the timeout height must not be set
 		if !msg.TimeoutHeight.IsZero() {
 			return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must not be set if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.Hops)
 		}
 
-		// We cannot have non-empty memo and non-empty forwarding hops at the same time.
+		// when forwarding, the memo must be empty
 		if msg.Memo != "" {
 			return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", msg.Memo, msg.Forwarding.Hops)
 		}
