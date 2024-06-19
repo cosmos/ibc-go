@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
 		clienttypes.ZeroHeight(),
-		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+, "",
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 	result, err := suite.chainA.SendMsgs(transferMsg)
