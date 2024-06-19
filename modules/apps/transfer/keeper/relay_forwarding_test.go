@@ -354,8 +354,9 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 }
 
 // This test replicates the Acknowledgement Failure Scenario 1
-// It tests a failure in the last hop where the middle chain is source when sending and receiving the packet.
-// TODO: Specify this better after hearing back from Carlos
+// It tests a failure in the last hop where the middle chain is source when receiving and sending the packet.
+// In other words, the middle chain's native token has been sent to chain C, and the multi-hop
+// transfer from C-> B -> A has chain B being the source of the token both when receiving and forwarding (sending).
 func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 	amount := sdkmath.NewInt(100)
 	/*
@@ -478,84 +479,64 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packetFromBtoA)
 
-	// manipulate escrow account for denom on chain A
-	denomOnA := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID))
-	badEscrowCoin := sdk.NewCoin(denomOnA.IBCDenom(), sdkmath.NewInt(99))
-	suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), badEscrowCoin)
-	totalEscrowChainA := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), badEscrowCoin.GetDenom())
-	suite.Require().Equal(sdkmath.NewInt(99), totalEscrowChainA.Amount)
+	// turn off receive on chain A to trigger an error
+	suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+		SendEnabled:    true,
+		ReceiveEnabled: false,
+	})
 
-	err = path2.EndpointB.UpdateClient()
+	err = path1.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	err = path2.EndpointA.UpdateClient()
+	result, err = path1.EndpointA.RecvPacketWithResult(packetFromBtoA)
 	suite.Require().NoError(err)
-
-	result, err = path2.EndpointA.RecvPacketWithResult(packetFromBtoA)
-	suite.Require().Error(err)
-	suite.Require().Nil(result)
 	// An error ack is now written on chainA
 	// Now we need to propagate the error to b and c
 
+	packetSequenceOnA, err := ibctesting.ParsePacketSequenceFromEvents(result.Events)
+	suite.Require().NoError(err)
+
+	errorAckOnA := channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled)
+	errorAckCommitmentOnA := channeltypes.CommitAcknowledgement(errorAckOnA.Acknowledgement())
+	ackOnC, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainA.GetContext(), path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, packetSequenceOnA)
+	suite.Require().True(found)
+	suite.Require().Equal(errorAckCommitmentOnA, ackOnC)
+
+	err = path1.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = path1.EndpointB.AcknowledgePacket(packetFromBtoA, errorAckOnA.Acknowledgement())
+	suite.Require().NoError(err)
+
 	// TODO: Change to new error after #6586 is finished
-	errorAck := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
-	errorAckBz := channeltypes.CommitAcknowledgement(errorAck.Acknowledgement())
-	ackOnA := suite.chainA.GetAcknowledgement(packetFromBtoA)
-	suite.Require().Equal(errorAckBz, ackOnA)
+	errorAckOnB := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
+	errorAckCommitmentOnB := channeltypes.CommitAcknowledgement(errorAckOnB.Acknowledgement())
+	ackOnB := suite.chainB.GetAcknowledgement(packetFromCtoB)
+	suite.Require().Equal(errorAckCommitmentOnB, ackOnB)
 
-	// TODO: The rest
+	// Check that escrow has been moved back from EscrowBtoA to EscrowBtoC
+	escrowBalancAtoB = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressAtoB, coinOnB.GetDenom())
+	suite.Require().Equal(sdkmath.NewInt(0), escrowBalancAtoB.Amount)
 
-	/*
-		// Reconstruct packet data
-		data, err := internal.UnmarshalPacketData(packet.Data, types.V2)
-		suite.Require().NoError(err)
+	escrowBalancBtoC = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressBtoC, coinOnB.GetDenom())
+	suite.Require().Equal(amount, escrowBalancBtoC.Amount)
 
-		err = path1.EndpointB.UpdateClient()
-		suite.Require().NoError(err)
-		ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
+	// Check the status of account on chain C before executing ack.
+	balanceOnC = suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), setupReceiver.GetAddress(), coinOnC.GetDenom())
+	suite.Require().Equal(sdkmath.NewInt(0), balanceOnC.Amount)
 
-		// err = path1.EndpointA.AcknowledgePacket(packetRecv, ack.Acknowledgement())
-		err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, data, ack)
-		suite.Require().NoError(err)
+	// Propagate the error to C
+	err = path2.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
 
-		// Check that Escrow B has been refunded amount
-		coin = sdk.NewCoin(denomAB.IBCDenom(), amount)
-		totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
-		suite.Require().Equal(amount, totalEscrowChainB.Amount)
+	err = path2.EndpointB.AcknowledgePacket(packetFromCtoB, errorAckOnB.Acknowledgement())
+	suite.Require().NoError(err)
 
-		denom := types.ExtractDenomFromPath(denomABC.Path())
-		data = types.NewFungibleTokenPacketDataV2(
-			[]types.Token{
-				{
-					Denom:  denom,
-					Amount: amount.String(),
-				},
-			}, suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
-		// suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String() This should be forward account of B
-		packet = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
-
-		err = path2.EndpointB.UpdateClient()
-		suite.Require().NoError(err)
-
-		// Check the status of account on chain C before executing ack.
-		coin = sdk.NewCoin(denomABC.IBCDenom(), amount)
-		postCoinOnC = suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccounts[0].SenderAccount.GetAddress(), coin.GetDenom())
-		suite.Require().Equal(sdkmath.NewInt(0), postCoinOnC.Amount, "Final Hop balance has been refunded before Ack execution")
-
-		// Execute ack
-		err = suite.chainC.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainC.GetContext(), packet, data, ack)
-		// err = path2.EndpointB.AcknowledgePacket(packet, ack.Acknowledgement())
-		suite.Require().NoError(err)
-
-		// Check that everythig has been reverted
-		//
-		// Check the vouchers transfer/channel-1/transfer/channel-0/denom have been refunded on C
-		coin = sdk.NewCoin(denomABC.IBCDenom(), amount)
-		postCoinOnC = suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccounts[0].SenderAccount.GetAddress(), coin.GetDenom())
-		suite.Require().Equal(amount, postCoinOnC.Amount, "final receiver balance has not increased")
-
-		err = path1.EndpointB.UpdateClient()
-		suite.Require().NoError(err)*/
+	// Check that everything has been reverted
+	//
+	// Check the vouchers have been refunded on C
+	balanceOnC = suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), setupReceiver.GetAddress(), coinOnC.GetDenom())
+	suite.Require().Equal(amount, balanceOnC.Amount, "final receiver balance has not increased")
 }
 
 // This test replicates the Acknowledgement Failure Scenario 5
