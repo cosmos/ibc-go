@@ -365,7 +365,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 			    1. Transfer from B to C
 				2. Single transfer forwarding token from C -> B -> A
 		        2.1 The ack fails on the last hop
-		        2.2 Propogate the error back to C
+		        2.2 Propagate the error back to C
 		        3. Verify all the balances are updated as expected
 	*/
 
@@ -387,7 +387,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 		setupReceiver.GetAddress().String(),
 		suite.chainB.GetTimeoutHeight(),
 		0, "",
-		nil,
+		types.Forwarding{},
 	)
 
 	result, err := suite.chainB.SendMsgs(setupTransferMsg)
@@ -555,7 +555,6 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 
 		err = path1.EndpointB.UpdateClient()
 		suite.Require().NoError(err)*/
-
 }
 
 // This test replicates the Acknowledgement Failure Scenario 5
