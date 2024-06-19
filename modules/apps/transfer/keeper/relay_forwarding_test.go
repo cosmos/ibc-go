@@ -1,7 +1,9 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -39,8 +41,8 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -96,8 +98,8 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 
@@ -174,8 +176,8 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 
@@ -195,7 +197,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 				Amount: amount.String(),
 			},
 		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", forwarding)
-	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
 
 	err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
 	// If forwarding has been triggered then the async must be true.
@@ -227,7 +229,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, types.GetForwardAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID).String(), receiver.GetAddress().String(), "", nil)
+		}, types.GetForwardAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID).String(), receiver.GetAddress().String(), "", types.Forwarding{})
 	packetRecv = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	// execute onRecvPacket, when chaninA receives the tokens the escrow amount on B should increase to amount
@@ -274,8 +276,8 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 		sdk.NewCoins(coinOnA),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 
@@ -394,7 +396,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		nil,
+		types.Forwarding{},
 	)
 
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -438,7 +440,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		receiver.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(),
 		0, "",
-		nil,
+		types.Forwarding{},
 	)
 
 	result, err = suite.chainB.SendMsgs(transferMsg)
@@ -488,8 +490,8 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 
@@ -572,7 +574,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", nil)
+		}, suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", types.Forwarding{})
 	// suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String() This should be forward account of B
 	packet = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
@@ -609,3 +611,178 @@ Test async ack is properly relayed to middle hop after forwarding transfer compl
 // TODO
 Tiemout during forwarding after middle hop execution reverts properly the state changes
 */
+
+func (suite *KeeperTestSuite) setupForwardingPaths() (pathAtoB, pathBtoC *ibctesting.Path) {
+	pathAtoB = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	pathBtoC = ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+	pathAtoB.Setup()
+	pathBtoC.Setup()
+	return pathAtoB, pathBtoC
+}
+
+type amountType int
+
+const (
+	escrow amountType = iota
+	balance
+)
+
+func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string) {
+	var total sdk.Coin
+	switch balanceType {
+	case escrow:
+		total = chain.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(chain.GetContext(), denom)
+	case balance:
+		total = chain.GetSimApp().BankKeeper.GetBalance(chain.GetContext(), chain.SenderAccounts[0].SenderAccount.GetAddress(), denom)
+	default:
+		suite.Fail("invalid amountType %s", balanceType)
+	}
+	suite.Require().Equal(amount, total.Amount, fmt.Sprintf("Chain %s: got balance of %d, wanted %d", chain.Name(), total.Amount, amount))
+}
+
+// TestOnTimeoutPacketForwarding tests the scenario in which a packet goes from
+// A to C, using B as a forwarding hop. The packet times out when going to C
+// from B and we verify that funds are properly returned to A.
+func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
+	pathAtoB, pathBtoC := suite.setupForwardingPaths()
+
+	amount := sdkmath.NewInt(100)
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	sender := suite.chainA.SenderAccounts[0].SenderAccount
+	receiver := suite.chainC.SenderAccounts[0].SenderAccount
+
+	denomA := types.NewDenom(coin.Denom)
+	denomAB := types.NewDenom(coin.Denom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denomABC := types.NewDenom(coin.Denom, append(denomAB.Trace, types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID))...)
+
+	originalABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), sender.GetAddress(), coin.Denom)
+
+	forwarding := types.Forwarding{
+		Hops: []types.Hop{
+			{
+				PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
+				ChannelId: pathBtoC.EndpointA.ChannelID,
+			},
+		},
+	}
+
+	transferMsg := types.NewMsgTransfer(
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		sdk.NewCoins(coin),
+		sender.GetAddress().String(),
+		receiver.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute*5).UnixNano()),
+		"",
+		forwarding,
+	)
+
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	// parse the packet from result events and recv packet on chainB
+	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packet)
+
+	err = pathAtoB.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	// Receive packet on B.
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packet)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	err = pathBtoC.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathBtoC.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	// Make sure funds went from A to B's escrow account.
+	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount.Sub(amount), denomA.IBCDenom())
+	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomAB.IBCDenom())
+
+	// Check that forwarded packet exists
+	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, packet.Sequence)
+	suite.Require().True(found, "Chain B has no forwarded packet")
+	suite.Require().Equal(packet, forwardedPacket, "ForwardedPacket stored in ChainB is not the same that was sent")
+
+	address := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel).String()
+	data := types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
+			{
+				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID)),
+				Amount: "100",
+			},
+		},
+		address,
+		receiver.GetAddress().String(),
+		"", types.Forwarding{},
+	)
+
+	packet = channeltypes.NewPacket(
+		data.GetBytes(),
+		1,
+		pathBtoC.EndpointA.ChannelConfig.PortID,
+		pathBtoC.EndpointA.ChannelID,
+		pathBtoC.EndpointB.ChannelConfig.PortID,
+		pathBtoC.EndpointB.ChannelID,
+		packet.TimeoutHeight,
+		packet.TimeoutTimestamp)
+
+	// retrieve module callbacks
+	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+	suite.Require().True(ok)
+
+	// Trigger OnTimeoutPacket for chainB
+	err = cbs.OnTimeoutPacket(suite.chainB.GetContext(), packet, nil)
+	suite.Require().NoError(err)
+
+	// Ensure that chainB has an ack.
+	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	suite.Require().True(found, "chainB does not have an ack")
+
+	// And that this ack is of the type we expect (Error due to time out)
+	ack := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
+	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
+	suite.Require().Equal(ackbytes, storedAck)
+
+	data = types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
+			{
+				Denom:  types.NewDenom(sdk.DefaultBondDenom),
+				Amount: "100",
+			},
+		},
+		sender.GetAddress().String(),
+		receiver.GetAddress().String(),
+		"", forwarding,
+	)
+
+	packet = channeltypes.NewPacket(
+		data.GetBytes(),
+		1,
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		pathAtoB.EndpointB.ChannelConfig.PortID,
+		pathAtoB.EndpointB.ChannelID,
+		packet.TimeoutHeight,
+		packet.TimeoutTimestamp)
+
+	// Send the ack to chain A.
+	err = suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, ack)
+	suite.Require().NoError(err)
+
+	// Finally, check that A,B, and C escrow accounts do not have fund.
+	suite.assertAmountOnChain(suite.chainC, escrow, sdkmath.NewInt(0), denomABC.IBCDenom())
+	suite.assertAmountOnChain(suite.chainB, escrow, sdkmath.NewInt(0), denomAB.IBCDenom())
+	suite.assertAmountOnChain(suite.chainA, escrow, sdkmath.NewInt(0), denomA.IBCDenom())
+
+	// And that A has its original balance back.
+	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount, coin.Denom)
+}
