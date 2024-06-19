@@ -45,7 +45,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -163,7 +163,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -290,7 +290,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -409,7 +409,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -525,7 +525,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -626,7 +626,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 

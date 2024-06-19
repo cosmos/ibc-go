@@ -51,7 +51,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
@@ -160,7 +160,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -260,7 +260,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -379,7 +379,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
@@ -423,7 +423,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, _ := s.GetChains()
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -472,7 +472,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	channelA := s.GetChannel()
+	channelA := s.GetChainAChannel()
 
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
@@ -532,7 +532,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
@@ -652,7 +652,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom

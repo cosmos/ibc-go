@@ -225,10 +225,10 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 	}
 }
 
-// GetChannel returns the ibc.ChannelOutput for the current test.
+// GetChainAChannel returns the ibc.ChannelOutput for the current test.
 // this defaults to the first entry in the list, and will be what is needed in the case of
 // a single channel test.
-func (s *E2ETestSuite) GetChannel() ibc.ChannelOutput {
+func (s *E2ETestSuite) GetChainAChannel() ibc.ChannelOutput {
 	chainA := s.GetAllChains()[0]
 	return s.GetChannels(chainA)[0]
 }

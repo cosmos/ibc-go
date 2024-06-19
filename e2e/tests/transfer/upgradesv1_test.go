@@ -41,7 +41,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithICS20v2_Succ
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
@@ -182,7 +182,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChannel()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
