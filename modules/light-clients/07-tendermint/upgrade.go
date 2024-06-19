@@ -135,7 +135,13 @@ func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedClient)
 
 	clientPath = append(clientPath, appendedKey)
-	return commitmenttypes.NewMerklePath(clientPath...)
+
+	var clientKey [][]byte
+	for _, part := range clientPath {
+		clientKey = append(clientKey, []byte(part))
+	}
+
+	return commitmenttypes.NewMerklePath(clientKey...)
 }
 
 // construct MerklePath for the committed consensus state from upgradePath
@@ -150,5 +156,11 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedConsState)
 
 	consPath = append(consPath, appendedKey)
-	return commitmenttypes.NewMerklePath(consPath...)
+
+	var consensusKey [][]byte
+	for _, part := range consPath {
+		consensusKey = append(consensusKey, []byte(part))
+	}
+
+	return commitmenttypes.NewMerklePath(consensusKey...)
 }

@@ -70,14 +70,9 @@ var _ exported.Path = (*MerklePath)(nil)
 
 // NewMerklePath creates a new MerklePath instance
 // The keys must be passed in from root-to-leaf order
-func NewMerklePath(keyPath ...string) MerklePath {
-	var path [][]byte
-	for _, key := range keyPath {
-		path = append(path, []byte(key))
-	}
-
+func NewMerklePath(keyPath ...[]byte) MerklePath {
 	return MerklePath{
-		KeyPath: path,
+		KeyPath: keyPath,
 	}
 }
 
@@ -101,9 +96,8 @@ func ApplyPrefix(prefix exported.Prefix, path MerklePath) (MerklePath, error) {
 		return MerklePath{}, errorsmod.Wrap(ErrInvalidPrefix, "prefix can't be empty")
 	}
 
-	return MerklePath{
-		KeyPath: append([][]byte{prefix.Bytes()}, path.KeyPath...),
-	}, nil
+	keyPath := append([][]byte{prefix.Bytes()}, path.KeyPath...)
+	return NewMerklePath(keyPath...), nil
 }
 
 var _ exported.Proof = (*MerkleProof)(nil)

@@ -141,7 +141,7 @@ func (k Keeper) RecvPacket(
 
 	// TODO: allow for custom prefix
 	path := host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, []byte(path))
 
 	commitment := channeltypes.CommitLitePacket(k.cdc, packet)
 
@@ -242,7 +242,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	path := host.PacketAcknowledgementPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, []byte(path))
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
@@ -314,7 +314,7 @@ func (k Keeper) TimeoutPacket(
 	}
 
 	path := host.PacketReceiptPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, []byte(path))
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter

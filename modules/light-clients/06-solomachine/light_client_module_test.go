@@ -633,7 +633,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				clientID = sm.ClientID
 				clientState = sm.ClientState()
 
-				path = commitmenttypes.NewMerklePath("ibc", "solomachine")
+				path = commitmenttypes.NewMerklePath([]byte("ibc"), []byte("solomachine"))
 				merklePath, ok := path.(commitmenttypes.MerklePath)
 				suite.Require().True(ok)
 				key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
@@ -858,7 +858,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				clientState = sm.ClientState()
 				clientID = sm.ClientID
 
-				path = commitmenttypes.NewMerklePath("ibc", "solomachine")
+				path = commitmenttypes.NewMerklePath([]byte("ibc"), []byte("solomachine"))
 				merklePath, ok := path.(commitmenttypes.MerklePath)
 				suite.Require().True(ok)
 				key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
