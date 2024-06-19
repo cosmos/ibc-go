@@ -14,6 +14,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+const defaultTimeoutTimestampDelta = 1000000000
+
 func (suite *KeeperTestSuite) TestPathForwarding() {
 	amount := sdkmath.NewInt(100)
 
@@ -39,8 +41,8 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+, "",
 		forwarding,
 	)
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -96,8 +98,8 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 
@@ -174,8 +176,8 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 
@@ -274,8 +276,8 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 		sdk.NewCoins(coinOnA),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 
@@ -488,8 +490,8 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 
