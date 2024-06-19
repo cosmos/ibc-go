@@ -28,11 +28,10 @@ const (
 	FirstConnectionID = "connection-0"
 
 	// Default params constants used to create a TM client
-	TrustingPeriod               time.Duration = time.Hour * 24 * 7 * 2
-	UnbondingPeriod              time.Duration = time.Hour * 24 * 7 * 3
-	MaxClockDrift                time.Duration = time.Second * 10
-	DefaultDelayPeriod           uint64        = 0
-	DefaultTimeoutTimestampDelta               = 1 << 12
+	TrustingPeriod     time.Duration = time.Hour * 24 * 7 * 2
+	UnbondingPeriod    time.Duration = time.Hour * 24 * 7 * 3
+	MaxClockDrift      time.Duration = time.Second * 10
+	DefaultDelayPeriod uint64        = 0
 
 	DefaultChannelVersion = mock.Version
 	InvalidID             = "IDisInvalid"
@@ -55,6 +54,8 @@ var (
 
 	// DefaultTrustLevel sets params variables used to create a TM client
 	DefaultTrustLevel = ibctm.DefaultTrustLevel
+
+	DefaultTimeoutTimestampDelta uint64 = uint64(time.Hour.Nanoseconds())
 
 	TestAccAddress    = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 	TestCoin          = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
