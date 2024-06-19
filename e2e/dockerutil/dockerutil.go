@@ -4,11 +4,12 @@ import (
 	"archive/tar"
 	"context"
 	"fmt"
+	"io"
+	"path"
+
 	dockertypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	dockerclient "github.com/docker/docker/client"
-	"io"
-	"path"
 )
 
 const testLabel = "ibc-test"
