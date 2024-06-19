@@ -629,6 +629,12 @@ func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.ChainID), uint64(chain.GetContext().BlockHeight())+100)
 }
 
+// GetTimeoutTimestamp is a convenience function which returns a IBC packet timeout timestamp
+// to be used for testing. It returns the current block timestamp + default timestamp delta (1 hour).
+func (chain *TestChain) GetTimeoutTimestamp() uint64 {
+	return uint64(chain.GetContext().BlockTime().UnixNano()) + DefaultTimeoutTimestampDelta
+}
+
 // DeleteKey deletes the specified key from the ibc store.
 func (chain *TestChain) DeleteKey(key []byte) {
 	storeKey := chain.GetSimApp().GetKey(exported.StoreKey)
