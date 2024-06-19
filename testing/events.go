@@ -174,6 +174,19 @@ func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 	return 0, fmt.Errorf("proposalID event attribute not found")
 }
 
+// ParsePacketSequenceFromEvents parses events emitted from MsgRecvPacket and returns the packet sequence
+func ParsePacketSequenceFromEvents(events []abci.Event) (uint64, error) {
+	for _, event := range events {
+		for _, attribute := range event.Attributes {
+			if attribute.Key == "packet_sequence" {
+				return strconv.ParseUint(attribute.Value, 10, 64)
+			}
+		}
+	}
+
+	return 0, fmt.Errorf("packet sequence event attribute not found")
+}
+
 // AssertEvents asserts that expected events are present in the actual events.
 func AssertEvents(
 	suite *testifysuite.Suite,
