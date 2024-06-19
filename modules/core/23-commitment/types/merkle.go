@@ -96,8 +96,7 @@ func ApplyPrefix(prefix exported.Prefix, path MerklePath) (MerklePath, error) {
 		return MerklePath{}, errorsmod.Wrap(ErrInvalidPrefix, "prefix can't be empty")
 	}
 
-	keyPath := append([][]byte{prefix.Bytes()}, path.KeyPath...)
-	return NewMerklePath(keyPath...), nil
+	return NewMerklePath(append([][]byte{prefix.Bytes()}, path.KeyPath...)...), nil
 }
 
 // VerifyMembership verifies the membership of a merkle proof against the given root, path, and value.
