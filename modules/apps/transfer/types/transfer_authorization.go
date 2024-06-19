@@ -65,7 +65,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 
 	memo := msgTransfer.Memo
 	// in the case of forwarded transfers, the actual memo is stored in the forwarding path until the final destination
-	if msgTransfer.Forwarding != nil && len(msgTransfer.Forwarding.Hops) > 0 {
+	if len(msgTransfer.Forwarding.Hops) > 0 {
 		memo = msgTransfer.Forwarding.Memo
 	}
 

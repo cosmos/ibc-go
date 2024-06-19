@@ -299,7 +299,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
-					nil,
+					emptyForwarding,
 				)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -342,7 +342,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
-					nil,
+					emptyForwarding,
 				)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -379,7 +379,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					suite.chainB.GetTimeoutHeight(),
 					0,
 					"",
-					nil,
+					emptyForwarding,
 				)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -481,7 +481,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.chainB.GetTimeoutHeight(),
 				0,
 				"",
-				nil,
+				emptyForwarding,
 			)
 
 			tc.malleate()
