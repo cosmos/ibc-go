@@ -96,8 +96,7 @@ func ApplyPrefix(prefix exported.Prefix, path MerklePath) (MerklePath, error) {
 		return MerklePath{}, errorsmod.Wrap(ErrInvalidPrefix, "prefix can't be empty")
 	}
 
-	keyPath := append([][]byte{prefix.Bytes()}, path.KeyPath...)
-	return NewMerklePath(keyPath...), nil
+	return NewMerklePath(append([][]byte{prefix.Bytes()}, path.KeyPath...)...), nil
 }
 
 var _ exported.Proof = (*MerkleProof)(nil)
