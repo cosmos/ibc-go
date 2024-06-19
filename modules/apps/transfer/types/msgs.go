@@ -106,7 +106,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return err
 	}
 
-	if len(msg.Forwarding.Hops) > 0 {
+	if msg.ShouldBeForwarded() {
 		// when forwarding, the timeout height must not be set
 		if !msg.TimeoutHeight.IsZero() {
 			return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must not be set if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.Hops)
@@ -136,6 +136,11 @@ func (msg MsgTransfer) GetCoins() sdk.Coins {
 		coins = []sdk.Coin{msg.Token}
 	}
 	return coins
+}
+
+// ShouldBeForwarded determines if the transfer should be forwarded to the next hop.
+func (msg MsgTransfer) ShouldBeForwarded() bool {
+	return len(msg.Forwarding.Hops) > 0
 }
 
 // isValidIBCCoin returns true if the token provided is valid,
