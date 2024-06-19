@@ -14,8 +14,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-const defaultTimeoutTimestampDelta = 1000000000
-
 func (suite *KeeperTestSuite) TestPathForwarding() {
 	amount := sdkmath.NewInt(100)
 
@@ -42,7 +40,7 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
 		clienttypes.ZeroHeight(),
-		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+ibctesting.DefaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -99,7 +97,7 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
 		clienttypes.ZeroHeight(),
-		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+ibctesting.DefaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 
@@ -177,7 +175,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
 		clienttypes.ZeroHeight(),
-		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+ibctesting.DefaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 
@@ -277,7 +275,7 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
 		clienttypes.ZeroHeight(),
-		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+ibctesting.DefaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 
@@ -491,7 +489,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
 		clienttypes.ZeroHeight(),
-		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+defaultTimeoutTimestampDelta, "",
+		uint64(suite.chainA.GetContext().BlockTime().UnixNano())+ibctesting.DefaultTimeoutTimestampDelta, "",
 		forwarding,
 	)
 

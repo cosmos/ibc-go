@@ -28,10 +28,11 @@ const (
 	FirstConnectionID = "connection-0"
 
 	// Default params constants used to create a TM client
-	TrustingPeriod     time.Duration = time.Hour * 24 * 7 * 2
-	UnbondingPeriod    time.Duration = time.Hour * 24 * 7 * 3
-	MaxClockDrift      time.Duration = time.Second * 10
-	DefaultDelayPeriod uint64        = 0
+	TrustingPeriod               time.Duration = time.Hour * 24 * 7 * 2
+	UnbondingPeriod              time.Duration = time.Hour * 24 * 7 * 3
+	MaxClockDrift                time.Duration = time.Second * 10
+	DefaultDelayPeriod           uint64        = 0
+	DefaultTimeoutTimestampDelta               = 1 << 12
 
 	DefaultChannelVersion = mock.Version
 	InvalidID             = "IDisInvalid"
