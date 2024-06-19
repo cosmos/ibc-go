@@ -21,7 +21,7 @@ Layer0 process.
 In order to export IBC outside of Tendermint-based ecosystems, there is a need to introduce new light clients. This is a core need for
 companies and protocols trying to bridge ecosystems such as Ethereum, NEAR, Polkadot, etc. as none of these uses Tendermint as their
 consensus mechanism. Introducing a new light client implementation is not straightforward: sometimes cryptographic primitives are not
-available, or support for operating with certain data structures (like specific tries/trees, etc) are not available in Go. The implementor needs to follow 
+available, or support for operating with certain data structures (like specific tries/trees, etc) are not available in Go. The implementer needs to follow 
 the light client's specification, and will try to make use of all available tools to keep the development cost reasonable.
 
 Normally, most of available tools to implement a light client stem from the blockchain ecosystem this client belongs to. Say for example, if a developer
@@ -32,7 +32,7 @@ it becomes a proper solution to port the code for ibc-go to interpret without re
 
 ## Objectives
 
-The objective of this module is to have allow two chains with heterogenous consensus algorithms being connected through light clients that are not necessarily written in Go, but compiled to Wasm instead.
+The objective of this module is to have allow two chains with heterogeneous consensus algorithms being connected through light clients that are not necessarily written in Go, but compiled to Wasm instead.
 
 ## Scope
 
