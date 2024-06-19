@@ -450,6 +450,23 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.Require().False(res.Accept)
 			},
 		},
+		{
+			"failure - Allocation specify hops but msgTransfer does not have hops",
+			func() {
+				transferAuthz.Allocations[0].AllowedForwardingHops = []*types.Hops{
+					{
+						Hops: []types.Hop{
+							{PortId: "1", ChannelId: "channel-1"},
+							{PortId: "2", ChannelId: "channel-2"},
+						},
+					},
+				}
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().False(res.Accept)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
