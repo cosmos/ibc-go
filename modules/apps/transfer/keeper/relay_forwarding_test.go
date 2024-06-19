@@ -391,8 +391,8 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario4Forwarding() {
 		sdk.NewCoins(coinOnC),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainC.GetTimeoutHeight(),
-		0,
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(),
 		"",
 		forwarding,
 	)
@@ -533,8 +533,9 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(),
+		"",
 		types.Forwarding{},
 	)
 
@@ -577,8 +578,9 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(),
+		"",
 		types.Forwarding{},
 	)
 
