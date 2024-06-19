@@ -157,10 +157,10 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 
 	consPath = append(consPath, appendedKey)
 
-	var consensusKey [][]byte
+	var consStateKey [][]byte
 	for _, part := range consPath {
-		consensusKey = append(consensusKey, []byte(part))
+		consStateKey = append(consStateKey, []byte(part))
 	}
 
-	return commitmenttypes.NewMerklePath(consensusKey...)
+	return commitmenttypes.NewMerklePath(consStateKey...)
 }
