@@ -18,7 +18,7 @@ var validHop = types.Hop{
 func TestForwarding_Validate(t *testing.T) {
 	tests := []struct {
 		name       string
-		forwarding *types.Forwarding
+		forwarding types.Forwarding
 		expError   error
 	}{
 		{
@@ -55,6 +55,11 @@ func TestForwarding_Validate(t *testing.T) {
 			"invalid forwarding with too long memo",
 			types.NewForwarding(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
 			types.ErrInvalidMemo,
+		},
+		{
+			"invalid forwarding with empty hops and specified memo",
+			types.NewForwarding("memo"),
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with too short hop port ID",

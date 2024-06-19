@@ -2,7 +2,6 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -11,6 +10,47 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
+
+// forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
+func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
+	var memo string
+
+	var nextForwardingPath types.Forwarding
+	if len(data.Forwarding.Hops) == 1 {
+		memo = data.Forwarding.Memo
+	} else {
+		nextForwardingPath = types.NewForwarding(data.Forwarding.Memo, data.Forwarding.Hops[1:]...)
+	}
+
+	// sending from the forward escrow address to the original receiver address.
+	sender := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
+
+	msg := types.NewMsgTransfer(
+		data.Forwarding.Hops[0].PortId,
+		data.Forwarding.Hops[0].ChannelId,
+		receivedCoins,
+		sender.String(),
+		data.Receiver,
+		packet.TimeoutHeight,
+		packet.TimeoutTimestamp,
+		memo,
+		nextForwardingPath,
+	)
+
+	resp, err := k.Transfer(ctx, msg)
+	if err != nil {
+		return err
+	}
+
+	k.SetForwardedPacket(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, resp.Sequence, packet)
+	return nil
+}
+
+// ackForwardPacketSuccess writes a successful async acknowledgement for the prevPacket
+func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket channeltypes.Packet) error {
+	forwardAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
+}
 
 // ackForwardPacketError reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
 func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
@@ -22,12 +62,6 @@ func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.P
 	}
 
 	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
-}
-
-// ackForwardPacketSuccess writes a successful async acknowledgement for the prevPacket
-func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket channeltypes.Packet) error {
-	forwardAck := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
@@ -70,11 +104,10 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 	// we can iterate over the received tokens of prevPacket by iterating over the sent tokens of failedPacketData
 	for _, token := range failedPacketData.Tokens {
 		// parse the transfer amount
-		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
-		if !ok {
-			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", transferAmount)
+		coin, err := token.ToCoin()
+		if err != nil {
+			return err
 		}
-		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 		// check if the token we received originated on the sender
 		// given that the packet is being reversed, we check the DestinationChannel and DestinationPort
@@ -92,45 +125,6 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 			return err
 		}
 	}
-	return nil
-}
-
-// forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
-func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
-	var memo string
-
-	var nextForwardingPath *types.Forwarding
-	if len(data.Forwarding.Hops) == 1 {
-		memo = data.Forwarding.Memo
-		nextForwardingPath = nil
-	} else {
-		nextForwardingPath = &types.Forwarding{
-			Hops: data.Forwarding.Hops[1:],
-			Memo: data.Forwarding.Memo,
-		}
-	}
-
-	// sending from the forward escrow address to the original receiver address.
-	sender := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
-
-	msg := types.NewMsgTransfer(
-		data.Forwarding.Hops[0].PortId,
-		data.Forwarding.Hops[0].ChannelId,
-		receivedCoins,
-		sender.String(),
-		data.Receiver,
-		packet.TimeoutHeight,
-		packet.TimeoutTimestamp,
-		memo,
-		nextForwardingPath,
-	)
-
-	resp, err := k.Transfer(ctx, msg)
-	if err != nil {
-		return err
-	}
-
-	k.SetForwardedPacket(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, resp.Sequence, packet)
 	return nil
 }
 

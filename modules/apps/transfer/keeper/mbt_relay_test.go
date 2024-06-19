@@ -159,7 +159,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
 			"",
-			nil,
+			types.Forwarding{},
 		),
 	}
 }
@@ -358,16 +358,14 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
 							"",
-							nil,
+							types.Forwarding{},
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
 
 					}
 				case "OnRecvPacket":
-					var async bool
-					async, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
-					suite.Require().False(async)
+					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
 
 				case "OnTimeoutPacket":
 					registerDenomFn()

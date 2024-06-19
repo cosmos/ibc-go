@@ -23,6 +23,7 @@ const (
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 	flagAbsoluteTimeouts       = "absolute-timeouts"
 	flagMemo                   = "memo"
+	flagForwarding             = "forwarding"
 )
 
 // defaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
@@ -90,6 +91,17 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 				return err
 			}
 
+			forwarding, err := parseForwarding(cmd)
+			if err != nil {
+				return err
+			}
+
+			// If parsed, set and replace memo.
+			if len(forwarding.Hops) > 0 {
+				forwarding.Memo = memo
+				memo = ""
+			}
+
 			// NOTE: relative timeouts using block height are not supported.
 			// if the timeouts are not absolute, CLI users rely solely on local clock time in order to calculate relative timestamps.
 			if !absoluteTimeouts {
@@ -111,8 +123,9 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 			}
 
 			msg := types.NewMsgTransfer(
-				srcPort, srcChannel, coins, sender, receiver, timeoutHeight, timeoutTimestamp, memo, nil,
+				srcPort, srcChannel, coins, sender, receiver, timeoutHeight, timeoutTimestamp, memo, forwarding,
 			)
+
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -121,7 +134,36 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, defaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
+	cmd.Flags().String(flagForwarding, "", "Forwarding information in the form of a comma separated list of portID/channelID pairs, denoting the intermediary hops. If forwarding is specified any memo set will be included in the forwarding information created.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+// parseForwarding parses the forwarding flag into a Forwarding object or nil if the flag is not specified. If the flag cannot
+// be parsed or the hops aren't in the portID/channelID format an error is returned.
+func parseForwarding(cmd *cobra.Command) (types.Forwarding, error) {
+	var hops []types.Hop
+
+	forwardingString, err := cmd.Flags().GetString(flagForwarding)
+	if err != nil {
+		return types.Forwarding{}, err
+	}
+	if strings.TrimSpace(forwardingString) == "" {
+		return types.Forwarding{}, nil
+	}
+
+	pairs := strings.Split(forwardingString, ",")
+	for _, pair := range pairs {
+		pairSplit := strings.Split(pair, "/")
+		if len(pairSplit) != 2 {
+			return types.Forwarding{}, fmt.Errorf("expected a portID/channelID pair, found %s", pair)
+		}
+
+		hop := types.Hop{PortId: pairSplit[0], ChannelId: pairSplit[1]}
+		hops = append(hops, hop)
+	}
+
+	forwarding := types.NewForwarding("", hops...)
+	return forwarding, nil
 }
