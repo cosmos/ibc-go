@@ -590,7 +590,7 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) []ibc.Chain {
 		for _, chain := range chainOptions.ChainSpecs {
 			chainNames = append(chainNames, chain.Name)
 		}
-		diagnostics.Collect(t, s.DockerClient, dumpLogs, chainNames...)
+		diagnostics.Collect(t, s.DockerClient, dumpLogs, s.testSuiteName, chainNames...)
 	})
 
 	chains, err := cf.Chains(t.Name())
@@ -618,8 +618,8 @@ func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 	return opts
 }
 
-// FeeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
-func (s *E2ETestSuite) FeeMiddlewareChannelOptions() ibc.CreateChannelOptions {
+// FeeTransferChannelOptions configures both of the chains to have fee middleware enabled.
+func (s *E2ETestSuite) FeeTransferChannelOptions() ibc.CreateChannelOptions {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
 		AppVersion: determineDefaultTransferVersion(s.GetAllChains()),
@@ -718,6 +718,11 @@ func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender,
 	}
 
 	return msg
+}
+
+// SuiteName returns the name of the test suite.
+func (s *E2ETestSuite) SuiteName() string {
+	return s.testSuiteName
 }
 
 // ThreeChainSetup provides the default behaviour to wire up 3 chains in the tests.

@@ -23,7 +23,7 @@ const (
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
 // into e2e/<test-suite>/<test-name>.log. These log files will be uploaded to GH upon test failure.
-func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chainNames ...string) {
+func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, suiteName string, chainNames ...string) {
 	t.Helper()
 
 	if !debugModeEnabled {
@@ -50,7 +50,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chain
 		return
 	}
 
-	testContainers, err := dockerutil.GetTestContainers(ctx, t, dc)
+	testContainers, err := dockerutil.GetTestContainers(ctx, suiteName, dc)
 	if err != nil {
 		t.Logf("failed listing containers during test cleanup: %s", err)
 		return
