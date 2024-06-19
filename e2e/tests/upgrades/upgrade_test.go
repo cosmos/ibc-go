@@ -60,7 +60,7 @@ func (s *UpgradeTestSuite) SetupTest() {
 	channelOpts := s.TransferChannelOptions()
 	// TODO(chatton) hack to handle special case for the v8 to v8.1 upgrade test.
 	if strings.HasSuffix(s.T().Name(), "TestV8ToV8_1ChainUpgrade") {
-		channelOpts = s.FeeMiddlewareChannelOptions()
+		channelOpts = s.FeeTransferChannelOptions()
 	}
 	s.SetupPath(ibc.DefaultClientOpts(), channelOpts)
 }
