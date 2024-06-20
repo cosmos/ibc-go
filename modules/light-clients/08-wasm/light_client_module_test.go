@@ -412,7 +412,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 					suite.Require().Nil(payload.VerifyNonMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
-					suite.Require().Equal(path, payload.VerifyMembership.Path)
+					suite.Require().Equal(path, payload.VerifyMembership.MerklePath)
 					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
 					suite.Require().Equal(value, payload.VerifyMembership.Value)
 
@@ -540,7 +540,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
+					suite.Require().Equal(path, payload.VerifyNonMembership.MerklePath)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
 
 					bz, err := json.Marshal(types.EmptyResult{})
@@ -567,7 +567,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
+					suite.Require().Equal(path, payload.VerifyNonMembership.MerklePath)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
 
 					bz, err := json.Marshal(types.EmptyResult{})
