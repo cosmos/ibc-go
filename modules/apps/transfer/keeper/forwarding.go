@@ -48,6 +48,12 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 	return nil
 }
 
+// ackForwardPacketSuccess writes a successful async acknowledgement for the prevPacket
+func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket channeltypes.Packet, forwardedPacket channeltypes.Packet) error {
+	forwardAck := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
+	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
+}
+
 // ackForwardPacketError reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
 func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.Packet, forwardedPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
@@ -58,12 +64,6 @@ func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.P
 	}
 
 	forwardAck := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
-}
-
-// ackForwardPacketSuccess writes a successful async acknowledgement for the prevPacket
-func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket channeltypes.Packet, forwardedPacket channeltypes.Packet) error {
-	forwardAck := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
 }
 
