@@ -14,9 +14,6 @@ import (
 
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
-	var memo string
-
-	// Empty forwarding info and propagate memo to MsgTransfer's memo field or continue on remaining hops.
 	var nextForwardingPath types.Forwarding
 	if len(data.Forwarding.Hops) > 1 {
 		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
