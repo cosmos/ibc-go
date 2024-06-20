@@ -507,7 +507,7 @@ func (k *Keeper) AcknowledgePacket(
 // FLUSHING state. It checks if the upgrade has timed out and if so, aborts the upgrade. If all
 // packets have completed their lifecycle, it sets the channel state to FLUSHCOMPLETE and
 // emits a channel_flush_complete event. Returns true if the upgrade was aborted, false otherwise.
-func (k *Keeper) handleFlushState(ctx sdk.Context, packet *types.Packet, channel *types.Channel) bool {
+func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel *types.Channel) bool {
 	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
 		return false
