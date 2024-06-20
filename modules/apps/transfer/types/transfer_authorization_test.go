@@ -19,7 +19,7 @@ const (
 	testMemo2 = `{"forward":{"channel":"channel-11","port":"transfer","receiver":"stars1twfv52yxcyykx2lcvgl42svw46hsm5dd4ww6xy","retries":2,"timeout":1712146014542131200}}`
 )
 
-var forwardingInfoForValidHop = []*types.Hops{{Hops: []types.Hop{validHop}}}
+var forwardingInfoForValidHop = []types.Hops{{Hops: []types.Hop{validHop}}}
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	var (
