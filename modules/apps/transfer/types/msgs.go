@@ -106,9 +106,16 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return err
 	}
 
-	// We cannot have non-empty memo and non-empty forwarding hops at the same time.
-	if len(msg.Forwarding.Hops) > 0 && msg.Memo != "" {
-		return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", msg.Memo, msg.Forwarding.Hops)
+	if msg.ShouldBeForwarded() {
+		// when forwarding, the timeout height must not be set
+		if !msg.TimeoutHeight.IsZero() {
+			return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must not be set if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.Hops)
+		}
+
+		// when forwarding, the memo must be empty
+		if msg.Memo != "" {
+			return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", msg.Memo, msg.Forwarding.Hops)
+		}
 	}
 
 	for _, coin := range msg.GetCoins() {
@@ -129,6 +136,11 @@ func (msg MsgTransfer) GetCoins() sdk.Coins {
 		coins = []sdk.Coin{msg.Token}
 	}
 	return coins
+}
+
+// ShouldBeForwarded determines if the transfer should be forwarded to the next hop.
+func (msg MsgTransfer) ShouldBeForwarded() bool {
+	return len(msg.Forwarding.Hops) > 0
 }
 
 // isValidIBCCoin returns true if the token provided is valid,

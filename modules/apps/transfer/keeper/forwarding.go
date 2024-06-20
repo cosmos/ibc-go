@@ -1,13 +1,12 @@
 package keeper
 
 import (
-	"errors"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -33,7 +32,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 		receivedCoins,
 		sender.String(),
 		data.Receiver,
-		packet.TimeoutHeight,
+		clienttypes.ZeroHeight(),
 		packet.TimeoutTimestamp,
 		memo,
 		nextForwardingPath,
@@ -44,7 +43,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 		return err
 	}
 
-	k.SetForwardedPacket(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, resp.Sequence, packet)
+	k.setForwardedPacket(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, resp.Sequence, packet)
 	return nil
 }
 
@@ -63,8 +62,8 @@ func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.P
 		return err
 	}
 
-	forwardAck := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
+	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
+  return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
 }
 
 // ackForwardPacketTimeout reverts the receive packet logic that occurs in the middle chain and writes a failed async ack for the prevPacket
@@ -73,7 +72,8 @@ func (k Keeper) ackForwardPacketTimeout(ctx sdk.Context, prevPacket channeltypes
 		return err
 	}
 
-	forwardAck := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
+
+	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketTimedOut)
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
 }
 

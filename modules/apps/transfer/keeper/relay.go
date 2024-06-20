@@ -147,7 +147,7 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
-	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo)
+	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, forwarding)
 
 	defer internaltelemetry.ReportTransferTelemetry(tokens, labels)
 
