@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
-var emptyForwarding = types.Forwarding{}
+var emptyForwardingPacketData = types.ForwardingPacketData{}
 
 func TestUnmarshalPacketData(t *testing.T) {
 	var (
@@ -37,7 +37,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 							Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
 							Amount: "1000",
 						},
-					}, "sender", "receiver", "", emptyForwarding)
+					}, "sender", "receiver", "", emptyForwardingPacketData)
 
 				packetDataBz = packetData.GetBytes()
 				version = types.V2
@@ -94,7 +94,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 						Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
 						Amount: "1000",
 					},
-				}, sender, receiver, "", emptyForwarding),
+				}, sender, receiver, "", emptyForwardingPacketData),
 			nil,
 		},
 		{
@@ -106,7 +106,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 						Denom:  types.NewDenom("atom"),
 						Amount: "1000",
 					},
-				}, sender, receiver, "", emptyForwarding),
+				}, sender, receiver, "", emptyForwardingPacketData),
 			nil,
 		},
 		{
@@ -118,7 +118,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 						Denom:  types.NewDenom("atom/withslash", types.NewTrace("transfer", "channel-0")),
 						Amount: "1000",
 					},
-				}, sender, receiver, "", emptyForwarding),
+				}, sender, receiver, "", emptyForwardingPacketData),
 			nil,
 		},
 		{
@@ -130,7 +130,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 						Denom:  types.NewDenom("atom/", types.NewTrace("transfer", "channel-0")),
 						Amount: "1000",
 					},
-				}, sender, receiver, "", emptyForwarding),
+				}, sender, receiver, "", emptyForwardingPacketData),
 			nil,
 		},
 		{
@@ -142,7 +142,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 						Denom:  types.NewDenom("atom/pool", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
 						Amount: "1000",
 					},
-				}, sender, receiver, "", emptyForwarding),
+				}, sender, receiver, "", emptyForwardingPacketData),
 			nil,
 		},
 		{
@@ -154,7 +154,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 						Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer-custom", "channel-2")),
 						Amount: "1000",
 					},
-				}, sender, receiver, "", emptyForwarding),
+				}, sender, receiver, "", emptyForwardingPacketData),
 			nil,
 		},
 		{
@@ -166,7 +166,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 						Denom:  types.NewDenom("atom/pool", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer-custom", "channel-2")),
 						Amount: "1000",
 					},
-				}, sender, receiver, "", emptyForwarding),
+				}, sender, receiver, "", emptyForwardingPacketData),
 			nil,
 		},
 		{
