@@ -177,7 +177,7 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 }
 
 // isAllowedForwarding returns whether the provided slice of Hop matches one of the allowed ones.
-func isAllowedForwarding(hops []Hop, allowed []*Hops) bool {
+func isAllowedForwarding(hops []Hop, allowed []Hops) bool {
 	if len(hops) == 0 {
 		return true
 	}
