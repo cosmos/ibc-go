@@ -351,11 +351,11 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	suite.Require().NoError(err)
 }
 
-// This test replicates the Acknowledgement Failure Scenario 1
-// It tests a failure in the last hop where the middle chain is source when receiving and sending the packet.
+// This tests a failure in the last hop where the middle chain as native source when receiving and sending the packet.
 // In other words, the middle chain's native token has been sent to chain C, and the multi-hop
-// transfer from C-> B -> A has chain B being the source of the token both when receiving and forwarding (sending).
-func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
+// transfer from C -> B -> A has chain B being the source of the token both when receiving and forwarding (sending).
+// Previously referenced as Acknowledgement Failure Scenario 1
+func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeTokenSource() {
 	amount := sdkmath.NewInt(100)
 	/*
 				Given the following topolgy:
@@ -531,8 +531,11 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario1Forwarding() {
 	suite.Require().Equal(amount, balanceOnC.Amount, "final receiver balance has not increased")
 }
 
-// This test replicates the Acknowledgement Failure Scenario 5
-func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
+// This tests a failure in the last hop where the middle chain as IBC denom source when receiving and sending the packet.
+// In other words, an IBC denom from the middle chain's sent to chain C, and the multi-hop
+// transfer from C -> B -> A has chain B being the source of the token both when receiving and forwarding (sending).
+// Previously referenced as Acknowledgement Failure Scenario 5
+func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsIBCTokenSource() {
 	amount := sdkmath.NewInt(100)
 	/*
 		Given the following topolgy:
