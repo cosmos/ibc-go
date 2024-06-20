@@ -23,48 +23,28 @@ func TestForwarding_Validate(t *testing.T) {
 	}{
 		{
 			"valid forwarding with no hops",
-			types.NewForwarding(""),
+			types.NewForwarding(false),
 			nil,
 		},
 		{
 			"valid forwarding with hops",
-			types.NewForwarding("", validHop),
-			nil,
-		},
-		{
-			"valid forwarding with memo",
-			types.NewForwarding(testMemo1, validHop, validHop),
+			types.NewForwarding(false, validHop),
 			nil,
 		},
 		{
 			"valid forwarding with max hops",
-			types.NewForwarding("", generateHops(types.MaximumNumberOfForwardingHops)...),
-			nil,
-		},
-		{
-			"valid forwarding with max memo length",
-			types.NewForwarding(ibctesting.GenerateString(types.MaximumMemoLength), validHop),
+			types.NewForwarding(false, generateHops(types.MaximumNumberOfForwardingHops)...),
 			nil,
 		},
 		{
 			"invalid forwarding with too many hops",
-			types.NewForwarding("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
-			types.ErrInvalidForwarding,
-		},
-		{
-			"invalid forwarding with too long memo",
-			types.NewForwarding(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
-			types.ErrInvalidMemo,
-		},
-		{
-			"invalid forwarding with empty hops and specified memo",
-			types.NewForwarding("memo"),
+			types.NewForwarding(false, generateHops(types.MaximumNumberOfForwardingHops+1)...),
 			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with too short hop port ID",
 			types.NewForwarding(
-				"",
+			    false,	
 				types.Hop{
 					PortId:    invalidShortPort,
 					ChannelId: ibctesting.FirstChannelID,
@@ -75,7 +55,7 @@ func TestForwarding_Validate(t *testing.T) {
 		{
 			"invalid forwarding with too long hop port ID",
 			types.NewForwarding(
-				"",
+			    false,	
 				types.Hop{
 					PortId:    invalidLongPort,
 					ChannelId: ibctesting.FirstChannelID,
@@ -86,7 +66,7 @@ func TestForwarding_Validate(t *testing.T) {
 		{
 			"invalid forwarding with non-alpha hop port ID",
 			types.NewForwarding(
-				"",
+				false,
 				types.Hop{
 					PortId:    invalidPort,
 					ChannelId: ibctesting.FirstChannelID,
@@ -97,7 +77,7 @@ func TestForwarding_Validate(t *testing.T) {
 		{
 			"invalid forwarding with too long hop channel ID",
 			types.NewForwarding(
-				"",
+				false,
 				types.Hop{
 					PortId:    types.PortID,
 					ChannelId: invalidLongChannel,
@@ -108,7 +88,7 @@ func TestForwarding_Validate(t *testing.T) {
 		{
 			"invalid forwarding with too short hop channel ID",
 			types.NewForwarding(
-				"",
+				false,
 				types.Hop{
 					PortId:    types.PortID,
 					ChannelId: invalidShortChannel,
@@ -119,7 +99,7 @@ func TestForwarding_Validate(t *testing.T) {
 		{
 			"invalid forwarding with non-alpha hop channel ID",
 			types.NewForwarding(
-				"",
+				false,
 				types.Hop{
 					PortId:    types.PortID,
 					ChannelId: invalidChannel,

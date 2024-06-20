@@ -80,12 +80,11 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"multidenom: zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
 		{"multidenom: too many coins", types.NewMsgTransfer(validPort, validChannel, make([]sdk.Coin, types.MaximumTokensLength+1), sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
 		{"multidenom: both token and tokens are set", &types.MsgTransfer{validPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, "", coins, emptyForwarding}, ibcerrors.ErrInvalidCoins},
-		{"timeout height must be zero if forwarding path hops is not empty", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 100, "memo", types.NewForwarding("", validHop)), types.ErrInvalidPacketTimeout},
-		{"memo must be empty if forwarding path hops is not empty", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "memo", types.NewForwarding("", validHop)), types.ErrInvalidMemo},
-		{"invalid forwarding info port", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding("", types.Hop{PortId: invalidPort, ChannelId: validChannel})), host.ErrInvalidID},
-		{"invalid forwarding info channel", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding("", types.Hop{PortId: validPort, ChannelId: invalidChannel})), host.ErrInvalidID},
-		{"invalid forwarding info too many hops", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding("", generateHops(types.MaximumNumberOfForwardingHops+1)...)), types.ErrInvalidForwarding},
-		{"invalid forwarding info too long memo", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop)), types.ErrInvalidMemo},
+		{"timeout height must be zero if forwarding path hops is not empty", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 100, "memo", types.NewForwarding(false, validHop)), types.ErrInvalidPacketTimeout},
+		{"memo must be empty if forwarding path hops is not empty", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "memo", types.NewForwarding(false, validHop)), types.ErrInvalidMemo},
+		{"invalid forwarding info port", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, types.Hop{PortId: invalidPort, ChannelId: validChannel})), host.ErrInvalidID},
+		{"invalid forwarding info channel", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, types.Hop{PortId: validPort, ChannelId: invalidChannel})), host.ErrInvalidID},
+		{"invalid forwarding info too many hops", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, generateHops(types.MaximumNumberOfForwardingHops+1)...)), types.ErrInvalidForwarding},
 	}
 
 	for _, tc := range testCases {
