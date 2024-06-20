@@ -34,10 +34,10 @@ func (fi Forwarding) Validate() error {
 	return nil
 }
 
-// NewForwarding creates a new ForwardingPacketData instance given a memo and a variable number of hops.
-func NewForwardingPacketData(memo string, hops ...Hop) ForwardingPacketData {
+// NewForwardingPacketData creates a new ForwardingPacketData instance given a memo and a variable number of hops.
+func NewForwardingPacketData(destinationMemo string, hops ...Hop) ForwardingPacketData {
 	return ForwardingPacketData{
-		DestinationMemo: memo,
+		DestinationMemo: destinationMemo,
 		Hops:            hops,
 	}
 }

@@ -140,7 +140,7 @@ func (msg MsgTransfer) GetCoins() sdk.Coins {
 
 // ShouldBeForwarded determines if the transfer should be forwarded to the next hop.
 func (msg MsgTransfer) ShouldBeForwarded() bool {
-	return len(msg.Forwarding.Hops) > 0
+	return len(msg.Forwarding.Hops) > 0 || msg.Forwarding.Unwind
 }
 
 // isValidIBCCoin returns true if the token provided is valid,
