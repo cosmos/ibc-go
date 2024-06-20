@@ -25,7 +25,7 @@ message Params {
 message Forwarding {
   // optional unwinding for the token transfered
   bool unwind = 1;
-  // intermediate path through which packet will be forwarded
+  // optional intermediate path through which packet will be forwarded
   repeated Hop hops = 2 [(gogoproto.nullable) = false];
 }
 

@@ -89,7 +89,7 @@ func (m *Params) GetReceiveEnabled() bool {
 type Forwarding struct {
 	// optional unwinding for the token transfered
 	Unwind bool `protobuf:"varint,1,opt,name=unwind,proto3" json:"unwind,omitempty"`
-	// intermediate path through which packet will be forwarded
+	// optional intermediate path through which packet will be forwarded
 	Hops []Hop `protobuf:"bytes,2,rep,name=hops,proto3" json:"hops"`
 }
 

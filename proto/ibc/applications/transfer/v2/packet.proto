@@ -46,6 +46,6 @@ message FungibleTokenPacketDataV2 {
 message ForwardingPacketData {
   // optional memo consumed by final destination chain
   string destination_memo = 1;
-  // intermediate path through which packet will be forwarded.
+  // optional intermediate path through which packet will be forwarded.
   repeated ibc.applications.transfer.v1.Hop hops = 2 [(gogoproto.nullable) = false];
 }

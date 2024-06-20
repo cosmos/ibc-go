@@ -197,7 +197,7 @@ func (m *FungibleTokenPacketDataV2) GetForwarding() ForwardingPacketData {
 type ForwardingPacketData struct {
 	// optional memo consumed by final destination chain
 	DestinationMemo string `protobuf:"bytes,1,opt,name=destination_memo,json=destinationMemo,proto3" json:"destination_memo,omitempty"`
-	// intermediate path through which packet will be forwarded.
+	// optional intermediate path through which packet will be forwarded.
 	Hops []Hop `protobuf:"bytes,2,rep,name=hops,proto3" json:"hops"`
 }
 
