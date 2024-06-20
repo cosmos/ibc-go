@@ -72,9 +72,9 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 	}
 	s.Require().NoError(err)
 
-	chainA, chainB := s.GetChains()
-	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
-
+	s.T().Logf("waiting for blocks on chain A and chain B")
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
+	s.T().Logf("blocks created on chain A and chain B")
 	return resp
 }
 
@@ -172,11 +172,14 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	)
 	s.Require().NoError(err)
 
+	s.T().Logf("submitting proposal with ID: %d", proposalID)
 	resp := s.BroadcastMessages(ctx, cosmosChain, user, msgSubmitProposal)
 	s.AssertTxSuccess(resp)
 
+	s.T().Logf("proposal submitted with ID: %d", proposalID)
 	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
+	s.T().Logf("validators voted on proposal with ID: %d", proposalID)
 	return s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
 }
 
