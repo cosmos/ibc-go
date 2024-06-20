@@ -326,7 +326,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"success: allowed forwarding hops",
 			func() {
 				msgTransfer.Forwarding = types.NewForwarding("", types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"}, types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"})
-				transferAuthz.Allocations[0].AllowedForwardingHops = []*types.Hops{
+				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
@@ -343,7 +343,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"success: Allocation specify hops but msgTransfer does not have hops",
 			func() {
-				transferAuthz.Allocations[0].AllowedForwardingHops = []*types.Hops{
+				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
@@ -439,7 +439,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-3"},
 				)
-				transferAuthz.Allocations[0].AllowedForwardingHops = []*types.Hops{
+				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
@@ -460,7 +460,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
 					types.Hop{PortId: "3", ChannelId: "channel-3"},
 				)
-				transferAuthz.Allocations[0].AllowedForwardingHops = []*types.Hops{
+				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
@@ -493,7 +493,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
 				)
-				transferAuthz.Allocations[0].AllowedForwardingHops = []*types.Hops{
+				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
