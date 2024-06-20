@@ -306,6 +306,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 			s.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
+			transfertypes.Forwarding{},
 		)
 		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 		s.AssertTxSuccess(resp)
