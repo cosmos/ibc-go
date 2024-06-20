@@ -562,8 +562,8 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().NoError(err)
 
 	// Check that B deleted the forwarded packet.
-	_, found = suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel, packet.Sequence)
-	suite.Require().False(found, "chain B should have deleted the packet")
+	_, found = suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), forwardedPacket.SourcePort, forwardedPacket.SourceChannel, forwardedPacket.Sequence)
+	suite.Require().False(found, "chain B should have deleted the forwarded packet mapping")
 
 	// Check that Escrow B has been refunded amount
 	coin = sdk.NewCoin(denomAB.IBCDenom(), amount)
