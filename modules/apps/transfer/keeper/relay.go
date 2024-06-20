@@ -285,7 +285,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
 		if isForwarded {
-			return k.ackForwardPacketSuccess(ctx, prevPacket)
+			return k.ackForwardPacketSuccess(ctx, prevPacket, packet)
 		}
 
 		// the acknowledgement succeeded on the receiving chain so nothing
@@ -297,7 +297,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			return err
 		}
 		if isForwarded {
-			return k.ackForwardPacketError(ctx, prevPacket, data)
+			return k.ackForwardPacketError(ctx, prevPacket, packet, data)
 		}
 
 		return nil
@@ -316,7 +316,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 
 	prevPacket, isForwarded := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if isForwarded {
-		return k.ackForwardPacketTimeout(ctx, prevPacket, data)
+		return k.ackForwardPacketTimeout(ctx, prevPacket, packet, data)
 	}
 
 	return nil
