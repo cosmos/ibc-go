@@ -17,5 +17,4 @@ var (
 	ErrInvalidAuthorization    = errorsmod.Register(ModuleName, 10, "invalid transfer authorization")
 	ErrInvalidMemo             = errorsmod.Register(ModuleName, 11, "invalid memo")
 	ErrInvalidForwarding       = errorsmod.Register(ModuleName, 12, "invalid token forwarding")
-	ErrUnauthorizedHops        = errorsmod.Register(ModuleName, 13, "unauthorized hops")
 )

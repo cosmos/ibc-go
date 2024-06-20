@@ -54,7 +54,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 	}
 
 	if !isAllowedForwarding(msgTransfer.Forwarding.Hops, a.Allocations[index].AllowedForwardingHops) {
-		return authz.AcceptResponse{}, errorsmod.Wrapf(ErrUnauthorizedHops, "forwarding hops are not authorized")
+		return authz.AcceptResponse{}, errorsmod.Wrapf(ErrInvalidForwarding, "not allowed forwarding hops")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -177,13 +177,13 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 }
 
 // isAllowedForwarding returns whether the provided slice of Hop matches one of the allowed ones.
-func isAllowedForwarding(provided []Hop, allowed []*Hops) bool {
-	if len(allowed) == 0 {
+func isAllowedForwarding(hops []Hop, allowed []*Hops) bool {
+	if len(hops) == 0 {
 		return true
 	}
 
 	for _, allowedHops := range allowed {
-		if reflect.DeepEqual(provided, allowedHops.Hops) {
+		if reflect.DeepEqual(hops, allowedHops.Hops) {
 			return true
 		}
 	}
