@@ -132,7 +132,7 @@ func NewContractKeeper(key storetypes.StoreKey) *ContractKeeper {
 	return k
 }
 
-// IBCPacketSendCallback increments the stateful entry counter and the send_packet callback counter.
+// IBCSendPacketCallback increments the stateful entry counter and the send_packet callback counter.
 // This function:
 //   - returns MockApplicationCallbackError and consumes half the remaining gas if the contract address is ErrorContract
 //   - Oog panics and consumes all the remaining gas + 1 if the contract address is OogPanicContract
