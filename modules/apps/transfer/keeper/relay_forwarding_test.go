@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -9,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -41,8 +39,8 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 	result, err := suite.chainA.SendMsgs(transferMsg)
@@ -98,8 +96,8 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 
@@ -176,8 +174,8 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 
@@ -197,7 +195,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 				Amount: amount.String(),
 			},
 		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", forwarding)
-	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
 
 	err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
 	// If forwarding has been triggered then the async must be true.
@@ -276,8 +274,8 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 		sdk.NewCoins(coinOnA),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 
@@ -403,14 +401,14 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().NoError(err) // message committed
 
 	// parse the packet from result events and recv packet on chainB
-	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
+	packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(packet)
+	suite.Require().NotNil(packetFromAtoB)
 
 	err = path1.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	result, err = path1.EndpointB.RecvPacketWithResult(packet)
+	result, err = path1.EndpointB.RecvPacketWithResult(packetFromAtoB)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
@@ -447,14 +445,14 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().NoError(err) // message committed
 
 	// parse the packet from result events and recv packet on chainB
-	packet, err = ibctesting.ParsePacketFromEvents(result.Events)
+	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(packet)
+	suite.Require().NotNil(packetFromBtoC)
 
 	err = path2.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	result, err = path2.EndpointB.RecvPacketWithResult(packet)
+	result, err = path2.EndpointB.RecvPacketWithResult(packetFromBtoC)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
@@ -490,8 +488,8 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 		sdk.NewCoins(coin),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		suite.chainA.GetTimeoutHeight(),
-		0, "",
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
 		forwarding,
 	)
 
@@ -503,22 +501,22 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().Equal(sdkmath.NewInt(0), postCoinOnC.Amount, "Vouchers have not been burned")
 
 	// parse the packet from result events and recv packet on chainB
-	packet, err = ibctesting.ParsePacketFromEvents(result.Events)
+	packetFromCtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(packet)
+	suite.Require().NotNil(packetFromCtoB)
 
 	err = path2.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	result, err = path2.EndpointA.RecvPacketWithResult(packet)
+	result, err = path2.EndpointA.RecvPacketWithResult(packetFromCtoB)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
 	// We have successfully received the packet on B and forwarded it to A.
 	// Lets try to retrieve it in order to save it
-	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, packet.Sequence)
+	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, packetFromCtoB.Sequence)
 	suite.Require().True(found)
-	suite.Require().Equal(packet, forwardedPacket)
+	suite.Require().Equal(packetFromCtoB, forwardedPacket)
 
 	// Voucher have been burned on chain B
 	coin = sdk.NewCoin(denomAB.IBCDenom(), amount)
@@ -530,36 +528,37 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	// of denom
 
 	// parse the packet from result events and recv packet on chainA
-	packet, err = ibctesting.ParsePacketFromEvents(result.Events)
+	packetFromBtoA, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(packet)
+	suite.Require().NotNil(packetFromBtoA)
 
-	// manipulate escrow account for denom on chain A
-	coin = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(99))
-	suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), coin)
-	totalEscrowChainA = suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), coin.GetDenom())
-	suite.Require().Equal(sdkmath.NewInt(99), totalEscrowChainA.Amount)
+	// turn off receive on chain A to trigger an error
+	suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{
+		SendEnabled:    true,
+		ReceiveEnabled: false,
+	})
 
 	err = path1.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
-	// suite.Require().Equal(packet, forwardedPacket)
 
-	result, err = path1.EndpointA.RecvPacketWithResult(packet)
-	suite.Require().Error(err)
-	suite.Require().Nil(result)
-	// In theory now an error ack should have been written on chain A
-	// NOW WE HAVE TO SEND ACK TO B, PROPAGTE ACK TO C, CHECK FINAL RESULTS
-
-	// Reconstruct packet data
-	data, err := internal.UnmarshalPacketData(packet.Data, types.V2)
+	result, err = path1.EndpointA.RecvPacketWithResult(packetFromBtoA)
 	suite.Require().NoError(err)
+
+	// An error ack has been written on chainA
+	// Now we need to propagate it back to chainB and chainC
+	packetSequenceOnA, err := ibctesting.ParsePacketSequenceFromEvents(result.Events)
+	suite.Require().NoError(err)
+
+	errorAckOnA := channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled)
+	errorAckCommitmentOnA := channeltypes.CommitAcknowledgement(errorAckOnA.Acknowledgement())
+	ackOnC, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainA.GetContext(), path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, packetSequenceOnA)
+	suite.Require().True(found)
+	suite.Require().Equal(errorAckCommitmentOnA, ackOnC)
 
 	err = path1.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
-	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
 
-	// err = path1.EndpointA.AcknowledgePacket(packetRecv, ack.Acknowledgement())
-	err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, data, ack)
+	err = path1.EndpointB.AcknowledgePacket(packetFromBtoA, errorAckOnA.Acknowledgement())
 	suite.Require().NoError(err)
 
 	// Check that Escrow B has been refunded amount
@@ -567,19 +566,13 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.NewInt(100), totalEscrowChainB.Amount)
 
-	denom := types.ExtractDenomFromPath(denomABC.Path())
-	data = types.NewFungibleTokenPacketDataV2(
-		[]types.Token{
-			{
-				Denom:  denom,
-				Amount: amount.String(),
-			},
-		}, suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(), "", types.Forwarding{})
-	// suite.chainC.SenderAccounts[0].SenderAccount.GetAddress().String() This should be forward account of B
-	packet = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
-
 	err = path2.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
+
+	errorAckOnB := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
+	errorAckCommitmentOnB := channeltypes.CommitAcknowledgement(errorAckOnB.Acknowledgement())
+	ackOnB := suite.chainB.GetAcknowledgement(packetFromCtoB)
+	suite.Require().Equal(errorAckCommitmentOnB, ackOnB)
 
 	// Check the status of account on chain C before executing ack.
 	coin = sdk.NewCoin(denomABC.IBCDenom(), amount)
@@ -587,11 +580,10 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	suite.Require().Equal(sdkmath.NewInt(0), postCoinOnC.Amount, "Final Hop balance has been refunded before Ack execution")
 
 	// Execute ack
-	err = suite.chainC.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainC.GetContext(), packet, data, ack)
-	// err = path2.EndpointB.AcknowledgePacket(packet, ack.Acknowledgement())
+	err = path2.EndpointB.AcknowledgePacket(packetFromCtoB, errorAckOnB.Acknowledgement())
 	suite.Require().NoError(err)
 
-	// Check that everythig has been reverted
+	// Check that everything has been reverted
 	//
 	// Check the vouchers transfer/channel-1/transfer/channel-0/denom have been refunded on C
 	coin = sdk.NewCoin(denomABC.IBCDenom(), amount)
@@ -748,7 +740,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
-	ack := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
+	ack := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketTimedOut)
 	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
 	suite.Require().Equal(ackbytes, storedAck)
 
