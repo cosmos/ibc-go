@@ -19,12 +19,12 @@ func NewForwarding(unwind bool, hops ...Hop) Forwarding {
 // Validate performs a basic validation of the Forwarding fields.
 func (fi Forwarding) Validate() error {
 	if len(fi.Hops) > MaximumNumberOfForwardingHops {
-		return errorsmod.Wrapf(ErrInvalidForwarding, "number of hops in forwarding packet data cannot exceed %d", MaximumNumberOfForwardingHops)
+		return errorsmod.Wrapf(ErrInvalidForwarding, "number of hops in forwarding cannot exceed %d", MaximumNumberOfForwardingHops)
 	}
 
 	for _, hop := range fi.Hops {
 		if err := host.PortIdentifierValidator(hop.PortId); err != nil {
-			return errorsmod.Wrapf(err, "invalid source port ID %s", hop.PortId)
+			return errorsmod.Wrapf(err, "invalid hop source port ID %s", hop.PortId)
 		}
 		if err := host.ChannelIdentifierValidator(hop.ChannelId); err != nil {
 			return errorsmod.Wrapf(err, "invalid source channel ID %s", hop.ChannelId)
