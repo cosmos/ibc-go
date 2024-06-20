@@ -50,7 +50,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 
 // ackForwardPacketSuccess writes a successful async acknowledgement for the prevPacket
 func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket channeltypes.Packet, forwardedPacket channeltypes.Packet) error {
-	forwardAck := channeltypes.NewResultAcknowledgement([]byte("forwarded packet succeeded"))
+	forwardAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
 }
 
