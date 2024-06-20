@@ -34,7 +34,7 @@ func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.To
 // EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
 func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) {
 	tokensStr := mustMarshalType[types.Tokens](packetData.Tokens)
-	forwardingStr := mustMarshalType[types.Forwarding](packetData.Forwarding)
+	forwardingStr := mustMarshalType[types.ForwardingPacketData](packetData.Forwarding)
 
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
@@ -64,7 +64,7 @@ func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacket
 // EmitOnAcknowledgementPacketEvent emits a fungible token packet event in the OnAcknowledgementPacket callback
 func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
 	tokensStr := mustMarshalType[types.Tokens](packetData.Tokens)
-	forwardingStr := mustMarshalType[types.Forwarding](packetData.Forwarding)
+	forwardingStr := mustMarshalType[types.ForwardingPacketData](packetData.Forwarding)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -103,7 +103,7 @@ func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.Fungible
 // EmitOnTimeoutPacketEvent emits a fungible token packet event in the OnTimeoutPacket callback
 func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2) {
 	tokensStr := mustMarshalType[types.Tokens](packetData.Tokens)
-	forwardingStr := mustMarshalType[types.Forwarding](packetData.Forwarding)
+	forwardingStr := mustMarshalType[types.ForwardingPacketData](packetData.Forwarding)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
