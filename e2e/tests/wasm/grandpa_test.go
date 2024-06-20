@@ -134,8 +134,6 @@ func (s *GrandpaTestSuite) SetupTest() {
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	s.T().Log("funded cosmos wallet")
-
 	err = testutil.WaitForBlocks(ctx, 1, cosmosChain)
 	s.Require().NoError(err, "cosmos chain failed to make blocks")
 
@@ -143,16 +141,14 @@ func (s *GrandpaTestSuite) SetupTest() {
 
 	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
 	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
-
-	s.T().Logf("pushed proposal %s", checksum)
+	s.T().Log("pushed wasm client proposal")
 
 	r := s.GetRelayer()
 
-	s.T().Logf("setting contract hash %s", checksum)
 	err = r.SetClientContractHash(ctx, s.GetRelayerExecReporter(), cosmosChain.Config(), checksum)
 	s.Require().NoError(err)
+	s.T().Logf("set contract hash %s", checksum)
 
-	s.T().Logf("waiting for blocks on polkadot chain")
 	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
 	s.Require().NoError(err, "polkadot chain failed to make blocks")
 
