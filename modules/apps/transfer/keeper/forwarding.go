@@ -18,9 +18,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 
 	// Empty forwarding info and propagate memo to MsgTransfer's memo field or continue on remaining hops.
 	var nextForwardingPath types.Forwarding
-	if len(data.Forwarding.Hops) == 1 {
-		memo = data.Forwarding.DestinationMemo
-	} else {
+	if len(data.Forwarding.Hops) > 1 {
 		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 	}
 
@@ -35,7 +33,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 		data.Receiver,
 		clienttypes.ZeroHeight(),
 		packet.TimeoutTimestamp,
-		memo,
+		data.Forwarding.DestinationMemo,
 		nextForwardingPath,
 	)
 
