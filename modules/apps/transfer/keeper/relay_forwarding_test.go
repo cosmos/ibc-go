@@ -351,10 +351,10 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	suite.Require().NoError(err)
 }
 
-// This test replicates the Acknowledgement Failure Scenario 4
-// It tests a failure in the last hop where the middle chain is not source when receiving or sending the packet.
-// In other words, the middle chain's is sent someone else's native token (in this case chain C).
-func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario4Forwarding() {
+// It tests a failure in the last hop where the middle chain is not source of the token when receiving or sending the packet.
+// In other words, the middle chain's is sent (and forwarding) someone else's native token (in this case chain C).
+// Previously referenced as Acknowledgement Failure Scenario 4
+func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotTokenSource() {
 	amount := sdkmath.NewInt(100)
 	/*
 				Given the following topolgy:
