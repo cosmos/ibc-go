@@ -444,7 +444,14 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender, receiver, memo)
 		packetDataBytes = packetData.GetBytes()
 	case types.V2:
-		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo, forwarding)
+        // Set forwarding information if necessary, top level memo must be empty if forwarding has hops
+        var forwardingPacketData types.ForwardingPacketData
+        if len(forwarding.Hops) > 0 {
+          forwardingPacketData = types.NewForwardingPacketData(memo, forwarding.Hops...)
+          memo = ""
+        } 
+    
+		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo, forwardingPacketData)
 		packetDataBytes = packetData.GetBytes()
 	default:
 		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))

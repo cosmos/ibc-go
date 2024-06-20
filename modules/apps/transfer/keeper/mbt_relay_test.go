@@ -159,7 +159,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
 			"",
-			types.Forwarding{},
+			types.ForwardingPacketData{},
 		),
 	}
 }

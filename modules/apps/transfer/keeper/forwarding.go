@@ -18,9 +18,10 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 
 	var nextForwardingPath types.Forwarding
 	if len(data.Forwarding.Hops) == 1 {
-		memo = data.Forwarding.Memo
+		memo = data.Forwarding.DestinationMemo
 	} else {
-		nextForwardingPath = types.NewForwarding(data.Forwarding.Memo, data.Forwarding.Hops[1:]...)
+        // unwinding has already been performed.
+		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 	}
 
 	// sending from the forward escrow address to the original receiver address.
