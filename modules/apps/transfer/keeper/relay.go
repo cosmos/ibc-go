@@ -140,7 +140,7 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwarding)
+	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwarding.Hops)
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
@@ -431,7 +431,7 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 }
 
 // createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
-func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, forwarding types.Forwarding) []byte {
+func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) []byte {
 	var packetDataBytes []byte
 	switch appVersion {
 	case types.V1:
@@ -444,10 +444,10 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender, receiver, memo)
 		packetDataBytes = packetData.GetBytes()
 	case types.V2:
-		// Set forwarding information if necessary, top level memo must be empty if forwarding has hops
+		// If forwarding is needed, move memo to forwarding packet data and set packet.Memo to empty string.
 		var forwardingPacketData types.ForwardingPacketData
-		if len(forwarding.Hops) > 0 {
-			forwardingPacketData = types.NewForwardingPacketData(memo, forwarding.Hops...)
+		if len(hops) > 0 {
+			forwardingPacketData = types.NewForwardingPacketData(memo, hops...)
 			memo = ""
 		}
 

@@ -1304,7 +1304,7 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 			tc.malleate()
 
 			createFunc := func() {
-				bz = transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, "", "", "", tokens, emptyForwarding)
+				bz = transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, "", "", "", tokens, nil)
 			}
 
 			expPanic := tc.expPanicErr != nil

@@ -16,11 +16,11 @@ import (
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
 	var memo string
 
+	// Empty forwarding info and propagate memo to MsgTransfer's memo field or continue on remaining hops.
 	var nextForwardingPath types.Forwarding
 	if len(data.Forwarding.Hops) == 1 {
 		memo = data.Forwarding.DestinationMemo
 	} else {
-		// unwinding has already been performed.
 		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 	}
 
