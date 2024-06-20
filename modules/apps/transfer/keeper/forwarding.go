@@ -20,7 +20,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 	if len(data.Forwarding.Hops) == 1 {
 		memo = data.Forwarding.DestinationMemo
 	} else {
-        // unwinding has already been performed.
+		// unwinding has already been performed.
 		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 	}
 

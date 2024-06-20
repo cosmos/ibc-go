@@ -10,9 +10,9 @@ const MaximumNumberOfForwardingHops = 16 // denotes the maximum number of forwar
 
 // NewForwarding creates a new Forwarding instance given an unwind value and a variable number of hops.
 func NewForwarding(unwind bool, hops ...Hop) Forwarding {
-	return Forwarding {
-        Unwind: unwind,
-		Hops: hops,
+	return Forwarding{
+		Unwind: unwind,
+		Hops:   hops,
 	}
 }
 
@@ -38,7 +38,7 @@ func (fi Forwarding) Validate() error {
 func NewForwardingPacketData(memo string, hops ...Hop) ForwardingPacketData {
 	return ForwardingPacketData{
 		DestinationMemo: memo,
-		Hops: hops,
+		Hops:            hops,
 	}
 }
 

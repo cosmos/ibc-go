@@ -187,7 +187,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packet)
 
-    forwardingPacketData := types.NewForwardingPacketData("", forwarding.Hops...)
+	forwardingPacketData := types.NewForwardingPacketData("", forwarding.Hops...)
 	denom := types.Denom{Base: sdk.DefaultBondDenom}
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
@@ -745,7 +745,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
 	suite.Require().Equal(ackbytes, storedAck)
 
-    forwardingPacketData := types.NewForwardingPacketData("", forwarding.Hops...)
+	forwardingPacketData := types.NewForwardingPacketData("", forwarding.Hops...)
 	data = types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{

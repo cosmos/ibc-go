@@ -22,8 +22,8 @@ import (
 )
 
 var (
-    emptyForwarding = types.Forwarding{}
-    emptyForwardingPacketData = types.ForwardingPacketData{}
+	emptyForwarding           = types.Forwarding{}
+	emptyForwardingPacketData = types.ForwardingPacketData{}
 )
 
 // TestSendTransfer tests sending from chainA to chainB using both coin

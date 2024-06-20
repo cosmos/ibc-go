@@ -158,6 +158,6 @@ func parseForwarding(cmd *cobra.Command) (types.Forwarding, error) {
 		hops = append(hops, hop)
 	}
 
-    // TODO(jim): Add flag for unwind value
+	// TODO(jim): Add flag for unwind value
 	return types.NewForwarding(false, hops...), nil
 }

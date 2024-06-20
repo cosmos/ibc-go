@@ -104,7 +104,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-                
+
 				msgTransfer.Forwarding = types.NewForwarding(false, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
