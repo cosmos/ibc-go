@@ -2,9 +2,9 @@ package testsuite
 
 import (
 	"context"
+	sdkmath "cosmossdk.io/math"
 	"errors"
 	"fmt"
-	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -17,8 +17,6 @@ import (
 	"os"
 	"path"
 	"strings"
-
-	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -70,10 +68,11 @@ type E2ETestSuite struct {
 	relayer ibc.Relayer
 
 	// testSuiteName is the name of the test suite, used to store chains under the test suite name.
-	testSuiteName  string
-	testPaths      map[string][]string
-	channels       map[string]map[ibc.Chain][]ibc.ChannelOutput
-	relayerPool    chan ibc.Relayer
+	testSuiteName string
+	testPaths     map[string][]string
+	channels      map[string]map[ibc.Chain][]ibc.ChannelOutput
+	//relayerPool    *sync.Pool
+	relayerPool    []ibc.Relayer
 	testRelayerMap map[string]ibc.Relayer
 }
 
@@ -84,7 +83,7 @@ func (s *E2ETestSuite) initState() {
 	s.proposalIDs = map[string]uint64{}
 	s.testPaths = make(map[string][]string)
 	s.channels = make(map[string]map[ibc.Chain][]ibc.ChannelOutput)
-	s.relayerPool = make(chan ibc.Relayer)
+	s.relayerPool = []ibc.Relayer{}
 	s.testRelayerMap = make(map[string]ibc.Relayer)
 
 	// testSuiteName gets populated in the context of SetupSuite and stored as s.T().Name()
@@ -150,7 +149,7 @@ func (s *E2ETestSuite) createNRelayers(n int) []ibc.Relayer {
 	var relayers []ibc.Relayer
 	for i := 0; i < n; i++ {
 		r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
-		s.relayerPool <- r
+		s.relayerPool = append(s.relayerPool, r)
 		relayers = append(relayers, r)
 	}
 	return relayers
@@ -170,7 +169,8 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 
 	s.chains = s.createChains(chainOptions)
 
-	relayers := s.createNRelayers(chainOptions.RelayerCount)
+	//relayers := s.createNRelayers(chainOptions.RelayerCount)
+	relayers := s.createNRelayers(1)
 	ic := s.newInterchain(ctx, relayers, s.chains, channelOptionsModifier)
 
 	buildOpts := interchaintest.InterchainBuildOptions{
@@ -231,20 +231,19 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 			s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
 		}
 
-		// configure relayer to only watch the channels associated with the current test.
-		if h, ok := r.(*hermes.Relayer); ok {
-
-			h.Name()
-			dockerutil.GetFileContentsFromContainer()
-
-			err := h.WriteFileToHomeDir(ctx, ".hermes/config.toml", nil)
-			s.Require().NoError(err, "failed to write config file")
-		}
-
 		// keep track of channels associated with a given chain for access within the tests.
 		s.channels[s.T().Name()][chainA] = channelsA
 		s.channels[s.T().Name()][chainB] = channelsB
 		s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
+
+		// configure relayer to only watch the channels associated with the current test.
+		if h, ok := r.(*hermes.Relayer); ok {
+			err := relayer.ApplyPacketFilter(ctx, h, chainA.Config().ChainID, channelsA)
+			s.Require().NoError(err, "failed to watch port and channel on chainA")
+
+			err = relayer.ApplyPacketFilter(ctx, h, chainB.Config().ChainID, channelsB)
+			s.Require().NoError(err, "failed to watch port and channel on chainB")
+		}
 	}
 }
 
@@ -272,11 +271,14 @@ func (s *E2ETestSuite) GetRelayer() ibc.Relayer {
 		panic(errors.New("relayer pool is empty"))
 	}
 
-	r := <-s.relayerPool
+	r := s.relayerPool[0]
+
+	// remove the relayer from the pool
+	s.relayerPool = s.relayerPool[1:]
+
 	s.testRelayerMap[s.T().Name()] = r
 
 	return r
-
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users

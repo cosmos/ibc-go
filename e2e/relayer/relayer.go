@@ -3,7 +3,6 @@ package relayer
 import (
 	"context"
 	"fmt"
-	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/pelletier/go-toml"
 	"github.com/strangelove-ventures/interchaintest/v8/relayer/hermes"
 	"testing"
@@ -55,42 +54,73 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 	}
 }
 
-func WatchPortAndChannel(ctx context.Context, h *hermes.Relayer, dockerClient *dockerclient.Client, portID, channelID string) error {
-
-	// configure relayer to only watch the channels associated with the current test.
-	bz, err := fetchHermesConfigBytes(ctx, dockerClient)
+// ApplyPacketFilter modifies the hermes config file to only watch for packets for the given chain and channels.
+// this enables multiple relayers to be operating on the same chain but ignoring packets that are only relevant
+// to other tests.
+func ApplyPacketFilter(ctx context.Context, h *hermes.Relayer, chainID string, channels []ibc.ChannelOutput) error {
+	bz, err := h.ReadFileFromHomeDir(ctx, ".hermes/config.toml")
 	if err != nil {
-		return fmt.Errorf("failed to fetch hermes config bytes: %w", err)
+		return fmt.Errorf("failed to read hermes config file: %w", err)
 	}
-	//err := h.WriteFileToHomeDir(ctx, ".hermes/config.toml", nil)
-	_ = h
-	_ = bz
 
-	//h.Name()
-	//dockerutil.GetFileContentsFromContainer()
-	//
-	//err := h.WriteFileToHomeDir(ctx, ".hermes/config.toml", nil)
-
-	return modifyHermesConfigBytes(ctx, h, bz, portID, channelID)
+	return modifyHermesConfigBytes(ctx, h, bz, chainID, channels)
 }
 
-func fetchHermesConfigBytes(ctx context.Context, dockerClient *dockerclient.Client) ([]byte, error) {
-	return dockerutil.GetFileContentsFromContainer(ctx, dockerClient, "", "")
+func ModifyHermesConfigBytes(ctx context.Context, h *hermes.Relayer, modificationFn func(bz []byte) []byte) error {
+	bz, err := h.ReadFileFromHomeDir(ctx, ".hermes/config.toml")
+	if err != nil {
+		return fmt.Errorf("failed to read hermes config file: %w", err)
+	}
+
+	bz = modificationFn(bz)
+
+	return h.WriteFileToHomeDir(ctx, ".hermes/config.toml", bz)
 }
 
-func modifyHermesConfigBytes(ctx context.Context, h hermes.Relayer, bz []byte, portID, channelID string) error {
+// modifyHermesConfigBytes modifies the hermes config file to populate the packet filter with the given chain and channels.
+func modifyHermesConfigBytes(ctx context.Context, h *hermes.Relayer, bz []byte, chainID string, channels []ibc.ChannelOutput) error {
 	var config map[string]interface{}
 	if err := toml.Unmarshal(bz, &config); err != nil {
 		return fmt.Errorf("failed to unmarshal hermes config bytes")
 	}
 
-	// modify bz
+	// config ref https://github.com/informalsystems/hermes/blob/master/config.toml#L380
+	// [chains.packet_filter]
+	// policy = 'allow'
+	// list = [
+	//   ['ica*', '*'],
+	//   ['transfer', 'channel-0'],
+	// ]
+
+	chains := config["chains"].([]map[string]interface{})
+	var chain map[string]interface{}
+	for _, c := range chains {
+		if c["id"] == chainID {
+			chain = c
+			break
+		}
+	}
+
+	if chain == nil {
+		return fmt.Errorf("failed to find chain with id %s", chainID)
+	}
+
+	var channelIds [][]string
+	for _, c := range channels {
+		channelIds = append(channelIds, []string{c.PortID, c.ChannelID})
+	}
+
+	chain["packet_filter"] = map[string]interface{}{
+		"policy": "allow",
+		"list":   channelIds,
+	}
 
 	bz, err := toml.Marshal(config)
 	if err != nil {
 		return fmt.Errorf("failed to marshal hermes config bytes")
 	}
 
+	// overwrite the config file with the new settings.
 	return h.WriteFileToHomeDir(ctx, ".hermes/config.toml", bz)
 }
 
