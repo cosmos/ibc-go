@@ -34,23 +34,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [[Unreleased]]
+## [v7.5.2](https://github.com/cosmos/ibc-go/releases/tag/v7.5.2) - 2024-06-20
 
 ### Dependencies
 
 * [\#6613](https://github.com/cosmos/ibc-go/pull/6613) Update Cosmos SDK to v0.47.12.
 
-### API Breaking
-
-### State Machine Breaking
-
 ### Improvements
 
 * (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
-
-### Features
-
-### Bug Fixes
 
 ## [v7.5.1](https://github.com/cosmos/ibc-go/releases/tag/v7.5.1) - 2024-05-22
 
