@@ -260,7 +260,8 @@ func (l LightClientModule) VerifyMembership(
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             merklePath,
+			MerklePath:       merklePath,
+			Path:             internaltypes.ToLegacyMerklePath(merklePath),
 			Value:            value,
 		},
 	}
@@ -314,7 +315,8 @@ func (l LightClientModule) VerifyNonMembership(
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             merklePath,
+			MerklePath:       merklePath,
+			Path:             internaltypes.ToLegacyMerklePath(merklePath),
 		},
 	}
 	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
