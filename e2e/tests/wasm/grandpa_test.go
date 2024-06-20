@@ -294,24 +294,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 
 	r := s.GetRelayer()
 
-	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-
-	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
-	s.Require().NoError(err)
-
-	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
-
-	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
-
 	eRep := s.GetRelayerExecReporter()
-
-	// Set client contract hash in cosmos chain config
-	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), checksum)
-	s.Require().NoError(err)
-
-	// Ensure parachain has started (starts 1 session/epoch after relay chain)
-	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
-	s.Require().NoError(err, "polkadot chain failed to make blocks")
 
 	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
 	fundAmount := int64(12_333_000_000_000)
@@ -327,27 +310,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	}
 
 	pathName := testsuite.GetPathName(0)
-
-	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
-	s.Require().NoError(err)
-
-	// Create new clients
-	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
-	s.Require().NoError(err)
-
-	// Create a new connection
-	err = r.CreateConnections(ctx, eRep, pathName)
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
-
-	// Create a new channel & get channels from each chain
-	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
 
 	// Start relayer
 	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
@@ -396,45 +358,12 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	ctx := context.Background()
 
-	chainA, chainB := s.GetChains()
-
-	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
-	s.Require().True(ok)
+	_, chainB := s.GetChains()
 
 	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
 	s.Require().True(ok)
 
-	r := s.GetRelayer()
-
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-
-	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
-	s.Require().NoError(err)
-
-	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
-
-	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
-
-	eRep := s.GetRelayerExecReporter()
-
-	// Set client contract hash in cosmos chain config
-	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), checksum)
-	s.Require().NoError(err)
-
-	// Ensure parachain has started (starts 1 session/epoch after relay chain)
-	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
-	s.Require().NoError(err, "polkadot chain failed to make blocks")
-
-	pathName := testsuite.GetPathName(0)
-
-	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
-	s.Require().NoError(err)
-
-	// Create new clients
-	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
-	s.Require().NoError(err)
 
 	// Do not start relayer
 
@@ -481,44 +410,12 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract() {
 	ctx := context.Background()
 
-	chainA, chainB := s.GetChains()
-
-	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
-	s.Require().True(ok)
+	_, chainB := s.GetChains()
 
 	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
 	s.Require().True(ok)
 
-	r := s.GetRelayer()
-
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-
-	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
-	s.Require().NoError(err)
-	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
-
-	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
-
-	eRep := s.GetRelayerExecReporter()
-
-	// Set client contract hash in cosmos chain config
-	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), checksum)
-	s.Require().NoError(err)
-
-	// Ensure parachain has started (starts 1 session/epoch after relay chain)
-	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
-	s.Require().NoError(err, "polkadot chain failed to make blocks")
-
-	pathName := testsuite.GetPathName(0)
-
-	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
-	s.Require().NoError(err)
-
-	// Create new clients
-	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
-	s.Require().NoError(err)
 
 	// Do not start the relayer
 
@@ -602,10 +499,6 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
 	fundAmount := int64(12_333_000_000_000)
 	_, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
-
-	pathName := testsuite.GetPathName(0)
-	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
-	s.Require().NoError(err)
 
 	// create client pair with subject (bad trusting period)
 	subjectClientID := clienttypes.FormatClientIdentifier(wasmtypes.Wasm, 0)
