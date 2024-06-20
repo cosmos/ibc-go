@@ -96,12 +96,6 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 				return err
 			}
 
-			// If parsed, set and replace memo.
-			if len(forwarding.Hops) > 0 {
-				forwarding.Memo = memo
-				memo = ""
-			}
-
 			// NOTE: relative timeouts using block height are not supported.
 			// if the timeouts are not absolute, CLI users rely solely on local clock time in order to calculate relative timestamps.
 			if !absoluteTimeouts {
@@ -164,6 +158,6 @@ func parseForwarding(cmd *cobra.Command) (types.Forwarding, error) {
 		hops = append(hops, hop)
 	}
 
-	forwarding := types.NewForwarding("", hops...)
-	return forwarding, nil
+	// TODO(jim): Add flag for unwind value
+	return types.NewForwarding(false, hops...), nil
 }

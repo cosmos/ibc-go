@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestPathForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwarding := types.NewForwarding("", types.Hop{
+	forwarding := types.NewForwarding(false, types.Hop{
 		PortId:    path2.EndpointA.ChannelConfig.PortID,
 		ChannelId: path2.EndpointA.ChannelID,
 	})
@@ -85,7 +85,7 @@ func (suite *KeeperTestSuite) TestEscrowsAreSetAfterForwarding() {
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwarding := types.NewForwarding("", types.Hop{
+	forwarding := types.NewForwarding(false, types.Hop{
 		PortId:    path2.EndpointB.ChannelConfig.PortID,
 		ChannelId: path2.EndpointB.ChannelID,
 	})
@@ -163,7 +163,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	coin = sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[1].SenderAccount
-	forwarding := types.NewForwarding("", types.Hop{
+	forwarding := types.NewForwarding(false, types.Hop{
 		PortId:    path2.EndpointB.ChannelConfig.PortID,
 		ChannelId: path2.EndpointB.ChannelID,
 	})
@@ -187,6 +187,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packet)
 
+	forwardingPacketData := types.NewForwardingPacketData("", forwarding.Hops...)
 	denom := types.Denom{Base: sdk.DefaultBondDenom}
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
@@ -194,7 +195,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", forwarding)
+		}, sender.GetAddress().String(), receiver.GetAddress().String(), "", forwardingPacketData)
 	packetRecv := channeltypes.NewPacket(data.GetBytes(), 2, path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
 
 	err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packetRecv, data)
@@ -227,7 +228,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, types.GetForwardAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID).String(), receiver.GetAddress().String(), "", types.Forwarding{})
+		}, types.GetForwardAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID).String(), receiver.GetAddress().String(), "", types.ForwardingPacketData{})
 	packetRecv = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	// execute onRecvPacket, when chaninA receives the tokens the escrow amount on B should increase to amount
@@ -263,7 +264,7 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	coinOnA := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
-	forwarding := types.NewForwarding("", types.Hop{
+	forwarding := types.NewForwarding(false, types.Hop{
 		PortId:    path2.EndpointA.ChannelConfig.PortID,
 		ChannelId: path2.EndpointA.ChannelID,
 	})
@@ -477,7 +478,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 	sender = suite.chainC.SenderAccounts[0].SenderAccount
 	receiver = suite.chainA.SenderAccounts[0].SenderAccount // Receiver is the A chain account
 
-	forwarding := types.NewForwarding("", types.Hop{
+	forwarding := types.NewForwarding(false, types.Hop{
 		PortId:    path1.EndpointB.ChannelConfig.PortID,
 		ChannelId: path1.EndpointB.ChannelID,
 	})
@@ -711,7 +712,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 		},
 		address,
 		receiver.GetAddress().String(),
-		"", types.Forwarding{},
+		"", types.ForwardingPacketData{},
 	)
 
 	packet = channeltypes.NewPacket(
@@ -744,6 +745,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
 	suite.Require().Equal(ackbytes, storedAck)
 
+	forwardingPacketData := types.NewForwardingPacketData("", forwarding.Hops...)
 	data = types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
@@ -753,7 +755,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 		},
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
-		"", forwarding,
+		"", forwardingPacketData,
 	)
 
 	packet = channeltypes.NewPacket(
