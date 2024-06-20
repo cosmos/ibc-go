@@ -34,21 +34,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [[Unreleased]]
-
-### Dependencies
-
-### API Breaking
+## [v7.6.0](https://github.com/cosmos/ibc-go/releases/tag/v7.6.0) - 2024-06-20
 
 ### State Machine Breaking
 
-* (apps/transfer, apps/27-interchain-accounts, app/29-fee) #4992 Set validation for length of string fields.
-
-### Improvements
-
-### Features
-
-### Bug Fixes
+* (apps/transfer, apps/27-interchain-accounts, app/29-fee) [\#4992](https://github.com/cosmos/ibc-go/pull/4992) Set validation for length of string fields.
 
 ## [v7.5.1](https://github.com/cosmos/ibc-go/releases/tag/v7.5.1) - 2024-05-22
 
