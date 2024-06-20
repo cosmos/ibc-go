@@ -24,7 +24,7 @@ message Allocation {
   // a list only with "*" permits any memo string
   repeated string allowed_packet_data = 5;
   // a list of Allowed hops
-  repeated Hops allowed_forwarding_hops = 6;
+  repeated Hops allowed_forwarding_hops = 6 [(gogoproto.nullable) = false];
 }
 
 
