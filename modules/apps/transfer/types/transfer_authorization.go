@@ -50,11 +50,11 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 
 	index := getAllocationIndex(*msgTransfer, a.Allocations)
 	if index == allocationNotFound {
-		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
+		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
 	if !isAllowedForwarding(msgTransfer.Forwarding.Hops, a.Allocations[index].AllowedForwardingHops) {
-		return authz.AcceptResponse{}, errorsmod.Wrapf(ErrInvalidForwarding, "not allowed forwarding hops")
+		return authz.AcceptResponse{}, errorsmod.Wrap(ErrInvalidForwarding, "not allowed forwarding hops")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
