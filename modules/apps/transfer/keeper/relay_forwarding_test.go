@@ -560,7 +560,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 	sender := suite.chainC.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[0].SenderAccount
 
-	forwarding := types.NewForwarding("", types.Hop{
+	forwarding := types.NewForwarding(false, types.Hop{
 		PortId:    path1.EndpointB.ChannelConfig.PortID,
 		ChannelId: path1.EndpointB.ChannelID,
 	})
