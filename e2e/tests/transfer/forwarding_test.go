@@ -5,6 +5,7 @@ package transfer
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -13,6 +14,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 func TestTransferForwardingTestSuite(t *testing.T) {
@@ -102,70 +104,61 @@ func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_S
 	ctx := context.TODO()
 	t := s.T()
 
-	threeChainSetup := testsuite.ThreeChainSetup()
-	chainCChainID := "chainC-1" // Setting manually to ensure chainID is set to chainC-1
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, func(options *ibc.CreateChannelOptions, chain1 ibc.Chain, chain2 ibc.Chain) {
-		if chain1.Config().ChainID == chainCChainID || chain2.Config().ChainID == chainCChainID {
-			options.Version = transfertypes.V1
-		}
-	}, func(options *testsuite.ChainOptions) {
-		threeChainSetup(options)
-
-		options.ChainSpecs[2].ChainID = chainCChainID
-	})
-	chains := s.GetAllChains()
+	relayer, chains := s.GetRelayer(), s.GetAllChains()
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
+
+	channelAtoB := s.GetChainAChannel()
+
+	// Creating a new path between chain B and chain C with a ICS20-v1 channel
+	opts := s.TransferChannelOptions()
+	opts.Version = transfertypes.V1
+	channelBtoC, _ := s.CreateNewPath(ctx, chainB, chainC, ibc.DefaultClientOpts(), opts)
+	s.Require().Equal(transfertypes.V1, channelBtoC.Version, "the channel version is not ics20-1")
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 	chainADenom := chainA.Config().Denom
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.FormattedAddress()
-	chainBDenom := chainB.Config().Denom
-
 	chainCWallet := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
 	chainCAddress := chainCWallet.FormattedAddress()
 
-	chainBChannels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
-	s.Require().NoError(err)
-	// channel between A and B and channel between B and C
-	s.Require().Len(chainBChannels, 2)
+	t.Run("IBC transfer from A to C with forwarding through B", func(t *testing.T) {
+		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
+		forwarding := transfertypes.NewForwarding(false, transfertypes.Hop{
+			PortId:    channelBtoC.PortID,
+			ChannelId: channelBtoC.ChannelID,
+		})
 
-	chainBtoCChannel := chainBChannels[0]
-	s.Require().Equal(transfertypes.V1, chainBtoCChannel.Version, "the channel version is not ics20-1")
-
-	t.Run("IBC transfer from A to B", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.AssertTxSuccess(transferTxResp)
-	})
-
-	t.Run("IBC transfer from B to C", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, chainBtoCChannel.PortID, chainBtoCChannel.ChannelID, testvalues.DefaultTransferCoins(chainBDenom), chainBAddress, chainCAddress, s.GetTimeoutHeight(ctx, chainC), 0, "")
-		s.AssertTxSuccess(transferTxResp)
+		msgTransfer := testsuite.GetMsgTransfer(
+			channelAtoB.PortID,
+			channelAtoB.ChannelID,
+			transfertypes.V2,
+			testvalues.DefaultTransferCoins(chainADenom),
+			chainAAddress,
+			chainCAddress,
+			clienttypes.ZeroHeight(),
+			uint64(inFiveMinutes),
+			"",
+			forwarding)
+		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgTransfer)
+		s.AssertTxSuccess(resp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
 
-	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-	t.Run("packets are relayed from A to B", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+	t.Run("packets are relayed from A to B to C", func(t *testing.T) {
+		chainCDenom := transfertypes.NewDenom(chainADenom,
+			transfertypes.NewTrace(channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID),
+			transfertypes.NewTrace(channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID),
+		)
 
-		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
-		s.Require().NoError(err)
+		s.AssertPacketRelayed(ctx, chainA, channelAtoB.PortID, channelAtoB.ChannelID, 1)
+		s.AssertPacketRelayed(ctx, chainB, channelBtoC.PortID, channelBtoC.ChannelID, 1)
 
-		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance.Int64())
-	})
-
-	chainCIBCToken := testsuite.GetIBCToken(chainBDenom, chainBtoCChannel.Counterparty.PortID, chainBtoCChannel.Counterparty.ChannelID)
-	t.Run("packets are relayed from B to C", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainB, chainBtoCChannel.PortID, chainBtoCChannel.ChannelID, 1)
-
-		actualBalance, err := query.Balance(ctx, chainC, chainCAddress, chainCIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainC, chainCAddress, chainCDenom.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
