@@ -110,6 +110,18 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
+			"success: multiple denoms",
+			func() {
+				packetData.Tokens = append(packetData.Tokens, transfertypes.Token{
+					Denom:  transfertypes.NewDenom(ibctesting.SecondaryDenom),
+					Amount: ibctesting.SecondaryTestCoin.Amount.String(),
+				})
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			nil,
+		},
+		{
 			"success: no-op on callback data is not valid",
 			func() {
 				//nolint:goconst

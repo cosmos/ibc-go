@@ -1,6 +1,7 @@
 name: E2E Unit tests/Lint.
 # This workflow runs when a PR is opened that targets code that is part of the e2e module.
 on:
+  merge_group:
   pull_request:
     paths:
       - '.github/workflows/e2emodule.yml'

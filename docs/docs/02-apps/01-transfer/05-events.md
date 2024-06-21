@@ -21,12 +21,12 @@ slug: /apps/transfer/events
 
 | Type                  | Attribute Key | Attribute Value  |
 |-----------------------|---------------|------------------|
-| fungible_token_packet | sender        | \{sender\}       | 
-| fungible_token_packet | receiver      | \{receiver\}     | 
+| fungible_token_packet | sender        | \{sender\}       |
+| fungible_token_packet | receiver      | \{receiver\}     |
 | fungible_token_packet | tokens        | \{jsonTokens\}   |
+| fungible_token_packet | memo          | \{memo\}         |
 | fungible_token_packet | success       | \{ackSuccess\}   |
 | fungible_token_packet | error         | \{ackError\}     |
-| fungible_token_packet | memo          | \{memo\}         | 
 | denomination          | trace_hash    | \{hex_hash\}     |
 | denomination          | denom         | \{jsonDenom\}    |
 | message               | module        | transfer         |

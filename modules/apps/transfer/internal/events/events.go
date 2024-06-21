@@ -94,7 +94,7 @@ func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.Fungible
 	}
 }
 
-// EmitOnTimeoutPacketEvent emits a fungible token packet event in the OnTimeoutPacket callback
+// EmitOnTimeoutEvent emits a fungible token packet event in the OnTimeoutPacket callback
 func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2) {
 	jsonTokens := mustMarshalType[types.Tokens](types.Tokens(packetData.Tokens))
 
