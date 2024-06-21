@@ -356,9 +356,10 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	suite.Require().NoError(err)
 }
 
-// This tests a failure in the last hop where the middle chain is native source when receiving and sending the packet.
-// In other words, the middle chain's native token has been sent to chain C, and the multi-hop
-// transfer from C -> B -> A has chain B being the source of the token both when receiving and forwarding (sending).
+// TestAcknowledgementFailureWithMiddleChainAsNativeTokenSource tests a failure in the last hop where the
+// middle chain is native source when receiving and sending the packet. In other words, the middle chain's native
+// token has been sent to chain C, and the multi-hop transfer from C -> B -> A has chain B being the source of
+// the token both when receiving and forwarding (sending).
 func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeTokenSource() {
 	amount := sdkmath.NewInt(100)
 	/*
@@ -424,7 +425,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	sender := suite.chainC.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[0].SenderAccount
 
-	forwarding := types.NewForwarding("", types.Hop{
+	forwarding := types.NewForwarding(false, types.Hop{
 		PortId:    path1.EndpointB.ChannelConfig.PortID,
 		ChannelId: path1.EndpointB.ChannelID,
 	})
@@ -533,20 +534,20 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	suite.Require().Equal(amount, balanceOnC.Amount, "final receiver balance has not increased")
 }
 
-// It tests a failure in the last hop where the middle chain is not source of the token when receiving or sending the packet.
-// In other words, the middle chain's is sent (and forwarding) someone else's native token (in this case chain C).
-// Previously referenced as Acknowledgement Failure Scenario 4
+// TestAcknowledgementFailureWithMiddleChainAsNotBeingTokenSource tests a failure in the last hop where the middle chain
+// is not source of the token when receiving or sending the packet. In other words, the middle chain's is sent
+// (and forwarding) someone else's native token (in this case chain C).
 func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBeingTokenSource() {
 	amount := sdkmath.NewInt(100)
 	/*
-				Given the following topolgy:
-				chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-1) chain C
-				stake                  transfer/channel-0/stake           transfer/channel-1/transfer/channel-0/stake
-				We want to trigger:
-				1. Single transfer forwarding token from C -> B -> A
-		        1.1 The ack fails on the last hop
-		        1.2 Propagate the error back to C
-		        2. Verify all the balances are updated as expected
+		Given the following topology:
+		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
+		stake                  transfer/channel-0/stake           transfer/channel-0/transfer/channel-0/stake
+		We want to trigger:
+			1. Single transfer forwarding token from C -> B -> A
+			1.1 The ack fails on the last hop
+			1.2 Propagate the error back to C
+			2. Verify all the balances are updated as expected
 	*/
 
 	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
@@ -627,14 +628,10 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 
 	// An error ack is now written on chainA
 	// Now we need to propagate the error to B and C
-	packetSequenceOnA, err := ibctesting.ParsePacketSequenceFromEvents(result.Events)
-	suite.Require().NoError(err)
-
 	errorAckOnA := channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled)
 	errorAckCommitmentOnA := channeltypes.CommitAcknowledgement(errorAckOnA.Acknowledgement())
-	ackOnC, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainA.GetContext(), path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, packetSequenceOnA)
-	suite.Require().True(found)
-	suite.Require().Equal(errorAckCommitmentOnA, ackOnC)
+	ackOnA := suite.chainA.GetAcknowledgement(packetFromBtoA)
+	suite.Require().Equal(errorAckCommitmentOnA, ackOnA)
 
 	err = path1.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
