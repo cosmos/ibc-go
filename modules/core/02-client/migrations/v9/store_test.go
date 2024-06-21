@@ -35,14 +35,14 @@ func TestIBCTestSuite(t *testing.T) {
 func (suite *MigrationsV9TestSuite) TestMigrateStore() {
 	suite.createLocalhostClient()
 
-	err := v9.MigrateStore(suite.chain.GetContext(), suite.chain.GetSimApp().GetKey(exported.StoreKey), suite.chain.App.AppCodec(), suite.chain.GetSimApp().IBCKeeper.ClientKeeper)
+	err := v9.MigrateStore(suite.chain.GetContext(), suite.chain.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	suite.assertNoLocalhostClients()
 }
 
 func (suite *MigrationsV9TestSuite) TestMigrateStoreNoLocalhost() {
-	err := v9.MigrateStore(suite.chain.GetContext(), suite.chain.GetSimApp().GetKey(exported.StoreKey), suite.chain.App.AppCodec(), suite.chain.GetSimApp().IBCKeeper.ClientKeeper)
+	err := v9.MigrateStore(suite.chain.GetContext(), suite.chain.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	suite.assertNoLocalhostClients()

@@ -5,7 +5,6 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -17,7 +16,7 @@ import (
 // The migration includes:
 //
 // - Removing the localhost client state as it is now stateless
-func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func MigrateStore(ctx sdk.Context, clientKeeper ClientKeeper) error {
 	handleLocalhostMigration(ctx, clientKeeper)
 
 	return nil

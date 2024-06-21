@@ -21,8 +21,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateLocalhostClient() {
 	err := v7.MigrateLocalhostClient(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper)
 	suite.Require().NoError(err)
 
-	// After the migration, it should still be there. No change is expected.
+	// After the migration, it should still return a value. No change is expected.
 	clientState, found = suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), exported.LocalhostClientID)
-	suite.Require().False(found)
-	suite.Require().Nil(clientState)
+	suite.Require().True(found)
+	suite.Require().NotNil(clientState)
 }
