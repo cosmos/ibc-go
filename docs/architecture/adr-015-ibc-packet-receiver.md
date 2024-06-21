@@ -167,7 +167,7 @@ which will make the channel unable to proceed.
 under the routing module specification. Instead of define each channel handshake callback
 functions, application modules can provide `ChannelChecker` function with the `AppModule`
 which will be injected to `ChannelKeeper.Port()` at the top level application.
-`CheckOpen` will find the correct `ChennelChecker` using the
+`CheckOpen` will find the correct `ChannelChecker` using the
 `PortID` and call it, which will return an error if it is unacceptable by the application.
 
 The `ProofVerificationDecorator` will be inserted to the top level application.

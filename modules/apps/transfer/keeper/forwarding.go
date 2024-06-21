@@ -14,13 +14,9 @@ import (
 
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
-	var memo string
-
 	var nextForwardingPath types.Forwarding
-	if len(data.Forwarding.Hops) == 1 {
-		memo = data.Forwarding.Memo
-	} else {
-		nextForwardingPath = types.NewForwarding(data.Forwarding.Memo, data.Forwarding.Hops[1:]...)
+	if len(data.Forwarding.Hops) > 1 {
+		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 	}
 
 	// sending from the forward escrow address to the original receiver address.
@@ -34,7 +30,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 		data.Receiver,
 		clienttypes.ZeroHeight(),
 		packet.TimeoutTimestamp,
-		memo,
+		data.Forwarding.DestinationMemo,
 		nextForwardingPath,
 	)
 
@@ -48,13 +44,13 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 }
 
 // ackForwardPacketSuccess writes a successful async acknowledgement for the prevPacket
-func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket channeltypes.Packet) error {
+func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket, forwardedPacket channeltypes.Packet) error {
 	forwardAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
+	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
 }
 
 // ackForwardPacketError reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
-func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
+func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket, forwardedPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 	// we must revert the changes that came from successfully receiving the tokens on our chain
 	// before propagating the error acknowledgement back to original sender chain
@@ -63,27 +59,32 @@ func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.P
 	}
 
 	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
+	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
 }
 
 // ackForwardPacketTimeout reverts the receive packet logic that occurs in the middle chain and writes a failed async ack for the prevPacket
-func (k Keeper) ackForwardPacketTimeout(ctx sdk.Context, prevPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
+func (k Keeper) ackForwardPacketTimeout(ctx sdk.Context, prevPacket, forwardedPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
 	if err := k.revertForwardedPacket(ctx, prevPacket, timeoutPacketData); err != nil {
 		return err
 	}
 
 	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketTimedOut)
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
+	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
 }
 
 // acknowledgeForwardedPacket writes the async acknowledgement for packet
-func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
+func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet, forwardedPacket channeltypes.Packet, ack channeltypes.Acknowledgement) error {
 	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.DestinationPort, packet.DestinationChannel))
 	if !ok {
 		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	return k.ics4Wrapper.WriteAcknowledgement(ctx, capability, packet, ack)
+	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, capability, packet, ack); err != nil {
+		return err
+	}
+
+	k.deleteForwardedPacket(ctx, forwardedPacket.SourcePort, forwardedPacket.SourceChannel, forwardedPacket.Sequence)
+	return nil
 }
 
 // revertForwardedPacket reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.

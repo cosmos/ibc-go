@@ -328,3 +328,11 @@ func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, se
 
 	return storedPacket, true
 }
+
+// deleteForwardedPacket deletes the forwarded packet from the store.
+func (k Keeper) deleteForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	packetKey := types.PacketForwardKey(portID, channelID, sequence)
+
+	store.Delete(packetKey)
+}

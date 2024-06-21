@@ -21,7 +21,10 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-var emptyForwarding = types.Forwarding{}
+var (
+	emptyForwarding           = types.Forwarding{}
+	emptyForwardingPacketData = types.ForwardingPacketData{}
+)
 
 // TestSendTransfer tests sending from chainA to chainB using both coin
 // that originate on chainA and coin that originate on chainB.
@@ -383,7 +386,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 						Denom:  types.NewDenom(sdk.DefaultBondDenom, []types.Trace{}...),
 						Amount: amount.String(),
 					},
-				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, emptyForwarding)
+				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, emptyForwardingPacketData)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
@@ -534,7 +537,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 						Denom:  denom,
 						Amount: amount.String(),
 					},
-				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, emptyForwarding)
+				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, emptyForwardingPacketData)
 			packet = channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
@@ -612,7 +615,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", emptyForwarding)
+		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", emptyForwardingPacketData)
 	packet := channeltypes.NewPacket(
 		data.GetBytes(),
 		seq,
@@ -743,7 +746,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 						Denom:  denom,
 						Amount: amount.String(),
 					},
-				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", emptyForwarding)
+				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", emptyForwardingPacketData)
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 			preAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
@@ -838,7 +841,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
 		"",
-		emptyForwarding,
+		emptyForwardingPacketData,
 	)
 	packet := channeltypes.NewPacket(
 		data.GetBytes(),
@@ -978,7 +981,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 						Denom:  denom,
 						Amount: amount,
 					},
-				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "", emptyForwarding)
+				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "", emptyForwardingPacketData)
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 			preTimeoutBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
@@ -1064,7 +1067,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "", emptyForwarding)
+		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "", emptyForwardingPacketData)
 	packet := channeltypes.NewPacket(
 		data.GetBytes(),
 		seq,
@@ -1271,7 +1274,7 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 			types.V2,
 			func() {},
 			func(bz []byte) {
-				expPacketData := types.NewFungibleTokenPacketDataV2(types.Tokens{types.Token{}}, "", "", "", emptyForwarding)
+				expPacketData := types.NewFungibleTokenPacketDataV2(types.Tokens{types.Token{}}, "", "", "", emptyForwardingPacketData)
 				suite.Require().Equal(bz, expPacketData.GetBytes())
 			},
 			nil,
@@ -1301,7 +1304,7 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 			tc.malleate()
 
 			createFunc := func() {
-				bz = transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, "", "", "", tokens, emptyForwarding)
+				bz = transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, "", "", "", tokens, nil)
 			}
 
 			expPanic := tc.expPanicErr != nil
