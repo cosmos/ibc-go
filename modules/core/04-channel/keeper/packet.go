@@ -489,7 +489,7 @@ func (k *Keeper) AcknowledgePacket(
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
-		if aborted := k.handleFlushState(ctx, &packet, &channel); aborted {
+		if aborted := k.handleFlushState(ctx, packet, &channel); aborted {
 			k.Logger(ctx).Info(
 				"upgrade aborted",
 				"port_id", packet.GetSourcePort(),
