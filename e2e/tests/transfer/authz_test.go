@@ -33,7 +33,7 @@ type AuthzTransferTestSuite struct {
 }
 
 func (suite *AuthzTransferTestSuite) SetupTest() {
-	suite.SetupPath(ibc.DefaultClientOpts(), suite.TransferChannelOptions())
+	suite.SetupPaths(ibc.DefaultClientOpts(), suite.TransferChannelOptions())
 }
 
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
