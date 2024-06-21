@@ -303,7 +303,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(),
 					"",
-					types.NewForwarding("", types.Hop{PortId: "transfer", ChannelId: "channel-0"}),
+					types.NewForwardingPacketData("", types.Hop{PortId: "transfer", ChannelId: "channel-0"}),
 				)
 				packet.Data = packetData.GetBytes()
 
@@ -368,7 +368,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				"",
-				types.Forwarding{},
+				types.ForwardingPacketData{},
 			)
 
 			tokensBz, err := json.Marshal(packetData.Tokens)

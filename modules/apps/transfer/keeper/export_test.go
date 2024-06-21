@@ -34,6 +34,6 @@ func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 }
 
 // CreatePacketDataBytesFromVersion is a wrapper around createPacketDataBytesFromVersion for testing purposes
-func CreatePacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, forwarding types.Forwarding) []byte {
-	return createPacketDataBytesFromVersion(appVersion, sender, receiver, memo, tokens, forwarding)
+func CreatePacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) []byte {
+	return createPacketDataBytesFromVersion(appVersion, sender, receiver, memo, tokens, hops)
 }
