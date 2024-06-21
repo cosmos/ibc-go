@@ -60,7 +60,7 @@ type MsgRegisterCounterpartyPayee struct {
 > - `PortId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
 > - `ChannelId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 > - `Relayer` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/learn/beginner/03-accounts.md#addresses)).
-> - `CounterpartyPayee` is empty.
+> - `CounterpartyPayee` is empty or contains more than 2048 bytes.
 
 See below for an example CLI command:
 
