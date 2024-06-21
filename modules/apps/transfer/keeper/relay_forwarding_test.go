@@ -317,6 +317,10 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	err = path2.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
+	// B should now have deleted the forwarded packet.
+	_, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), packetFromAtoB.DestinationPort, packetFromAtoB.DestinationChannel, packetFromAtoB.Sequence)
+	suite.Require().False(found, "Chain B should have deleted its forwarded packet")
+
 	result, err = path2.EndpointB.RecvPacketWithResult(packetFromBtoC)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
@@ -561,6 +565,10 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureScenario5Forwarding() {
 
 	err = path1.EndpointB.AcknowledgePacket(packetFromBtoA, errorAckOnA.Acknowledgement())
 	suite.Require().NoError(err)
+
+	// Check that B deleted the forwarded packet.
+	_, found = suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), forwardedPacket.SourcePort, forwardedPacket.SourceChannel, forwardedPacket.Sequence)
+	suite.Require().False(found, "chain B should have deleted the forwarded packet mapping")
 
 	// Check that Escrow B has been refunded amount
 	coin = sdk.NewCoin(denomAB.IBCDenom(), amount)
