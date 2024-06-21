@@ -351,22 +351,21 @@ func (suite *KeeperTestSuite) TestSimplifiedHappyPathForwarding() {
 	suite.Require().NoError(err)
 }
 
-// This tests a failure in the last hop where the middle chain as native source when receiving and sending the packet.
+// This tests a failure in the last hop where the middle chain is native source when receiving and sending the packet.
 // In other words, the middle chain's native token has been sent to chain C, and the multi-hop
 // transfer from C -> B -> A has chain B being the source of the token both when receiving and forwarding (sending).
-// Previously referenced as Acknowledgement Failure Scenario 1
 func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeTokenSource() {
 	amount := sdkmath.NewInt(100)
 	/*
-				Given the following topolgy:
-				chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-1) chain C
-				stake                  transfer/channel-0/stake           transfer/channel-1/transfer/channel-0/stake
-				We want to trigger:
-			    1. Transfer from B to C
-				2. Single transfer forwarding token from C -> B -> A
-		        2.1 The ack fails on the last hop
-		        2.2 Propagate the error back to C
-		        3. Verify all the balances are updated as expected
+		Given the following topology:
+		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
+		stake                  transfer/channel-0/stake           transfer/channel-0/transfer/channel-0/stake
+		We want to trigger:
+			1. Transfer from B to C
+			2. Single transfer forwarding token from C -> B -> A
+				2.1 The ack fails on the last hop (chain A)
+				2.2 Propagate the error back to C
+			3. Verify all the balances are updated as expected
 	*/
 
 	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
@@ -393,7 +392,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	result, err := suite.chainB.SendMsgs(setupTransferMsg)
 	suite.Require().NoError(err) // message committed
 
-	// parse the packet from result events and recv packet on chainB
+	// parse the packet from result events and recv packet on chainC
 	packetFromBToC, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packetFromBToC)
@@ -440,10 +439,11 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	result, err = suite.chainC.SendMsgs(forwardTransfer)
 	suite.Require().NoError(err) // message committed
 
-	// Check that Escrow C has unwound the amount
+	// Check that Escrow C has unescrowed the amount
 	totalEscrowChainC := suite.chainC.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainC.GetContext(), coinOnC.GetDenom())
 	suite.Require().Equal(sdkmath.NewInt(0), totalEscrowChainC.Amount)
 
+	// parse the packet from result events and recv packet on chainB
 	packetFromCtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packetFromCtoB)
@@ -459,9 +459,9 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	escrowBalancBtoC = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressBtoC, coinOnB.GetDenom())
 	suite.Require().Equal(sdkmath.NewInt(0), escrowBalancBtoC.Amount)
 
-	escrowAddressAtoB := types.GetEscrowAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID)
-	escrowBalancAtoB := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressAtoB, coinOnB.GetDenom())
-	suite.Require().Equal(amount, escrowBalancAtoB.Amount)
+	escrowAddressBtoA := types.GetEscrowAddress(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID)
+	escrowBalanceBtoA := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressBtoA, coinOnB.GetDenom())
+	suite.Require().Equal(amount, escrowBalanceBtoA.Amount)
 
 	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID, packetFromCtoB.Sequence)
 	suite.Require().True(found)
@@ -483,17 +483,14 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 
 	result, err = path1.EndpointA.RecvPacketWithResult(packetFromBtoA)
 	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
 
 	// An error ack is now written on chainA
-	// Now we need to propagate the error to b and c
-	packetSequenceOnA, err := ibctesting.ParsePacketSequenceFromEvents(result.Events)
-	suite.Require().NoError(err)
-
+	// Now we need to propagate the error to B and C
 	errorAckOnA := channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled)
 	errorAckCommitmentOnA := channeltypes.CommitAcknowledgement(errorAckOnA.Acknowledgement())
-	ackOnC, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainA.GetContext(), path1.EndpointA.ChannelConfig.PortID, path1.EndpointA.ChannelID, packetSequenceOnA)
-	suite.Require().True(found)
-	suite.Require().Equal(errorAckCommitmentOnA, ackOnC)
+	ackOnA := suite.chainA.GetAcknowledgement(packetFromBtoA)
+	suite.Require().Equal(errorAckCommitmentOnA, ackOnA)
 
 	err = path1.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
@@ -507,8 +504,8 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	suite.Require().Equal(errorAckCommitmentOnB, ackOnB)
 
 	// Check that escrow has been moved back from EscrowBtoA to EscrowBtoC
-	escrowBalancAtoB = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressAtoB, coinOnB.GetDenom())
-	suite.Require().Equal(sdkmath.NewInt(0), escrowBalancAtoB.Amount)
+	escrowBalanceBtoA = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressBtoA, coinOnB.GetDenom())
+	suite.Require().Equal(sdkmath.NewInt(0), escrowBalanceBtoA.Amount)
 
 	escrowBalancBtoC = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressBtoC, coinOnB.GetDenom())
 	suite.Require().Equal(amount, escrowBalancBtoC.Amount)
@@ -621,9 +618,10 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 
 	result, err = path1.EndpointA.RecvPacketWithResult(packetFromBtoA)
 	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
 
 	// An error ack is now written on chainA
-	// Now we need to propagate the error to b and c
+	// Now we need to propagate the error to B and C
 	packetSequenceOnA, err := ibctesting.ParsePacketSequenceFromEvents(result.Events)
 	suite.Require().NoError(err)
 
