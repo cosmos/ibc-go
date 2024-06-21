@@ -39,7 +39,8 @@ type Allocation struct {
 	// allow list of memo strings, an empty list prohibits all memo strings;
 	// a list only with "*" permits any memo string
 	AllowedPacketData []string `protobuf:"bytes,5,rep,name=allowed_packet_data,json=allowedPacketData,proto3" json:"allowed_packet_data,omitempty"`
-	// a list of Allowed hops
+	// a list of allowed source port ID/channel ID pairs through which the packet is allowed to be forwarded until final
+	// destination
 	AllowedForwardingHops []Hops `protobuf:"bytes,6,rep,name=allowed_forwarding_hops,json=allowedForwardingHops,proto3" json:"allowed_forwarding_hops"`
 }
 

@@ -23,7 +23,8 @@ message Allocation {
   // allow list of memo strings, an empty list prohibits all memo strings;
   // a list only with "*" permits any memo string
   repeated string allowed_packet_data = 5;
-  // a list of Allowed hops
+  // a list of allowed source port ID/channel ID pairs through which the packet is allowed to be forwarded until final
+  // destination
   repeated Hops allowed_forwarding_hops = 6 [(gogoproto.nullable) = false];
 }
 

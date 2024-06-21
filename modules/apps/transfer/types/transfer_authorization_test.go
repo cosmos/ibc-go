@@ -19,7 +19,7 @@ const (
 	testMemo2 = `{"forward":{"channel":"channel-11","port":"transfer","receiver":"stars1twfv52yxcyykx2lcvgl42svw46hsm5dd4ww6xy","retries":2,"timeout":1712146014542131200}}`
 )
 
-var forwardingInfoForValidHop = []types.Hops{{Hops: []types.Hop{validHop}}}
+var forwardingWithValidHop = []types.Hops{{Hops: []types.Hop{validHop}}}
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	var (
@@ -106,7 +106,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingInfoForValidHop
+				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingWithValidHop
 				msgTransfer.Forwarding = types.NewForwarding("", validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -137,7 +137,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{"*"}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingInfoForValidHop
+				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingWithValidHop
 				msgTransfer.Forwarding = types.NewForwarding(testMemo1, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -168,7 +168,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{testMemo1, testMemo2}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingInfoForValidHop
+				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingWithValidHop
 				msgTransfer.Forwarding = types.NewForwarding(testMemo1, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -195,7 +195,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingInfoForValidHop
+				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingWithValidHop
 				msgTransfer.Forwarding = types.NewForwarding(testMemo1, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -219,7 +219,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{testMemo1}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingInfoForValidHop
+				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingWithValidHop
 				msgTransfer.Forwarding = types.NewForwarding(testMemo2, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
