@@ -37,5 +37,15 @@ message FungibleTokenPacketDataV2 {
   // optional memo
   string memo = 4;
   // optional forwarding information
-  ibc.applications.transfer.v1.Forwarding forwarding = 5 [(gogoproto.nullable) = false];
+  ForwardingPacketData forwarding = 5 [(gogoproto.nullable) = false];
+}
+
+// ForwardingPacketData defines a list of port ID, channel ID pairs determining the path
+// through which a packet must be forwarded, and the destination memo string to be used in the
+// final destination of the tokens.
+message ForwardingPacketData {
+  // optional memo consumed by final destination chain
+  string destination_memo = 1;
+  // optional intermediate path through which packet will be forwarded.
+  repeated ibc.applications.transfer.v1.Hop hops = 2 [(gogoproto.nullable) = false];
 }

@@ -63,13 +63,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 	}
 
-	memo := msgTransfer.Memo
-	// in the case of forwarded transfers, the actual memo is stored in the forwarding path until the final destination
-	if msgTransfer.ShouldBeForwarded() {
-		memo = msgTransfer.Forwarding.Memo
-	}
-
-	if err := validateMemo(ctx, memo, a.Allocations[index].AllowedPacketData); err != nil {
+	if err := validateMemo(ctx, msgTransfer.Memo, a.Allocations[index].AllowedPacketData); err != nil {
 		return authz.AcceptResponse{}, err
 	}
 

@@ -107,7 +107,8 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
 				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingWithValidHop
-				msgTransfer.Forwarding = types.NewForwarding("", validHop)
+				msgTransfer.Forwarding = types.NewForwarding(false, validHop)
+
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -138,7 +139,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				allowedList := []string{"*"}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
 				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingWithValidHop
-				msgTransfer.Forwarding = types.NewForwarding(testMemo1, validHop)
+				msgTransfer.Forwarding = types.NewForwarding(false, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -214,7 +215,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.Require().ErrorContains(err, fmt.Sprintf("not allowed memo: %s", testMemo2))
 			},
 		},
-		{
+		
 			"memo not allowed in forwarding path",
 			func() {
 				allowedList := []string{testMemo1}
