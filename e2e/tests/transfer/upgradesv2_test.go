@@ -31,15 +31,20 @@ type TransferChannelUpgradesTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+func (s *TransferChannelUpgradesTestSuite) SetupTest() {
+	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions())
+}
+
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware
 func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	channelB := channelA.Counterparty
-	chainA, chainB := s.GetChains()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 
+	channelB := channelA.Counterparty
+
+	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
 	chainBDenom := chainB.Config().Denom
 	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)
@@ -198,7 +203,17 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		transferAmount := testvalues.DefaultTransferAmount(chainA.Config().Denom)
 
 		msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.FormattedAddress(), nil)
-		msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, sdk.NewCoins(transferAmount), chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
+		msgTransfer := testsuite.GetMsgTransfer(
+			channelA.PortID,
+			channelA.ChannelID,
+			channelA.Version, // upgrade adds fee middleware, but keeps transfer version
+			sdk.NewCoins(transferAmount),
+			chainAWallet.FormattedAddress(),
+			chainBWallet.FormattedAddress(),
+			s.GetTimeoutHeight(ctx, chainB),
+			0,
+			"",
+		)
 		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 		s.AssertTxSuccess(resp)
 	})
@@ -237,15 +252,108 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 }
 
+// TestChannelDowngrade_WithICS20v1_Succeeds tests downgrading a transfer channel from ICS20 v2 to ICS20 v1.
+func (s *TransferChannelUpgradesTestSuite) TestChannelDowngrade_WithICS20v1_Succeeds() {
+	t := s.T()
+	ctx := context.TODO()
+
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+
+	channelB := channelA.Counterparty
+	chainA, chainB := s.GetChains()
+
+	chainADenom := chainA.Config().Denom
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelB.PortID, channelB.ChannelID)
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.FormattedAddress()
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	var (
+		err     error
+		channel channeltypes.Channel
+	)
+
+	t.Run("verify transfer version of channel A is ics20-2", func(t *testing.T) {
+		channel, err = query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(transfertypes.V2, channel.Version, "the channel version is not ics20-2")
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
+		upgradeFields := channeltypes.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, transfertypes.V1)
+		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, upgradeFields)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("verify channel A downgraded and transfer version is ics20-1", func(t *testing.T) {
+		channel, err = query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(transfertypes.V1, channel.Version, "the channel version is not ics20-1")
+	})
+
+	t.Run("verify channel B downgraded and transfer version is ics20-1", func(t *testing.T) {
+		channel, err = query.Channel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(transfertypes.V1, channel.Version, "the channel version is not ics20-1")
+	})
+
+	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
+		chainBWalletAmount := ibc.WalletAmount{
+			Address: chainBWallet.FormattedAddress(), // destination address
+			Denom:   chainA.Config().Denom,
+			Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
+		}
+
+		transferTxResp, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{})
+		s.Require().NoError(err)
+		s.Require().NoError(transferTxResp.Validate(), "chain-a ibc transfer tx is invalid")
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+
+		actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
+		s.Require().NoError(err)
+
+		expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
+		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+	})
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance.Int64())
+	})
+}
+
 // TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds tests upgrading a transfer channel to wire up fee middleware under crossing hello
 func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	channelB := channelA.Counterparty
-	chainA, chainB := s.GetChains()
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 
+	channelB := channelA.Counterparty
+
+	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -258,7 +366,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 
 	// trying to create some inflight packets, although they might get relayed before the upgrade starts
 	t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -331,9 +439,10 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	channelB := channelA.Counterparty
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
+
+	channelB := channelA.Counterparty
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -362,7 +471,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
-		s.Require().Equal(transfertypes.V2, channel.Version, "the channel version is not ics20-2")
+		s.Require().Equal(channelA.Version, channel.Version, "the channel version is not "+channelA.Version)
 
 		errorReceipt, err := query.UpgradeError(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
@@ -375,7 +484,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
-		s.Require().Equal(transfertypes.V2, channel.Version, "the channel version is not ics20-2")
+		s.Require().Equal(channelA.Version, channel.Version, "the channel version is not "+channelA.Version)
 
 		errorReceipt, err := query.UpgradeError(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)

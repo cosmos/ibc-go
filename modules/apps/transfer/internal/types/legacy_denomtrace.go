@@ -5,13 +5,8 @@ import (
 	"fmt"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
-)
 
-// TODO: https://github.com/cosmos/ibc-go/issues/6421#issuecomment-2137516426
-// Kept around due to dependency. Empty and useless and ideally dropped before v9.
-type (
-	QueryDenomTracesResponse struct{}
-	QueryDenomTraceResponse  struct{}
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 // Hash returns the hex bytes of the SHA256 hash of the DenomTrace fields using the following formula:
@@ -31,7 +26,7 @@ func (dt DenomTrace) GetPrefix() string {
 // 'ibc/{hash(tracePath + baseDenom)}'. If the trace is empty, it will return the base denomination.
 func (dt DenomTrace) IBCDenom() string {
 	if dt.Path != "" {
-		return fmt.Sprintf("%s/%s", DenomPrefix, dt.Hash())
+		return fmt.Sprintf("%s/%s", types.DenomPrefix, dt.Hash())
 	}
 	return dt.BaseDenom
 }

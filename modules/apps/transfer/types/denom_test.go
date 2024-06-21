@@ -19,22 +19,20 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 		},
 		{
 			"valid multiple trace info",
-			types.Denoms{
-				{Base: "uatom", Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}},
-			},
+			types.Denoms{types.NewDenom("uatom", types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2"))},
 			nil,
 		},
 		{
 			"valid multiple trace info",
 			types.Denoms{
-				{Base: "uatom", Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}},
-				{Base: "uatom", Trace: []types.Trace{types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")}},
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer", "channel-2")),
 			},
 			fmt.Errorf("duplicated denomination with hash"),
 		},
 		{
 			"empty base denom with trace",
-			types.Denoms{{Base: "", Trace: []types.Trace{types.NewTrace("transfer", "channel-1")}}},
+			types.Denoms{types.NewDenom("", types.NewTrace("transfer", "channel-1"))},
 			fmt.Errorf("base denomination cannot be blank"),
 		},
 	}
@@ -65,48 +63,32 @@ func (suite *TypesTestSuite) TestPath() {
 		},
 		{
 			"only base denom",
-			types.Denom{
-				Base: "uatom",
-			},
+			types.NewDenom("uatom"),
 			"uatom",
 		},
 		{
 			"base with slashes",
-			types.Denom{
-				Base: "gamm/pool/osmo",
-			},
+			types.NewDenom("gamm/pool/osmo"),
 			"gamm/pool/osmo",
 		},
 		{
 			"1 hop denom",
-			types.Denom{
-				Base:  "uatom",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0")},
-			},
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
 			"transfer/channel-0/uatom",
 		},
 		{
 			"2 hop denom",
-			types.Denom{
-				Base:  "uatom",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")},
-			},
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
 			"transfer/channel-0/transfer/channel-52/uatom",
 		},
 		{
 			"3 hop denom",
-			types.Denom{
-				Base:  "uatom",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")},
-			},
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")),
 			"transfer/channel-0/transfer/channel-52/transfer/channel-52/uatom",
 		},
 		{
 			"4 hop denom with base denom slashes",
-			types.Denom{
-				Base:  "other-denom/",
-				Trace: []types.Trace{types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-49")},
-			},
+			types.NewDenom("other-denom/", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-49")),
 			"transfer/channel-0/transfer/channel-52/transfer/channel-52/transfer/channel-49/other-denom/",
 		},
 	}
@@ -115,6 +97,146 @@ func (suite *TypesTestSuite) TestPath() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expPath, tc.denom.Path())
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestSort() {
+	testCases := []struct {
+		name      string
+		denoms    types.Denoms
+		expDenoms types.Denoms
+	}{
+		{
+			"only base denom",
+			types.Denoms{types.NewDenom("uosmo"), types.NewDenom("gamm"), types.NewDenom("uatom")},
+			types.Denoms{types.NewDenom("gamm"), types.NewDenom("uatom"), types.NewDenom("uosmo")},
+		},
+		{
+			"different base denom and same traces",
+			types.Denoms{
+				types.NewDenom("uosmo", types.NewTrace("transfer", "channel-0")),
+				types.NewDenom("gamm", types.NewTrace("transfer", "channel-0")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
+			},
+			types.Denoms{
+				types.NewDenom("gamm", types.NewTrace("transfer", "channel-0")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
+				types.NewDenom("uosmo", types.NewTrace("transfer", "channel-0")),
+			},
+		},
+		{
+			"same base denom and different traces",
+			types.Denoms{
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
+				types.NewDenom("uatom", types.NewTrace("mountain", "channel-0")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
+				types.NewDenom("uatom"),
+			},
+			types.Denoms{
+				types.NewDenom("uatom"),
+				types.NewDenom("uatom", types.NewTrace("mountain", "channel-0")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")),
+			},
+		},
+		{
+			"different base denoms and different traces",
+			types.Denoms{
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
+				types.NewDenom("gamm", types.NewTrace("pool", "channel-0")),
+				types.NewDenom("gamm", types.NewTrace("pool", "channel-0"), types.NewTrace("transfer", "channel-52")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")),
+				types.NewDenom("utia"),
+				types.NewDenom("gamm", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
+			},
+			types.Denoms{
+				types.NewDenom("gamm", types.NewTrace("pool", "channel-0")),
+				types.NewDenom("gamm", types.NewTrace("pool", "channel-0"), types.NewTrace("transfer", "channel-52")),
+				types.NewDenom("gamm", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
+				types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52"), types.NewTrace("transfer", "channel-52")),
+				types.NewDenom("utia"),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(tc.expDenoms, tc.denoms.Sort())
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestDenomChainSource() {
+	testCases := []struct {
+		name                     string
+		denom                    types.Denom
+		sourcePort               string
+		sourceChannel            string
+		expReceiverChainIsSource bool
+	}{
+		{
+			"sender chain is source: empty trace",
+			types.NewDenom("uatom", []types.Trace{}...),
+			"transfer",
+			"channel-0",
+			false,
+		},
+		{
+			"sender chain is source: nil trace",
+			types.NewDenom("uatom"),
+			"transfer",
+			"channel-0",
+			false,
+		},
+		{
+			"sender chain is source: single trace",
+			types.NewDenom("ubtc", types.NewTrace("transfer", "channel-1")),
+			"transfer",
+			"channel-0",
+			false,
+		},
+		{
+			"sender chain is source: swapped portID and channelID",
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0")),
+			"channel-0",
+			"transfer",
+			false,
+		},
+		{
+			"sender chain is source: multi-trace",
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
+			"transfer",
+			"channel-1",
+			false,
+		},
+		{
+			"receiver chain is source: single trace",
+			types.NewDenom(
+				"factory/stars16da2uus9zrsy83h23ur42v3lglg5rmyrpqnju4/dust",
+				types.NewTrace("transfer", "channel-0"),
+			),
+			"transfer",
+			"channel-0",
+			true,
+		},
+		{
+			"receiver chain is source: multi-trace",
+			types.NewDenom("uatom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-52")),
+			"transfer",
+			"channel-0",
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(tc.expReceiverChainIsSource, tc.denom.ReceiverChainIsSource(tc.sourcePort, tc.sourceChannel))
+			suite.Require().Equal(!tc.expReceiverChainIsSource, tc.denom.SenderChainIsSource(tc.sourcePort, tc.sourceChannel))
 		})
 	}
 }

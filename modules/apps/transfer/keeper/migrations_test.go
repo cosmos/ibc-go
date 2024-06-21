@@ -9,6 +9,7 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	internaltransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -59,7 +60,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom",
 					})
 			},
@@ -72,7 +73,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom", Path: "transfer/channel-49",
 					})
 			},
@@ -85,7 +86,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom", Path: "transfer/channel-49/transfer/channel-32/transfer/channel-2",
 					})
 			},
@@ -98,29 +99,29 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom", Path: "transfer/channel-49",
 					})
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "pineapple", Path: "transfer/channel-0",
 					})
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "apple", Path: "transfer/channel-0",
 					})
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "cucumber", Path: "transfer/channel-102/transfer/channel-0",
 					})
 			},
 			transfertypes.Denoms{
 				transfertypes.NewDenom("apple", transfertypes.NewTrace("transfer", "channel-0")),
-				transfertypes.NewDenom("pineapple", transfertypes.NewTrace("transfer", "channel-0")),
 				transfertypes.NewDenom("cucumber", transfertypes.NewTrace("transfer", "channel-102"), transfertypes.NewTrace("transfer", "channel-0")),
+				transfertypes.NewDenom("pineapple", transfertypes.NewTrace("transfer", "channel-0")),
 				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-49")),
 			},
 		},
@@ -130,7 +131,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "gamm/pool/1", Path: "transfer/channel-0",
 					})
 			},
@@ -143,7 +144,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channel-149",
 					})
 			},
@@ -156,7 +157,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
 					suite.chainA.GetContext(),
-					transfertypes.DenomTrace{
+					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom", Path: "transfer/channel-0/customport/channel-7",
 					})
 			},
@@ -182,7 +183,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 
 			// assert no leftover denom traces
 			suite.chainA.GetSimApp().TransferKeeper.IterateDenomTraces(suite.chainA.GetContext(),
-				func(dt transfertypes.DenomTrace) (stop bool) {
+				func(dt internaltransfertypes.DenomTrace) (stop bool) {
 					suite.FailNow("DenomTrace key still exists", dt)
 					return false
 				},
@@ -194,18 +195,18 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenomCorruptionDetection() {
 	testCases := []struct {
 		name       string
-		denomTrace transfertypes.DenomTrace
+		denomTrace internaltransfertypes.DenomTrace
 	}{
 		{
 			"corrupted denom trace, denom.IBCHash() does not match",
-			transfertypes.DenomTrace{
+			internaltransfertypes.DenomTrace{
 				BaseDenom: "customport/channel-0/uatom",
 				Path:      "",
 			},
 		},
 		{
 			"invalid denom trace, base denom is empty",
-			transfertypes.DenomTrace{
+			internaltransfertypes.DenomTrace{
 				BaseDenom: "",
 				Path:      "transfer/channel-0",
 			},
@@ -305,7 +306,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 
 func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 	var (
-		denomTraces      []transfertypes.DenomTrace
+		denomTraces      []internaltransfertypes.DenomTrace
 		expectedMetadata []banktypes.Metadata
 	)
 
@@ -316,7 +317,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 		{
 			"success with one denom trace with one hop",
 			func() {
-				denomTraces = []transfertypes.DenomTrace{
+				denomTraces = []internaltransfertypes.DenomTrace{
 					{
 						BaseDenom: "foo",
 						Path:      "transfer/channel-0",
@@ -343,7 +344,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 		{
 			"success with one denom trace with two hops",
 			func() {
-				denomTraces = []transfertypes.DenomTrace{
+				denomTraces = []internaltransfertypes.DenomTrace{
 					{
 						BaseDenom: "ubar",
 						Path:      "transfer/channel-1/transfer/channel-2",
@@ -370,7 +371,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 		{
 			"success with two denom traces with one hop",
 			func() {
-				denomTraces = []transfertypes.DenomTrace{
+				denomTraces = []internaltransfertypes.DenomTrace{
 					{
 						BaseDenom: "foo",
 						Path:      "transfer/channel-0",
@@ -414,7 +415,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 		{
 			"success with two denom traces, metadata for one of them already exists",
 			func() {
-				denomTraces = []transfertypes.DenomTrace{
+				denomTraces = []internaltransfertypes.DenomTrace{
 					{
 						BaseDenom: "foo",
 						Path:      "transfer/channel-0",

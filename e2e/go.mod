@@ -9,17 +9,17 @@ replace github.com/strangelove-ventures/interchaintest/v8 => github.com/Dimitris
 require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.3.0
-	cosmossdk.io/x/upgrade v0.1.2
+	cosmossdk.io/x/upgrade v0.1.3
 	github.com/cometbft/cometbft v0.38.7
-	github.com/cosmos/cosmos-sdk v0.50.6
-	github.com/cosmos/gogoproto v1.4.12
+	github.com/cosmos/cosmos-sdk v0.50.7
+	github.com/cosmos/gogoproto v1.5.0
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0-00010101000000-000000000000
 	github.com/cosmos/ibc-go/v8 v8.1.0
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/strangelove-ventures/interchaintest/v8 v8.2.1-0.20240419152858-c8b741617cd8
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/mod v0.17.0
+	golang.org/x/mod v0.18.0
 	google.golang.org/grpc v1.64.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -31,7 +31,7 @@ require (
 	cloud.google.com/go/iam v1.1.6 // indirect
 	cloud.google.com/go/storage v1.38.0 // indirect
 	cosmossdk.io/api v0.7.5 // indirect
-	cosmossdk.io/client/v2 v2.0.0-beta.1 // indirect
+	cosmossdk.io/client/v2 v2.0.0-beta.2 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.11.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
@@ -134,7 +134,7 @@ require (
 	github.com/gtank/merlin v0.1.1 // indirect
 	github.com/gtank/ristretto255 v0.1.2 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-getter v1.7.3 // indirect
+	github.com/hashicorp/go-getter v1.7.4 // indirect
 	github.com/hashicorp/go-hclog v1.6.1 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-metrics v0.5.3 // indirect
@@ -209,7 +209,7 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/spf13/cobra v1.8.0 // indirect
+	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
@@ -244,7 +244,7 @@ require (
 	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

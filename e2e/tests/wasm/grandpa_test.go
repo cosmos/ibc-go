@@ -64,6 +64,61 @@ type GrandpaTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+func (s *GrandpaTestSuite) SetupSuite() {
+	s.SetupChains(context.Background(), nil, func(options *testsuite.ChainOptions) {
+		// configure chain A (polkadot)
+		options.ChainSpecs[0].ChainName = composable
+		options.ChainSpecs[0].Type = "polkadot"
+		options.ChainSpecs[0].ChainID = "rococo-local"
+		options.ChainSpecs[0].Name = "composable"
+		options.ChainSpecs[0].Images = []ibc.DockerImage{
+			// TODO: https://github.com/cosmos/ibc-go/issues/4965
+			{
+				Repository: "ghcr.io/misko9/polkadot-node",
+				Version:    "v39",
+				UidGid:     "1000:1000",
+			},
+			{
+				Repository: "ghcr.io/misko9/parachain-node",
+				Version:    "20231122v39",
+				UidGid:     "1000:1000",
+			},
+		}
+		options.ChainSpecs[0].Bin = "polkadot"
+		options.ChainSpecs[0].Bech32Prefix = composable
+		options.ChainSpecs[0].Denom = "uDOT"
+		options.ChainSpecs[0].GasPrices = ""
+		options.ChainSpecs[0].GasAdjustment = 0
+		options.ChainSpecs[0].TrustingPeriod = ""
+		options.ChainSpecs[0].CoinType = "354"
+
+		// these values are set by default for our cosmos chains, we need to explicitly remove them here.
+		options.ChainSpecs[0].ModifyGenesis = nil
+		options.ChainSpecs[0].ConfigFileOverrides = nil
+		options.ChainSpecs[0].EncodingConfig = nil
+
+		// configure chain B (cosmos)
+		options.ChainSpecs[1].ChainName = simd // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
+		options.ChainSpecs[1].Type = "cosmos"
+		options.ChainSpecs[1].Name = "simd"
+		options.ChainSpecs[1].ChainID = simd
+		options.ChainSpecs[1].Bin = simd
+		options.ChainSpecs[1].Bech32Prefix = "cosmos"
+
+		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here right now.
+		// https://github.com/cosmos/ibc-go/issues/4964
+		options.ChainSpecs[1].Denom = "stake"
+		options.ChainSpecs[1].GasPrices = "0.00stake"
+		options.ChainSpecs[1].GasAdjustment = 1
+		options.ChainSpecs[1].TrustingPeriod = "504h"
+		options.ChainSpecs[1].CoinType = "118"
+
+		options.ChainSpecs[1].ChainConfig.NoHostMount = false
+		options.ChainSpecs[1].ConfigFileOverrides = getConfigOverrides()
+		options.ChainSpecs[1].EncodingConfig = testsuite.SDKEncodingConfig()
+	})
+}
+
 // TestMsgTransfer_Succeeds_GrandpaContract features
 // * sets up a Polkadot parachain
 // * sets up a Cosmos chain
@@ -77,7 +132,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	ctx := context.Background()
 	t := s.T()
 
-	chainA, chainB := s.GetGrandpaTestChains()
+	chainA, chainB := s.GetChains()
 
 	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
 	s.Require().True(ok)
@@ -122,7 +177,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		Amount:  sdkmath.NewInt(amountToSend),
 	}
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
@@ -230,7 +285,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	ctx := context.Background()
 	t := s.T()
 
-	chainA, chainB := s.GetGrandpaTestChains()
+	chainA, chainB := s.GetChains()
 
 	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
 	s.Require().True(ok)
@@ -275,7 +330,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 		Amount:  sdkmath.NewInt(amountToSend),
 	}
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
@@ -317,7 +372,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 		s.Require().Equal(expected, actualBalance.Int64())
 
 		// start relayer
-		s.Require().NoError(r.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPathName(0)))
+		s.Require().NoError(r.StartRelayer(ctx, s.GetRelayerExecReporter(), testsuite.GetPathName(0)))
 		err = testutil.WaitForBlocks(ctx, 15, polkadotChain, cosmosChain)
 		s.Require().NoError(err)
 
@@ -345,7 +400,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	ctx := context.Background()
 
-	chainA, chainB := s.GetGrandpaTestChains()
+	chainA, chainB := s.GetChains()
 
 	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
 	s.Require().True(ok)
@@ -377,7 +432,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
 	s.Require().NoError(err, "polkadot chain failed to make blocks")
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
@@ -433,7 +488,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract() {
 	ctx := context.Background()
 
-	chainA, chainB := s.GetGrandpaTestChains()
+	chainA, chainB := s.GetChains()
 
 	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
 	s.Require().True(ok)
@@ -464,7 +519,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
 	s.Require().NoError(err, "polkadot chain failed to make blocks")
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
@@ -526,7 +581,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	// the contract uses 1600s as the unbonding period with the trusting period evaluating to (unbonding period / 3)
 	modifiedTrustingPeriod := (1600 * time.Second) / 3
 
-	chainA, chainB := s.GetGrandpaTestChains()
+	chainA, chainB := s.GetChains()
 
 	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
 	s.Require().True(ok)
@@ -561,7 +616,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	fundAmount := int64(12_333_000_000_000)
 	_, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
 
-	pathName := s.GetPathName(0)
+	pathName := testsuite.GetPathName(0)
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
 
@@ -704,60 +759,4 @@ func getConfigOverrides() map[string]any {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/config.toml"] = configTomlOverrides
 	return configFileOverrides
-}
-
-// GetGrandpaTestChains returns the configured chains for the grandpa test suite.
-func (s *GrandpaTestSuite) GetGrandpaTestChains() (ibc.Chain, ibc.Chain) {
-	return s.GetChains(func(options *testsuite.ChainOptions) {
-		// configure chain A (polkadot)
-		options.ChainASpec.ChainName = composable
-		options.ChainASpec.Type = "polkadot"
-		options.ChainASpec.ChainID = "rococo-local"
-		options.ChainASpec.Name = "composable"
-		options.ChainASpec.Images = []ibc.DockerImage{
-			// TODO: https://github.com/cosmos/ibc-go/issues/4965
-			{
-				Repository: "ghcr.io/misko9/polkadot-node",
-				Version:    "v39",
-				UidGid:     "1000:1000",
-			},
-			{
-				Repository: "ghcr.io/misko9/parachain-node",
-				Version:    "20231122v39",
-				UidGid:     "1000:1000",
-			},
-		}
-		options.ChainASpec.Bin = "polkadot"
-		options.ChainASpec.Bech32Prefix = composable
-		options.ChainASpec.Denom = "uDOT"
-		options.ChainASpec.GasPrices = ""
-		options.ChainASpec.GasAdjustment = 0
-		options.ChainASpec.TrustingPeriod = ""
-		options.ChainASpec.CoinType = "354"
-
-		// these values are set by default for our cosmos chains, we need to explicitly remove them here.
-		options.ChainASpec.ModifyGenesis = nil
-		options.ChainASpec.ConfigFileOverrides = nil
-		options.ChainASpec.EncodingConfig = nil
-
-		// configure chain B (cosmos)
-		options.ChainBSpec.ChainName = simd // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
-		options.ChainBSpec.Type = "cosmos"
-		options.ChainBSpec.Name = "simd"
-		options.ChainBSpec.ChainID = simd
-		options.ChainBSpec.Bin = simd
-		options.ChainBSpec.Bech32Prefix = "cosmos"
-
-		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here right now.
-		// https://github.com/cosmos/ibc-go/issues/4964
-		options.ChainBSpec.Denom = "stake"
-		options.ChainBSpec.GasPrices = "0.00stake"
-		options.ChainBSpec.GasAdjustment = 1
-		options.ChainBSpec.TrustingPeriod = "504h"
-		options.ChainBSpec.CoinType = "118"
-
-		options.ChainBSpec.ChainConfig.NoHostMount = false
-		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
-		options.ChainBSpec.EncodingConfig = testsuite.SDKEncodingConfig()
-	})
 }

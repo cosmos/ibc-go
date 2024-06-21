@@ -122,7 +122,17 @@ var _ sort.Interface = (*Denoms)(nil)
 func (d Denoms) Len() int { return len(d) }
 
 // Less implements sort.Interface for Denoms
-func (d Denoms) Less(i, j int) bool { return d[i].Path() < d[j].Path() }
+func (d Denoms) Less(i, j int) bool {
+	if d[i].Base != d[j].Base {
+		return d[i].Base < d[j].Base
+	}
+
+	if len(d[i].Trace) != len(d[j].Trace) {
+		return len(d[i].Trace) < len(d[j].Trace)
+	}
+
+	return d[i].Path() < d[j].Path()
+}
 
 // Swap implements sort.Interface for Denoms
 func (d Denoms) Swap(i, j int) { d[i], d[j] = d[j], d[i] }

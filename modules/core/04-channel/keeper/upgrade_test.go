@@ -333,6 +333,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				suite.Require().NotEmpty(upgrade)
 				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
 
+				channel := path.EndpointB.GetChannel()
+				suite.Require().Equal(types.FLUSHING, channel.State)
+
 				nextSequenceSend, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(nextSequenceSend, upgrade.NextSequenceSend)

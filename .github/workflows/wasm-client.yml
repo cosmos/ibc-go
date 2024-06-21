@@ -1,12 +1,14 @@
 name: Wasm Light-Client
 # This workflow runs when a PR is opened that targets code that is part of the wasm light-client.
 on:
+  merge_group:
   pull_request:
   push:
     branches:
       - main
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   lint:
@@ -16,9 +18,12 @@ jobs:
         with:
           go-version: '1.22'
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: golangci/golangci-lint-action@v6.0.1
         with:
           version: v1.57.2
+          only-new-issues: true
           args: --timeout 10m
           working-directory: modules/light-clients/08-wasm
 
@@ -63,7 +68,7 @@ jobs:
     steps:
       - name: sonarcloud
         if: ${{ env.GIT_DIFF && !github.event.pull_request.draft && env.SONAR_TOKEN != null }}
-        uses: SonarSource/sonarcloud-github-action@v2.2.0
+        uses: SonarSource/sonarcloud-github-action@v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

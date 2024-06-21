@@ -2,6 +2,7 @@ name: Tests / Code Coverage
 #  Tests / Code Coverage workflow runs unit tests and uploads a code coverage report
 #  This workflow is run on pushes to main & every Pull Requests where a .go, .mod, .sum have been changed
 on:
+  merge_group:
   pull_request:
   push:
     branches:
@@ -145,7 +146,7 @@ jobs:
           name: '${{ github.sha }}-03-coverage'
       - name: sonarcloud
         if: ${{ env.GIT_DIFF && !github.event.pull_request.draft }}
-        uses: SonarSource/sonarcloud-github-action@v2.2.0
+        uses: SonarSource/sonarcloud-github-action@v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

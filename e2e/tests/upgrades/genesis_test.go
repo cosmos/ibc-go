@@ -46,14 +46,14 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	appTomlOverrides["halt-height"] = haltHeight
 	configFileOverrides["config/app.toml"] = appTomlOverrides
 	chainOpts := func(options *testsuite.ChainOptions) {
-		options.ChainASpec.ConfigFileOverrides = configFileOverrides
+		options.ChainSpecs[0].ConfigFileOverrides = configFileOverrides
 	}
 
 	// create chains with specified chain configuration options
 	chainA, chainB := s.GetChains(chainOpts)
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
@@ -69,7 +69,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -135,7 +135,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	})
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 

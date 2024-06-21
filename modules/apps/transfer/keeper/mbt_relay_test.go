@@ -143,7 +143,7 @@ func BalancesFromTla(tla []TlaBalance) []Balance {
 }
 
 func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPacket {
-	denom := types.ExtractDenomFromFullPath(DenomFromTla(packet.Data.Denom))
+	denom := types.ExtractDenomFromPath(DenomFromTla(packet.Data.Denom))
 	return FungibleTokenPacket{
 		SourceChannel: packet.SourceChannel,
 		SourcePort:    packet.SourcePort,

@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.6.
+* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.7.
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
 * [\#6239](https://github.com/cosmos/ibc-go/pull/6239) Bump CometBFT to v0.38.7.
 * [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump go to v1.22.
@@ -55,7 +55,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#6023](https://github.com/cosmos/ibc-go/pull/6023) Remove emission of non-hexlified event attributes `packet_data` and `packet_ack`.
 * (core) [\#6320](https://github.com/cosmos/ibc-go/pull/6320) Remove unnecessary `Proof` interface from `exported` package.
 * (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6341) Modify `UnmarshalPacketData` interface to take in the context, portID, and channelID. This allows for packet data's to be unmarshaled based on the channel version.
+* (apps/27-interchain-accounts) [\#6433](https://github.com/cosmos/ibc-go/pull/6433) Use UNORDERED as the default ordering for new ICA channels.
 * (apps/transfer) [\#6440](https://github.com/cosmos/ibc-go/pull/6440) Remove `GetPrefixedDenom`.
+* (apps/transfer) [\#6508](https://github.com/cosmos/ibc-go/pull/6508) Remove the `DenomTrace` type.
+* (23-commmitment) [\#6633](https://github.com/cosmos/ibc-go/pull/6633) MerklePath has been changed to use `repeated bytes` in favour of `repeated strings`.
 
 ### State Machine Breaking
 
@@ -66,10 +69,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
 * (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
+* (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
 
 ### Features
 
+* (apps/transfer) [\#6492](https://github.com/cosmos/ibc-go/pull/6492) Added new `Tokens` field to `MsgTransfer` to enable sending of multiple denoms, and deprecated the `Token` field.
+
 ### Bug Fixes
+
+* (apps/27-interchain-accounts) [\#6377](https://github.com/cosmos/ibc-go/pull/6377) Generate ICA simtest proposals only for provided keepers.
 
 ## [v8.3.0](https://github.com/cosmos/ibc-go/releases/tag/v8.3.0) - 2024-05-16
 

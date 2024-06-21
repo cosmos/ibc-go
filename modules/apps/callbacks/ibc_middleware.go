@@ -38,7 +38,7 @@ type IBCMiddleware struct {
 	maxCallbackGas uint64
 }
 
-// NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application.
+// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application.
 // The underlying application must implement the required callback interfaces.
 func NewIBCMiddleware(
 	app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper,
@@ -99,7 +99,7 @@ func (im IBCMiddleware) SendPacket(
 		return 0, err
 	}
 
-	// packet is created withouth destination information present, GetSourceCallbackData does not use these.
+	// packet is created without destination information present, GetSourceCallbackData does not use these.
 	packet := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
 	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet, im.maxCallbackGas)

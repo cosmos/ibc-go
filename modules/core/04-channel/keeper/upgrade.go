@@ -629,7 +629,7 @@ func (k *Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID stri
 	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgradeInfo(ctx, portID, channelID)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState.String(), "new-state", types.OPEN.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN)
 	return channel
 }
 
@@ -707,7 +707,7 @@ func (k *Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID st
 	channel = k.restoreChannel(ctx, portID, channelID, sequence, channel)
 	k.WriteErrorReceipt(ctx, portID, channelID, types.NewUpgradeError(sequence, types.ErrInvalidUpgrade))
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN)
 }
 
 // ChanUpgradeTimeout times out an outstanding upgrade.

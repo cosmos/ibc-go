@@ -303,10 +303,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom: transfertypes.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -329,10 +326,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom: transfertypes.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  transfertypes.NewDenom(ibctesting.TestCoin.GetDenom()),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -358,10 +352,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom: transfertypes.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -385,10 +376,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom: transfertypes.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -414,10 +402,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom: transfertypes.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -441,10 +426,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom: transfertypes.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -475,10 +457,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom: transfertypes.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -496,10 +475,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom: transfertypes.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -517,10 +493,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = transfertypes.FungibleTokenPacketDataV2{
 					Tokens: transfertypes.Tokens{
 						{
-							Denom: transfertypes.Denom{
-								Base:  ibctesting.TestCoin.Denom,
-								Trace: nil,
-							},
+							Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -601,10 +574,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			transfertypes.FungibleTokenPacketDataV2{
 				Tokens: transfertypes.Tokens{
 					{
-						Denom: transfertypes.Denom{
-							Base:  ibctesting.TestCoin.Denom,
-							Trace: nil,
-						},
+						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 						Amount: ibctesting.TestCoin.Amount.String(),
 					},
 				},
@@ -691,10 +661,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			transfertypes.FungibleTokenPacketDataV2{
 				Tokens: transfertypes.Tokens{
 					{
-						Denom: transfertypes.Denom{
-							Base:  ibctesting.TestCoin.Denom,
-							Trace: nil,
-						},
+						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 						Amount: ibctesting.TestCoin.Amount.String(),
 					},
 				},
@@ -745,7 +712,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 }
 
 func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
-	denom := transfertypes.Denom{Base: ibctesting.TestCoin.Denom}
+	denom := transfertypes.NewDenom(ibctesting.TestCoin.Denom)
 	amount := ibctesting.TestCoin.Amount.String()
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -976,10 +943,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 }
 
 func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
-	denom := transfertypes.Denom{
-		Base:  ibctesting.TestCoin.Denom,
-		Trace: nil,
-	}
+	denom := transfertypes.NewDenom(ibctesting.TestCoin.Denom)
 	amount := ibctesting.TestCoin.Amount.String()
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
