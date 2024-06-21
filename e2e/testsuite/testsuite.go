@@ -189,7 +189,7 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 	}
 }
 
-func (s *E2ETestSuite) CreateNewPath(ctx context.Context, chainA ibc.Chain, chainB ibc.Chain, clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) (ibc.ChannelOutput, ibc.ChannelOutput) {
+func (s *E2ETestSuite) CreateNewPath(ctx context.Context, chainA, chainB ibc.Chain, clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) (ibc.ChannelOutput, ibc.ChannelOutput) {
 	r := s.relayer
 
 	pathName := s.generatePathName()
