@@ -177,52 +177,66 @@ func (s *E2ETestSuite) SetupTest() {
 	s.SetupPath(ibc.DefaultClientOpts(), defaultChannelOpts(s.GetAllChains()))
 }
 
-// SetupPath creates a path between the chains using the provided client and channel options.
+// SetupPath creates paths between the all chains using the provided client and channel options.
 func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
 	s.T().Logf("Setting up path for: %s", s.T().Name())
-	r := s.relayer
 
 	ctx := context.TODO()
 	allChains := s.GetAllChains()
 	for i := 0; i < len(allChains)-1; i++ {
 		chainA, chainB := allChains[i], allChains[i+1]
-		pathName := s.generatePathName()
-		s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
-
-		err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
-		s.Require().NoError(err)
-
-		// Create new clients
-		err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		channelsA, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		s.Require().NoError(err)
-
-		channelsB, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
-		s.Require().NoError(err)
-
-		if s.channels[s.T().Name()] == nil {
-			s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
-		}
-
-		// keep track of channels associated with a given chain for access within the tests.
-		s.channels[s.T().Name()][chainA] = channelsA
-		s.channels[s.T().Name()][chainB] = channelsB
-		s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
+		_, _ = s.CreateNewPath(ctx, chainA, chainB, clientOpts, channelOpts)
 	}
+}
+
+func (s *E2ETestSuite) CreateNewPath(
+	ctx context.Context,
+	chainA ibc.Chain,
+	chainB ibc.Chain,
+	clientOpts ibc.CreateClientOptions,
+	channelOpts ibc.CreateChannelOptions,
+) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
+	r := s.relayer
+
+	pathName := s.generatePathName()
+	s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+
+	err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+	s.Require().NoError(err)
+
+	// Create new clients
+	err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	channelsA, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+	s.Require().NoError(err)
+
+	channelsB, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
+	s.Require().NoError(err)
+
+	if s.channels[s.T().Name()] == nil {
+		s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
+	}
+
+	// keep track of channels associated with a given chain for access within the tests.
+	s.channels[s.T().Name()][chainA] = channelsA
+	s.channels[s.T().Name()][chainB] = channelsB
+
+	s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
+
+	return channelsA[len(channelsA)-1], channelsB[len(channelsB)-1]
 }
 
 // GetChainAChannel returns the ibc.ChannelOutput for the current test.
