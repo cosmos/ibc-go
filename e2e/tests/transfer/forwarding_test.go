@@ -23,6 +23,11 @@ type TransferForwardingTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite explicitly sets up three chains for this test suite.
+func (s *TransferForwardingTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), nil, testsuite.ThreeChainSetup())
+}
+
 // TODO: replace this with actual tests https://github.com/cosmos/ibc-go/issues/6578
 // this test verifies that three chains can be set up, and the relayer will relay
 // packets between them as configured in the newInterchain function.
@@ -30,10 +35,20 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 	ctx := context.TODO()
 	t := s.T()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, testsuite.TransferChannelOptions(), testsuite.ThreeChainSetup())
-	chains := s.GetAllChains()
+	relayer, chains := s.GetRelayer(), s.GetAllChains()
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
+
+	chainAChannels := s.GetChannels(chainA)
+	chainBChannels := s.GetChannels(chainB)
+	chainCChannels := s.GetChannels(chainC)
+
+	s.Require().Len(chainAChannels, 1, "expected 1 channels on chain A")
+	s.Require().Len(chainBChannels, 2, "expected 2 channels on chain B")
+	s.Require().Len(chainCChannels, 1, "expected 1 channels on chain C")
+
+	channelAToB := chainAChannels[0]
+	channelBToC := chainBChannels[1]
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -47,19 +62,12 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 	chainCAddress := chainCWallet.FormattedAddress()
 
 	t.Run("IBC transfer from A to B", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelAToB.PortID, channelAToB.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
-	chainBChannels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
-	s.Require().NoError(err)
-	// channel between A and B and channel between B and C
-	s.Require().Len(chainBChannels, 2)
-
-	chainBtoCChannel := chainBChannels[0]
-
 	t.Run("IBC transfer from B to C", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, chainBtoCChannel.PortID, chainBtoCChannel.ChannelID, testvalues.DefaultTransferCoins(chainBDenom), chainBAddress, chainCAddress, s.GetTimeoutHeight(ctx, chainC), 0, "")
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelBToC.PortID, channelBToC.ChannelID, testvalues.DefaultTransferCoins(chainBDenom), chainBAddress, chainCAddress, s.GetTimeoutHeight(ctx, chainC), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -67,9 +75,9 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 		s.StartRelayer(relayer)
 	})
 
-	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelAToB.Counterparty.PortID, channelAToB.Counterparty.ChannelID)
 	t.Run("packets are relayed from A to B", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+		s.AssertPacketRelayed(ctx, chainA, channelAToB.PortID, channelAToB.ChannelID, 1)
 
 		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
@@ -78,9 +86,9 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
-	chainCIBCToken := testsuite.GetIBCToken(chainBDenom, chainBtoCChannel.Counterparty.PortID, chainBtoCChannel.Counterparty.ChannelID)
+	chainCIBCToken := testsuite.GetIBCToken(chainBDenom, channelBToC.Counterparty.PortID, channelBToC.Counterparty.ChannelID)
 	t.Run("packets are relayed from B to C", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainB, chainBtoCChannel.PortID, chainBtoCChannel.ChannelID, 1)
+		s.AssertPacketRelayed(ctx, chainB, channelBToC.PortID, channelBToC.ChannelID, 1)
 
 		actualBalance, err := query.Balance(ctx, chainC, chainCAddress, chainCIBCToken.IBCDenom())
 		s.Require().NoError(err)

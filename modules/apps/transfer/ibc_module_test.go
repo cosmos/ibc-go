@@ -303,9 +303,18 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(),
 					"",
-					types.NewForwarding("", types.Hop{PortId: "transfer", ChannelId: "channel-0"}),
+					types.NewForwardingPacketData("", types.Hop{PortId: "transfer", ChannelId: "channel-0"}),
 				)
 				packet.Data = packetData.GetBytes()
+
+				forwardingBz, err := json.Marshal(packetData.Forwarding)
+				suite.Require().NoError(err)
+				for i, attr := range expectedAttributes {
+					if attr.Key == types.AttributeKeyForwarding {
+						expectedAttributes[i].Value = string(forwardingBz)
+						break
+					}
+				}
 			},
 			nil,
 			"",
@@ -316,11 +325,15 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				packet.Data = []byte("invalid data")
 
 				// Override expected attributes because this fails on unmarshaling packet data (so can't get the attributes)
+				forwardingBz, err := json.Marshal(types.Forwarding{})
+				suite.Require().NoError(err)
+
 				expectedAttributes = []sdk.Attribute{
 					sdk.NewAttribute(types.AttributeKeySender, ""),
 					sdk.NewAttribute(types.AttributeKeyReceiver, ""),
 					sdk.NewAttribute(types.AttributeKeyTokens, "null"),
 					sdk.NewAttribute(types.AttributeKeyMemo, ""),
+					sdk.NewAttribute(types.AttributeKeyForwarding, string(forwardingBz)),
 					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
 					sdk.NewAttribute(types.AttributeKeyAckError, "cannot unmarshal ICS20-V2 transfer packet data: invalid character 'i' looking for beginning of value: invalid type: invalid type"),
 				}
@@ -355,16 +368,20 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				"",
-				types.Forwarding{},
+				types.ForwardingPacketData{},
 			)
 
 			tokensBz, err := json.Marshal(packetData.Tokens)
 			suite.Require().NoError(err)
+			forwardingBz, err := json.Marshal(packetData.Forwarding)
+			suite.Require().NoError(err)
+
 			expectedAttributes = []sdk.Attribute{
 				sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
 				sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
 				sdk.NewAttribute(types.AttributeKeyTokens, string(tokensBz)),
 				sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
+				sdk.NewAttribute(types.AttributeKeyForwarding, string(forwardingBz)),
 			}
 			if tc.expAck == nil || tc.expAck.Success() {
 				expectedAttributes = append(expectedAttributes, sdk.NewAttribute(types.AttributeKeyAckSuccess, "true"))

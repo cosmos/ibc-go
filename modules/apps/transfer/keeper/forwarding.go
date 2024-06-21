@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"errors"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,13 +14,9 @@ import (
 
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
-	var memo string
-
 	var nextForwardingPath types.Forwarding
-	if len(data.Forwarding.Hops) == 1 {
-		memo = data.Forwarding.Memo
-	} else {
-		nextForwardingPath = types.NewForwarding(data.Forwarding.Memo, data.Forwarding.Hops[1:]...)
+	if len(data.Forwarding.Hops) > 1 {
+		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 	}
 
 	// sending from the forward escrow address to the original receiver address.
@@ -36,7 +30,7 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 		data.Receiver,
 		clienttypes.ZeroHeight(),
 		packet.TimeoutTimestamp,
-		memo,
+		data.Forwarding.DestinationMemo,
 		nextForwardingPath,
 	)
 
@@ -64,7 +58,7 @@ func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket channeltypes.P
 		return err
 	}
 
-	forwardAck := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet failed"))
+	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 
@@ -74,7 +68,7 @@ func (k Keeper) ackForwardPacketTimeout(ctx sdk.Context, prevPacket channeltypes
 		return err
 	}
 
-	forwardAck := channeltypes.NewErrorAcknowledgement(errors.New("forwarded packet timed out"))
+	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketTimedOut)
 	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardAck)
 }
 

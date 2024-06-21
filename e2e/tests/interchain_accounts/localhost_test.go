@@ -42,7 +42,6 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, _ := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -196,8 +195,6 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t := s.T()
 	ctx := context.TODO()
 
-	// relayer and channel output is discarded, only a single chain is required
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, _ := s.GetChains()
 
 	chainADenom := chainA.Config().Denom

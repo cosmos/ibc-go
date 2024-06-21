@@ -32,6 +32,10 @@ type AuthzTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+func (suite *AuthzTransferTestSuite) SetupTest() {
+	suite.SetupPath(ibc.DefaultClientOpts(), suite.TransferChannelOptions())
+}
+
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
 func (*AuthzTransferTestSuite) QueryGranterGrants(ctx context.Context, chain ibc.Chain, granterAddress string) ([]*authz.GrantAuthorization, error) {
 	res, err := query.GRPCQuery[authz.QueryGranterGrantsResponse](ctx, chain, &authz.QueryGranterGrantsRequest{
@@ -48,7 +52,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, testsuite.TransferChannelOptions())
+	relayer, channelA := suite.GetRelayer(), suite.GetChainAChannel()
 	chainA, chainB := suite.GetChains()
 	chainADenom := chainA.Config().Denom
 
@@ -208,7 +212,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, testsuite.TransferChannelOptions())
+	relayer, channelA := suite.GetRelayer(), suite.GetChainAChannel()
+
 	chainA, chainB := suite.GetChains()
 	chainADenom := chainA.Config().Denom
 	chainAVersion := chainA.Config().Images[0].Version
