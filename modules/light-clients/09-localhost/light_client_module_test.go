@@ -32,20 +32,6 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 		expPass  bool
 	}{
 		{
-			"success: client state verification",
-			func() {
-				clientState := suite.chain.GetClientState(exported.LocalhostClientID)
-
-				merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(exported.LocalhostClientID))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path = merklePath
-				value = clienttypes.MustMarshalClientState(suite.chain.Codec, clientState)
-			},
-			true,
-		},
-		{
 			"success: connection state verification",
 			func() {
 				connectionEnd := connectiontypes.NewConnectionEnd(
@@ -144,21 +130,35 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 			true,
 		},
 		{
-			"invalid type for key path",
+			"failure: stateless client state verification",
+			func() {
+				clientState := suite.chain.GetClientState(exported.LocalhostClientID)
+
+				merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(exported.LocalhostClientID))
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
+
+				path = merklePath
+				value = clienttypes.MustMarshalClientState(suite.chain.Codec, clientState)
+			},
+			false,
+		},
+		{
+			"failure: invalid type for key path",
 			func() {
 				path = mock.KeyPath{}
 			},
 			false,
 		},
 		{
-			"key path has too many elements",
+			"failure: key path has too many elements",
 			func() {
 				path = commitmenttypes.NewMerklePath("ibc", "test", "key")
 			},
 			false,
 		},
 		{
-			"no value found at provided key path",
+			"failure: no value found at provided key path",
 			func() {
 				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(mock.PortID, ibctesting.FirstChannelID, 100))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
@@ -170,7 +170,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 			false,
 		},
 		{
-			"invalid value, bytes are not equal",
+			"failure: invalid value, bytes are not equal",
 			func() {
 				channel := channeltypes.NewChannel(
 					channeltypes.OPEN,

@@ -68,16 +68,6 @@ func (k *Keeper) Route(clientID string) (exported.LightClientModule, bool) {
 	return k.router.GetRoute(clientID)
 }
 
-// CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
-func (k *Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
-	if !found {
-		return errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
-	}
-
-	return clientModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
-}
-
 // UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
 func (k *Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
 	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)

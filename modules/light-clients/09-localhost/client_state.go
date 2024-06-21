@@ -82,12 +82,6 @@ func (ClientState) VerifyMembership(
 		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
-	// The localhost client is stateless, so if we need to verify the localhost client state, we can just return nil to verify
-	if merklePath.KeyPath[1] == host.FullClientStatePath(ModuleName) {
-		return nil
-	}
-
-	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz == nil {
 		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)

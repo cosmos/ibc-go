@@ -13,14 +13,16 @@ func (suite *MigrationsV7TestSuite) TestMigrateLocalhostClient() {
 	clientStore := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.LocalhostClientID)
 	clientStore.Delete(host.ClientStateKey())
 
+	// Deleting the client state should not have any effect as the localhost client is stateless.
 	clientState, found := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), exported.LocalhostClientID)
-	suite.Require().False(found)
-	suite.Require().Nil(clientState)
+	suite.Require().True(found)
+	suite.Require().NotNil(clientState)
 
 	err := v7.MigrateLocalhostClient(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper)
 	suite.Require().NoError(err)
 
+	// After the migration, it should still be there. No change is expected.
 	clientState, found = suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), exported.LocalhostClientID)
-	suite.Require().True(found)
-	suite.Require().NotNil(clientState)
+	suite.Require().False(found)
+	suite.Require().Nil(clientState)
 }

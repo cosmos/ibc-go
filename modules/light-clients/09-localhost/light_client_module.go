@@ -35,15 +35,11 @@ func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientS
 	l.storeProvider = storeProvider
 }
 
-// Initialize ensures that initial consensus state for localhost is nil.
+// Initialize returns an error because it is stateless
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) Initialize(ctx sdk.Context, clientID string, _, consensusStateBz []byte) error {
-	if len(consensusStateBz) != 0 {
-		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
-	}
-
-	return nil
+func (LightClientModule) Initialize(ctx sdk.Context, clientID string, clientState, consensusStateBz []byte) error {
+	return errorsmod.Wrap(clienttypes.ErrClientExists, "localhost is stateless and cannot be initialized")
 }
 
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.

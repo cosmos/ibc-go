@@ -8,6 +8,9 @@ slug: /ibc/light-clients/localhost/client-state
 
 # `ClientState`
 
+Even though the 09-localhost light client is a stateless client, it still has the concept of a `ClientState` that follows the
+blockchains own latest height automatically.
+
 The 09-localhost `ClientState` maintains a single field used to track the latest sequence of the state machine i.e. the height of the blockchain.
 
 ```go
@@ -17,19 +20,7 @@ type ClientState struct {
 }
 ```
 
-The 09-localhost `ClientState` is instantiated in the `InitGenesis` handler of the 02-client submodule in core IBC.
-It calls `CreateLocalhostClient`, declaring a new `ClientState` and initializing it with its own client prefixed store.
-
-```go
-func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-  clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
-  if !found {
-    return errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
-  }
-
-  return clientModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
-}
-```
+The 09-localhost `ClientState` is always available from the 02-client submodule in core IBC, and does not need to be initialized.
 
 It is possible to disable the localhost client by removing the `09-localhost` entry from the `allowed_clients` list through governance.
 
