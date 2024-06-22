@@ -93,6 +93,23 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			nil,
 		},
 		{
+			"successful transfer len hops is not empty with ics20-2",
+			func() {
+				expEscrowAmount = sdkmath.NewInt(100)
+
+				// Set version to isc20-2.
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.V2
+				})
+
+				forwarding = types.NewForwarding(false, types.Hop{
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
+				})
+			},
+			nil,
+		},
+		{
 			"successful transfer of IBC token with memo",
 			func() {
 				// send IBC token back to chainB
