@@ -81,6 +81,11 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with ics20-1")
 	}
 
+	// reject transfer forwarding hops is not empty with ics20-1
+	if appVersion == types.V1 && len(forwarding.Hops) > 0 {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "reject transfer forwarding hops is not empty with ics20-1")
+	}
+
 	destinationPort := channel.Counterparty.PortId
 	destinationChannel := channel.Counterparty.ChannelId
 

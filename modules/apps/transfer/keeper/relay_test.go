@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		timeoutHeight   clienttypes.Height
 		memo            string
 		expEscrowAmount sdkmath.Int // total amount in escrow for denom on receiving chain
-
+		forwarding      types.Forwarding
 	)
 
 	testCases := []struct {
@@ -70,6 +70,18 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		},
 		{
 			"successful transfer of native token with ics20-1",
+			func() {
+				expEscrowAmount = sdkmath.NewInt(100)
+
+				// Set version to isc20-1.
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.V1
+				})
+			},
+			nil,
+		},
+		{
+			"successful transfer len hops is empty with ics20-1",
 			func() {
 				expEscrowAmount = sdkmath.NewInt(100)
 
@@ -146,6 +158,21 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			},
 			channeltypes.ErrInvalidPacket,
 		},
+		{
+			"failure: transfer len hops is not empty with ics20-1",
+			func() {
+				// Set version to isc20-1.
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.V1
+				})
+
+				forwarding = types.NewForwarding(false, types.Hop{
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
+				})
+			},
+			ibcerrors.ErrInvalidRequest,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -162,6 +189,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			memo = ""
 			timeoutHeight = suite.chainB.GetTimeoutHeight()
 			expEscrowAmount = sdkmath.ZeroInt()
+			forwarding = emptyForwarding
 
 			// create IBC token on chainA
 			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.NewCoins(coin), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainA.GetTimeoutHeight(), 0, "", emptyForwarding)
@@ -184,7 +212,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.chainB.SenderAccount.GetAddress().String(),
 				timeoutHeight, 0, // only use timeout height
 				memo,
-				emptyForwarding,
+				forwarding,
 			)
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(suite.chainA.GetContext(), msg)
