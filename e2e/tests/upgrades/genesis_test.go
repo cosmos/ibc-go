@@ -53,7 +53,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	chainA, chainB := s.GetChains(chainOpts)
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
