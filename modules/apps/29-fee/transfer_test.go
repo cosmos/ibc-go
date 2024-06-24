@@ -59,11 +59,10 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 			suite.Require().NoError(err)
 
 			// register counterparty address on chainB
-			// relayerAddress is address of sender account on chainB, but we will use it on chainA
-			// to differentiate from the chainA.SenderAccount for checking successful relay payouts
-			relayerAddress := suite.chainB.SenderAccount.GetAddress()
+			payfeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+			suite.Require().NoError(err)
 
-			msgRegister := types.NewMsgRegisterCounterpartyPayee(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String())
+			msgRegister := types.NewMsgRegisterCounterpartyPayee(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, suite.chainB.SenderAccount.GetAddress().String(), payfeeAddr.String())
 			_, err = suite.chainB.SendMsgs(msgRegister)
 			suite.Require().NoError(err) // message committed
 
@@ -78,7 +77,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 			// check forward relay balance
 			suite.Require().Equal(
 				fee.RecvFee,
-				sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+				sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), payfeeAddr, ibctesting.TestCoin.Denom)),
 			)
 
 			suite.Require().Equal(
