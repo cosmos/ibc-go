@@ -63,7 +63,7 @@ func (s *UpgradeTestSuite) SetupTest() {
 	if strings.HasSuffix(s.T().Name(), "TestV8ToV8_1ChainUpgrade") {
 		channelOpts = s.FeeTransferChannelOptions()
 	}
-	s.SetupPath(ibc.DefaultClientOpts(), channelOpts)
+	s.SetupPaths(ibc.DefaultClientOpts(), channelOpts)
 }
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
