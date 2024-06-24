@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -69,15 +70,8 @@ func NewMsgTransfer(
 // NOTE: The recipient addresses format is not validated as the format defined by
 // the chain is not known to IBC.
 func (msg MsgTransfer) ValidateBasic() error {
-	// Source ports and channel are overwritten when unwinding, so there's no need
-	// to validate them.
-	if !msg.Forwarding.Unwind {
-		if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
-			return errorsmod.Wrap(err, "invalid source port ID")
-		}
-		if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
-			return errorsmod.Wrap(err, "invalid source channel ID")
-		}
+	if err := validateSourcePortAndChannel(msg); err != nil {
+		return errorsmod.Wrap(err, "cannot validate source port/channel")
 	}
 
 	if len(msg.Tokens) == 0 && !isValidIBCCoin(msg.Token) {
@@ -118,9 +112,9 @@ func (msg MsgTransfer) ValidateBasic() error {
 	}
 
 	if msg.Forwarding.Unwind {
-		// When unwinding, we must have at must one token.
+		// When unwinding, we must have at most one token.
 		if len(msg.GetCoins()) > 1 {
-			return errorsmod.Wrap(ErrInvalidForwarding, "cannot unwind more that one tokens")
+			return errorsmod.Wrap(ErrInvalidForwarding, "cannot unwind more that one token")
 		}
 	}
 
@@ -169,5 +163,27 @@ func validateIBCCoin(coin sdk.Coin) error {
 		return errorsmod.Wrap(ErrInvalidDenomForTransfer, err.Error())
 	}
 
+	return nil
+}
+
+func validateSourcePortAndChannel(msg MsgTransfer) error {
+	// If unwind is set, we want to ensure that port and channel are empty.
+	if msg.Forwarding.Unwind {
+		if msg.SourcePort != "" {
+			return fmt.Errorf("source port must be empty when unwind is set, got %s instead", msg.SourcePort)
+		}
+		if msg.SourceChannel != "" {
+			return fmt.Errorf("source channel must be empty when unwind is set, got %s instead", msg.SourceChannel)
+		}
+		return nil
+	}
+
+	// Otherwise, we just do the usual validation of the port and channel identifiers.
+	if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
+		return errorsmod.Wrap(err, "invalid source port ID")
+	}
+	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
+		return errorsmod.Wrap(err, "invalid source channel ID")
+	}
 	return nil
 }
