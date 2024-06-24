@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-
 	dockerclient "github.com/docker/docker/client"
 	"github.com/pelletier/go-toml"
 	"github.com/strangelove-ventures/interchaintest/v8"
@@ -69,7 +68,10 @@ func ApplyPacketFilter(t *testing.T, ctx context.Context, r ibc.Relayer, chainID
 	}
 
 	return modifyHermesConfigFile(ctx, h, func(config map[string]interface{}) error {
-		chains := config["chains"].([]map[string]interface{})
+		chains, ok := config["chains"].([]map[string]interface{})
+		if !ok {
+			return fmt.Errorf("failed to get chains from hermes config")
+		}
 		var chain map[string]interface{}
 		for _, c := range chains {
 			if c["id"] == chainID {
@@ -82,9 +84,9 @@ func ApplyPacketFilter(t *testing.T, ctx context.Context, r ibc.Relayer, chainID
 			return fmt.Errorf("failed to find chain with id %s", chainID)
 		}
 
-		var channelIds [][]string
+		var channelIDs [][]string
 		for _, c := range channels {
-			channelIds = append(channelIds, []string{c.PortID, c.ChannelID})
+			channelIDs = append(channelIDs, []string{c.PortID, c.ChannelID})
 		}
 
 		// [chains.packet_filter]
@@ -97,12 +99,12 @@ func ApplyPacketFilter(t *testing.T, ctx context.Context, r ibc.Relayer, chainID
 		// TODO(chatton): explicitly enable watching of ICA channels
 		// this will ensure the ICA tests pass, but this will need to be modified to make sure
 		// ICA tests will succeed in parallel.
-		channelIds = append(channelIds, []string{"ica*", "*"})
+		channelIDs = append(channelIDs, []string{"ica*", "*"})
 
 		// we explicitly override the full list, this allows this function to provide a complete set of channels to watch.
 		chain["packet_filter"] = map[string]interface{}{
 			"policy": "allow",
-			"list":   channelIds,
+			"list":   channelIDs,
 		}
 
 		return nil
