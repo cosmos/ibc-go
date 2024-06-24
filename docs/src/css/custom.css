@@ -123,7 +123,7 @@ html {
       }
     }
     &__items--right > :last-child {
-      @apply right-8.5;
+      @apply right-9.5;
     }
   }
   &[data-theme="dark"] .navbar__item {
