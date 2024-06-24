@@ -390,7 +390,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 				allocation := types.Allocation{
 					SourcePort:    types.PortID,
 					SourceChannel: "channel-1",
-					SpendLimit:    sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					SpendLimit:    sdk.NewCoins(ibctesting.TestCoin),
 					AllowList:     []string{},
 				}
 
@@ -467,7 +467,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 				allocation := types.Allocation{
 					SourcePort:    mock.PortID,
 					SourceChannel: transferAuthz.Allocations[0].SourceChannel,
-					SpendLimit:    sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					SpendLimit:    sdk.NewCoins(ibctesting.TestCoin),
 					AllowList:     []string{ibctesting.TestAccAddress},
 				}
 
@@ -486,7 +486,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 					{
 						SourcePort:    mock.PortID,
 						SourceChannel: ibctesting.FirstChannelID,
-						SpendLimit:    sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+						SpendLimit:    sdk.NewCoins(ibctesting.TestCoin),
 						AllowList:     []string{ibctesting.TestAccAddress},
 					},
 				},
