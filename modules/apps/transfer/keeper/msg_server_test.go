@@ -282,15 +282,9 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 		},
 		{
 			"failure: no denom set on keeper",
-			func() {
-				hexHash := denom.IBCDenom()[len(types.DenomPrefix+"/"):]
-
-				hash, err := types.ParseHexHash(hexHash)
-				suite.Require().NoError(err)
-				suite.chainA.DeleteKey(hash)
-			},
+			func() {},
 			func(modified *types.MsgTransfer, err error) {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, types.ErrDenomNotFound)
 			},
 		},
 		{

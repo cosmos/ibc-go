@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -71,7 +70,7 @@ func NewMsgTransfer(
 // the chain is not known to IBC.
 func (msg MsgTransfer) ValidateBasic() error {
 	if err := validateSourcePortAndChannel(msg); err != nil {
-		return errorsmod.Wrap(err, "cannot validate source port/channel")
+		return err // The actual error and its message are already wrapped in the called function.
 	}
 
 	if len(msg.Tokens) == 0 && !isValidIBCCoin(msg.Token) {
@@ -114,7 +113,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if msg.Forwarding.Unwind {
 		// When unwinding, we must have at most one token.
 		if len(msg.GetCoins()) > 1 {
-			return errorsmod.Wrap(ErrInvalidForwarding, "cannot unwind more that one token")
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot unwind more that one token")
 		}
 	}
 
@@ -170,10 +169,10 @@ func validateSourcePortAndChannel(msg MsgTransfer) error {
 	// If unwind is set, we want to ensure that port and channel are empty.
 	if msg.Forwarding.Unwind {
 		if msg.SourcePort != "" {
-			return fmt.Errorf("source port must be empty when unwind is set, got %s instead", msg.SourcePort)
+			return errorsmod.Wrapf(ErrInvalidForwarding, "source port must be empty when unwind is set, got %s instead", msg.SourcePort)
 		}
 		if msg.SourceChannel != "" {
-			return fmt.Errorf("source channel must be empty when unwind is set, got %s instead", msg.SourceChannel)
+			return errorsmod.Wrapf(ErrInvalidForwarding, "source channel must be empty when unwind is set, got %s instead", msg.SourceChannel)
 		}
 		return nil
 	}
