@@ -16,7 +16,7 @@ func GetQueryCmd() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}
-
+	println("check")
 	icaQueryCmd.AddCommand(
 		controllercli.GetQueryCmd(),
 		hostcli.GetQueryCmd(),
