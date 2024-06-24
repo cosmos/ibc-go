@@ -243,6 +243,8 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 
 			err = relayer.ApplyPacketFilter(ctx, h, chainB.Config().ChainID, channelsB)
 			s.Require().NoError(err, "failed to watch port and channel on chainB")
+		} else {
+			s.T().Logf("relayer %T has not been configured for packet filtering yet", r)
 		}
 	}
 }

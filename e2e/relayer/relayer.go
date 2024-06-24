@@ -27,6 +27,9 @@ const (
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
 	HyperspaceRelayerRepository = "ghcr.io/misko9/hyperspace"
 	hyperspaceRelayerUser       = "1000:1000"
+
+	// relativeHermesConfigFilePath is the path to the hermes config file relative to the home directory within the container.
+	relativeHermesConfigFilePath = ".hermes/config.toml"
 )
 
 // Config holds configuration values for the relayer used in the tests.
@@ -54,74 +57,62 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 	}
 }
 
-// ApplyPacketFilter modifies the hermes config file to only watch for packets for the given chain and channels.
-// this enables multiple relayers to be operating on the same chain but ignoring packets that are only relevant
-// to other tests.
+// ApplyPacketFilter applies a packet filter to the hermes config file, which specifies a complete set of channels
+// to watch for packets.
 func ApplyPacketFilter(ctx context.Context, h *hermes.Relayer, chainID string, channels []ibc.ChannelOutput) error {
-	bz, err := h.ReadFileFromHomeDir(ctx, ".hermes/config.toml")
+	return modifyHermesConfigFile(ctx, h, func(config map[string]interface{}) error {
+		chains := config["chains"].([]map[string]interface{})
+		var chain map[string]interface{}
+		for _, c := range chains {
+			if c["id"] == chainID {
+				chain = c
+				break
+			}
+		}
+
+		if chain == nil {
+			return fmt.Errorf("failed to find chain with id %s", chainID)
+		}
+
+		var channelIds [][]string
+		for _, c := range channels {
+			channelIds = append(channelIds, []string{c.PortID, c.ChannelID})
+		}
+
+		// we explicitly override the full list, this allows this function to provide a complete set of channels to watch.
+		chain["packet_filter"] = map[string]interface{}{
+			"policy": "allow",
+			"list":   channelIds,
+		}
+
+		return nil
+	})
+}
+
+// modifyHermesConfigFile reads the hermes config file, applies a modification function and returns an error if any.
+func modifyHermesConfigFile(ctx context.Context, h *hermes.Relayer, modificationFn func(map[string]interface{}) error) error {
+	bz, err := h.ReadFileFromHomeDir(ctx, relativeHermesConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to read hermes config file: %w", err)
 	}
 
-	return modifyHermesConfigBytes(ctx, h, bz, chainID, channels)
-}
-
-func ModifyHermesConfigBytes(ctx context.Context, h *hermes.Relayer, modificationFn func(bz []byte) []byte) error {
-	bz, err := h.ReadFileFromHomeDir(ctx, ".hermes/config.toml")
-	if err != nil {
-		return fmt.Errorf("failed to read hermes config file: %w", err)
-	}
-
-	bz = modificationFn(bz)
-
-	return h.WriteFileToHomeDir(ctx, ".hermes/config.toml", bz)
-}
-
-// modifyHermesConfigBytes modifies the hermes config file to populate the packet filter with the given chain and channels.
-func modifyHermesConfigBytes(ctx context.Context, h *hermes.Relayer, bz []byte, chainID string, channels []ibc.ChannelOutput) error {
 	var config map[string]interface{}
 	if err := toml.Unmarshal(bz, &config); err != nil {
 		return fmt.Errorf("failed to unmarshal hermes config bytes")
 	}
 
-	// config ref https://github.com/informalsystems/hermes/blob/master/config.toml#L380
-	// [chains.packet_filter]
-	// policy = 'allow'
-	// list = [
-	//   ['ica*', '*'],
-	//   ['transfer', 'channel-0'],
-	// ]
-
-	chains := config["chains"].([]map[string]interface{})
-	var chain map[string]interface{}
-	for _, c := range chains {
-		if c["id"] == chainID {
-			chain = c
-			break
+	if modificationFn != nil {
+		if err := modificationFn(config); err != nil {
+			return fmt.Errorf("failed to modify hermes config: %w", err)
 		}
 	}
 
-	if chain == nil {
-		return fmt.Errorf("failed to find chain with id %s", chainID)
-	}
-
-	var channelIds [][]string
-	for _, c := range channels {
-		channelIds = append(channelIds, []string{c.PortID, c.ChannelID})
-	}
-
-	chain["packet_filter"] = map[string]interface{}{
-		"policy": "allow",
-		"list":   channelIds,
-	}
-
-	bz, err := toml.Marshal(config)
+	bz, err = toml.Marshal(config)
 	if err != nil {
 		return fmt.Errorf("failed to marshal hermes config bytes")
 	}
 
-	// overwrite the config file with the new settings.
-	return h.WriteFileToHomeDir(ctx, ".hermes/config.toml", bz)
+	return h.WriteFileToHomeDir(ctx, relativeHermesConfigFilePath, bz)
 }
 
 // newCosmosRelayer returns an instance of the go relayer.
