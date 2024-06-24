@@ -5,8 +5,6 @@ import (
 	"errors"
 	"strings"
 
-	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -25,8 +23,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 	var msg *types.MsgTransfer
 	var path *ibctesting.Path
 
-	coin2 := sdk.NewCoin("bond", sdkmath.NewInt(100))
-	testCoins := append(ibctesting.TestCoins, coin2) //nolint:gocritic
+	testCoins := ibctesting.TestCoins
 
 	testCases := []struct {
 		name     string
@@ -143,9 +140,9 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			)
 
 			// send some coins of the second denom from bank module to the sender account as well
-			err := suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin2))
+			err := suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(ibctesting.TestAnotherCoin))
 			suite.Require().NoError(err)
-			err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin2))
+			err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(ibctesting.TestAnotherCoin))
 			suite.Require().NoError(err)
 
 			tc.malleate()
