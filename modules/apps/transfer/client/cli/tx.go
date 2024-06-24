@@ -24,6 +24,7 @@ const (
 	flagAbsoluteTimeouts       = "absolute-timeouts"
 	flagMemo                   = "memo"
 	flagForwarding             = "forwarding"
+	flagUnwind                 = "unwind"
 )
 
 // defaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
@@ -41,7 +42,11 @@ func NewTransferTxCmd() *cobra.Command {
 packet if the coins list is a comma-separated string (e.g. 100uatom,100uosmo). Timeouts can be specified as absolute using the {absolute-timeouts} flag. 
 Timeout height can be set by passing in the height string in the form {revision}-{height} using the {packet-timeout-height} flag. 
 Note, relative timeout height is not supported. Relative timeout timestamp is added to the value of the user's local system clock time 
-using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
+using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used. IBC tokens
+can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag used, then the transfer should contain only
+tokens for a single denomination. Tokens can also be automatically forwarded through multiple chains using the {fowarding} flag and specifying
+a comma-separated list of source portID/channelID pairs for each intermediary chain. {unwind} and {forwarding} flags can be used together
+to unwind IBC tokens to their native chain and forward them to the final destination.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coins]", version.AppName),
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -129,6 +134,8 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
 	cmd.Flags().String(flagForwarding, "", "Forwarding information in the form of a comma separated list of portID/channelID pairs, denoting the intermediary hops. If forwarding is specified any memo set will be included in the forwarding information created.")
+	cmd.Flags().Bool(flagUnwind, false, "Flag to indicate if the coin should be unwound to its native chain before forwarding.")
+
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -158,6 +165,10 @@ func parseForwarding(cmd *cobra.Command) (types.Forwarding, error) {
 		hops = append(hops, hop)
 	}
 
-	// TODO(jim): Add flag for unwind value
-	return types.NewForwarding(false, hops...), nil
+	unwind, err := cmd.Flags().GetBool(flagUnwind)
+	if err != nil {
+		return types.Forwarding{}, err
+	}
+
+	return types.NewForwarding(unwind, hops...), nil
 }
