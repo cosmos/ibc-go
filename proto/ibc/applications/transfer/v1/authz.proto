@@ -29,11 +29,11 @@ message Allocation {
 
 // AllowedForwarding defines which options are allowed for forwarding.
 message AllowedForwarding {
+  // Whether to allow automatic unwinding of tokens to the original chain.
+  bool allow_unwind = 1;
   // a list of allowed source port ID/channel ID pairs through which the packet is allowed to be forwarded until final
   // destination
-  repeated Hops allowed_hops = 1 [(gogoproto.nullable) = false];
-  // Whether to allow automatic unwinding of tokens to the original chain.
-  bool allow_unwind = 2;
+  repeated Hops allowed_hops = 2 [(gogoproto.nullable) = false];
 }
 
 // Hops represent a list of Hop

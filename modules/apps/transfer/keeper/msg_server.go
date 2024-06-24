@@ -72,10 +72,6 @@ func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) 
 // and that the token is not native to the chain.
 func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
 	coins := msg.GetCoins()
-	if len(coins) > 1 {
-		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind more that one tokens")
-	}
-
 	token, err := k.tokenFromCoin(ctx, coins[0])
 	if err != nil {
 		return nil, err
@@ -94,5 +90,5 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	msg.Forwarding.Hops = append(unwindHops, msg.Forwarding.Hops...)
 	msg.Forwarding.Unwind = false
 
-	return msg, nil
+	return msg, msg.ValidateBasic()
 }

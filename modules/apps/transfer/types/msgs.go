@@ -69,11 +69,15 @@ func NewMsgTransfer(
 // NOTE: The recipient addresses format is not validated as the format defined by
 // the chain is not known to IBC.
 func (msg MsgTransfer) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
-		return errorsmod.Wrap(err, "invalid source port ID")
-	}
-	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
-		return errorsmod.Wrap(err, "invalid source channel ID")
+	// Source ports and channel are overwritten when unwinding, so there's no need
+	// to validate them.
+	if !msg.Forwarding.Unwind {
+		if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
+			return errorsmod.Wrap(err, "invalid source port ID")
+		}
+		if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
+			return errorsmod.Wrap(err, "invalid source channel ID")
+		}
 	}
 
 	if len(msg.Tokens) == 0 && !isValidIBCCoin(msg.Token) {
@@ -110,6 +114,13 @@ func (msg MsgTransfer) ValidateBasic() error {
 		// when forwarding, the timeout height must not be set
 		if !msg.TimeoutHeight.IsZero() {
 			return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must not be set if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.Hops)
+		}
+	}
+
+	if msg.Forwarding.Unwind {
+		// When unwinding, we must have at must one token.
+		if len(msg.GetCoins()) > 1 {
+			return errorsmod.Wrap(ErrInvalidForwarding, "cannot unwind more that one tokens")
 		}
 	}
 

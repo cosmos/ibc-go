@@ -238,3 +238,108 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestUnwindHops() {
+	var msg *types.MsgTransfer
+	var path *ibctesting.Path
+	denom := types.NewDenom(ibctesting.TestCoin.Denom, types.NewTrace(ibctesting.MockPort, "channel-0"), types.NewTrace(ibctesting.MockPort, "channel-1"))
+	coins := sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+	testCases := []struct {
+		name         string
+		malleate     func()
+		assertResult func(modified *types.MsgTransfer, err error)
+	}{
+		{
+			"success",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().NoError(err, "got unexpected error from unwindHops")
+				msg.SourceChannel = denom.Trace[0].PortId
+				msg.SourcePort = denom.Trace[0].ChannelId
+				msg.Forwarding = types.NewForwarding(false, types.Hop{PortId: denom.Trace[1].PortId, ChannelId: denom.Trace[1].ChannelId})
+				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
+			},
+		},
+		{
+			"success - unwind hops are added to existing hops",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+				msg.Forwarding = types.NewForwarding(true, types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"})
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().NoError(err, "got unexpected error from unwindHops")
+				msg.SourceChannel = denom.Trace[0].PortId
+				msg.SourcePort = denom.Trace[0].ChannelId
+				msg.Forwarding = types.NewForwarding(false,
+					types.Hop{PortId: denom.Trace[1].PortId, ChannelId: denom.Trace[1].ChannelId},
+					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
+				)
+				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
+			},
+		},
+		{
+			"failure: no denom set on keeper",
+			func() {
+				hexHash := denom.IBCDenom()[len(types.DenomPrefix+"/"):]
+
+				hash, err := types.ParseHexHash(hexHash)
+				suite.Require().NoError(err)
+				suite.chainA.DeleteKey(hash)
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().Error(err)
+			},
+		},
+		{
+			"failure: validateBasic() fails due to invalid channelID",
+			func() {
+				denom.Trace[0].ChannelId = "channel/0"
+				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+				msg.Tokens = coins
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().ErrorContains(err, "invalid source channel ID")
+			},
+		},
+		{
+			"failure: denom is native",
+			func() {
+				denom.Trace = nil
+				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+				msg.Tokens = coins
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().ErrorIs(err, types.ErrInvalidForwarding)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			msg = types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				coins,
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				clienttypes.ZeroHeight(),
+				suite.chainA.GetTimeoutTimestamp(),
+				"memo",
+				types.NewForwarding(true),
+			)
+
+			tc.malleate()
+			gotMsg, err := suite.chainA.GetSimApp().TransferKeeper.UnwindHops(suite.chainA.GetContext(), msg)
+			tc.assertResult(gotMsg, err)
+		})
+	}
+}
