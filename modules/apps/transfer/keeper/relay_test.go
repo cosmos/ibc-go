@@ -35,8 +35,8 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		sender          sdk.AccAddress
 		timeoutHeight   clienttypes.Height
 		memo            string
-		expEscrowAmount sdkmath.Int // total amount in escrow for denom on receiving chain
 		forwarding      types.Forwarding
+		expEscrowAmount sdkmath.Int // total amount in escrow for denom on receiving chain
 	)
 
 	testCases := []struct {
