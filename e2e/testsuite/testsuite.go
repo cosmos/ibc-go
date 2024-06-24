@@ -2,9 +2,13 @@ package testsuite
 
 import (
 	"context"
-	sdkmath "cosmossdk.io/math"
 	"errors"
 	"fmt"
+	"os"
+	"path"
+	"strings"
+	"sync"
+
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -13,10 +17,8 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
-	"os"
-	"path"
-	"strings"
-	"sync"
+
+	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
