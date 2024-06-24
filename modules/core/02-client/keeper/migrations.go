@@ -2,9 +2,9 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v9 "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v9"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v9"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
