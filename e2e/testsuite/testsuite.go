@@ -174,22 +174,23 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 // SetupTest will by default use the default channel options to create a path between the chains.
 // if non default channel options are required, the test suite must override the `SetupTest` function.
 func (s *E2ETestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), defaultChannelOpts(s.GetAllChains()))
+	s.SetupPaths(ibc.DefaultClientOpts(), defaultChannelOpts(s.GetAllChains()))
 }
 
-// SetupPath creates paths between the all chains using the provided client and channel options.
-func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
+// SetupPaths creates paths between the chains using the provided client and channel options.
+// The paths are created such that ChainA is connected to ChainB, ChainB is connected to ChainC etc.
+func (s *E2ETestSuite) SetupPaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
 	s.T().Logf("Setting up path for: %s", s.T().Name())
 
 	ctx := context.TODO()
 	allChains := s.GetAllChains()
 	for i := 0; i < len(allChains)-1; i++ {
 		chainA, chainB := allChains[i], allChains[i+1]
-		_, _ = s.CreateNewPath(ctx, chainA, chainB, clientOpts, channelOpts)
+		_, _ = s.CreatePath(ctx, chainA, chainB, clientOpts, channelOpts)
 	}
 }
 
-func (s *E2ETestSuite) CreateNewPath(
+func (s *E2ETestSuite) CreatePath(
 	ctx context.Context,
 	chainA ibc.Chain,
 	chainB ibc.Chain,
