@@ -30,5 +30,24 @@ function lint_and_add_modified_go_files() {
   done
 }
 
+function is_proto_all_required() {
+  local before_files=$(git status --porcelain | awk '{print $2}')
+  make proto-all
+  local after_files=$(git status --porcelain | awk '{print $2}')
+  local changed_files=$(comm -13 <(echo "$before_files" | sort) <(echo "$after_files" | sort))
+  if [[ -n "$changed_files" ]]; then
+    echo "Error: Please run 'make proto-all' and commit the updated files."
+    
+    # Revert the changes made by make proto-all
+    for file in $changed_files; do
+      echo "Reverting changes in $file"
+      git checkout -- "$file"
+    done
+    
+    exit 1
+  fi
+}
+
 check_golangci_lint_version
+is_proto_all_required
 lint_and_add_modified_go_files
