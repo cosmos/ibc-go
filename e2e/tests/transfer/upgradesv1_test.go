@@ -33,7 +33,7 @@ type TransferChannelUpgradesV1TestSuite struct {
 func (s *TransferChannelUpgradesV1TestSuite) SetupTest() {
 	opts := s.TransferChannelOptions()
 	opts.Version = transfertypes.V1
-	s.SetupPath(ibc.DefaultClientOpts(), opts)
+	s.SetupPaths(ibc.DefaultClientOpts(), opts)
 }
 
 // TestChannelUpgrade_WithICS20v2_Succeeds tests upgrading a transfer channel to ICS20 v2.
