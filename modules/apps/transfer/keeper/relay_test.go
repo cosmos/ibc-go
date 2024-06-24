@@ -11,6 +11,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -124,7 +125,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failure: sender account is blocked",
 			func() {
-				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
+				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -364,9 +365,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 		{
 			"failure: receiver is module account",
 			func() {
-				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
-			sdkerrors.ErrUnauthorized,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: receive is disabled",
@@ -522,7 +523,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 		{
 			"failure: receiver is module account",
 			func() {
-				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 				expEscrowAmount = sdkmath.NewInt(100)
 			},
 			ibcerrors.ErrUnauthorized,

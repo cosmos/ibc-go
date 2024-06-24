@@ -228,7 +228,7 @@ func (suite *KeeperTestSuite) TestHappyPathForwarding() {
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, types.GetForwardAddress(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID).String(), receiver.GetAddress().String(), "", types.ForwardingPacketData{})
+		}, suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String(), receiver.GetAddress().String(), "", types.ForwardingPacketData{})
 	packetRecv = channeltypes.NewPacket(data.GetBytes(), 3, path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID, path2.EndpointA.ChannelConfig.PortID, path2.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 	// execute onRecvPacket, when chaninA receives the tokens the escrow amount on B should increase to amount
@@ -1026,7 +1026,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().True(found, "Chain B has no forwarded packet")
 	suite.Require().Equal(packet, forwardedPacket, "ForwardedPacket stored in ChainB is not the same that was sent")
 
-	address := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel).String()
+	address := suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
