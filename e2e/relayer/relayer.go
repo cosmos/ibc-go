@@ -59,8 +59,9 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 
 // ApplyPacketFilter applies a packet filter to the hermes config file, which specifies a complete set of channels
 // to watch for packets.
-func ApplyPacketFilter(t *testing.T, ctx context.Context, r ibc.Relayer, chainID string, channels []ibc.ChannelOutput) error {
+func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID string, channels []ibc.ChannelOutput) error {
 	t.Helper()
+
 	h, ok := r.(*hermes.Relayer)
 	if !ok {
 		t.Logf("relayer %T does not support packet filtering, or it has not been implemented yet.", r)

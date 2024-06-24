@@ -237,7 +237,7 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 
 			s.channels[s.T().Name()][c] = channels
 
-			err = relayer.ApplyPacketFilter(s.T(), ctx, r, c.Config().ChainID, channels)
+			err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, channels)
 			s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
 		}
 	}
