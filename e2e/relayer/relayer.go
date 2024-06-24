@@ -59,7 +59,14 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 
 // ApplyPacketFilter applies a packet filter to the hermes config file, which specifies a complete set of channels
 // to watch for packets.
-func ApplyPacketFilter(ctx context.Context, h *hermes.Relayer, chainID string, channels []ibc.ChannelOutput) error {
+func ApplyPacketFilter(t *testing.T, ctx context.Context, r ibc.Relayer, chainID string, channels []ibc.ChannelOutput) error {
+	t.Helper()
+	h, ok := r.(*hermes.Relayer)
+	if !ok {
+		t.Logf("relayer %T does not support packet filtering, or it has not been implemented yet.", r)
+		return nil
+	}
+
 	return modifyHermesConfigFile(ctx, h, func(config map[string]interface{}) error {
 		chains := config["chains"].([]map[string]interface{})
 		var chain map[string]interface{}
@@ -78,6 +85,18 @@ func ApplyPacketFilter(ctx context.Context, h *hermes.Relayer, chainID string, c
 		for _, c := range channels {
 			channelIds = append(channelIds, []string{c.PortID, c.ChannelID})
 		}
+
+		// [chains.packet_filter]
+		//	# policy = 'allow'
+		//	# list = [
+		//	#   ['ica*', '*'],
+		//	#   ['transfer', 'channel-0'],
+		//	# ]
+
+		// TODO(chatton): explicitly enable watching of ICA channels
+		// this will ensure the ICA tests pass, but this will need to be modified to make sure
+		// ICA tests will succeed in parallel.
+		channelIds = append(channelIds, []string{"ica*", "*"})
 
 		// we explicitly override the full list, this allows this function to provide a complete set of channels to watch.
 		chain["packet_filter"] = map[string]interface{}{

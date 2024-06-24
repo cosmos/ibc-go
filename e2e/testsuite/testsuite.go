@@ -9,7 +9,6 @@ import (
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer/hermes"
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -17,6 +16,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -62,17 +62,17 @@ type E2ETestSuite struct {
 	// pathNameIndex is the latest index to be used for generating chains
 	pathNameIndex int64
 
-	// TODO: refactor this to use a relayer per test
-	// relayer is a single relayer which only works when running tests one per host.
-	// this needs to be refactored to use a different relayer per test.
-	relayer ibc.Relayer
-
 	// testSuiteName is the name of the test suite, used to store chains under the test suite name.
 	testSuiteName string
 	testPaths     map[string][]string
 	channels      map[string]map[ibc.Chain][]ibc.ChannelOutput
-	//relayerPool    *sync.Pool
-	relayerPool    []ibc.Relayer
+
+	// relayerLock ensures concurrent tests are not accessing the pool of relayers as the same time.
+	relayerLock sync.Mutex
+	// relayerPool is a pool of relayers that can be used in tests.
+	relayerPool []ibc.Relayer
+	// testRelayerMap is a map of test suite names to relayers that are used in the test suite.
+	// this is used as a cache after a relayer has been assigned to a test suite.
 	testRelayerMap map[string]ibc.Relayer
 }
 
@@ -169,8 +169,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 
 	s.chains = s.createChains(chainOptions)
 
-	//relayers := s.createNRelayers(chainOptions.RelayerCount)
-	relayers := s.createNRelayers(1)
+	relayers := s.createNRelayers(chainOptions.RelayerCount)
 	ic := s.newInterchain(ctx, relayers, s.chains, channelOptionsModifier)
 
 	buildOpts := interchaintest.InterchainBuildOptions{
@@ -194,6 +193,10 @@ func (s *E2ETestSuite) SetupTest() {
 func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
 	s.T().Logf("Setting up path for: %s", s.T().Name())
 	r := s.GetRelayer()
+
+	if s.channels[s.T().Name()] == nil {
+		s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
+	}
 
 	ctx := context.TODO()
 	allChains := s.GetAllChains()
@@ -221,30 +224,16 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
 		s.Require().NoError(err)
 
-		channelsA, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		s.Require().NoError(err)
-
-		channelsB, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
-		s.Require().NoError(err)
-
-		if s.channels[s.T().Name()] == nil {
-			s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
-		}
-
-		// keep track of channels associated with a given chain for access within the tests.
-		s.channels[s.T().Name()][chainA] = channelsA
-		s.channels[s.T().Name()][chainB] = channelsB
 		s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
 
-		// configure relayer to only watch the channels associated with the current test.
-		if h, ok := r.(*hermes.Relayer); ok {
-			err := relayer.ApplyPacketFilter(ctx, h, chainA.Config().ChainID, channelsA)
-			s.Require().NoError(err, "failed to watch port and channel on chainA")
+		for _, c := range []ibc.Chain{chainA, chainB} {
+			channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
+			s.Require().NoError(err)
 
-			err = relayer.ApplyPacketFilter(ctx, h, chainB.Config().ChainID, channelsB)
-			s.Require().NoError(err, "failed to watch port and channel on chainB")
-		} else {
-			s.T().Logf("relayer %T has not been configured for packet filtering yet", r)
+			s.channels[s.T().Name()][c] = channels
+
+			err = relayer.ApplyPacketFilter(s.T(), ctx, r, c.Config().ChainID, channels)
+			s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
 		}
 	}
 }
@@ -264,7 +253,12 @@ func (s *E2ETestSuite) GetChannels(chain ibc.Chain) []ibc.ChannelOutput {
 	return channels
 }
 
+// GetRelayer returns the relayer for the current test from the available pool of relayers.
+// once a relayer has been returned to a test, it is cached and will be reused for the duration of the test.
 func (s *E2ETestSuite) GetRelayer() ibc.Relayer {
+	s.relayerLock.Lock()
+	defer s.relayerLock.Unlock()
+
 	if r, ok := s.testRelayerMap[s.T().Name()]; ok {
 		return r
 	}
