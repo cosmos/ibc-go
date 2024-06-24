@@ -90,5 +90,8 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	msg.Forwarding.Hops = append(unwindHops, msg.Forwarding.Hops...)
 	msg.Forwarding.Unwind = false
 
-	return msg, msg.ValidateBasic()
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+	return msg, nil
 }
