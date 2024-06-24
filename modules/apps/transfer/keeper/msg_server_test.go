@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{
 							{Denom: sdk.DefaultBondDenom, Enabled: true},
-							{Denom: "bond", Enabled: true},
+							{Denom: ibctesting.SecondaryDenom, Enabled: true},
 						},
 					},
 				)
@@ -140,9 +140,9 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			)
 
 			// send some coins of the second denom from bank module to the sender account as well
-			err := suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(ibctesting.TestAnotherCoin))
+			err := suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(ibctesting.SecondaryTestCoin))
 			suite.Require().NoError(err)
-			err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(ibctesting.TestAnotherCoin))
+			err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(ibctesting.SecondaryTestCoin))
 			suite.Require().NoError(err)
 
 			tc.malleate()
