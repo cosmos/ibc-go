@@ -24,6 +24,7 @@ const (
 	flagAbsoluteTimeouts       = "absolute-timeouts"
 	flagMemo                   = "memo"
 	flagForwarding             = "forwarding"
+	flagUnwind                 = "unwind"
 )
 
 // defaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
@@ -129,6 +130,8 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
 	cmd.Flags().String(flagForwarding, "", "Forwarding information in the form of a comma separated list of portID/channelID pairs, denoting the intermediary hops. If forwarding is specified any memo set will be included in the forwarding information created.")
+	cmd.Flags().Bool(flagUnwind, false, "Unwind flags are used to indicate if the coin should be unwound to its native chain before forwarding.")
+
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -158,6 +161,10 @@ func parseForwarding(cmd *cobra.Command) (types.Forwarding, error) {
 		hops = append(hops, hop)
 	}
 
-	// TODO(jim): Add flag for unwind value
-	return types.NewForwarding(false, hops...), nil
+	unwind, err := cmd.Flags().GetBool(flagUnwind)
+	if err != nil {
+		return types.Forwarding{}, err
+	}
+
+	return types.NewForwarding(unwind, hops...), nil
 }
