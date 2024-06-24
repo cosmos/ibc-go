@@ -39,7 +39,7 @@ func TestIncentivizedTransferTestSuite(t *testing.T) {
 
 // SetupTest explicitly enables fee middleware in the channel options.
 func (s *IncentivizedTransferTestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions())
+	s.SetupPaths(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions())
 }
 
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
