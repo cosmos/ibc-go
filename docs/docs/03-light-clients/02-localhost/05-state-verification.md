@@ -20,3 +20,7 @@ The 09-localhost light client module defines a `SentinelProof` as a single byte.
 ```go
 var SentinelProof = []byte{0x01}
 ```
+
+The `ClientState` of `09-localhost` is stateless, so it is not directly provable with `VerifyMembership` or `VerifyNonMembership`. 
+Instead, the `ClientState` is constructed on demand when required.
+
