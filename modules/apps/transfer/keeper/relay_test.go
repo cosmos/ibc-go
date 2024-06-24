@@ -81,7 +81,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			nil,
 		},
 		{
-			"successful transfer len hops is empty with ics20-1",
+			"successful transfer with empty forwarding hops and ics20-1",
 			func() {
 				expEscrowAmount = sdkmath.NewInt(100)
 
@@ -93,15 +93,9 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			nil,
 		},
 		{
-			"successful transfer len hops is not empty with ics20-2",
+			"successful transfer with non-empty forwarding hops and ics20-2",
 			func() {
 				expEscrowAmount = sdkmath.NewInt(100)
-
-				// Set version to isc20-2.
-				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
-					channel.Version = types.V2
-				})
-
 				forwarding = types.NewForwarding(false, types.Hop{
 					PortId:    path.EndpointA.ChannelConfig.PortID,
 					ChannelId: path.EndpointA.ChannelID,
@@ -176,7 +170,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			channeltypes.ErrInvalidPacket,
 		},
 		{
-			"failure: transfer len hops is not empty with ics20-1",
+			"failure: forwarding hops is not empty with ics20-1",
 			func() {
 				// Set version to isc20-1.
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
