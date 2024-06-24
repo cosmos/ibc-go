@@ -467,7 +467,10 @@ func (s *E2ETestSuite) CreateUserOnChainC(ctx context.Context, amount int64) ibc
 // createWalletOnChainIndex creates a wallet with the given amount of funds on the chain of the given index.
 func (s *E2ETestSuite) createWalletOnChainIndex(ctx context.Context, amount, chainIndex int64) ibc.Wallet {
 	chain := s.GetAllChains()[chainIndex]
-	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chain)[0]
+	wallet := interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chain)[0]
+	// note the GetAndFundTestUsers requires the caller to wait for some blocks before the funds are accessible.
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
+	return wallet
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
