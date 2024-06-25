@@ -3,7 +3,6 @@ package types
 import (
 	"context"
 	"math/big"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -189,8 +188,12 @@ func isAllowedForwarding(hops []Hop, allowed []Hops) bool {
 		return true
 	}
 
+	// We want to ensure that at least one of the Hops in "allowed"
+	// is equal to "hops".
+	// Note that we can't use slices.Contains() as that is a generic
+	// function that requires the type Hop to satisfy the "comparable" constraint.
 	for _, allowedHops := range allowed {
-		if reflect.DeepEqual(hops, allowedHops.Hops) {
+		if slices.Equal(hops, allowedHops.Hops) {
 			return true
 		}
 	}
