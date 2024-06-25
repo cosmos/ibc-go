@@ -269,7 +269,7 @@ func (l LightClientModule) VerifyMembership(
 	if internaltypes.IsValidUTF8(merklePath.KeyPath) {
 		payload.VerifyMembership.Path = internaltypes.ToLegacyMerklePath(merklePath)
 	} else {
-		payload.VerifyMembership.MerklePath = merklePath
+		payload.VerifyMembership.MerklePath = &merklePath
 	}
 
 	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
@@ -330,7 +330,7 @@ func (l LightClientModule) VerifyNonMembership(
 	if internaltypes.IsValidUTF8(merklePath.KeyPath) {
 		payload.VerifyNonMembership.Path = internaltypes.ToLegacyMerklePath(merklePath)
 	} else {
-		payload.VerifyNonMembership.MerklePath = merklePath
+		payload.VerifyNonMembership.MerklePath = &merklePath
 	}
 
 	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
