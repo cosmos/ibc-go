@@ -34,7 +34,7 @@ type ConnectionTestSuite struct {
 }
 
 func (s *ConnectionTestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions())
+	s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions())
 }
 
 // QueryMaxExpectedTimePerBlockParam queries the on-chain max expected time per block param for 03-connection

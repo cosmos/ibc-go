@@ -76,9 +76,16 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", sourcePort, sourceChannel)
 	}
 
-	// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
-	if appVersion == types.V1 && len(coins) > 1 {
-		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with ics20-1")
+	if appVersion == types.V1 {
+		// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
+		if len(coins) > 1 {
+			return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
+		}
+
+		// ics20-1 does not support forwarding, so if that is the current version, we must reject the transfer.
+		if len(forwarding.Hops) > 0 {
+			return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
+		}
 	}
 
 	destinationPort := channel.Counterparty.PortId
