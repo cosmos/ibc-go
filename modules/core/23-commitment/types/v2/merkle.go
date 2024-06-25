@@ -1,6 +1,12 @@
 package v2
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+)
+
+var _ exported.Path = (*MerklePath)(nil)
 
 // NewMerklePath creates a new MerklePath instance
 // The keys must be passed in from root-to-leaf order
