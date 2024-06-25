@@ -9,6 +9,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	v2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 )
 
 func (suite *MerkleTestSuite) TestVerifyMembership() {
@@ -144,7 +145,7 @@ func TestApplyPrefix(t *testing.T) {
 	prefix := types.NewMerklePrefix([]byte("storePrefixKey"))
 
 	pathBz := []byte("pathone/pathtwo/paththree/key")
-	path := types.MerklePath{
+	path := v2.MerklePath{
 		KeyPath: [][]byte{pathBz},
 	}
 
