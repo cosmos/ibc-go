@@ -58,8 +58,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#6433](https://github.com/cosmos/ibc-go/pull/6433) Use UNORDERED as the default ordering for new ICA channels.
 * (apps/transfer) [\#6440](https://github.com/cosmos/ibc-go/pull/6440) Remove `GetPrefixedDenom`.
 * (apps/transfer) [\#6508](https://github.com/cosmos/ibc-go/pull/6508) Remove the `DenomTrace` type.
-* (23-commmitment) [\#6633](https://github.com/cosmos/ibc-go/pull/6633) MerklePath has been changed to use `repeated bytes` in favour of `repeated strings`.
-* (23-commmitment) [\#6644](https://github.com/cosmos/ibc-go/pull/6644) Refactor `NewMerklePath` to accept `...[]byte` in favour of `...string`.
+* (23-commmitment) [\#6644](https://github.com/cosmos/ibc-go/pull/6644) Introduce commitment/v2 `MerklePath` to include `repeated byte` in favour of `repeated string`. This supports using merkle path keys which include non UTF-8 encoded runes.
 
 ### State Machine Breaking
 
