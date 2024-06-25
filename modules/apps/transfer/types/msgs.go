@@ -113,7 +113,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if msg.Forwarding.Unwind {
 		// When unwinding, we must have at most one token.
 		if len(msg.GetCoins()) > 1 {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot unwind more that one token")
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot unwind more than one token")
 		}
 	}
 
