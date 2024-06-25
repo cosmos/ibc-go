@@ -106,7 +106,7 @@ func (suite *KeeperTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() 
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denom.IBCDenom())
 }
 
-// TestSuccessfulPathForwarding tests a sucessful transfer from A to C through B.
+// TestSuccessfulPathForwarding tests a successful transfer from A to C through B.
 func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	/*
 		Given the following topology:
@@ -223,9 +223,9 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	suite.Require().NoError(err)
 }
 
-// TestSucessfulUnwind tests unwinding of tokens sent from A -> B -> C by
+// TestSuccessfulUnwind tests unwinding of tokens sent from A -> B -> C by
 // forwarding the tokens back from C -> B -> A.
-func (suite *KeeperTestSuite) TestSucessfulUnwind() {
+func (suite *KeeperTestSuite) TestSuccessfulUnwind() {
 	/*
 		Given the following topolgy:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
