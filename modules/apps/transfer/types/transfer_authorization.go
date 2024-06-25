@@ -173,7 +173,7 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 // validateForwarding performs the validation of forwarding info.
 func validateForwarding(forwarding Forwarding, allowedForwarding []AllowedForwarding) error {
 	if forwarding.Unwind {
-		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed unwind")
+		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed automatic unwind")
 	}
 
 	if !isAllowedForwarding(forwarding.Hops, allowedForwarding) {
