@@ -33,6 +33,11 @@ func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 	return k.tokenFromCoin(ctx, coin)
 }
 
+// UnwindHops is a wrapper around unwindToken for testing purposes.
+func (k Keeper) UnwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
+	return k.unwindHops(ctx, msg)
+}
+
 // CreatePacketDataBytesFromVersion is a wrapper around createPacketDataBytesFromVersion for testing purposes
 func CreatePacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) []byte {
 	return createPacketDataBytesFromVersion(appVersion, sender, receiver, memo, tokens, hops)
