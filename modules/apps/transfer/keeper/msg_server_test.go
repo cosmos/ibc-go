@@ -264,6 +264,26 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 			},
 		},
 		{
+			"success: multiple unwind hops",
+			func() {
+				denom.Trace = append(denom.Trace, types.NewTrace(ibctesting.MockPort, "channel-2"), types.NewTrace(ibctesting.MockPort, "channel-3"))
+				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+				msg.Tokens = coins
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().NoError(err, "got unexpected error from unwindHops")
+				msg.SourceChannel = denom.Trace[0].PortId
+				msg.SourcePort = denom.Trace[0].ChannelId
+				msg.Forwarding = types.NewForwarding(false,
+					types.Hop{PortId: denom.Trace[3].PortId, ChannelId: denom.Trace[3].ChannelId},
+					types.Hop{PortId: denom.Trace[2].PortId, ChannelId: denom.Trace[2].ChannelId},
+					types.Hop{PortId: denom.Trace[1].PortId, ChannelId: denom.Trace[1].ChannelId},
+				)
+				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
+			},
+		},
+		{
 			"success - unwind hops are added to existing hops",
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
