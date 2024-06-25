@@ -106,7 +106,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingWithValidHop
+				transferAuthz.Allocations[0].AllowedForwarding.AllowedHops = forwardingWithValidHop
 				msgTransfer.Forwarding = types.NewForwarding(false, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -137,7 +137,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			func() {
 				allowedList := []string{"*"}
 				transferAuthz.Allocations[0].AllowedPacketData = allowedList
-				transferAuthz.Allocations[0].AllowedForwardingHops = forwardingWithValidHop
+				transferAuthz.Allocations[0].AllowedForwarding.AllowedHops = forwardingWithValidHop
 				msgTransfer.Forwarding = types.NewForwarding(false, validHop)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -285,7 +285,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"success: allowed forwarding hops",
 			func() {
 				msgTransfer.Forwarding = types.NewForwarding(false, types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"}, types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"})
-				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
+				transferAuthz.Allocations[0].AllowedForwarding.AllowedHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
@@ -302,7 +302,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"success: Allocation specify hops but msgTransfer does not have hops",
 			func() {
-				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
+				transferAuthz.Allocations[0].AllowedForwarding.AllowedHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
@@ -310,6 +310,17 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 						},
 					},
 				}
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().True(res.Accept)
+			},
+		},
+		{
+			"success: Allocation allows unwind and msgTransfer specifies unwind",
+			func() {
+				transferAuthz.Allocations[0].AllowedForwarding.AllowUnwind = true
+				msgTransfer.Forwarding.Unwind = true
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -398,7 +409,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-3"},
 				)
-				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
+				transferAuthz.Allocations[0].AllowedForwarding.AllowedHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
@@ -419,7 +430,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
 					types.Hop{PortId: "3", ChannelId: "channel-3"},
 				)
-				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
+				transferAuthz.Allocations[0].AllowedForwarding.AllowedHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
@@ -452,7 +463,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
 					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
 				)
-				transferAuthz.Allocations[0].AllowedForwardingHops = []types.Hops{
+				transferAuthz.Allocations[0].AllowedForwarding.AllowedHops = []types.Hops{
 					{
 						Hops: []types.Hop{
 							{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
@@ -460,6 +471,18 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 						},
 					},
 				}
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().False(res.Accept)
+			},
+		},
+
+		{
+			"failure: unwind is not allowed",
+			func() {
+				msgTransfer.Forwarding.Unwind = true
+				transferAuthz.Allocations[0].AllowedForwarding.AllowUnwind = false
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)

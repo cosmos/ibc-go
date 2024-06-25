@@ -53,8 +53,8 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
-	if !isAllowedForwarding(msgTransfer.Forwarding.Hops, a.Allocations[index].AllowedForwardingHops) {
-		return authz.AcceptResponse{}, errorsmod.Wrap(ErrInvalidForwarding, "not allowed forwarding hops")
+	if err := validateForwarding(msgTransfer.Forwarding, a.Allocations[index].AllowedForwarding); err != nil {
+		return authz.AcceptResponse{}, err
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -168,6 +168,19 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 		}
 	}
 	return false
+}
+
+// validateForwarding performs the validation of forwarding info.
+func validateForwarding(forwarding Forwarding, allowedForwarding AllowedForwarding) error {
+	if forwarding.Unwind && !allowedForwarding.AllowUnwind {
+		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed unwind")
+	}
+
+	if !isAllowedForwarding(forwarding.Hops, allowedForwarding.AllowedHops) {
+		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed hops")
+	}
+
+	return nil
 }
 
 // isAllowedForwarding returns whether the provided slice of Hop matches one of the allowed ones.
