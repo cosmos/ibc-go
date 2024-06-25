@@ -235,7 +235,7 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 			channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
 			s.Require().NoError(err)
 
-			s.channels[s.T().Name()][c] = channels
+			s.channels[s.T().Name()][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
 
 			err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, channels)
 			s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
@@ -734,7 +734,7 @@ func ThreeChainSetup() ChainOptionConfiguration {
 	}
 }
 
-// DefaultChainOptions returns the default chain options for the test suite based on the provided chains.
+// defaultChannelOpts returns the default chain options for the test suite based on the provided chains.
 func defaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
 	channelOptions := ibc.DefaultChannelOpts()
 	channelOptions.Version = determineDefaultTransferVersion(chains)
