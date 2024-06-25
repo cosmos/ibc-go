@@ -69,14 +69,9 @@ func NewMsgTransfer(
 // NOTE: The recipient addresses format is not validated as the format defined by
 // the chain is not known to IBC.
 func (msg MsgTransfer) ValidateBasic() error {
-	if msg.ShouldBeForwarded() {
-		if err := msg.validateForwarding(); err != nil {
-			return err
-		}
+	if err := msg.validateForwarding(); err != nil {
+		return err
 	}
-	// We might still enter here if len(hops) > 0
-	// but unwind is false. In that case we need to validate
-	// source port and channel IDs.
 	if !msg.Forwarding.Unwind {
 		// We verify that portID and channelID are valid IDs only if
 		// we are not setting unwind to true.
@@ -126,6 +121,9 @@ func (msg MsgTransfer) ValidateBasic() error {
 }
 
 func (msg MsgTransfer) validateForwarding() error {
+	if !msg.ShouldBeForwarded() {
+		return nil
+	}
 	if err := msg.Forwarding.Validate(); err != nil {
 		return err
 	}
