@@ -73,7 +73,11 @@ func (msg MsgTransfer) ValidateBasic() error {
 		if err := msg.validateForwarding(); err != nil {
 			return err
 		}
-	} else if !msg.Forwarding.Unwind {
+	}
+	// We might still enter here if len(hops) > 0
+	// but unwind is false. In that case we need to validate
+	// source port and channel IDs.
+	if !msg.Forwarding.Unwind {
 		// We verify that portID and channelID are valid IDs only if
 		// we are not setting unwind to true.
 		// In that case, validation that they are empty is performed in
