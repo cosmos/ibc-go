@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			tokensBz, err := json.Marshal(types.Tokens(tokens))
 			suite.Require().NoError(err)
 
-			forwardingBz, err := json.Marshal(msg.Forwarding)
+			forwardingHopsBz, err := json.Marshal(msg.Forwarding.Hops)
 			suite.Require().NoError(err)
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 					sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 					sdk.NewAttribute(types.AttributeKeyTokens, string(tokensBz)),
 					sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-					sdk.NewAttribute(types.AttributeKeyForwarding, string(forwardingBz)),
+					sdk.NewAttribute(types.AttributeKeyForwardingHops, string(forwardingHopsBz)),
 				),
 				sdk.NewEvent(
 					sdk.EventTypeMessage,
