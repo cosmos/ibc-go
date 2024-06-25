@@ -341,51 +341,6 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains 
 	return ic
 }
 
-func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.Chain, channelOpts func(*ibc.CreateChannelOptions), buildOptions ...func(options *interchaintest.InterchainBuildOptions)) ibc.Relayer {
-	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
-
-	pathName := s.generatePathName()
-
-	channelOptions := defaultChannelOpts([]ibc.Chain{chainA, chainB})
-	if channelOpts != nil {
-		channelOpts(&channelOptions)
-	}
-
-	ic := interchaintest.NewInterchain().
-		AddChain(chainA).
-		AddChain(chainB).
-		AddRelayer(r, "r").
-		AddLink(interchaintest.InterchainLink{
-			Chain1:            chainA,
-			Chain2:            chainB,
-			Relayer:           r,
-			Path:              pathName,
-			CreateChannelOpts: channelOptions,
-		})
-
-	buildOpts := interchaintest.InterchainBuildOptions{
-		TestName:  s.T().Name(),
-		Client:    s.DockerClient,
-		NetworkID: s.network,
-	}
-
-	for _, opt := range buildOptions {
-		opt(&buildOpts)
-	}
-
-	eRep := s.GetRelayerExecReporter()
-	s.Require().NoError(ic.Build(ctx, eRep, buildOpts))
-
-	s.startRelayerFn = func(relayer ibc.Relayer) {
-		err := relayer.StartRelayer(ctx, eRep, pathName)
-		s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
-		// wait for relayer to start.
-		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
-	}
-
-	return r
-}
-
 // generatePathName generates the path name using the test suites name
 func (s *E2ETestSuite) generatePathName() string {
 	pathName := GetPathName(s.pathNameIndex)
