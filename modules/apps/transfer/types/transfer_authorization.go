@@ -175,7 +175,7 @@ func isAllowedForwarding(hops []Hop, allowed []Hops) bool {
 		return true
 	}
 
-	// We want to ensure that at least one of the Hops in allowed
+	// We want to ensure that at least one of the Hops in "allowed"
 	// is equal to "hops".
 	// Note that we can't use slices.Contains() as that is a generic
 	// function that requires the type Hop to satisfy the "comparable" constraint.
