@@ -11,7 +11,7 @@ import (
 
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
-	v2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -70,14 +70,12 @@ func (mp MerklePrefix) Empty() bool {
 var _ exported.Path = (*MerklePath)(nil)
 
 // NewMerklePath creates a new MerklePath instance
-// The keys must be passed in from root-to-leaf order
-func NewMerklePath(keyPath ...[]byte) v2.MerklePath {
-	return v2.MerklePath{
-		KeyPath: keyPath,
-	}
-}
+// The keys must be passed in from root-to-leaf order.
+// NOTE: NewMerklePath returns a commitment/v2 MerklePath.
+var NewMerklePath = v2.NewMerklePath
 
 // GetKey will return a byte representation of the key
+// Deprecated: Please use commitment/v2 MerklePath instead.
 func (mp MerklePath) GetKey(i uint64) (string, error) {
 	if i >= uint64(len(mp.KeyPath)) {
 		return "", fmt.Errorf("index out of range. %d (index) >= %d (len)", i, len(mp.KeyPath))
@@ -86,6 +84,7 @@ func (mp MerklePath) GetKey(i uint64) (string, error) {
 }
 
 // Empty returns true if the path is empty
+// Deprecated: Please use commitment/v2 MerklePath instead.
 func (mp MerklePath) Empty() bool {
 	return len(mp.KeyPath) == 0
 }
