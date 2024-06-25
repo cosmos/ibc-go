@@ -224,49 +224,46 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			// Appending token. The new denom has been computed
 			receivedCoins = append(receivedCoins, coin)
+		} else {
+			// sender chain is the source, mint vouchers
 
-			// Continue processing rest of tokens in packet data.
-			continue
+			// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
+			trace := []types.Trace{types.NewTrace(packet.DestinationPort, packet.DestinationChannel)}
+			token.Denom.Trace = append(trace, token.Denom.Trace...)
+
+			if !k.HasDenom(ctx, token.Denom.Hash()) {
+				k.SetDenom(ctx, token.Denom)
+			}
+
+			voucherDenom := token.Denom.IBCDenom()
+			if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
+				k.setDenomMetadata(ctx, token.Denom)
+			}
+
+			events.EmitDenomEvent(ctx, token)
+
+			voucher := sdk.NewCoin(voucherDenom, transferAmount)
+
+			// mint new tokens if the source of the transfer is the same chain
+			if err := k.bankKeeper.MintCoins(
+				ctx, types.ModuleName, sdk.NewCoins(voucher),
+			); err != nil {
+				return errorsmod.Wrap(err, "failed to mint IBC tokens")
+			}
+
+			// send to receiver
+			if err := k.bankKeeper.SendCoinsFromModuleToAccount(
+				ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
+			); err != nil {
+				return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
+			}
+
+			denomPath := token.Denom.Path()
+			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
+			defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
+
+			receivedCoins = append(receivedCoins, voucher)
 		}
-
-		// sender chain is the source, mint vouchers
-
-		// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
-		trace := []types.Trace{types.NewTrace(packet.DestinationPort, packet.DestinationChannel)}
-		token.Denom.Trace = append(trace, token.Denom.Trace...)
-
-		if !k.HasDenom(ctx, token.Denom.Hash()) {
-			k.SetDenom(ctx, token.Denom)
-		}
-
-		voucherDenom := token.Denom.IBCDenom()
-		if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
-			k.setDenomMetadata(ctx, token.Denom)
-		}
-
-		events.EmitDenomEvent(ctx, token)
-
-		voucher := sdk.NewCoin(voucherDenom, transferAmount)
-
-		// mint new tokens if the source of the transfer is the same chain
-		if err := k.bankKeeper.MintCoins(
-			ctx, types.ModuleName, sdk.NewCoins(voucher),
-		); err != nil {
-			return errorsmod.Wrap(err, "failed to mint IBC tokens")
-		}
-
-		// send to receiver
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
-			ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
-		); err != nil {
-			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
-		}
-
-		denomPath := token.Denom.Path()
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
-		defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
-
-		receivedCoins = append(receivedCoins, voucher)
 	}
 
 	if data.ShouldBeForwarded() {
