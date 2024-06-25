@@ -12,6 +12,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -124,7 +125,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 }
 
 // construct MerklePath for the committed client from upgradePath
-func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypes.MerklePath {
+func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypesv2.MerklePath {
 	// copy all elements from upgradePath except final element
 	clientPath := make([]string, len(upgradePath)-1)
 	copy(clientPath, upgradePath)
@@ -145,7 +146,7 @@ func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.
 }
 
 // construct MerklePath for the committed consensus state from upgradePath
-func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypes.MerklePath {
+func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypesv2.MerklePath {
 	// copy all elements from upgradePath except final element
 	consPath := make([]string, len(upgradePath)-1)
 	copy(consPath, upgradePath)
