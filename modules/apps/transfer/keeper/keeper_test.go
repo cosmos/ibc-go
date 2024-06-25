@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"fmt"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -14,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
