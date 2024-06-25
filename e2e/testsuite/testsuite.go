@@ -174,55 +174,70 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 // SetupTest will by default use the default channel options to create a path between the chains.
 // if non default channel options are required, the test suite must override the `SetupTest` function.
 func (s *E2ETestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), defaultChannelOpts(s.GetAllChains()))
+	s.SetupPaths(ibc.DefaultClientOpts(), defaultChannelOpts(s.GetAllChains()))
 }
 
-// SetupPath creates a path between the chains using the provided client and channel options.
-func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
+// SetupPaths creates paths between the chains using the provided client and channel options.
+// The paths are created such that ChainA is connected to ChainB, ChainB is connected to ChainC etc.
+func (s *E2ETestSuite) SetupPaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
 	s.T().Logf("Setting up path for: %s", s.T().Name())
-	r := s.relayer
 
 	ctx := context.TODO()
 	allChains := s.GetAllChains()
 	for i := 0; i < len(allChains)-1; i++ {
 		chainA, chainB := allChains[i], allChains[i+1]
-		pathName := s.generatePathName()
-		s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
-
-		err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
-		s.Require().NoError(err)
-
-		// Create new clients
-		err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		channelsA, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		s.Require().NoError(err)
-
-		channelsB, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
-		s.Require().NoError(err)
-
-		if s.channels[s.T().Name()] == nil {
-			s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
-		}
-
-		// keep track of channels associated with a given chain for access within the tests.
-		s.channels[s.T().Name()][chainA] = channelsA
-		s.channels[s.T().Name()][chainB] = channelsB
-		s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
+		_, _ = s.CreatePath(ctx, chainA, chainB, clientOpts, channelOpts)
 	}
+}
+
+func (s *E2ETestSuite) CreatePath(
+	ctx context.Context,
+	chainA ibc.Chain,
+	chainB ibc.Chain,
+	clientOpts ibc.CreateClientOptions,
+	channelOpts ibc.CreateChannelOptions,
+) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
+	r := s.relayer
+
+	pathName := s.generatePathName()
+	s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+
+	err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+	s.Require().NoError(err)
+
+	// Create new clients
+	err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	channelsA, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+	s.Require().NoError(err)
+
+	channelsB, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
+	s.Require().NoError(err)
+
+	if s.channels[s.T().Name()] == nil {
+		s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
+	}
+
+	// keep track of channels associated with a given chain for access within the tests.
+	s.channels[s.T().Name()][chainA] = channelsA
+	s.channels[s.T().Name()][chainB] = channelsB
+
+	s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
+
+	return channelsA[len(channelsA)-1], channelsB[len(channelsB)-1]
 }
 
 // GetChainAChannel returns the ibc.ChannelOutput for the current test.
@@ -324,51 +339,6 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, r ibc.Relayer, chains 
 	}
 
 	return ic
-}
-
-func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.Chain, channelOpts func(*ibc.CreateChannelOptions), buildOptions ...func(options *interchaintest.InterchainBuildOptions)) ibc.Relayer {
-	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
-
-	pathName := s.generatePathName()
-
-	channelOptions := defaultChannelOpts([]ibc.Chain{chainA, chainB})
-	if channelOpts != nil {
-		channelOpts(&channelOptions)
-	}
-
-	ic := interchaintest.NewInterchain().
-		AddChain(chainA).
-		AddChain(chainB).
-		AddRelayer(r, "r").
-		AddLink(interchaintest.InterchainLink{
-			Chain1:            chainA,
-			Chain2:            chainB,
-			Relayer:           r,
-			Path:              pathName,
-			CreateChannelOpts: channelOptions,
-		})
-
-	buildOpts := interchaintest.InterchainBuildOptions{
-		TestName:  s.T().Name(),
-		Client:    s.DockerClient,
-		NetworkID: s.network,
-	}
-
-	for _, opt := range buildOptions {
-		opt(&buildOpts)
-	}
-
-	eRep := s.GetRelayerExecReporter()
-	s.Require().NoError(ic.Build(ctx, eRep, buildOpts))
-
-	s.startRelayerFn = func(relayer ibc.Relayer) {
-		err := relayer.StartRelayer(ctx, eRep, pathName)
-		s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
-		// wait for relayer to start.
-		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
-	}
-
-	return r
 }
 
 // generatePathName generates the path name using the test suites name
