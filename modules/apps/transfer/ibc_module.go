@@ -191,9 +191,7 @@ func (im IBCModule) OnRecvPacket(
 
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	defer func() {
-		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
-	}()
+	defer events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 
 	data, ackErr = im.getICS20PacketData(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 	if ackErr != nil {
