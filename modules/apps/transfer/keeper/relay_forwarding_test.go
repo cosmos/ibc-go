@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() 
 	amount := sdkmath.NewInt(100)
 	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
-	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	coin := ibctesting.TestCoin
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
 	forwarding := types.NewForwarding(false, types.Hop{
@@ -131,7 +131,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	path2 := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 	path2.Setup()
 
-	coinOnA := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	coinOnA := ibctesting.TestCoin
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
 	forwarding := types.NewForwarding(false, types.Hop{
@@ -387,7 +387,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 
 	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
-	coinOnB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	coinOnB := ibctesting.TestCoin
 	setupSender := suite.chainB.SenderAccounts[0].SenderAccount
 	setupReceiver := suite.chainC.SenderAccounts[0].SenderAccount
 
@@ -561,7 +561,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
 	// Now we start the transfer from C -> B -> A
-	coinOnC := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	coinOnC := ibctesting.TestCoin
 	sender := suite.chainC.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[0].SenderAccount
 
@@ -674,7 +674,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
 	amount := sdkmath.NewInt(100)
-	coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	coin := ibctesting.TestCoin
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
 
