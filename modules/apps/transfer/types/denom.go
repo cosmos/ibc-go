@@ -76,24 +76,15 @@ func (d Denom) IsNative() bool {
 	return len(d.Trace) == 0
 }
 
-// SenderChainIsSource returns false if the denomination originally came
-// from the receiving chain and true otherwise.
-func (d Denom) SenderChainIsSource(sourcePort, sourceChannel string) bool {
-	// sender chain is source, if the receiver is not source
-	return !d.ReceiverChainIsSource(sourcePort, sourceChannel)
-}
-
-// ReceiverChainIsSource returns true if the denomination originally came
-// from the receiving chain and false otherwise.
-func (d Denom) ReceiverChainIsSource(sourcePort, sourceChannel string) bool {
-	// if the denom is native, then the receiver chain cannot be source
+// HasPrefix returns true if first element of the trace of the denom
+// matches the provided portId and channelId.
+func (d Denom) HasPrefix(portId, channelId string) bool {
+	// if the denom is native, then it is not prefixed by any port/channel pair
 	if d.IsNative() {
 		return false
 	}
 
-	// if the receiver chain originally sent the token to the sender chain, then the first element of
-	// the denom's trace (latest trace) will contain the SourcePort and SourceChannel.
-	return d.Trace[0].PortId == sourcePort && d.Trace[0].ChannelId == sourceChannel
+	return d.Trace[0].PortId == portId && d.Trace[0].ChannelId == channelId
 }
 
 // Denoms defines a wrapper type for a slice of Denom.

@@ -115,7 +115,7 @@ func (k Keeper) sendTransfer(
 		// chain inside the packet data. The receiving chain will perform denom
 		// prefixing as necessary.
 
-		if token.Denom.SenderChainIsSource(sourcePort, sourceChannel) {
+		if !token.Denom.HasPrefix(sourcePort, sourceChannel) {
 			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 
 			// obtain the escrow address for the source channel end
@@ -201,7 +201,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		// NOTE: We use SourcePort and SourceChannel here, because the counterparty
 		// chain would have prefixed with DestPort and DestChannel when originally
 		// receiving this coin as seen in the "sender chain is the source" condition.
-		if token.Denom.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel()) {
+		if token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
 			// sender chain is not the source, unescrow tokens
 
 			// remove prefix added by sender chain
@@ -347,7 +347,7 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 			return err
 		}
 
-		if token.Denom.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel()) {
+		if !token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
 			// unescrow tokens back to sender
 			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
 			if err := k.unescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
