@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -349,4 +350,38 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	ics4Wrapper = suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
 	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
+}
+
+func (suite *KeeperTestSuite) TestIsBlockedAddr() {
+	suite.SetupTest()
+
+	testCases := []struct {
+		name     string
+		addr     sdk.AccAddress
+		expBlock bool
+	}{
+		{
+			"transfer module account address",
+			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName),
+			false,
+		},
+		{
+			"regular address",
+			suite.chainA.SenderAccount.GetAddress(),
+			false,
+		},
+		{
+			"blocked address",
+			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName),
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(tc.expBlock, suite.chainA.GetSimApp().TransferKeeper.IsBlockedAddr(tc.addr))
+		})
+	}
 }

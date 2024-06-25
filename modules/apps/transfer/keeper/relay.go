@@ -129,9 +129,8 @@ func (k Keeper) sendTransfer(
 			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
 			// transfer the coins to the module account and burn them
-			moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName) // TODO: Change
-			if err := k.bankKeeper.SendCoins(
-				ctx, sender, moduleAccountAddr, sdk.NewCoins(coin),
+			if err := k.bankKeeper.SendCoinsFromAccountToModule(
+				ctx, sender, types.ModuleName, sdk.NewCoins(coin),
 			); err != nil {
 				return 0, err
 			}
@@ -183,11 +182,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
-	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
-	if moduleAddr == nil {
-		return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName)
-	}
-
 	var receivedCoins sdk.Coins
 	for _, token := range data.Tokens {
 		labels := []metrics.Label{
@@ -216,7 +210,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-			if !receiver.Equals(moduleAddr) && k.bankKeeper.BlockedAddr(receiver) {
+			if k.IsBlockedAddr(receiver) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 
@@ -263,8 +257,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		// send to receiver
-		if !receiver.Equals(moduleAddr) && k.bankKeeper.BlockedAddr(receiver) {
+		if k.IsBlockedAddr(receiver) {
 			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+		}
+		moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+		if moduleAddr == nil {
+			return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName)
 		}
 		if err := k.bankKeeper.SendCoins(
 			ctx, moduleAddr, receiver, sdk.NewCoins(voucher),
@@ -376,8 +374,8 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 			return err
 		}
 
-		if !sender.Equals(moduleAccountAddr) && k.bankKeeper.BlockedAddr(sender) {
-			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
+		if k.IsBlockedAddr(sender) {
+			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 		}
 		if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
 			panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
