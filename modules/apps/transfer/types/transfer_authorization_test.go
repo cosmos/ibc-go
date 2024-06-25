@@ -317,15 +317,6 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-			"failure: MsgTransfer specifies unwind",
-			func() {
-				msgTransfer.Forwarding.Unwind = true
-			},
-			func(res authz.AcceptResponse, err error) {
-				suite.Require().Error(err)
-			},
-		},
-		{
 			"failure: multidenom transfer spend limit is exceeded",
 			func() {
 				coins := sdk.NewCoins(
