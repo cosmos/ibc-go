@@ -18,17 +18,8 @@ func NewForwarding(unwind bool, hops ...Hop) Forwarding {
 
 // Validate performs a basic validation of the Forwarding fields.
 func (fi Forwarding) Validate() error {
-	if len(fi.Hops) > MaximumNumberOfForwardingHops {
-		return errorsmod.Wrapf(ErrInvalidForwarding, "number of hops in forwarding cannot exceed %d", MaximumNumberOfForwardingHops)
-	}
-
-	for _, hop := range fi.Hops {
-		if err := host.PortIdentifierValidator(hop.PortId); err != nil {
-			return errorsmod.Wrapf(err, "invalid hop source port ID %s", hop.PortId)
-		}
-		if err := host.ChannelIdentifierValidator(hop.ChannelId); err != nil {
-			return errorsmod.Wrapf(err, "invalid source channel ID %s", hop.ChannelId)
-		}
+	if err := ValidateHops(fi.Hops); err != nil {
+		return errorsmod.Wrapf(ErrInvalidForwarding, "invalid hops in forwarding")
 	}
 
 	return nil
@@ -44,8 +35,8 @@ func NewForwardingPacketData(destinationMemo string, hops ...Hop) ForwardingPack
 
 // Validate performs a basic validation of the ForwardingPacketData fields.
 func (fi ForwardingPacketData) Validate() error {
-	if len(fi.Hops) > MaximumNumberOfForwardingHops {
-		return errorsmod.Wrapf(ErrInvalidForwarding, "number of hops in forwarding packet data cannot exceed %d", MaximumNumberOfForwardingHops)
+	if err := ValidateHops(fi.Hops); err != nil {
+		return errorsmod.Wrapf(ErrInvalidForwarding, "invalid hops in forwarding packet data")
 	}
 
 	if len(fi.DestinationMemo) > MaximumMemoLength {
@@ -56,13 +47,29 @@ func (fi ForwardingPacketData) Validate() error {
 		return errorsmod.Wrap(ErrInvalidForwarding, "memo specified when forwarding packet data hops is empty")
 	}
 
-	for _, hop := range fi.Hops {
-		if err := host.PortIdentifierValidator(hop.PortId); err != nil {
-			return errorsmod.Wrapf(err, "invalid source port ID %s", hop.PortId)
+	return nil
+}
+
+func ValidateHops(hops []Hop) error {
+	if len(hops) > MaximumNumberOfForwardingHops {
+		return errorsmod.Wrapf(ErrInvalidForwarding, "number of hops cannot exceed %d", MaximumNumberOfForwardingHops)
+	}
+
+	for _, hop := range hops {
+		if err := hop.Validate(); err != nil {
+			return err
 		}
-		if err := host.ChannelIdentifierValidator(hop.ChannelId); err != nil {
-			return errorsmod.Wrapf(err, "invalid source channel ID %s", hop.ChannelId)
-		}
+	}
+
+	return nil
+}
+
+func (h Hop) Validate() error {
+	if err := host.PortIdentifierValidator(h.PortId); err != nil {
+		return errorsmod.Wrapf(err, "invalid hop source port ID %s", h.PortId)
+	}
+	if err := host.ChannelIdentifierValidator(h.ChannelId); err != nil {
+		return errorsmod.Wrapf(err, "invalid source channel ID %s", h.ChannelId)
 	}
 
 	return nil
