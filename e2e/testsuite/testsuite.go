@@ -235,6 +235,7 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 			channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
 			s.Require().NoError(err)
 
+			// only the most recent channel is relevant.
 			s.channels[s.T().Name()][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
 
 			err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, channels)
