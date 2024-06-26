@@ -147,7 +147,10 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwarding.Hops)
+	packetDataBytes, err := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwarding.Hops)
+	if err != nil {
+		return 0, err
+	}
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
@@ -438,8 +441,7 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 }
 
 // createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
-func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) []byte {
-	var packetDataBytes []byte
+func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) ([]byte, error) {
 	switch appVersion {
 	case types.V1:
 		// Sanity check, tokens must always be of length 1 if using app version V1.
@@ -449,7 +451,12 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 
 		token := tokens[0]
 		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender, receiver, memo)
-		packetDataBytes = packetData.GetBytes()
+
+		if err := packetData.ValidateBasic(); err != nil {
+			return nil, errorsmod.Wrapf(err, "failed to validate %s packet data", types.V1)
+		}
+
+		return packetData.GetBytes(), nil
 	case types.V2:
 		// If forwarding is needed, move memo to forwarding packet data and set packet.Memo to empty string.
 		var forwardingPacketData types.ForwardingPacketData
@@ -459,12 +466,15 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 		}
 
 		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo, forwardingPacketData)
-		packetDataBytes = packetData.GetBytes()
+
+		if err := packetData.ValidateBasic(); err != nil {
+			return nil, errorsmod.Wrapf(err, "failed to validate %s packet data", types.V2)
+		}
+
+		return packetData.GetBytes(), nil
 	default:
 		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
 	}
-
-	return packetDataBytes
 }
 
 // burnCoin sends coins from the account to the transfer module account and then burn them.
