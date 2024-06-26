@@ -11,6 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
@@ -179,7 +180,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return types.ErrReceiveDisabled
 	}
 
-	receiver, err := getReceiverFromPacketData(data, packet.DestinationPort, packet.DestinationChannel)
+	receiver, err := k.getReceiverFromPacketData(data)
 	if err != nil {
 		return err
 	}
@@ -212,7 +213,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-			if k.bankKeeper.BlockedAddr(receiver) {
+			if k.IsBlockedAddr(receiver) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 
@@ -259,8 +260,15 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		// send to receiver
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
-			ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
+		if k.IsBlockedAddr(receiver) {
+			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+		}
+		moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+		if moduleAddr == nil {
+			return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName)
+		}
+		if err := k.bankKeeper.SendCoins(
+			ctx, moduleAddr, receiver, sdk.NewCoins(voucher),
 		); err != nil {
 			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 		}
@@ -339,6 +347,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
+	moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()
 		if err != nil {
@@ -368,7 +377,10 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 			return err
 		}
 
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(coin)); err != nil {
+		if k.IsBlockedAddr(sender) {
+			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+		}
+		if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
 			panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 		}
 	}

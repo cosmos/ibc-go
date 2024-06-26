@@ -957,7 +957,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().True(found, "Chain B has no forwarded packet")
 	suite.Require().Equal(packet, forwardedPacket, "ForwardedPacket stored in ChainB is not the same that was sent")
 
-	address := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel).String()
+	address := suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
