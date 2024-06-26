@@ -219,6 +219,85 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	suite.Require().NoError(err)
 }
 
+// TestSuccessfulPathForwarding tests that a packet is successfully forwarded with a non-Cosmos account address.
+// The test stops before verifying the final receive, because we don't have a non-cosmos chain to test with.
+func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
+	/*
+		Given the following topology:
+		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
+		stake                  transfer/channel-0/stake           transfer/channel-0/transfer/channel-0/stake
+		We want to trigger:
+			1. A sends B over channel-0.
+			2. Receive on B.
+				2.1 B sends C over channel-1
+			3. Receive on C.
+		At this point we want to assert:
+			A: packet gets relayed properly with final receiver intact
+			B: packet arrives and is forwarded with final receiver intact
+			C: no assertions as we don't have a non-cosmos chain to test with, so this would fail here
+	*/
+
+	amount := sdkmath.NewInt(100)
+
+	pathAtoB, pathBtoC := suite.setupForwardingPaths()
+
+	sender := suite.chainA.SenderAccounts[0].SenderAccount
+	nonCosmosReceiver := "0x42069163Ac5919fD49e6A67e6c211E0C86397fa2"
+	forwarding := types.NewForwarding(false, types.Hop{
+		PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
+		ChannelId: pathBtoC.EndpointA.ChannelID,
+	})
+
+	transferMsg := types.NewMsgTransfer(
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		sdk.NewCoins(ibctesting.TestCoin),
+		sender.GetAddress().String(),
+		nonCosmosReceiver,
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
+		forwarding,
+	)
+
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	// parse the packet from result events and recv packet on chainB
+	packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromAtoB)
+
+	// Check that the token sent from A has final receiver intact
+	var tokenPacketOnA types.FungibleTokenPacketDataV2
+	err = suite.chainA.Codec.UnmarshalJSON(packetFromAtoB.Data, &tokenPacketOnA)
+	suite.Require().NoError(err)
+	suite.Require().Equal(nonCosmosReceiver, tokenPacketOnA.Receiver)
+
+	err = pathAtoB.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Check that Escrow A has amount
+	suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
+
+	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromBtoC)
+
+	// Check that the token sent from B has final receiver intact
+	var tokenPacketOnB types.FungibleTokenPacketDataV2
+	err = suite.chainB.Codec.UnmarshalJSON(packetFromBtoC.Data, &tokenPacketOnB)
+	suite.Require().NoError(err)
+	suite.Require().Equal(nonCosmosReceiver, tokenPacketOnB.Receiver)
+
+	// B should have stored the forwarded packet.
+	_, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), packetFromBtoC.SourcePort, packetFromBtoC.SourceChannel, packetFromBtoC.Sequence)
+	suite.Require().True(found, "Chain B should have stored the forwarded packet")
+}
+
 // TestSuccessfulUnwind tests unwinding of tokens sent from A -> B -> C by
 // forwarding the tokens back from C -> B -> A.
 func (suite *KeeperTestSuite) TestSuccessfulUnwind() {
