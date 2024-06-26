@@ -411,7 +411,7 @@ message MsgChannelUpgradeTimeout {
   string                    signer               = 6;
 }
 
-// MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
+// MsgChannelUpgradeTimeoutResponse defines the MsgChannelUpgradeTimeout response type
 message MsgChannelUpgradeTimeoutResponse {}
 
 // MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rpc
