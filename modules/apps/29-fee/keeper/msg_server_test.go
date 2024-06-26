@@ -174,7 +174,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 			counterpartyPayee, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyPayeeAddress(
 				suite.chainA.GetContext(),
 				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.path.EndpointB.ChannelID,
+				ibctesting.FirstChannelID,
 			)
 
 			suite.Require().True(found)

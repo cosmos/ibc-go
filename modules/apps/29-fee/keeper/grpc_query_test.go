@@ -690,8 +690,8 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 		{
 			"success: pagination with multiple fee enabled channels",
 			func() {
-				startIdx := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
-				for i := startIdx + 1; i < 10; i++ {
+				// start at index 1, as channel-0 is already added to expFeeEnabledChannels below
+				for i := 1; i < 10; i++ {
 					channelID := channeltypes.FormatChannelIdentifier(uint64(i))
 					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, channelID)
 
