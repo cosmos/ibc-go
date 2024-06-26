@@ -130,7 +130,7 @@ func (msg MsgTransfer) validateForwarding() error {
 
 	if !msg.TimeoutHeight.IsZero() {
 		// when forwarding, the timeout height must not be set
-		return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must not be set if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.Hops)
+		return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must be zero if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.Hops)
 	}
 
 	if msg.Forwarding.Unwind {
