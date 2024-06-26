@@ -170,12 +170,12 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 }
 
 // validateForwarding performs the validation of forwarding info.
-func validateForwarding(forwarding Forwarding, allowedForwarding AllowedForwarding) error {
-	if forwarding.Unwind && !allowedForwarding.AllowUnwind {
-		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed unwind")
+func validateForwarding(forwarding Forwarding, allowedForwarding []AllowedForwarding) error {
+	if forwarding.Unwind {
+		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed automatic unwind")
 	}
 
-	if !isAllowedForwarding(forwarding.Hops, allowedForwarding.AllowedHops) {
+	if !isAllowedForwarding(forwarding.Hops, allowedForwarding) {
 		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed hops")
 	}
 
@@ -183,7 +183,7 @@ func validateForwarding(forwarding Forwarding, allowedForwarding AllowedForwardi
 }
 
 // isAllowedForwarding returns whether the provided slice of Hop matches one of the allowed ones.
-func isAllowedForwarding(hops []Hop, allowed []Hops) bool {
+func isAllowedForwarding(hops []Hop, allowed []AllowedForwarding) bool {
 	if len(hops) == 0 {
 		return true
 	}
