@@ -243,24 +243,19 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 	amount := sdkmath.NewInt(100)
 
-	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	path1.Setup()
+	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
-	path2 := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-	path2.Setup()
-
-	coinOnA := ibctesting.TestCoin
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	nonCosmosReceiver := "0x42069163Ac5919fD49e6A67e6c211E0C86397fa2"
 	forwarding := types.NewForwarding(false, types.Hop{
-		PortId:    path2.EndpointA.ChannelConfig.PortID,
-		ChannelId: path2.EndpointA.ChannelID,
+		PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
+		ChannelId: pathBtoC.EndpointA.ChannelID,
 	})
 
 	transferMsg := types.NewMsgTransfer(
-		path1.EndpointA.ChannelConfig.PortID,
-		path1.EndpointA.ChannelID,
-		sdk.NewCoins(coinOnA),
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		sdk.NewCoins(ibctesting.TestCoin),
 		sender.GetAddress().String(),
 		nonCosmosReceiver,
 		clienttypes.ZeroHeight(),
@@ -282,10 +277,10 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(nonCosmosReceiver, tokenPacketOnA.Receiver)
 
-	err = path1.EndpointB.UpdateClient()
+	err = pathAtoB.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	result, err = path1.EndpointB.RecvPacketWithResult(packetFromAtoB)
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
