@@ -113,6 +113,7 @@ func (m *MerklePrefix) GetKeyPrefix() []byte {
 // MerklePath is the path used to verify commitment proofs, which can be an
 // arbitrary structured object (defined by a commitment type).
 // MerklePath is represented from root-to-leaf
+// Deprecated: Please use commitment/v2 MerklePath instead which supports non UTF-8 key paths.
 type MerklePath struct {
 	KeyPath []string `protobuf:"bytes,1,rep,name=key_path,json=keyPath,proto3" json:"key_path,omitempty"`
 }
