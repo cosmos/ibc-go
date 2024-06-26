@@ -71,9 +71,9 @@ We reserve the right to drop support for releases if they are deemed unused (for
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v7.4.x`|March 17, 2024|
-|`v7.5.x`|March 17, 2024|
-|`v7.6.x`|March 17, 2024|
+|`v7.4.x`|March 17, 2025|
+|`v7.5.x`|March 17, 2025|
+|`v7.6.x`|March 17, 2025|
 |`v8.2.x`|May 10, 2025|
 |`v8.3.x`|May 10, 2025|
 
