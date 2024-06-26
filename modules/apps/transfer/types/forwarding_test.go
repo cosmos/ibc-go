@@ -253,7 +253,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 	}
 }
 
-func TestHop_Validate(t *testing.T) {
+func TestValidateHop(t *testing.T) {
 	tests := []struct {
 		name     string
 		hop      types.Hop
