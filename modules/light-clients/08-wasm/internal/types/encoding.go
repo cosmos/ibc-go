@@ -9,12 +9,13 @@ import (
 
 // IsValidUTF8 returns true if the provided key path bytes contain valid utf8 encoded runes.
 func IsValidUTF8(keyPath [][]byte) bool {
-	var key []byte
 	for _, bz := range keyPath {
-		key = append(key, bz...)
+		if !utf8.Valid(bz) {
+			return false
+		}
 	}
 
-	return utf8.Valid(key)
+	return true
 }
 
 // ToLegacyMerklePath converts a v2 23-commitment MerklePath to a v1 23-commitment MerklePath.
