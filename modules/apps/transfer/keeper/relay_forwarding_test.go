@@ -219,6 +219,146 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	suite.Require().NoError(err)
 }
 
+// TestSuccessfulPathForwarding tests a successful transfer from A to C through B with a memo that should arrive at C.
+func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
+	/*
+		Given the following topology:
+		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
+		stake                  transfer/channel-0/stake           transfer/channel-0/transfer/channel-0/stake
+		We want to trigger:
+			1. A sends B over channel-0.
+			2. Receive on B.
+				2.1 B sends C over channel-1
+			3. Receive on C.
+		At this point we want to assert:
+			A: escrowA = amount,stake
+			B: escrowB = amount,transfer/channel-0/denom
+			C: finalReceiver = amount,transfer/channel-0/transfer/channel-0/denom,memo
+	*/
+
+	amount := sdkmath.NewInt(100)
+	testMemo := "test forwarding memo"
+
+	pathAtoB, pathBtoC := suite.setupForwardingPaths()
+
+	coinOnA := ibctesting.TestCoin
+	sender := suite.chainA.SenderAccounts[0].SenderAccount
+	receiver := suite.chainC.SenderAccounts[0].SenderAccount
+	forwarding := types.NewForwarding(false, types.Hop{
+		PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
+		ChannelId: pathBtoC.EndpointA.ChannelID,
+	})
+
+	transferMsg := types.NewMsgTransfer(
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		sdk.NewCoins(coinOnA),
+		sender.GetAddress().String(),
+		receiver.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(),
+		testMemo,
+		forwarding,
+	)
+
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	// parse the packet from result events and recv packet on chainB
+	packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromAtoB)
+
+	err = pathAtoB.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	// Check that the memo is stored correctly in the packet sent from A
+	var tokenPacketOnA types.FungibleTokenPacketDataV2
+	err = suite.chainA.Codec.UnmarshalJSON(packetFromAtoB.Data, &tokenPacketOnA)
+	suite.Require().NoError(err)
+	suite.Require().Equal("", tokenPacketOnA.Memo)
+	suite.Require().Equal(testMemo, tokenPacketOnA.Forwarding.DestinationMemo)
+
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Check that Escrow A has amount
+	suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
+
+	// denom path: transfer/channel-0
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	suite.assertAmountOnChain(suite.chainB, escrow, amount, denom.IBCDenom())
+
+	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromBtoC)
+
+	// Check that the memo is stored correctly in the packet sent from B
+	var tokenPacketOnB types.FungibleTokenPacketDataV2
+	err = suite.chainB.Codec.UnmarshalJSON(packetFromBtoC.Data, &tokenPacketOnB)
+	suite.Require().NoError(err)
+	suite.Require().Equal(testMemo, tokenPacketOnB.Memo)
+	suite.Require().Equal("", tokenPacketOnB.Forwarding.DestinationMemo)
+
+	err = pathBtoC.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathBtoC.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	// B should have stored the forwarded packet.
+	_, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), packetFromBtoC.SourcePort, packetFromBtoC.SourceChannel, packetFromBtoC.Sequence)
+	suite.Require().True(found, "Chain B should have stored the forwarded packet")
+
+	result, err = pathBtoC.EndpointB.RecvPacketWithResult(packetFromBtoC)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	packetOnC, err := ibctesting.ParseRecvPacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetOnC)
+
+	// Check that the memo is stored directly in the memo field on C
+	var tokenPacketOnC types.FungibleTokenPacketDataV2
+	err = suite.chainC.Codec.UnmarshalJSON(packetOnC.Data, &tokenPacketOnC)
+	suite.Require().NoError(err)
+	suite.Require().Equal("", tokenPacketOnC.Forwarding.DestinationMemo)
+	suite.Require().Equal(testMemo, tokenPacketOnC.Memo)
+
+	// transfer/channel-0/transfer/channel-0/denom
+	// Check that the final receiver has received the expected tokens.
+	denomABC := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID), types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	// Check that the final receiver has received the expected tokens.
+	suite.assertAmountOnChain(suite.chainC, balance, amount, denomABC.IBCDenom())
+
+	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	successAckBz := channeltypes.CommitAcknowledgement(successAck.Acknowledgement())
+	ackOnC := suite.chainC.GetAcknowledgement(packetFromBtoC)
+	suite.Require().Equal(successAckBz, ackOnC)
+
+	// Ack back to B
+	err = pathBtoC.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathBtoC.EndpointA.AcknowledgePacket(packetFromBtoC, successAck.Acknowledgement())
+	suite.Require().NoError(err)
+
+	ackOnB := suite.chainB.GetAcknowledgement(packetFromAtoB)
+	suite.Require().Equal(successAckBz, ackOnB)
+
+	// B should now have deleted the forwarded packet.
+	_, found = suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), packetFromBtoC.SourcePort, packetFromBtoC.SourceChannel, packetFromBtoC.Sequence)
+	suite.Require().False(found, "Chain B should have deleted the forwarded packet")
+
+	// Ack back to A
+	err = pathAtoB.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, successAck.Acknowledgement())
+	suite.Require().NoError(err)
+}
+
 // TestSuccessfulPathForwarding tests that a packet is successfully forwarded with a non-Cosmos account address.
 // The test stops before verifying the final receive, because we don't have a non-cosmos chain to test with.
 func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
