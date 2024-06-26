@@ -31,13 +31,7 @@ function _verify_dependencies() {
 
 # _select_test_config lets you dynamically select a test config for the specific test.
 function _select_test_config() {
-      # if an argument is provided, it is used directly. This enables the drop down selection with fzf.
-      if [ -n "${1:-}" ]; then
-          echo "$1"
-          return
-      else
-          ls -1 dev-configs | fzf
-      fi
+    ls -1 dev-configs | fzf
 }
 
 # _get_test returns the test that should be used in the e2e test. If an argument is provided, that argument
@@ -93,8 +87,6 @@ function run_suite() {
 
   # find the name of the file that has this test in it.
   test_file="$(grep --recursive --files-with-matches './tests' -e "${ENTRY_POINT}")"
-  echo $test_file
-
   test_dir="$(dirname $test_file)"
 
   # TODO: add the -p flag to run tests in parallel

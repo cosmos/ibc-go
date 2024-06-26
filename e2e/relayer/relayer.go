@@ -85,9 +85,9 @@ func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID
 			return fmt.Errorf("failed to find chain with id %s", chainID)
 		}
 
-		var channelIDs [][]string
+		var chanelEndpoints [][]string
 		for _, c := range channels {
-			channelIDs = append(channelIDs, []string{c.PortID, c.ChannelID})
+			chanelEndpoints = append(chanelEndpoints, []string{c.PortID, c.ChannelID})
 		}
 
 		// [chains.packet_filter]
@@ -100,12 +100,12 @@ func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID
 		// TODO(chatton): explicitly enable watching of ICA channels
 		// this will ensure the ICA tests pass, but this will need to be modified to make sure
 		// ICA tests will succeed in parallel.
-		channelIDs = append(channelIDs, []string{"ica*", "*"})
+		chanelEndpoints = append(chanelEndpoints, []string{"ica*", "*"})
 
 		// we explicitly override the full list, this allows this function to provide a complete set of channels to watch.
 		chain["packet_filter"] = map[string]interface{}{
 			"policy": "allow",
-			"list":   channelIDs,
+			"list":   chanelEndpoints,
 		}
 
 		return nil
