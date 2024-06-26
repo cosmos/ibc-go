@@ -24,20 +24,13 @@ message Allocation {
   // a list only with "*" permits any memo string
   repeated string allowed_packet_data = 5;
   // Forwarding options that are allowed.
-  AllowedForwarding allowed_forwarding = 6 [(gogoproto.nullable) = false];
+  repeated AllowedForwarding allowed_forwarding = 6 [(gogoproto.nullable) = false];
 }
 
 // AllowedForwarding defines which options are allowed for forwarding.
 message AllowedForwarding {
-  // Whether to allow automatic unwinding of tokens to the original chain.
-  bool allow_unwind = 1;
   // a list of allowed source port ID/channel ID pairs through which the packet is allowed to be forwarded until final
   // destination
-  repeated Hops allowed_hops = 2 [(gogoproto.nullable) = false];
-}
-
-// Hops represent a list of Hop
-message Hops {
   repeated ibc.applications.transfer.v1.Hop hops = 1 [(gogoproto.nullable) = false];
 }
 
