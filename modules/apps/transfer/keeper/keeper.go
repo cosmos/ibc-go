@@ -341,9 +341,9 @@ func (k Keeper) deleteForwardedPacket(ctx sdk.Context, portID, channelID string,
 // The module account is always allowed to send and receive tokens.
 func (k Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {
 	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
-	if !addr.Equals(moduleAddr) && k.bankKeeper.BlockedAddr(addr) {
-		return true
+	if addr.Equals(moduleAddr) {
+		return false
 	}
 
-	return false
+	return k.bankKeeper.BlockedAddr(addr)
 }
