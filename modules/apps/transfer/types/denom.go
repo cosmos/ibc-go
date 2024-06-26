@@ -78,13 +78,13 @@ func (d Denom) IsNative() bool {
 
 // HasPrefix returns true if first element of the trace of the denom
 // matches the provided portId and channelId.
-func (d Denom) HasPrefix(portId, channelId string) bool {
+func (d Denom) HasPrefix(portID, channelID string) bool {
 	// if the denom is native, then it is not prefixed by any port/channel pair
 	if d.IsNative() {
 		return false
 	}
 
-	return d.Trace[0].PortId == portId && d.Trace[0].ChannelId == channelId
+	return d.Trace[0].PortId == portID && d.Trace[0].ChannelId == channelID
 }
 
 // Denoms defines a wrapper type for a slice of Denom.
