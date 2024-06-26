@@ -134,13 +134,14 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 // getReceiverFromPacketData returns either the sender specified in the packet data or the forwarding address
 // if there are still hops left to perform.
 func (k Keeper) getReceiverFromPacketData(data types.FungibleTokenPacketDataV2) (sdk.AccAddress, error) {
+	if data.ShouldBeForwarded() {
+		// since data.Receiver can potentially be a non-CosmosSDK AccAddress, we return early if the packet should be forwarded
+		return k.authKeeper.GetModuleAddress(types.ModuleName), nil
+	}
+
 	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
-	}
-
-	if data.ShouldBeForwarded() {
-		receiver = k.authKeeper.GetModuleAddress(types.ModuleName)
 	}
 
 	return receiver, nil
