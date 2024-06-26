@@ -64,7 +64,7 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	memo string,
-	forwarding types.Forwarding,
+	hops []types.Hop,
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -83,7 +83,7 @@ func (k Keeper) sendTransfer(
 		}
 
 		// ics20-1 does not support forwarding, so if that is the current version, we must reject the transfer.
-		if len(forwarding.Hops) > 0 {
+		if len(hops) > 0 {
 			return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
 		}
 	}
@@ -147,7 +147,7 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	packetDataBytes, err := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwarding.Hops)
+	packetDataBytes, err := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, hops)
 	if err != nil {
 		return 0, err
 	}
@@ -157,7 +157,7 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
-	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, forwarding)
+	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
 
 	defer internaltelemetry.ReportTransferTelemetry(tokens, labels)
 
