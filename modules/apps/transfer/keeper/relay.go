@@ -11,6 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
@@ -64,7 +65,7 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	memo string,
-	forwarding types.Forwarding,
+	hops []types.Hop,
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -83,7 +84,7 @@ func (k Keeper) sendTransfer(
 		}
 
 		// ics20-1 does not support forwarding, so if that is the current version, we must reject the transfer.
-		if len(forwarding.Hops) > 0 {
+		if len(hops) > 0 {
 			return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
 		}
 	}
@@ -148,7 +149,7 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	packetDataBytes, err := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwarding.Hops)
+	packetDataBytes, err := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, hops)
 	if err != nil {
 		return 0, err
 	}
@@ -158,7 +159,7 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
-	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, forwarding)
+	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
 
 	defer internaltelemetry.ReportTransferTelemetry(tokens, labels)
 
@@ -180,7 +181,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return types.ErrReceiveDisabled
 	}
 
-	receiver, err := getReceiverFromPacketData(data, packet.DestinationPort, packet.DestinationChannel)
+	receiver, err := k.getReceiverFromPacketData(data)
 	if err != nil {
 		return err
 	}
@@ -213,7 +214,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-			if k.bankKeeper.BlockedAddr(receiver) {
+			if k.IsBlockedAddr(receiver) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 
@@ -228,49 +229,53 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			// Appending token. The new denom has been computed
 			receivedCoins = append(receivedCoins, coin)
+		} else {
+			// sender chain is the source, mint vouchers
 
-			// Continue processing rest of tokens in packet data.
-			continue
+			// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
+			trace := []types.Trace{types.NewTrace(packet.DestinationPort, packet.DestinationChannel)}
+			token.Denom.Trace = append(trace, token.Denom.Trace...)
+
+			if !k.HasDenom(ctx, token.Denom.Hash()) {
+				k.SetDenom(ctx, token.Denom)
+			}
+
+			voucherDenom := token.Denom.IBCDenom()
+			if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
+				k.setDenomMetadata(ctx, token.Denom)
+			}
+
+			events.EmitDenomEvent(ctx, token)
+
+			voucher := sdk.NewCoin(voucherDenom, transferAmount)
+
+			// mint new tokens if the source of the transfer is the same chain
+			if err := k.bankKeeper.MintCoins(
+				ctx, types.ModuleName, sdk.NewCoins(voucher),
+			); err != nil {
+				return errorsmod.Wrap(err, "failed to mint IBC tokens")
+			}
+
+			// send to receiver
+			if k.IsBlockedAddr(receiver) {
+				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+			}
+			moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+			if moduleAddr == nil {
+				return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName)
+			}
+			if err := k.bankKeeper.SendCoins(
+				ctx, moduleAddr, receiver, sdk.NewCoins(voucher),
+			); err != nil {
+				return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
+			}
+
+			denomPath := token.Denom.Path()
+			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
+			defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
+
+			receivedCoins = append(receivedCoins, voucher)
 		}
-
-		// sender chain is the source, mint vouchers
-
-		// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
-		trace := []types.Trace{types.NewTrace(packet.DestinationPort, packet.DestinationChannel)}
-		token.Denom.Trace = append(trace, token.Denom.Trace...)
-
-		if !k.HasDenom(ctx, token.Denom.Hash()) {
-			k.SetDenom(ctx, token.Denom)
-		}
-
-		voucherDenom := token.Denom.IBCDenom()
-		if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
-			k.setDenomMetadata(ctx, token.Denom)
-		}
-
-		events.EmitDenomEvent(ctx, token)
-
-		voucher := sdk.NewCoin(voucherDenom, transferAmount)
-
-		// mint new tokens if the source of the transfer is the same chain
-		if err := k.bankKeeper.MintCoins(
-			ctx, types.ModuleName, sdk.NewCoins(voucher),
-		); err != nil {
-			return errorsmod.Wrap(err, "failed to mint IBC tokens")
-		}
-
-		// send to receiver
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
-			ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
-		); err != nil {
-			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
-		}
-
-		denomPath := token.Denom.Path()
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
-		defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
-
-		receivedCoins = append(receivedCoins, voucher)
 	}
 
 	if data.ShouldBeForwarded() {
@@ -340,6 +345,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
+	moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()
 		if err != nil {
@@ -361,9 +367,13 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 				return err
 			}
 
-			if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(coin)); err != nil {
+			if k.IsBlockedAddr(sender) {
+				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+			}
+			if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
 				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 			}
+
 		} else {
 			// unescrow tokens back to sender
 			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())

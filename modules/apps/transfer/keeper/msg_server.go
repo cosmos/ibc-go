@@ -32,7 +32,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
 	}
 
-	if k.bankKeeper.BlockedAddr(sender) {
+	if k.IsBlockedAddr(sender) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
@@ -45,7 +45,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, coins, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Memo, msg.Forwarding)
+		msg.Memo, msg.Forwarding.Hops)
 	if err != nil {
 		return nil, err
 	}

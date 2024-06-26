@@ -20,8 +20,8 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 	}
 
-	// sending from the forward escrow address to the original receiver address.
-	sender := types.GetForwardAddress(packet.DestinationPort, packet.DestinationChannel)
+	// sending from module account (used as a temporary forward escrow) to the original receiver address.
+	sender := k.authKeeper.GetModuleAddress(types.ModuleName)
 
 	msg := types.NewMsgTransfer(
 		data.Forwarding.Hops[0].PortId,
@@ -101,7 +101,7 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 			2. Burning voucher tokens if the funds are foreign
 	*/
 
-	forwardingAddr := types.GetForwardAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
+	forwardingAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	escrow := types.GetEscrowAddress(prevPacket.DestinationPort, prevPacket.DestinationChannel)
 
 	// we can iterate over the received tokens of prevPacket by iterating over the sent tokens of failedPacketData
@@ -131,14 +131,15 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 
 // getReceiverFromPacketData returns either the sender specified in the packet data or the forwarding address
 // if there are still hops left to perform.
-func getReceiverFromPacketData(data types.FungibleTokenPacketDataV2, portID, channelID string) (sdk.AccAddress, error) {
+func (k Keeper) getReceiverFromPacketData(data types.FungibleTokenPacketDataV2) (sdk.AccAddress, error) {
+	if data.ShouldBeForwarded() {
+		// since data.Receiver can potentially be a non-CosmosSDK AccAddress, we return early if the packet should be forwarded
+		return k.authKeeper.GetModuleAddress(types.ModuleName), nil
+	}
+
 	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
-	}
-
-	if data.ShouldBeForwarded() {
-		receiver = types.GetForwardAddress(portID, channelID)
 	}
 
 	return receiver, nil
