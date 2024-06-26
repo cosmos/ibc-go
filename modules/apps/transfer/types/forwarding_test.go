@@ -50,7 +50,7 @@ func TestForwarding_Validate(t *testing.T) {
 					ChannelId: ibctesting.FirstChannelID,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with too long hop port ID",
@@ -61,7 +61,7 @@ func TestForwarding_Validate(t *testing.T) {
 					ChannelId: ibctesting.FirstChannelID,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with non-alpha hop port ID",
@@ -72,7 +72,7 @@ func TestForwarding_Validate(t *testing.T) {
 					ChannelId: ibctesting.FirstChannelID,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with too long hop channel ID",
@@ -83,7 +83,7 @@ func TestForwarding_Validate(t *testing.T) {
 					ChannelId: invalidLongChannel,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with too short hop channel ID",
@@ -94,7 +94,7 @@ func TestForwarding_Validate(t *testing.T) {
 					ChannelId: invalidShortChannel,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with non-alpha hop channel ID",
@@ -105,7 +105,7 @@ func TestForwarding_Validate(t *testing.T) {
 					ChannelId: invalidChannel,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 	}
 	for _, tc := range tests {
@@ -179,7 +179,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 					ChannelId: ibctesting.FirstChannelID,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with too long hop port ID",
@@ -190,7 +190,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 					ChannelId: ibctesting.FirstChannelID,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with non-alpha hop port ID",
@@ -201,7 +201,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 					ChannelId: ibctesting.FirstChannelID,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with too long hop channel ID",
@@ -212,7 +212,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 					ChannelId: invalidLongChannel,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with too short hop channel ID",
@@ -223,7 +223,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 					ChannelId: invalidShortChannel,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"invalid forwarding with non-alpha hop channel ID",
@@ -234,7 +234,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 					ChannelId: invalidChannel,
 				},
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 	}
 	for _, tc := range tests {
@@ -242,6 +242,82 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 			tc := tc
 
 			err := tc.forwarding.Validate()
+
+			expPass := tc.expError == nil
+			if expPass {
+				require.NoError(t, err)
+			} else {
+				require.ErrorIs(t, err, tc.expError)
+			}
+		})
+	}
+}
+
+func TestValidateHop(t *testing.T) {
+	tests := []struct {
+		name     string
+		hop      types.Hop
+		expError error
+	}{
+		{
+			"valid hop",
+			validHop,
+			nil,
+		},
+		{
+			"invalid hop with too short port ID",
+			types.Hop{
+				PortId:    invalidShortPort,
+				ChannelId: ibctesting.FirstChannelID,
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"invalid hop with too long port ID",
+			types.Hop{
+				PortId:    invalidLongPort,
+				ChannelId: ibctesting.FirstChannelID,
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"invalid hop with non-alpha port ID",
+			types.Hop{
+				PortId:    invalidPort,
+				ChannelId: ibctesting.FirstChannelID,
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"invalid hop with too long channel ID",
+			types.Hop{
+				PortId:    types.PortID,
+				ChannelId: invalidLongChannel,
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"invalid hop with too short channel ID",
+			types.Hop{
+				PortId:    types.PortID,
+				ChannelId: invalidShortChannel,
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"invalid hop with non-alpha channel ID",
+			types.Hop{
+				PortId:    types.PortID,
+				ChannelId: invalidChannel,
+			},
+			host.ErrInvalidID,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc := tc
+
+			err := tc.hop.Validate()
 
 			expPass := tc.expError == nil
 			if expPass {

@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -428,7 +427,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 					},
 				),
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"failure: invalid forwarding path channel ID",
@@ -450,7 +449,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 					},
 				),
 			),
-			host.ErrInvalidID,
+			types.ErrInvalidForwarding,
 		},
 		{
 			"failure: invalid forwarding path too many hops",
