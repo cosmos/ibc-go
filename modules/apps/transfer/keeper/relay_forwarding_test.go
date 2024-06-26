@@ -106,7 +106,7 @@ func (suite *KeeperTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() 
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denom.IBCDenom())
 }
 
-// TestSuccessfulPathForwarding tests a successful transfer from A to C through B.
+// TestSuccessfulForward tests a successful transfer from A to C through B.
 func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	/*
 		Given the following topology:
@@ -219,7 +219,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	suite.Require().NoError(err)
 }
 
-// TestSuccessfulPathForwarding tests a successful transfer from A to C through B with a memo that should arrive at C.
+// TestSuccessfulForwardWithMemo tests a successful transfer from A to C through B with a memo that should arrive at C.
 func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 	/*
 		Given the following topology:
@@ -359,7 +359,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 	suite.Require().NoError(err)
 }
 
-// TestSuccessfulPathForwarding tests that a packet is successfully forwarded with a non-Cosmos account address.
+// TestSuccessfulForwardWithNonCosmosAccAddress tests that a packet is successfully forwarded with a non-Cosmos account address.
 // The test stops before verifying the final receive, because we don't have a non-cosmos chain to test with.
 func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 	/*
