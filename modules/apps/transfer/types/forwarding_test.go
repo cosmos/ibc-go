@@ -329,65 +329,6 @@ func TestValidateHop(t *testing.T) {
 	}
 }
 
-func TestValidateHops(t *testing.T) {
-	tests := []struct {
-		name     string
-		hops     []types.Hop
-		expError error
-	}{
-		{
-			"valid hops",
-			[]types.Hop{validHop},
-			nil,
-		},
-		{
-			"valid hops with max hops",
-			generateHops(types.MaximumNumberOfForwardingHops),
-			nil,
-		},
-		{
-			"invalid hops with too many hops",
-			generateHops(types.MaximumNumberOfForwardingHops + 1),
-			types.ErrInvalidForwarding,
-		},
-		{
-			"invalid hops with invalid port",
-			[]types.Hop{
-				{
-					PortId:    invalidPort,
-					ChannelId: ibctesting.FirstChannelID,
-				},
-			},
-			host.ErrInvalidID,
-		},
-		{
-			"invalid hops with invalid channel",
-			[]types.Hop{
-				validHop,
-				{
-					PortId:    types.PortID,
-					ChannelId: invalidChannel,
-				},
-			},
-			host.ErrInvalidID,
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			tc := tc
-
-			err := types.ValidateHops(tc.hops)
-
-			expPass := tc.expError == nil
-			if expPass {
-				require.NoError(t, err)
-			} else {
-				require.ErrorIs(t, err, tc.expError)
-			}
-		})
-	}
-}
-
 // generateHops generates a slice of n correctly initialized hops.
 func generateHops(n int) []types.Hop {
 	hops := make([]types.Hop, n)

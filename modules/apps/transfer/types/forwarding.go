@@ -18,7 +18,7 @@ func NewForwarding(unwind bool, hops ...Hop) Forwarding {
 
 // Validate performs a basic validation of the Forwarding fields.
 func (fi Forwarding) Validate() error {
-	if err := ValidateHops(fi.Hops); err != nil {
+	if err := validateHops(fi.Hops); err != nil {
 		return errorsmod.Wrapf(ErrInvalidForwarding, "invalid hops in forwarding")
 	}
 
@@ -35,7 +35,7 @@ func NewForwardingPacketData(destinationMemo string, hops ...Hop) ForwardingPack
 
 // Validate performs a basic validation of the ForwardingPacketData fields.
 func (fi ForwardingPacketData) Validate() error {
-	if err := ValidateHops(fi.Hops); err != nil {
+	if err := validateHops(fi.Hops); err != nil {
 		return errorsmod.Wrapf(ErrInvalidForwarding, "invalid hops in forwarding packet data")
 	}
 
@@ -50,7 +50,22 @@ func (fi ForwardingPacketData) Validate() error {
 	return nil
 }
 
-func ValidateHops(hops []Hop) error {
+// Validate performs a basic validation of the Hop fields.
+func (h Hop) Validate() error {
+	if err := host.PortIdentifierValidator(h.PortId); err != nil {
+		return errorsmod.Wrapf(err, "invalid hop source port ID %s", h.PortId)
+	}
+	if err := host.ChannelIdentifierValidator(h.ChannelId); err != nil {
+		return errorsmod.Wrapf(err, "invalid source channel ID %s", h.ChannelId)
+	}
+
+	return nil
+}
+
+// validateHops performs a basic validation of the hops.
+// It checks that the number of hops does not exceed the maximum allowed and that each hop is valid.
+// It will not return any errors if hops is empty.
+func validateHops(hops []Hop) error {
 	if len(hops) > MaximumNumberOfForwardingHops {
 		return errorsmod.Wrapf(ErrInvalidForwarding, "number of hops cannot exceed %d", MaximumNumberOfForwardingHops)
 	}
@@ -59,17 +74,6 @@ func ValidateHops(hops []Hop) error {
 		if err := hop.Validate(); err != nil {
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (h Hop) Validate() error {
-	if err := host.PortIdentifierValidator(h.PortId); err != nil {
-		return errorsmod.Wrapf(err, "invalid hop source port ID %s", h.PortId)
-	}
-	if err := host.ChannelIdentifierValidator(h.ChannelId); err != nil {
-		return errorsmod.Wrapf(err, "invalid source channel ID %s", h.ChannelId)
 	}
 
 	return nil
