@@ -125,23 +125,19 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 
 	amount := sdkmath.NewInt(100)
 
-	path1 := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	path1.Setup()
-
-	path2 := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-	path2.Setup()
+	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
 	coinOnA := ibctesting.TestCoin
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
 	forwarding := types.NewForwarding(false, types.Hop{
-		PortId:    path2.EndpointA.ChannelConfig.PortID,
-		ChannelId: path2.EndpointA.ChannelID,
+		PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
+		ChannelId: pathBtoC.EndpointA.ChannelID,
 	})
 
 	transferMsg := types.NewMsgTransfer(
-		path1.EndpointA.ChannelConfig.PortID,
-		path1.EndpointA.ChannelID,
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
 		sdk.NewCoins(coinOnA),
 		sender.GetAddress().String(),
 		receiver.GetAddress().String(),
@@ -158,10 +154,10 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packetFromAtoB)
 
-	err = path1.EndpointB.UpdateClient()
+	err = pathAtoB.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	result, err = path1.EndpointB.RecvPacketWithResult(packetFromAtoB)
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
@@ -169,30 +165,30 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
 
 	// denom path: transfer/channel-0
-	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID))
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denom.IBCDenom())
 
 	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packetFromBtoC)
 
-	err = path2.EndpointA.UpdateClient()
+	err = pathBtoC.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	err = path2.EndpointB.UpdateClient()
+	err = pathBtoC.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
 	// B should have stored the forwarded packet.
 	_, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), packetFromBtoC.SourcePort, packetFromBtoC.SourceChannel, packetFromBtoC.Sequence)
 	suite.Require().True(found, "Chain B should have stored the forwarded packet")
 
-	result, err = path2.EndpointB.RecvPacketWithResult(packetFromBtoC)
+	result, err = pathBtoC.EndpointB.RecvPacketWithResult(packetFromBtoC)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
 	// transfer/channel-0/transfer/channel-0/denom
 	// Check that the final receiver has received the expected tokens.
-	denomABC := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(path2.EndpointB.ChannelConfig.PortID, path2.EndpointB.ChannelID), types.NewTrace(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID))
+	denomABC := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID), types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	// Check that the final receiver has received the expected tokens.
 	suite.assertAmountOnChain(suite.chainC, balance, amount, denomABC.IBCDenom())
 
@@ -202,10 +198,10 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	suite.Require().Equal(successAckBz, ackOnC)
 
 	// Ack back to B
-	err = path2.EndpointB.UpdateClient()
+	err = pathBtoC.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	err = path2.EndpointA.AcknowledgePacket(packetFromBtoC, successAck.Acknowledgement())
+	err = pathBtoC.EndpointA.AcknowledgePacket(packetFromBtoC, successAck.Acknowledgement())
 	suite.Require().NoError(err)
 
 	ackOnB := suite.chainB.GetAcknowledgement(packetFromAtoB)
@@ -216,10 +212,10 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	suite.Require().False(found, "Chain B should have deleted the forwarded packet")
 
 	// Ack back to A
-	err = path1.EndpointA.UpdateClient()
+	err = pathAtoB.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	err = path1.EndpointA.AcknowledgePacket(packetFromAtoB, successAck.Acknowledgement())
+	err = pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, successAck.Acknowledgement())
 	suite.Require().NoError(err)
 }
 
