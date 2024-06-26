@@ -191,6 +191,8 @@ func (im IBCModule) OnRecvPacket(
 
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
+	// we are explicitly wrapping this emit event call in an anonymous function so that
+	// the packet data is evaluated after it has been assigned a value.
 	defer func() {
 		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 	}()
