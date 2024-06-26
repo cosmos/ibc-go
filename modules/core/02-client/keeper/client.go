@@ -22,19 +22,11 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientType)
 	}
 
-	params := k.GetParams(ctx)
-	if !params.IsAllowedClient(clientType) {
-		return "", errorsmod.Wrapf(
-			types.ErrInvalidClientType,
-			"client state type %s is not registered in the allowlist", clientType,
-		)
-	}
-
 	clientID := k.GenerateClientIdentifier(ctx, clientType)
 
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
-		return "", errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	clientModule, err := k.getLightClientModuleRoute(ctx, clientID)
+	if err != nil {
+		return "", err
 	}
 
 	if err := clientModule.Initialize(ctx, clientID, clientState, consensusState); err != nil {
