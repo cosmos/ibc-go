@@ -11,6 +11,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -124,7 +125,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failure: sender account is blocked",
 			func() {
-				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
+				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -364,9 +365,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 		{
 			"failure: receiver is module account",
 			func() {
-				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
-			sdkerrors.ErrUnauthorized,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: receive is disabled",
@@ -522,7 +523,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 		{
 			"failure: receiver is module account",
 			func() {
-				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 				expEscrowAmount = sdkmath.NewInt(100)
 			},
 			ibcerrors.ErrUnauthorized,
@@ -1287,24 +1288,26 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 
 func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 	var (
-		bz     []byte
-		tokens types.Tokens
+		bz               []byte
+		tokens           types.Tokens
+		sender, receiver string
 	)
 
 	testCases := []struct {
 		name        string
 		appVersion  string
 		malleate    func()
-		expResult   func(bz []byte)
+		expResult   func(bz []byte, err error)
 		expPanicErr error
 	}{
 		{
 			"success",
 			types.V1,
 			func() {},
-			func(bz []byte) {
-				expPacketData := types.NewFungibleTokenPacketData("", "", "", "", "")
+			func(bz []byte, err error) {
+				expPacketData := types.NewFungibleTokenPacketData(ibctesting.TestCoin.Denom, ibctesting.TestCoin.Amount.String(), sender, receiver, "")
 				suite.Require().Equal(bz, expPacketData.GetBytes())
+				suite.Require().NoError(err)
 			},
 			nil,
 		},
@@ -1312,9 +1315,34 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 			"success: version 2",
 			types.V2,
 			func() {},
-			func(bz []byte) {
-				expPacketData := types.NewFungibleTokenPacketDataV2(types.Tokens{types.Token{}}, "", "", "", emptyForwardingPacketData)
+			func(bz []byte, err error) {
+				expPacketData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, "", emptyForwardingPacketData)
 				suite.Require().Equal(bz, expPacketData.GetBytes())
+				suite.Require().NoError(err)
+			},
+			nil,
+		},
+		{
+			"failure: fails v1 validation",
+			types.V1,
+			func() {
+				sender = ""
+			},
+			func(bz []byte, err error) {
+				suite.Require().Nil(bz)
+				suite.Require().ErrorIs(err, ibcerrors.ErrInvalidAddress)
+			},
+			nil,
+		},
+		{
+			"failure: fails v2 validation",
+			types.V2,
+			func() {
+				sender = ""
+			},
+			func(bz []byte, err error) {
+				suite.Require().Nil(bz)
+				suite.Require().ErrorIs(err, ibcerrors.ErrInvalidAddress)
 			},
 			nil,
 		},
@@ -1338,12 +1366,26 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			tokens = types.Tokens{types.Token{}}
+			suite.SetupTest()
+
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			tokens = types.Tokens{
+				{
+					Amount: ibctesting.TestCoin.Amount.String(),
+					Denom:  types.NewDenom(ibctesting.TestCoin.Denom),
+				},
+			}
+
+			sender = suite.chainA.SenderAccount.GetAddress().String()
+			receiver = suite.chainB.SenderAccount.GetAddress().String()
 
 			tc.malleate()
 
+			var err error
 			createFunc := func() {
-				bz = transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, "", "", "", tokens, nil)
+				bz, err = transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, sender, receiver, "", tokens, nil)
 			}
 
 			expPanic := tc.expPanicErr != nil
@@ -1351,7 +1393,7 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 				suite.Require().PanicsWithError(tc.expPanicErr.Error(), createFunc)
 			} else {
 				createFunc()
-				tc.expResult(bz)
+				tc.expResult(bz, err)
 			}
 		})
 	}

@@ -9,6 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
@@ -80,7 +81,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"failure: sender is a blocked address",
 			func() {
-				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -153,7 +154,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			tokensBz, err := json.Marshal(types.Tokens(tokens))
 			suite.Require().NoError(err)
 
-			forwardingBz, err := json.Marshal(msg.Forwarding)
+			forwardingHopsBz, err := json.Marshal(msg.Forwarding.Hops)
 			suite.Require().NoError(err)
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
@@ -168,7 +169,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 					sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 					sdk.NewAttribute(types.AttributeKeyTokens, string(tokensBz)),
 					sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-					sdk.NewAttribute(types.AttributeKeyForwarding, string(forwardingBz)),
+					sdk.NewAttribute(types.AttributeKeyForwardingHops, string(forwardingHopsBz)),
 				),
 				sdk.NewEvent(
 					sdk.EventTypeMessage,

@@ -11,6 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
@@ -64,7 +65,7 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	memo string,
-	forwarding types.Forwarding,
+	hops []types.Hop,
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -83,7 +84,7 @@ func (k Keeper) sendTransfer(
 		}
 
 		// ics20-1 does not support forwarding, so if that is the current version, we must reject the transfer.
-		if len(forwarding.Hops) > 0 {
+		if len(hops) > 0 {
 			return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
 		}
 	}
@@ -147,14 +148,17 @@ func (k Keeper) sendTransfer(
 		tokens = append(tokens, token)
 	}
 
-	packetDataBytes := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, forwarding.Hops)
+	packetDataBytes, err := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, hops)
+	if err != nil {
+		return 0, err
+	}
 
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
 		return 0, err
 	}
 
-	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, forwarding)
+	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
 
 	defer internaltelemetry.ReportTransferTelemetry(tokens, labels)
 
@@ -176,7 +180,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return types.ErrReceiveDisabled
 	}
 
-	receiver, err := getReceiverFromPacketData(data, packet.DestinationPort, packet.DestinationChannel)
+	receiver, err := k.getReceiverFromPacketData(data)
 	if err != nil {
 		return err
 	}
@@ -209,7 +213,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-			if k.bankKeeper.BlockedAddr(receiver) {
+			if k.IsBlockedAddr(receiver) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 
@@ -252,8 +256,15 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			}
 
 			// send to receiver
-			if err := k.bankKeeper.SendCoinsFromModuleToAccount(
-				ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
+			if k.IsBlockedAddr(receiver) {
+				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+			}
+			moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+			if moduleAddr == nil {
+				return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName)
+			}
+			if err := k.bankKeeper.SendCoins(
+				ctx, moduleAddr, receiver, sdk.NewCoins(voucher),
 			); err != nil {
 				return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 			}
@@ -333,6 +344,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
+	moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()
 		if err != nil {
@@ -362,7 +374,10 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 			return err
 		}
 
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(coin)); err != nil {
+		if k.IsBlockedAddr(sender) {
+			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+		}
+		if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
 			panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 		}
 	}
@@ -435,8 +450,7 @@ func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 }
 
 // createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
-func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) []byte {
-	var packetDataBytes []byte
+func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) ([]byte, error) {
 	switch appVersion {
 	case types.V1:
 		// Sanity check, tokens must always be of length 1 if using app version V1.
@@ -446,7 +460,12 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 
 		token := tokens[0]
 		packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender, receiver, memo)
-		packetDataBytes = packetData.GetBytes()
+
+		if err := packetData.ValidateBasic(); err != nil {
+			return nil, errorsmod.Wrapf(err, "failed to validate %s packet data", types.V1)
+		}
+
+		return packetData.GetBytes(), nil
 	case types.V2:
 		// If forwarding is needed, move memo to forwarding packet data and set packet.Memo to empty string.
 		var forwardingPacketData types.ForwardingPacketData
@@ -456,12 +475,15 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 		}
 
 		packetData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, memo, forwardingPacketData)
-		packetDataBytes = packetData.GetBytes()
+
+		if err := packetData.ValidateBasic(); err != nil {
+			return nil, errorsmod.Wrapf(err, "failed to validate %s packet data", types.V2)
+		}
+
+		return packetData.GetBytes(), nil
 	default:
 		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
 	}
-
-	return packetDataBytes
 }
 
 // burnCoin sends coins from the account to the transfer module account and then burn them.
