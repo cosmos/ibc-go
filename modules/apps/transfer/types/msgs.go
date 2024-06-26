@@ -120,6 +120,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	return nil
 }
 
+// validateForwarding ensures that forwarding is set up correctly.
 func (msg MsgTransfer) validateForwarding() error {
 	if !msg.ShouldBeForwarded() {
 		return nil
