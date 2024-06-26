@@ -76,7 +76,7 @@ func (d Denom) IsNative() bool {
 	return len(d.Trace) == 0
 }
 
-// HasPrefix returns true if first element of the trace of the denom
+// HasPrefix returns true if the first element of the trace of the denom
 // matches the provided portId and channelId.
 func (d Denom) HasPrefix(portID, channelID string) bool {
 	// if the denom is native, then it is not prefixed by any port/channel pair

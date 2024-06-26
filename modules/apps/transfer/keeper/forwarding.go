@@ -115,17 +115,15 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 		// check if the token we received originated on the sender
 		// given that the packet is being reversed, we check the DestinationChannel and DestinationPort
 		// of the prevPacket to see if a hop was added to the trace during the receive step
-		if !token.Denom.HasPrefix(prevPacket.DestinationPort, prevPacket.DestinationChannel) {
-			// then send it back to the escrow address
+		if token.Denom.HasPrefix(prevPacket.DestinationPort, prevPacket.DestinationChannel) {
+			if err := k.burnCoin(ctx, forwardingAddr, coin); err != nil {
+				return err
+			}
+		} else {
+			// send it back to the escrow address
 			if err := k.escrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
 				return err
 			}
-
-			continue
-		}
-
-		if err := k.burnCoin(ctx, forwardingAddr, coin); err != nil {
-			return err
 		}
 	}
 	return nil

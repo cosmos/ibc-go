@@ -115,16 +115,9 @@ func (k Keeper) sendTransfer(
 		// chain inside the packet data. The receiving chain will perform denom
 		// prefixing as necessary.
 
-		if !token.Denom.HasPrefix(sourcePort, sourceChannel) {
-			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
-
-			// obtain the escrow address for the source channel end
-			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-			if err := k.escrowCoin(ctx, sender, escrowAddress, coin); err != nil {
-				return 0, err
-			}
-
-		} else {
+		// if the denom is prefixed by the port and channel on which we are sending
+		// the token, then we must be returning the token back to the chain they originated from
+		if token.Denom.HasPrefix(sourcePort, sourceChannel) {
 			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
 			// transfer the coins to the module account and burn them
@@ -141,6 +134,14 @@ func (k Keeper) sendTransfer(
 				// retrieved on the step above and it has enough balance
 				// to burn.
 				panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
+			}
+		} else {
+			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
+
+			// obtain the escrow address for the source channel end
+			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+			if err := k.escrowCoin(ctx, sender, escrowAddress, coin); err != nil {
+				return 0, err
 			}
 		}
 
@@ -203,7 +204,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		//
 		// NOTE: We use SourcePort and SourceChannel here, because the counterparty
 		// chain would have prefixed with DestPort and DestChannel when originally
-		// receiving this coin as seen in the "sender chain is the source" condition.
+		// receiving this token.
 		if token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
 			// sender chain is not the source, unescrow tokens
 
@@ -350,26 +351,25 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 			return err
 		}
 
-		if !token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
+		// if the token we must refund is prefixed by the source port and channel
+		// then the tokens were burnt on the sending chain and we must mint new tokens
+		if token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
+			// mint vouchers back to sender
+			if err := k.bankKeeper.MintCoins(
+				ctx, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				return err
+			}
+
+			if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(coin)); err != nil {
+				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+			}
+		} else {
 			// unescrow tokens back to sender
 			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
 			if err := k.unescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
 				return err
 			}
-
-			// Continue processing rest of tokens in packet data.
-			continue
-		}
-
-		// mint vouchers back to sender
-		if err := k.bankKeeper.MintCoins(
-			ctx, types.ModuleName, sdk.NewCoins(coin),
-		); err != nil {
-			return err
-		}
-
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(coin)); err != nil {
-			panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 		}
 	}
 
