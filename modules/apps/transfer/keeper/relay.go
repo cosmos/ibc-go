@@ -185,7 +185,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
-	var receivedCoins sdk.Coins
+	receivedCoins := make(sdk.Coins, len(data.Tokens))
 	for _, token := range data.Tokens {
 		labels := []metrics.Label{
 			telemetry.NewLabel(coretypes.LabelSourcePort, packet.GetSourcePort()),
