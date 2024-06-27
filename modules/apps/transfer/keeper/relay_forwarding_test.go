@@ -1129,4 +1129,20 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 
 	denomTraceABCD := newDenomWithAddedTrace(denomTraceABC, types.NewTrace(pathCtoD.EndpointB.ChannelConfig.PortID, pathCtoD.EndpointB.ChannelID))
 	suite.assertAmountOnChain(suite.chainD, balance, coinOnA.Amount, denomTraceABCD.IBCDenom())
+
+	// Propagate the ack back from D to A.
+	ack, err := ibctesting.ParseAckFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(ack)
+
+	err = pathCtoD.EndpointA.AcknowledgePacket(packetFromCtoD, ack)
+	suite.Require().NoError(err)
+
+	pathBtoC.EndpointA.UpdateClient()
+	err = pathBtoC.EndpointA.AcknowledgePacket(packetFromBtoC, ack)
+	suite.Require().NoError(err)
+
+	pathAtoB.EndpointA.UpdateClient()
+	err = pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, ack)
+	suite.Require().NoError(err)
 }
