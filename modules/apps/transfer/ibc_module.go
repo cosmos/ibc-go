@@ -178,7 +178,7 @@ func (IBCModule) OnChanCloseConfirm(
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
-// Return nil to signal that the acknowledgement will be written asynchronously.
+// A nil acknowledgement may be returned when using the packet forwarding feature. This signals to core IBC that the acknowledgement will be written asynchronously.
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
