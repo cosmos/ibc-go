@@ -30,6 +30,8 @@ func (s *TransferForwardingTestSuite) SetupSuite() {
 	s.SetupChains(context.TODO(), nil, testsuite.ThreeChainSetup())
 }
 
+// TestForwarding_WithLastChainBeingICS20v1_Succeeds tests the case where a token is forwarded and successfully
+// received on a destination chain that is on ics20-v1 version.
 func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_Succeeds() {
 	ctx := context.TODO()
 	t := s.T()
