@@ -6,7 +6,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
-const MaximumNumberOfForwardingHops = 16 // denotes the maximum number of forwarding hops allowed
+const MaximumNumberOfForwardingHops = 8 // denotes the maximum number of forwarding hops allowed
 
 // NewForwarding creates a new Forwarding instance given an unwind value and a variable number of hops.
 func NewForwarding(unwind bool, hops ...Hop) Forwarding {
