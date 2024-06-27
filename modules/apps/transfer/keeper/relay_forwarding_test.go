@@ -1138,11 +1138,15 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	err = pathCtoD.EndpointA.AcknowledgePacket(packetFromCtoD, ack)
 	suite.Require().NoError(err)
 
-	pathBtoC.EndpointA.UpdateClient()
+	err = pathBtoC.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
 	err = pathBtoC.EndpointA.AcknowledgePacket(packetFromBtoC, ack)
 	suite.Require().NoError(err)
 
-	pathAtoB.EndpointA.UpdateClient()
+	err = pathAtoB.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
 	err = pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, ack)
 	suite.Require().NoError(err)
 }
