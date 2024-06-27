@@ -358,7 +358,7 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 		}
 
 		// if the token we must refund is prefixed by the source port and channel
-		// then the tokens were burnt on the sending chain and we must mint new tokens
+		// then the tokens were burnt when the packet was sent and we must mint new tokens
 		if token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
 			// mint vouchers back to sender
 			if err := k.bankKeeper.MintCoins(
