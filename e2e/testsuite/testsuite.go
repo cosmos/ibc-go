@@ -163,8 +163,10 @@ func (s *E2ETestSuite) initalizeRelayerPool(n int) []ibc.Relayer {
 // connections and channels between the chains.
 func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier ChainOptionModifier, chainSpecOpts ...ChainOptionConfiguration) {
 	s.T().Logf("Setting up chains: %s", s.T().Name())
-	// don't delete chains on failure so other tests can keep going.
-	s.Require().NoError(os.Setenv("KEEP_CONTAINERS", "true"))
+
+	// TODO: it will be required to not delete chains on failure when running tests in parallel.
+	// s.Require().NoError(os.Setenv("KEEP_CONTAINERS", "true"))
+
 	s.initState()
 	s.configureGenesisDebugExport()
 
@@ -283,12 +285,6 @@ func (s *E2ETestSuite) GetRelayerForTest(testName string) ibc.Relayer {
 	s.testRelayerMap[testName] = r
 
 	return r
-}
-
-// GetRelayer returns the relayer for the current test from the available pool of relayers.
-// once a relayer has been returned to a test, it is cached and will be reused for the duration of the test.
-func (s *E2ETestSuite) GetRelayer() ibc.Relayer {
-	return s.GetRelayerForTest(s.T().Name())
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
