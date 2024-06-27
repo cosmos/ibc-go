@@ -315,8 +315,8 @@ func (k Keeper) setForwardedPacket(ctx sdk.Context, portID, channelID string, se
 	store.Set(types.PacketForwardKey(portID, channelID, sequence), bz)
 }
 
-// GetForwardedPacket gets the forwarded packet from the store.
-func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
+// getForwardedPacket gets the forwarded packet from the store.
+func (k Keeper) getForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.PacketForwardKey(portID, channelID, sequence))
 	if bz == nil {
