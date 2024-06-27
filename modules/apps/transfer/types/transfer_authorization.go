@@ -176,7 +176,7 @@ func validateForwarding(forwarding Forwarding, allowedForwarding []AllowedForwar
 	}
 
 	if !isAllowedForwarding(forwarding.Hops, allowedForwarding) {
-		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed hops")
+		return errorsmod.Wrapf(ErrInvalidForwarding, "not allowed hops %s", forwarding.Hops)
 	}
 
 	return nil
