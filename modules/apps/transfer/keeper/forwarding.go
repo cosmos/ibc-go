@@ -16,7 +16,7 @@ import (
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
 	var nextForwardingPath types.Forwarding
 	if len(data.Forwarding.Hops) > 1 {
-		// remove the first hop since it has been completed (this chain has received the packet)
+		// remove the first hop since we are going to send to the first hop now and we want to propogate the rest of the hops to the receiver
 		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 	}
 
