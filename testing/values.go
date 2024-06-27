@@ -55,9 +55,11 @@ var (
 	// DefaultTrustLevel sets params variables used to create a TM client
 	DefaultTrustLevel = ibctm.DefaultTrustLevel
 
-	TestAccAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
-	TestCoin       = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
-	TestCoins      = sdk.NewCoins(TestCoin)
+	TestAccAddress    = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	TestCoin          = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+	TestCoins         = sdk.NewCoins(TestCoin)
+	SecondaryDenom    = "ufoo"
+	SecondaryTestCoin = sdk.NewCoin(SecondaryDenom, sdkmath.NewInt(100))
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 

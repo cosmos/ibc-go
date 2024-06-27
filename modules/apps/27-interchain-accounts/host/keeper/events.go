@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"fmt"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -17,7 +17,7 @@ func EmitAcknowledgementEvent(ctx sdk.Context, packet channeltypes.Packet, ack e
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 		sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-		sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+		sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(ack.Success())),
 	}
 
 	if err != nil {

@@ -12,26 +12,26 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
-// GetCmdQueryDenomTrace defines the command to query a denomination trace from a given trace hash or ibc denom.
-func GetCmdQueryDenomTrace() *cobra.Command {
+// GetCmdQueryDenom defines the command to query a denomination from a given hash or ibc denom.
+func GetCmdQueryDenom() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "denom-trace [hash/denom]",
-		Short:   "Query the denom trace info from a given trace hash or ibc denom",
-		Long:    "Query the denom trace info from a given trace hash or ibc denom",
-		Example: fmt.Sprintf("%s query ibc-transfer denom-trace 27A6394C3F9FF9C9DCF5DFFADF9BB5FE9A37C7E92B006199894CF1824DF9AC7C", version.AppName),
+		Use:     "denom [hash/denom]",
+		Short:   "Query the denom trace info from a given hash or ibc denom",
+		Long:    "Query the denom trace info from a given hash or ibc denom",
+		Example: fmt.Sprintf("%s query ibc-transfer denom 27A6394C3F9FF9C9DCF5DFFADF9BB5FE9A37C7E92B006199894CF1824DF9AC7C", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryV2Client(clientCtx)
 
-			req := &types.QueryDenomTraceRequest{
+			req := &types.QueryDenomRequest{
 				Hash: args[0],
 			}
 
-			res, err := queryClient.DenomTrace(cmd.Context(), req)
+			res, err := queryClient.Denom(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -44,32 +44,31 @@ func GetCmdQueryDenomTrace() *cobra.Command {
 	return cmd
 }
 
-// GetCmdQueryDenomTraces defines the command to query all the denomination trace infos
-// that this chain maintains.
-func GetCmdQueryDenomTraces() *cobra.Command {
+// GetCmdQueryDenoms defines the command to query all the denominations that this chain maintains.
+func GetCmdQueryDenoms() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "denom-traces",
-		Short:   "Query the trace info for all token denominations",
-		Long:    "Query the trace info for all token denominations",
-		Example: fmt.Sprintf("%s query ibc-transfer denom-traces", version.AppName),
+		Use:     "denoms",
+		Short:   "Query for all token denominations",
+		Long:    "Query for all token denominations",
+		Example: fmt.Sprintf("%s query ibc-transfer denoms", version.AppName),
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryV2Client(clientCtx)
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			req := &types.QueryDenomTracesRequest{
+			req := &types.QueryDenomsRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.DenomTraces(cmd.Context(), req)
+			res, err := queryClient.Denoms(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -78,7 +77,7 @@ func GetCmdQueryDenomTraces() *cobra.Command {
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
-	flags.AddPaginationFlagsToCmd(cmd, "denominations trace")
+	flags.AddPaginationFlagsToCmd(cmd, "denominations")
 
 	return cmd
 }

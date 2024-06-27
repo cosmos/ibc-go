@@ -9,6 +9,7 @@ on:
         options:
           - release/v7.4.x
           - release/v7.5.x
+          - release/v7.6.x
           - release/v8.2.x
           - release/v8.3.x
           - main
@@ -45,6 +46,7 @@ jobs:
         release-branch:
           - release/v7.4.x
           - release/v7.5.x
+          - release/v7.6.x
           - release/v8.2.x
           - release/v8.3.x
           - main
@@ -56,7 +58,7 @@ jobs:
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}

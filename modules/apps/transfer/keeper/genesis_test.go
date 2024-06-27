@@ -11,52 +11,49 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestGenesis() {
-	getTrace := func(index uint) string {
-		return fmt.Sprintf("transfer/channelToChain%d", index)
+	getTrace := func(index uint) types.Trace {
+		return types.NewTrace("transfer", fmt.Sprintf("channelToChain%d", index))
 	}
 
 	var (
-		denomTraces           types.Traces
+		denoms                types.Denoms
 		escrows               sdk.Coins
-		pathsAndEscrowAmounts = []struct {
-			path   string
+		traceAndEscrowAmounts = []struct {
+			trace  []types.Trace
 			escrow string
 		}{
-			{getTrace(0), "10"},
-			{fmt.Sprintf("%s/%s", getTrace(1), getTrace(0)), "100000"},
-			{fmt.Sprintf("%s/%s/%s", getTrace(2), getTrace(1), getTrace(0)), "10000000000"},
-			{fmt.Sprintf("%s/%s/%s/%s", getTrace(3), getTrace(2), getTrace(1), getTrace(0)), "1000000000000000"},
-			{fmt.Sprintf("%s/%s/%s/%s/%s", getTrace(4), getTrace(3), getTrace(2), getTrace(1), getTrace(0)), "100000000000000000000"},
+			{[]types.Trace{getTrace(0)}, "10"},
+			{[]types.Trace{getTrace(1), getTrace(0)}, "100000"},
+			{[]types.Trace{getTrace(2), getTrace(1), getTrace(0)}, "10000000000"},
+			{[]types.Trace{getTrace(3), getTrace(2), getTrace(1), getTrace(0)}, "1000000000000000"},
+			{[]types.Trace{getTrace(4), getTrace(3), getTrace(2), getTrace(1), getTrace(0)}, "100000000000000000000"},
 		}
 	)
 
-	for _, pathAndEscrowAmount := range pathsAndEscrowAmounts {
-		denomTrace := types.DenomTrace{
-			BaseDenom: "uatom",
-			Path:      pathAndEscrowAmount.path,
-		}
-		denomTraces = append(types.Traces{denomTrace}, denomTraces...)
-		suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
+	for _, traceAndEscrowAmount := range traceAndEscrowAmounts {
+		denom := types.NewDenom("uatom", traceAndEscrowAmount.trace...)
+		denoms = append(denoms, denom)
+		suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
 
-		denom := denomTrace.IBCDenom()
-		amount, ok := sdkmath.NewIntFromString(pathAndEscrowAmount.escrow)
+		amount, ok := sdkmath.NewIntFromString(traceAndEscrowAmount.escrow)
 		suite.Require().True(ok)
-		escrows = append(sdk.NewCoins(sdk.NewCoin(denom, amount)), escrows...)
-		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(denom, amount))
+		escrow := sdk.NewCoin(denom.IBCDenom(), amount)
+		escrows = append(escrows, escrow)
+		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), escrow)
 	}
 
 	genesis := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
 
 	suite.Require().Equal(types.PortID, genesis.PortId)
-	suite.Require().Equal(denomTraces.Sort(), genesis.DenomTraces)
+	suite.Require().Equal(denoms.Sort(), genesis.Denoms)
 	suite.Require().Equal(escrows.Sort(), genesis.TotalEscrowed)
 
 	suite.Require().NotPanics(func() {
 		suite.chainA.GetSimApp().TransferKeeper.InitGenesis(suite.chainA.GetContext(), *genesis)
 	})
 
-	for _, denomTrace := range denomTraces {
-		_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainA.GetContext(), denomTrace.IBCDenom())
+	for _, denom := range denoms {
+		_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainA.GetContext(), denom.IBCDenom())
 		suite.Require().True(found)
 	}
 }

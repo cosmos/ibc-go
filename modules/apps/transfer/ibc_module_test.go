@@ -4,6 +4,8 @@ import (
 	"errors"
 	"math"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -14,6 +16,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -230,9 +233,11 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			"success", func() {}, nil,
 		},
 		{
-			"invalid counterparty version", func() {
+			"invalid counterparty version",
+			func() {
 				counterpartyVersion = "version"
-			}, types.ErrInvalidVersion,
+			},
+			types.ErrInvalidVersion,
 		},
 	}
 
@@ -260,6 +265,109 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
+func (suite *TransferTestSuite) TestOnTimeoutPacket() {
+	var path *ibctesting.Path
+	var packet channeltypes.Packet
+
+	testCases := []struct {
+		name           string
+		coinsToSendToB sdk.Coins
+		malleate       func()
+		expError       error
+	}{
+		{
+			"success",
+			sdk.NewCoins(ibctesting.TestCoin),
+			func() {},
+			nil,
+		},
+		{
+			"success with multiple coins",
+			sdk.NewCoins(ibctesting.TestCoin, ibctesting.SecondaryTestCoin),
+			func() {},
+			nil,
+		},
+		{
+			"non-existent channel",
+			sdk.NewCoins(ibctesting.TestCoin),
+			func() {
+				packet.SourceChannel = "channel-100"
+			},
+			ibcerrors.ErrNotFound,
+		},
+		{
+			"invalid packet data",
+			sdk.NewCoins(ibctesting.TestCoin),
+			func() {
+				packet.Data = []byte("invalid data")
+			},
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"already timed-out packet",
+			sdk.NewCoins(ibctesting.TestCoin),
+			func() {
+				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+				suite.Require().NoError(err)
+
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				suite.Require().True(ok)
+
+				suite.Require().NoError(cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress()))
+			},
+			errors.New("unable to unescrow tokens"),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			timeoutHeight := suite.chainA.GetTimeoutHeight()
+			msg := types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				tc.coinsToSendToB,
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				timeoutHeight,
+				0,
+				"")
+			res, err := suite.chainA.SendMsgs(msg)
+			suite.Require().NoError(err) // message committed
+
+			packet, err = ibctesting.ParsePacketFromEvents(res.Events)
+			suite.Require().NoError(err)
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			suite.Require().True(ok)
+
+			tc.malleate() // change fields in packet
+
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
+				escrowBalanceAfter := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
+				suite.Require().Equal(sdkmath.NewInt(0), escrowBalanceAfter.Amount)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
@@ -555,9 +663,8 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  "atom",
+							Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
 							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  []string{"transfer/channel-0"},
 						},
 					},
 					Sender:   sender,
@@ -576,9 +683,8 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom:  types.NewDenom(ibctesting.TestCoin.Denom),
 							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  nil,
 						},
 					},
 					Sender:   sender,
@@ -597,9 +703,8 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  ibctesting.TestCoin.Denom,
+							Denom:  types.NewDenom(ibctesting.TestCoin.Denom, []types.Trace{{}}...),
 							Amount: ibctesting.TestCoin.Amount.String(),
-							Trace:  []string{""},
 						},
 					},
 					Sender:   sender,
@@ -609,7 +714,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 				data = initialPacketData.(types.FungibleTokenPacketDataV2).GetBytes()
 			},
-			errors.New("trace info must come in pairs of port and channel identifiers"),
+			errors.New("invalid token denom: invalid trace: invalid portID: identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"failure: invalid packet data",

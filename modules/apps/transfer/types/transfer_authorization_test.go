@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
@@ -69,47 +70,6 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				suite.Require().True(res.Accept)
 				suite.Require().True(res.Delete)
 				suite.Require().Nil(res.Updated)
-			},
-		},
-		{
-			"success: with multiple allocations and multidenom transfer",
-			func() {
-				coins := sdk.NewCoins(
-					ibctesting.TestCoin,
-					sdk.NewCoin("atom", sdkmath.NewInt(100)),
-					sdk.NewCoin("osmo", sdkmath.NewInt(100)),
-				)
-
-				allocation := types.Allocation{
-					SourcePort:    ibctesting.MockPort,
-					SourceChannel: "channel-9",
-					SpendLimit:    coins,
-				}
-
-				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
-
-				msgTransfer = types.NewMsgTransfer(
-					ibctesting.MockPort,
-					"channel-9",
-					coins,
-					suite.chainA.SenderAccount.GetAddress().String(),
-					ibctesting.TestAccAddress,
-					suite.chainB.GetTimeoutHeight(),
-					0,
-					"",
-				)
-			},
-			func(res authz.AcceptResponse, err error) {
-				suite.Require().NoError(err)
-
-				suite.Require().True(res.Accept)
-				suite.Require().False(res.Delete)
-
-				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
-				suite.Require().True(ok)
-
-				// assert spent spendlimits are removed from the list
-				suite.Require().Len(updatedAuthz.Allocations, 1)
 			},
 		},
 		{
@@ -245,6 +205,117 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)
+			},
+		},
+		{
+			"success: with multiple allocations and multidenom transfer",
+			func() {
+				coins := sdk.NewCoins(
+					ibctesting.TestCoin,
+					sdk.NewCoin("atom", sdkmath.NewInt(100)),
+					sdk.NewCoin("osmo", sdkmath.NewInt(100)),
+				)
+
+				transferAuthz.Allocations = append(transferAuthz.Allocations, types.Allocation{
+					SourcePort:    ibctesting.MockPort,
+					SourceChannel: "channel-9",
+					SpendLimit:    coins,
+				})
+
+				msgTransfer = types.NewMsgTransfer(
+					ibctesting.MockPort,
+					"channel-9",
+					coins,
+					suite.chainA.SenderAccount.GetAddress().String(),
+					ibctesting.TestAccAddress,
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().False(res.Delete)
+
+				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
+				suite.Require().True(ok)
+
+				// assert spent spendlimits are removed from the list
+				suite.Require().Len(updatedAuthz.Allocations, 1)
+			},
+		},
+		{
+			"failure: multidenom transfer spend limit is exceeded",
+			func() {
+				coins := sdk.NewCoins(
+					ibctesting.TestCoin,
+					sdk.NewCoin("atom", sdkmath.NewInt(100)),
+					sdk.NewCoin("osmo", sdkmath.NewInt(100)),
+				)
+
+				transferAuthz.Allocations = append(transferAuthz.Allocations, types.Allocation{
+					SourcePort:    ibctesting.MockPort,
+					SourceChannel: "channel-9",
+					SpendLimit:    coins,
+				})
+
+				// spending more than the spend limit
+				coins = coins.Add(sdk.NewCoin("atom", sdkmath.NewInt(1)))
+
+				msgTransfer = types.NewMsgTransfer(
+					ibctesting.MockPort,
+					"channel-9",
+					coins,
+					suite.chainA.SenderAccount.GetAddress().String(),
+					ibctesting.TestAccAddress,
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().ErrorIs(err, ibcerrors.ErrInsufficientFunds)
+				suite.Require().False(res.Accept)
+				suite.Require().False(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"failure: multidenom transfer denom not in allocation",
+			func() {
+				coins := sdk.NewCoins(
+					ibctesting.TestCoin,
+					sdk.NewCoin("atom", sdkmath.NewInt(100)),
+					sdk.NewCoin("osmo", sdkmath.NewInt(100)),
+				)
+
+				transferAuthz.Allocations = append(transferAuthz.Allocations, types.Allocation{
+					SourcePort:    ibctesting.MockPort,
+					SourceChannel: "channel-9",
+					SpendLimit:    coins,
+				})
+
+				// spend a coin not in the allocation
+				coins = coins.Add(sdk.NewCoin("newdenom", sdkmath.NewInt(1)))
+
+				msgTransfer = types.NewMsgTransfer(
+					ibctesting.MockPort,
+					"channel-9",
+					coins,
+					suite.chainA.SenderAccount.GetAddress().String(),
+					ibctesting.TestAccAddress,
+					suite.chainB.GetTimeoutHeight(),
+					0,
+					"",
+				)
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().ErrorIs(err, ibcerrors.ErrInsufficientFunds)
+				suite.Require().False(res.Accept)
+				suite.Require().False(res.Delete)
+				suite.Require().Nil(res.Updated)
 			},
 		},
 	}

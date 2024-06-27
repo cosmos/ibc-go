@@ -40,7 +40,8 @@ var (
 	receiver  = sdk.AccAddress("testaddr2").String()
 	emptyAddr string
 
-	coins             = sdk.NewCoins(sdk.NewCoin("atom", sdkmath.NewInt(100)))
+	coin              = ibctesting.TestCoin
+	coins             = ibctesting.TestCoins
 	ibcCoins          = sdk.NewCoins(sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.NewInt(100)))
 	invalidIBCCoins   = sdk.NewCoins(sdk.NewCoin("ibc/7F1D3FCF4AE79E1554", sdkmath.NewInt(100)))
 	invalidDenomCoins = []sdk.Coin{{Denom: "0atom", Amount: sdkmath.NewInt(100)}}
@@ -77,6 +78,7 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"multidenom: invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidIBCCoins...), sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
 		{"multidenom: zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
 		{"multidenom: too many coins", types.NewMsgTransfer(validPort, validChannel, make([]sdk.Coin, types.MaximumTokensLength+1), sender, receiver, timeoutHeight, 0, ""), ibcerrors.ErrInvalidCoins},
+		{"multidenom: both token and tokens are set", &types.MsgTransfer{validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, "", coins}, ibcerrors.ErrInvalidCoins},
 	}
 
 	for _, tc := range testCases {

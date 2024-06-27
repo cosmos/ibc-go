@@ -4,6 +4,7 @@ package ibc.applications.transfer.v2;
 
 option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 
+import "ibc/applications/transfer/v2/token.proto";
 import "gogoproto/gogo.proto";
 
 // FungibleTokenPacketData defines a struct for the packet payload
@@ -34,14 +35,4 @@ message FungibleTokenPacketDataV2 {
   string receiver = 3;
   // optional memo
   string memo = 4;
-}
-
-// Token defines a struct which represents a token to be transferred.
-message Token {
-  // the base token denomination to be transferred
-  string denom = 1;
-  // the token amount to be transferred
-  string amount = 2;
-  // the trace of the token
-  repeated string trace = 3;
 }

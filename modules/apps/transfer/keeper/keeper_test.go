@@ -199,7 +199,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 		{
 			"success",
 			func() {
-				denom := "uatom"
+				denom := "uatom" //nolint:goconst
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
