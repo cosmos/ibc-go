@@ -31,8 +31,8 @@ type TransferChannelUpgradesTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *TransferChannelUpgradesTestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions(), s.T().Name())
+func (s *TransferChannelUpgradesTestSuite) SetupChannelUpgradesPath(testName string) {
+	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware
@@ -41,6 +41,8 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
@@ -259,6 +261,8 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelDowngrade_WithICS20v1_Succ
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
@@ -352,6 +356,8 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
@@ -443,6 +449,8 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	chainA, chainB := s.GetChains()

@@ -36,9 +36,9 @@ func TestIncentivizedTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
 }
 
-// SetupTest explicitly enables fee middleware in the channel options.
-func (s *IncentivizedTransferTestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions(), s.T().Name())
+// SetupTransferFeePath explicitly enables fee middleware in the channel options.
+func (s *IncentivizedTransferTestSuite) SetupTransferFeePath(testName string) {
+	s.SetupPath(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions(), testName)
 }
 
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
@@ -46,6 +46,8 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupTransferFeePath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	chainA, chainB := s.GetChains()
@@ -166,6 +168,8 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupTransferFeePath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	chainA, chainB := s.GetChains()
@@ -295,6 +299,8 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupTransferFeePath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	chainA, chainB := s.GetChains()
@@ -416,6 +422,8 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupTransferFeePath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	chainA, chainB := s.GetChains()
@@ -534,6 +542,8 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupTransferFeePath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	chainA, _ := s.GetChains()
@@ -637,6 +647,8 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.SetupTransferFeePath(testName)
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	chainA, chainB := s.GetChains()
