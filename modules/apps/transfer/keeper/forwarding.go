@@ -124,7 +124,7 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 			continue
 		}
 
-		if err := k.burnCoin(ctx, forwardingAddr, coin); err != nil {
+		if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 			return err
 		}
 	}
