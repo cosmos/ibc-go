@@ -29,8 +29,7 @@ const (
 	// AllowAllPacketDataKeys holds the string key that allows all memo strings in authz transfer messages
 	AllowAllPacketDataKeys = "*"
 
-	KeyTotalEscrowPrefix  = "totalEscrowForDenom"
-	KeyTotalForwardPrefix = "totalForwardForDenom"
+	KeyTotalEscrowPrefix = "totalEscrowForDenom"
 
 	ParamsKey = "params"
 

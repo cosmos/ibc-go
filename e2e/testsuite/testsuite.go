@@ -207,6 +207,7 @@ func (s *E2ETestSuite) SetupPaths(clientOpts ibc.CreateClientOptions, channelOpt
 	}
 }
 
+// CreatePath creates a path between chainA and chainB using the provided client and channel options.
 func (s *E2ETestSuite) CreatePath(
 	ctx context.Context,
 	chainA ibc.Chain,

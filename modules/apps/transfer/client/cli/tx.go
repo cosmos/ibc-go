@@ -43,8 +43,8 @@ packet if the coins list is a comma-separated string (e.g. 100uatom,100uosmo). T
 Timeout height can be set by passing in the height string in the form {revision}-{height} using the {packet-timeout-height} flag. 
 Note, relative timeout height is not supported. Relative timeout timestamp is added to the value of the user's local system clock time 
 using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used. IBC tokens
-can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag used, then the transfer should contain only
-tokens for a single denomination. Tokens can also be automatically forwarded through multiple chains using the {fowarding} flag and specifying
+can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag is used, then the transfer should contain only
+a single token. Tokens can also be automatically forwarded through multiple chains using the {fowarding} flag and specifying
 a comma-separated list of source portID/channelID pairs for each intermediary chain. {unwind} and {forwarding} flags can be used together
 to unwind IBC tokens to their native chain and forward them to the final destination.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coins]", version.AppName),
@@ -133,7 +133,7 @@ to unwind IBC tokens to their native chain and forward them to the final destina
 	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, defaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
-	cmd.Flags().String(flagForwarding, "", "Forwarding information in the form of a comma separated list of portID/channelID pairs, denoting the intermediary hops. If forwarding is specified any memo set will be included in the forwarding information created.")
+	cmd.Flags().String(flagForwarding, "", "Forwarding information in the form of a comma separated list of portID/channelID pairs.")
 	cmd.Flags().Bool(flagUnwind, false, "Flag to indicate if the coin should be unwound to its native chain before forwarding.")
 
 	flags.AddTxFlagsToCmd(cmd)
