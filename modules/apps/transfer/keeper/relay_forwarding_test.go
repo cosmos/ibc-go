@@ -42,12 +42,6 @@ func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, b
 	suite.Require().Equal(amount, total.Amount, fmt.Sprintf("Chain %s: got balance of %d, wanted %d", chain.Name(), total.Amount, amount))
 }
 
-func newDenomWithAddedTrace(original types.Denom, newTrace types.Trace) types.Denom {
-	newDenom := original
-	newDenom.Trace = append([]types.Trace{newTrace}, newDenom.Trace...)
-	return newDenom
-}
-
 // TestStoredForwardedPacketAndEscrowAfterFirstHop tests that the forwarded packet
 // from chain A to chain B is stored after when the packet is received on chain B
 // and then forwarded to chain C, and checks the balance of the escrow accounts
@@ -1109,7 +1103,7 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	suite.Require().NotNil(result)
 
 	// Check that Escrow C has amount
-	denomTraceABC := newDenomWithAddedTrace(denomTrace, types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID))
+	denomTraceABC := types.NewDenom(denomTrace.Base, append([]types.Trace{types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomTrace.Trace...)...)
 	suite.assertAmountOnChain(suite.chainC, escrow, coinOnA.Amount, denomTraceABC.IBCDenom())
 
 	// Finally, receive on D and verify that D has the desired amount.
@@ -1127,7 +1121,7 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	denomTraceABCD := newDenomWithAddedTrace(denomTraceABC, types.NewTrace(pathCtoD.EndpointB.ChannelConfig.PortID, pathCtoD.EndpointB.ChannelID))
+	denomTraceABCD := types.NewDenom(denomTraceABC.Base, append([]types.Trace{types.NewTrace(pathCtoD.EndpointB.ChannelConfig.PortID, pathCtoD.EndpointB.ChannelID)}, denomTraceABC.Trace...)...)
 	suite.assertAmountOnChain(suite.chainD, balance, coinOnA.Amount, denomTraceABCD.IBCDenom())
 
 	// Propagate the ack back from D to A.
