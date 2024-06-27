@@ -213,7 +213,7 @@ func (im IBCModule) OnRecvPacket(
 
 	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 
-	if data.ShouldBeForwarded() {
+	if data.HasForwarding() {
 		// NOTE: acknowledgement will be written asynchronously
 		return nil
 	}

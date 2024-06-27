@@ -122,7 +122,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 
 // validateForwarding ensures that forwarding is set up correctly.
 func (msg MsgTransfer) validateForwarding() error {
-	if !msg.ShouldBeForwarded() {
+	if !msg.HasForwarding() {
 		return nil
 	}
 	if err := msg.Forwarding.Validate(); err != nil {
@@ -161,8 +161,8 @@ func (msg MsgTransfer) GetCoins() sdk.Coins {
 	return coins
 }
 
-// ShouldBeForwarded determines if the transfer should be forwarded to the next hop.
-func (msg MsgTransfer) ShouldBeForwarded() bool {
+// HasForwarding determines if the transfer should be forwarded to the next hop.
+func (msg MsgTransfer) HasForwarding() bool {
 	return len(msg.Forwarding.Hops) > 0 || msg.Forwarding.Unwind
 }
 
