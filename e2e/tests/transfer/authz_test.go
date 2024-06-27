@@ -33,7 +33,7 @@ type AuthzTransferTestSuite struct {
 }
 
 func (suite *AuthzTransferTestSuite) SetupTest() {
-	suite.SetupPath(ibc.DefaultClientOpts(), suite.TransferChannelOptions())
+	suite.SetupPath(ibc.DefaultClientOpts(), suite.TransferChannelOptions(), suite.T().Name())
 }
 
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
@@ -52,7 +52,11 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.GetRelayer(), suite.GetChainAChannel()
+	testName := t.Name()
+	suite.SetupDefaultPath(testName)
+
+	relayer, channelA := suite.GetRelayerForTest(testName), suite.GetChainAChannelForTest(testName)
+
 	chainA, chainB := suite.GetChains()
 	chainADenom := chainA.Config().Denom
 
@@ -210,7 +214,10 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.GetRelayer(), suite.GetChainAChannel()
+	testName := t.Name()
+	suite.SetupDefaultPath(testName)
+
+	relayer, channelA := suite.GetRelayerForTest(testName), suite.GetChainAChannelForTest(testName)
 
 	chainA, chainB := suite.GetChains()
 	chainADenom := chainA.Config().Denom

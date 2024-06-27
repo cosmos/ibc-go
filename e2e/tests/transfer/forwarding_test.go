@@ -33,7 +33,10 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 	ctx := context.TODO()
 	t := s.T()
 
-	relayer, chains := s.GetRelayer(), s.GetAllChains()
+	testName := t.Name()
+	s.SetupDefaultPath(testName)
+
+	relayer, chains := s.GetRelayerForTest(testName), s.GetAllChains()
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 

@@ -38,9 +38,11 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	t := s.T()
 	ctx := context.TODO()
 
-	// setup relayers and connection-0 between two chains
-	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	s.SetupDefaultPath(testName)
+
+	relayer := s.GetRelayerForTest(testName)
+
 	chainA, chainB := s.GetChains()
 	chainBVersion := chainB.Config().Images[0].Version
 

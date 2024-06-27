@@ -163,6 +163,8 @@ func (s *E2ETestSuite) initalizeRelayerPool(n int) []ibc.Relayer {
 // connections and channels between the chains.
 func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier ChainOptionModifier, chainSpecOpts ...ChainOptionConfiguration) {
 	s.T().Logf("Setting up chains: %s", s.T().Name())
+	// don't delete chains on failure so other tests can keep going.
+	s.Require().NoError(os.Setenv("KEEP_CONTAINERS", "true"))
 	s.initState()
 	s.configureGenesisDebugExport()
 
@@ -188,19 +190,19 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 	s.Require().NoError(ic.Build(ctx, s.GetRelayerExecReporter(), buildOpts))
 }
 
-// SetupTest will by default use the default channel options to create a path between the chains.
-// if non default channel options are required, the test suite must override the `SetupTest` function.
-func (s *E2ETestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), defaultChannelOpts(s.GetAllChains()))
+// SetupDefaultPath creates a path between the chains using the default client and channel options.
+// this should be called as the setup function in most tests if no additional options are required.
+func (s *E2ETestSuite) SetupDefaultPath(testName string) {
+	s.SetupPath(ibc.DefaultClientOpts(), DefaultChannelOpts(s.GetAllChains()), testName)
 }
 
 // SetupPath creates a path between the chains using the provided client and channel options.
-func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions) {
-	s.T().Logf("Setting up path for: %s", s.T().Name())
-	r := s.GetRelayer()
+func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) {
+	s.T().Logf("Setting up path for: %s", testName)
+	r := s.GetRelayerForTest(testName)
 
-	if s.channels[s.T().Name()] == nil {
-		s.channels[s.T().Name()] = make(map[ibc.Chain][]ibc.ChannelOutput)
+	if s.channels[testName] == nil {
+		s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
 	}
 
 	ctx := context.TODO()
@@ -229,14 +231,14 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
 		s.Require().NoError(err)
 
-		s.testPaths[s.T().Name()] = append(s.testPaths[s.T().Name()], pathName)
+		s.testPaths[testName] = append(s.testPaths[testName], pathName)
 
 		for _, c := range []ibc.Chain{chainA, chainB} {
 			channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
 			s.Require().NoError(err)
 
 			// only the most recent channel is relevant.
-			s.channels[s.T().Name()][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
+			s.channels[testName][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
 
 			err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, channels)
 			s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
@@ -244,28 +246,28 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 	}
 }
 
-// GetChainAChannel returns the ibc.ChannelOutput for the current test.
+// GetChainAChannelForTest returns the ibc.ChannelOutput for the specified test.
 // this defaults to the first entry in the list, and will be what is needed in the case of
 // a single channel test.
-func (s *E2ETestSuite) GetChainAChannel() ibc.ChannelOutput {
-	chainA := s.GetAllChains()[0]
-	return s.GetChannels(chainA)[0]
+func (s *E2ETestSuite) GetChainAChannelForTest(testName string) ibc.ChannelOutput {
+	return s.GetChannelsForTest(s.GetAllChains()[0], testName)[0]
 }
 
-// GetChannels returns all channels for the current test.
-func (s *E2ETestSuite) GetChannels(chain ibc.Chain) []ibc.ChannelOutput {
-	channels, ok := s.channels[s.T().Name()][chain]
-	s.Require().True(ok, "channel not found for test %s", s.T().Name())
+// GetChannelsForTest returns all channels for the specified test.
+func (s *E2ETestSuite) GetChannelsForTest(chain ibc.Chain, testName string) []ibc.ChannelOutput {
+	channels, ok := s.channels[testName][chain]
+	s.Require().True(ok, "channel not found for test %s", testName)
 	return channels
 }
 
-// GetRelayer returns the relayer for the current test from the available pool of relayers.
+// GetRelayerForTest returns the relayer for the current test from the available pool of relayers.
 // once a relayer has been returned to a test, it is cached and will be reused for the duration of the test.
-func (s *E2ETestSuite) GetRelayer() ibc.Relayer {
+func (s *E2ETestSuite) GetRelayerForTest(testName string) ibc.Relayer {
 	s.relayerLock.Lock()
 	defer s.relayerLock.Unlock()
 
-	if r, ok := s.testRelayerMap[s.T().Name()]; ok {
+	if r, ok := s.testRelayerMap[testName]; ok {
+		s.T().Logf("relayer already created for test: %s", testName)
 		return r
 	}
 
@@ -278,9 +280,15 @@ func (s *E2ETestSuite) GetRelayer() ibc.Relayer {
 	// remove the relayer from the pool
 	s.relayerPool = s.relayerPool[1:]
 
-	s.testRelayerMap[s.T().Name()] = r
+	s.testRelayerMap[testName] = r
 
 	return r
+}
+
+// GetRelayer returns the relayer for the current test from the available pool of relayers.
+// once a relayer has been returned to a test, it is cached and will be reused for the duration of the test.
+func (s *E2ETestSuite) GetRelayer() ibc.Relayer {
+	return s.GetRelayerForTest(s.T().Name())
 }
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
@@ -327,7 +335,7 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, relayers []ibc.Relayer
 	// - chainC and chainD etc
 	for i := 0; i < len(chains)-1; i++ {
 		pathName := s.generatePathName()
-		channelOpts := defaultChannelOpts(chains)
+		channelOpts := DefaultChannelOpts(chains)
 		chain1, chain2 := chains[i], chains[i+1]
 
 		if modificationProvider != nil {
@@ -738,8 +746,8 @@ func ThreeChainSetup() ChainOptionConfiguration {
 	}
 }
 
-// defaultChannelOpts returns the default chain options for the test suite based on the provided chains.
-func defaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
+// DefaultChannelOpts returns the default chain options for the test suite based on the provided chains.
+func DefaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
 	channelOptions := ibc.DefaultChannelOpts()
 	channelOptions.Version = determineDefaultTransferVersion(chains)
 	return channelOptions

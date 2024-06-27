@@ -62,7 +62,7 @@ func (s *UpgradeTestSuite) SetupTest() {
 	if strings.HasSuffix(s.T().Name(), "TestV8ToV8_1ChainUpgrade") {
 		channelOpts = s.FeeTransferChannelOptions()
 	}
-	s.SetupPath(ibc.DefaultClientOpts(), channelOpts)
+	s.SetupPath(ibc.DefaultClientOpts(), channelOpts, s.T().Name())
 }
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
@@ -129,7 +129,9 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
+
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -294,7 +296,9 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
+
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -448,7 +452,9 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
+
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -539,7 +545,9 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
+
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -632,7 +640,8 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	t := s.T()
 	ctx := context.Background()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
@@ -759,7 +768,9 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
+
 	channelB := channelA.Counterparty
 
 	chainA, chainB := s.GetChains()

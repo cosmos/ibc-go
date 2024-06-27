@@ -86,7 +86,10 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		err               error
 	)
 
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	s.SetupDefaultPath(testName)
+	relayer := s.GetRelayerForTest(testName)
+
 	chainA, chainB := s.GetChains()
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)

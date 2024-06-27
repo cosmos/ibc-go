@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"testing"
+	"time"
+
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
@@ -33,15 +36,15 @@ type TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *TransferTestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions())
-}
-
 // QueryTransferParams queries the on-chain send enabled param for the transfer module
 func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
 	res, err := query.GRPCQuery[transfertypes.QueryParamsResponse](ctx, chain, &transfertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	return *res.Params
+}
+
+func (s *TransferTestSuite) SetupTransferPath(testName string) {
+	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -51,9 +54,19 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+
+	// TODO: t.Parallel() should be called before SetupPath in all tests.
+	// NOTE: t.Name() must be stored in a variable before t.Parallel() otherwise t.Name() is not
+	// deterministic.
+
+	s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChainAChannelForTest(testName)
+
 	chainAVersion := chainA.Config().Images[0].Version
 	chainBVersion := chainB.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
@@ -160,8 +173,14 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	// TODO: t.Parallel()
+	s.SetupTransferPath(testName)
+
 	chainA, chainB := s.GetChains()
+
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChainAChannelForTest(testName)
 
 	chainADenom := chainA.Config().Denom
 	chainBDenom := chainB.Config().Denom
@@ -260,8 +279,14 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	// TODO: t.Parallel()
+	s.SetupTransferPath(testName)
+
 	chainA, chainB := s.GetChains()
+
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChainAChannelForTest(testName)
 
 	chainADenom := chainA.Config().Denom
 	chainBDenom := chainB.Config().Denom
@@ -379,9 +404,15 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	// TODO: t.Parallel()
+	s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChainAChannelForTest(testName)
+
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -423,8 +454,14 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	// TODO: t.Parallel()
+	s.SetupTransferPath(testName)
+
 	chainA, _ := s.GetChains()
+
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChainAChannelForTest(testName)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -472,9 +509,13 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	channelA := s.GetChainAChannel()
+	testName := t.Name()
+	// TODO: t.Parallel()
+	s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	channelA := s.GetChainAChannelForTest(testName)
 	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 
@@ -532,9 +573,15 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	// TODO: t.Parallel()
+	s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChainAChannelForTest(testName)
+
 	chainAVersion := chainA.Config().Images[0].Version
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -652,9 +699,15 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	// TODO: t.Parallel()
+	s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChainAChannelForTest(testName)
+
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
