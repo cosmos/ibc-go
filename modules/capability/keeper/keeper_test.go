@@ -76,6 +76,12 @@ func (suite *KeeperTestSuite) TestSeal() {
 	})
 }
 
+func (suite *KeeperTestSuite) TestHasModule() {
+	_ = suite.keeper.ScopeToModule(bankModuleName)
+	suite.Require().True(suite.keeper.HasModule(bankModuleName), "bank module not exist")
+	suite.Require().False(suite.keeper.HasModule("invalid"), "invalid module exist")
+}
+
 func (suite *KeeperTestSuite) TestNewCapability() {
 	sk := suite.keeper.ScopeToModule(bankModuleName)
 
