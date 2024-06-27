@@ -41,9 +41,12 @@ func (s *TransferForwardingTestSuite) TestThreeChainSetup() {
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 
-	chainAChannels := s.GetChannels(chainA)
-	chainBChannels := s.GetChannels(chainB)
-	chainCChannels := s.GetChannels(chainC)
+	chainAChannels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+	s.Require().NoError(err)
+	chainBChannels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
+	s.Require().NoError(err)
+	chainCChannels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainC.Config().ChainID)
+	s.Require().NoError(err)
 
 	s.Require().Len(chainAChannels, 1, "expected 1 channels on chain A")
 	s.Require().Len(chainBChannels, 2, "expected 2 channels on chain B")
