@@ -214,7 +214,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-			if k.IsBlockedAddr(receiver) {
+			if k.isBlockedAddr(receiver) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 
@@ -257,7 +257,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			}
 
 			// send to receiver
-			if k.IsBlockedAddr(receiver) {
+			if k.isBlockedAddr(receiver) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 			moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
@@ -278,7 +278,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 	}
 
-	if data.ShouldBeForwarded() {
+	if data.HasForwarding() {
 		// we are now sending from the forward escrow address to the final receiver address.
 		if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
 			return err
@@ -296,7 +296,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 // acknowledgement was a success then nothing occurs. If the acknowledgement failed,
 // then the sender is refunded their tokens using the refundPacketToken function.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
-	prevPacket, isForwarded := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	prevPacket, isForwarded := k.getForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
@@ -330,7 +330,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 		return err
 	}
 
-	prevPacket, isForwarded := k.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	prevPacket, isForwarded := k.getForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if isForwarded {
 		return k.ackForwardPacketTimeout(ctx, prevPacket, packet, data)
 	}
@@ -360,20 +360,19 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 		// if the token we must refund is prefixed by the source port and channel
 		// then the tokens were burnt when the packet was sent and we must mint new tokens
 		if token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
-			// mint vouchers back to sender
-			if err := k.bankKeeper.MintCoins(
-				ctx, types.ModuleName, sdk.NewCoins(coin),
-			); err != nil {
-				return err
-			}
+		  // mint vouchers back to sender
+		  if err := k.bankKeeper.MintCoins(
+			  ctx, types.ModuleName, sdk.NewCoins(coin),
+		  ); err != nil {
+			  return err
+		  }
 
-			if k.IsBlockedAddr(sender) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
-			}
-			if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
-				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
-			}
-
+		  if k.isBlockedAddr(sender) {
+			  return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+		  }
+		  if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
+			  panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+		  }
 		} else {
 			// unescrow tokens back to sender
 			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
@@ -485,21 +484,4 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 	default:
 		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
 	}
-}
-
-// burnCoin sends coins from the account to the transfer module account and then burn them.
-// We do this because bankKeeper.BurnCoins only works with a module account in SDK v0.50,
-// the next version of the SDK will allow burning coins from any account.
-// TODO: remove this function once we switch forwarding address to a module account (#6561)
-func (k Keeper) burnCoin(ctx sdk.Context, account sdk.AccAddress, coin sdk.Coin) error {
-	coins := sdk.NewCoins(coin)
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, account, types.ModuleName, coins); err != nil {
-		return err
-	}
-
-	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
-		return err
-	}
-
-	return nil
 }

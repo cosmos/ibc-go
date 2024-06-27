@@ -32,7 +32,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
 	}
 
-	if k.IsBlockedAddr(sender) {
+	if k.isBlockedAddr(sender) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
@@ -91,6 +91,7 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	msg.Forwarding.Hops = append(unwindHops, msg.Forwarding.Hops...)
 	msg.Forwarding.Unwind = false
 
+	// Message is validate again, this would only fail if hops now exceeds maximum allowed.
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}

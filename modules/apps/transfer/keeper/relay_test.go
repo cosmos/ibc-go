@@ -370,6 +370,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			ibcerrors.ErrUnauthorized,
 		},
 		{
+			"failure: receiver is invalid",
+			func() {
+				receiver = "invalid-address"
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
 			"failure: receive is disabled",
 			func() {
 				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(),

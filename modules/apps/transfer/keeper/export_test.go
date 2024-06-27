@@ -5,6 +5,7 @@ import (
 
 	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // SetDenomTraces is a wrapper around iterateDenomTraces for testing purposes.
@@ -36,6 +37,16 @@ func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 // UnwindHops is a wrapper around unwindToken for testing purposes.
 func (k Keeper) UnwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
 	return k.unwindHops(ctx, msg)
+}
+
+// UnwindHops is a wrapper around unwindToken for testing purposes.
+func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
+	return k.getForwardedPacket(ctx, portID, channelID, sequence)
+}
+
+// IsBlockedAddr is a wrapper around isBlockedAddr for testing purposes
+func (k Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {
+	return k.isBlockedAddr(addr)
 }
 
 // CreatePacketDataBytesFromVersion is a wrapper around createPacketDataBytesFromVersion for testing purposes

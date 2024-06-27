@@ -116,9 +116,9 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 		// given that the packet is being reversed, we check the DestinationChannel and DestinationPort
 		// of the prevPacket to see if a hop was added to the trace during the receive step
 		if token.Denom.HasPrefix(prevPacket.DestinationPort, prevPacket.DestinationChannel) {
-			if err := k.burnCoin(ctx, forwardingAddr, coin); err != nil {
-				return err
-			}
+			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+			  return err
+		  }
 		} else {
 			// send it back to the escrow address
 			if err := k.escrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
@@ -132,7 +132,7 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 // getReceiverFromPacketData returns either the sender specified in the packet data or the forwarding address
 // if there are still hops left to perform.
 func (k Keeper) getReceiverFromPacketData(data types.FungibleTokenPacketDataV2) (sdk.AccAddress, error) {
-	if data.ShouldBeForwarded() {
+	if data.HasForwarding() {
 		// since data.Receiver can potentially be a non-CosmosSDK AccAddress, we return early if the packet should be forwarded
 		return k.authKeeper.GetModuleAddress(types.ModuleName), nil
 	}

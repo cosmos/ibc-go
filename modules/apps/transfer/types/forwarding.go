@@ -17,8 +17,8 @@ func NewForwarding(unwind bool, hops ...Hop) Forwarding {
 }
 
 // Validate performs a basic validation of the Forwarding fields.
-func (fi Forwarding) Validate() error {
-	if err := validateHops(fi.Hops); err != nil {
+func (f Forwarding) Validate() error {
+	if err := validateHops(f.Hops); err != nil {
 		return errorsmod.Wrapf(ErrInvalidForwarding, "invalid hops in forwarding")
 	}
 
@@ -34,16 +34,16 @@ func NewForwardingPacketData(destinationMemo string, hops ...Hop) ForwardingPack
 }
 
 // Validate performs a basic validation of the ForwardingPacketData fields.
-func (fi ForwardingPacketData) Validate() error {
-	if err := validateHops(fi.Hops); err != nil {
+func (fpd ForwardingPacketData) Validate() error {
+	if err := validateHops(fpd.Hops); err != nil {
 		return errorsmod.Wrapf(ErrInvalidForwarding, "invalid hops in forwarding packet data")
 	}
 
-	if len(fi.DestinationMemo) > MaximumMemoLength {
+	if len(fpd.DestinationMemo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo length cannot exceed %d", MaximumMemoLength)
 	}
 
-	if len(fi.Hops) == 0 && fi.DestinationMemo != "" {
+	if len(fpd.Hops) == 0 && fpd.DestinationMemo != "" {
 		return errorsmod.Wrap(ErrInvalidForwarding, "memo specified when forwarding packet data hops is empty")
 	}
 

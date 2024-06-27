@@ -145,7 +145,7 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 	}
 
 	// We cannot have non-empty memo and non-empty forwarding path hops at the same time.
-	if ftpd.ShouldBeForwarded() && ftpd.Memo != "" {
+	if ftpd.HasForwarding() && ftpd.Memo != "" {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", ftpd.Memo, ftpd.Forwarding.Hops)
 	}
 
@@ -195,7 +195,7 @@ func (ftpd FungibleTokenPacketDataV2) GetPacketSender(sourcePortID string) strin
 	return ftpd.Sender
 }
 
-// ShouldBeForwarded determines if the packet should be forwarded to the next hop.
-func (ftpd FungibleTokenPacketDataV2) ShouldBeForwarded() bool {
+// HasForwarding determines if the packet should be forwarded to the next hop.
+func (ftpd FungibleTokenPacketDataV2) HasForwarding() bool {
 	return len(ftpd.Forwarding.Hops) > 0
 }
