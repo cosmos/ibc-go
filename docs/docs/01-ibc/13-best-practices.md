@@ -19,7 +19,7 @@ Which channel to use is based on social consensus. The desired channel should ha
 - has sizable activity
 - the underlying client is active
 
-To verify if a client is valid. You will need to obtain a header from the chain you want to connect to. This can be done by running a full node for that chain or relying on a trusted grpc address. 
+To verify if a client is valid. You will need to obtain a header from the chain you want to connect to. This can be done by running a full node for that chain or relying on a trusted rpc address. 
 Then you should query the light client you want to verify and obtain its latest consensus state. All consensus state fields must match the header queried for at same height as the consensus state (root, timestamp, next validator set hash).  
 
 Explorers and wallets are highly encouraged to follow this practice. It is unsafe to algorithmically add new channels without following this process. 
