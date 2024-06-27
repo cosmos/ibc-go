@@ -269,12 +269,12 @@ func (s *CallbacksTestSuite) ExecutePayPacketFeeMsg(fee feetypes.Fee) {
 	s.Require().Equal(postEscrowBalance.AddAmount(fee.Total().AmountOf(sdk.DefaultBondDenom)), preEscrowBalance)
 
 	// register counterparty address on chainB
-	payfeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+	payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	s.Require().NoError(err)
 
 	msgRegister := feetypes.NewMsgRegisterCounterpartyPayee(
 		s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID,
-		s.chainB.SenderAccount.GetAddress().String(), payfeeAddr.String(),
+		s.chainB.SenderAccount.GetAddress().String(), payeeAddr.String(),
 	)
 	_, err = s.chainB.SendMsgs(msgRegister)
 	s.Require().NoError(err) // message committed

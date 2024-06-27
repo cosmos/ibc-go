@@ -257,11 +257,11 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 	// We only check if the fee is paid if the callback is successful.
 	if !isTimeout && isSuccessful {
 		// check forward relay balance
-		payfeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+		payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 		s.Require().NoError(err)
 		s.Require().Equal(
 			fee.RecvFee,
-			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), payfeeAddr, ibctesting.TestCoin.Denom)),
+			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), payeeAddr, ibctesting.TestCoin.Denom)),
 		)
 
 		refundCoins := fee.Total().Sub(fee.RecvFee...).Sub(fee.AckFee...)

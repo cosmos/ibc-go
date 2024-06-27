@@ -157,9 +157,9 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 	for i, tc := range testCases {
 		i, tc := i, tc
 
-		payfeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+		payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 		require.NoError(t, err)
-		msg = types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, payfeeAddr.String())
+		msg = types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, payeeAddr.String())
 
 		tc.malleate()
 
