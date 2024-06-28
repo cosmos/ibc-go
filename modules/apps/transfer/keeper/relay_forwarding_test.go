@@ -1144,4 +1144,3 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	err = pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, ack)
 	suite.Require().NoError(err)
 }
-
