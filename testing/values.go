@@ -62,7 +62,6 @@ var (
 	SecondaryDenom    = "ufoo"
 	SecondaryTestCoin = sdk.NewCoin(SecondaryDenom, sdkmath.NewInt(100))
 	TestCoins         = sdk.NewCoins(TestCoin, SecondaryTestCoin)
-	
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 
