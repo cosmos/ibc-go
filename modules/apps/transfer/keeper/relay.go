@@ -233,7 +233,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// sender chain is the source, mint vouchers
 
 			// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
-			trace := []types.Trace{types.NewTrace(packet.DestinationPort, packet.DestinationChannel)}
+			trace := []types.Hop{types.NewHop(packet.DestinationPort, packet.DestinationChannel)}
 			token.Denom.Trace = append(trace, token.Denom.Trace...)
 
 			if !k.HasDenom(ctx, token.Denom.Hash()) {

@@ -11,11 +11,11 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 )
 
-// NewDenom creates a new Denom instance given the base denomination and a variable number of traces.
-func NewDenom(base string, traces ...Trace) Denom {
+// NewDenom creates a new Denom instance given the base denomination and a variable number of hops.
+func NewDenom(base string, trace ...Hop) Denom {
 	return Denom{
 		Base:  base,
-		Trace: traces,
+		Trace: trace,
 	}
 }
 
@@ -27,8 +27,8 @@ func (d Denom) Validate() error {
 		return errorsmod.Wrap(ErrInvalidDenomForTransfer, "base denomination cannot be blank")
 	}
 
-	for _, trace := range d.Trace {
-		if err := trace.Validate(); err != nil {
+	for _, hop := range d.Trace {
+		if err := hop.Validate(); err != nil {
 			return errorsmod.Wrap(err, "invalid trace")
 		}
 	}

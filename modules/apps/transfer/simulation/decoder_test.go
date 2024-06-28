@@ -14,7 +14,7 @@ import (
 
 func TestDecodeStore(t *testing.T) {
 	dec := simulation.NewDecodeStore()
-	denom := types.NewDenom("uatom", types.NewTrace("transfer", "channelToA"))
+	denom := types.NewDenom("uatom", types.NewHop("transfer", "channelToA"))
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{

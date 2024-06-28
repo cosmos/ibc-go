@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 					})
 			},
 			transfertypes.Denoms{
-				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-49")),
+				transfertypes.NewDenom("uatom", transfertypes.NewHop("transfer", "channel-49")),
 			},
 		},
 		{
@@ -91,7 +91,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 					})
 			},
 			transfertypes.Denoms{
-				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-49"), transfertypes.NewTrace("transfer", "channel-32"), transfertypes.NewTrace("transfer", "channel-2")),
+				transfertypes.NewDenom("uatom", transfertypes.NewHop("transfer", "channel-49"), transfertypes.NewHop("transfer", "channel-32"), transfertypes.NewHop("transfer", "channel-2")),
 			},
 		},
 		{
@@ -119,10 +119,10 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 					})
 			},
 			transfertypes.Denoms{
-				transfertypes.NewDenom("apple", transfertypes.NewTrace("transfer", "channel-0")),
-				transfertypes.NewDenom("cucumber", transfertypes.NewTrace("transfer", "channel-102"), transfertypes.NewTrace("transfer", "channel-0")),
-				transfertypes.NewDenom("pineapple", transfertypes.NewTrace("transfer", "channel-0")),
-				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-49")),
+				transfertypes.NewDenom("apple", transfertypes.NewHop("transfer", "channel-0")),
+				transfertypes.NewDenom("cucumber", transfertypes.NewHop("transfer", "channel-102"), transfertypes.NewHop("transfer", "channel-0")),
+				transfertypes.NewDenom("pineapple", transfertypes.NewHop("transfer", "channel-0")),
+				transfertypes.NewDenom("uatom", transfertypes.NewHop("transfer", "channel-49")),
 			},
 		},
 
@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 					})
 			},
 			transfertypes.Denoms{
-				transfertypes.NewDenom("gamm/pool/1", transfertypes.NewTrace("transfer", "channel-0")),
+				transfertypes.NewDenom("gamm/pool/1", transfertypes.NewHop("transfer", "channel-0")),
 			},
 		},
 		{
@@ -149,7 +149,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 					})
 			},
 			transfertypes.Denoms{
-				transfertypes.NewDenom("erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", transfertypes.NewTrace("transfer", "channel-149")),
+				transfertypes.NewDenom("erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", transfertypes.NewHop("transfer", "channel-149")),
 			},
 		},
 		{
@@ -162,7 +162,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 					})
 			},
 			transfertypes.Denoms{
-				transfertypes.NewDenom("uatom", transfertypes.NewTrace("transfer", "channel-0"), transfertypes.NewTrace("customport", "channel-7")),
+				transfertypes.NewDenom("uatom", transfertypes.NewHop("transfer", "channel-0"), transfertypes.NewHop("customport", "channel-7")),
 			},
 		},
 	}
@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			"success: valid ibc denom escrowed in one channel",
 			func() {
 				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				voucherDenom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewTrace(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				voucherDenom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewHop(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 				coin := sdk.NewCoin(voucherDenom.IBCDenom(), sdkmath.NewInt(100))
 				denom = voucherDenom.IBCDenom()
 

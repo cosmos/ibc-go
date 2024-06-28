@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/hex"
-	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -13,33 +12,7 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
-
-// NewTrace returns a Trace type
-func NewTrace(portID, channelID string) Trace {
-	return Trace{
-		PortId:    portID,
-		ChannelId: channelID,
-	}
-}
-
-// Validate does basic validation of the trace portID and channelID.
-func (t Trace) Validate() error {
-	if err := host.PortIdentifierValidator(t.PortId); err != nil {
-		return errorsmod.Wrapf(err, "invalid portID")
-	}
-	if err := host.ChannelIdentifierValidator(t.ChannelId); err != nil {
-		return errorsmod.Wrapf(err, "invalid channelID")
-	}
-	return nil
-}
-
-// String returns the Trace in the format:
-// <portID>/<channelID>
-func (t Trace) String() string {
-	return fmt.Sprintf("%s/%s", t.PortId, t.ChannelId)
-}
 
 // ExtractDenomFromPath returns the denom from the full path.
 // Used to support v1 denoms.
@@ -53,7 +26,7 @@ func ExtractDenomFromPath(fullPath string) Denom {
 	}
 
 	var (
-		trace          []Trace
+		trace          []Hop
 		baseDenomSlice []string
 	)
 
@@ -69,7 +42,7 @@ func ExtractDenomFromPath(fullPath string) Denom {
 		// as an IBC denomination. The hash used to store the token internally on our chain
 		// will be the same value as the base denomination being correctly parsed.
 		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(denomSplit[i+1]) {
-			trace = append(trace, NewTrace(denomSplit[i], denomSplit[i+1]))
+			trace = append(trace, NewHop(denomSplit[i], denomSplit[i+1]))
 		} else {
 			baseDenomSlice = denomSplit[i:]
 			break
