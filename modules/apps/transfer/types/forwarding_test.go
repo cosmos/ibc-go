@@ -10,10 +10,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-var validHop = types.Hop{
-	PortId:    types.PortID,
-	ChannelId: ibctesting.FirstChannelID,
-}
+var validHop = types.NewHop(types.PortID, ibctesting.FirstChannelID)
 
 func TestForwarding_Validate(t *testing.T) {
 	tests := []struct {
@@ -45,10 +42,7 @@ func TestForwarding_Validate(t *testing.T) {
 			"invalid forwarding with too short hop port ID",
 			types.NewForwarding(
 				false,
-				types.Hop{
-					PortId:    invalidShortPort,
-					ChannelId: ibctesting.FirstChannelID,
-				},
+				types.NewHop(invalidShortPort, ibctesting.FirstChannelID),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -56,10 +50,7 @@ func TestForwarding_Validate(t *testing.T) {
 			"invalid forwarding with too long hop port ID",
 			types.NewForwarding(
 				false,
-				types.Hop{
-					PortId:    invalidLongPort,
-					ChannelId: ibctesting.FirstChannelID,
-				},
+				types.NewHop(invalidLongPort, ibctesting.FirstChannelID),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -67,10 +58,7 @@ func TestForwarding_Validate(t *testing.T) {
 			"invalid forwarding with non-alpha hop port ID",
 			types.NewForwarding(
 				false,
-				types.Hop{
-					PortId:    invalidPort,
-					ChannelId: ibctesting.FirstChannelID,
-				},
+				types.NewHop(invalidPort, ibctesting.FirstChannelID),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -78,10 +66,7 @@ func TestForwarding_Validate(t *testing.T) {
 			"invalid forwarding with too long hop channel ID",
 			types.NewForwarding(
 				false,
-				types.Hop{
-					PortId:    types.PortID,
-					ChannelId: invalidLongChannel,
-				},
+				types.NewHop(types.PortID, invalidLongChannel),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -89,10 +74,7 @@ func TestForwarding_Validate(t *testing.T) {
 			"invalid forwarding with too short hop channel ID",
 			types.NewForwarding(
 				false,
-				types.Hop{
-					PortId:    types.PortID,
-					ChannelId: invalidShortChannel,
-				},
+				types.NewHop(types.PortID, invalidShortChannel),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -100,10 +82,7 @@ func TestForwarding_Validate(t *testing.T) {
 			"invalid forwarding with non-alpha hop channel ID",
 			types.NewForwarding(
 				false,
-				types.Hop{
-					PortId:    types.PortID,
-					ChannelId: invalidChannel,
-				},
+				types.NewHop(types.PortID, invalidChannel),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -174,10 +153,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 			"invalid forwarding with too short hop port ID",
 			types.NewForwardingPacketData(
 				"",
-				types.Hop{
-					PortId:    invalidShortPort,
-					ChannelId: ibctesting.FirstChannelID,
-				},
+				types.NewHop(invalidShortPort, ibctesting.FirstChannelID),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -185,10 +161,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 			"invalid forwarding with too long hop port ID",
 			types.NewForwardingPacketData(
 				"",
-				types.Hop{
-					PortId:    invalidLongPort,
-					ChannelId: ibctesting.FirstChannelID,
-				},
+				types.NewHop(invalidLongPort, ibctesting.FirstChannelID),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -196,10 +169,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 			"invalid forwarding with non-alpha hop port ID",
 			types.NewForwardingPacketData(
 				"",
-				types.Hop{
-					PortId:    invalidPort,
-					ChannelId: ibctesting.FirstChannelID,
-				},
+				types.NewHop(invalidPort, ibctesting.FirstChannelID),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -207,10 +177,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 			"invalid forwarding with too long hop channel ID",
 			types.NewForwardingPacketData(
 				"",
-				types.Hop{
-					PortId:    types.PortID,
-					ChannelId: invalidLongChannel,
-				},
+				types.NewHop(types.PortID, invalidLongChannel),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -218,10 +185,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 			"invalid forwarding with too short hop channel ID",
 			types.NewForwardingPacketData(
 				"",
-				types.Hop{
-					PortId:    types.PortID,
-					ChannelId: invalidShortChannel,
-				},
+				types.NewHop(types.PortID, invalidShortChannel),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -229,10 +193,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 			"invalid forwarding with non-alpha hop channel ID",
 			types.NewForwardingPacketData(
 				"",
-				types.Hop{
-					PortId:    types.PortID,
-					ChannelId: invalidChannel,
-				},
+				types.NewHop(types.PortID, invalidChannel),
 			),
 			types.ErrInvalidForwarding,
 		},
@@ -266,50 +227,32 @@ func TestValidateHop(t *testing.T) {
 		},
 		{
 			"invalid hop with too short port ID",
-			types.Hop{
-				PortId:    invalidShortPort,
-				ChannelId: ibctesting.FirstChannelID,
-			},
+			types.NewHop(invalidShortPort, ibctesting.FirstChannelID),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid hop with too long port ID",
-			types.Hop{
-				PortId:    invalidLongPort,
-				ChannelId: ibctesting.FirstChannelID,
-			},
+			types.NewHop(invalidLongPort, ibctesting.FirstChannelID),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid hop with non-alpha port ID",
-			types.Hop{
-				PortId:    invalidPort,
-				ChannelId: ibctesting.FirstChannelID,
-			},
+			types.NewHop(invalidPort, ibctesting.FirstChannelID),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid hop with too long channel ID",
-			types.Hop{
-				PortId:    types.PortID,
-				ChannelId: invalidLongChannel,
-			},
+			types.NewHop(types.PortID, invalidLongChannel),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid hop with too short channel ID",
-			types.Hop{
-				PortId:    types.PortID,
-				ChannelId: invalidShortChannel,
-			},
+			types.NewHop(types.PortID, invalidShortChannel),
 			host.ErrInvalidID,
 		},
 		{
 			"invalid hop with non-alpha channel ID",
-			types.Hop{
-				PortId:    types.PortID,
-				ChannelId: invalidChannel,
-			},
+			types.NewHop(types.PortID, invalidChannel),
 			host.ErrInvalidID,
 		},
 	}
@@ -333,10 +276,7 @@ func TestValidateHop(t *testing.T) {
 func generateHops(n int) []types.Hop {
 	hops := make([]types.Hop, n)
 	for i := 0; i < n; i++ {
-		hops[i] = types.Hop{
-			PortId:    types.PortID,
-			ChannelId: ibctesting.FirstChannelID,
-		}
+		hops[i] = types.NewHop(types.PortID, ibctesting.FirstChannelID)
 	}
 	return hops
 }
