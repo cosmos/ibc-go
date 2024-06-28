@@ -112,6 +112,14 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			},
 			ibcerrors.ErrInvalidRequest,
 		},
+		{
+			"failure: cannot unwind native tokens",
+			func() {
+				msg.Forwarding = types.NewForwarding(true)
+				msg.Tokens = []sdk.Coin{ibctesting.TestCoin}
+			},
+			types.ErrInvalidForwarding,
+		},
 	}
 
 	for _, tc := range testCases {

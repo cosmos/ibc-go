@@ -16,7 +16,7 @@ import (
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
 	var nextForwardingPath types.Forwarding
 	if len(data.Forwarding.Hops) > 1 {
-		// remove the first hop since it has been completed (this chain has received the packet)
+		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
 		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 	}
 
@@ -117,8 +117,8 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, prevPacket channeltypes.P
 		// of the prevPacket to see if a hop was added to the trace during the receive step
 		if token.Denom.HasPrefix(prevPacket.DestinationPort, prevPacket.DestinationChannel) {
 			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
-			  return err
-		  }
+				return err
+			}
 		} else {
 			// send it back to the escrow address
 			if err := k.escrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {

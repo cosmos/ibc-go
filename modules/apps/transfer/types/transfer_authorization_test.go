@@ -573,6 +573,16 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			true,
 		},
 		{
+			"success: with allowed forwarding hops",
+			func() {
+				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
+					{Hops: []types.Hop{validHop}},
+					{Hops: []types.Hop{{types.PortID, "channel-1"}}},
+				}
+			},
+			true,
+		},
+		{
 			"empty allocations",
 			func() {
 				transferAuthz = types.TransferAuthorization{Allocations: []types.Allocation{}}
@@ -622,8 +632,8 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			false,
 		},
 		{
-			name: "duplicate channel ID",
-			malleate: func() {
+			"duplicate channel ID",
+			func() {
 				allocation := types.Allocation{
 					SourcePort:    mock.PortID,
 					SourceChannel: transferAuthz.Allocations[0].SourceChannel,
@@ -633,7 +643,27 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 
 				transferAuthz.Allocations = append(transferAuthz.Allocations, allocation)
 			},
-			expPass: false,
+			false,
+		},
+		{
+			"fowarding hop with invalid port ID",
+			func() {
+				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
+					{Hops: []types.Hop{validHop}},
+					{Hops: []types.Hop{{"invalid/port", ibctesting.FirstChannelID}}},
+				}
+			},
+			false,
+		},
+		{
+			"fowarding hop with invalid channel ID",
+			func() {
+				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
+					{Hops: []types.Hop{validHop}},
+					{Hops: []types.Hop{{types.PortID, "invalid/channel"}}},
+				}
+			},
+			false,
 		},
 	}
 

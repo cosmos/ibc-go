@@ -186,7 +186,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
-	var receivedCoins sdk.Coins
+	receivedCoins := make(sdk.Coins, 0, len(data.Tokens))
 	for _, token := range data.Tokens {
 		labels := []metrics.Label{
 			telemetry.NewLabel(coretypes.LabelSourcePort, packet.GetSourcePort()),
@@ -360,19 +360,19 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 		// if the token we must refund is prefixed by the source port and channel
 		// then the tokens were burnt when the packet was sent and we must mint new tokens
 		if token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
-		  // mint vouchers back to sender
-		  if err := k.bankKeeper.MintCoins(
-			  ctx, types.ModuleName, sdk.NewCoins(coin),
-		  ); err != nil {
-			  return err
-		  }
+			// mint vouchers back to sender
+			if err := k.bankKeeper.MintCoins(
+				ctx, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				return err
+			}
 
-		  if k.isBlockedAddr(sender) {
-			  return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
-		  }
-		  if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
-			  panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
-		  }
+			if k.isBlockedAddr(sender) {
+				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+			}
+			if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
+				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+			}
 		} else {
 			// unescrow tokens back to sender
 			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())

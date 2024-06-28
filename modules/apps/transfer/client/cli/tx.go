@@ -46,7 +46,7 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag is used, then the transfer should contain only
 a single token. Tokens can also be automatically forwarded through multiple chains using the {fowarding} flag and specifying
 a comma-separated list of source portID/channelID pairs for each intermediary chain. {unwind} and {forwarding} flags can be used together
-to unwind IBC tokens to their native chain and forward them to the final destination.`),
+to first unwind IBC tokens to their native chain and then forward them to the final destination.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coins]", version.AppName),
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
