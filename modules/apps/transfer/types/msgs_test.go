@@ -48,7 +48,7 @@ var (
 	zeroCoins         = []sdk.Coin{{Denom: "atoms", Amount: sdkmath.NewInt(0)}}
 
 	timeoutHeight   = clienttypes.NewHeight(0, 10)
-	emptyForwarding = types.Forwarding{}
+	emptyForwarding *types.Forwarding
 )
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer

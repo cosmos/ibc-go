@@ -706,7 +706,7 @@ func getValidatorsAndFullNodes(chainIdx int) (int, int) {
 }
 
 // GetMsgTransfer returns a MsgTransfer that is constructed based on the channel version
-func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string, forwarding transfertypes.Forwarding) *transfertypes.MsgTransfer {
+func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string, forwarding *transfertypes.Forwarding) *transfertypes.MsgTransfer {
 	if len(tokens) == 0 {
 		panic(errors.New("tokens cannot be empty"))
 	}

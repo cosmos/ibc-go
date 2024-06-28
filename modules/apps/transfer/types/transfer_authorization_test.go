@@ -470,7 +470,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"failure: unwind is not allowed",
 			func() {
-				msgTransfer.Forwarding.Unwind = true
+				msgTransfer.Forwarding = types.NewForwarding(true)
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)

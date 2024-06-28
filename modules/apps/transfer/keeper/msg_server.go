@@ -36,6 +36,11 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
+	// Initialize empty pointer with empty forwarding information
+	if msg.Forwarding == nil {
+		msg.Forwarding = types.NewForwarding(false)
+	}
+
 	if msg.Forwarding.Unwind {
 		msg, err = k.unwindHops(ctx, msg)
 		if err != nil {

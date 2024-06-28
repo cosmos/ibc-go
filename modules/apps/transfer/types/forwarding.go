@@ -11,8 +11,8 @@ import (
 const MaximumNumberOfForwardingHops = 8 // denotes the maximum number of forwarding hops allowed
 
 // NewForwarding creates a new Forwarding instance given an unwind value and a variable number of hops.
-func NewForwarding(unwind bool, hops ...Hop) Forwarding {
-	return Forwarding{
+func NewForwarding(unwind bool, hops ...Hop) *Forwarding {
+	return &Forwarding{
 		Unwind: unwind,
 		Hops:   hops,
 	}

@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.chainB.SenderAccount.GetAddress().String(),
 				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 				"memo",
-				types.Forwarding{},
+				nil,
 			)
 
 			// send some coins of the second denom from bank module to the sender account as well
@@ -162,7 +162,11 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			tokensBz, err := json.Marshal(types.Tokens(tokens))
 			suite.Require().NoError(err)
 
-			forwardingHopsBz, err := json.Marshal(msg.Forwarding.Hops)
+			var forwardingHops []types.Hop
+			if msg.Forwarding != nil {
+				forwardingHops = msg.Forwarding.Hops
+			}
+			forwardingHopsBz, err := json.Marshal(forwardingHops)
 			suite.Require().NoError(err)
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
