@@ -50,6 +50,11 @@ func (fpd ForwardingPacketData) Validate() error {
 	return nil
 }
 
+// NewHop creates a Hop with the given port ID and channel ID.
+func NewHop(portID, channelID string) Hop {
+	return Hop{portID, channelID}
+}
+
 // Validate performs a basic validation of the Hop fields.
 func (h Hop) Validate() error {
 	if err := host.PortIdentifierValidator(h.PortId); err != nil {

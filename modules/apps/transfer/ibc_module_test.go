@@ -303,7 +303,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(),
 					"",
-					types.NewForwardingPacketData("", types.Hop{PortId: "transfer", ChannelId: "channel-0"}),
+					types.NewForwardingPacketData("", types.NewHop("transfer", "channel-0")),
 				)
 				packet.Data = packetData.GetBytes()
 

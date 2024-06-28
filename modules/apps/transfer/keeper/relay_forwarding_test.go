@@ -65,10 +65,10 @@ func (suite *KeeperTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() 
 	coin := ibctesting.TestCoin
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
-	forwarding := types.NewForwarding(false, types.Hop{
-		PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
-		ChannelId: pathBtoC.EndpointA.ChannelID,
-	})
+	forwarding := types.NewForwarding(false, types.NewHop(
+		pathBtoC.EndpointA.ChannelConfig.PortID,
+		pathBtoC.EndpointA.ChannelID,
+	))
 
 	transferMsg := types.NewMsgTransfer(
 		pathAtoB.EndpointA.ChannelConfig.PortID,
@@ -130,10 +130,10 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	coinOnA := ibctesting.TestCoin
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
-	forwarding := types.NewForwarding(false, types.Hop{
-		PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
-		ChannelId: pathBtoC.EndpointA.ChannelID,
-	})
+	forwarding := types.NewForwarding(false, types.NewHop(
+		pathBtoC.EndpointA.ChannelConfig.PortID,
+		pathBtoC.EndpointA.ChannelID,
+	))
 
 	transferMsg := types.NewMsgTransfer(
 		pathAtoB.EndpointA.ChannelConfig.PortID,
@@ -244,10 +244,10 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 	coinOnA := ibctesting.TestCoin
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
-	forwarding := types.NewForwarding(false, types.Hop{
-		PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
-		ChannelId: pathBtoC.EndpointA.ChannelID,
-	})
+	forwarding := types.NewForwarding(false, types.NewHop(
+		pathBtoC.EndpointA.ChannelConfig.PortID,
+		pathBtoC.EndpointA.ChannelID,
+	))
 
 	transferMsg := types.NewMsgTransfer(
 		pathAtoB.EndpointA.ChannelConfig.PortID,
@@ -383,10 +383,10 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	nonCosmosReceiver := "0x42069163Ac5919fD49e6A67e6c211E0C86397fa2"
-	forwarding := types.NewForwarding(false, types.Hop{
-		PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
-		ChannelId: pathBtoC.EndpointA.ChannelID,
-	})
+	forwarding := types.NewForwarding(false, types.NewHop(
+		pathBtoC.EndpointA.ChannelConfig.PortID,
+		pathBtoC.EndpointA.ChannelID,
+	))
 
 	transferMsg := types.NewMsgTransfer(
 		pathAtoB.EndpointA.ChannelConfig.PortID,
@@ -498,10 +498,10 @@ func (suite *KeeperTestSuite) TestSuccessfulUnwind() {
 
 	originalABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), receiver.GetAddress(), coinOnA.Denom)
 
-	forwarding := types.NewForwarding(false, types.Hop{
-		PortId:    pathAtoB.EndpointB.ChannelConfig.PortID,
-		ChannelId: pathAtoB.EndpointB.ChannelID,
-	})
+	forwarding := types.NewForwarding(false, types.NewHop(
+		pathAtoB.EndpointB.ChannelConfig.PortID,
+		pathAtoB.EndpointB.ChannelID,
+	))
 
 	transferMsg := types.NewMsgTransfer(
 		pathBtoC.EndpointB.ChannelConfig.PortID,
@@ -647,10 +647,10 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	sender := suite.chainC.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[0].SenderAccount
 
-	forwarding := types.NewForwarding(false, types.Hop{
-		PortId:    pathAtoB.EndpointB.ChannelConfig.PortID,
-		ChannelId: pathAtoB.EndpointB.ChannelID,
-	})
+	forwarding := types.NewForwarding(false, types.NewHop(
+		pathAtoB.EndpointB.ChannelConfig.PortID,
+		pathAtoB.EndpointB.ChannelID,
+	))
 
 	forwardTransfer := types.NewMsgTransfer(
 		pathBtoC.EndpointB.ChannelConfig.PortID,
@@ -780,10 +780,10 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 	sender := suite.chainC.SenderAccounts[0].SenderAccount
 	receiver := suite.chainA.SenderAccounts[0].SenderAccount
 
-	forwarding := types.NewForwarding(false, types.Hop{
-		PortId:    pathAtoB.EndpointB.ChannelConfig.PortID,
-		ChannelId: pathAtoB.EndpointB.ChannelID,
-	})
+	forwarding := types.NewForwarding(false, types.NewHop(
+		pathAtoB.EndpointB.ChannelConfig.PortID,
+		pathAtoB.EndpointB.ChannelID,
+	))
 
 	forwardTransfer := types.NewMsgTransfer(
 		pathBtoC.EndpointB.ChannelConfig.PortID,
@@ -900,12 +900,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	originalABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), sender.GetAddress(), coin.Denom)
 
 	forwarding := types.Forwarding{
-		Hops: []types.Hop{
-			{
-				PortId:    pathBtoC.EndpointA.ChannelConfig.PortID,
-				ChannelId: pathBtoC.EndpointA.ChannelID,
-			},
-		},
+		Hops: []types.Hop{types.NewHop(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID)},
 	}
 
 	transferMsg := types.NewMsgTransfer(
@@ -1049,8 +1044,8 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	receiver := suite.chainD.SenderAccounts[0].SenderAccount
 
 	forwarding := types.NewForwarding(false,
-		types.Hop{PortId: pathBtoC.EndpointA.ChannelConfig.PortID, ChannelId: pathBtoC.EndpointA.ChannelID},
-		types.Hop{PortId: pathCtoD.EndpointA.ChannelConfig.PortID, ChannelId: pathCtoD.EndpointA.ChannelID},
+		types.NewHop(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID),
+		types.NewHop(pathCtoD.EndpointA.ChannelConfig.PortID, pathCtoD.EndpointA.ChannelID),
 	)
 
 	transferMsg := types.NewMsgTransfer(

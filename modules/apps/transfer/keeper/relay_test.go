@@ -97,10 +97,10 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			"successful transfer with non-empty forwarding hops and ics20-2",
 			func() {
 				expEscrowAmount = sdkmath.NewInt(100)
-				forwarding = types.NewForwarding(false, types.Hop{
-					PortId:    path.EndpointA.ChannelConfig.PortID,
-					ChannelId: path.EndpointA.ChannelID,
-				})
+				forwarding = types.NewForwarding(false, types.NewHop(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+				))
 			},
 			nil,
 		},
@@ -178,10 +178,10 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 					channel.Version = types.V1
 				})
 
-				forwarding = types.NewForwarding(false, types.Hop{
-					PortId:    path.EndpointA.ChannelConfig.PortID,
-					ChannelId: path.EndpointA.ChannelID,
-				})
+				forwarding = types.NewForwarding(false, types.NewHop(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+				))
 			},
 			ibcerrors.ErrInvalidRequest,
 		},
