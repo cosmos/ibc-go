@@ -49,6 +49,7 @@ func NewMsgTransfer(
 	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
+	forwarding Forwarding,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -59,6 +60,7 @@ func NewMsgTransfer(
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             memo,
 		Tokens:           tokens,
+		Forwarding:       forwarding,
 	}
 }
 
@@ -67,13 +69,22 @@ func NewMsgTransfer(
 // NOTE: The recipient addresses format is not validated as the format defined by
 // the chain is not known to IBC.
 func (msg MsgTransfer) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
-		return errorsmod.Wrap(err, "invalid source port ID")
+	if err := msg.validateForwarding(); err != nil {
+		return err
 	}
-	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
-		return errorsmod.Wrap(err, "invalid source channel ID")
-	}
+	if !msg.Forwarding.Unwind {
+		// We verify that portID and channelID are valid IDs only if
+		// we are not setting unwind to true.
+		// In that case, validation that they are empty is performed in
+		// validateForwarding().
+		if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
+			return errorsmod.Wrap(err, "invalid source port ID")
+		}
 
+		if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
+			return errorsmod.Wrap(err, "invalid source channel ID")
+		}
+	}
 	if len(msg.Tokens) == 0 && !isValidIBCCoin(msg.Token) {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "either token or token array must be filled")
 	}
@@ -109,6 +120,36 @@ func (msg MsgTransfer) ValidateBasic() error {
 	return nil
 }
 
+// validateForwarding ensures that forwarding is set up correctly.
+func (msg MsgTransfer) validateForwarding() error {
+	if !msg.HasForwarding() {
+		return nil
+	}
+	if err := msg.Forwarding.Validate(); err != nil {
+		return err
+	}
+
+	if !msg.TimeoutHeight.IsZero() {
+		// when forwarding, the timeout height must not be set
+		return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must be zero if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.Hops)
+	}
+
+	if msg.Forwarding.Unwind {
+		if msg.SourcePort != "" {
+			return errorsmod.Wrapf(ErrInvalidForwarding, "source port must be empty when unwind is set, got %s instead", msg.SourcePort)
+		}
+		if msg.SourceChannel != "" {
+			return errorsmod.Wrapf(ErrInvalidForwarding, "source channel must be empty when unwind is set, got %s instead", msg.SourceChannel)
+		}
+		if len(msg.GetCoins()) > 1 {
+			// When unwinding, we must have at most one token.
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot unwind more than one token")
+		}
+	}
+
+	return nil
+}
+
 // GetCoins returns the tokens which will be transferred.
 // If MsgTransfer is populated in the Token field, only that field
 // will be returned in the coin array.
@@ -118,6 +159,11 @@ func (msg MsgTransfer) GetCoins() sdk.Coins {
 		coins = []sdk.Coin{msg.Token}
 	}
 	return coins
+}
+
+// HasForwarding determines if the transfer should be forwarded to the next hop.
+func (msg MsgTransfer) HasForwarding() bool {
+	return len(msg.Forwarding.Hops) > 0 || msg.Forwarding.Unwind
 }
 
 // isValidIBCCoin returns true if the token provided is valid,

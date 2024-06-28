@@ -51,8 +51,9 @@ func packetDataV1ToV2(packetData types.FungibleTokenPacketData) (types.FungibleT
 				Amount: packetData.Amount,
 			},
 		},
-		Sender:   packetData.Sender,
-		Receiver: packetData.Receiver,
-		Memo:     packetData.Memo,
+		Sender:     packetData.Sender,
+		Receiver:   packetData.Receiver,
+		Memo:       packetData.Memo,
+		Forwarding: types.ForwardingPacketData{},
 	}, nil
 }
