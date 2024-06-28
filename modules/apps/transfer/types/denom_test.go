@@ -172,11 +172,11 @@ func (suite *TypesTestSuite) TestSort() {
 
 func (suite *TypesTestSuite) TestDenomChainSource() {
 	testCases := []struct {
-		name                     string
-		denom                    types.Denom
-		sourcePort               string
-		sourceChannel            string
-		expReceiverChainIsSource bool
+		name          string
+		denom         types.Denom
+		sourcePort    string
+		sourceChannel string
+		expHasPrefix  bool
 	}{
 		{
 			"sender chain is source: empty trace",
@@ -235,8 +235,7 @@ func (suite *TypesTestSuite) TestDenomChainSource() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.Require().Equal(tc.expReceiverChainIsSource, tc.denom.ReceiverChainIsSource(tc.sourcePort, tc.sourceChannel))
-			suite.Require().Equal(!tc.expReceiverChainIsSource, tc.denom.SenderChainIsSource(tc.sourcePort, tc.sourceChannel))
+			suite.Require().Equal(tc.expHasPrefix, tc.denom.HasPrefix(tc.sourcePort, tc.sourceChannel))
 		})
 	}
 }
