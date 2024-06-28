@@ -31,6 +31,6 @@ IBC provides a reliable, permissionless, and generic base layer (allowing for th
 
 Note three crucial elements in the diagram:
 
-- The chains depend on relayers to communicate. Relayers are the "physical" connection layer of IBC: off-chain processes responsible for relaying data between two chains running the IBC protocol by scanning the state of each chain, constructing appropriate datagrams, and executing them on the opposite chain as is allowed by the protocol.
+- The chains depend on relayers to communicate. [Relayers](https://github.com/cosmos/ibc/blob/main/spec/relayer/ics-018-relayer-algorithms/README.md) are the "physical" connection layer of IBC: off-chain processes responsible for relaying data between two chains running the IBC protocol by scanning the state of each chain, constructing appropriate datagrams, and executing them on the opposite chain as is allowed by the protocol.
 - Many relayers can serve one or more channels to send messages between the chains.
 - Each side of the connection uses the light client of the other chain to quickly verify incoming messages.

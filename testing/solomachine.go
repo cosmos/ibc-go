@@ -376,6 +376,7 @@ func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string
 		clienttypes.ZeroHeight(),
 		uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
 		"",
+		transfertypes.Forwarding{},
 	)
 
 	for _, fn := range fns {

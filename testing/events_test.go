@@ -199,7 +199,7 @@ func TestParsePacketsFromEvents(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			allPackets, err := ibctesting.ParsePacketsFromEvents(tc.events)
+			allPackets, err := ibctesting.ParsePacketsFromEvents(channeltypes.EventTypeSendPacket, tc.events)
 
 			if tc.expectedError == "" {
 				require.NoError(t, err)
