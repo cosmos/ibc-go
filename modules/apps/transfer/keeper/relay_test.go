@@ -196,7 +196,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			coin = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+			coin = ibctesting.TestCoin
 			sender = suite.chainA.SenderAccount.GetAddress()
 			memo = ""
 			timeoutHeight = suite.chainB.GetTimeoutHeight()
@@ -285,7 +285,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 	path2.Setup()
 
 	// create IBC token on chain B with denom trace "transfer/channel-0/stake"
-	coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+	coin := ibctesting.TestCoin
 	transferMsg := types.NewMsgTransfer(
 		path1.EndpointA.ChannelConfig.PortID,
 		path1.EndpointA.ChannelID,
@@ -554,7 +554,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 			seq := uint64(1)
 
 			// send coin from chainB to chainA, receive them, acknowledge them
-			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+			coin := ibctesting.TestCoin
 			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.NewCoins(coin), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 110), 0, memo, emptyForwarding)
 			res, err := suite.chainB.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
