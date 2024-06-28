@@ -130,7 +130,7 @@ balanceQuery := banktypes.NewQueryBalanceRequest("cosmos1...", "uatom")
 queryBz, err := balanceQuery.Marshal()
 
 // signer of message must be the interchain account on the host
-queryMsg := icahosttypes.NewMsgModuleQuerySafe("cosmos2...", []*icahosttypes.QueryRequest{
+queryMsg := icahosttypes.NewMsgModuleQuerySafe("cosmos2...", []icahosttypes.QueryRequest{
   {
     Path: "/cosmos.bank.v1beta1.Query/Balance",
     Data: queryBz,
