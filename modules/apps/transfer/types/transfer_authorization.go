@@ -146,6 +146,14 @@ func (a TransferAuthorization) ValidateBasic() error {
 			}
 			found[allocation.AllowList[i]] = true
 		}
+
+		for i := 0; i < len(allocation.AllowedForwarding); i++ {
+			for _, hop := range allocation.AllowedForwarding[i].Hops {
+				if err := hop.Validate(); err != nil {
+					return errorsmod.Wrap(err, "invalid forwarding hop")
+				}
+			}
+		}
 	}
 
 	return nil
