@@ -60,7 +60,7 @@ const config = {
               path: "v8",
               banner: "none",
             },
-            "v7.5.x": {
+            "v7.6.x": {
               path: "v7",
               banner: "none",
             },
