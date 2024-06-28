@@ -11,6 +11,7 @@ import (
 	"github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 
@@ -402,7 +403,6 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
@@ -455,10 +455,11 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrap(err, "failed to verify StorageRoot signature")
 	}
 
-	key := path.(*MerkleKey)
+	// TODO: fix variable casting
+	//key := path.(*MerkleKey)
 
 	// check merkleProof verifycation, by go-ethereum lib
-	return VerifyMembership(cs.Proof, consensusState.StorageRoot, value, key)
+	return VerifyMembership(cs.Proof, consensusState.StorageRoot, value, &MerkleKey{Key: path.String()})
 }
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
