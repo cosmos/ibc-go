@@ -57,10 +57,7 @@ func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_S
 
 	t.Run("IBC transfer from A to C with forwarding through B", func(t *testing.T) {
 		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
-		forwarding := transfertypes.NewForwarding(false, transfertypes.Hop{
-			PortId:    channelBtoC.PortID,
-			ChannelId: channelBtoC.ChannelID,
-		})
+		forwarding := transfertypes.NewForwarding(false, transfertypes.NewHop(channelBtoC.PortID, channelBtoC.ChannelID))
 
 		msgTransfer := testsuite.GetMsgTransfer(
 			channelAtoB.PortID,

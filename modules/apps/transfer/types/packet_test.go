@@ -421,10 +421,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				"",
 				types.NewForwardingPacketData(
 					"",
-					types.Hop{
-						PortId:    invalidPort,
-						ChannelId: "channel-1",
-					},
+					types.NewHop(invalidPort, "channel-1"),
 				),
 			),
 			types.ErrInvalidForwarding,

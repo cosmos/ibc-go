@@ -284,12 +284,12 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"success: allowed forwarding hops",
 			func() {
-				msgTransfer.Forwarding = types.NewForwarding(false, types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"}, types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"})
+				msgTransfer.Forwarding = types.NewForwarding(false, types.NewHop(ibctesting.MockPort, "channel-1"), types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"})
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{
 						Hops: []types.Hop{
-							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
-							{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
+							types.NewHop(ibctesting.MockPort, "channel-1"),
+							types.NewHop(ibctesting.MockPort, "channel-2"),
 						},
 					},
 				}
@@ -305,8 +305,8 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{
 						Hops: []types.Hop{
-							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
-							{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
+							types.NewHop(ibctesting.MockPort, "channel-1"),
+							types.NewHop(ibctesting.MockPort, "channel-2"),
 						},
 					},
 				}
@@ -394,15 +394,15 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"failure: allowed forwarding hops contains more hops",
 			func() {
 				msgTransfer.Forwarding = types.NewForwarding(false,
-					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
-					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
-					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-3"},
+					types.NewHop(ibctesting.MockPort, "channel-1"),
+					types.NewHop(ibctesting.MockPort, "channel-2"),
+					types.NewHop(ibctesting.MockPort, "channel-3"),
 				)
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{
 						Hops: []types.Hop{
-							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
-							{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
+							types.NewHop(ibctesting.MockPort, "channel-1"),
+							types.NewHop(ibctesting.MockPort, "channel-2"),
 						},
 					},
 				}
@@ -416,14 +416,14 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"failure: allowed forwarding hops contains one different hop",
 			func() {
 				msgTransfer.Forwarding = types.NewForwarding(false,
-					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
-					types.Hop{PortId: "3", ChannelId: "channel-3"},
+					types.NewHop(ibctesting.MockPort, "channel-1"),
+					types.NewHop("3", "channel-3"),
 				)
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{
 						Hops: []types.Hop{
-							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
-							{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
+							types.NewHop(ibctesting.MockPort, "channel-1"),
+							types.NewHop(ibctesting.MockPort, "channel-2"),
 						},
 					},
 				}
@@ -437,7 +437,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"failure: allowed forwarding hops is empty but hops are present",
 			func() {
 				msgTransfer.Forwarding = types.NewForwarding(false,
-					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
+					types.NewHop(ibctesting.MockPort, "channel-1"),
 				)
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -449,14 +449,14 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"failure: order of hops is different",
 			func() {
 				msgTransfer.Forwarding = types.NewForwarding(false,
-					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
-					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
+					types.NewHop(ibctesting.MockPort, "channel-1"),
+					types.NewHop(ibctesting.MockPort, "channel-2"),
 				)
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{
 						Hops: []types.Hop{
-							{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
-							{PortId: ibctesting.MockPort, ChannelId: "channel-1"},
+							types.NewHop(ibctesting.MockPort, "channel-2"),
+							types.NewHop(ibctesting.MockPort, "channel-1"),
 						},
 					},
 				}
@@ -577,7 +577,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			func() {
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{Hops: []types.Hop{validHop}},
-					{Hops: []types.Hop{{types.PortID, "channel-1"}}},
+					{Hops: []types.Hop{types.NewHop(types.PortID, "channel-1")}},
 				}
 			},
 			true,
@@ -650,7 +650,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			func() {
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{Hops: []types.Hop{validHop}},
-					{Hops: []types.Hop{{"invalid/port", ibctesting.FirstChannelID}}},
+					{Hops: []types.Hop{types.NewHop("invalid/port", ibctesting.FirstChannelID)}},
 				}
 			},
 			false,
@@ -660,7 +660,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			func() {
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{Hops: []types.Hop{validHop}},
-					{Hops: []types.Hop{{types.PortID, "invalid/channel"}}},
+					{Hops: []types.Hop{types.NewHop(types.PortID, "invalid/channel")}},
 				}
 			},
 			false,
