@@ -1029,3 +1029,119 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	// And that A has its original balance back.
 	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount, coin.Denom)
 }
+
+// TestForwardingWithMoreThanOneHop tests the scenario in which we
+// forward with more than one forwarding hop.
+func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
+	// Setup A->B->C->D
+	coinOnA := ibctesting.TestCoin
+
+	pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	pathAtoB.Setup()
+
+	pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+	pathBtoC.Setup()
+
+	pathCtoD := ibctesting.NewTransferPath(suite.chainC, suite.chainD)
+	pathCtoD.Setup()
+
+	sender := suite.chainA.SenderAccounts[0].SenderAccount
+	receiver := suite.chainD.SenderAccounts[0].SenderAccount
+
+	forwarding := types.NewForwarding(false,
+		types.Hop{PortId: pathBtoC.EndpointA.ChannelConfig.PortID, ChannelId: pathBtoC.EndpointA.ChannelID},
+		types.Hop{PortId: pathCtoD.EndpointA.ChannelConfig.PortID, ChannelId: pathCtoD.EndpointA.ChannelID},
+	)
+
+	transferMsg := types.NewMsgTransfer(
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		sdk.NewCoins(coinOnA),
+		sender.GetAddress().String(),
+		receiver.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(),
+		"",
+		forwarding)
+
+	// Send message to A and verify.
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err)
+
+	packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromAtoB)
+
+	err = pathAtoB.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	// Receive from B and verify.
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Check that Escrow A has amount
+	suite.assertAmountOnChain(suite.chainA, escrow, coinOnA.Amount, coinOnA.Denom)
+
+	// Check that Escrow B has amount
+	denomTrace := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	suite.assertAmountOnChain(suite.chainB, escrow, coinOnA.Amount, denomTrace.IBCDenom())
+
+	// Receive on C the packet sent from B, verify amount.
+	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromBtoC)
+
+	err = pathBtoC.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathBtoC.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = pathBtoC.EndpointB.RecvPacketWithResult(packetFromBtoC)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Check that Escrow C has amount
+	denomTraceABC := types.NewDenom(denomTrace.Base, append([]types.Trace{types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomTrace.Trace...)...)
+	suite.assertAmountOnChain(suite.chainC, escrow, coinOnA.Amount, denomTraceABC.IBCDenom())
+
+	// Finally, receive on D and verify that D has the desired amount.
+	packetFromCtoD, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromCtoD)
+
+	err = pathCtoD.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathCtoD.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = pathCtoD.EndpointB.RecvPacketWithResult(packetFromCtoD)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	denomTraceABCD := types.NewDenom(denomTraceABC.Base, append([]types.Trace{types.NewTrace(pathCtoD.EndpointB.ChannelConfig.PortID, pathCtoD.EndpointB.ChannelID)}, denomTraceABC.Trace...)...)
+	suite.assertAmountOnChain(suite.chainD, balance, coinOnA.Amount, denomTraceABCD.IBCDenom())
+
+	// Propagate the ack back from D to A.
+	ack, err := ibctesting.ParseAckFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(ack)
+
+	err = pathCtoD.EndpointA.AcknowledgePacket(packetFromCtoD, ack)
+	suite.Require().NoError(err)
+
+	err = pathBtoC.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathBtoC.EndpointA.AcknowledgePacket(packetFromBtoC, ack)
+	suite.Require().NoError(err)
+
+	err = pathAtoB.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, ack)
+	suite.Require().NoError(err)
+}
+
