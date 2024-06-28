@@ -1044,8 +1044,8 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	receiver := suite.chainD.SenderAccounts[0].SenderAccount
 
 	forwarding := types.NewForwarding(false,
-		types.Hop{PortId: pathBtoC.EndpointA.ChannelConfig.PortID, ChannelId: pathBtoC.EndpointA.ChannelID},
-		types.Hop{PortId: pathCtoD.EndpointA.ChannelConfig.PortID, ChannelId: pathCtoD.EndpointA.ChannelID},
+		types.NewHop(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID),
+		types.NewHop(pathCtoD.EndpointA.ChannelConfig.PortID, pathCtoD.EndpointA.ChannelID),
 	)
 
 	transferMsg := types.NewMsgTransfer(

@@ -284,7 +284,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 		{
 			"success: allowed forwarding hops",
 			func() {
-				msgTransfer.Forwarding = types.NewForwarding(false, types.NewHop(ibctesting.MockPort, "channel-1"), types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"})
+				msgTransfer.Forwarding = types.NewForwarding(false, types.NewHop(ibctesting.MockPort, "channel-1"), types.NewHop(ibctesting.MockPort, "channel-2"))
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{
 						Hops: []types.Hop{
