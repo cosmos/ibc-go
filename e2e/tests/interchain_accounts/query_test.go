@@ -84,7 +84,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			queryBz, err := balanceQuery.Marshal()
 			s.Require().NoError(err)
 
-			queryMsg := icahosttypes.NewMsgModuleQuerySafe(hostAccount, []*icahosttypes.QueryRequest{
+			queryMsg := icahosttypes.NewMsgModuleQuerySafe(hostAccount, []icahosttypes.QueryRequest{
 				{
 					Path: "/cosmos.bank.v1beta1.Query/Balance",
 					Data: queryBz,

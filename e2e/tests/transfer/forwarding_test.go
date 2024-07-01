@@ -60,10 +60,7 @@ func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_S
 
 	t.Run("IBC transfer from A to C with forwarding through B", func(t *testing.T) {
 		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
-		forwarding := transfertypes.NewForwarding(false, transfertypes.Hop{
-			PortId:    channelBtoC.PortID,
-			ChannelId: channelBtoC.ChannelID,
-		})
+		forwarding := transfertypes.NewForwarding(false, transfertypes.NewHop(channelBtoC.PortID, channelBtoC.ChannelID))
 
 		msgTransfer := testsuite.GetMsgTransfer(
 			channelAtoB.PortID,
@@ -86,8 +83,8 @@ func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_S
 
 	t.Run("packets are relayed from A to B to C", func(t *testing.T) {
 		chainCDenom := transfertypes.NewDenom(chainADenom,
-			transfertypes.NewTrace(channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID),
-			transfertypes.NewTrace(channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID),
+			transfertypes.NewHop(channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID),
+			transfertypes.NewHop(channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID),
 		)
 
 		s.AssertPacketRelayed(ctx, chainA, channelAtoB.PortID, channelAtoB.ChannelID, 1)

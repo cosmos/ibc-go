@@ -91,7 +91,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &banktypes.MsgSend{
 					FromAddress: interchainAccountAddr,
 					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					Amount:      sdk.NewCoins(ibctesting.TestCoin),
 				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -286,7 +286,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				queryBz, err := balanceQuery.Marshal()
 				suite.Require().NoError(err)
 
-				msg := types.NewMsgModuleQuerySafe(interchainAccountAddr, []*types.QueryRequest{
+				msg := types.NewMsgModuleQuerySafe(interchainAccountAddr, []types.QueryRequest{
 					{
 						Path: "/cosmos.bank.v1beta1.Query/Balance",
 						Data: queryBz,
@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := transfertypes.NewMsgTransfer(
 					transferPath.EndpointA.ChannelConfig.PortID,
 					transferPath.EndpointA.ChannelID,
-					sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					sdk.NewCoins(ibctesting.TestCoin),
 					interchainAccountAddr,
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.GetTimeoutHeight(),
@@ -383,7 +383,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := transfertypes.NewMsgTransfer(
 					transferPath.EndpointA.ChannelConfig.PortID,
 					transferPath.EndpointA.ChannelID,
-					sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					sdk.NewCoins(ibctesting.TestCoin),
 					interchainAccountAddr,
 					"",
 					suite.chainB.GetTimeoutHeight(),
@@ -486,7 +486,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &banktypes.MsgSend{
 					FromAddress: suite.chainB.SenderAccount.GetAddress().String(),
 					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					Amount:      sdk.NewCoins(ibctesting.TestCoin),
 				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -507,7 +507,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				msg := &banktypes.MsgSend{
 					FromAddress: suite.chainB.SenderAccount.GetAddress().String(), // unexpected signer
 					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					Amount:      sdk.NewCoins(ibctesting.TestCoin),
 				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)

@@ -252,7 +252,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 func (suite *KeeperTestSuite) TestUnwindHops() {
 	var msg *types.MsgTransfer
 	var path *ibctesting.Path
-	denom := types.NewDenom(ibctesting.TestCoin.Denom, types.NewTrace(ibctesting.MockPort, "channel-0"), types.NewTrace(ibctesting.MockPort, "channel-1"))
+	denom := types.NewDenom(ibctesting.TestCoin.Denom, types.NewHop(ibctesting.MockPort, "channel-0"), types.NewHop(ibctesting.MockPort, "channel-1"))
 	coins := sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
 	testCases := []struct {
 		name         string
@@ -268,14 +268,14 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 				suite.Require().NoError(err, "got unexpected error from unwindHops")
 				msg.SourceChannel = denom.Trace[0].PortId
 				msg.SourcePort = denom.Trace[0].ChannelId
-				msg.Forwarding = types.NewForwarding(false, types.Hop{PortId: denom.Trace[1].PortId, ChannelId: denom.Trace[1].ChannelId})
+				msg.Forwarding = types.NewForwarding(false, types.NewHop(denom.Trace[1].PortId, denom.Trace[1].ChannelId))
 				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
 			},
 		},
 		{
 			"success: multiple unwind hops",
 			func() {
-				denom.Trace = append(denom.Trace, types.NewTrace(ibctesting.MockPort, "channel-2"), types.NewTrace(ibctesting.MockPort, "channel-3"))
+				denom.Trace = append(denom.Trace, types.NewHop(ibctesting.MockPort, "channel-2"), types.NewHop(ibctesting.MockPort, "channel-3"))
 				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
 				msg.Tokens = coins
@@ -285,9 +285,9 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 				msg.SourceChannel = denom.Trace[0].PortId
 				msg.SourcePort = denom.Trace[0].ChannelId
 				msg.Forwarding = types.NewForwarding(false,
-					types.Hop{PortId: denom.Trace[3].PortId, ChannelId: denom.Trace[3].ChannelId},
-					types.Hop{PortId: denom.Trace[2].PortId, ChannelId: denom.Trace[2].ChannelId},
-					types.Hop{PortId: denom.Trace[1].PortId, ChannelId: denom.Trace[1].ChannelId},
+					types.NewHop(denom.Trace[3].PortId, denom.Trace[3].ChannelId),
+					types.NewHop(denom.Trace[2].PortId, denom.Trace[2].ChannelId),
+					types.NewHop(denom.Trace[1].PortId, denom.Trace[1].ChannelId),
 				)
 				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
 			},
@@ -296,15 +296,15 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 			"success - unwind hops are added to existing hops",
 			func() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
-				msg.Forwarding = types.NewForwarding(true, types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"})
+				msg.Forwarding = types.NewForwarding(true, types.NewHop(ibctesting.MockPort, "channel-2"))
 			},
 			func(modified *types.MsgTransfer, err error) {
 				suite.Require().NoError(err, "got unexpected error from unwindHops")
 				msg.SourceChannel = denom.Trace[0].PortId
 				msg.SourcePort = denom.Trace[0].ChannelId
 				msg.Forwarding = types.NewForwarding(false,
-					types.Hop{PortId: denom.Trace[1].PortId, ChannelId: denom.Trace[1].ChannelId},
-					types.Hop{PortId: ibctesting.MockPort, ChannelId: "channel-2"},
+					types.NewHop(denom.Trace[1].PortId, denom.Trace[1].ChannelId),
+					types.NewHop(ibctesting.MockPort, "channel-2"),
 				)
 				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
 			},

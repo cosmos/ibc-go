@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
@@ -69,7 +70,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			"success: refund timeout_fee - (recv_fee + ack_fee)",
 			func() {
 				// set the timeout fee to be greater than recv + ack fee so that the refund amount is non-zero
-				fee.TimeoutFee = fee.Total().Add(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))
+				fee.TimeoutFee = fee.Total().Add(ibctesting.TestCoin)
 
 				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees = []types.PacketFee{packetFee, packetFee}
@@ -107,7 +108,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			"success: refund account is module account",
 			func() {
 				// set the timeout fee to be greater than recv + ack fee so that the refund amount is non-zero
-				fee.TimeoutFee = fee.Total().Add(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))
+				fee.TimeoutFee = fee.Total().Add(ibctesting.TestCoin)
 
 				refundAcc = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(mock.ModuleName)
 
@@ -195,7 +196,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			"invalid refund address: no-op, timeout_fee - (recv_fee + ack_fee) remains in escrow",
 			func() {
 				// set the timeout fee to be greater than recv + ack fee so that the refund amount is non-zero
-				fee.TimeoutFee = fee.Total().Add(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))
+				fee.TimeoutFee = fee.Total().Add(ibctesting.TestCoin)
 
 				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees = []types.PacketFee{packetFee, packetFee}
@@ -286,7 +287,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 			"success: refund (recv_fee + ack_fee) - timeout_fee",
 			func() {
 				// set the recv + ack fee to be greater than timeout fee so that the refund amount is non-zero
-				fee.RecvFee = fee.RecvFee.Add(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))
+				fee.RecvFee = fee.RecvFee.Add(ibctesting.TestCoin)
 				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees = []types.PacketFee{packetFee, packetFee}
 			},
@@ -340,7 +341,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 			"invalid refund address: no-op, (recv_fee + ack_fee) - timeout_fee remain in escrow",
 			func() {
 				// set the recv + ack fee to be greater than timeout fee so that the refund amount is non-zero
-				fee.RecvFee = fee.RecvFee.Add(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))
+				fee.RecvFee = fee.RecvFee.Add(ibctesting.TestCoin)
 				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees = []types.PacketFee{packetFee, packetFee}
 

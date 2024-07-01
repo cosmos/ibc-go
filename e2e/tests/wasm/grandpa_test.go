@@ -259,7 +259,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		s.Require().True(cosmosUserStakeBal.Equal(finalStakeBal))
 
 		// Verify cosmos user's final "unit" balance
-		denom := transfertypes.NewDenom("UNIT", transfertypes.NewTrace("transfer", "channel-0"))
+		denom := transfertypes.NewDenom("UNIT", transfertypes.NewHop("transfer", "channel-0"))
 		cosmosUserUnitBal, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), denom.IBCDenom())
 		s.Require().NoError(err)
 		s.Require().True(cosmosUserUnitBal.Equal(amountUnits))

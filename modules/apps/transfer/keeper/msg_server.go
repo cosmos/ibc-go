@@ -80,11 +80,9 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	if token.Denom.IsNative() {
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind a native token")
 	}
-	var unwindHops []types.Hop
+
 	// remove the first hop in denom as it is the current port/channel on this chain
-	for _, trace := range token.Denom.Trace[1:] {
-		unwindHops = append(unwindHops, types.Hop{PortId: trace.PortId, ChannelId: trace.ChannelId}) //nolint: gosimple
-	}
+	unwindHops := token.Denom.Trace[1:]
 
 	// Update message fields.
 	msg.SourcePort, msg.SourceChannel = token.Denom.Trace[0].PortId, token.Denom.Trace[0].ChannelId

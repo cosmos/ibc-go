@@ -161,7 +161,7 @@ func parseForwarding(cmd *cobra.Command) (types.Forwarding, error) {
 			return types.Forwarding{}, fmt.Errorf("expected a portID/channelID pair, found %s", pair)
 		}
 
-		hop := types.Hop{PortId: pairSplit[0], ChannelId: pairSplit[1]}
+		hop := types.NewHop(pairSplit[0], pairSplit[1])
 		hops = append(hops, hop)
 	}
 

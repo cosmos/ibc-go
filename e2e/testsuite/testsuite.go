@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path"
+	"strings"
+	"sync"
+
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -12,10 +17,6 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
-	"os"
-	"path"
-	"strings"
-	"sync"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -228,7 +229,6 @@ func (s *E2ETestSuite) CreatePath(
 	channelOpts ibc.CreateChannelOptions,
 	testName string,
 ) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
-
 	pathName := s.generatePathName()
 	s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
 

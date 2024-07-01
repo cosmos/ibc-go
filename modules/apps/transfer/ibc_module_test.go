@@ -303,7 +303,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(),
 					"",
-					types.NewForwardingPacketData("", types.Hop{PortId: "transfer", ChannelId: "channel-0"}),
+					types.NewForwardingPacketData("", types.NewHop("transfer", "channel-0")),
 				)
 				packet.Data = packetData.GetBytes()
 
@@ -810,7 +810,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
+							Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -850,7 +850,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  types.NewDenom(ibctesting.TestCoin.Denom, []types.Trace{{}}...),
+							Denom:  types.NewDenom(ibctesting.TestCoin.Denom, []types.Hop{{}}...),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -861,7 +861,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 				data = initialPacketData.(types.FungibleTokenPacketDataV2).GetBytes()
 			},
-			errors.New("invalid token denom: invalid trace: invalid portID: identifier cannot be blank: invalid identifier"),
+			errors.New("invalid token denom: invalid trace: invalid hop source port ID : identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"failure: invalid packet data",

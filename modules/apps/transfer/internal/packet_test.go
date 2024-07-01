@@ -34,7 +34,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 				packetData := types.NewFungibleTokenPacketDataV2(
 					[]types.Token{
 						{
-							Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
+							Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
 							Amount: "1000",
 						},
 					}, "sender", "receiver", "", emptyForwardingPacketData)
@@ -91,7 +91,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
+						Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
 						Amount: "1000",
 					},
 				}, sender, receiver, "", emptyForwardingPacketData),
@@ -115,7 +115,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom/withslash", types.NewTrace("transfer", "channel-0")),
+						Denom:  types.NewDenom("atom/withslash", types.NewHop("transfer", "channel-0")),
 						Amount: "1000",
 					},
 				}, sender, receiver, "", emptyForwardingPacketData),
@@ -127,7 +127,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom/", types.NewTrace("transfer", "channel-0")),
+						Denom:  types.NewDenom("atom/", types.NewHop("transfer", "channel-0")),
 						Amount: "1000",
 					},
 				}, sender, receiver, "", emptyForwardingPacketData),
@@ -139,7 +139,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom/pool", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom("atom/pool", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: "1000",
 					},
 				}, sender, receiver, "", emptyForwardingPacketData),
@@ -151,7 +151,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer-custom", "channel-2")),
+						Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1"), types.NewHop("transfer-custom", "channel-2")),
 						Amount: "1000",
 					},
 				}, sender, receiver, "", emptyForwardingPacketData),
@@ -163,7 +163,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom/pool", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer-custom", "channel-2")),
+						Denom:  types.NewDenom("atom/pool", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1"), types.NewHop("transfer-custom", "channel-2")),
 						Amount: "1000",
 					},
 				}, sender, receiver, "", emptyForwardingPacketData),
