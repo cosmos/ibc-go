@@ -9,10 +9,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -79,7 +81,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"failure: sender is a blocked address",
 			func() {
-				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -110,6 +112,14 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			},
 			ibcerrors.ErrInvalidRequest,
 		},
+		{
+			"failure: cannot unwind native tokens",
+			func() {
+				msg.Forwarding = types.NewForwarding(true)
+				msg.Tokens = []sdk.Coin{ibctesting.TestCoin}
+			},
+			types.ErrInvalidForwarding,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -129,6 +139,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.chainB.SenderAccount.GetAddress().String(),
 				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 				"memo",
+				types.Forwarding{},
 			)
 
 			// send some coins of the second denom from bank module to the sender account as well
@@ -148,7 +159,10 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				tokens = append(tokens, token)
 			}
 
-			jsonTokens, err := json.Marshal(types.Tokens(tokens))
+			tokensBz, err := json.Marshal(types.Tokens(tokens))
+			suite.Require().NoError(err)
+
+			forwardingHopsBz, err := json.Marshal(msg.Forwarding.Hops)
 			suite.Require().NoError(err)
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
@@ -161,8 +175,9 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				sdk.NewEvent(types.EventTypeTransfer,
 					sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
 					sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-					sdk.NewAttribute(types.AttributeKeyTokens, string(jsonTokens)),
+					sdk.NewAttribute(types.AttributeKeyTokens, string(tokensBz)),
 					sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+					sdk.NewAttribute(types.AttributeKeyForwardingHops, string(forwardingHopsBz)),
 				),
 				sdk.NewEvent(
 					sdk.EventTypeMessage,
@@ -230,6 +245,125 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			} else {
 				suite.Require().Error(err)
 			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestUnwindHops() {
+	var msg *types.MsgTransfer
+	var path *ibctesting.Path
+	denom := types.NewDenom(ibctesting.TestCoin.Denom, types.NewTrace(ibctesting.MockPort, "channel-0"), types.NewTrace(ibctesting.MockPort, "channel-1"))
+	coins := sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+	testCases := []struct {
+		name         string
+		malleate     func()
+		assertResult func(modified *types.MsgTransfer, err error)
+	}{
+		{
+			"success",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().NoError(err, "got unexpected error from unwindHops")
+				msg.SourceChannel = denom.Trace[0].PortId
+				msg.SourcePort = denom.Trace[0].ChannelId
+				msg.Forwarding = types.NewForwarding(false, types.NewHop(denom.Trace[1].PortId, denom.Trace[1].ChannelId))
+				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
+			},
+		},
+		{
+			"success: multiple unwind hops",
+			func() {
+				denom.Trace = append(denom.Trace, types.NewTrace(ibctesting.MockPort, "channel-2"), types.NewTrace(ibctesting.MockPort, "channel-3"))
+				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+				msg.Tokens = coins
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().NoError(err, "got unexpected error from unwindHops")
+				msg.SourceChannel = denom.Trace[0].PortId
+				msg.SourcePort = denom.Trace[0].ChannelId
+				msg.Forwarding = types.NewForwarding(false,
+					types.NewHop(denom.Trace[3].PortId, denom.Trace[3].ChannelId),
+					types.NewHop(denom.Trace[2].PortId, denom.Trace[2].ChannelId),
+					types.NewHop(denom.Trace[1].PortId, denom.Trace[1].ChannelId),
+				)
+				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
+			},
+		},
+		{
+			"success - unwind hops are added to existing hops",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+				msg.Forwarding = types.NewForwarding(true, types.NewHop(ibctesting.MockPort, "channel-2"))
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().NoError(err, "got unexpected error from unwindHops")
+				msg.SourceChannel = denom.Trace[0].PortId
+				msg.SourcePort = denom.Trace[0].ChannelId
+				msg.Forwarding = types.NewForwarding(false,
+					types.NewHop(denom.Trace[1].PortId, denom.Trace[1].ChannelId),
+					types.NewHop(ibctesting.MockPort, "channel-2"),
+				)
+				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
+			},
+		},
+		{
+			"failure: no denom set on keeper",
+			func() {},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().ErrorIs(err, types.ErrDenomNotFound)
+			},
+		},
+		{
+			"failure: validateBasic() fails due to invalid channelID",
+			func() {
+				denom.Trace[0].ChannelId = "channel/0"
+				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+				msg.Tokens = coins
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().ErrorContains(err, "invalid source channel ID")
+			},
+		},
+		{
+			"failure: denom is native",
+			func() {
+				denom.Trace = nil
+				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+				msg.Tokens = coins
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().ErrorIs(err, types.ErrInvalidForwarding)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			msg = types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				coins,
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				clienttypes.ZeroHeight(),
+				suite.chainA.GetTimeoutTimestamp(),
+				"memo",
+				types.NewForwarding(true),
+			)
+
+			tc.malleate()
+			gotMsg, err := suite.chainA.GetSimApp().TransferKeeper.UnwindHops(suite.chainA.GetContext(), msg)
+			tc.assertResult(gotMsg, err)
 		})
 	}
 }

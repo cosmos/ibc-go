@@ -30,6 +30,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
@@ -299,7 +300,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 		transferVersion = version.AppVersion
 	}
 
-	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, transfertypes.Forwarding{})
 
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
