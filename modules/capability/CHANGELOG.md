@@ -31,7 +31,35 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+<<<<<<< HEAD
 * [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Upgrade capability module to cosmos-sdk v0.51.0
+=======
+* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.6.
+* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
+* [\#6239](https://github.com/cosmos/ibc-go/pull/6239) Bump CometBFT to v0.38.7.
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+* [\#6716](https://github.com/cosmos/ibc-go/pull/6716) Add `HasModule` to capability keeper to allow checking if a scoped module already exists.
+
+### Features
+
+### Bug Fixes
+
+## [v1.0.0]
+
+### Dependencies
+
+* [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Upgrade capability module to cosmos-sdk v0.50
+
+### API Breaking
+
+### State Machine Breaking
+>>>>>>> 8942179b (feat: add a method to check if the scope module already exists in the capability keeper (#6716))
 
 ### Improvements
 
