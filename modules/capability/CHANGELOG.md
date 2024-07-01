@@ -41,6 +41,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* [\#6716](https://github.com/cosmos/ibc-go/pull/6716) Add `HasModule` to capability keeper to allow checking if a scoped module already exists.
+
 ### Features
 
 ### Bug Fixes

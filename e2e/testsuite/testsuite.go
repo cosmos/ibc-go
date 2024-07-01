@@ -752,7 +752,7 @@ func ThreeChainSetup() ChainOptionConfiguration {
 	}
 }
 
-// DefaultChainOptions returns the default chain options for the test suite based on the provided chains.
+// defaultChannelOpts returns the default chain options for the test suite based on the provided chains.
 func defaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
 	channelOptions := ibc.DefaultChannelOpts()
 	channelOptions.Version = determineDefaultTransferVersion(chains)

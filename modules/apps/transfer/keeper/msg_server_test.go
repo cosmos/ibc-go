@@ -249,7 +249,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 func (suite *KeeperTestSuite) TestUnwindHops() {
 	var msg *types.MsgTransfer
 	var path *ibctesting.Path
-	denom := types.NewDenom(ibctesting.TestCoin.Denom, types.NewTrace(ibctesting.MockPort, "channel-0"), types.NewTrace(ibctesting.MockPort, "channel-1"))
+	denom := types.NewDenom(ibctesting.TestCoin.Denom, types.NewHop(ibctesting.MockPort, "channel-0"), types.NewHop(ibctesting.MockPort, "channel-1"))
 	coins := sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
 	testCases := []struct {
 		name         string
@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 		{
 			"success: multiple unwind hops",
 			func() {
-				denom.Trace = append(denom.Trace, types.NewTrace(ibctesting.MockPort, "channel-2"), types.NewTrace(ibctesting.MockPort, "channel-3"))
+				denom.Trace = append(denom.Trace, types.NewHop(ibctesting.MockPort, "channel-2"), types.NewHop(ibctesting.MockPort, "channel-3"))
 				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
 				msg.Tokens = coins
