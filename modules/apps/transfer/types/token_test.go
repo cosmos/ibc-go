@@ -27,9 +27,9 @@ func TestValidate(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base: "atom",
-					Trace: []Trace{
-						NewTrace("transfer", "channel-0"),
-						NewTrace("transfer", "channel-1"),
+					Trace: []Hop{
+						NewHop("transfer", "channel-0"),
+						NewHop("transfer", "channel-1"),
 					},
 				},
 				Amount: amount,
@@ -41,8 +41,8 @@ func TestValidate(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base: "uatom",
-					Trace: []Trace{
-						NewTrace("transfer", "channel-1"),
+					Trace: []Hop{
+						NewHop("transfer", "channel-1"),
 					},
 				},
 				Amount: amount,
@@ -54,10 +54,10 @@ func TestValidate(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base: "uatom",
-					Trace: []Trace{
-						NewTrace("transfer", "channel-0"),
-						NewTrace("transfer", "channel-1"),
-						NewTrace("transfer-custom", "channel-2"),
+					Trace: []Hop{
+						NewHop("transfer", "channel-0"),
+						NewHop("transfer", "channel-1"),
+						NewHop("transfer-custom", "channel-2"),
 					},
 				},
 				Amount: amount,
@@ -77,9 +77,9 @@ func TestValidate(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base: "atom",
-					Trace: []Trace{
-						NewTrace("transfer", "channel-0"),
-						NewTrace("transfer", "channel-1"),
+					Trace: []Hop{
+						NewHop("transfer", "channel-0"),
+						NewHop("transfer", "channel-1"),
 					},
 				},
 				Amount: "value",
@@ -91,9 +91,9 @@ func TestValidate(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base: "atom",
-					Trace: []Trace{
-						NewTrace("transfer", "channel-0"),
-						NewTrace("transfer", "channel-1"),
+					Trace: []Hop{
+						NewHop("transfer", "channel-0"),
+						NewHop("transfer", "channel-1"),
 					},
 				},
 				Amount: "0",
@@ -105,9 +105,9 @@ func TestValidate(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base: "atom",
-					Trace: []Trace{
-						NewTrace("transfer", "channel-0"),
-						NewTrace("transfer", "channel-1"),
+					Trace: []Hop{
+						NewHop("transfer", "channel-0"),
+						NewHop("transfer", "channel-1"),
 					},
 				},
 				Amount: "-1",
@@ -119,25 +119,25 @@ func TestValidate(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base: "uatom",
-					Trace: []Trace{
-						NewTrace("transfer", "channel-1"),
-						NewTrace("randomport", ""),
+					Trace: []Hop{
+						NewHop("transfer", "channel-1"),
+						NewHop("randomport", ""),
 					},
 				},
 				Amount: amount,
 			},
-			fmt.Errorf("invalid token denom: invalid trace: invalid channelID: identifier cannot be blank: invalid identifier"),
+			fmt.Errorf("invalid token denom: invalid trace: invalid hop source channel ID : identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"failure: empty identifier in trace",
 			Token{
 				Denom: Denom{
 					Base:  "uatom",
-					Trace: []Trace{{}},
+					Trace: []Hop{{}},
 				},
 				Amount: amount,
 			},
-			fmt.Errorf("invalid token denom: invalid trace: invalid portID: identifier cannot be blank: invalid identifier"),
+			fmt.Errorf("invalid token denom: invalid trace: invalid hop source port ID : identifier cannot be blank: invalid identifier"),
 		},
 	}
 
@@ -166,7 +166,7 @@ func TestToCoin(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base:  denom,
-					Trace: []Trace{},
+					Trace: []Hop{},
 				},
 				Amount: amount,
 			},
@@ -178,7 +178,7 @@ func TestToCoin(t *testing.T) {
 			Token{
 				Denom: Denom{
 					Base:  denom,
-					Trace: []Trace{},
+					Trace: []Hop{},
 				},
 				Amount: "value",
 			},
