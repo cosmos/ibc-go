@@ -104,7 +104,7 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	var tokens []types.Token
+	tokens := make([]types.Token, 0, len(coins))
 
 	for _, coin := range coins {
 		token, err := k.tokenFromCoin(ctx, coin)
