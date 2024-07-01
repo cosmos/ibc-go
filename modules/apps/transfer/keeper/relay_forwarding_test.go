@@ -6,6 +6,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -1138,4 +1139,145 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 
 	err = pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, ack)
 	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
+	// Setup A->B->C->D
+	coinOnA := ibctesting.TestCoin
+
+	pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	pathAtoB.Setup()
+
+	pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+	pathBtoC.Setup()
+
+	pathCtoD := ibctesting.NewTransferPath(suite.chainC, suite.chainD)
+	pathCtoD.Setup()
+
+	sender := suite.chainA.SenderAccounts[0].SenderAccount
+	receiver := suite.chainD.SenderAccounts[0].SenderAccount
+
+	forwarding := types.NewForwarding(false,
+		types.NewHop(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID),
+		types.NewHop(pathCtoD.EndpointA.ChannelConfig.PortID, pathCtoD.EndpointA.ChannelID),
+	)
+
+	transferMsg := types.NewMsgTransfer(
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		sdk.NewCoins(coinOnA),
+		sender.GetAddress().String(),
+		receiver.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(),
+		"",
+		forwarding)
+
+	// Send message to A and verify.
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err)
+
+	packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromAtoB)
+
+	err = pathAtoB.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	// Receive from B and verify.
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Check that Escrow A has amount
+	suite.assertAmountOnChain(suite.chainA, escrow, coinOnA.Amount, coinOnA.Denom)
+
+	// Check that Escrow B has amount
+	denomTrace := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	suite.assertAmountOnChain(suite.chainB, escrow, coinOnA.Amount, denomTrace.IBCDenom())
+
+	// Receive on C the packet sent from B, verify amount.
+	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromBtoC)
+
+	err = pathBtoC.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathBtoC.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = pathBtoC.EndpointB.RecvPacketWithResult(packetFromBtoC)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Check that Escrow C has amount
+	denomTraceABC := types.NewDenom(denomTrace.Base, append([]types.Trace{types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomTrace.Trace...)...)
+	suite.assertAmountOnChain(suite.chainC, escrow, coinOnA.Amount, denomTraceABC.IBCDenom())
+
+	// Finally, receive on D and verify that D has the desired amount.
+	packetFromCtoD, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromCtoD)
+
+	err = pathCtoD.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathCtoD.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	// NOTE: force an error acknowledgement by disabling the receive param on D.
+	ctx := pathCtoD.EndpointB.Chain.GetContext()
+	pathCtoD.EndpointB.Chain.GetSimApp().TransferKeeper.SetParams(ctx, types.NewParams(true, false))
+
+	result, err = pathCtoD.EndpointB.RecvPacketWithResult(packetFromCtoD)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Propagate the ack back from D to A.
+	ack, err := ibctesting.ParseAckFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(ack)
+
+	result, err = pathCtoD.EndpointA.AcknowledgePacketWithResult(packetFromCtoD, ack)
+	suite.Require().NoError(err)
+
+	ack, err = ibctesting.ParseAckFromEvents(result.Events)
+	suite.Require().NoError(err)
+
+	err = pathBtoC.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = pathBtoC.EndpointA.AcknowledgePacketWithResult(packetFromBtoC, ack)
+	suite.Require().NoError(err)
+
+	ack, err = ibctesting.ParseAckFromEvents(result.Events)
+	suite.Require().NoError(err)
+
+	err = pathAtoB.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = pathAtoB.EndpointA.AcknowledgePacketWithResult(packetFromAtoB, ack)
+	suite.Require().NoError(err)
+
+	// need to parse ack from transfer events as ack is not emitted in channeltypes.Acknowledgement events
+	ackStr, err := parseAckFromTransferAcknowledgePacketEvents(result.Events)
+	suite.Require().NoError(err)
+
+	expected := "error:\"forward packet error: source: transfer/channel-1 destination: transfer/channel-0 forward packet error: source: transfer/channel-1 destination: transfer/channel-0 ABCI code: 8: error handling packet: see events for details\" "
+	suite.Require().Equal(expected, ackStr)
+}
+
+func parseAckFromTransferAcknowledgePacketEvents(events []abci.Event) (string, error) {
+	for _, ev := range events {
+		if ev.Type == types.EventTypePacket {
+			for _, attr := range ev.Attributes {
+				if attr.Key == types.AttributeKeyAck {
+					return attr.Value, nil
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("acknowledgement event attribute not found")
 }

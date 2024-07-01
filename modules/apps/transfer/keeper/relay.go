@@ -313,7 +313,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			return err
 		}
 		if isForwarded {
-			return k.ackForwardPacketError(ctx, prevPacket, packet, data)
+			return k.ackForwardPacketError(ctx, prevPacket, packet, data, ack)
 		}
 
 		return nil
