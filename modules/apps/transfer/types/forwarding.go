@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -61,10 +63,16 @@ func (h Hop) Validate() error {
 		return errorsmod.Wrapf(err, "invalid hop source port ID %s", h.PortId)
 	}
 	if err := host.ChannelIdentifierValidator(h.ChannelId); err != nil {
-		return errorsmod.Wrapf(err, "invalid source channel ID %s", h.ChannelId)
+		return errorsmod.Wrapf(err, "invalid hop source channel ID %s", h.ChannelId)
 	}
 
 	return nil
+}
+
+// String returns the Hop in the format:
+// <portID>/<channelID>
+func (h Hop) String() string {
+	return fmt.Sprintf("%s/%s", h.PortId, h.ChannelId)
 }
 
 // validateHops performs a basic validation of the hops.
