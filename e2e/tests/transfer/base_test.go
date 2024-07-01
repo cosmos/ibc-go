@@ -34,7 +34,7 @@ type TransferTestSuite struct {
 }
 
 func (s *TransferTestSuite) SetupTest() {
-	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions())
+	s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions())
 }
 
 // QueryTransferParams queries the on-chain send enabled param for the transfer module
