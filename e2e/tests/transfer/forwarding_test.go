@@ -43,12 +43,12 @@ func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_S
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 
-	channelAtoB := s.GetChainAChannel()
+	channelAtoB := s.GetChainAChannelForTest(testName)
 
 	// Creating a new path between chain B and chain C with a ICS20-v1 channel
 	opts := s.TransferChannelOptions()
 	opts.Version = transfertypes.V1
-	channelBtoC, _ := s.CreatePath(ctx, chainB, chainC, ibc.DefaultClientOpts(), opts)
+	channelBtoC, _ := s.CreatePath(ctx, chainB, chainC, ibc.DefaultClientOpts(), opts, testName)
 	s.Require().Equal(transfertypes.V1, channelBtoC.Version, "the channel version is not ics20-1")
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)

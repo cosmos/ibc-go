@@ -56,18 +56,8 @@ type UpgradeTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-<<<<<<< HEAD
 func (s *UpgradeTestSuite) SetupUpgradeTestPath(testName string) {
-	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
-=======
-func (s *UpgradeTestSuite) SetupTest() {
-	channelOpts := s.TransferChannelOptions()
-	// TODO(chatton) hack to handle special case for the v8 to v8.1 upgrade test.
-	if strings.HasSuffix(s.T().Name(), "TestV8ToV8_1ChainUpgrade") {
-		channelOpts = s.FeeTransferChannelOptions()
-	}
-	s.SetupPaths(ibc.DefaultClientOpts(), channelOpts)
->>>>>>> feat/ics20-v2-path-forwarding
+	s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 }
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
@@ -657,7 +647,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	ctx := context.Background()
 
 	testName := t.Name()
-	s.SetupPath(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions(), testName)
+	s.SetupPaths(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions(), testName)
 
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 

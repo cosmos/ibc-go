@@ -4,11 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"path"
-	"strings"
-	"sync"
-
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -17,6 +12,10 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+	"os"
+	"path"
+	"strings"
+	"sync"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -201,7 +200,9 @@ func (s *E2ETestSuite) SetupDefaultPath(testName string) {
 // SetupPaths creates paths between the chains using the provided client and channel options.
 // The paths are created such that ChainA is connected to ChainB, ChainB is connected to ChainC etc.
 func (s *E2ETestSuite) SetupPaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) {
+	// SetupPath creates a path between the chains using the provided client and channel options.
 	s.T().Logf("Setting up path for: %s", testName)
+	r := s.GetRelayerForTest(testName)
 
 	if s.channels[testName] == nil {
 		s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
@@ -211,8 +212,54 @@ func (s *E2ETestSuite) SetupPaths(clientOpts ibc.CreateClientOptions, channelOpt
 	allChains := s.GetAllChains()
 	for i := 0; i < len(allChains)-1; i++ {
 		chainA, chainB := allChains[i], allChains[i+1]
-		_, _ = s.CreatePath(ctx, chainA, chainB, clientOpts, channelOpts, testName)
+		pathName := s.generatePathName()
+		s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+
+		err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+		s.Require().NoError(err)
+
+		// Create new clients
+		err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
+		s.Require().NoError(err)
+		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+		s.Require().NoError(err)
+
+		err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
+		s.Require().NoError(err)
+		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+		s.Require().NoError(err)
+
+		err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
+		s.Require().NoError(err)
+		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+		s.Require().NoError(err)
+
+		s.testPaths[testName] = append(s.testPaths[testName], pathName)
+
+		for _, c := range []ibc.Chain{chainA, chainB} {
+			channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
+			s.Require().NoError(err)
+
+			// only the most recent channel is relevant.
+			s.channels[testName][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
+
+			err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, channels)
+			s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
+		}
 	}
+
+	//s.T().Logf("Setting up path for: %s", testName)
+	//
+	//if s.channels[testName] == nil {
+	//	s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
+	//}
+	//
+	//ctx := context.TODO()
+	//allChains := s.GetAllChains()
+	//for i := 0; i < len(allChains)-1; i++ {
+	//	chainA, chainB := allChains[i], allChains[i+1]
+	//	_, _ = s.CreatePath(ctx, chainA, chainB, clientOpts, channelOpts, testName)
+	//}
 }
 
 // CreatePath creates a path between chainA and chainB using the provided client and channel options.
