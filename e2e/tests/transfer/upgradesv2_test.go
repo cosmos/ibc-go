@@ -32,7 +32,7 @@ type TransferChannelUpgradesTestSuite struct {
 }
 
 func (s *TransferChannelUpgradesTestSuite) SetupChannelUpgradesPath(testName string) {
-	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware
@@ -216,6 +216,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 			s.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
+			transfertypes.Forwarding{},
 		)
 		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 		s.AssertTxSuccess(resp)
@@ -379,10 +380,6 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 		s.AssertTxSuccess(transferTxResp)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
-
 	t.Run("execute gov proposals to initiate channel upgrade on chain A and chain B", func(t *testing.T) {
 		var wg sync.WaitGroup
 
@@ -406,6 +403,10 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
 
 	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
 		// packet from chain A to chain B

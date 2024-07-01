@@ -7,9 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"testing"
-	"time"
-
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
@@ -44,7 +41,7 @@ func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.C
 }
 
 func (s *TransferTestSuite) SetupTransferPath(testName string) {
-	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.

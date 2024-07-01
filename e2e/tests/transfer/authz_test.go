@@ -33,7 +33,7 @@ type AuthzTransferTestSuite struct {
 }
 
 func (suite *AuthzTransferTestSuite) SetupAuthzTest(testName string) {
-	suite.SetupPath(ibc.DefaultClientOpts(), suite.TransferChannelOptions(), testName)
+	suite.SetupPaths(ibc.DefaultClientOpts(), suite.TransferChannelOptions(), testName)
 }
 
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
@@ -135,6 +135,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			suite.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
+			transfertypes.Forwarding{},
 		)
 
 		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -195,6 +196,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			suite.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
+			transfertypes.Forwarding{},
 		)
 
 		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -281,6 +283,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				suite.GetTimeoutHeight(ctx, chainB),
 				0,
 				"",
+				transfertypes.Forwarding{},
 			)
 
 			protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -341,6 +344,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				suite.GetTimeoutHeight(ctx, chainB),
 				0,
 				"",
+				transfertypes.Forwarding{},
 			)
 
 			protoAny, err := codectypes.NewAnyWithValue(transferMsg)

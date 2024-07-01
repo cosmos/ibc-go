@@ -28,6 +28,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	v7migrations "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -55,8 +56,18 @@ type UpgradeTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+<<<<<<< HEAD
 func (s *UpgradeTestSuite) SetupUpgradeTestPath(testName string) {
 	s.SetupPath(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+=======
+func (s *UpgradeTestSuite) SetupTest() {
+	channelOpts := s.TransferChannelOptions()
+	// TODO(chatton) hack to handle special case for the v8 to v8.1 upgrade test.
+	if strings.HasSuffix(s.T().Name(), "TestV8ToV8_1ChainUpgrade") {
+		channelOpts = s.FeeTransferChannelOptions()
+	}
+	s.SetupPaths(ibc.DefaultClientOpts(), channelOpts)
+>>>>>>> feat/ics20-v2-path-forwarding
 }
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
@@ -998,6 +1009,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 			s.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
+			transfertypes.Forwarding{},
 		)
 		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 		s.AssertTxSuccess(resp)

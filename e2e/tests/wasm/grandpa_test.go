@@ -143,7 +143,7 @@ func (s *GrandpaTestSuite) SetupGrandpaPath(testName string) {
 	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
 	s.T().Log("pushed wasm client proposal")
 
-	r := s.GetRelayer()
+	r := s.GetRelayerForTest(testName)
 
 	err = r.SetClientContractHash(ctx, s.GetRelayerExecReporter(), cosmosChain.Config(), checksum)
 	s.Require().NoError(err)
@@ -154,7 +154,7 @@ func (s *GrandpaTestSuite) SetupGrandpaPath(testName string) {
 
 	channelOpts := ibc.DefaultChannelOpts()
 	channelOpts.Version = transfertypes.V1
-	s.SetupPath(ibc.DefaultClientOpts(), channelOpts, testName)
+	s.SetupPaths(ibc.DefaultClientOpts(), channelOpts, testName)
 }
 
 // TestMsgTransfer_Succeeds_GrandpaContract features
@@ -181,7 +181,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
 	s.Require().True(ok)
 
-	r := s.GetRelayer()
+	r := s.GetRelayerForTest(testName)
 
 	eRep := s.GetRelayerExecReporter()
 
@@ -294,7 +294,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
 	s.Require().True(ok)
 
-	r := s.GetRelayer()
+	r := s.GetRelayerForTest(testName)
 
 	eRep := s.GetRelayerExecReporter()
 
@@ -491,7 +491,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
 	s.Require().True(ok)
 
-	r := s.GetRelayer()
+	r := s.GetRelayerForTest(testName)
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 

@@ -195,13 +195,13 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 // SetupDefaultPath creates a path between the chains using the default client and channel options.
 // this should be called as the setup function in most tests if no additional options are required.
 func (s *E2ETestSuite) SetupDefaultPath(testName string) {
-	s.SetupPath(ibc.DefaultClientOpts(), DefaultChannelOpts(s.GetAllChains()), testName)
+	s.SetupPaths(ibc.DefaultClientOpts(), DefaultChannelOpts(s.GetAllChains()), testName)
 }
 
-// SetupPath creates a path between the chains using the provided client and channel options.
-func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) {
+// SetupPaths creates paths between the chains using the provided client and channel options.
+// The paths are created such that ChainA is connected to ChainB, ChainB is connected to ChainC etc.
+func (s *E2ETestSuite) SetupPaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) {
 	s.T().Logf("Setting up path for: %s", testName)
-	r := s.GetRelayerForTest(testName)
 
 	if s.channels[testName] == nil {
 		s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
@@ -211,44 +211,65 @@ func (s *E2ETestSuite) SetupPath(clientOpts ibc.CreateClientOptions, channelOpts
 	allChains := s.GetAllChains()
 	for i := 0; i < len(allChains)-1; i++ {
 		chainA, chainB := allChains[i], allChains[i+1]
-		pathName := s.generatePathName()
-		s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
-
-		err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
-		s.Require().NoError(err)
-
-		// Create new clients
-		err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		s.testPaths[testName] = append(s.testPaths[testName], pathName)
-
-		for _, c := range []ibc.Chain{chainA, chainB} {
-			channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
-			s.Require().NoError(err)
-
-			// only the most recent channel is relevant.
-			s.channels[testName][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
-
-			err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, channels)
-			s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
-		}
+		_, _ = s.CreatePath(ctx, chainA, chainB, clientOpts, channelOpts, testName)
 	}
 }
 
-// GetChainAChannelForTest returns the ibc.ChannelOutput for the specified test.
+// CreatePath creates a path between chainA and chainB using the provided client and channel options.
+func (s *E2ETestSuite) CreatePath(
+	ctx context.Context,
+	chainA ibc.Chain,
+	chainB ibc.Chain,
+	clientOpts ibc.CreateClientOptions,
+	channelOpts ibc.CreateChannelOptions,
+	testName string,
+) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
+	r := s.GetRelayerForTest(testName)
+
+	pathName := s.generatePathName()
+	s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+
+	err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
+	s.Require().NoError(err)
+
+	// Create new clients
+	err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
+	s.Require().NoError(err)
+	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	s.Require().NoError(err)
+
+	if s.channels[testName] == nil {
+		s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
+	}
+
+	s.testPaths[testName] = append(s.testPaths[testName], pathName)
+
+	for _, c := range []ibc.Chain{chainA, chainB} {
+		channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
+		s.Require().NoError(err)
+
+		// keep track of channels associated with a given chain for access within the tests.
+		// only the most recent channel is relevant.
+		s.channels[testName][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
+
+		err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, channels)
+		s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
+	}
+
+	return s.channels[testName][chainA][0], s.channels[testName][chainB][0]
+}
+
+// GetChainAChannelForTest returns the ibc.ChannelOutput for the current test.
 // this defaults to the first entry in the list, and will be what is needed in the case of
 // a single channel test.
 func (s *E2ETestSuite) GetChainAChannelForTest(testName string) ibc.ChannelOutput {
@@ -696,7 +717,7 @@ func getValidatorsAndFullNodes(chainIdx int) (int, int) {
 }
 
 // GetMsgTransfer returns a MsgTransfer that is constructed based on the channel version
-func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string) *transfertypes.MsgTransfer {
+func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string, forwarding transfertypes.Forwarding) *transfertypes.MsgTransfer {
 	if len(tokens) == 0 {
 		panic(errors.New("tokens cannot be empty"))
 	}
@@ -716,7 +737,7 @@ func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender,
 			Tokens:           sdk.NewCoins(),
 		}
 	case transfertypes.V2:
-		msg = transfertypes.NewMsgTransfer(portID, channelID, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+		msg = transfertypes.NewMsgTransfer(portID, channelID, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, forwarding)
 	default:
 		panic(fmt.Errorf("unsupported transfer version: %s", version))
 	}

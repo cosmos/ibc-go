@@ -33,7 +33,7 @@ type TransferChannelUpgradesV1TestSuite struct {
 func (s *TransferChannelUpgradesV1TestSuite) SetupChannelUpgradesV1Test(testName string) {
 	opts := s.TransferChannelOptions()
 	opts.Version = transfertypes.V1
-	s.SetupPath(ibc.DefaultClientOpts(), opts, testName)
+	s.SetupPaths(ibc.DefaultClientOpts(), opts, testName)
 }
 
 // TestChannelUpgrade_WithICS20v2_Succeeds tests upgrading a transfer channel to ICS20 v2.
@@ -187,7 +187,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 
 	testName := t.Name()
 	s.SetupChannelUpgradesV1Test(testName)
-	
+
 	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
@@ -312,6 +312,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 			s.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
+			transfertypes.Forwarding{},
 		)
 		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 		s.AssertTxSuccess(resp)
