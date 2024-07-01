@@ -44,35 +44,6 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 	return nil
 }
 
-// ackForwardPacketSuccess writes a successful async acknowledgement for the prevPacket
-func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket, forwardedPacket channeltypes.Packet) error {
-	forwardAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
-}
-
-// ackForwardPacketError reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
-func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket, forwardedPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
-	// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
-	// we must revert the changes that came from successfully receiving the tokens on our chain
-	// before propagating the error acknowledgement back to original sender chain
-	if err := k.revertForwardedPacket(ctx, prevPacket, failedPacketData); err != nil {
-		return err
-	}
-
-	forwardAck := types.NewForwardErrorAcknowledgement(forwardedPacket, ack)
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
-}
-
-// ackForwardPacketTimeout reverts the receive packet logic that occurs in the middle chain and writes a failed async ack for the prevPacket
-func (k Keeper) ackForwardPacketTimeout(ctx sdk.Context, prevPacket, forwardedPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
-	if err := k.revertForwardedPacket(ctx, prevPacket, timeoutPacketData); err != nil {
-		return err
-	}
-
-	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketTimedOut)
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
-}
-
 // acknowledgeForwardedPacket writes the async acknowledgement for packet
 func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet, forwardedPacket channeltypes.Packet, ack channeltypes.Acknowledgement) error {
 	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.DestinationPort, packet.DestinationChannel))

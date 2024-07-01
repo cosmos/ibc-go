@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() 
 	suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
 
 	// denom path: transfer/channel-0
-	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denom.IBCDenom())
 }
 
@@ -166,7 +166,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 	suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
 
 	// denom path: transfer/channel-0
-	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denom.IBCDenom())
 
 	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
@@ -189,7 +189,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 
 	// transfer/channel-0/transfer/channel-0/denom
 	// Check that the final receiver has received the expected tokens.
-	denomABC := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID), types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denomABC := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID), types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	// Check that the final receiver has received the expected tokens.
 	suite.assertAmountOnChain(suite.chainC, balance, amount, denomABC.IBCDenom())
 
@@ -288,7 +288,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 	suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
 
 	// denom path: transfer/channel-0
-	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denom := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denom.IBCDenom())
 
 	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
@@ -329,7 +329,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// transfer/channel-0/transfer/channel-0/denom
 	// Check that the final receiver has received the expected tokens.
-	denomABC := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID), types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denomABC := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID), types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	// Check that the final receiver has received the expected tokens.
 	suite.assertAmountOnChain(suite.chainC, balance, amount, denomABC.IBCDenom())
 
@@ -466,8 +466,8 @@ func (suite *KeeperTestSuite) TestSuccessfulUnwind() {
 	// set sender and escrow accounts with the right balances to set up an initial state
 	// that should have been the same as sending token from A -> B -> C
 	denomA := types.NewDenom(sdk.DefaultBondDenom)
-	denomAB := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
-	denomABC := types.NewDenom(sdk.DefaultBondDenom, append([]types.Trace{types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomAB.Trace...)...)
+	denomAB := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denomABC := types.NewDenom(sdk.DefaultBondDenom, append([]types.Hop{types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomAB.Trace...)...)
 
 	coinOnA := sdk.NewCoin(denomA.IBCDenom(), amount)
 	err := suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coinOnA))
@@ -639,7 +639,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	suite.Require().Equal(amount, escrowBalancBtoC.Amount)
 
 	// Check that receiver has the expected tokens
-	denomOnC := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID))
+	denomOnC := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID))
 	coinOnC := sdk.NewCoin(denomOnC.IBCDenom(), amount)
 	balanceOnC := suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), setupReceiver.GetAddress(), coinOnC.GetDenom())
 	suite.Require().Equal(amount, balanceOnC.Amount)
@@ -714,23 +714,17 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	// An error ack is now written on chainA
-	// Now we need to propagate the error to B and C
-	errorAckOnA := channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled)
-	errorAckCommitmentOnA := channeltypes.CommitAcknowledgement(errorAckOnA.Acknowledgement())
-	ackOnA := suite.chainA.GetAcknowledgement(packetFromBtoA)
-	suite.Require().Equal(errorAckCommitmentOnA, ackOnA)
+	ack, err := ibctesting.ParseAckFromEvents(result.Events)
+	suite.Require().NoError(err)
 
 	err = pathAtoB.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	err = pathAtoB.EndpointB.AcknowledgePacket(packetFromBtoA, errorAckOnA.Acknowledgement())
+	result, err = pathAtoB.EndpointB.AcknowledgePacketWithResult(packetFromBtoA, ack)
 	suite.Require().NoError(err)
 
-	errorAckOnB := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
-	errorAckCommitmentOnB := channeltypes.CommitAcknowledgement(errorAckOnB.Acknowledgement())
-	ackOnB := suite.chainB.GetAcknowledgement(packetFromCtoB)
-	suite.Require().Equal(errorAckCommitmentOnB, ackOnB)
+	ack, err = ibctesting.ParseAckFromEvents(result.Events)
+	suite.Require().NoError(err)
 
 	// Check that escrow has been moved back from EscrowBtoA to EscrowBtoC
 	escrowBalanceBtoA = suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressBtoA, coinOnB.GetDenom())
@@ -747,7 +741,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 	err = pathBtoC.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	err = pathBtoC.EndpointB.AcknowledgePacket(packetFromCtoB, errorAckOnB.Acknowledgement())
+	err = pathBtoC.EndpointB.AcknowledgePacket(packetFromCtoB, ack)
 	suite.Require().NoError(err)
 
 	// Check that everything has been reverted
@@ -819,7 +813,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 	suite.Require().NotNil(result)
 
 	// Check that Escrow B has amount
-	denomOnB := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID))
+	denomOnB := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID))
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomOnB.IBCDenom())
 
 	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID, packetFromCtoB.Sequence)
@@ -844,23 +838,17 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	// An error ack is now written on chainA
-	// Now we need to propagate the error to B and C
-	errorAckOnA := channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled)
-	errorAckCommitmentOnA := channeltypes.CommitAcknowledgement(errorAckOnA.Acknowledgement())
-	ackOnA := suite.chainA.GetAcknowledgement(packetFromBtoA)
-	suite.Require().Equal(errorAckCommitmentOnA, ackOnA)
+	ack, err := ibctesting.ParseAckFromEvents(result.Events)
+	suite.Require().NoError(err)
 
 	err = pathAtoB.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	err = pathAtoB.EndpointB.AcknowledgePacket(packetFromBtoA, errorAckOnA.Acknowledgement())
+	result, err = pathAtoB.EndpointB.AcknowledgePacketWithResult(packetFromBtoA, ack)
 	suite.Require().NoError(err)
 
-	errorAckOnB := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
-	errorAckCommitmentOnB := channeltypes.CommitAcknowledgement(errorAckOnB.Acknowledgement())
-	ackOnB := suite.chainB.GetAcknowledgement(packetFromCtoB)
-	suite.Require().Equal(errorAckCommitmentOnB, ackOnB)
+	ack, err = ibctesting.ParseAckFromEvents(result.Events)
+	suite.Require().NoError(err)
 
 	// Check that escrow has been burnt on B
 	suite.assertAmountOnChain(suite.chainB, escrow, sdkmath.NewInt(0), denomOnB.IBCDenom())
@@ -873,7 +861,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 	err = pathBtoC.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	err = pathBtoC.EndpointB.AcknowledgePacket(packetFromCtoB, errorAckOnB.Acknowledgement())
+	err = pathBtoC.EndpointB.AcknowledgePacket(packetFromCtoB, ack)
 	suite.Require().NoError(err)
 
 	// Check that everything has been reverted
@@ -895,8 +883,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
 
 	denomA := types.NewDenom(coin.Denom)
-	denomAB := types.NewDenom(coin.Denom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
-	denomABC := types.NewDenom(coin.Denom, append([]types.Trace{types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomAB.Trace...)...)
+	denomAB := types.NewDenom(coin.Denom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denomABC := types.NewDenom(coin.Denom, append([]types.Hop{types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomAB.Trace...)...)
 
 	originalABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), sender.GetAddress(), coin.Denom)
 
@@ -951,7 +939,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID)),
+				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID)),
 				Amount: "100",
 			},
 		},
@@ -986,7 +974,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
-	ack := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketTimedOut)
+	ack := types.NewForwardTimeoutAcknowledgement(packet)
 	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
 	suite.Require().Equal(ackbytes, storedAck)
 
@@ -1080,7 +1068,7 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	suite.assertAmountOnChain(suite.chainA, escrow, coinOnA.Amount, coinOnA.Denom)
 
 	// Check that Escrow B has amount
-	denomTrace := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denomTrace := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	suite.assertAmountOnChain(suite.chainB, escrow, coinOnA.Amount, denomTrace.IBCDenom())
 
 	// Receive on C the packet sent from B, verify amount.
@@ -1099,7 +1087,7 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	suite.Require().NotNil(result)
 
 	// Check that Escrow C has amount
-	denomTraceABC := types.NewDenom(denomTrace.Base, append([]types.Trace{types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomTrace.Trace...)...)
+	denomTraceABC := types.NewDenom(denomTrace.Base, append([]types.Hop{types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomTrace.Trace...)...)
 	suite.assertAmountOnChain(suite.chainC, escrow, coinOnA.Amount, denomTraceABC.IBCDenom())
 
 	// Finally, receive on D and verify that D has the desired amount.
@@ -1117,7 +1105,7 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	denomTraceABCD := types.NewDenom(denomTraceABC.Base, append([]types.Trace{types.NewTrace(pathCtoD.EndpointB.ChannelConfig.PortID, pathCtoD.EndpointB.ChannelID)}, denomTraceABC.Trace...)...)
+	denomTraceABCD := types.NewDenom(denomTraceABC.Base, append([]types.Hop{types.NewHop(pathCtoD.EndpointB.ChannelConfig.PortID, pathCtoD.EndpointB.ChannelID)}, denomTraceABC.Trace...)...)
 	suite.assertAmountOnChain(suite.chainD, balance, coinOnA.Amount, denomTraceABCD.IBCDenom())
 
 	// Propagate the ack back from D to A.
@@ -1193,7 +1181,7 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	suite.assertAmountOnChain(suite.chainA, escrow, coinOnA.Amount, coinOnA.Denom)
 
 	// Check that Escrow B has amount
-	denomTrace := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	denomTrace := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	suite.assertAmountOnChain(suite.chainB, escrow, coinOnA.Amount, denomTrace.IBCDenom())
 
 	// Receive on C the packet sent from B, verify amount.
@@ -1212,7 +1200,7 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	suite.Require().NotNil(result)
 
 	// Check that Escrow C has amount
-	denomTraceABC := types.NewDenom(denomTrace.Base, append([]types.Trace{types.NewTrace(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomTrace.Trace...)...)
+	denomTraceABC := types.NewDenom(denomTrace.Base, append([]types.Hop{types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomTrace.Trace...)...)
 	suite.assertAmountOnChain(suite.chainC, escrow, coinOnA.Amount, denomTraceABC.IBCDenom())
 
 	// Finally, receive on D and verify that D has the desired amount.

@@ -177,7 +177,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -193,7 +193,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -209,7 +209,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: largeAmount,
 					},
 				},
@@ -225,7 +225,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -241,7 +241,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -257,7 +257,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom("", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -273,7 +273,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: "",
 					},
 				},
@@ -300,7 +300,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: "0",
 					},
 				},
@@ -316,7 +316,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: "-100",
 					},
 				},
@@ -332,7 +332,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: invalidLargeAmount,
 					},
 				},
@@ -348,7 +348,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -364,7 +364,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -380,7 +380,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: largeAmount,
 					},
 				},
@@ -396,7 +396,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -412,7 +412,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -431,7 +431,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -450,7 +450,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -466,7 +466,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -504,7 +504,7 @@ func TestGetPacketSender(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -520,7 +520,7 @@ func TestGetPacketSender(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -551,7 +551,7 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -570,7 +570,7 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -589,7 +589,7 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -605,7 +605,7 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -621,7 +621,7 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -637,7 +637,7 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -669,7 +669,7 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
@@ -685,7 +685,7 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
