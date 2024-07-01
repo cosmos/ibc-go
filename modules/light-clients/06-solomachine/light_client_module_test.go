@@ -355,7 +355,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					testingPath.SetupConnections()
 					suite.coordinator.CreateMockChannels(testingPath)
 
-					channelEnd, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
+					channelEnd, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), ibctesting.MockPort, testingPath.EndpointA.ChannelID)
 					suite.Require().True(found)
 
 					channelEndBz, err := suite.chainA.Codec.Marshal(&channelEnd)
@@ -395,7 +395,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					testingPath.SetupConnections()
 					suite.coordinator.CreateMockChannels(testingPath)
 
-					nextSeqRecv, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
+					nextSeqRecv, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(suite.chainA.GetContext(), ibctesting.MockPort, testingPath.EndpointA.ChannelID)
 					suite.Require().True(found)
 
 					path = sm.GetNextSequenceRecvPath(ibctesting.MockPort, ibctesting.FirstChannelID)
@@ -628,7 +628,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
-				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
+				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 
 				clientID = sm.ClientID
 				clientState = sm.ClientState()

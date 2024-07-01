@@ -78,8 +78,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 
 func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 	// open incentivized channel
-	suite.path.Setup()
-	suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
+	suite.path.EnableUniqueChannelIDs().Setup()
+	suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
 	// build packet
 	timeoutTimestamp := ^uint64(0)

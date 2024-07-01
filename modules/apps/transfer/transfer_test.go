@@ -59,7 +59,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			// NOTE:
 			// pathAToB.EndpointA = endpoint on chainA
 			// pathAToB.EndpointB = endpoint on chainB
-			pathAToB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			pathAToB := ibctesting.NewTransferPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 			pathAToB.Setup()
 			traceAToB := types.NewTrace(pathAToB.EndpointB.ChannelConfig.PortID, pathAToB.EndpointB.ChannelID)
 
@@ -115,7 +115,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			// NOTE:
 			// pathBToC.EndpointA = endpoint on chainB
 			// pathBToC.EndpointB = endpoint on chainC
-			pathBToC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+			pathBToC := ibctesting.NewTransferPath(suite.chainB, suite.chainC).EnableUniqueChannelIDs()
 			pathBToC.Setup()
 			traceBToC := types.NewTrace(pathBToC.EndpointB.ChannelConfig.PortID, pathBToC.EndpointB.ChannelID)
 
@@ -185,7 +185,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 				suite.Require().Equal(originalBalances.AmountOf(coin.Denom).Sub(amount).Int64(), chainABalance.Amount.Int64())
 
 				// check that module account escrow address is unchanged
-				escrowAddress = types.GetEscrowAddress(traceAToB.PortId, traceAToB.ChannelId)
+				escrowAddress = types.GetEscrowAddress(pathAToB.EndpointA.ChannelConfig.PortID, pathAToB.EndpointA.ChannelID)
 				chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, coin.Denom)
 				suite.Require().Equal(coin, chainAEscrowBalance)
 			}

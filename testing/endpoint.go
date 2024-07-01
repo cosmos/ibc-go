@@ -35,6 +35,8 @@ type Endpoint struct {
 	ClientConfig     ClientConfig
 	ConnectionConfig *ConnectionConfig
 	ChannelConfig    *ChannelConfig
+
+	uniqueChannelIDs bool
 }
 
 // NewEndpoint constructs a new endpoint without the counterparty.
@@ -325,14 +327,17 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 
 var sequenceNumber int
 
-func (endpoint *Endpoint) incrementNextChannelSequence() {
+func (endpoint *Endpoint) IncrementNextChannelSequence() {
+	if !endpoint.uniqueChannelIDs {
+		return
+	}
 	sequenceNumber++
 	endpoint.Chain.GetSimApp().IBCKeeper.ChannelKeeper.SetNextChannelSequence(endpoint.Chain.GetContext(), uint64(sequenceNumber))
 }
 
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenInit() error {
-	endpoint.incrementNextChannelSequence()
+	endpoint.IncrementNextChannelSequence()
 	msg := channeltypes.NewMsgChannelOpenInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
@@ -357,7 +362,7 @@ func (endpoint *Endpoint) ChanOpenInit() error {
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenTry() error {
-	endpoint.incrementNextChannelSequence()
+	endpoint.IncrementNextChannelSequence()
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 

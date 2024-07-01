@@ -243,7 +243,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			heightDiff = 0    // must be explicitly changed in malleate
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 
 			tc.malleate()
 
@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 				suite.Require().NoError(err)
 			}
 
-			counterparty := types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			counterparty := types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			channelKey := host.ChannelKey(counterparty.PortId, counterparty.ChannelId)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
@@ -422,12 +422,12 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			suite.SetupTest()          // reset
 			counterpartyChannelID = "" // must be explicitly changed in malleate
 			heightDiff = 0             // must be explicitly changed
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 
 			tc.malleate()
 
 			if counterpartyChannelID == "" {
-				counterpartyChannelID = ibctesting.FirstChannelID
+				counterpartyChannelID = path.EndpointB.ChannelID
 			}
 
 			if path.EndpointA.ClientID != "" {
@@ -436,7 +436,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 				suite.Require().NoError(err)
 			}
 
-			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proof, proofHeight := suite.chainB.QueryProof(channelKey)
 
 			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
@@ -565,7 +565,7 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			heightDiff = 0    // must be explicitly changed
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 
 			tc.malleate()
 
@@ -576,11 +576,11 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 
 			}
 
-			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID,
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
 				channelCap, proof, malleateHeight(proofHeight, heightDiff),
 			)
 
@@ -674,13 +674,13 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 			expErrorMsgSubstring = ""
 
 			tc.malleate()
 
 			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanCloseInit(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
+				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channelCap,
 			)
 
 			if tc.expPass {

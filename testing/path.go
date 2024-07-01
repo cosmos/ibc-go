@@ -66,6 +66,13 @@ func (path *Path) SetChannelOrdered() {
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 }
 
+// TODO docstring and then remove
+func (path *Path) EnableUniqueChannelIDs() *Path {
+	path.EndpointA.uniqueChannelIDs = true
+	path.EndpointB.uniqueChannelIDs = true
+	return path
+}
+
 // RelayPacket attempts to relay the packet first on EndpointA and then on EndpointB
 // if EndpointA does not contain a packet commitment for that packet. An error is returned
 // if a relay step fails or the packet commitment does not exist on either endpoint.

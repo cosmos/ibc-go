@@ -483,7 +483,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
+			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 			testingpath.SetChannelOrdered()
 			testingpath.Setup()
 

@@ -1203,7 +1203,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		{
 			"success: counterparty in flushcomplete",
 			func() {
-				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 				path.Setup()
 
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
@@ -1299,7 +1299,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 	// This bumps the channel identifier generated for chain A on the
 	// next path used to run the upgrade handshake.
 	// See issue 4062.
-	path = ibctesting.NewPath(suite.chainA, suite.chainB)
+	path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 	path.SetupConnections()
 	suite.Require().NoError(path.EndpointA.ChanOpenInit())
 
@@ -1308,7 +1308,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 			path.Setup()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
@@ -2153,7 +2153,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			suite.SetupTest()
 			expPass := tc.expError == nil
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 			path.Setup()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
@@ -2680,7 +2680,7 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expError error
+		expError func() error
 	}{
 		{
 			"success",
@@ -2703,7 +2703,9 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 				previousUpgradeError := types.NewUpgradeError(upgradeError.GetErrorReceipt().Sequence+1, types.ErrInvalidUpgrade)
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, previousUpgradeError)
 			},
-			errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error receipt sequence (10) must be greater than existing error receipt sequence (11)"),
+			func() error {
+				return errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error receipt sequence (10) must be greater than existing error receipt sequence (11)")
+			},
 		},
 		{
 			"failure: upgrade exists for error receipt being written",
@@ -2715,14 +2717,18 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 				ch := path.EndpointA.GetChannel()
 				upgradeError = types.NewUpgradeError(ch.UpgradeSequence, types.ErrInvalidUpgrade)
 			},
-			errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "attempting to write error receipt at sequence (1) while upgrade information exists at the same sequence"),
+			func() error {
+				return errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "attempting to write error receipt at sequence (1) while upgrade information exists at the same sequence")
+			},
 		},
 		{
 			"failure: channel not found",
 			func() {
 				suite.chainA.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			errorsmod.Wrap(types.ErrChannelNotFound, "port ID (mock) channel ID (channel-0)"),
+			func() error {
+				return errorsmod.Wrap(types.ErrChannelNotFound, fmt.Sprintf("port ID (mock) channel ID (%s)", path.EndpointA.ChannelID))
+			},
 		},
 	}
 
@@ -2730,7 +2736,7 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 			path.Setup()
 
 			channelKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
@@ -2745,7 +2751,7 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 					channelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
 				})
 			} else {
-				suite.PanicsWithError(tc.expError.Error(), func() {
+				suite.PanicsWithError(tc.expError().Error(), func() {
 					channelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
 				})
 			}

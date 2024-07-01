@@ -780,7 +780,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		{
 			"interchain account successfully executes transfertypes.MsgTransfer",
 			func(icaAddress string) {
-				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC).EnableUniqueChannelIDs()
 
 				transferPath.Setup()
 
@@ -789,7 +789,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						{
 							"@type": "/ibc.applications.transfer.v1.MsgTransfer",
 							"source_port": "transfer",
-							"source_channel": "channel-1",
+							"source_channel": "` + transferPath.EndpointA.ChannelID + `",
 							"token": { "denom": "stake", "amount": "100" },
 							"sender": "` + icaAddress + `",
 							"receiver": "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk",
@@ -885,7 +885,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			suite.Run(tc.msg, func() {
 				suite.SetupTest() // reset
 
-				path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON, ordering)
+				path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON, ordering).EnableUniqueChannelIDs()
 				path.SetupConnections()
 
 				err := SetupICAPath(path, TestOwnerAddress)

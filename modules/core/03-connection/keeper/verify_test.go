@@ -726,7 +726,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 			path.Setup()
 
 			upgradeError = channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel)
@@ -740,7 +740,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(upgradeErrorReceiptKey)
 
-			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeError(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeError.GetErrorReceipt())
+			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeError(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError.GetErrorReceipt())
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -799,7 +799,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 			path.Setup()
 
 			upgrade = channeltypes.NewUpgrade(
@@ -818,7 +818,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 			channelUpgradeKey := host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelUpgradeKey)
 
-			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgrade(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgrade)
+			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgrade(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

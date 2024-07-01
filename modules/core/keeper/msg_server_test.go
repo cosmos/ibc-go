@@ -1490,7 +1490,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
 			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
