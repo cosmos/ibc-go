@@ -40,8 +40,10 @@ func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.C
 	return *res.Params
 }
 
-func (s *TransferTestSuite) SetupTransferPath(testName string) {
-	s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+// SetupTransferPath sets up a path between chainA and chainB with a transfer channel and returns the relayer wired
+// up to watch the channel and port IDs created.
+func (s *TransferTestSuite) SetupTransferPath(testName string) ibc.Relayer {
+	return s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -57,11 +59,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	// NOTE: t.Name() must be stored in a variable before t.Parallel() otherwise t.Name() is not
 	// deterministic.
 
-	s.SetupTransferPath(testName)
+	relayer := s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
-	relayer := s.GetRelayerForTest(testName)
 	channelA := s.GetChainAChannelForTest(testName)
 
 	chainAVersion := chainA.Config().Images[0].Version
@@ -172,11 +173,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 
 	testName := t.Name()
 	// TODO: t.Parallel()
-	s.SetupTransferPath(testName)
+	relayer := s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
-	relayer := s.GetRelayerForTest(testName)
 	channelA := s.GetChainAChannelForTest(testName)
 
 	chainADenom := chainA.Config().Denom
@@ -278,11 +278,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 
 	testName := t.Name()
 	// TODO: t.Parallel()
-	s.SetupTransferPath(testName)
+	relayer := s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
-	relayer := s.GetRelayerForTest(testName)
 	channelA := s.GetChainAChannelForTest(testName)
 
 	chainADenom := chainA.Config().Denom
@@ -403,11 +402,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 
 	testName := t.Name()
 	// TODO: t.Parallel()
-	s.SetupTransferPath(testName)
+	relayer := s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
-	relayer := s.GetRelayerForTest(testName)
 	channelA := s.GetChainAChannelForTest(testName)
 
 	chainADenom := chainA.Config().Denom
@@ -453,11 +451,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 
 	testName := t.Name()
 	// TODO: t.Parallel()
-	s.SetupTransferPath(testName)
+	relayer := s.SetupTransferPath(testName)
 
 	chainA, _ := s.GetChains()
 
-	relayer := s.GetRelayerForTest(testName)
 	channelA := s.GetChainAChannelForTest(testName)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -698,11 +695,10 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 	testName := t.Name()
 	// TODO: t.Parallel()
-	s.SetupTransferPath(testName)
+	relayer := s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
-	relayer := s.GetRelayerForTest(testName)
 	channelA := s.GetChainAChannelForTest(testName)
 
 	chainADenom := chainA.Config().Denom

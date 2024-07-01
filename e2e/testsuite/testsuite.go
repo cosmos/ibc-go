@@ -193,85 +193,41 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 
 // SetupDefaultPath creates a path between the chains using the default client and channel options.
 // this should be called as the setup function in most tests if no additional options are required.
-func (s *E2ETestSuite) SetupDefaultPath(testName string) {
-	s.SetupPaths(ibc.DefaultClientOpts(), DefaultChannelOpts(s.GetAllChains()), testName)
+func (s *E2ETestSuite) SetupDefaultPath(testName string) ibc.Relayer {
+	return s.SetupPaths(ibc.DefaultClientOpts(), DefaultChannelOpts(s.GetAllChains()), testName)
 }
 
 // SetupPaths creates paths between the chains using the provided client and channel options.
 // The paths are created such that ChainA is connected to ChainB, ChainB is connected to ChainC etc.
-func (s *E2ETestSuite) SetupPaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) {
-	// SetupPath creates a path between the chains using the provided client and channel options.
+func (s *E2ETestSuite) SetupPaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) ibc.Relayer {
 	s.T().Logf("Setting up path for: %s", testName)
-	r := s.GetRelayerForTest(testName)
 
 	if s.channels[testName] == nil {
 		s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
 	}
 
+	r := s.GetRelayerForTest(testName)
+
 	ctx := context.TODO()
 	allChains := s.GetAllChains()
 	for i := 0; i < len(allChains)-1; i++ {
 		chainA, chainB := allChains[i], allChains[i+1]
-		pathName := s.generatePathName()
-		s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
-
-		err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
-		s.Require().NoError(err)
-
-		// Create new clients
-		err = r.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, clientOpts)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		err = r.CreateConnections(ctx, s.GetRelayerExecReporter(), pathName)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
-		s.Require().NoError(err)
-		err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-		s.Require().NoError(err)
-
-		s.testPaths[testName] = append(s.testPaths[testName], pathName)
-
-		for _, c := range []ibc.Chain{chainA, chainB} {
-			channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
-			s.Require().NoError(err)
-
-			// only the most recent channel is relevant.
-			s.channels[testName][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
-
-			err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, channels)
-			s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
-		}
+		s.CreatePath(ctx, r, chainA, chainB, clientOpts, channelOpts, testName)
 	}
 
-	//s.T().Logf("Setting up path for: %s", testName)
-	//
-	//if s.channels[testName] == nil {
-	//	s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
-	//}
-	//
-	//ctx := context.TODO()
-	//allChains := s.GetAllChains()
-	//for i := 0; i < len(allChains)-1; i++ {
-	//	chainA, chainB := allChains[i], allChains[i+1]
-	//	_, _ = s.CreatePath(ctx, chainA, chainB, clientOpts, channelOpts, testName)
-	//}
+	return r
 }
 
 // CreatePath creates a path between chainA and chainB using the provided client and channel options.
 func (s *E2ETestSuite) CreatePath(
 	ctx context.Context,
+	r ibc.Relayer,
 	chainA ibc.Chain,
 	chainB ibc.Chain,
 	clientOpts ibc.CreateClientOptions,
 	channelOpts ibc.CreateChannelOptions,
 	testName string,
 ) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
-	r := s.GetRelayerForTest(testName)
 
 	pathName := s.generatePathName()
 	s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
