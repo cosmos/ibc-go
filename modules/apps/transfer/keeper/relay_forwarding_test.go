@@ -1162,7 +1162,6 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 		"",
 		forwarding)
 
-	// Send message to A and verify.
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err)
 
@@ -1173,19 +1172,17 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	err = pathAtoB.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	// Receive from B and verify.
 	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	// Check that Escrow A has amount
+	// assert escrow on chain A.
 	suite.assertAmountOnChain(suite.chainA, escrow, coinOnA.Amount, coinOnA.Denom)
 
-	// Check that Escrow B has amount
+	// assert escrow on chain B.
 	denomTrace := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 	suite.assertAmountOnChain(suite.chainB, escrow, coinOnA.Amount, denomTrace.IBCDenom())
 
-	// Receive on C the packet sent from B, verify amount.
 	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packetFromBtoC)
@@ -1200,11 +1197,10 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	// Check that Escrow C has amount
+	// assert escrow on chain C.
 	denomTraceABC := types.NewDenom(denomTrace.Base, append([]types.Hop{types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomTrace.Trace...)...)
 	suite.assertAmountOnChain(suite.chainC, escrow, coinOnA.Amount, denomTraceABC.IBCDenom())
 
-	// Finally, receive on D and verify that D has the desired amount.
 	packetFromCtoD, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packetFromCtoD)
@@ -1215,7 +1211,7 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	err = pathCtoD.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	// NOTE: force an error acknowledgement by disabling the receive param on D.
+	// force an error acknowledgement by disabling the receive param on chain D.
 	ctx := pathCtoD.EndpointB.Chain.GetContext()
 	pathCtoD.EndpointB.Chain.GetSimApp().TransferKeeper.SetParams(ctx, types.NewParams(true, false))
 
@@ -1223,7 +1219,7 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
 
-	// Propagate the ack back from D to A.
+	// propagate the acknowledgement from chain D to chain A.
 	ack, err := ibctesting.ParseAckFromEvents(result.Events)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(ack)
@@ -1249,15 +1245,15 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	result, err = pathAtoB.EndpointA.AcknowledgePacketWithResult(packetFromAtoB, ack)
 	suite.Require().NoError(err)
 
-	// need to parse ack from transfer events as ack is not emitted in channeltypes.Acknowledgement events
-	ackStr, err := parseAckFromTransferAcknowledgePacketEvents(result.Events)
+	// NOTE: parse acknowledgement from transfer events as ack is not emitted in core AcknowledgePacket events.
+	ackStr, err := parseAckFromTransferEvents(result.Events)
 	suite.Require().NoError(err)
 
 	expected := "error:\"forwarding packet failed on transfer/channel-1: forwarding packet failed on transfer/channel-1: ABCI code: 8: error handling packet: see events for details\" "
 	suite.Require().Equal(expected, ackStr)
 }
 
-func parseAckFromTransferAcknowledgePacketEvents(events []abci.Event) (string, error) {
+func parseAckFromTransferEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == types.EventTypePacket {
 			for _, attr := range ev.Attributes {
