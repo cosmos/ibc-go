@@ -29,6 +29,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	v7migrations "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -62,7 +63,7 @@ func (s *UpgradeTestSuite) SetupTest() {
 	if strings.HasSuffix(s.T().Name(), "TestV8ToV8_1ChainUpgrade") {
 		channelOpts = s.FeeTransferChannelOptions()
 	}
-	s.SetupPath(ibc.DefaultClientOpts(), channelOpts)
+	s.SetupPaths(ibc.DefaultClientOpts(), channelOpts)
 }
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
@@ -978,6 +979,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 			s.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
+			transfertypes.Forwarding{},
 		)
 		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 		s.AssertTxSuccess(resp)
