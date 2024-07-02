@@ -3,6 +3,8 @@ package internal
 import (
 	"encoding/json"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -22,7 +24,7 @@ func UnmarshalPacketData(bz []byte, ics20Version string) (types.FungibleTokenPac
 		return packetDataV1ToV2(datav1)
 	case types.V2:
 		var datav2 types.FungibleTokenPacketDataV2
-		if err := json.Unmarshal(bz, &datav2); err != nil {
+		if err := proto.Unmarshal(bz, &datav2); err != nil {
 			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
 		}
 

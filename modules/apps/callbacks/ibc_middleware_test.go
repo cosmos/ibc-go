@@ -1,8 +1,9 @@
 package ibccallbacks_test
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -507,7 +508,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().NoError(err)
 			s.Require().NotNil(packet)
 
-			err = json.Unmarshal(packet.Data, &packetData)
+			err = proto.Unmarshal(packet.Data, &packetData)
 			s.Require().NoError(err)
 
 			ctx = s.chainA.GetContext()
