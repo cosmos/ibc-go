@@ -61,7 +61,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			// pathAToB.EndpointB = endpoint on chainB
 			pathAToB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			pathAToB.Setup()
-			traceAToB := types.NewTrace(pathAToB.EndpointB.ChannelConfig.PortID, pathAToB.EndpointB.ChannelID)
+			traceAToB := types.NewHop(pathAToB.EndpointB.ChannelConfig.PortID, pathAToB.EndpointB.ChannelID)
 
 			originalBalances := sdk.NewCoins()
 			for _, denom := range tc.sourceDenomsToTransfer {
@@ -80,7 +80,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			}
 
 			// send from chainA to chainB
-			msg := types.NewMsgTransfer(pathAToB.EndpointA.ChannelConfig.PortID, pathAToB.EndpointA.ChannelID, originalCoins, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+			msg := types.NewMsgTransfer(pathAToB.EndpointA.ChannelConfig.PortID, pathAToB.EndpointA.ChannelID, originalCoins, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", types.Forwarding{})
 			res, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
@@ -117,10 +117,10 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			// pathBToC.EndpointB = endpoint on chainC
 			pathBToC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 			pathBToC.Setup()
-			traceBToC := types.NewTrace(pathBToC.EndpointB.ChannelConfig.PortID, pathBToC.EndpointB.ChannelID)
+			traceBToC := types.NewHop(pathBToC.EndpointB.ChannelConfig.PortID, pathBToC.EndpointB.ChannelID)
 
 			// send from chainB to chainC
-			msg = types.NewMsgTransfer(pathBToC.EndpointA.ChannelConfig.PortID, pathBToC.EndpointA.ChannelID, coinsSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+			msg = types.NewMsgTransfer(pathBToC.EndpointA.ChannelConfig.PortID, pathBToC.EndpointA.ChannelID, coinsSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", types.Forwarding{})
 			res, err = suite.chainB.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
@@ -149,7 +149,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			}
 
 			// send from chainC back to chainB
-			msg = types.NewMsgTransfer(pathBToC.EndpointB.ChannelConfig.PortID, pathBToC.EndpointB.ChannelID, coinsSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+			msg = types.NewMsgTransfer(pathBToC.EndpointB.ChannelConfig.PortID, pathBToC.EndpointB.ChannelID, coinsSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", types.Forwarding{})
 			res, err = suite.chainC.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 

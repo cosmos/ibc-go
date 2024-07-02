@@ -32,7 +32,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 					Data: balanceQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq})
+				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq})
 
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 					Data: paramsQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq, &paramsQueryReq})
+				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq, paramsQueryReq})
 
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 					Data: paramsQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq, &paramsQueryReq})
+				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq, paramsQueryReq})
 			},
 			ibcerrors.ErrInvalidRequest,
 		},
@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 					Data: balanceQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []*types.QueryRequest{&queryReq})
+				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq})
 			},
 			ibcerrors.ErrInvalidRequest,
 		},

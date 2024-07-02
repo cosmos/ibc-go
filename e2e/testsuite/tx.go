@@ -30,6 +30,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
@@ -72,9 +73,8 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 	}
 	s.Require().NoError(err)
 
-	chainA, chainB := s.GetChains()
-	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
-
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
+	s.T().Logf("blocks created on chain %s", chain.Config().ChainID)
 	return resp
 }
 
@@ -172,20 +172,23 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	)
 	s.Require().NoError(err)
 
+	s.T().Logf("submitting proposal with ID: %d", proposalID)
 	resp := s.BroadcastMessages(ctx, cosmosChain, user, msgSubmitProposal)
 	s.AssertTxSuccess(resp)
 
 	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
+	s.T().Logf("validators voted %s on proposal with ID: %d", cosmos.ProposalVoteYes, proposalID)
 	return s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
 }
 
 // waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
 // if the proposal has not passed within the duration of the voting period, an error is returned.
-func (*E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
+func (s *E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
 	var govProposal *govtypesv1.Proposal
 	// poll for the query for the entire voting period to see if the proposal has passed.
 	err := test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
+		s.T().Logf("waiting for proposal with ID: %d to pass", proposalID)
 		proposalResp, err := query.GRPCQuery[govtypesv1.QueryProposalResponse](ctx, chain, &govtypesv1.QueryProposalRequest{
 			ProposalId: proposalID,
 		})
@@ -297,7 +300,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 		transferVersion = version.AppVersion
 	}
 
-	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, transfertypes.Forwarding{})
 
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
