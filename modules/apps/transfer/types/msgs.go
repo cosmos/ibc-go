@@ -49,7 +49,7 @@ func NewMsgTransfer(
 	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
-	forwarding Forwarding,
+	forwarding *Forwarding,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -72,19 +72,11 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if err := msg.validateForwarding(); err != nil {
 		return err
 	}
-	if !msg.Forwarding.Unwind {
-		// We verify that portID and channelID are valid IDs only if
-		// we are not setting unwind to true.
-		// In that case, validation that they are empty is performed in
-		// validateForwarding().
-		if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
-			return errorsmod.Wrap(err, "invalid source port ID")
-		}
 
-		if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
-			return errorsmod.Wrap(err, "invalid source channel ID")
-		}
+	if err := msg.validateIdentifiers(); err != nil {
+		return err
 	}
+
 	if len(msg.Tokens) == 0 && !isValidIBCCoin(msg.Token) {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "either token or token array must be filled")
 	}
@@ -125,6 +117,7 @@ func (msg MsgTransfer) validateForwarding() error {
 	if !msg.HasForwarding() {
 		return nil
 	}
+
 	if err := msg.Forwarding.Validate(); err != nil {
 		return err
 	}
@@ -135,12 +128,6 @@ func (msg MsgTransfer) validateForwarding() error {
 	}
 
 	if msg.Forwarding.Unwind {
-		if msg.SourcePort != "" {
-			return errorsmod.Wrapf(ErrInvalidForwarding, "source port must be empty when unwind is set, got %s instead", msg.SourcePort)
-		}
-		if msg.SourceChannel != "" {
-			return errorsmod.Wrapf(ErrInvalidForwarding, "source channel must be empty when unwind is set, got %s instead", msg.SourceChannel)
-		}
 		if len(msg.GetCoins()) > 1 {
 			// When unwinding, we must have at most one token.
 			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot unwind more than one token")
@@ -163,7 +150,38 @@ func (msg MsgTransfer) GetCoins() sdk.Coins {
 
 // HasForwarding determines if the transfer should be forwarded to the next hop.
 func (msg MsgTransfer) HasForwarding() bool {
+	if msg.Forwarding == nil {
+		return false
+	}
+
 	return len(msg.Forwarding.Hops) > 0 || msg.Forwarding.Unwind
+}
+
+// validateIdentifiers validates the source port and channel identifiers based on the
+// forwarding information present in the message. If forwarding information is missing
+// or unwinding isn't performed, we do normal validation, else, we assert that both
+// fields must be empty.
+func (msg MsgTransfer) validateIdentifiers() error {
+	if msg.Forwarding != nil && msg.Forwarding.Unwind {
+		if msg.SourcePort != "" {
+			return errorsmod.Wrapf(ErrInvalidForwarding, "source port must be empty when unwind is set, got %s instead", msg.SourcePort)
+		}
+		if msg.SourceChannel != "" {
+			return errorsmod.Wrapf(ErrInvalidForwarding, "source channel must be empty when unwind is set, got %s instead", msg.SourceChannel)
+		}
+
+		return nil
+	}
+
+	// If forwarding is nil or if no unwinding occurs, validate port, channel.
+	if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
+		return errorsmod.Wrapf(err, "invalid source port ID %s", msg.SourcePort)
+	}
+	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
+		return errorsmod.Wrapf(err, "invalid source channel ID %s", msg.SourceChannel)
+	}
+
+	return nil
 }
 
 // isValidIBCCoin returns true if the token provided is valid,

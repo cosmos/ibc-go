@@ -15,7 +15,7 @@ var validHop = types.NewHop(types.PortID, ibctesting.FirstChannelID)
 func TestForwarding_Validate(t *testing.T) {
 	tests := []struct {
 		name       string
-		forwarding types.Forwarding
+		forwarding *types.Forwarding
 		expError   error
 	}{
 		{
