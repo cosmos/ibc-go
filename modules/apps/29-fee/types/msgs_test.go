@@ -157,11 +157,13 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 	for i, tc := range testCases {
 		i, tc := i, tc
 
-		msg = types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
+		payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+		require.NoError(t, err)
+		msg = types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, payeeAddr.String())
 
 		tc.malleate()
 
-		err := msg.ValidateBasic()
+		err = msg.ValidateBasic()
 
 		if tc.expPass {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
