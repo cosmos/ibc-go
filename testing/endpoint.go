@@ -520,6 +520,17 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 	return endpoint.Chain.sendMsgs(ackMsg)
 }
 
+// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint and returns the result.
+func (endpoint *Endpoint) AcknowledgePacketWithResult(packet channeltypes.Packet, ack []byte) (*abci.ExecTxResult, error) {
+	// get proof of acknowledgement on counterparty
+	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	return endpoint.Chain.SendMsgs(ackMsg)
+}
+
 // TimeoutPacket sends a MsgTimeout to the channel associated with the endpoint.
 func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 	// get proof for timeout based on channel order

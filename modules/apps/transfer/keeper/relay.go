@@ -15,6 +15,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
+	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -322,7 +323,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 				return err
 			}
 
-			forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
+			forwardAck := internaltypes.NewForwardErrorAcknowledgement(packet, ack)
 			return k.acknowledgeForwardedPacket(ctx, prevPacket, packet, forwardAck)
 		}
 
@@ -346,7 +347,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 			return err
 		}
 
-		forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketTimedOut)
+		forwardAck := internaltypes.NewForwardTimeoutAcknowledgement(packet)
 		return k.acknowledgeForwardedPacket(ctx, prevPacket, packet, forwardAck)
 	}
 
