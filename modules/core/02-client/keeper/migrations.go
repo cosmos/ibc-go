@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v9"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
@@ -46,4 +47,8 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	m.keeper.SetParams(ctx, params)
 	m.keeper.Logger(ctx).Info("successfully migrated client to self-manage params")
 	return nil
+}
+
+func (m Migrator) Migrate6to7(ctx sdk.Context) error {
+	return v9.MigrateStore(ctx, m.keeper)
 }

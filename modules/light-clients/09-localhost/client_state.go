@@ -45,12 +45,6 @@ func (ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStor
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
 	}
 
-	clientState := ClientState{
-		LatestHeight: clienttypes.GetSelfHeight(ctx),
-	}
-
-	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &clientState))
-
 	return nil
 }
 
@@ -88,7 +82,6 @@ func (ClientState) VerifyMembership(
 		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
-	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz := store.Get([]byte(merklePath.KeyPath[1]))
 	if bz == nil {
 		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
@@ -152,11 +145,6 @@ func (ClientState) UpdateStateOnMisbehaviour(_ sdk.Context, _ codec.BinaryCodec,
 
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
 // Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, _ exported.ClientMessage) []exported.Height {
-	height := clienttypes.GetSelfHeight(ctx)
-	cs.LatestHeight = height
-
-	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
-
-	return []exported.Height{height}
+func (ClientState) UpdateState(ctx sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) []exported.Height {
+	return []exported.Height{clienttypes.GetSelfHeight(ctx)}
 }

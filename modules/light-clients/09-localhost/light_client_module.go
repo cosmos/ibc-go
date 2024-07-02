@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -36,21 +35,11 @@ func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientS
 	l.storeProvider = storeProvider
 }
 
-// Initialize ensures that initial consensus state for localhost is nil.
+// Initialize returns an error because it is stateless
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, _, consensusStateBz []byte) error {
-	if len(consensusStateBz) != 0 {
-		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
-	}
-
-	clientState := ClientState{
-		LatestHeight: clienttypes.GetSelfHeight(ctx),
-	}
-
-	clientStore := l.storeProvider.ClientStore(ctx, exported.LocalhostClientID)
-	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(l.cdc, &clientState))
-	return nil
+func (LightClientModule) Initialize(ctx sdk.Context, clientID string, clientState, consensusStateBz []byte) error {
+	return errorsmod.Wrap(clienttypes.ErrClientExists, "localhost is stateless and cannot be initialized")
 }
 
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
@@ -73,16 +62,8 @@ func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID str
 // UpdateState obtains the localhost client state and calls into the clientState.UpdateState method.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.cdc
-
-	clientState, found := getClientState(clientStore, cdc)
-	if !found {
-		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
-	}
-
-	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
+func (LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+	return []exported.Height{clienttypes.GetSelfHeight(ctx)}
 }
 
 // VerifyMembership obtains the localhost client state and calls into the clientState.VerifyMembership method.
@@ -98,16 +79,11 @@ func (l LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	ibcStore := ctx.KVStore(l.key)
-	cdc := l.cdc
 
-	clientState, found := getClientState(clientStore, cdc)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
-	}
+	clientState := NewClientState(clienttypes.GetSelfHeight(ctx))
 
-	return clientState.VerifyMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.VerifyMembership(ctx, ibcStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
 // VerifyNonMembership obtains the localhost client state and calls into the clientState.VerifyNonMembership method.
@@ -122,16 +98,11 @@ func (l LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	ibcStore := ctx.KVStore(l.key)
-	cdc := l.cdc
 
-	clientState, found := getClientState(clientStore, cdc)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
-	}
+	clientState := NewClientState(clienttypes.GetSelfHeight(ctx))
 
-	return clientState.VerifyNonMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	return clientState.VerifyNonMembership(ctx, ibcStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
@@ -143,15 +114,8 @@ func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Statu
 // If no client is present for the provided client identifier a zero value height is returned.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-
-	clientState, found := getClientState(clientStore, l.cdc)
-	if !found {
-		return clienttypes.ZeroHeight()
-	}
-
-	return clientState.LatestHeight
+func (LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+	return clienttypes.GetSelfHeight(ctx)
 }
 
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus

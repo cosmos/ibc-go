@@ -20,6 +20,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -63,7 +64,7 @@ func (k *Keeper) ClientStates(c context.Context, req *types.QueryClientStatesReq
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	var clientStates types.IdentifiedClientStates
+	clientStates := types.IdentifiedClientStates{types.NewIdentifiedClientState(exported.LocalhostClientID, localhost.NewClientState(types.GetSelfHeight(ctx)))}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), host.KeyClientStorePrefix)
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
@@ -93,9 +94,14 @@ func (k *Keeper) ClientStates(c context.Context, req *types.QueryClientStatesReq
 
 	sort.Sort(clientStates)
 
+	pagination := &query.PageResponse{
+		Total:   pageRes.Total + 1, // To account for localhost client
+		NextKey: pageRes.NextKey,
+	}
+
 	return &types.QueryClientStatesResponse{
 		ClientStates: clientStates,
-		Pagination:   pageRes,
+		Pagination:   pagination,
 	}, nil
 }
 
