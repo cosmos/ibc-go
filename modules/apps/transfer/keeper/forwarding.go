@@ -14,7 +14,7 @@ import (
 
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
 func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
-	var nextForwardingPath types.Forwarding
+	var nextForwardingPath *types.Forwarding
 	if len(data.Forwarding.Hops) > 1 {
 		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
 		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
@@ -42,35 +42,6 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 
 	k.setForwardedPacket(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, resp.Sequence, packet)
 	return nil
-}
-
-// ackForwardPacketSuccess writes a successful async acknowledgement for the prevPacket
-func (k Keeper) ackForwardPacketSuccess(ctx sdk.Context, prevPacket, forwardedPacket channeltypes.Packet) error {
-	forwardAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
-}
-
-// ackForwardPacketError reverts the receive packet logic that occurs in the middle chain and writes the async ack for the prevPacket
-func (k Keeper) ackForwardPacketError(ctx sdk.Context, prevPacket, forwardedPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
-	// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
-	// we must revert the changes that came from successfully receiving the tokens on our chain
-	// before propagating the error acknowledgement back to original sender chain
-	if err := k.revertForwardedPacket(ctx, prevPacket, failedPacketData); err != nil {
-		return err
-	}
-
-	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketFailed)
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
-}
-
-// ackForwardPacketTimeout reverts the receive packet logic that occurs in the middle chain and writes a failed async ack for the prevPacket
-func (k Keeper) ackForwardPacketTimeout(ctx sdk.Context, prevPacket, forwardedPacket channeltypes.Packet, timeoutPacketData types.FungibleTokenPacketDataV2) error {
-	if err := k.revertForwardedPacket(ctx, prevPacket, timeoutPacketData); err != nil {
-		return err
-	}
-
-	forwardAck := channeltypes.NewErrorAcknowledgement(types.ErrForwardedPacketTimedOut)
-	return k.acknowledgeForwardedPacket(ctx, prevPacket, forwardedPacket, forwardAck)
 }
 
 // acknowledgeForwardedPacket writes the async acknowledgement for packet

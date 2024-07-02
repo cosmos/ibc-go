@@ -496,7 +496,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				sdk.NewCoins(ibctesting.TestCoin), s.chainA.SenderAccount.GetAddress().String(),
 				s.chainB.SenderAccount.GetAddress().String(), clienttypes.ZeroHeight(), timeoutTimestamp,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit), // set user gas limit above panic level in mock contract keeper
-				transfertypes.Forwarding{},
+				nil,
 			)
 
 			res, err := s.chainA.SendMsgs(msg)

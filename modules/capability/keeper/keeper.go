@@ -66,6 +66,12 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey, memKey storetypes.StoreKey) *Kee
 	}
 }
 
+// HasModule checks if the module name already has a ScopedKeeper.
+func (k *Keeper) HasModule(moduleName string) bool {
+	_, ok := k.scopedModules[moduleName]
+	return ok
+}
+
 // ScopeToModule attempts to create and return a ScopedKeeper for a given module
 // by name. It will panic if the keeper is already sealed or if the module name
 // already has a ScopedKeeper.

@@ -36,7 +36,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
-	if msg.Forwarding.Unwind {
+	if msg.Forwarding.GetUnwind() {
 		msg, err = k.unwindHops(ctx, msg)
 		if err != nil {
 			return nil, err
@@ -45,7 +45,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, coins, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Memo, msg.Forwarding.Hops)
+		msg.Memo, msg.Forwarding.GetHops())
 	if err != nil {
 		return nil, err
 	}
@@ -80,11 +80,9 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	if token.Denom.IsNative() {
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind a native token")
 	}
-	var unwindHops []types.Hop
+
 	// remove the first hop in denom as it is the current port/channel on this chain
-	for _, trace := range token.Denom.Trace[1:] {
-		unwindHops = append(unwindHops, types.NewHop(trace.PortId, trace.ChannelId)) //nolint: gosimple
-	}
+	unwindHops := token.Denom.Trace[1:]
 
 	// Update message fields.
 	msg.SourcePort, msg.SourceChannel = token.Denom.Trace[0].PortId, token.Denom.Trace[0].ChannelId

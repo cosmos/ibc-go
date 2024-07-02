@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -9,8 +11,8 @@ import (
 const MaximumNumberOfForwardingHops = 8 // denotes the maximum number of forwarding hops allowed
 
 // NewForwarding creates a new Forwarding instance given an unwind value and a variable number of hops.
-func NewForwarding(unwind bool, hops ...Hop) Forwarding {
-	return Forwarding{
+func NewForwarding(unwind bool, hops ...Hop) *Forwarding {
+	return &Forwarding{
 		Unwind: unwind,
 		Hops:   hops,
 	}
@@ -18,7 +20,7 @@ func NewForwarding(unwind bool, hops ...Hop) Forwarding {
 
 // Validate performs a basic validation of the Forwarding fields.
 func (f Forwarding) Validate() error {
-	if err := validateHops(f.Hops); err != nil {
+	if err := validateHops(f.GetHops()); err != nil {
 		return errorsmod.Wrapf(ErrInvalidForwarding, "invalid hops in forwarding")
 	}
 
@@ -61,10 +63,16 @@ func (h Hop) Validate() error {
 		return errorsmod.Wrapf(err, "invalid hop source port ID %s", h.PortId)
 	}
 	if err := host.ChannelIdentifierValidator(h.ChannelId); err != nil {
-		return errorsmod.Wrapf(err, "invalid source channel ID %s", h.ChannelId)
+		return errorsmod.Wrapf(err, "invalid hop source channel ID %s", h.ChannelId)
 	}
 
 	return nil
+}
+
+// String returns the Hop in the format:
+// <portID>/<channelID>
+func (h Hop) String() string {
+	return fmt.Sprintf("%s/%s", h.PortId, h.ChannelId)
 }
 
 // validateHops performs a basic validation of the hops.

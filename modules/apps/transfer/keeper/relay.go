@@ -15,6 +15,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
+	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -234,7 +235,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// sender chain is the source, mint vouchers
 
 			// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
-			trace := []types.Trace{types.NewTrace(packet.DestinationPort, packet.DestinationChannel)}
+			trace := []types.Hop{types.NewHop(packet.DestinationPort, packet.DestinationChannel)}
 			token.Denom.Trace = append(trace, token.Denom.Trace...)
 
 			if !k.HasDenom(ctx, token.Denom.Hash()) {
@@ -302,7 +303,9 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
 		if isForwarded {
-			return k.ackForwardPacketSuccess(ctx, prevPacket, packet)
+			// Write a successful async ack for the prevPacket
+			forwardAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+			return k.acknowledgeForwardedPacket(ctx, prevPacket, packet, forwardAck)
 		}
 
 		// the acknowledgement succeeded on the receiving chain so nothing
@@ -314,7 +317,15 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			return err
 		}
 		if isForwarded {
-			return k.ackForwardPacketError(ctx, prevPacket, packet, data)
+			// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
+			// we must revert the changes that came from successfully receiving the tokens on our chain
+			// before propagating the error acknowledgement back to original sender chain
+			if err := k.revertForwardedPacket(ctx, prevPacket, data); err != nil {
+				return err
+			}
+
+			forwardAck := internaltypes.NewForwardErrorAcknowledgement(packet, ack)
+			return k.acknowledgeForwardedPacket(ctx, prevPacket, packet, forwardAck)
 		}
 
 		return nil
@@ -333,7 +344,12 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 
 	prevPacket, isForwarded := k.getForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if isForwarded {
-		return k.ackForwardPacketTimeout(ctx, prevPacket, packet, data)
+		if err := k.revertForwardedPacket(ctx, prevPacket, data); err != nil {
+			return err
+		}
+
+		forwardAck := internaltypes.NewForwardTimeoutAcknowledgement(packet)
+		return k.acknowledgeForwardedPacket(ctx, prevPacket, packet, forwardAck)
 	}
 
 	return nil

@@ -358,7 +358,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
 							"",
-							types.Forwarding{},
+							nil,
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
