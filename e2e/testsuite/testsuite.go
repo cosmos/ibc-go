@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"golang.org/x/exp/slices"
 	"os"
 	"path"
 	"strings"
@@ -165,7 +166,6 @@ func (s *E2ETestSuite) initalizeRelayerPool(n int) []ibc.Relayer {
 func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier ChainOptionModifier, chainSpecOpts ...ChainOptionConfiguration) {
 	s.T().Logf("Setting up chains: %s", s.T().Name())
 
-	// TODO: it will be required to not delete chains on failure when running tests in parallel.
 	s.Require().NoError(os.Setenv("KEEP_CONTAINERS", "true"))
 
 	s.initState()
@@ -249,31 +249,16 @@ func (s *E2ETestSuite) CreatePath(
 	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
 	s.Require().NoError(err)
 
-	s.CreateChannel(ctx, r, pathName, testName, channelOpts, chainA, chainB)
-
-	// err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
-	//s.Require().NoError(err)
-	//err = test.WaitForBlocks(ctx, 1, chainA, chainB)
-	//s.Require().NoError(err)
-	//
-	//for _, c := range []ibc.Chain{chainA, chainB} {
-	//	channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
-	//	s.Require().NoError(err)
-	//
-	//	s.T().Logf("found channels on chain %s: %v", c.Config().ChainID, channels)
-	//
-	//	// keep track of channels associated with a given chain for access within the tests.
-	//	// only the most recent channel is relevant.
-	//	s.channels[testName][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
-	//
-	//	err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, s.channels[testName][c])
-	//	s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
-	//}
+	s.createChannelWithLock(ctx, r, pathName, testName, channelOpts, chainA, chainB)
 
 	return s.channels[testName][chainA][0], s.channels[testName][chainB][0]
 }
 
-func (s *E2ETestSuite) CreateChannel(ctx context.Context, r ibc.Relayer, pathName, testName string, channelOpts ibc.CreateChannelOptions, chainA, chainB ibc.Chain) {
+// createChannelWithLock creates a channel between the two provided chains for the given test name. This applies a lock
+// to ensure that the channels that are created are correctly mapped to the test that created them.
+func (s *E2ETestSuite) createChannelWithLock(ctx context.Context, r ibc.Relayer, pathName, testName string, channelOpts ibc.CreateChannelOptions, chainA, chainB ibc.Chain) {
+	// NOTE: we need to lock the creation of channels and applying of packet filters, as if we don't, the result
+	// of `r.GetChannels` may return channels created by other relayers in different tests.
 	s.channelLock.Lock()
 	defer s.channelLock.Unlock()
 
@@ -286,8 +271,6 @@ func (s *E2ETestSuite) CreateChannel(ctx context.Context, r ibc.Relayer, pathNam
 		channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
 		s.Require().NoError(err)
 
-
-
 		// keep track of channels associated with a given chain for access within the tests.
 		// only the most recent channel is relevant.
 		s.channels[testName][c] = []ibc.ChannelOutput{getLatestChannel(channels)}
@@ -297,23 +280,13 @@ func (s *E2ETestSuite) CreateChannel(ctx context.Context, r ibc.Relayer, pathNam
 	}
 }
 
+// getLatestChannel returns the latest channel from the list of channels.
 func getLatestChannel(channels []ibc.ChannelOutput) ibc.ChannelOutput {
-	var maxChannelSequence uint64
-	var latestChannel ibc.ChannelOutput
-
-	for _, c := range channels {
-		channelSequence, err := channeltypes.ParseChannelSequence(c.ChannelID)
-		if err != nil {
-			panic(err)
-		}
-
-		if channelSequence >= maxChannelSequence {
-			maxChannelSequence = channelSequence
-			latestChannel = c
-		}
-
-	}
-	return latestChannel
+	return slices.MaxFunc(channels, func(a, b ibc.ChannelOutput) int {
+		seqA, _ := channeltypes.ParseChannelSequence(a.ChannelID)
+		seqB, _ := channeltypes.ParseChannelSequence(b.ChannelID)
+		return int(seqA - seqB)
+	})
 }
 
 // GetChainAChannelForTest returns the ibc.ChannelOutput for the current test.

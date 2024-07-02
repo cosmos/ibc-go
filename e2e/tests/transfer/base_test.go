@@ -62,7 +62,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 	chainA, chainB := s.GetChains()
 
-
 	chainBVersion := chainB.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 
@@ -73,7 +72,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-	// TODO: find a different way of testing begin block
+	// TODO: https://github.com/cosmos/ibc-go/issues/6743
 	// t.Run("ensure capability module BeginBlock is executed", func(t *testing.T) {
 	//	// by restarting the chain we ensure that the capability module's BeginBlocker is executed.
 	//	s.Require().NoError(chainA.(*cosmos.CosmosChain).StopAllNodes(ctx))
@@ -136,6 +135,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 		s.Require().Equal(sdkmath.ZeroInt(), actualBalance)
 
+		// https://github.com/cosmos/ibc-go/issues/6742
 		// if testvalues.TotalEscrowFeatureReleases.IsSupported(chainBVersion) {
 		//	actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
 		//	s.Require().NoError(err)
@@ -155,6 +155,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
+	// https://github.com/cosmos/ibc-go/issues/6742
 	// if testvalues.TotalEscrowFeatureReleases.IsSupported(chainAVersion) {
 	//	t.Run("tokens are un-escrowed", func(t *testing.T) {
 	//		actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
@@ -202,6 +203,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 
+		// https://github.com/cosmos/ibc-go/issues/6742
 		// actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
 		//s.Require().NoError(err)
 		//
@@ -260,6 +262,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 		})
 	})
 
+	// https://github.com/cosmos/ibc-go/issues/6742
 	// t.Run("native chainA tokens are un-escrowed", func(t *testing.T) {
 	//	actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
 	//	s.Require().NoError(err)
@@ -304,6 +307,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 
+		// https://github.com/cosmos/ibc-go/issues/6742
 		// actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
 		//s.Require().NoError(err)
 		//
