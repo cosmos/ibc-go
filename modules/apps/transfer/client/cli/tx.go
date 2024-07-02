@@ -143,22 +143,22 @@ to first unwind IBC tokens to their native chain and then forward them to the fi
 
 // parseForwarding parses the forwarding flag into a Forwarding object or nil if the flag is not specified. If the flag cannot
 // be parsed or the hops aren't in the portID/channelID format an error is returned.
-func parseForwarding(cmd *cobra.Command) (types.Forwarding, error) {
+func parseForwarding(cmd *cobra.Command) (*types.Forwarding, error) {
 	var hops []types.Hop
 
 	forwardingString, err := cmd.Flags().GetString(flagForwarding)
 	if err != nil {
-		return types.Forwarding{}, err
+		return nil, err
 	}
 	if strings.TrimSpace(forwardingString) == "" {
-		return types.Forwarding{}, nil
+		return nil, nil
 	}
 
 	pairs := strings.Split(forwardingString, ",")
 	for _, pair := range pairs {
 		pairSplit := strings.Split(pair, "/")
 		if len(pairSplit) != 2 {
-			return types.Forwarding{}, fmt.Errorf("expected a portID/channelID pair, found %s", pair)
+			return nil, fmt.Errorf("expected a portID/channelID pair, found %s", pair)
 		}
 
 		hop := types.NewHop(pairSplit[0], pairSplit[1])
@@ -167,7 +167,7 @@ func parseForwarding(cmd *cobra.Command) (types.Forwarding, error) {
 
 	unwind, err := cmd.Flags().GetBool(flagUnwind)
 	if err != nil {
-		return types.Forwarding{}, err
+		return nil, err
 	}
 
 	return types.NewForwarding(unwind, hops...), nil

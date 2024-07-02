@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	emptyForwarding           = types.Forwarding{}
+	emptyForwarding           *types.Forwarding
 	emptyForwardingPacketData = types.ForwardingPacketData{}
 )
 
@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		sender          sdk.AccAddress
 		timeoutHeight   clienttypes.Height
 		memo            string
-		forwarding      types.Forwarding
+		forwarding      *types.Forwarding
 		expEscrowAmount sdkmath.Int // total amount in escrow for denom on receiving chain
 	)
 

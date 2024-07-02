@@ -617,7 +617,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 		setupReceiver.GetAddress().String(),
 		suite.chainB.GetTimeoutHeight(),
 		0, "",
-		types.Forwarding{},
+		nil,
 	)
 
 	result, err := suite.chainB.SendMsgs(setupTransferMsg)
@@ -890,9 +890,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 
 	originalABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), sender.GetAddress(), coin.Denom)
 
-	forwarding := types.Forwarding{
-		Hops: []types.Hop{types.NewHop(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID)},
-	}
+	forwarding := types.NewForwarding(false, types.NewHop(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID))
 
 	transferMsg := types.NewMsgTransfer(
 		pathAtoB.EndpointA.ChannelConfig.PortID,
