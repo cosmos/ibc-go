@@ -97,7 +97,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithICS20v2_Succ
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -228,7 +228,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {

@@ -180,7 +180,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		pathName = s.GetPaths()[0]
+		pathName = s.GetPaths(testName)[0]
 	})
 
 	chainA, chainB := s.GetChains()
@@ -261,7 +261,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		pathName = s.GetPaths()[0]
+		pathName = s.GetPaths(testName)[0]
 	})
 
 	chainA, chainB := s.GetChains()

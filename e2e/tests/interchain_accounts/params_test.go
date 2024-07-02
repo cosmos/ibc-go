@@ -147,7 +147,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
-			s.StartRelayer(relayer)
+			s.StartRelayer(relayer, testName)
 		})
 
 		t.Run("verify interchain account", func(t *testing.T) {
@@ -234,7 +234,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
-			s.StartRelayer(relayer)
+			s.StartRelayer(relayer, testName)
 		})
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))

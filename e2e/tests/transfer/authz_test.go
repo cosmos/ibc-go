@@ -68,7 +68,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
-		suite.StartRelayer(relayer)
+		suite.StartRelayer(relayer, testName)
 	})
 
 	// createMsgGrantFn initializes a TransferAuthorization and broadcasts a MsgGrant message.
@@ -231,7 +231,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
-		suite.StartRelayer(relayer)
+		suite.StartRelayer(relayer, testName)
 	})
 
 	const spendLimit = 1000

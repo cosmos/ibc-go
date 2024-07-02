@@ -89,8 +89,7 @@ function run_suite() {
   test_file="$(grep --recursive --files-with-matches './tests' -e "${ENTRY_POINT}")"
   test_dir="$(dirname $test_file)"
 
-  # TODO: add the -p flag to run tests in parallel
-  go test -v "${test_dir}" --run ${ENTRY_POINT} -timeout 30m
+  go test -v "${test_dir}" --run ${ENTRY_POINT} -timeout 30m -p 3
 }
 
 _verify_dependencies

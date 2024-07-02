@@ -59,7 +59,8 @@ type E2ETestSuite struct {
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
-	startRelayerFn func(relayer ibc.Relayer)
+	startRelayerFn func(relayer ibc.Relayer, testName string)
+	channelLock    sync.Mutex
 
 	// pathNameIndex is the latest index to be used for generating chains
 	pathNameIndex int64
@@ -165,7 +166,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 	s.T().Logf("Setting up chains: %s", s.T().Name())
 
 	// TODO: it will be required to not delete chains on failure when running tests in parallel.
-	// s.Require().NoError(os.Setenv("KEEP_CONTAINERS", "true"))
+	s.Require().NoError(os.Setenv("KEEP_CONTAINERS", "true"))
 
 	s.initState()
 	s.configureGenesisDebugExport()
@@ -230,6 +231,8 @@ func (s *E2ETestSuite) CreatePath(
 	testName string,
 ) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
 	pathName := s.generatePathName()
+	s.testPaths[testName] = append(s.testPaths[testName], pathName)
+
 	s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
 
 	err := r.GeneratePath(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID, chainB.Config().ChainID, pathName)
@@ -246,26 +249,71 @@ func (s *E2ETestSuite) CreatePath(
 	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
 	s.Require().NoError(err)
 
-	err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
+	s.CreateChannel(ctx, r, pathName, testName, channelOpts, chainA, chainB)
+
+	// err = r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
+	//s.Require().NoError(err)
+	//err = test.WaitForBlocks(ctx, 1, chainA, chainB)
+	//s.Require().NoError(err)
+	//
+	//for _, c := range []ibc.Chain{chainA, chainB} {
+	//	channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
+	//	s.Require().NoError(err)
+	//
+	//	s.T().Logf("found channels on chain %s: %v", c.Config().ChainID, channels)
+	//
+	//	// keep track of channels associated with a given chain for access within the tests.
+	//	// only the most recent channel is relevant.
+	//	s.channels[testName][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
+	//
+	//	err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, s.channels[testName][c])
+	//	s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
+	//}
+
+	return s.channels[testName][chainA][0], s.channels[testName][chainB][0]
+}
+
+func (s *E2ETestSuite) CreateChannel(ctx context.Context, r ibc.Relayer, pathName, testName string, channelOpts ibc.CreateChannelOptions, chainA, chainB ibc.Chain) {
+	s.channelLock.Lock()
+	defer s.channelLock.Unlock()
+
+	err := r.CreateChannel(ctx, s.GetRelayerExecReporter(), pathName, channelOpts)
 	s.Require().NoError(err)
 	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
 	s.Require().NoError(err)
-
-	s.testPaths[testName] = append(s.testPaths[testName], pathName)
 
 	for _, c := range []ibc.Chain{chainA, chainB} {
 		channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
 		s.Require().NoError(err)
 
+
+
 		// keep track of channels associated with a given chain for access within the tests.
 		// only the most recent channel is relevant.
-		s.channels[testName][c] = []ibc.ChannelOutput{channels[len(channels)-1]}
+		s.channels[testName][c] = []ibc.ChannelOutput{getLatestChannel(channels)}
 
-		err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, channels)
+		err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, s.channels[testName][c])
 		s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
 	}
+}
 
-	return s.channels[testName][chainA][0], s.channels[testName][chainB][0]
+func getLatestChannel(channels []ibc.ChannelOutput) ibc.ChannelOutput {
+	var maxChannelSequence uint64
+	var latestChannel ibc.ChannelOutput
+
+	for _, c := range channels {
+		channelSequence, err := channeltypes.ParseChannelSequence(c.ChannelID)
+		if err != nil {
+			panic(err)
+		}
+
+		if channelSequence >= maxChannelSequence {
+			maxChannelSequence = channelSequence
+			latestChannel = c
+		}
+
+	}
+	return latestChannel
 }
 
 // GetChainAChannelForTest returns the ibc.ChannelOutput for the current test.
@@ -371,14 +419,8 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, relayers []ibc.Relayer
 		}
 	}
 
-	s.startRelayerFn = func(relayer ibc.Relayer) {
-		// depending on the test, the path names will be different.
-		// whenever a relayer is started, it should use the paths associated with the test the relayer is running in.
-		pathNames, ok := s.testPaths[s.T().Name()]
-		s.Require().True(ok, "path names not found for test %s", s.T().Name())
-
-		err := relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), pathNames...)
-		s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
+	s.startRelayerFn = func(relayer ibc.Relayer, testName string) {
+		s.Require().NoError(relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)...), "failed to start relayer")
 
 		var chainHeighters []test.ChainHeighter
 		for _, c := range chains {
@@ -399,8 +441,8 @@ func (s *E2ETestSuite) generatePathName() string {
 	return pathName
 }
 
-func (s *E2ETestSuite) GetPaths() []string {
-	paths, ok := s.testPaths[s.T().Name()]
+func (s *E2ETestSuite) GetPaths(testName string) []string {
+	paths, ok := s.testPaths[testName]
 	s.Require().True(ok, "paths not found for test %s", s.T().Name())
 	return paths
 }
@@ -495,12 +537,12 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc
 }
 
 // StartRelayer starts the given ibcrelayer.
-func (s *E2ETestSuite) StartRelayer(ibcrelayer ibc.Relayer) {
+func (s *E2ETestSuite) StartRelayer(ibcrelayer ibc.Relayer, testName string) {
 	if s.startRelayerFn == nil {
 		panic(errors.New("cannot start relayer before it is created"))
 	}
 
-	s.startRelayerFn(ibcrelayer)
+	s.startRelayerFn(ibcrelayer, testName)
 }
 
 // StopRelayer stops the given ibcrelayer.
@@ -510,9 +552,9 @@ func (s *E2ETestSuite) StopRelayer(ctx context.Context, ibcrelayer ibc.Relayer) 
 }
 
 // RestartRelayer restarts the given relayer.
-func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relayer) {
+func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relayer, testName string) {
 	s.StopRelayer(ctx, ibcrelayer)
-	s.StartRelayer(ibcrelayer)
+	s.StartRelayer(ibcrelayer, testName)
 }
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
