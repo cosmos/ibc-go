@@ -47,7 +47,7 @@ func (s *LiteTestSuite) TestHappyPath() {
 	pathAtoB := ibctesting.NewPath(s.chainA, s.chainB)
 	pathAtoB.SetupClients()
 
-	cosmosMerklePath := commitmenttypes.NewMerklePath("ibc", "")
+	cosmosMerklePath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
 	provideCounterpartyMsgA := clienttypes.MsgProvideCounterparty{
 		ClientId:         pathAtoB.EndpointA.ClientID,
 		CounterpartyId:   pathAtoB.EndpointB.ClientID,
