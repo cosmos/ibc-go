@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -28,17 +29,11 @@ type LightClientModule struct {
 }
 
 // NewLightClientModule creates and returns a new 08-wasm LightClientModule.
-func NewLightClientModule(keeper wasmkeeper.Keeper) LightClientModule {
+func NewLightClientModule(keeper wasmkeeper.Keeper, key storetypes.StoreKey) LightClientModule {
 	return LightClientModule{
-		keeper: keeper,
+		keeper:        keeper,
+		storeProvider: clienttypes.NewStoreProvider(key),
 	}
-}
-
-// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-// to IBC light client instances.
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	l.storeProvider = storeProvider
 }
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It sets the client
