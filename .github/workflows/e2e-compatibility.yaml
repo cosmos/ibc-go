@@ -1,5 +1,11 @@
+# Runs compatibility tests for ibc-go.
+# Can be triggered manually by setting values for release-branch and ibc-go-version.
+# On a weekly schedule with default values of 'main' for release-branch and 'main-cron-job' for ibc-go-version.
 name: Compatibility E2E
 on:
+  schedule:
+    # run on 20:00 on Sunday.
+    - cron: '0 20 * * 6'
   workflow_dispatch:
     inputs:
       release-branch:
@@ -22,7 +28,8 @@ env:
   REGISTRY: ghcr.io
   ORG: cosmos
   IMAGE_NAME: ibc-go-simd
-  RELEASE_BRANCH: '${{ inputs.release-branch }}'
+  RELEASE_BRANCH: ${{ inputs.release-branch || 'main' }}
+  IBC_GO_VERSION: ${{ inputs.ibc-go-version || 'main-cron-job' }}
 
 jobs:
   determine-test-directory:
@@ -67,7 +74,7 @@ jobs:
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
           docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
-          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
+          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ env.IBC_GO_VERSION }}
           docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
       - name: Display image details
         if: env.RELEASE_BRANCH == matrix.release-branch
