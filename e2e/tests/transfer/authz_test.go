@@ -133,7 +133,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			suite.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
-			transfertypes.Forwarding{},
+			nil,
 		)
 
 		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -194,7 +194,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			suite.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
-			transfertypes.Forwarding{},
+			nil,
 		)
 
 		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -279,7 +279,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				suite.GetTimeoutHeight(ctx, chainB),
 				0,
 				"",
-				transfertypes.Forwarding{},
+				nil,
 			)
 
 			protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -340,7 +340,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				suite.GetTimeoutHeight(ctx, chainB),
 				0,
 				"",
-				transfertypes.Forwarding{},
+				nil,
 			)
 
 			protoAny, err := codectypes.NewAnyWithValue(transferMsg)

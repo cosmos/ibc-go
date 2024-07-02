@@ -490,7 +490,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 				timeoutHeight,
 				0,
 				"",
-				types.Forwarding{},
+				nil,
 			)
 			res, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
