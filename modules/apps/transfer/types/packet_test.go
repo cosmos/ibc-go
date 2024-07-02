@@ -19,6 +19,8 @@ const (
 	invalidLargeAmount = "115792089237316195423570985008687907853269984665640564039457584007913129639936" // 2^256
 )
 
+var emptyForwardingPacketData = types.ForwardingPacketData{}
+
 // TestFungibleTokenPacketDataValidateBasic tests ValidateBasic for FungibleTokenPacketData
 func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	testCases := []struct {
@@ -175,13 +177,14 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
 				"",
+				emptyForwardingPacketData,
 			),
 			nil,
 		},
@@ -190,13 +193,14 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
 				"memo",
+				emptyForwardingPacketData,
 			),
 			nil,
 		},
@@ -205,13 +209,46 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: largeAmount,
 					},
 				},
 				sender,
 				receiver,
 				"memo",
+				emptyForwardingPacketData,
+			),
+			nil,
+		},
+		{
+			"success: valid packet with forwarding path hops",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingPacketData("", validHop, validHop),
+			),
+			nil,
+		},
+		{
+			"success: valid packet with forwarding path hops with memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingPacketData("memo", validHop),
 			),
 			nil,
 		},
@@ -220,13 +257,14 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom("", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
 				"",
+				emptyForwardingPacketData,
 			),
 			types.ErrInvalidDenomForTransfer,
 		},
@@ -235,13 +273,14 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: "",
 					},
 				},
 				sender,
 				receiver,
 				"",
+				emptyForwardingPacketData,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -252,6 +291,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 				sender,
 				receiver,
 				"",
+				emptyForwardingPacketData,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -260,13 +300,14 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: "0",
 					},
 				},
 				sender,
 				receiver,
 				"",
+				emptyForwardingPacketData,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -275,13 +316,14 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: "-100",
 					},
 				},
 				sender,
 				receiver,
 				"",
+				emptyForwardingPacketData,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -290,13 +332,14 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: invalidLargeAmount,
 					},
 				},
 				sender,
 				receiver,
 				"memo",
+				emptyForwardingPacketData,
 			),
 			types.ErrInvalidAmount,
 		},
@@ -305,13 +348,14 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				"",
 				receiver,
 				"memo",
+				emptyForwardingPacketData,
 			),
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -320,13 +364,14 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				"",
 				"",
+				emptyForwardingPacketData,
 			),
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -335,13 +380,100 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: largeAmount,
 					},
 				},
 				sender,
 				receiver,
 				ibctesting.GenerateString(types.MaximumMemoLength+1),
+				emptyForwardingPacketData,
+			),
+			types.ErrInvalidMemo,
+		},
+		{
+			"failure: memo must be empty if forwarding path hops is not empty",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"memo",
+				types.NewForwardingPacketData("", validHop),
+			),
+			types.ErrInvalidMemo,
+		},
+		{
+			"failure: invalid forwarding path port ID",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingPacketData(
+					"",
+					types.NewHop(invalidPort, "channel-1"),
+				),
+			),
+			types.ErrInvalidForwarding,
+		},
+		{
+			"failure: invalid forwarding path channel ID",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingPacketData(
+					"",
+					types.NewHop("transfer", invalidChannel),
+				),
+			),
+			types.ErrInvalidForwarding,
+		},
+		{
+			"failure: invalid forwarding path too many hops",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingPacketData("", generateHops(types.MaximumNumberOfForwardingHops+1)...),
+			),
+			types.ErrInvalidForwarding,
+		},
+		{
+			"failure: invalid forwarding path too long memo",
+			types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+						Amount: amount,
+					},
+				},
+				sender,
+				receiver,
+				"",
+				types.NewForwardingPacketData(ibctesting.GenerateString(types.MaximumMemoLength+1), validHop),
 			),
 			types.ErrInvalidMemo,
 		},
@@ -372,13 +504,14 @@ func TestGetPacketSender(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
 				"",
+				emptyForwardingPacketData,
 			),
 			sender,
 		},
@@ -387,13 +520,14 @@ func TestGetPacketSender(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				"",
 				receiver,
 				"abc",
+				emptyForwardingPacketData,
 			),
 			"",
 		},
@@ -417,13 +551,15 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
-				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver)),
+				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
+				emptyForwardingPacketData,
+			),
 
 			map[string]interface{}{
 				"address": receiver,
@@ -434,13 +570,15 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
-				fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver)),
+				fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver),
+				emptyForwardingPacketData,
+			),
 			map[string]interface{}{
 				"address":   receiver,
 				"gas_limit": "200000",
@@ -451,13 +589,15 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
-				`{"src_callback": "string"}`),
+				`{"src_callback": "string"}`,
+				emptyForwardingPacketData,
+			),
 			"string",
 		},
 		{
@@ -465,13 +605,15 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
-				fmt.Sprintf(`{"dest_callback": {"address": "%s", "min_gas": "200000"}}`, receiver)),
+				fmt.Sprintf(`{"dest_callback": {"address": "%s", "min_gas": "200000"}}`, receiver),
+				emptyForwardingPacketData,
+			),
 			nil,
 		},
 		{
@@ -479,13 +621,15 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
-				""),
+				"",
+				emptyForwardingPacketData,
+			),
 			nil,
 		},
 		{
@@ -493,13 +637,15 @@ func TestPacketDataProvider(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
-				"invalid"),
+				"invalid",
+				emptyForwardingPacketData,
+			),
 			nil,
 		},
 	}
@@ -523,13 +669,14 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
 				"",
+				emptyForwardingPacketData,
 			),
 			false,
 		},
@@ -538,13 +685,14 @@ func TestFungibleTokenPacketDataOmitEmpty(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom(denom, types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: amount,
 					},
 				},
 				sender,
 				receiver,
 				"abc",
+				emptyForwardingPacketData,
 			),
 			true,
 		},
