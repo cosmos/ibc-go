@@ -17,8 +17,8 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 	cid := suite.store.Commit()
 
 	root := types.NewMerkleRoot(cid.Hash)
-	existsPath := types.NewMerklePath(suite.storeKey.Name(), "MYKEY")
-	nonexistPath := types.NewMerklePath(suite.storeKey.Name(), "NOTMYKEY")
+	existsPath := types.NewMerklePath([]byte(suite.storeKey.Name()), []byte("MYKEY"))
+	nonexistPath := types.NewMerklePath([]byte(suite.storeKey.Name()), []byte("NOTMYKEY"))
 	value := []byte("MYVALUE")
 
 	var proofOps *crypto.ProofOps
