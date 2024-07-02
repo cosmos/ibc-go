@@ -251,10 +251,6 @@ func (s *E2ETestSuite) CreatePath(
 	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
 	s.Require().NoError(err)
 
-	if s.channels[testName] == nil {
-		s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
-	}
-
 	s.testPaths[testName] = append(s.testPaths[testName], pathName)
 
 	for _, c := range []ibc.Chain{chainA, chainB} {
