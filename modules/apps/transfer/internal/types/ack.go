@@ -18,7 +18,7 @@ func NewForwardErrorAcknowledgement(packet channeltypes.Packet, ack channeltypes
 
 // NewForwardTimeoutAcknowledgement returns a new error acknowledgement with path forwarding information.
 func NewForwardTimeoutAcknowledgement(packet channeltypes.Packet) channeltypes.Acknowledgement {
-	ackErr := fmt.Sprintf("forward packet timeout: source: %s/%s", packet.GetSourcePort(), packet.GetSourceChannel())
+	ackErr := fmt.Sprintf("forwarding packet timed out on %s/%s", packet.GetSourcePort(), packet.GetSourceChannel())
 	return channeltypes.Acknowledgement{
 		Response: &channeltypes.Acknowledgement_Error{
 			Error: ackErr,

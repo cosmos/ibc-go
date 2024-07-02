@@ -10,6 +10,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -975,7 +976,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
-	ack := types.NewForwardTimeoutAcknowledgement(packet)
+	ack := internaltypes.NewForwardTimeoutAcknowledgement(packet)
 	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
 	suite.Require().Equal(ackbytes, storedAck)
 
@@ -1180,8 +1181,8 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	suite.assertAmountOnChain(suite.chainA, escrow, coinOnA.Amount, coinOnA.Denom)
 
 	// assert escrow on chain B.
-	denomTrace := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
-	suite.assertAmountOnChain(suite.chainB, escrow, coinOnA.Amount, denomTrace.IBCDenom())
+	denomAB := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+	suite.assertAmountOnChain(suite.chainB, escrow, coinOnA.Amount, denomAB.IBCDenom())
 
 	packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
@@ -1198,8 +1199,8 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	suite.Require().NotNil(result)
 
 	// assert escrow on chain C.
-	denomTraceABC := types.NewDenom(denomTrace.Base, append([]types.Hop{types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomTrace.Trace...)...)
-	suite.assertAmountOnChain(suite.chainC, escrow, coinOnA.Amount, denomTraceABC.IBCDenom())
+	denomABC := types.NewDenom(denomAB.Base, append([]types.Hop{types.NewHop(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID)}, denomAB.Trace...)...)
+	suite.assertAmountOnChain(suite.chainC, escrow, coinOnA.Amount, denomABC.IBCDenom())
 
 	packetFromCtoD, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
