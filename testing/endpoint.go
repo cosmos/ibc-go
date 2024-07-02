@@ -332,7 +332,7 @@ func (endpoint *Endpoint) IncrementNextChannelSequence() {
 		return
 	}
 	sequenceNumber++
-	endpoint.Chain.GetSimApp().IBCKeeper.ChannelKeeper.SetNextChannelSequence(endpoint.Chain.GetContext(), uint64(sequenceNumber))
+	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetNextChannelSequence(endpoint.Chain.GetContext(), uint64(sequenceNumber))
 }
 
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.

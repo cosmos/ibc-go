@@ -3,6 +3,7 @@ package transfer_test
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 
 	sdkmath "cosmossdk.io/math"
@@ -279,8 +280,12 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 func (suite *TransferTestSuite) TestOnRecvPacket() {
 	// This test suite mostly covers the top-level logic of the ibc module OnRecvPacket function
 	// The core logic is covered in keeper OnRecvPacket
-	var packet channeltypes.Packet
-	var expectedAttributes []sdk.Attribute
+	var (
+		packet             channeltypes.Packet
+		expectedAttributes []sdk.Attribute
+		path               *ibctesting.Path
+		recvChain          *ibctesting.TestChain
+	)
 	testCases := []struct {
 		name             string
 		malleate         func()
@@ -302,10 +307,11 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					},
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(),
-					"",
-					types.NewForwardingPacketData("", types.NewHop("transfer", "channel-0")),
+					"", types.NewForwardingPacketData("", types.NewHop(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)),
 				)
 				packet.Data = packetData.GetBytes()
+
+				fmt.Printf("%+v\n", packetData.Forwarding.Hops)
 
 				forwardingHopsBz, err := json.Marshal(packetData.Forwarding.Hops)
 				suite.Require().NoError(err)
@@ -341,7 +347,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 		{
 			"failure: receive disabled",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{SendEnabled: false})
+				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(), types.Params{ReceiveEnabled: false})
 			},
 			channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled),
 			"fungible token transfers to this chain are disabled",
@@ -352,7 +358,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			packetData := types.NewFungibleTokenPacketDataV2(
@@ -392,16 +398,20 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			seq := uint64(1)
 			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
+			recvChain = suite.chainB
+			fmt.Printf("%+v\n", path.EndpointA)
 
 			tc.malleate() // change fields in packet
 
-			ctx := suite.chainA.GetContext()
-			ack := cbs.OnRecvPacket(ctx, packet, suite.chainA.SenderAccount.GetAddress())
+			ctx := recvChain.GetContext()
+			module, _, err := recvChain.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(ctx, ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := recvChain.App.GetIBCKeeper().PortKeeper.Route(module)
+			suite.Require().True(ok)
+			ack := cbs.OnRecvPacket(ctx, packet, recvChain.SenderAccount.GetAddress())
+
+			fmt.Printf("%+v\n", string(ack.Acknowledgement()))
 
 			suite.Require().Equal(tc.expAck, ack)
 

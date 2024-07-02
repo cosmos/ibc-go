@@ -69,6 +69,7 @@ func (k Keeper) sendTransfer(
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
+		fmt.Printf("Port %s and channel %s not found\n", sourcePort, sourceChannel)
 		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 

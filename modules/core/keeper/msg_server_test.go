@@ -1954,8 +1954,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 
 				path.Setup()
 
-				msg.PortId = path.EndpointB.ChannelConfig.PortID
-				msg.ChannelId = path.EndpointB.ChannelID
+				msg.PortId = path.EndpointA.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointA.ChannelID
 			},
 			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
