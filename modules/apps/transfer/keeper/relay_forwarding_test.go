@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -274,7 +276,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// Check that the memo is stored correctly in the packet sent from A
 	var tokenPacketOnA types.FungibleTokenPacketDataV2
-	err = suite.chainA.Codec.UnmarshalJSON(packetFromAtoB.Data, &tokenPacketOnA)
+	err = proto.Unmarshal(packetFromAtoB.Data, &tokenPacketOnA)
 	suite.Require().NoError(err)
 	suite.Require().Equal("", tokenPacketOnA.Memo)
 	suite.Require().Equal(testMemo, tokenPacketOnA.Forwarding.DestinationMemo)
@@ -296,7 +298,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// Check that the memo is stored correctly in the packet sent from B
 	var tokenPacketOnB types.FungibleTokenPacketDataV2
-	err = suite.chainB.Codec.UnmarshalJSON(packetFromBtoC.Data, &tokenPacketOnB)
+	err = proto.Unmarshal(packetFromBtoC.Data, &tokenPacketOnB)
 	suite.Require().NoError(err)
 	suite.Require().Equal(testMemo, tokenPacketOnB.Memo)
 	suite.Require().Equal("", tokenPacketOnB.Forwarding.DestinationMemo)
@@ -321,7 +323,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// Check that the memo is stored directly in the memo field on C
 	var tokenPacketOnC types.FungibleTokenPacketDataV2
-	err = suite.chainC.Codec.UnmarshalJSON(packetOnC.Data, &tokenPacketOnC)
+	err = proto.Unmarshal(packetOnC.Data, &tokenPacketOnC)
 	suite.Require().NoError(err)
 	suite.Require().Equal("", tokenPacketOnC.Forwarding.DestinationMemo)
 	suite.Require().Equal(testMemo, tokenPacketOnC.Memo)
@@ -409,7 +411,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 	// Check that the token sent from A has final receiver intact
 	var tokenPacketOnA types.FungibleTokenPacketDataV2
-	err = suite.chainA.Codec.UnmarshalJSON(packetFromAtoB.Data, &tokenPacketOnA)
+	err = proto.Unmarshal(packetFromAtoB.Data, &tokenPacketOnA)
 	suite.Require().NoError(err)
 	suite.Require().Equal(nonCosmosReceiver, tokenPacketOnA.Receiver)
 
@@ -429,7 +431,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 	// Check that the token sent from B has final receiver intact
 	var tokenPacketOnB types.FungibleTokenPacketDataV2
-	err = suite.chainB.Codec.UnmarshalJSON(packetFromBtoC.Data, &tokenPacketOnB)
+	err = proto.Unmarshal(packetFromBtoC.Data, &tokenPacketOnB)
 	suite.Require().NoError(err)
 	suite.Require().Equal(nonCosmosReceiver, tokenPacketOnB.Receiver)
 
