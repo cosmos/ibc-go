@@ -63,8 +63,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
-	relayer := s.GetRelayerForTest(testName)
+	relayer := s.SetupDefaultPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -163,8 +162,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
-	relayer := s.GetRelayerForTest(testName)
+	relayer := s.SetupDefaultPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -254,8 +252,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
-	relayer := s.GetRelayerForTest(testName)
+	relayer := s.SetupDefaultPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -444,8 +441,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
-	relayer := s.GetRelayerForTest(testName)
+	relayer := s.SetupDefaultPath(testName)
 
 	chainA, chainB := s.GetChains()
 

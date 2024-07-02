@@ -42,6 +42,9 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	t := s.T()
 	ctx := context.TODO()
 
+	testName := t.Name()
+	s.SetupDefaultPath(testName)
+
 	chainA, _ := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -194,6 +197,9 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChannel_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
+
+	testName := t.Name()
+	s.SetupDefaultPath(testName)
 
 	chainA, _ := s.GetChains()
 

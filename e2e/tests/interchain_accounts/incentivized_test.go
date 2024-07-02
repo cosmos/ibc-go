@@ -41,8 +41,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
-	relayer := s.GetRelayerForTest(testName)
+	relayer := s.SetupDefaultPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -220,9 +219,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
-
-	relayer := s.GetRelayerForTest(testName)
+	relayer := s.SetupDefaultPath(testName)
 
 	chainA, chainB := s.GetChains()
 

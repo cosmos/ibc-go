@@ -173,9 +173,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	)
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
-
-	relayer := s.GetRelayerForTest(testName)
+	relayer := s.SetupDefaultPath(testName)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
@@ -256,9 +254,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	)
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
-
-	relayer := s.GetRelayerForTest(testName)
+	relayer := s.SetupDefaultPath(testName)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
@@ -344,9 +340,8 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	)
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
+	relayer := s.SetupDefaultPath(testName)
 
-	relayer := s.GetRelayerForTest(testName)
 	chainA, chainB := s.GetChains()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))

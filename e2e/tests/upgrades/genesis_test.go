@@ -37,28 +37,33 @@ type GenesisTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *GenesisTestSuite) TestIBCGenesis() {
-	t := s.T()
-
+func (s *GenesisTestSuite) SetupSuite() {
 	configFileOverrides := make(map[string]any)
 	appTomlOverrides := make(test.Toml)
 
 	appTomlOverrides["halt-height"] = haltHeight
 	configFileOverrides["config/app.toml"] = appTomlOverrides
-	chainOpts := func(options *testsuite.ChainOptions) {
-		options.ChainSpecs[0].ConfigFileOverrides = configFileOverrides
-	}
 
-	// create chains with specified chain configuration options
-	chainA, chainB := s.GetChains(chainOpts)
+	s.SetupChains(context.TODO(), nil, func(options *testsuite.ChainOptions) {
+		// create chains with specified chain configuration options
+		options.ChainSpecs[0].ConfigFileOverrides = configFileOverrides
+	})
+}
+
+func (s *GenesisTestSuite) TestIBCGenesis() {
+	t := s.T()
+
+	chainA, chainB := s.GetChains()
 
 	ctx := context.Background()
 	testName := t.Name()
-	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
+
+	relayer := s.SetupDefaultPath(testName)
+	channelA := s.GetChainAChannelForTest(testName)
+
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
-
 	)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -99,7 +104,8 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.Require().NoError(relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPaths()...))
+		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
 	})
 
 	t.Run("ics20: packets are relayed", func(t *testing.T) {

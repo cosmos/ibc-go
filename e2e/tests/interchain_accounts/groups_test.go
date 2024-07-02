@@ -87,8 +87,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 	)
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
-	relayer := s.GetRelayerForTest(testName)
+	relayer := s.SetupDefaultPath(testName)
 
 	chainA, chainB := s.GetChains()
 
