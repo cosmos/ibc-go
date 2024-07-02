@@ -1,6 +1,6 @@
-go 1.22
+go 1.22.2
 
-toolchain go1.22.0
+toolchain go1.22.3
 
 module github.com/cosmos/ibc-go/v8
 
