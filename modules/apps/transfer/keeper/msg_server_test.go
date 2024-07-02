@@ -159,11 +159,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			tokensBz, err := json.Marshal(types.Tokens(tokens))
 			suite.Require().NoError(err)
 
-			var forwardingHops []types.Hop
-			if msg.Forwarding != nil {
-				forwardingHops = msg.Forwarding.Hops
-			}
-			forwardingHopsBz, err := json.Marshal(forwardingHops)
+			forwardingHopsBz, err := json.Marshal(msg.Forwarding.GetHops())
 			suite.Require().NoError(err)
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)

@@ -20,7 +20,7 @@ func NewForwarding(unwind bool, hops ...Hop) *Forwarding {
 
 // Validate performs a basic validation of the Forwarding fields.
 func (f Forwarding) Validate() error {
-	if err := validateHops(f.Hops); err != nil {
+	if err := validateHops(f.GetHops()); err != nil {
 		return errorsmod.Wrapf(ErrInvalidForwarding, "invalid hops in forwarding")
 	}
 
