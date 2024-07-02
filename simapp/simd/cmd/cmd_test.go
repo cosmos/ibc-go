@@ -9,8 +9,8 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
-	"github.com/cosmos/ibc-go/v8/testing/simapp/simd/cmd"
+	"github.com/cosmos/ibc-go/simapp"
+	"github.com/cosmos/ibc-go/simapp/simd/cmd"
 )
 
 func TestInitCmd(t *testing.T) {
