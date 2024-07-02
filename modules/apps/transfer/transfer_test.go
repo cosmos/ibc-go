@@ -59,7 +59,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			// NOTE:
 			// pathAToB.EndpointA = endpoint on chainA
 			// pathAToB.EndpointB = endpoint on chainB
-			pathAToB := ibctesting.NewTransferPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			pathAToB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			pathAToB.Setup()
 			traceAToB := types.NewTrace(pathAToB.EndpointB.ChannelConfig.PortID, pathAToB.EndpointB.ChannelID)
 
@@ -115,7 +115,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			// NOTE:
 			// pathBToC.EndpointA = endpoint on chainB
 			// pathBToC.EndpointB = endpoint on chainC
-			pathBToC := ibctesting.NewTransferPath(suite.chainB, suite.chainC).EnableUniqueChannelIDs()
+			pathBToC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 			pathBToC.Setup()
 			traceBToC := types.NewTrace(pathBToC.EndpointB.ChannelConfig.PortID, pathBToC.EndpointB.ChannelID)
 

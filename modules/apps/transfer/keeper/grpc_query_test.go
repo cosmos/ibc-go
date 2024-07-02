@@ -289,7 +289,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			tc.malleate()

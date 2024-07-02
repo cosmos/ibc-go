@@ -726,7 +726,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			upgradeError = channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel)
@@ -799,7 +799,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			upgrade = channeltypes.NewUpgrade(

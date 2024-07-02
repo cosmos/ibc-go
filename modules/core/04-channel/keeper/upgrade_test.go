@@ -1203,7 +1203,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		{
 			"success: counterparty in flushcomplete",
 			func() {
-				path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.Setup()
 
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
@@ -1299,7 +1299,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 	// This bumps the channel identifier generated for chain A on the
 	// next path used to run the upgrade handshake.
 	// See issue 4062.
-	path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+	path = ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupConnections()
 	suite.Require().NoError(path.EndpointA.ChanOpenInit())
 
@@ -1308,7 +1308,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
@@ -1331,7 +1331,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 
 			tc.malleate()
 
-			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channelProof, proofHeight := path.EndpointB.QueryProof(channelKey)
 
 			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeOpen(
@@ -2002,7 +2002,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			func() {
 				timeoutUpgrade()
 
-				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 			},
 			nil,
@@ -2153,7 +2153,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			suite.SetupTest()
 			expPass := tc.expError == nil
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
@@ -2736,7 +2736,7 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			channelKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper

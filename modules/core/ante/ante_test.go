@@ -41,7 +41,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.path.Setup()
 }
 

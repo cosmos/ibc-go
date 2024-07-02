@@ -36,7 +36,7 @@ type Endpoint struct {
 	ConnectionConfig *ConnectionConfig
 	ChannelConfig    *ChannelConfig
 
-	uniqueChannelIDs bool
+	disableUniqueChannelIDs bool
 }
 
 // NewEndpoint constructs a new endpoint without the counterparty.
@@ -328,7 +328,7 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 var sequenceNumber int
 
 func (endpoint *Endpoint) IncrementNextChannelSequence() {
-	if !endpoint.uniqueChannelIDs {
+	if endpoint.disableUniqueChannelIDs {
 		return
 	}
 	sequenceNumber++

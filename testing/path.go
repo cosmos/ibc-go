@@ -66,10 +66,9 @@ func (path *Path) SetChannelOrdered() {
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 }
 
-// TODO docstring and then remove
-func (path *Path) EnableUniqueChannelIDs() *Path {
-	path.EndpointA.uniqueChannelIDs = true
-	path.EndpointB.uniqueChannelIDs = true
+func (path *Path) DisableUniqueChannelIDs() *Path {
+	path.EndpointA.disableUniqueChannelIDs = true
+	path.EndpointB.disableUniqueChannelIDs = true
 	return path
 }
 

@@ -309,8 +309,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
-		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC).EnableUniqueChannelIDs()
+		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB).DisableUniqueChannelIDs()
+		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC).DisableUniqueChannelIDs()
 		pathAtoB.Setup()
 		pathBtoC.Setup()
 

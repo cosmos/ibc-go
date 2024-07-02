@@ -243,7 +243,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			heightDiff = 0    // must be explicitly changed in malleate
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
 
@@ -422,7 +422,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			suite.SetupTest()          // reset
 			counterpartyChannelID = "" // must be explicitly changed in malleate
 			heightDiff = 0             // must be explicitly changed
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
 
@@ -565,7 +565,7 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			heightDiff = 0    // must be explicitly changed
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
 
@@ -674,7 +674,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			expErrorMsgSubstring = ""
 
 			tc.malleate()

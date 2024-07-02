@@ -152,7 +152,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 		tc := tc
 
 		suite.SetupTest()
-		suite.path.EnableUniqueChannelIDs().Setup() // setup channel
+		suite.path.Setup() // setup channel
 
 		expCounterpartyPayee = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String()
 		msg = types.NewMsgRegisterCounterpartyPayee(

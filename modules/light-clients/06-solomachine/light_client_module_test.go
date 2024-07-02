@@ -628,7 +628,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
-				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 				clientID = sm.ClientID
 				clientState = sm.ClientState()

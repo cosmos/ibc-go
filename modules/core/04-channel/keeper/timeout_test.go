@@ -516,7 +516,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			suite.SetupTest() // reset
-			path = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			ctx := suite.chainA.GetContext()
 
 			tc.malleate()

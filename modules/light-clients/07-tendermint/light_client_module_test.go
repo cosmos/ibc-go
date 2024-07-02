@@ -356,7 +356,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 
-				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+				key := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
@@ -380,7 +380,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 
-				key := host.NextSequenceRecvKey(packet.GetSourcePort(), packet.GetSourceChannel())
+				key := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 				merklePath := commitmenttypes.NewMerklePath(string(key))
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
@@ -483,7 +483,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
 			testingpath.SetChannelOrdered()
 			testingpath.Setup()
 

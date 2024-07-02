@@ -782,7 +782,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		{
 			"interchain account successfully executes transfertypes.MsgTransfer",
 			func(icaAddress string) {
-				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC).EnableUniqueChannelIDs()
+				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 
 				transferPath.Setup()
 
@@ -889,7 +889,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			suite.Run(tc.msg, func() {
 				suite.SetupTest() // reset
 
-				path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON, ordering).EnableUniqueChannelIDs()
+				path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON, ordering)
 				path.SetupConnections()
 
 				err := SetupICAPath(path, TestOwnerAddress)

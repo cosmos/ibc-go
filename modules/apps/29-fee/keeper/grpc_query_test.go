@@ -286,7 +286,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
 			}
 
-			path = ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB).EnableUniqueChannelIDs()
+			path = ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
 			path.Setup()
 
 			tc.malleate()
