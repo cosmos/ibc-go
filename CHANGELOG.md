@@ -40,7 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.7.
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
-* [\#6239](https://github.com/cosmos/ibc-go/pull/6239) Bump CometBFT to v0.38.7.
+* [\#6720](https://github.com/cosmos/ibc-go/pull/6720) Bump CometBFT to v0.38.8.
 * [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump go to v1.22.
 
 ### API Breaking
@@ -58,7 +58,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#6433](https://github.com/cosmos/ibc-go/pull/6433) Use UNORDERED as the default ordering for new ICA channels.
 * (apps/transfer) [\#6440](https://github.com/cosmos/ibc-go/pull/6440) Remove `GetPrefixedDenom`.
 * (apps/transfer) [\#6508](https://github.com/cosmos/ibc-go/pull/6508) Remove the `DenomTrace` type.
+* (apps/27-interchain-accounts) [\#6598](https://github.com/cosmos/ibc-go/pull/6598) Mark the `requests` repeated field of `MsgModuleQuerySafe` non-nullable.
 * (23-commmitment) [\#6644](https://github.com/cosmos/ibc-go/pull/6644) Introduce commitment/v2 `MerklePath` to include `repeated byte` in favour of `repeated string`. This supports using merkle path keys which include non UTF-8 encoded runes.
+* (23-commmitment) [\#6633](https://github.com/cosmos/ibc-go/pull/6633) MerklePath has been changed to use `repeated bytes` in favour of `repeated strings`.
 
 ### State Machine Breaking
 
@@ -69,15 +71,32 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
 * (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
-* (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
 
 ### Features
 
 * (apps/transfer) [\#6492](https://github.com/cosmos/ibc-go/pull/6492) Added new `Tokens` field to `MsgTransfer` to enable sending of multiple denoms, and deprecated the `Token` field.
+* (apps/transfer) [\#6693](https://github.com/cosmos/ibc-go/pull/6693) Added new `Forwarding` field to `MsgTransfer` to enable forwarding tokens through multiple intermediary chains with a single transaction. This also enables automatic unwinding of tokens to their native chain. `x/authz` support for transfer allows granters to specify a set of possible forwarding hops that are allowed for grantees.
 
 ### Bug Fixes
 
 * (apps/27-interchain-accounts) [\#6377](https://github.com/cosmos/ibc-go/pull/6377) Generate ICA simtest proposals only for provided keepers.
+
+## [v8.3.2](https://github.com/cosmos/ibc-go/releases/tag/v8.3.2) - 2024-06-20
+
+### Dependencies
+
+* [\#6614](https://github.com/cosmos/ibc-go/pull/6614) Bump Cosmos SDK to v0.50.7.
+
+### Improvements
+
+* (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
+
+## [v8.3.1](https://github.com/cosmos/ibc-go/releases/tag/v8.3.1) - 2024-05-22
+
+### Improvements
+* (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
+* (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
+* (core/ante) [\#6306](https://github.com/cosmos/ibc-go/pull/6306) Performance: Skip misbehaviour checks in UpdateClient flow and skip signature checks in reCheckTx mode.
 
 ## [v8.3.0](https://github.com/cosmos/ibc-go/releases/tag/v8.3.0) - 2024-05-16
 
@@ -248,6 +267,30 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#3893](https://github.com/cosmos/ibc-go/pull/3893) Add deprecated option to `MsgSubmitMisbehaviour`.
 * (apps/transfer, apps/29-fee) [\#4570](https://github.com/cosmos/ibc-go/pull/4570) Remove `GetSignBytes` from 29-fee and transfer msgs.
 * [\#3630](https://github.com/cosmos/ibc-go/pull/3630) Add annotation to Msg service.
+
+## [v7.6.0](https://github.com/cosmos/ibc-go/releases/tag/v7.6.0) - 2024-06-20
+
+### State Machine Breaking
+
+* (apps/transfer, apps/27-interchain-accounts, app/29-fee) [\#4992](https://github.com/cosmos/ibc-go/pull/4992) Set validation for length of string fields.
+
+## [v7.5.2](https://github.com/cosmos/ibc-go/releases/tag/v7.5.2) - 2024-06-20
+
+### Dependencies
+
+* [\#6613](https://github.com/cosmos/ibc-go/pull/6613) Update Cosmos SDK to v0.47.12.
+
+### Improvements
+
+* (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
+
+## [v7.5.1](https://github.com/cosmos/ibc-go/releases/tag/v7.5.1) - 2024-05-22
+
+### Improvements
+
+* (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
+* (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
+* (core/ante) [\#6306](https://github.com/cosmos/ibc-go/pull/6306) Performance: Skip misbehaviour checks in UpdateClient flow and skip signature checks in reCheckTx mode.
 
 ## [v7.5.0](https://github.com/cosmos/ibc-go/releases/tag/v7.5.0) - 2024-05-14
 

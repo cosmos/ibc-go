@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdkmath "cosmossdk.io/math"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	kmultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
@@ -373,12 +371,13 @@ func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string
 	msgTransfer := transfertypes.NewMsgTransfer(
 		portID,
 		channelID,
-		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+		sdk.NewCoins(TestCoin),
 		chain.SenderAccount.GetAddress().String(),
 		chain.SenderAccount.GetAddress().String(),
 		clienttypes.ZeroHeight(),
 		uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
 		"",
+		transfertypes.Forwarding{},
 	)
 
 	for _, fn := range fns {

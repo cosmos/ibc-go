@@ -4,6 +4,7 @@ package ibc.applications.transfer.v2;
 
 option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
 
+import "ibc/applications/transfer/v1/transfer.proto";
 import "gogoproto/gogo.proto";
 
 // Token defines a struct which represents a token to be transferred.
@@ -19,14 +20,5 @@ message Denom {
   // the base token denomination
   string base = 1;
   // the trace of the token
-  repeated Trace trace = 3 [(gogoproto.nullable) = false];
-}
-
-// Trace represents the portID and channelID the token arrived through.
-// When a token is sent to a new chain, the portID and channelID of the
-// destination chain are added to a token's trace.
-message Trace {
-  option (gogoproto.goproto_stringer) = false;
-  string port_id                      = 1;
-  string channel_id                   = 2;
+  repeated ibc.applications.transfer.v1.Hop trace = 3 [(gogoproto.nullable) = false];
 }
