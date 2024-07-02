@@ -8,12 +8,6 @@ slug: /channel-upgrades/intro
 import HighlightTag from '@site/src/components/HighlightTag';
 import HighlightBox from '@site/src/components/HighlightBox';
 
-:::warning
-
-There is no release of Hermes availabe yet that supports channel upgradability. The tutorial has been written using a custom build from the WiP branch adding channel upgradability support. The tutorial will be updated when the official release is out.
-
-:::
-
 # Introduction
 
 <HighlightTag type="ibc-go" version="v8.1"/> <HighlightTag type="cosmos-sdk" version="v0.50"/>

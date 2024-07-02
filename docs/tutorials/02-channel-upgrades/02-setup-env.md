@@ -30,6 +30,8 @@ Install `jq` following the instructions on [its website](https://jqlang.github.i
 jq --version
 ```
 
+At the moment of writing this tutorial, the version of `jq` used was 1.6.
+
 ## gm
 
 The [gaiad manager](https://github.com/informalsystems/gm) (`gm`) is a configurable command-line tool (CLI) that helps manage local gaiad networks. It can be used to easily and quickly run a local setup of multiple blockchains. Follow the installation steps [here](https://github.com/informalsystems/gm#how-to-run).

@@ -17,7 +17,21 @@ hermes --config config.toml start
 
 ## Initiate the upgrade
 
-The [initiation of the upgrade process is authority-gated](https://ibc.cosmos.network/main/ibc/channel-upgrades#governance-gating-on-chanupgradeinit), so in this example the message to initiate the upgrade will execute when a governance proposal passes. The contents of the governance proposal are:
+The [initiation of the upgrade process is authority-gated](https://ibc.cosmos.network/main/ibc/channel-upgrades#governance-gating-on-chanupgradeinit), and thus the upgrade will begin when a governance proposal passes. There a couple of ways in which the initiation can be triggered.
+
+###  With `upgrade-channels` CLI
+
+We have a [CLI command](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/client/cli/tx.go#L62) that streamlines the submission of the governance proposal to initiate the upgrade. By default the CLI will upgrade all channels on `transfer` port with the provided channel version string. Both the port and the channels to be upgraded can be customized with CLI flags. To keep it simple, and since we only have one ICS20 channel, for this example the CLI command would look like the following:
+
+```bash
+simd tx ibc channel upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" --deposit 10stake
+```
+
+After the governance proposal is submitted, the user can vote for it and wait that it passes, but these steps are shown in more detail in the next section.
+
+### With `submit-proposal` CLI
+
+And alternative way of submitting the proposal is using `x/gov` module's CLI command. The contents of the governance proposal are:
 
 ```json title=proposal.json
 {

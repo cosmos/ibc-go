@@ -1,6 +1,6 @@
 ---
-title: Run 2 Cosmos SDK Blockchain Locally
-sidebar_label: Run 2 Cosmos SDK Blockchain Locally
+title: Run 2 Cosmos SDK Blockchains Locally
+sidebar_label: Run 2 Cosmos SDK Blockchains Locally
 sidebar_position: 3
 slug: /channel-upgrades/run-chains
 ---
