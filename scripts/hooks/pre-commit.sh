@@ -30,24 +30,34 @@ function lint_and_add_modified_go_files() {
   done
 }
 
-function is_proto_all_required() {
+function run_proto_all_if_needed() {
   local before_files=$(git status --porcelain | awk '{print $2}')
+
+  # Run make proto-all
   make proto-all
+
   local after_files=$(git status --porcelain | awk '{print $2}')
   local changed_files=$(comm -13 <(echo "$before_files" | sort) <(echo "$after_files" | sort))
+
   if [[ -n "$changed_files" ]]; then
-    echo "Error: Please run 'make proto-all' and commit the updated files."
-    
-    # Revert the changes made by make proto-all
+    echo "The following files have been modified by 'make proto-all' and have been added to the git index:"
     for file in $changed_files; do
-      echo "Reverting changes in $file"
-      git checkout -- "$file"
+      echo "$file"
+      git add "$file"
     done
-    
-    exit 1
+
+    # Add the modified .proto files as well
+    local modified_proto_files=$(echo "$before_files" "$after_files" | tr ' ' '\n' | grep '\.proto$' | sort | uniq)
+    if [[ -n "$modified_proto_files" ]]; then
+      echo "The following .proto files have been modified and have been added to the git index:"
+      for proto_file in $modified_proto_files; do
+        echo "$proto_file"
+        git add "$proto_file"
+      done
+    fi
   fi
 }
 
 check_golangci_lint_version
-is_proto_all_required
+run_proto_all_if_needed
 lint_and_add_modified_go_files
