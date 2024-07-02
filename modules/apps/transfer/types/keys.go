@@ -32,6 +32,8 @@ const (
 	KeyTotalEscrowPrefix = "totalEscrowForDenom"
 
 	ParamsKey = "params"
+
+	KeyPacketForwardPrefix = "forwardedPacket"
 )
 
 const (
@@ -80,4 +82,10 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 // source chain tokens in escrow is stored.
 func TotalEscrowForDenomKey(denom string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", KeyTotalEscrowPrefix, denom))
+}
+
+// PacketForwardKey returns the store key under which the forwarded packet is stored
+// for the provided portID, channelID, and packet sequence.
+func PacketForwardKey(portID, channelID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s/%d", KeyPacketForwardPrefix, portID, channelID, sequence))
 }

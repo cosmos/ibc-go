@@ -35,7 +35,8 @@ This message is expected to fail if:
     - `Amount` must be positive.
     - `Denom` must be a valid IBC denomination, as defined in [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
 - `Sender` is empty.
-- `Receiver` is empty.
+- `Receiver` is empty or contains more than 2048 bytes.
+- `Memo` contains more than 32768 bytes.
 - `TimeoutHeight` and `TimeoutTimestamp` are both zero.
 
 Please note that the `Token` field is deprecated and users should now use `Tokens` instead. If `Token` is used then `Tokens` must be empty. Similarly, if `Tokens` is used then `Token` should be left empty.
