@@ -24,7 +24,7 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 
 	clientID := k.GenerateClientIdentifier(ctx, clientType)
 
-	clientModule, err := k.getLightClientModuleRoute(ctx, clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
 	if err != nil {
 		return "", err
 	}
@@ -62,9 +62,9 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 		return errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
 	}
 
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
-		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
+		return err
 	}
 
 	if err := clientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
@@ -128,9 +128,9 @@ func (k *Keeper) UpgradeClient(
 		return errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
 	}
 
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
-		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
+		return err
 	}
 
 	if err := clientModule.VerifyUpgradeAndUpdateState(ctx, clientID, upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof); err != nil {

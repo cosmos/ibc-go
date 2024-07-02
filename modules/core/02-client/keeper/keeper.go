@@ -305,8 +305,8 @@ func (k *Keeper) HasClientConsensusState(ctx sdk.Context, clientID string, heigh
 
 // GetLatestClientConsensusState gets the latest ConsensusState stored for a given client
 func (k *Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) (exported.ConsensusState, bool) {
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
 		return nil, false
 	}
 
@@ -393,7 +393,7 @@ func (k *Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStor
 // GetClientStatus returns the status for a client state  given a client identifier. If the client type is not in the allowed
 // clients param field, Unauthorized is returned, otherwise the client state status is returned.
 func (k *Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Status {
-	clientModule, err := k.getLightClientModuleRoute(ctx, clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
 	if err != nil {
 		return exported.Unauthorized
 	}
@@ -404,7 +404,7 @@ func (k *Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Stat
 // GetClientLatestHeight returns the latest height of a client state for a given client identifier. If the client type is not in the allowed
 // clients param field, a zero value height is returned, otherwise the client state latest height is returned.
 func (k *Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.Height {
-	clientModule, err := k.getLightClientModuleRoute(ctx, clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
 	if err != nil {
 		return types.ZeroHeight()
 	}
@@ -419,7 +419,7 @@ func (k *Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.H
 
 // GetClientTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (k *Keeper) GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
-	clientModule, err := k.getLightClientModuleRoute(ctx, clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
 	if err != nil {
 		return 0, err
 	}
@@ -477,14 +477,11 @@ func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.P
 	return nil
 }
 
-// getLightClientModuleRoute checks that the clientType of clientID is allowed and returns a route to the light client module
-func (k *Keeper) getLightClientModuleRoute(ctx sdk.Context, clientID string) (exported.LightClientModule, error) {
+// getLightClientModule checks that the clientType of clientID is allowed and returns the corresponing light client module
+func (k *Keeper) getLightClientModule(ctx sdk.Context, clientID string) (exported.LightClientModule, error) {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
-		return nil, errorsmod.Wrapf(
-			err,
-			"invalid client id %s", clientID,
-		)
+		return nil, errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
 	}
 
 	if !k.GetParams(ctx).IsAllowedClient(clientType) {
@@ -496,10 +493,7 @@ func (k *Keeper) getLightClientModuleRoute(ctx sdk.Context, clientID string) (ex
 
 	clientModule, found := k.router.GetRoute(clientID)
 	if !found {
-		return nil, errorsmod.Wrapf(
-			types.ErrRouteNotFound,
-			"client (%s) not found in router", clientID,
-		)
+		return nil, errorsmod.Wrap(types.ErrRouteNotFound, clientID)
 	}
 
 	return clientModule, nil
