@@ -29,7 +29,7 @@ env:
   ORG: cosmos
   IMAGE_NAME: ibc-go-simd
   RELEASE_BRANCH: ${{ inputs.release-branch || 'main' }}
-  IBC_GO_VERSION: ${{ inputs.ibc-go-version || 'main-cron-job' }}
+  IBC_GO_VERSION: ${{ inputs.ibc-go-version || 'latest' }}
 
 jobs:
   determine-test-directory:
