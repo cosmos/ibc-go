@@ -89,7 +89,7 @@ func (ClientState) VerifyMembership(
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
-	bz := store.Get([]byte(merklePath.KeyPath[1]))
+	bz := store.Get(merklePath.KeyPath[1])
 	if bz == nil {
 		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
 	}
@@ -129,7 +129,7 @@ func (ClientState) VerifyNonMembership(
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
-	if store.Has([]byte(merklePath.KeyPath[1])) {
+	if store.Has(merklePath.KeyPath[1]) {
 		return errorsmod.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
 	}
 

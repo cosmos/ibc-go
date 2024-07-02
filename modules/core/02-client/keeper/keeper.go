@@ -477,7 +477,7 @@ func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.P
 	return nil
 }
 
-// getLightClientModule checks that the clientType of clientID is allowed and returns the corresponing light client module
+// getLightClientModule checks that the clientType of clientID is allowed and returns the corresponding light client module
 func (k *Keeper) getLightClientModule(ctx sdk.Context, clientID string) (exported.LightClientModule, error) {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
