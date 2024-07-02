@@ -11,22 +11,22 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestGenesis() {
-	getTrace := func(index uint) types.Trace {
-		return types.NewTrace("transfer", fmt.Sprintf("channelToChain%d", index))
+	getHop := func(index uint) types.Hop {
+		return types.NewHop("transfer", fmt.Sprintf("channelToChain%d", index))
 	}
 
 	var (
 		denoms                types.Denoms
 		escrows               sdk.Coins
 		traceAndEscrowAmounts = []struct {
-			trace  []types.Trace
+			trace  []types.Hop
 			escrow string
 		}{
-			{[]types.Trace{getTrace(0)}, "10"},
-			{[]types.Trace{getTrace(1), getTrace(0)}, "100000"},
-			{[]types.Trace{getTrace(2), getTrace(1), getTrace(0)}, "10000000000"},
-			{[]types.Trace{getTrace(3), getTrace(2), getTrace(1), getTrace(0)}, "1000000000000000"},
-			{[]types.Trace{getTrace(4), getTrace(3), getTrace(2), getTrace(1), getTrace(0)}, "100000000000000000000"},
+			{[]types.Hop{getHop(0)}, "10"},
+			{[]types.Hop{getHop(1), getHop(0)}, "100000"},
+			{[]types.Hop{getHop(2), getHop(1), getHop(0)}, "10000000000"},
+			{[]types.Hop{getHop(3), getHop(2), getHop(1), getHop(0)}, "1000000000000000"},
+			{[]types.Hop{getHop(4), getHop(3), getHop(2), getHop(1), getHop(0)}, "100000000000000000000"},
 		}
 	)
 

@@ -178,34 +178,45 @@ func (IBCModule) OnChanCloseConfirm(
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
+// A nil acknowledgement may be returned when using the packet forwarding feature. This signals to core IBC that the acknowledgement will be written asynchronously.
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
+	var (
+		ackErr error
+		data   types.FungibleTokenPacketDataV2
+	)
+
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	data, ackErr := im.getICS20PacketData(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
+	// we are explicitly wrapping this emit event call in an anonymous function so that
+	// the packet data is evaluated after it has been assigned a value.
+	defer func() {
+		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
+	}()
+
+	data, ackErr = im.getICS20PacketData(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 	if ackErr != nil {
 		ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, ackErr.Error())
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		return ack
 	}
 
-	// only attempt the application logic if the packet data
-	// was successfully decoded
-	if ack.Success() {
-		err := im.keeper.OnRecvPacket(ctx, packet, data)
-		if err != nil {
-			ack = channeltypes.NewErrorAcknowledgement(err)
-			ackErr = err
-			im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
-		} else {
-			im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
-		}
+	if ackErr = im.keeper.OnRecvPacket(ctx, packet, data); ackErr != nil {
+		ack = channeltypes.NewErrorAcknowledgement(ackErr)
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		return ack
 	}
 
-	events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
+	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
+
+	if data.HasForwarding() {
+		// NOTE: acknowledgement will be written asynchronously
+		return nil
+	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack

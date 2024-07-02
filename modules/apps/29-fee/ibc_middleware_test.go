@@ -644,7 +644,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			"success: some refunds",
 			func() {
 				// set timeout_fee > recv_fee + ack_fee
-				packetFee.Fee.TimeoutFee = packetFee.Fee.Total().Add(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))...)
+				packetFee.Fee.TimeoutFee = packetFee.Fee.Total().Add(sdk.NewCoins(ibctesting.TestCoin)...)
 
 				escrowAmount = packetFee.Fee.Total()
 
@@ -895,7 +895,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			"success: refund (recv_fee + ack_fee) - timeout_fee",
 			func() {
 				// set recv_fee + ack_fee > timeout_fee
-				packetFee.Fee.RecvFee = packetFee.Fee.Total().Add(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))...)
+				packetFee.Fee.RecvFee = packetFee.Fee.Total().Add(sdk.NewCoins(ibctesting.TestCoin)...)
 
 				escrowAmount = packetFee.Fee.Total()
 
