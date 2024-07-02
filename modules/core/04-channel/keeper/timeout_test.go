@@ -8,6 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -247,7 +249,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		msg       string
 		malleate  func()
 		expResult func(packetCommitment []byte, err error)
-		expEvents func(path *ibctesting.Path) map[string]map[string]string
+		expEvents func(path *ibctesting.Path) []abci.Event
 	}{
 		{
 			"success ORDERED",
@@ -321,9 +323,8 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
+
 				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
 					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainA.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
 				})
@@ -334,19 +335,21 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State, "channel state should still be set to FLUSHCOMPLETE")
 			},
-			func(path *ibctesting.Path) map[string]map[string]string {
-				return ibctesting.EventsMap{
-					types.EventTypeChannelFlushComplete: {
-						types.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-						types.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-						types.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-						types.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-						types.AttributeKeyChannelState:       path.EndpointA.GetChannel().State.String(),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: types.AttributeValueCategory,
-					},
-				}
+			func(path *ibctesting.Path) []abci.Event {
+				return sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeChannelFlushComplete,
+						sdk.NewAttribute(types.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(types.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(types.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(types.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
+						sdk.NewAttribute(types.AttributeKeyChannelState, path.EndpointA.GetChannel().State.String()),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+					),
+				}.ToABCIEvents()
 			},
 		},
 		{
@@ -363,9 +366,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
 			},
 			func(packetCommitment []byte, err error) {
 				suite.Require().NoError(err)
@@ -389,9 +390,8 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
+
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
 					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
@@ -439,9 +439,8 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
+
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
 					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainA.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
@@ -482,9 +481,8 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
+
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
 					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
@@ -506,10 +504,6 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				upgrade, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "counterparty upgrade should not be present")
 				suite.Require().Equal(types.Upgrade{}, upgrade, "counterparty upgrade should be zero value")
-
-				errorReceipt, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(found, "error receipt should be present")
-				suite.Require().Equal(channel.UpgradeSequence, errorReceipt.Sequence, "error receipt sequence should be equal to channel upgrade sequence")
 			},
 			nil,
 		},
@@ -533,7 +527,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 				expEvents := tc.expEvents(path)
 
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			}
 		})
 	}
@@ -562,8 +556,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
@@ -579,8 +572,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
@@ -636,8 +628,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
@@ -669,8 +660,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
@@ -686,8 +676,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
@@ -704,8 +693,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
@@ -729,8 +717,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				err = path.EndpointB.ChanUpgradeInit()
 				suite.Require().NoError(err)
 
-				err = path.EndpointB.SetChannelState(types.CLOSED)
-				suite.Require().NoError(err)
+				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 
 				// need to update chainA's client representing chainB to prove missing ack
 				err = path.EndpointA.UpdateClient()

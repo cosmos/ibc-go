@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			suite.Require().NoError(err)
 
 			var storedHashes []string
-			checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
+			checksums, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 
 			for _, hash := range checksums {

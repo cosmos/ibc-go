@@ -62,13 +62,16 @@ const (
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
 	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "luca_joss-channel-upgrade-authority"
+	defaultHermesTag = "1.10.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
 )
+
+// defaultChainNames contains the default name for chainA and chainB.
+var defaultChainNames = []string{"simapp-a", "simapp-b", "simapp-c"}
 
 func getChainImage(binary string) string {
 	if binary == "" {
@@ -102,6 +105,10 @@ func (tc TestConfig) Validate() error {
 
 	if err := tc.validateRelayers(); err != nil {
 		return fmt.Errorf("invalid relayer configuration: %w", err)
+	}
+
+	if err := tc.validateGenesisDebugConfig(); err != nil {
+		return fmt.Errorf("invalid Genesis debug configuration: %w", err)
 	}
 	return nil
 }
@@ -163,6 +170,31 @@ func (tc TestConfig) validateRelayers() error {
 	return nil
 }
 
+// GetChainIndex returns the index of the chain with the given name, if it
+// exists.
+func (tc TestConfig) GetChainIndex(name string) (int, error) {
+	for i := range tc.ChainConfigs {
+		chainName := tc.GetChainName(i)
+		if chainName == name {
+			return i, nil
+		}
+	}
+	return -1, fmt.Errorf("chain %s not found in chain configs", name)
+}
+
+// validateGenesisDebugConfig validates configuration of Genesis debug options/
+func (tc TestConfig) validateGenesisDebugConfig() error {
+	cfg := tc.DebugConfig.GenesisDebug
+	if !cfg.DumpGenesisDebugInfo {
+		return nil
+	}
+
+	// Verify that the provided chain exists in our config
+	_, err := tc.GetChainIndex(tc.GetGenesisChainName())
+
+	return err
+}
+
 // GetActiveRelayerConfig returns the currently specified relayer config.
 func (tc TestConfig) GetActiveRelayerConfig() *relayer.Config {
 	for _, r := range tc.RelayerConfigs {
@@ -207,6 +239,26 @@ func (tc TestConfig) GetChainBID() string {
 	return "chainB-1"
 }
 
+// GetChainName returns the name of the chain given an index.
+func (tc TestConfig) GetChainName(idx int) string {
+	// Assumes that only valid indices are provided. We do the same in several other places.
+	chainName := tc.ChainConfigs[idx].Name
+	if chainName == "" {
+		chainName = defaultChainNames[idx]
+	}
+	return chainName
+}
+
+// GetGenesisChainName returns the name of the chain for which to dump Genesis files.
+// If no chain is provided, it uses the default one (chainA).
+func (tc TestConfig) GetGenesisChainName() string {
+	name := tc.DebugConfig.GenesisDebug.ChainName
+	if name == "" {
+		return tc.GetChainName(0)
+	}
+	return name
+}
+
 // UpgradeConfig holds values relevant to upgrade tests.
 type UpgradeConfig struct {
 	PlanName string `yaml:"planName"`
@@ -216,6 +268,7 @@ type UpgradeConfig struct {
 // ChainConfig holds information about an individual chain used in the tests.
 type ChainConfig struct {
 	ChainID       string `yaml:"chainId"`
+	Name          string `yaml:"name"`
 	Image         string `yaml:"image"`
 	Tag           string `yaml:"tag"`
 	Binary        string `yaml:"binary"`
@@ -227,9 +280,23 @@ type CometBFTConfig struct {
 	LogLevel string `yaml:"logLevel"`
 }
 
+type GenesisDebugConfig struct {
+	// DumpGenesisDebugInfo enables the output of Genesis debug files.
+	DumpGenesisDebugInfo bool `yaml:"dumpGenesisDebugInfo"`
+
+	// ExportFilePath specifies which path to export Genesis debug files to.
+	ExportFilePath string `yaml:"filePath"`
+
+	// ChainName represent which chain to get Genesis debug info for.
+	ChainName string `yaml:"chainName"`
+}
+
 type DebugConfig struct {
 	// DumpLogs forces the logs to be collected before removing test containers.
 	DumpLogs bool `yaml:"dumpLogs"`
+
+	// GenesisDebug contains debug information specific to Genesis.
+	GenesisDebug GenesisDebugConfig `yaml:"genesis"`
 }
 
 // LoadConfig attempts to load a atest configuration from the default file path.
@@ -458,9 +525,9 @@ func IsFork() bool {
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
 type ChainOptions struct {
-	ChainASpec       *interchaintest.ChainSpec
-	ChainBSpec       *interchaintest.ChainSpec
+	ChainSpecs       []*interchaintest.ChainSpec
 	SkipPathCreation bool
+	RelayerCount     int
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
@@ -471,23 +538,29 @@ type ChainOptionConfiguration func(options *ChainOptions)
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 
-	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.GetChainAID(), "atoma", tc.CometBFTConfig)
-	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], tc.GetChainName(0), tc.GetChainAID(), "atoma", tc.CometBFTConfig)
+	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], tc.GetChainName(1), tc.GetChainBID(), "atomb", tc.CometBFTConfig)
 
 	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
 	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
 
+	chainASpec := &interchaintest.ChainSpec{
+		ChainConfig:   chainACfg,
+		NumFullNodes:  &chainAFn,
+		NumValidators: &chainAVal,
+	}
+
+	chainBSpec := &interchaintest.ChainSpec{
+		ChainConfig:   chainBCfg,
+		NumFullNodes:  &chainBFn,
+		NumValidators: &chainBVal,
+	}
+
 	return ChainOptions{
-		ChainASpec: &interchaintest.ChainSpec{
-			ChainConfig:   chainACfg,
-			NumFullNodes:  &chainAFn,
-			NumValidators: &chainAVal,
-		},
-		ChainBSpec: &interchaintest.ChainSpec{
-			ChainConfig:   chainBCfg,
-			NumFullNodes:  &chainBFn,
-			NumValidators: &chainBVal,
-		},
+		ChainSpecs: []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		// arbitrary number that will not be required if https://github.com/strangelove-ventures/interchaintest/issues/1153 is resolved.
+		// It can be overridden in individual test suites in SetupSuite if required.
+		RelayerCount: 10,
 	}
 }
 
@@ -740,8 +813,12 @@ func modifyChannelGenesisAppState(ibcAppState []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	var channelGenesis map[string]interface{}
 	// be ashamed, be very ashamed
-	channelGenesis := ibcGenesisMap["channel_genesis"].(map[string]interface{})
+	channelGenesis, ok := ibcGenesisMap["channel_genesis"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("can't convert IBC genesis map entry into type %T", &channelGenesis)
+	}
 	delete(channelGenesis, "params")
 
 	return json.Marshal(ibcGenesisMap)

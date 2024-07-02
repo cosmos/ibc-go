@@ -557,16 +557,15 @@ func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
 				err := path.EndpointA.ChanOpenInit()
 				suite.Require().NoError(err)
 
-				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
-				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, path.EndpointA.GetClientLatestHeight())
 				suite.Require().NotNil(expConsensusState)
 				expClientID = path.EndpointA.ClientID
 
 				req = &types.QueryChannelConsensusStateRequest{
 					PortId:         path.EndpointA.ChannelConfig.PortID,
 					ChannelId:      path.EndpointA.ChannelID,
-					RevisionNumber: clientState.GetLatestHeight().GetRevisionNumber(),
-					RevisionHeight: clientState.GetLatestHeight().GetRevisionHeight(),
+					RevisionNumber: path.EndpointA.GetClientLatestHeight().GetRevisionNumber(),
+					RevisionHeight: path.EndpointA.GetClientLatestHeight().GetRevisionHeight(),
 				}
 			},
 			true,
@@ -665,6 +664,31 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 			false,
 		},
 		{
+			"commitment not found",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.Setup()
+				expCommitment = []byte("hash")
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, expCommitment)
+				req = &types.QueryPacketCommitmentRequest{
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
+					Sequence:  2,
+				}
+			},
+			false,
+		},
+		{
+			"invalid ID",
+			func() {
+				req = &types.QueryPacketCommitmentRequest{
+					PortId:    "",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
+		{
 			"success",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -733,21 +757,14 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 			false,
 		},
 		{
-			"success, empty res",
+			"channel not found",
 			func() {
-				expCommitments = []*types.PacketState(nil)
-
 				req = &types.QueryPacketCommitmentsRequest{
 					PortId:    "test-port-id",
 					ChannelId: "test-channel-id",
-					Pagination: &query.PageRequest{
-						Key:        nil,
-						Limit:      2,
-						CountTotal: true,
-					},
 				}
 			},
-			true,
+			false,
 		},
 		{
 			"success",
@@ -846,6 +863,17 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 					PortId:    "test-port-id",
 					ChannelId: "test-channel-id",
 					Sequence:  0,
+				}
+			},
+			false,
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryPacketReceiptRequest{
+					PortId:    "test-port-id",
+					ChannelId: "test-channel-id",
+					Sequence:  1,
 				}
 			},
 			false,
@@ -958,6 +986,22 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 			false,
 		},
 		{
+			"ack not found",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.Setup()
+				expAck = []byte("hash")
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, expAck)
+
+				req = &types.QueryPacketAcknowledgementRequest{
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
+					Sequence:  2,
+				}
+			},
+			false,
+		},
+		{
 			"channel not found",
 			func() {
 				req = &types.QueryPacketAcknowledgementRequest{
@@ -1037,21 +1081,14 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 			false,
 		},
 		{
-			"success, empty res",
+			"channel not found",
 			func() {
-				expAcknowledgements = []*types.PacketState(nil)
-
 				req = &types.QueryPacketAcknowledgementsRequest{
 					PortId:    "test-port-id",
 					ChannelId: "test-channel-id",
-					Pagination: &query.PageRequest{
-						Key:        nil,
-						Limit:      2,
-						CountTotal: true,
-					},
 				}
 			},
-			true,
+			false,
 		},
 		{
 			"success, filtered res",
@@ -1395,6 +1432,16 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 				req = &types.QueryUnreceivedAcksRequest{
 					PortId:    "test-port-id",
 					ChannelId: "",
+				}
+			},
+			false,
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryUnreceivedAcksRequest{
+					PortId:    "test-port-id",
+					ChannelId: "test-channel-id",
 				}
 			},
 			false,

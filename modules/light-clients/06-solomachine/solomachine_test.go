@@ -45,8 +45,8 @@ func (suite *SoloMachineTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
-	suite.solomachineMulti = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinemulti", "testing", 4)
+	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
+	suite.solomachineMulti = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4)
 
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Solomachine)
 }
@@ -144,7 +144,11 @@ func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
 	var clientState exported.ClientState
 	err := suite.chainA.Codec.UnmarshalInterface(bz, &clientState)
 	suite.Require().NoError(err)
-	return clientState.GetLatestHeight().GetRevisionHeight()
+
+	smClientState, ok := clientState.(*solomachine.ClientState)
+	suite.Require().True(ok)
+
+	return smClientState.Sequence
 }
 
 func (suite *SoloMachineTestSuite) GetInvalidProof() []byte {

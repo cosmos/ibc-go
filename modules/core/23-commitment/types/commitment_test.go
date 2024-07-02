@@ -31,7 +31,9 @@ func (suite *MerkleTestSuite) SetupTest() {
 	err := suite.store.LoadVersion(0)
 	suite.Require().NoError(err)
 
-	suite.iavlStore = suite.store.GetCommitStore(suite.storeKey).(*iavl.Store)
+	var ok bool
+	suite.iavlStore, ok = suite.store.GetCommitStore(suite.storeKey).(*iavl.Store)
+	suite.Require().True(ok)
 }
 
 func TestMerkleTestSuite(t *testing.T) {

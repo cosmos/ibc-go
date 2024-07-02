@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	metrics "github.com/hashicorp/go-metrics"
 
@@ -26,7 +27,12 @@ var (
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
-func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {
+// NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
+// The 02-client handler will route to the appropriate light client module based on client type and it is the responsibility
+// of the light client module to unmarshal and interpret the proto encoded bytes.
+// Backwards compatibility with older versions of ibc-go is maintained through the light client module reconstructing and encoding
+// the expected concrete type to the protobuf.Any for proof verification.
+func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
@@ -34,12 +40,7 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 		return nil, err
 	}
 
-	consensusState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err = k.ClientKeeper.CreateClient(ctx, clientState, consensusState); err != nil {
+	if _, err = k.ClientKeeper.CreateClient(ctx, clientState.ClientType(), msg.ClientState.Value, msg.ConsensusState.Value); err != nil {
 		return nil, err
 	}
 
@@ -47,7 +48,7 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 }
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.
-func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
+func (k *Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
@@ -63,20 +64,21 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 }
 
 // UpgradeClient defines a rpc handler method for MsgUpgradeClient.
-func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgradeClient) (*clienttypes.MsgUpgradeClientResponse, error) {
+// NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
+// The 02-client handler will route to the appropriate light client module based on client identifier and it is the responsibility
+// of the light client module to unmarshal and interpret the proto encoded bytes.
+// Backwards compatibility with older versions of ibc-go is maintained through the light client module reconstructing and encoding
+// the expected concrete type to the protobuf.Any for proof verification.
+func (k *Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgradeClient) (*clienttypes.MsgUpgradeClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	upgradedClient, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-	upgradedConsState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = k.ClientKeeper.UpgradeClient(ctx, msg.ClientId, upgradedClient, upgradedConsState,
-		msg.ProofUpgradeClient, msg.ProofUpgradeConsensusState); err != nil {
+	if err := k.ClientKeeper.UpgradeClient(
+		ctx, msg.ClientId,
+		msg.ClientState.Value,
+		msg.ConsensusState.Value,
+		msg.ProofUpgradeClient,
+		msg.ProofUpgradeConsensusState,
+	); err != nil {
 		return nil, err
 	}
 
@@ -86,7 +88,7 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 // Warning: DEPRECATED
 // This handler is redundant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
-func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) { //nolint:staticcheck // for now, we're using msgsubmitmisbehaviour.
+func (k *Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) { //nolint:staticcheck // for now, we're using msgsubmitmisbehaviour.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	misbehaviour, err := clienttypes.UnpackClientMessage(msg.Misbehaviour)
@@ -102,7 +104,7 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 }
 
 // RecoverClient defines a rpc handler method for MsgRecoverClient.
-func (k Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) {
+func (k *Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
@@ -116,7 +118,7 @@ func (k Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecover
 }
 
 // IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
-func (k Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
+func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
@@ -135,7 +137,7 @@ func (k Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIB
 }
 
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
-func (k Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenInit) (*connectiontypes.MsgConnectionOpenInitResponse, error) {
+func (k *Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenInit) (*connectiontypes.MsgConnectionOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if _, err := k.ConnectionKeeper.ConnOpenInit(ctx, msg.ClientId, msg.Counterparty, msg.Version, msg.DelayPeriod); err != nil {
@@ -146,7 +148,7 @@ func (k Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.M
 }
 
 // ConnectionOpenTry defines a rpc handler method for MsgConnectionOpenTry.
-func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenTry) (*connectiontypes.MsgConnectionOpenTryResponse, error) {
+func (k *Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenTry) (*connectiontypes.MsgConnectionOpenTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
@@ -166,7 +168,7 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 }
 
 // ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck.
-func (k Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenAck) (*connectiontypes.MsgConnectionOpenAckResponse, error) {
+func (k *Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenAck) (*connectiontypes.MsgConnectionOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
@@ -186,7 +188,7 @@ func (k Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.Ms
 }
 
 // ConnectionOpenConfirm defines a rpc handler method for MsgConnectionOpenConfirm.
-func (k Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenConfirm) (*connectiontypes.MsgConnectionOpenConfirmResponse, error) {
+func (k *Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenConfirm) (*connectiontypes.MsgConnectionOpenConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := k.ConnectionKeeper.ConnOpenConfirm(
@@ -201,7 +203,7 @@ func (k Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontype
 // ChannelOpenInit defines a rpc handler method for MsgChannelOpenInit.
 // ChannelOpenInit will perform 04-channel checks, route to the application
 // callback, and write an OpenInit channel into state upon successful execution.
-func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChannelOpenInit) (*channeltypes.MsgChannelOpenInitResponse, error) {
+func (k *Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChannelOpenInit) (*channeltypes.MsgChannelOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by port capability
@@ -212,7 +214,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	}
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("channel open init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -249,7 +251,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 // ChannelOpenTry defines a rpc handler method for MsgChannelOpenTry.
 // ChannelOpenTry will perform 04-channel checks, route to the application
 // callback, and write an OpenTry channel into state upon successful execution.
-func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChannelOpenTry) (*channeltypes.MsgChannelOpenTryResponse, error) {
+func (k *Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChannelOpenTry) (*channeltypes.MsgChannelOpenTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by port capability
@@ -260,7 +262,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	}
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -296,7 +298,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.
 // ChannelOpenAck will perform 04-channel checks, route to the application
 // callback, and write an OpenAck channel into state upon successful execution.
-func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
+func (k *Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by channel capability
@@ -307,7 +309,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	}
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("channel open ack failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -338,7 +340,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 // ChannelOpenConfirm defines a rpc handler method for MsgChannelOpenConfirm.
 // ChannelOpenConfirm will perform 04-channel checks, route to the application
 // callback, and write an OpenConfirm channel into state upon successful execution.
-func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
+func (k *Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by channel capability
@@ -349,7 +351,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 	}
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("channel open confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -376,7 +378,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 }
 
 // ChannelCloseInit defines a rpc handler method for MsgChannelCloseInit.
-func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgChannelCloseInit) (*channeltypes.MsgChannelCloseInitResponse, error) {
+func (k *Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgChannelCloseInit) (*channeltypes.MsgChannelCloseInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by channel capability
@@ -387,7 +389,7 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("channel close init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -410,7 +412,7 @@ func (k Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCha
 }
 
 // ChannelCloseConfirm defines a rpc handler method for MsgChannelCloseConfirm.
-func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.MsgChannelCloseConfirm) (*channeltypes.MsgChannelCloseConfirmResponse, error) {
+func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.MsgChannelCloseConfirm) (*channeltypes.MsgChannelCloseConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Lookup module by channel capability
@@ -421,7 +423,7 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -444,7 +446,7 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 }
 
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
-func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
+func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -461,7 +463,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -525,7 +527,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 }
 
 // Timeout defines a rpc handler method for MsgTimeout.
-func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
+func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -542,7 +544,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -567,16 +569,16 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
 	}
 
+	// Delete packet commitment
+	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
+		return nil, err
+	}
+
 	// Perform application logic callback
 	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
 	if err != nil {
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
-	}
-
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
-		return nil, err
 	}
 
 	defer telemetry.IncrCounterWithLabels(
@@ -597,7 +599,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 }
 
 // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
-func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeoutOnClose) (*channeltypes.MsgTimeoutOnCloseResponse, error) {
+func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeoutOnClose) (*channeltypes.MsgTimeoutOnCloseResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -614,7 +616,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -639,6 +641,11 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 		return nil, errorsmod.Wrap(err, "timeout on close packet verification failed")
 	}
 
+	// Delete packet commitment
+	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
+		return nil, err
+	}
+
 	// Perform application logic callback
 	//
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
@@ -647,11 +654,6 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	if err != nil {
 		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout on close callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout on close callback failed")
-	}
-
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
-		return nil, err
 	}
 
 	defer telemetry.IncrCounterWithLabels(
@@ -672,7 +674,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 }
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
-func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
+func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -689,7 +691,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -738,7 +740,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 }
 
 // ChannelUpgradeInit defines a rpc handler method for MsgChannelUpgradeInit.
-func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeInit) (*channeltypes.MsgChannelUpgradeInitResponse, error) {
+func (k *Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeInit) (*channeltypes.MsgChannelUpgradeInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if k.GetAuthority() != msg.Signer {
@@ -751,7 +753,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -790,7 +792,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 }
 
 // ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
-func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
+func (k *Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
@@ -799,7 +801,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.Route(module)
 	if !ok {
 		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
@@ -815,10 +817,14 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
 		if channeltypes.IsUpgradeError(err) {
-			k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, err.(*channeltypes.UpgradeError))
-			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
-			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
-			return &channeltypes.MsgChannelUpgradeTryResponse{Result: channeltypes.FAILURE}, nil
+			// In case the error is a wrapped upgrade error, we need to extract the inner error else process as normal
+			var upgradeErr *channeltypes.UpgradeError
+			if errors.As(err, &upgradeErr) {
+				k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgradeErr)
+				// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
+				// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
+				return &channeltypes.MsgChannelUpgradeTryResponse{Result: channeltypes.FAILURE}, nil
+			}
 		}
 
 		// NOTE: an error is returned to baseapp and transaction state is not committed.
@@ -847,7 +853,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 }
 
 // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
-func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeAck) (*channeltypes.MsgChannelUpgradeAckResponse, error) {
+func (k *Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeAck) (*channeltypes.MsgChannelUpgradeAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
@@ -856,7 +862,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.Route(module)
 	if !ok {
 		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", err)
@@ -913,7 +919,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 }
 
 // ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
-func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
+func (k *Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
@@ -922,7 +928,7 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.Route(module)
 	if !ok {
 		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade confirm failed", "port-id", msg.PortId, "error", err)
@@ -974,7 +980,7 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 }
 
 // ChannelUpgradeOpen defines a rpc handler method for MsgChannelUpgradeOpen.
-func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeOpen) (*channeltypes.MsgChannelUpgradeOpenResponse, error) {
+func (k *Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeOpen) (*channeltypes.MsgChannelUpgradeOpenResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
@@ -983,7 +989,7 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
-	app, ok := k.Router.GetRoute(module)
+	app, ok := k.PortKeeper.Route(module)
 	if !ok {
 		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade open failed", "port-id", msg.PortId, "error", err)
@@ -1017,7 +1023,7 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 }
 
 // ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
-func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTimeout) (*channeltypes.MsgChannelUpgradeTimeoutResponse, error) {
+func (k *Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTimeout) (*channeltypes.MsgChannelUpgradeTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.ProofChannel, msg.ProofHeight); err != nil {
@@ -1033,7 +1039,7 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 }
 
 // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
-func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeCancel) (*channeltypes.MsgChannelUpgradeCancelResponse, error) {
+func (k *Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeCancel) (*channeltypes.MsgChannelUpgradeCancelResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
@@ -1085,7 +1091,7 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 }
 
 // PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
-func (k Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
+func (k *Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	pruned, remaining, err := k.ChannelKeeper.PruneAcknowledgements(ctx, msg.PortId, msg.ChannelId, msg.Limit)
@@ -1100,7 +1106,7 @@ func (k Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.M
 }
 
 // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
-func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
+func (k *Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
@@ -1112,7 +1118,7 @@ func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUp
 }
 
 // UpdateConnectionParams defines a rpc handler method for MsgUpdateParams for the 03-connection submodule.
-func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
+func (k *Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
@@ -1124,7 +1130,7 @@ func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontyp
 }
 
 // UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
-func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.MsgUpdateParams) (*channeltypes.MsgUpdateParamsResponse, error) {
+func (k *Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.MsgUpdateParams) (*channeltypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Authority {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
 	}

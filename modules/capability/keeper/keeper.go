@@ -66,6 +66,12 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey, memKey storetypes.StoreKey) *Kee
 	}
 }
 
+// HasModule checks if the module name already has a ScopedKeeper.
+func (k *Keeper) HasModule(moduleName string) bool {
+	_, ok := k.scopedModules[moduleName]
+	return ok
+}
+
 // ScopeToModule attempts to create and return a ScopedKeeper for a given module
 // by name. It will panic if the keeper is already sealed or if the module name
 // already has a ScopedKeeper.
@@ -218,7 +224,7 @@ func (k Keeper) InitializeCapability(ctx sdk.Context, index uint64, owners types
 		// and retrieve the in-memory pointer to the capability from our map
 		memStore.Set(types.RevCapabilityKey(owner.Module, owner.Name), sdk.Uint64ToBigEndian(index))
 
-		// Set the mapping from index from index to in-memory capability in the go map
+		// Set the mapping from index to in-memory capability in the go map
 		k.capMap[index] = capability
 	}
 }
@@ -266,7 +272,7 @@ func (sk ScopedKeeper) NewCapability(ctx sdk.Context, name string) (*types.Capab
 	// and retrieve the in-memory pointer to the capability from our map
 	memStore.Set(types.RevCapabilityKey(sk.module, name), sdk.Uint64ToBigEndian(index))
 
-	// Set the mapping from index from index to in-memory capability in the go map
+	// Set the mapping from index to in-memory capability in the go map
 	sk.capMap[index] = capability
 
 	logger(ctx).Info("created new capability", "module", sk.module, "name", name)

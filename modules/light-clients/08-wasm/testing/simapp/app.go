@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
@@ -123,7 +125,7 @@ import (
 	ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
 	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	ibcfeetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
@@ -414,8 +416,9 @@ func NewSimApp(
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, runtime.NewKVStoreService(keys[upgradetypes.StoreKey]), appCodec, homePath, app.BaseApp, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), ibctm.NewConsensusHost(app.StakingKeeper), app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -462,9 +465,14 @@ func NewSimApp(
 	// Function DefaultWasmConfig can also be used to use default values.
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.
+
+	// NOTE: a random string is appended to the data directory to ensure that every test
+	// runs using a different data directory. This is required because wasm VM forbids 2 or more
+	// different VM instances running in the same data directory. In production environments, the
+	// appended random string is not needed.
 	wasmConfig := wasmtypes.WasmConfig{
-		DataDir:               "ibc_08-wasm_client_data",
-		SupportedCapabilities: "iterator",
+		DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000))),
+		SupportedCapabilities: []string{"iterator"},
 		ContractDebugMode:     false,
 	}
 	if mockVM != nil {
@@ -503,7 +511,7 @@ func NewSimApp(
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.GRPCQueryRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Create IBC Router
@@ -557,8 +565,12 @@ func NewSimApp(
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
+	var ok bool
 	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
-	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
+	app.ICAAuthModule, ok = icaControllerStack.(ibcmock.IBCModule)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T into %T", icaControllerStack, app.ICAAuthModule))
+	}
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 
@@ -595,6 +607,17 @@ func NewSimApp(
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
+
+	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+
+	smLightClientModule := solomachine.NewLightClientModule(appCodec)
+	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
+
+	wasmLightClientModule := wasm.NewLightClientModule(app.WasmClientKeeper)
+	clientRouter.AddRoute(wasmtypes.ModuleName, &wasmLightClientModule)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
@@ -640,10 +663,12 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		wasm.NewAppModule(app.WasmClientKeeper),
-		ibctm.AppModuleBasic{},
-		solomachine.AppModuleBasic{},
 		mockModule,
+
+		// IBC light clients
+		wasm.NewAppModule(app.WasmClientKeeper), // TODO(damian): see if we want to pass the lightclient module here, keeper is used in AppModule.RegisterServices etc
+		ibctm.NewAppModule(tmLightClientModule),
+		solomachine.NewAppModule(smLightClientModule),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -789,7 +814,7 @@ func NewSimApp(
 	// meaning that both `runMsgs` and `postHandler` state will be committed if
 	// both are successful, and both will be reverted if any of the two fails.
 	//
-	// The SDK exposes a default postHandlers chain, which comprises of only
+	// The SDK exposes a default postHandlers chain, which is comprised of only
 	// one decorator: the Transaction Tips decorator. However, some chains do
 	// not need it by default, so feel free to comment the next line if you do
 	// not need tips.
@@ -825,7 +850,7 @@ func NewSimApp(
 		ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
-		if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
+		if err := app.WasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
 			cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 	}
@@ -974,7 +999,7 @@ func (app *SimApp) GetKey(storeKey string) *storetypes.KVStoreKey {
 
 // GetStoreKeys returns all the stored store keys.
 func (app *SimApp) GetStoreKeys() []storetypes.StoreKey {
-	keys := make([]storetypes.StoreKey, len(app.keys))
+	keys := make([]storetypes.StoreKey, 0, len(app.keys))
 	for _, key := range app.keys {
 		keys = append(keys, key)
 	}

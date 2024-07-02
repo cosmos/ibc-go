@@ -40,6 +40,7 @@ func TestValidateParams(t *testing.T) {
 		{"blank client", NewParams(" "), false},
 		{"duplicate clients", NewParams(exported.Tendermint, exported.Tendermint), false},
 		{"allow all clients plus valid client", NewParams(AllowAllClients, exported.Tendermint), false},
+		{"too many allowed clients", NewParams(make([]string, MaxAllowedClientsLength+1)...), false},
 	}
 
 	for _, tc := range testCases {

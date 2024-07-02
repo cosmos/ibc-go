@@ -15,7 +15,6 @@ import (
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 var (
@@ -45,19 +44,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
-	path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	path := ibctesting.NewPathWithFeeEnabled(suite.chainA, suite.chainB)
 	suite.path = path
 
-	path = ibctesting.NewPath(suite.chainA, suite.chainC)
-	path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	path = ibctesting.NewPathWithFeeEnabled(suite.chainA, suite.chainC)
 	suite.pathAToC = path
 }
 
@@ -306,8 +296,7 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	// test if the ics4 wrapper is the channel keeper initially
 	ics4Wrapper := suite.chainA.GetSimApp().IBCFeeKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
-	suite.Require().True(isChannelKeeper)
+	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 	_, isFeeKeeper := ics4Wrapper.(keeper.Keeper)
 	suite.Require().False(isFeeKeeper)
 
@@ -317,6 +306,6 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 
 	_, isFeeKeeper = ics4Wrapper.(keeper.Keeper)
 	suite.Require().True(isFeeKeeper)
-	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
+	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
 	suite.Require().False(isChannelKeeper)
 }

@@ -29,9 +29,10 @@ const (
 )
 
 var (
-	height          = clienttypes.NewHeight(0, 4)
-	newClientHeight = clienttypes.NewHeight(1, 1)
-	upgradePath     = []string{"upgrade", "upgradedIBCState"}
+	height             = clienttypes.NewHeight(0, 4)
+	newClientHeight    = clienttypes.NewHeight(1, 1)
+	upgradePath        = []string{"upgrade", "upgradedIBCState"}
+	invalidUpgradePath = []string{"upgrade", ""}
 )
 
 type TendermintTestSuite struct {

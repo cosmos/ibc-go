@@ -131,7 +131,7 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 	return msg.Fee.Validate()
 }
 
-// NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
+// NewMsgPayPacketFeeAsync creates a new instance of MsgPayPacketFeeAsync
 func NewMsgPayPacketFeeAsync(packetID channeltypes.PacketId, packetFee PacketFee) *MsgPayPacketFeeAsync {
 	return &MsgPayPacketFeeAsync{
 		PacketId:  packetID,

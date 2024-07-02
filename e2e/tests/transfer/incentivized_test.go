@@ -16,10 +16,17 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+)
+
+const (
+	legacyMessage           = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
+	capitalEfficientMessage = "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
 )
 
 type IncentivizedTransferTestSuite struct {
@@ -30,11 +37,16 @@ func TestIncentivizedTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
 }
 
+// SetupTest explicitly enables fee middleware in the channel options.
+func (s *IncentivizedTransferTestSuite) SetupTest() {
+	s.SetupPaths(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions())
+}
+
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -67,7 +79,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
+		address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
@@ -94,7 +106,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 
 	t.Run("pay packet fee", func(t *testing.T) {
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -108,7 +120,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -118,12 +130,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-		escrowTotalFee := testFee.Total()
-		if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-			msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-			escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-		}
+		msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 		t.Run(msg, func(t *testing.T) {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
@@ -138,7 +145,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 	})
@@ -157,7 +164,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -189,7 +196,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
+		address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
@@ -197,7 +204,21 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		version, err := feetypes.MetadataFromVersion(channelA.Version)
+		s.Require().NoError(err)
+
+		msgTransfer := testsuite.GetMsgTransfer(
+			channelA.PortID,
+			channelA.ChannelID,
+			version.AppVersion,
+			sdk.NewCoins(transferAmount),
+			chainAWallet.FormattedAddress(),
+			testvalues.InvalidAddress,
+			s.GetTimeoutHeight(ctx, chainB),
+			0,
+			"",
+			transfertypes.Forwarding{},
+		)
 		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgTransfer)
 		// this message should be successful, as receiver account is not validated on the sending chain.
 		s.AssertTxSuccess(txResp)
@@ -213,7 +234,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 
 	t.Run("pay packet fee", func(t *testing.T) {
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -227,7 +248,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -237,12 +258,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-		escrowTotalFee := testFee.Total()
-		if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-			msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-			escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-		}
+		msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 		t.Run(msg, func(t *testing.T) {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
@@ -257,7 +273,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 	})
@@ -276,7 +292,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -315,24 +331,38 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
+		address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
 
 	t.Run("no incentivized packets", func(t *testing.T) {
-		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 	})
 
+	version, err := feetypes.MetadataFromVersion(channelA.Version)
+	s.Require().NoError(err)
+
 	msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.FormattedAddress(), nil)
-	msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
+	msgTransfer := testsuite.GetMsgTransfer(
+		channelA.PortID,
+		channelA.ChannelID,
+		version.AppVersion,
+		sdk.NewCoins(transferAmount),
+		chainAWallet.FormattedAddress(),
+		chainBWallet.FormattedAddress(),
+		s.GetTimeoutHeight(ctx, chainB),
+		0,
+		"",
+		transfertypes.Forwarding{},
+	)
 	resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 	s.AssertTxSuccess(resp)
 
 	t.Run("there should be incentivized packets", func(t *testing.T) {
-		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Len(packets, 1)
 		actualFee := packets[0].PacketFees[0].Fee
@@ -342,12 +372,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 	})
 
-	msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-	escrowTotalFee := testFee.Total()
-	if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-		msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-		escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-	}
+	msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 	t.Run(msg, func(t *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
@@ -361,7 +386,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 	})
@@ -387,7 +412,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -418,7 +443,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
+		address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
@@ -449,7 +474,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -460,7 +485,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -470,12 +495,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-		escrowTotalFee := testFee.Total()
-		if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-			msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-			escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-		}
+		msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 		t.Run(msg, func(t *testing.T) {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
@@ -490,7 +510,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 	})
@@ -508,7 +528,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -549,7 +569,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 
 	t.Run("pay packet fee", func(t *testing.T) {
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -563,7 +583,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		})
 
 		t.Run("should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -574,12 +594,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		})
 	})
 
-	msg := "balance should be lowered by max(recv_fee + ack_fee, timeout_fee)"
-	escrowTotalFee := testFee.Total()
-	if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
-		msg = "balance should be lowered by sum of recv_fee, ack_fee and timeout_fee"
-		escrowTotalFee = testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
-	}
+	msg, escrowTotalFee := getMessageAndFee(testFee, chainAVersion)
 	t.Run(msg, func(t *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
@@ -594,7 +609,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 
 	t.Run("with no counterparty address", func(t *testing.T) {
 		t.Run("packets are relayed", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -614,7 +629,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -645,7 +660,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	})
 
 	t.Run("verify counterparty payee", func(t *testing.T) {
-		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
+		address, err := query.CounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
@@ -672,7 +687,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 
 	t.Run("pay packet fee", func(t *testing.T) {
 		t.Run("no incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 		})
@@ -691,7 +706,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 		})
 
 		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee1 := packets[0].PacketFees[0].Fee
@@ -739,7 +754,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		packets, err := query.IncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Empty(packets)
 	})
@@ -759,4 +774,16 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 		expected2 := testvalues.StartingTokenAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected2, actualBalance2)
 	})
+}
+
+// getMessageAndFee returns the message that should be used for t.Run as well as the expected fee based on
+// whether or not capital efficient fee escrow is supported.
+func getMessageAndFee(fee feetypes.Fee, chainVersion string) (string, sdk.Coins) {
+	msg := capitalEfficientMessage
+	escrowTotalFee := fee.Total()
+	if !testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainVersion) {
+		msg = legacyMessage
+		escrowTotalFee = fee.RecvFee.Add(fee.AckFee...).Add(fee.TimeoutFee...)
+	}
+	return msg, escrowTotalFee
 }

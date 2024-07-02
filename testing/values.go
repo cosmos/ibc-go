@@ -11,6 +11,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cometbft/cometbft/crypto/tmhash"
+
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -53,9 +55,13 @@ var (
 	// DefaultTrustLevel sets params variables used to create a TM client
 	DefaultTrustLevel = ibctm.DefaultTrustLevel
 
-	TestAccAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
-	TestCoin       = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
-	TestCoins      = sdk.NewCoins(TestCoin)
+	DefaultTimeoutTimestampDelta = uint64(time.Hour.Nanoseconds())
+
+	TestAccAddress    = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	TestCoin          = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+	SecondaryDenom    = "ufoo"
+	SecondaryTestCoin = sdk.NewCoin(SecondaryDenom, sdkmath.NewInt(100))
+	TestCoins         = sdk.NewCoins(TestCoin, SecondaryTestCoin)
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 
@@ -67,4 +73,6 @@ var (
 	MockRecvCanaryCapabilityName = mock.MockRecvCanaryCapabilityName
 
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
+	// unusedHash is a placeholder hash used for testing.
+	unusedHash = tmhash.Sum([]byte{0x00})
 )

@@ -26,7 +26,7 @@ const (
 
 	Version = "ics29-1"
 
-	// FeeEnabledPrefix is the key prefix for storing fee enabled flag
+	// FeeEnabledKeyPrefix is the key prefix for storing fee enabled flag
 	FeeEnabledKeyPrefix = "feeEnabled"
 
 	// PayeeKeyPrefix is the key prefix for the fee payee address stored in state

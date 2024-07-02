@@ -1,10 +1,7 @@
-// Deprecated: The legacy v1beta1 gov types maintained in this file are deprecated and will be removed in a future release.
-// Please use MsgIBCSoftwareUpgrade and MsgRecoverClient in favour of the legacy v1beta1 gov proposal types.
 package types
 
 import (
 	"fmt"
-	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -34,6 +31,9 @@ func init() {
 }
 
 // NewClientUpdateProposal creates a new client update proposal.
+//
+// Deprecated: The legacy v1beta1 gov ClientUpdateProposal is deprecated
+// and will be removed in a future release. Please use MsgRecoverClient instead.
 func NewClientUpdateProposal(title, description, subjectClientID, substituteClientID string) govtypes.Content {
 	return &ClientUpdateProposal{
 		Title:              title,
@@ -76,6 +76,9 @@ func (cup *ClientUpdateProposal) ValidateBasic() error {
 }
 
 // NewUpgradeProposal creates a new IBC breaking upgrade proposal.
+//
+// Deprecated: The legacy v1beta1 gov UpgradeProposal is deprecated
+// and will be removed in a future release. Please use MsgIBCSoftwareUpgrade instead.
 func NewUpgradeProposal(title, description string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (govtypes.Content, error) {
 	clientAny, err := PackClientState(upgradedClientState)
 	if err != nil {
@@ -116,13 +119,9 @@ func (up *UpgradeProposal) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidUpgradeProposal, "upgraded client state cannot be nil")
 	}
 
-	clientState, err := UnpackClientState(up.UpgradedClientState)
+	_, err := UnpackClientState(up.UpgradedClientState)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to unpack upgraded client state")
-	}
-
-	if !reflect.DeepEqual(clientState, clientState.ZeroCustomFields()) {
-		return errorsmod.Wrap(ErrInvalidUpgradeProposal, "upgraded client state is not zeroed out")
 	}
 
 	return nil

@@ -40,8 +40,7 @@ func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientK
 		totalPruned += ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
 	}
 
-	clientLogger := clientKeeper.Logger(ctx)
-	clientLogger.Info("pruned expired tendermint consensus states", "total", totalPruned)
+	clientKeeper.Logger(ctx).Info("pruned expired tendermint consensus states", "total", totalPruned)
 
 	return totalPruned, nil
 }

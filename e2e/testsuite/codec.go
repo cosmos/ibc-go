@@ -14,6 +14,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -88,6 +89,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	grouptypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	proposaltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	authz.RegisterInterfaces(cfg.InterfaceRegistry)
+	txtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	return cdc, cfg
@@ -107,7 +109,7 @@ func UnmarshalMsgResponses(txResp sdk.TxResponse, msgs ...codec.ProtoMarshaler) 
 // MustProtoMarshalJSON provides an auxiliary function to return Proto3 JSON encoded
 // bytes of a message. This function should be used when marshalling a proto.Message
 // from the e2e tests. This function strips out unknown fields. This is useful for
-// backwards compatibility tests where the the types imported by the e2e package have
+// backwards compatibility tests where the types imported by the e2e package have
 // new fields that older versions do not recognize.
 func MustProtoMarshalJSON(msg proto.Message) []byte {
 	anyResolver := codectypes.NewInterfaceRegistry()

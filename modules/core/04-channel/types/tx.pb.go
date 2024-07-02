@@ -1337,7 +1337,7 @@ func (m *MsgChannelUpgradeTimeout) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgChannelUpgradeTimeout proto.InternalMessageInfo
 
-// MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
+// MsgChannelUpgradeTimeoutResponse defines the MsgChannelUpgradeTimeout response type
 type MsgChannelUpgradeTimeoutResponse struct {
 }
 

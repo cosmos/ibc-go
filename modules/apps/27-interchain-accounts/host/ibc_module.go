@@ -78,7 +78,7 @@ func (IBCModule) OnChanOpenAck(
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
-// OnChanOpenAck implements the IBCModule interface
+// OnChanOpenConfirm implements the IBCModule interface
 func (im IBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
@@ -116,9 +116,9 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	logger := im.keeper.Logger(ctx)
 	if !im.keeper.GetParams(ctx).HostEnabled {
-		logger.Info("host submodule is disabled")
+		im.keeper.Logger(ctx).Info("host submodule is disabled")
+		keeper.EmitHostDisabledEvent(ctx, packet)
 		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 
@@ -126,9 +126,9 @@ func (im IBCModule) OnRecvPacket(
 	ack := channeltypes.NewResultAcknowledgement(txResponse)
 	if err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(err)
-		logger.Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
 	} else {
-		logger.Info("successfully handled packet", "sequence", packet.Sequence)
+		im.keeper.Logger(ctx).Info("successfully handled packet", "sequence", packet.Sequence)
 	}
 
 	// Emit an event indicating a successful or failed acknowledgement.
@@ -183,7 +183,7 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into an InterchainAccountPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
+func (IBCModule) UnmarshalPacketData(_ sdk.Context, _, _ string, bz []byte) (interface{}, error) {
 	var data icatypes.InterchainAccountPacketData
 	err := data.UnmarshalJSON(bz)
 	if err != nil {

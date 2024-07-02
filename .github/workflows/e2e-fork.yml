@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
       - id: set-matrix
         run: |
           output=$(go run cmd/build_test_matrix/main.go)
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
       - id: set-matrix
         run: |
           output=$(go run cmd/build_test_matrix/main.go)
@@ -68,7 +68,8 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
+          cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         run: |
           cd e2e
@@ -103,7 +104,8 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
+          cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         run: |
           cd e2e

@@ -23,12 +23,13 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 const (
-	haltHeight         = uint64(325)
+	haltHeight         = int64(325)
 	blocksAfterUpgrade = uint64(10)
 )
 
@@ -52,7 +53,8 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 	t := s.T()
 
 	ctx := context.Background()
-	chain := s.SetupSingleChain(ctx)
+	// TODO(chatton): this test is still creating a relayer and a channel, but it is not using them.
+	chain := s.GetAllChains()[0]
 	checksum := ""
 
 	userWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -72,9 +74,9 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 	})
 
 	t.Run("query wasm checksums", func(t *testing.T) {
-		checksums, err := s.QueryWasmChecksums(ctx, chain)
+		checksumsResp, err := query.GRPCQuery[wasmtypes.QueryChecksumsResponse](ctx, chain, &wasmtypes.QueryChecksumsRequest{})
 		s.Require().NoError(err)
-		s.Require().Contains(checksums, checksum)
+		s.Require().Contains(checksumsResp.Checksums, checksum)
 	})
 }
 
@@ -83,7 +85,7 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, planName, currentVersion, upgradeVersion string) {
 	plan := upgradetypes.Plan{
 		Name:   planName,
-		Height: int64(haltHeight),
+		Height: haltHeight,
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 
@@ -116,10 +118,6 @@ func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmo
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err, "error starting upgraded node(s)")
 
-	// we are reinitializing the clients because we need to update the hostGRPCAddress after
-	// the upgrade and subsequent restarting of nodes
-	s.InitGRPCClients(chain)
-
 	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
@@ -145,9 +143,10 @@ func (s *IBCWasmUpgradeTestSuite) ExecStoreCodeProposal(ctx context.Context, cha
 
 	s.ExecuteAndPassGovV1Proposal(ctx, &msgStoreCode, chain, wallet)
 
-	checksumBz, err := s.QueryWasmCode(ctx, chain, computedChecksum)
+	codeResp, err := query.GRPCQuery[wasmtypes.QueryCodeResponse](ctx, chain, &wasmtypes.QueryCodeRequest{Checksum: computedChecksum})
 	s.Require().NoError(err)
 
+	checksumBz := codeResp.Data
 	checksum32 := sha256.Sum256(checksumBz)
 	actualChecksum := hex.EncodeToString(checksum32[:])
 	s.Require().Equal(computedChecksum, actualChecksum, "checksum returned from query did not match the computed checksum")
@@ -157,7 +156,7 @@ func (s *IBCWasmUpgradeTestSuite) ExecStoreCodeProposal(ctx context.Context, cha
 
 // extractChecksumFromGzippedContent takes a gzipped wasm contract and returns the checksum.
 func (s *IBCWasmUpgradeTestSuite) extractChecksumFromGzippedContent(zippedContent []byte) string {
-	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
+	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmSize)
 	s.Require().NoError(err)
 
 	checksum32 := sha256.Sum256(content)

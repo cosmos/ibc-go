@@ -23,7 +23,7 @@ type MsgRegisterInterchainAccount struct {
 
 This message is expected to fail if:
 
-- `Owner` is an empty string.
+- `Owner` is an empty string or contains more than 2048 bytes.
 - `ConnectionID` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 
 This message will construct a new `MsgChannelOpenInit` on chain and route it to the core IBC message server to initiate the opening step of the channel handshake.
@@ -55,7 +55,7 @@ type MsgSendTx struct {
 
 This message is expected to fail if:
 
-- `Owner` is an empty string.
+- `Owner` is an empty string or contains more than 2048 bytes.
 - `ConnectionID` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 - `PacketData` contains an `UNSPECIFIED` type enum, the length of `Data` bytes is zero or the `Memo` field exceeds 256 characters in length.
 - `RelativeTimeout` is zero.
@@ -71,6 +71,80 @@ type MsgSendTxResponse struct {
 ```
 
 The packet `Sequence` is returned in the message response.
+
+### Queries
+
+It is possible to use [`MsgModuleQuerySafe`](https://github.com/cosmos/ibc-go/blob/eecfa5c09a4c38a5c9f2cc2a322d2286f45911da/proto/ibc/applications/interchain_accounts/host/v1/tx.proto#L41-L51) to execute a list of queries on the host chain. This message can be included in the list of encoded `sdk.Msg`s of `InterchainPacketData`. The host chain will return on the acknowledgment the responses for all the queries. Please note that only module safe queries can be executed ([deterministic queries that are safe to be called from within the state machine](https://docs.cosmos.network/main/build/building-modules/query-services#calling-queries-from-the-state-machine)). 
+ 
+The queries available from Cosmos SDK are:
+
+```plaintext
+/cosmos.auth.v1beta1.Query/Accounts
+/cosmos.auth.v1beta1.Query/Account
+/cosmos.auth.v1beta1.Query/AccountAddressByID
+/cosmos.auth.v1beta1.Query/Params
+/cosmos.auth.v1beta1.Query/ModuleAccounts
+/cosmos.auth.v1beta1.Query/ModuleAccountByName
+/cosmos.auth.v1beta1.Query/AccountInfo
+/cosmos.bank.v1beta1.Query/Balance
+/cosmos.bank.v1beta1.Query/AllBalances
+/cosmos.bank.v1beta1.Query/SpendableBalances
+/cosmos.bank.v1beta1.Query/SpendableBalanceByDenom
+/cosmos.bank.v1beta1.Query/TotalSupply
+/cosmos.bank.v1beta1.Query/SupplyOf
+/cosmos.bank.v1beta1.Query/Params
+/cosmos.bank.v1beta1.Query/DenomMetadata
+/cosmos.bank.v1beta1.Query/DenomMetadataByQueryString
+/cosmos.bank.v1beta1.Query/DenomsMetadata
+/cosmos.bank.v1beta1.Query/DenomOwners
+/cosmos.bank.v1beta1.Query/SendEnabled
+/cosmos.circuit.v1.Query/Account
+/cosmos.circuit.v1.Query/Accounts
+/cosmos.circuit.v1.Query/DisabledList
+/cosmos.staking.v1beta1.Query/Validators
+/cosmos.staking.v1beta1.Query/Validator
+/cosmos.staking.v1beta1.Query/ValidatorDelegations
+/cosmos.staking.v1beta1.Query/ValidatorUnbondingDelegations
+/cosmos.staking.v1beta1.Query/Delegation
+/cosmos.staking.v1beta1.Query/UnbondingDelegation
+/cosmos.staking.v1beta1.Query/DelegatorDelegations
+/cosmos.staking.v1beta1.Query/DelegatorUnbondingDelegations
+/cosmos.staking.v1beta1.Query/Redelegations
+/cosmos.staking.v1beta1.Query/DelegatorValidators
+/cosmos.staking.v1beta1.Query/DelegatorValidator
+/cosmos.staking.v1beta1.Query/HistoricalInfo
+/cosmos.staking.v1beta1.Query/Pool
+/cosmos.staking.v1beta1.Query/Params
+```
+
+And the query available from ibc-go is:
+
+```plaintext
+/ibc.core.client.v1.Query/VerifyMembership
+```
+
+The following code block shows an example of how `MsgModuleQuerySafe` can be used to query the account balance of an account on the host chain. The resulting packet data variable is used to set the `PacketData` of `MsgSendTx`.
+
+```go
+balanceQuery := banktypes.NewQueryBalanceRequest("cosmos1...", "uatom")
+queryBz, err := balanceQuery.Marshal()
+
+// signer of message must be the interchain account on the host
+queryMsg := icahosttypes.NewMsgModuleQuerySafe("cosmos2...", []icahosttypes.QueryRequest{
+  {
+    Path: "/cosmos.bank.v1beta1.Query/Balance",
+    Data: queryBz,
+  },
+})
+
+bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{queryMsg}, icatypes.EncodingProtobuf)
+
+packetData := icatypes.InterchainAccountPacketData{
+  Type: icatypes.EXECUTE_TX,
+  Data: bz,
+  Memo: "",
+}
+```
 
 ## Atomicity
 

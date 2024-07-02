@@ -19,7 +19,7 @@ import (
 var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new 09-localhost ClientState instance.
-func NewClientState(height clienttypes.Height) exported.ClientState {
+func NewClientState(height clienttypes.Height) *ClientState {
 	return &ClientState{
 		LatestHeight: height,
 	}
@@ -30,16 +30,6 @@ func (ClientState) ClientType() string {
 	return exported.Localhost
 }
 
-// GetLatestHeight returns the 09-localhost client state latest height.
-func (cs ClientState) GetLatestHeight() exported.Height {
-	return cs.LatestHeight
-}
-
-// Status always returns Active. The 09-localhost status cannot be changed.
-func (ClientState) Status(_ sdk.Context, _ storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
-	return exported.Active
-}
-
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if cs.LatestHeight.RevisionHeight == 0 {
@@ -47,11 +37,6 @@ func (cs ClientState) Validate() error {
 	}
 
 	return nil
-}
-
-// ZeroCustomFields returns the same client state since there are no custom fields in the 09-localhost client state.
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
-	return &cs
 }
 
 // Initialize ensures that initial consensus state for localhost is nil.
@@ -174,28 +159,4 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
 
 	return []exported.Height{height}
-}
-
-// ExportMetadata is a no-op for the 09-localhost client.
-func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
-	return nil
-}
-
-// CheckSubstituteAndUpdateState returns an error. The localhost cannot be modified by
-// proposals.
-func (ClientState) CheckSubstituteAndUpdateState(_ sdk.Context, _ codec.BinaryCodec, _, _ storetypes.KVStore, _ exported.ClientState) error {
-	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
-}
-
-// VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded
-func (ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context,
-	_ codec.BinaryCodec,
-	_ storetypes.KVStore,
-	_ exported.ClientState,
-	_ exported.ConsensusState,
-	_,
-	_ []byte,
-) error {
-	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }

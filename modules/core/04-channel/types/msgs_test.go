@@ -9,7 +9,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	errorsmod "cosmossdk.io/errors"
-	log "cosmossdk.io/log"
+	"cosmossdk.io/log"
 	"cosmossdk.io/store/iavl"
 	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"
@@ -94,7 +94,8 @@ func (suite *TypesTestSuite) SetupTest() {
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	err := store.LoadVersion(0)
 	suite.Require().NoError(err)
-	iavlStore := store.GetCommitStore(storeKey).(*iavl.Store)
+	iavlStore, ok := store.GetCommitStore(storeKey).(*iavl.Store)
+	suite.Require().True(ok)
 
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()

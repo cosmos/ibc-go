@@ -81,7 +81,7 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	newKeeper := keeper.NewKeeper(suite.cdc, suite.storeKey, suite.mockMemStoreKey)
 	newModule := capability.NewAppModule(suite.cdc, *newKeeper, true)
 
-	// reassign the scoped keeper, this will inherit the the mock memstore key used above
+	// reassign the scoped keeper, this will inherit the mock memstore key used above
 	scopedKeeper = newKeeper.ScopeToModule(banktypes.ModuleName)
 
 	// seal the new keeper and ensure the in-memory store is not initialized

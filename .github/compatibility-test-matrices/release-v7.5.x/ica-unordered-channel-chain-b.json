@@ -1,0 +1,19 @@
+{
+  "chain-a": [
+    "v8.3.0",
+    "v8.2.0",
+    "release-v7.5.x"
+  ],
+  "chain-b": [
+    "release-v7.5.x"
+  ],
+  "entrypoint": [
+    "TestInterchainAccountsTestSuite"
+  ],
+  "test": [
+    "TestMsgSendTx_SuccessfulTransfer_UnorderedChannel"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

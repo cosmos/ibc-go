@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdkmath "cosmossdk.io/math"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	kmultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
@@ -298,7 +296,7 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
 		connectionID, connectionIDSolomachine, clientState,
 		tryProof, clientProof, consensusProof,
-		clienttypes.ZeroHeight(), clientState.GetLatestHeight().(clienttypes.Height),
+		clienttypes.ZeroHeight(), clientState.LatestHeight,
 		ConnectionVersion,
 		chain.SenderAccount.GetAddress().String(),
 	)
@@ -312,7 +310,7 @@ func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID st
 func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) string {
 	msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
 		transfertypes.PortID,
-		transfertypes.Version,
+		transfertypes.V2,
 		channeltypes.UNORDERED,
 		[]string{connectionID},
 		transfertypes.PortID,
@@ -332,12 +330,12 @@ func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) str
 // ChanOpenAck performs the channel open ack handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
-	tryProof := solo.GenerateChanOpenTryProof(transfertypes.PortID, transfertypes.Version, channelID)
+	tryProof := solo.GenerateChanOpenTryProof(transfertypes.PortID, transfertypes.V2, channelID)
 	msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 		transfertypes.PortID,
 		channelID,
 		channelIDSolomachine,
-		transfertypes.Version,
+		transfertypes.V2,
 		tryProof,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
@@ -351,7 +349,7 @@ func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
 // ChanCloseConfirm performs the channel close confirm handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, portID, channelID string) {
-	initProof := solo.GenerateChanClosedProof(portID, transfertypes.Version, channelID)
+	initProof := solo.GenerateChanClosedProof(portID, transfertypes.V2, channelID)
 	msgChanCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(
 		portID,
 		channelID,
@@ -369,21 +367,23 @@ func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, portID, channelID st
 // SendTransfer constructs a MsgTransfer and sends the message to the given chain. Any number of optional
 // functions can be provided which will modify the MsgTransfer before SendMsgs is called.
 func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string, fns ...func(*transfertypes.MsgTransfer)) channeltypes.Packet {
-	msgTransfer := transfertypes.MsgTransfer{
-		SourcePort:       portID,
-		SourceChannel:    channelID,
-		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
-		Sender:           chain.SenderAccount.GetAddress().String(),
-		Receiver:         chain.SenderAccount.GetAddress().String(),
-		TimeoutHeight:    clienttypes.ZeroHeight(),
-		TimeoutTimestamp: uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
-	}
+	msgTransfer := transfertypes.NewMsgTransfer(
+		portID,
+		channelID,
+		sdk.NewCoins(TestCoin),
+		chain.SenderAccount.GetAddress().String(),
+		chain.SenderAccount.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		uint64(chain.GetContext().BlockTime().Add(time.Hour).UnixNano()),
+		"",
+		transfertypes.Forwarding{},
+	)
 
 	for _, fn := range fns {
-		fn(&msgTransfer)
+		fn(msgTransfer)
 	}
 
-	res, err := chain.SendMsgs(&msgTransfer)
+	res, err := chain.SendMsgs(msgTransfer)
 	require.NoError(solo.t, err)
 
 	packet, err := ParsePacketFromEvents(res.Events)
@@ -439,9 +439,9 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 	require.NotNil(solo.t, res)
 }
 
-// TimeoutPacket creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
+// TimeoutPacketOnClose creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
 func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
-	closedProof := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.Version, channelID)
+	closedProof := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.V2, channelID)
 	unreceivedProof := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeoutOnClose(
 		packet,

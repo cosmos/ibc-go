@@ -22,12 +22,11 @@ function check_golangci_lint_version(){
 }
 
 function lint_and_add_modified_go_files() {
-  local go_files="$(git diff --name-only --diff-filter=d | grep \.go$ | grep -v \.pb\.go$)"
-  for f in $go_files; do
-    local dir_name="$(dirname $f)"
+  local go_file_dirs="$(git diff --name-only --diff-filter=d | grep \.go$ | grep -v \.pb\.go$ | xargs dirname | sort | uniq)"
+  for dir_name in $go_file_dirs; do
     golangci-lint run "${dir_name}" --fix --out-format=tab --issues-exit-code=0
-    echo "adding ${f} to git index"
-    git add $f
+    echo "adding ${dir_name} to git index"
+    git add $dir_name
   done
 }
 

@@ -24,7 +24,7 @@ const config = {
   organizationName: "cosmos", // Usually your GitHub org/user name.
   projectName: "ibc-go", // Usually your repo name.
   deploymentBranch: "gh-pages",
-  trailingSlash: false,
+  trailingSlash: true,
 
   onBrokenLinks: "log",
   onBrokenMarkdownLinks: "log",
@@ -49,30 +49,30 @@ const config = {
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
           // Select the latest version
-          lastVersion: "v8.0.x",
+          lastVersion: "v8.3.x",
           // Assign banners to specific versions
           versions: {
             current: {
               path: "main",
               banner: "unreleased",
             },
-            "v8.0.x": {
+            "v8.3.x": {
               path: "v8",
               banner: "none",
             },
-            "v7.3.x": {
+            "v7.6.x": {
               path: "v7",
               banner: "none",
             },
-            "v6.2.x": {
+            "v6.3.x": {
               path: "v6",
               banner: "none",
             },
-            "v5.3.x": {
+            "v5.4.x": {
               path: "v5",
               banner: "none",
             },
-            "v4.5.x": {
+            "v4.6.x": {
               path: "v4",
               banner: "none",
             },
@@ -103,7 +103,7 @@ const config = {
           alt: "IBC Logo",
           src: "img/black-ibc-logo.svg",
           srcDark: "img/white-ibc-logo.svg",
-          href: "/main/",
+          href: "/",
         },
         items: [
           {
@@ -172,7 +172,7 @@ const config = {
             items: [
               {
                 label: "Discord",
-                href: "https://discord.gg/Wtmk6ZNa8G",
+                href: "https://discord.com/invite/interchain",
               },
               {
                 label: "Twitter",
@@ -240,23 +240,31 @@ const config = {
           {
             className: 'theme-code-block-highlighted-line',
             line: 'highlight-next-line',
-            block: {start: 'highlight-start', end: 'highlight-end'},
+            block: { start: 'highlight-start', end: 'highlight-end' },
           },
           {
             className: 'code-block-minus-diff-line',
             line: 'minus-diff-line',
-            block: {start: 'minus-diff-start', end: 'minus-diff-end'},
+            block: { start: 'minus-diff-start', end: 'minus-diff-end' },
           },
           {
             className: 'code-block-plus-diff-line',
             line: 'plus-diff-line',
-            block: {start: 'plus-diff-start', end: 'plus-diff-end'},
+            block: { start: 'plus-diff-start', end: 'plus-diff-end' },
           },
         ],
       },
     }),
   themes: ["docusaurus-theme-github-codeblock"],
   plugins: [
+    [
+      'docusaurus-pushfeedback', {
+        project: '3mpmaho4fa',
+        buttonPosition: 'center-right',
+        modalPosition: 'sidebar-right',
+        buttonStyle: 'dark',
+      }
+    ],
     [
       "@docusaurus/plugin-content-docs",
       {
@@ -303,9 +311,13 @@ const config = {
         // makes the default page next in production
         redirects: [
           {
-            from: ["/", "/master", "/next", "/docs"],
+            from: ["/master", "/next"],
             to: "/main/",
           },
+          {
+            from: ["/", "/docs"],
+            to: "/v8/",
+          }
         ],
       },
     ],
@@ -332,6 +344,25 @@ const config = {
           return postcssOptions;
         },
       };
+    },
+  ],
+  scripts: [
+    {
+      src: "https://widget.kapa.ai/kapa-widget.bundle.js",
+      "data-website-id": "806aa1dc-0d46-4563-a8b8-880eecac59f1",
+      "data-project-name": "Interchain",
+      "data-user-analytics-fingerprint-enabled": "true",
+      "data-project-color": "#1878FF",
+      "data-modal-title": "IBC Docs AI",
+      "data-modal-disclaimer": "This is a custom LLM for the Inter-Blockchain Communication Protocol in Golang (ibc-go). It is trained on the IBC developer documentation, code base, and resources. Answers are AI-generated. Please use your best judgment before implementing. The bot is not trained on documentation, code, or resources for the Cosmos SDK, CometBFT, CosmJS, CosmWasm, or interchain ecosystem blockchains. Please refer to those specific documentation sites for answers to those questions.",
+      "data-modal-ask-ai-input-placeholder": "Ask me a question about IBC...",
+      "data-modal-disclaimer-text-color": "#000000",
+      "data-modal-disclaimer-font-size": "14px",
+      "data-modal-image":
+        "/img/black-ibc-logo-400x400.svg",
+      "data-project-logo":
+        "/img/white-ibc-logo-400x400.svg",
+      async: true,
     },
   ],
 };

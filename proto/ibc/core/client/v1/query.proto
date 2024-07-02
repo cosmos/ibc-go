@@ -5,7 +5,9 @@ package ibc.core.client.v1;
 option go_package = "github.com/cosmos/ibc-go/v8/modules/core/02-client/types";
 
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/query/v1/query.proto";
 import "ibc/core/client/v1/client.proto";
+import "ibc/core/commitment/v1/commitment.proto";
 import "google/protobuf/any.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
@@ -59,6 +61,15 @@ service Query {
   // UpgradedConsensusState queries an Upgraded IBC consensus state.
   rpc UpgradedConsensusState(QueryUpgradedConsensusStateRequest) returns (QueryUpgradedConsensusStateResponse) {
     option (google.api.http).get = "/ibc/core/client/v1/upgraded_consensus_states";
+  }
+
+  // VerifyMembership queries an IBC light client for proof verification of a value at a given key path.
+  rpc VerifyMembership(QueryVerifyMembershipRequest) returns (QueryVerifyMembershipResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http)                   = {
+      post: "/ibc/core/client/v1/verify_membership"
+      body: "*"
+    };
   }
 }
 
@@ -204,4 +215,28 @@ message QueryUpgradedConsensusStateRequest {}
 message QueryUpgradedConsensusStateResponse {
   // Consensus state associated with the request identifier
   google.protobuf.Any upgraded_consensus_state = 1;
+}
+
+// QueryVerifyMembershipRequest is the request type for the Query/VerifyMembership RPC method
+message QueryVerifyMembershipRequest {
+  // client unique identifier.
+  string client_id = 1;
+  // the proof to be verified by the client.
+  bytes proof = 2;
+  // the height of the commitment root at which the proof is verified.
+  ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+  // the commitment key path.
+  ibc.core.commitment.v1.MerklePath merkle_path = 4 [(gogoproto.nullable) = false];
+  // the value which is proven.
+  bytes value = 5;
+  // optional time delay
+  uint64 time_delay = 6;
+  // optional block delay
+  uint64 block_delay = 7;
+}
+
+// QueryVerifyMembershipResponse is the response type for the Query/VerifyMembership RPC method
+message QueryVerifyMembershipResponse {
+  // boolean indicating success or failure of proof verification.
+  bool success = 1;
 }

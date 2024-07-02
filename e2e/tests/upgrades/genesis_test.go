@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/interchaintest/v8"
-	cosmos "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/suite"
@@ -21,6 +21,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
@@ -45,14 +46,14 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	appTomlOverrides["halt-height"] = haltHeight
 	configFileOverrides["config/app.toml"] = appTomlOverrides
 	chainOpts := func(options *testsuite.ChainOptions) {
-		options.ChainASpec.ConfigFileOverrides = configFileOverrides
+		options.ChainSpecs[0].ConfigFileOverrides = configFileOverrides
 	}
 
 	// create chains with specified chain configuration options
 	chainA, chainB := s.GetChains(chainOpts)
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
@@ -68,7 +69,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -103,7 +104,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	t.Run("ics20: packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
 		s.Require().NoError(err)
 
@@ -112,10 +113,15 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	})
 
 	t.Run("ics27: verify interchain account", func(t *testing.T) {
-		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
+		res, err := query.GRPCQuery[controllertypes.QueryInterchainAccountResponse](ctx, chainA, &controllertypes.QueryInterchainAccountRequest{
+			Owner:        controllerAddress,
+			ConnectionId: ibctesting.FirstConnectionID,
+		})
 		s.Require().NoError(err)
-		s.Require().NotZero(len(hostAccount))
+		s.Require().NotZero(len(res.Address))
+
+		hostAccount = res.Address
+		s.Require().NotEmpty(hostAccount)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
@@ -125,11 +131,11 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
-		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), relayer, int64(haltHeight))
+		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), relayer, haltHeight)
 	})
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -229,10 +235,6 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err)
 
-	// we are reinitializing the clients because we need to update the hostGRPCAddress after
-	// the upgrade and subsequent restarting of nodes
-	s.InitGRPCClients(chain)
-
 	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
@@ -242,5 +244,5 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height after halt")
 
-	s.Require().Greater(int64(height), haltHeight, "height did not increment after halt")
+	s.Require().Greater(height, haltHeight, "height did not increment after halt")
 }

@@ -43,6 +43,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "upgraded client must be Tendermint client. expected: %T got: %T",
 			&ClientState{}, upgradedClient)
 	}
+
 	tmUpgradeConsState, ok := upgradedConsState.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "upgraded consensus state must be Tendermint consensus state. expected %T, got: %T",
@@ -59,7 +60,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	}
 
 	// last height of current counterparty chain must be client's latest height
-	lastHeight := cs.GetLatestHeight()
+	lastHeight := cs.LatestHeight
 
 	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
 	// This verifies that upgrade is intended for the provided revision, since committed client must exist
@@ -70,7 +71,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	}
 
 	// Verify client proof
-	bz, err := cdc.MarshalInterface(upgradedClient.ZeroCustomFields())
+	bz, err := cdc.MarshalInterface(tmUpgradeClient.ZeroCustomFields())
 	if err != nil {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "could not marshal client state: %v", err)
 	}

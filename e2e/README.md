@@ -63,7 +63,7 @@ The images which are used only exist on your machine.
 These environment variables allow us to run tests with arbitrary versions (from branches or released) of simd
 and the go relayer.
 
-Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd).
+Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/orgs/cosmos/packages?repo_name=ibc-go).
 
 ### Example Command
 
@@ -232,7 +232,7 @@ There are two main github actions for e2e tests.
 
 [e2e-fork.yaml](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-fork.yml) which runs when forks are created.
 
-In `e2e.yaml`, the `simd` image is built and pushed to [a registry](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd) and every test
+In `e2e.yaml`, the `simd` image is built and pushed to [a registry](https://github.com/orgs/cosmos/packages?repo_name=ibc-go) and every test
 that is run uses the image that was built.
 
 In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain local to the host runner.

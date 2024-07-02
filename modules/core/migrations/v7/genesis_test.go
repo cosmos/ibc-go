@@ -14,7 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	v7 "github.com/cosmos/ibc-go/v8/modules/core/migrations/v7"
+	"github.com/cosmos/ibc-go/v8/modules/core/migrations/v7"
 	"github.com/cosmos/ibc-go/v8/modules/core/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -94,7 +94,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 
 		// set in store for ease of determining expected genesis
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
-		cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		suite.Require().True(ok)
 		clientv7.RegisterInterfaces(cdc.InterfaceRegistry())
 
 		bz, err := cdc.MarshalInterface(legacyClientState)
@@ -137,7 +138,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	suite.Require().NoError(err)
 	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
-	cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+	cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+	suite.Require().True(ok)
 
 	// NOTE: these lines are added in comparison to 02-client/migrations/v7/genesis_test.go
 	// generate appState with old ibc genesis state

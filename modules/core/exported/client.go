@@ -1,11 +1,10 @@
 package exported
 
 import (
-	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -44,43 +43,49 @@ const (
 	Unauthorized Status = "Unauthorized"
 )
 
-// ClientState defines the required common functions for light clients.
-type ClientState interface {
-	proto.Message
+// ClientStoreProvider is an interface which gives access to the client prefixed stores.
+// It is implemented by the 02-client keeper and may be called by a light client module
+// to obtain a client prefixed store for the given client identifier.
+type ClientStoreProvider interface {
+	// ClientStore will return a client prefixed store using the given client identifier
+	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
+}
 
-	ClientType() string
-	GetLatestHeight() Height
-	Validate() error
+// LightClientModule is an interface which core IBC uses to interact with light client modules.
+// Light client modules must implement this interface to integrate with core IBC.
+type LightClientModule interface {
+	// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
+	// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
+	// to IBC light client instances.
+	RegisterStoreProvider(storeProvider ClientStoreProvider)
 
-	// Status must return the status of the client. Only Active clients are allowed to process packets.
-	Status(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec) Status
+	// Initialize is called upon client creation, it allows the client to perform validation on the client state and initial consensus state.
+	// The light client module is responsible for setting any client-specific data in the store. This includes the client state,
+	// initial consensus state and any associated metadata.
+	Initialize(ctx sdk.Context, clientID string, clientState, consensusState []byte) error
 
-	// ExportMetadata must export metadata stored within the clientStore for genesis export
-	ExportMetadata(clientStore storetypes.KVStore) []GenesisMetadata
+	// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
+	// It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
+	// will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
+	// if the ClientMessage fails to verify.
+	VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg ClientMessage) error
 
-	// ZeroCustomFields zeroes out any client customizable fields in client state
-	// Ledger enforced fields are maintained while all custom fields are zero values
-	// Used to verify upgrades
-	ZeroCustomFields() ClientState
+	// Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
+	// has already been verified.
+	CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg ClientMessage) bool
 
-	// GetTimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
-	GetTimestampAtHeight(
-		ctx sdk.Context,
-		clientStore storetypes.KVStore,
-		cdc codec.BinaryCodec,
-		height Height,
-	) (uint64, error)
+	// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
+	UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg ClientMessage)
 
-	// Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
-	// client state, consensus state and any client-specific metadata necessary for correct light client operation in the provided client store.
-	Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consensusState ConsensusState) error
+	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
+	// Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
+	UpdateState(ctx sdk.Context, clientID string, clientMsg ClientMessage) []Height
 
 	// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 	VerifyMembership(
 		ctx sdk.Context,
-		clientStore storetypes.KVStore,
-		cdc codec.BinaryCodec,
+		clientID string,
 		height Height,
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
@@ -93,8 +98,7 @@ type ClientState interface {
 	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 	VerifyNonMembership(
 		ctx sdk.Context,
-		clientStore storetypes.KVStore,
-		cdc codec.BinaryCodec,
+		clientID string,
 		height Height,
 		delayTimePeriod uint64,
 		delayBlockPeriod uint64,
@@ -102,26 +106,22 @@ type ClientState interface {
 		path Path,
 	) error
 
-	// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
-	// It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
-	// will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
-	// if the ClientMessage fails to verify.
-	VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg ClientMessage) error
+	// Status must return the status of the client. Only Active clients are allowed to process packets.
+	Status(ctx sdk.Context, clientID string) Status
 
-	// Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
-	// has already been verified.
-	CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg ClientMessage) bool
+	// LatestHeight returns the latest height of the client. If no client is present for the provided client identifier a zero value height may be returned.
+	LatestHeight(ctx sdk.Context, clientID string) Height
 
-	// UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
-	UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg ClientMessage)
+	// TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
+	TimestampAtHeight(
+		ctx sdk.Context,
+		clientID string,
+		height Height,
+	) (uint64, error)
 
-	// UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
-	// Upon successful update, a list of consensus heights is returned. It assumes the ClientMessage has already been verified.
-	UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg ClientMessage) []Height
-
-	// CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
-	// The light client must set the updated client and consensus states within the clientStore for the subject client.
-	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore storetypes.KVStore, substituteClient ClientState) error
+	// RecoverClient must verify that the provided substitute may be used to update the subject client.
+	// The light client module must set the updated client and consensus states within the clientStore for the subject client.
+	RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error
 
 	// Upgrade functions
 	// NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
@@ -132,13 +132,20 @@ type ClientState interface {
 	// If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
 	VerifyUpgradeAndUpdateState(
 		ctx sdk.Context,
-		cdc codec.BinaryCodec,
-		store storetypes.KVStore,
-		newClient ClientState,
-		newConsState ConsensusState,
+		clientID string,
+		newClient []byte,
+		newConsState []byte,
 		upgradeClientProof,
 		upgradeConsensusStateProof []byte,
 	) error
+}
+
+// ClientState defines the required common functions for light clients.
+type ClientState interface {
+	proto.Message
+
+	ClientType() string
+	Validate() error
 }
 
 // ConsensusState is the state of the consensus process

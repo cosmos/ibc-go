@@ -1,6 +1,7 @@
 package ibctesting_test
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,8 +30,8 @@ func TestParsePacketsFromEvents(t *testing.T) {
 					Type: channeltypes.EventTypeSendPacket,
 					Attributes: []abci.EventAttribute{
 						{
-							Key:   channeltypes.AttributeKeyData,
-							Value: "data1",
+							Key:   channeltypes.AttributeKeyDataHex,
+							Value: hex.EncodeToString([]byte("data1")),
 						},
 						{
 							Key:   channeltypes.AttributeKeySequence,
@@ -69,8 +70,8 @@ func TestParsePacketsFromEvents(t *testing.T) {
 					Type: channeltypes.EventTypeSendPacket,
 					Attributes: []abci.EventAttribute{
 						{
-							Key:   channeltypes.AttributeKeyData,
-							Value: "data2",
+							Key:   channeltypes.AttributeKeyDataHex,
+							Value: hex.EncodeToString([]byte("data2")),
 						},
 						{
 							Key:   channeltypes.AttributeKeySequence,
@@ -198,7 +199,7 @@ func TestParsePacketsFromEvents(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			allPackets, err := ibctesting.ParsePacketsFromEvents(tc.events)
+			allPackets, err := ibctesting.ParsePacketsFromEvents(channeltypes.EventTypeSendPacket, tc.events)
 
 			if tc.expectedError == "" {
 				require.NoError(t, err)
