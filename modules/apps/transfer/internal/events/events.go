@@ -11,16 +11,18 @@ import (
 )
 
 // EmitTransferEvent emits a ibc transfer event on successful transfers.
-func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.Tokens, memo string) {
-	jsonTokens := mustMarshalType[types.Tokens](tokens)
+func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.Tokens, memo string, forwardingHops []types.Hop) {
+	tokensStr := mustMarshalJSON(tokens)
+	forwardingHopsStr := mustMarshalJSON(forwardingHops)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTransfer,
 			sdk.NewAttribute(types.AttributeKeySender, sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, jsonTokens),
+			sdk.NewAttribute(types.AttributeKeyTokens, tokensStr),
 			sdk.NewAttribute(types.AttributeKeyMemo, memo),
+			sdk.NewAttribute(types.AttributeKeyForwardingHops, forwardingHopsStr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -31,13 +33,15 @@ func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.To
 
 // EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
 func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) {
-	jsonTokens := mustMarshalType[types.Tokens](types.Tokens(packetData.Tokens))
+	tokensStr := mustMarshalJSON(packetData.Tokens)
+	forwardingHopStr := mustMarshalJSON(packetData.Forwarding.Hops)
 
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
-		sdk.NewAttribute(types.AttributeKeyTokens, jsonTokens),
+		sdk.NewAttribute(types.AttributeKeyTokens, tokensStr),
 		sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
+		sdk.NewAttribute(types.AttributeKeyForwardingHops, forwardingHopStr),
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, strconv.FormatBool(ack.Success())),
 	}
 
@@ -59,15 +63,17 @@ func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacket
 
 // EmitOnAcknowledgementPacketEvent emits a fungible token packet event in the OnAcknowledgementPacket callback
 func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
-	jsonTokens := mustMarshalType[types.Tokens](types.Tokens(packetData.Tokens))
+	tokensStr := mustMarshalJSON(packetData.Tokens)
+	forwardingHopsStr := mustMarshalJSON(packetData.Forwarding.Hops)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeySender, packetData.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, jsonTokens),
+			sdk.NewAttribute(types.AttributeKeyTokens, tokensStr),
 			sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
+			sdk.NewAttribute(types.AttributeKeyForwardingHops, forwardingHopsStr),
 			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 		sdk.NewEvent(
@@ -96,14 +102,16 @@ func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.Fungible
 
 // EmitOnTimeoutEvent emits a fungible token packet event in the OnTimeoutPacket callback
 func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2) {
-	jsonTokens := mustMarshalType[types.Tokens](types.Tokens(packetData.Tokens))
+	tokensStr := mustMarshalJSON(packetData.Tokens)
+	forwardingHopsStr := mustMarshalJSON(packetData.Forwarding.Hops)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeout,
 			sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Sender),
-			sdk.NewAttribute(types.AttributeKeyRefundTokens, jsonTokens),
+			sdk.NewAttribute(types.AttributeKeyRefundTokens, tokensStr),
 			sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
+			sdk.NewAttribute(types.AttributeKeyForwardingHops, forwardingHopsStr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -114,19 +122,19 @@ func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDat
 
 // EmitDenomEvent emits a denomination event in the OnRecv callback.
 func EmitDenomEvent(ctx sdk.Context, token types.Token) {
-	jsonDenom := mustMarshalType[types.Denom](token.Denom)
+	denomStr := mustMarshalJSON(token.Denom)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDenom,
 			sdk.NewAttribute(types.AttributeKeyDenomHash, token.Denom.Hash().String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, jsonDenom),
+			sdk.NewAttribute(types.AttributeKeyDenom, denomStr),
 		),
 	)
 }
 
 // mustMarshalType json marshals the given type and panics on failure.
-func mustMarshalType[T any](v T) string {
+func mustMarshalJSON(v any) string {
 	bz, err := json.Marshal(v)
 	if err != nil {
 		panic(err)

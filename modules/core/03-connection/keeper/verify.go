@@ -29,7 +29,7 @@ func (k *Keeper) VerifyClientState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.Counterparty.ClientId))
+	merklePath := commitmenttypes.NewMerklePath(host.FullClientStateKey(connection.Counterparty.ClientId))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (k *Keeper) VerifyClientConsensusState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.Counterparty.ClientId, consensusHeight))
+	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStateKey(connection.Counterparty.ClientId, consensusHeight))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func (k *Keeper) VerifyConnectionState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
+	merklePath := commitmenttypes.NewMerklePath(host.ConnectionKey(connectionID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func (k *Keeper) VerifyChannelState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -184,7 +184,7 @@ func (k *Keeper) VerifyPacketCommitment(
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
+	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentKey(portID, channelID, sequence))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -220,7 +220,7 @@ func (k *Keeper) VerifyPacketAcknowledgement(
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
+	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementKey(portID, channelID, sequence))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -257,7 +257,7 @@ func (k *Keeper) VerifyPacketReceiptAbsence(
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
+	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptKey(portID, channelID, sequence))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -292,7 +292,7 @@ func (k *Keeper) VerifyNextSequenceRecv(
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
+	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -324,7 +324,7 @@ func (k *Keeper) VerifyChannelUpgradeError(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -361,7 +361,7 @@ func (k *Keeper) VerifyChannelUpgrade(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err

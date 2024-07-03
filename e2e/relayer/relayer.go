@@ -20,7 +20,7 @@ const (
 	Hyperspace = "hyperspace"
 
 	HermesRelayerRepository = "ghcr.io/informalsystems/hermes"
-	hermesRelayerUser       = "1000:1000"
+	hermesRelayerUser       = "2000:2000"
 	RlyRelayerRepository    = "ghcr.io/cosmos/relayer"
 	rlyRelayerUser          = "100:1000"
 
@@ -85,9 +85,9 @@ func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID
 			return fmt.Errorf("failed to find chain with id %s", chainID)
 		}
 
-		var chanelEndpoints [][]string
+		var channelEndpoints [][]string
 		for _, c := range channels {
-			chanelEndpoints = append(chanelEndpoints, []string{c.PortID, c.ChannelID})
+			channelEndpoints = append(channelEndpoints, []string{c.PortID, c.ChannelID})
 		}
 
 		// [chains.packet_filter]
@@ -100,12 +100,12 @@ func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID
 		// TODO(chatton): explicitly enable watching of ICA channels
 		// this will ensure the ICA tests pass, but this will need to be modified to make sure
 		// ICA tests will succeed in parallel.
-		chanelEndpoints = append(chanelEndpoints, []string{"ica*", "*"})
+		channelEndpoints = append(channelEndpoints, []string{"ica*", "*"})
 
 		// we explicitly override the full list, this allows this function to provide a complete set of channels to watch.
 		chain["packet_filter"] = map[string]interface{}{
 			"policy": "allow",
-			"list":   chanelEndpoints,
+			"list":   channelEndpoints,
 		}
 
 		return nil
