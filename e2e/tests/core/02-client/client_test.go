@@ -347,7 +347,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
@@ -363,7 +363,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)

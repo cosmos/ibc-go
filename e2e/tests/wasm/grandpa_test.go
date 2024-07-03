@@ -199,7 +199,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	}
 
 	// Start relayer
-	s.Require().NoError(r.StartRelayer(ctx, eRep, s.GetPaths()...))
+	s.Require().NoError(r.StartRelayer(ctx, eRep, s.GetPaths(testName)...))
 
 	t.Run("send successful IBC transfer from Cosmos to Polkadot parachain", func(t *testing.T) {
 		// Send 1.77 stake from cosmosUser to parachainUser

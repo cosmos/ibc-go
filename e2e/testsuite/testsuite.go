@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"golang.org/x/exp/slices"
 	"os"
 	"path"
 	"strings"
@@ -18,6 +17,7 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+	"golang.org/x/exp/slices"
 
 	sdkmath "cosmossdk.io/math"
 

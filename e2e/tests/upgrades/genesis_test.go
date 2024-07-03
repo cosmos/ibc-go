@@ -40,7 +40,7 @@ type GenesisTestSuite struct {
 // TODO: this configuration was originally being applied to `GetChains` in the test body, but it is not
 // actually being propagated correctly. If we want to apply the configuration, we can uncomment this code
 // however the test actually fails when this is done.
-//func (s *GenesisTestSuite) SetupSuite() {
+// func (s *GenesisTestSuite) SetupSuite() {
 //	configFileOverrides := make(map[string]any)
 //	appTomlOverrides := make(test.Toml)
 //
@@ -51,7 +51,7 @@ type GenesisTestSuite struct {
 //		// create chains with specified chain configuration options
 //		options.ChainSpecs[0].ConfigFileOverrides = configFileOverrides
 //	})
-//}
+// }
 
 func (s *GenesisTestSuite) TestIBCGenesis() {
 	t := s.T()
@@ -107,7 +107,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.Require().NoError(relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPaths()...))
+		s.Require().NoError(relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)...))
 		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
 	})
 
