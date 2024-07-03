@@ -10,7 +10,7 @@
 
 In ICS 26, the routing module is defined as a layer above each application module
 which verifies and routes messages to the destination modules. It is possible to
-implement it as a separate module, however, we already have functionality to route
+implement it as a separate module, however, we already have the functionality to route
 messages upon the destination identifiers in the baseapp. This ADR suggests
 to utilize existing `baseapp.router` to route packets to application modules.
 

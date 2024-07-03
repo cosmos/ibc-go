@@ -12,13 +12,13 @@ Accepted, implemented in v6 of ibc-go
 
 ICS 27 (Interchain Accounts) brought a cross-chain account management protocol built upon IBC.
 It enabled chains to programmatically create accounts on behalf of counterparty chains which may enable a variety of authentication methods for this interchain account.
-The initial release of ICS 27 focused on enabling authentication schemes which may not require signing with a private key, such as via on-chain mechanisms like governance.
+The initial release of ICS 27 focused on enabling authentication schemes that may not require signing with a private key, such as via on-chain mechanisms like governance.
 
 Following the initial release of ICS 27 it became evident that:
 
 - a default authentication module would enable more usage of ICS 27
 - generic authentication modules should be capable of authenticating an interchain account registration
-- application logic which wraps ICS 27 packet sends do not need to be associated with the authentication logic
+- application logic which wraps ICS 27 packet sends does not need to be associated with the authentication logic
 
 ## Decision
 

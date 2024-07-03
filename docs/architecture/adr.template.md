@@ -12,7 +12,7 @@
 
 ## Context
 
-> This section contains all the context one needs to understand the current state, and why there is a problem. It should be as succinct as possible and introduce the high level idea behind the solution.
+> This section contains all the context one needs to understand the current state, and why there is a problem. It should be as succinct as possible and introduce the high-level idea behind the solution.
 
 ## Decision
 
