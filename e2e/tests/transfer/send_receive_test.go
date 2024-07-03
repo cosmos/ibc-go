@@ -6,8 +6,6 @@ import (
 	"context"
 	"testing"
 
-	"testing"
-
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 

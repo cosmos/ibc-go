@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-TEST="${1}"
+TEST="${1:-}"
 ENTRY_POINT="${2:-}"
 
 function _verify_jq() {
@@ -79,14 +79,14 @@ function run_test() {
 # run_suite runs a full E2E test suite.
 function run_suite() {
   # if jq is installed, we can automatically determine the test entrypoint.
-  if command -v jq > /dev/null; then
+  if [ -z "${ENTRY_POINT}" ]; then
      cd ..
      ENTRY_POINT="$(go run -mod=readonly cmd/build_test_matrix/main.go | jq  -r '.include[] | .entrypoint' | uniq | fzf)"
      cd - > /dev/null
   fi
 
   # find the name of the file that has this test in it.
-  test_file="$(grep --recursive --files-with-matches './tests' -e "${ENTRY_POINT}")"
+  test_file="$(grep --recursive --files-with-matches './tests' -e "${ENTRY_POINT}(")"
   test_dir="$(dirname $test_file)"
 
   go test -v "${test_dir}" --run ${ENTRY_POINT} -timeout 30m -p 10
