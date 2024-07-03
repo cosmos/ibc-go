@@ -9,6 +9,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -2674,18 +2675,26 @@ func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs()
 }
 
 func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
-	var path *ibctesting.Path
-	var upgradeError *types.UpgradeError
+	var (
+		path                  *ibctesting.Path
+		upgradeError          *types.UpgradeError
+		channelKeeper         *channelkeeper.Keeper
+		writeErrorReceiptFunc = func() {
+			channelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
+		}
+	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expError func() error
+		name      string
+		malleate  func()
+		expResult func()
 	}{
 		{
 			"success",
 			func() {},
-			nil,
+			func() {
+				suite.NotPanics(func() { writeErrorReceiptFunc() })
+			},
 		},
 		{
 			"success: existing error receipt found at a lower sequence",
@@ -2694,7 +2703,9 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 				previousUpgradeError := types.NewUpgradeError(upgradeError.GetErrorReceipt().Sequence-1, types.ErrInvalidUpgrade)
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, previousUpgradeError)
 			},
-			nil,
+			func() {
+				suite.NotPanics(func() { writeErrorReceiptFunc() })
+			},
 		},
 		{
 			"failure: existing error receipt found at a higher sequence",
@@ -2703,8 +2714,8 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 				previousUpgradeError := types.NewUpgradeError(upgradeError.GetErrorReceipt().Sequence+1, types.ErrInvalidUpgrade)
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, previousUpgradeError)
 			},
-			func() error {
-				return errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error receipt sequence (10) must be greater than existing error receipt sequence (11)")
+			func() {
+				suite.PanicsWithError(errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error receipt sequence (10) must be greater than existing error receipt sequence (11)").Error(), writeErrorReceiptFunc)
 			},
 		},
 		{
@@ -2717,8 +2728,8 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 				ch := path.EndpointA.GetChannel()
 				upgradeError = types.NewUpgradeError(ch.UpgradeSequence, types.ErrInvalidUpgrade)
 			},
-			func() error {
-				return errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "attempting to write error receipt at sequence (1) while upgrade information exists at the same sequence")
+			func() {
+				suite.PanicsWithError(errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "attempting to write error receipt at sequence (1) while upgrade information exists at the same sequence").Error(), writeErrorReceiptFunc)
 			},
 		},
 		{
@@ -2726,8 +2737,8 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 			func() {
 				suite.chainA.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			func() error {
-				return errorsmod.Wrap(types.ErrChannelNotFound, fmt.Sprintf("port ID (mock) channel ID (%s)", path.EndpointA.ChannelID))
+			func() {
+				suite.PanicsWithError(errorsmod.Wrap(types.ErrChannelNotFound, fmt.Sprintf("port ID (mock) channel ID (%s)", path.EndpointA.ChannelID)).Error(), writeErrorReceiptFunc)
 			},
 		},
 	}
@@ -2739,22 +2750,13 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			channelKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
+			channelKeeper = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
 
 			upgradeError = types.NewUpgradeError(10, types.ErrInvalidUpgrade)
 
 			tc.malleate()
 
-			expPass := tc.expError == nil
-			if expPass {
-				suite.NotPanics(func() {
-					channelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
-				})
-			} else {
-				suite.PanicsWithError(tc.expError().Error(), func() {
-					channelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
-				})
-			}
+			tc.expResult()
 		})
 	}
 }

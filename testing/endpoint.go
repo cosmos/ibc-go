@@ -327,6 +327,9 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 
 var sequenceNumber int
 
+// IncrementNextChannelSequence incrementes the value "nextChannelSequence" in the store,
+// which is used to determine the next channel ID.
+// This guarantees that we'll have always different IDs while running tests.
 func (endpoint *Endpoint) IncrementNextChannelSequence() {
 	if endpoint.disableUniqueChannelIDs {
 		return
