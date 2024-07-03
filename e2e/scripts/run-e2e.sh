@@ -19,7 +19,7 @@ function _verify_fzf() {
       fi
 }
 
-function _verify_dependencies() {
+function _verify_test_dependencies() {
     if [ -z "${TEST}" ]; then
         # fzf is only required if we are not explicitly specifying a test.
         _verify_fzf
@@ -28,6 +28,14 @@ function _verify_dependencies() {
     _verify_jq
 }
 
+function _verify_suite_dependencies() {
+    if [ -z "${ENTRYPOINT}" ]; then
+        # fzf is only required if we are not explicitly specifying an entrypoint.
+        _verify_fzf
+    fi
+    # jq is always required to determine the entrypoint of the test.
+    _verify_jq
+}
 
 # _select_test_config lets you dynamically select a test config for the specific test.
 function _select_test_config() {
@@ -51,7 +59,7 @@ function _get_test(){
 
 # run_test runs a single E2E test.
 function run_test() {
-  # if the dev configs directory is present, enable fzf completion to select a test config file to use.
+  _verify_test_dependencies
 
   # if test is set, that is used directly, otherwise the test can be interactively provided if fzf is installed.
   TEST="$(_get_test ${TEST})"
@@ -78,6 +86,7 @@ function run_test() {
 
 # run_suite runs a full E2E test suite.
 function run_suite() {
+  _verify_suite_dependencies
   # if jq is installed, we can automatically determine the test entrypoint.
   if [ -z "${ENTRY_POINT}" ]; then
      cd ..
@@ -92,8 +101,8 @@ function run_suite() {
   go test -v "${test_dir}" --run ${ENTRY_POINT} -timeout 30m -p 10
 }
 
-_verify_dependencies
 
+# if the dev configs directory is present, enable fzf completion to select a test config file to use.
 if [[ -d "dev-configs"  ]]; then
   export E2E_CONFIG_PATH="$(pwd)/dev-configs/$(_select_test_config)"
   echo "Using configuration file at ${E2E_CONFIG_PATH}"
