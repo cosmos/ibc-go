@@ -328,6 +328,26 @@ func (k *Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.Client
 	return k.consensusHost.ValidateSelfClient(ctx, clientState)
 }
 
+// VerifyMembershipp retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
+func (k *Keeper) VerifyMembershipp(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	return clientModule.VerifyMembership(ctx, clientID, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+}
+
+// VerifyMembershipp retrieves the light client module for the clientID and verifies the absence of a given key at a specified height.
+func (k *Keeper) VerifyNonMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path) error {
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	return clientModule.VerifyNonMembership(ctx, clientID, height, delayTimePeriod, delayBlockPeriod, proof, path)
+}
+
 // GetUpgradePlan executes the upgrade keeper GetUpgradePlan function.
 func (k *Keeper) GetUpgradePlan(ctx sdk.Context) (upgradetypes.Plan, error) {
 	return k.upgradeKeeper.GetUpgradePlan(ctx)
