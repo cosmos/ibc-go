@@ -3,7 +3,7 @@
 set -eo pipefail
 
 TEST="${1:-}"
-ENTRY_POINT="${2:-}"
+export ENTRY_POINT="${2:-}"
 
 function _verify_jq() {
       if ! command -v jq > /dev/null ; then
@@ -29,7 +29,7 @@ function _verify_test_dependencies() {
 }
 
 function _verify_suite_dependencies() {
-    if [ -z "${ENTRYPOINT}" ]; then
+    if [ -z "${ENTRY_POINT}" ]; then
         # fzf is only required if we are not explicitly specifying an entrypoint.
         _verify_fzf
     fi
