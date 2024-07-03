@@ -26,11 +26,17 @@ func TestTransferTestSuite(t *testing.T) {
 }
 
 type TransferTestSuite struct {
+	TransferTester
+}
+
+// TransferTester defines some helper functions that can be used in various test suites
+// that test transfer functionality.
+type TransferTester struct {
 	testsuite.E2ETestSuite
 }
 
 // QueryTransferParams queries the on-chain send enabled param for the transfer module
-func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
+func (s *TransferTester) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
 	res, err := query.GRPCQuery[transfertypes.QueryParamsResponse](ctx, chain, &transfertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	return *res.Params
@@ -38,7 +44,7 @@ func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.C
 
 // SetupTransferPath sets up a path between chainA and chainB with a transfer channel and returns the relayer wired
 // up to watch the channel and port IDs created.
-func (s *TransferTestSuite) SetupTransferPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
+func (s *TransferTester) SetupTransferPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
 	relayer, channel := s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
 	s.T().Logf("test %s running on portID %s channelID %s", testName, channel.PortID, channel.ChannelID)
 	return relayer, channel
