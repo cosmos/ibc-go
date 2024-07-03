@@ -258,23 +258,28 @@ func (s *E2ETestSuite) CreatePath(
 	return channelsA[len(channelsA)-1], channelsB[len(channelsB)-1]
 }
 
+type ChainChannelPair struct {
+	ChainIdx   int
+	ChannelIdx int
+}
+
 // GetChainAChannel returns the ibc.ChannelOutput for the current test.
 // this defaults to the first entry in the list, and will be what is needed in the case of
 // a single channel test.
 func (s *E2ETestSuite) GetChainAChannel() ibc.ChannelOutput {
-	return s.GetChainChannel(0)
+	return s.GetChainChannel(ChainChannelPair{ChainIdx: 0, ChannelIdx: 0})
 }
 
 // GetChainChannel returns the ibc.ChannelOutput for a specific
-// entry in the list of chains. It defaults to the first entry
-// in the list of channels for that chain.
-func (s *E2ETestSuite) GetChainChannel(chainIdx int) ibc.ChannelOutput {
+// entry in the list of chains.
+func (s *E2ETestSuite) GetChainChannel(id ChainChannelPair) ibc.ChannelOutput {
 	chains := s.GetAllChains()
-	s.Require().Less(chainIdx, len(chains), "required index %d is larger than the last index in the list of chains (%d)", chainIdx, len(chains)-1)
-	chain := chains[chainIdx]
+	s.Require().Less(id.ChainIdx, len(chains), "required index %d is larger than the last index in the list of chains (%d)", id.ChainIdx, len(chains)-1)
+
+	chain := chains[id.ChainIdx]
 	channels := s.GetChannels(chain)
-	s.Require().NotEmpty(channels, "found no channels for chain %s", chain.Config().Name)
-	return channels[0]
+	s.Require().Less(id.ChannelIdx, len(channels), "required channel index %d is larger than the last index in the list of channels (%d)", id.ChannelIdx, len(channels)-1)
+	return channels[id.ChannelIdx]
 }
 
 // GetChannels returns all channels for the current test.

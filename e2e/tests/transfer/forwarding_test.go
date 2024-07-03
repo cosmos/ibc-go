@@ -49,7 +49,9 @@ func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_S
 // TestForwarding_Succeeds tests the case where a token is forwarded and successfully
 // received on a destination chain.
 func (s *TransferForwardingTestSuite) TestForwarding_Succeeds() {
-	s.testForwardingThreeChains(func() ibc.ChannelOutput { return s.GetChainChannel(1) })
+	s.testForwardingThreeChains(func() ibc.ChannelOutput {
+		return s.GetChainChannel(testsuite.ChainChannelPair{ChainIdx: 1, ChannelIdx: 1})
+	})
 }
 
 func (s *TransferForwardingTestSuite) testForwardingThreeChains(channelBToCCallback func() ibc.ChannelOutput) {
