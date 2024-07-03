@@ -1,6 +1,8 @@
 package localhost
 
 import (
+	"bytes"
+
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -8,9 +10,23 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
+
+const (
+	// ModuleName defines the 09-localhost light client module name
+	ModuleName = "09-localhost"
+)
+
+// SentinelProof defines the 09-localhost sentinel proof.
+// Submission of nil or empty proofs is disallowed in core IBC messaging.
+// This serves as a placeholder value for relayers to leverage as the proof field in various message types.
+// Localhost client state verification will fail if the sentintel proof value is not provided.
+var SentinelProof = []byte{0x01}
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
 
@@ -36,56 +52,40 @@ func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientS
 	l.storeProvider = storeProvider
 }
 
-// Initialize ensures that initial consensus state for localhost is nil.
+// Initialize returns an error because it is stateless.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, _, consensusStateBz []byte) error {
-	if len(consensusStateBz) != 0 {
-		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "initial consensus state for localhost must be nil.")
-	}
-
-	clientState := ClientState{
-		LatestHeight: clienttypes.GetSelfHeight(ctx),
-	}
-
-	clientStore := l.storeProvider.ClientStore(ctx, exported.LocalhostClientID)
-	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(l.cdc, &clientState))
-	return nil
+func (LightClientModule) Initialize(_ sdk.Context, _ string, _, _ []byte) error {
+	return errorsmod.Wrap(clienttypes.ErrClientExists, "localhost is stateless and cannot be initialized")
 }
 
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (LightClientModule) VerifyClientMessage(_ sdk.Context, _ string, _ exported.ClientMessage) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
 
 // CheckForMisbehaviour is unsupported by the 09-localhost client type and performs a no-op, returning false.
-func (LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (LightClientModule) CheckForMisbehaviour(_ sdk.Context, _ string, _ exported.ClientMessage) bool {
 	return false
 }
 
 // UpdateStateOnMisbehaviour is unsupported by the 09-localhost client type and performs a no-op.
-func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+func (LightClientModule) UpdateStateOnMisbehaviour(_ sdk.Context, _ string, _ exported.ClientMessage) {
 	// no-op
 }
 
-// UpdateState obtains the localhost client state and calls into the clientState.UpdateState method.
+// UpdateState performs a no-op and returns the context height in the updated heights return value.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.cdc
-
-	clientState, found := getClientState(clientStore, cdc)
-	if !found {
-		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
-	}
-
-	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
+func (LightClientModule) UpdateState(ctx sdk.Context, _ string, _ exported.ClientMessage) []exported.Height {
+	return []exported.Height{clienttypes.GetSelfHeight(ctx)}
 }
 
-// VerifyMembership obtains the localhost client state and calls into the clientState.VerifyMembership method.
+// VerifyMembership is a generic proof verification method which verifies the existence of a given key and value within the IBC store.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// The caller must provide the full IBC store.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyMembership(
@@ -98,19 +98,38 @@ func (l LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	ibcStore := ctx.KVStore(l.key)
-	cdc := l.cdc
 
-	clientState, found := getClientState(clientStore, cdc)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	// ensure the proof provided is the expected sentinel localhost client proof
+	if !bytes.Equal(proof, SentinelProof) {
+		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
 	}
 
-	return clientState.VerifyMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	if len(merklePath.GetKeyPath()) != 2 {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+	}
+
+	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
+	bz := ibcStore.Get(merklePath.KeyPath[1])
+	if bz == nil {
+		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
+	}
+
+	if !bytes.Equal(bz, value) {
+		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value provided does not equal value stored at path: %s", path)
+	}
+
+	return nil
 }
 
-// VerifyNonMembership obtains the localhost client state and calls into the clientState.VerifyNonMembership method.
+// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath within the IBC store.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// The caller must provide the full IBC store.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyNonMembership(
@@ -122,41 +141,45 @@ func (l LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	ibcStore := ctx.KVStore(l.key)
-	cdc := l.cdc
 
-	clientState, found := getClientState(clientStore, cdc)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	// ensure the proof provided is the expected sentinel localhost client proof
+	if !bytes.Equal(proof, SentinelProof) {
+		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
 	}
 
-	return clientState.VerifyNonMembership(ctx, ibcStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	if len(merklePath.GetKeyPath()) != 2 {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+	}
+
+	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
+	if ibcStore.Has(merklePath.KeyPath[1]) {
+		return errorsmod.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
+	}
+
+	return nil
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
-func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+func (LightClientModule) Status(_ sdk.Context, _ string) exported.Status {
 	return exported.Active
 }
 
-// LatestHeight returns the latest height for the client state for the given client identifier.
-// If no client is present for the provided client identifier a zero value height is returned.
+// LatestHeight returns the context height.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-
-	clientState, found := getClientState(clientStore, l.cdc)
-	if !found {
-		return clienttypes.ZeroHeight()
-	}
-
-	return clientState.LatestHeight
+func (LightClientModule) LatestHeight(ctx sdk.Context, _ string) exported.Height {
+	return clienttypes.GetSelfHeight(ctx)
 }
 
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
-func (LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
+func (LightClientModule) TimestampAtHeight(ctx sdk.Context, _ string, _ exported.Height) (uint64, error) {
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
@@ -166,6 +189,6 @@ func (LightClientModule) RecoverClient(_ sdk.Context, _, _ string) error {
 }
 
 // VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded.
-func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient, newConsState, upgradeClientProof, upgradeConsensusStateProof []byte) error {
+func (LightClientModule) VerifyUpgradeAndUpdateState(_ sdk.Context, _ string, _, _, _, _ []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }

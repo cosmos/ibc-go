@@ -140,11 +140,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	connectionMigrator := connectionkeeper.NewMigrator(am.keeper.ConnectionKeeper)
 	if err := cfg.RegisterMigration(exported.ModuleName, 3, func(ctx sdk.Context) error {
-		if err := connectionMigrator.Migrate3to4(ctx); err != nil {
-			return err
-		}
-
-		return clientMigrator.Migrate3to4(ctx)
+		return connectionMigrator.Migrate3to4(ctx)
 	}); err != nil {
 		panic(err)
 	}
@@ -160,8 +156,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	channelMigrator := channelkeeper.NewMigrator(am.keeper.ChannelKeeper)
-	err := cfg.RegisterMigration(exported.ModuleName, 5, channelMigrator.MigrateParams)
-	if err != nil {
+	if err := cfg.RegisterMigration(exported.ModuleName, 5, channelMigrator.MigrateParams); err != nil {
+		panic(err)
+	}
+
+	if err := cfg.RegisterMigration(exported.ModuleName, 6, clientMigrator.MigrateToStatelessLocalhost); err != nil {
 		panic(err)
 	}
 }
@@ -184,7 +183,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 6 }
+func (AppModule) ConsensusVersion() uint64 { return 7 }
 
 // BeginBlock returns the begin blocker for the ibc module.
 func (am AppModule) BeginBlock(ctx context.Context) error {

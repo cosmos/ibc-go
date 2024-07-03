@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -64,10 +63,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		},
 		{
 			"failure: 09-localhost client type not supported",
-			func() {
-				lhClientState := localhost.NewClientState(clienttypes.GetSelfHeight(suite.chainA.GetContext()))
-				clientState = suite.chainA.App.AppCodec().MustMarshal(lhClientState)
-			},
+			func() {},
 			exported.Localhost,
 			false,
 		},
