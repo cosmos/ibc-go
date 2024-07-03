@@ -107,8 +107,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.Require().NoError(relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)...))
-		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("ics20: packets are relayed", func(t *testing.T) {
@@ -121,6 +120,8 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ics27: verify interchain account", func(t *testing.T) {
 		res, err := query.GRPCQuery[controllertypes.QueryInterchainAccountResponse](ctx, chainA, &controllertypes.QueryInterchainAccountRequest{
