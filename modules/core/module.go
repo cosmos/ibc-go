@@ -164,7 +164,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		panic(err)
 	}
 
-	cfg.RegisterMigration(exported.ModuleName, 6, clientMigrator.MigrateStatelessLocalhost)
+	cfg.RegisterMigration(exported.ModuleName, 6, clientMigrator.MigrateToStatelessLocalhost)
 }
 
 // InitGenesis performs genesis initialization for the ibc module. It returns

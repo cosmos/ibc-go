@@ -51,7 +51,9 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	return nil
 }
 
-func (m Migrator) MigrateStatelessLocalhost(ctx sdk.Context) error {
+// MigrateToStatelessLocalhost deletes the localhost client state. The localhost
+// implementation is now stateless.
+func (m Migrator) MigrateToStatelessLocalhost(ctx sdk.Context) error {
 	clientStore := m.keeper.ClientStore(ctx, exported.LocalhostClientID)
 
 	// delete the client state

@@ -44,18 +44,18 @@ func (suite *KeeperTestSuite) TestMigrateParams() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMigrateStatelessLocalhost() {
+func (suite *KeeperTestSuite) TestMigrateToStatelessLocalhost() {
 	// set localhost in state
 	clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.LocalhostClientID)
 	clientStore.Set(host.ClientStateKey(), []byte("clientState"))
 
 	m := keeper.NewMigrator(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
-	err := m.MigrateStatelessLocalhost(suite.chainA.GetContext())
+	err := m.MigrateToStatelessLocalhost(suite.chainA.GetContext())
 	suite.Require().NoError(err)
 	suite.Require().False(clientStore.Has(host.ClientStateKey()))
 
 	// rerun migration on no localhost set
-	err = m.MigrateStatelessLocalhost(suite.chainA.GetContext())
+	err = m.MigrateToStatelessLocalhost(suite.chainA.GetContext())
 	suite.Require().NoError(err)
 	suite.Require().False(clientStore.Has(host.ClientStateKey()))
 }
