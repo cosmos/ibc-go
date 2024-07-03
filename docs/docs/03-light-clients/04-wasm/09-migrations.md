@@ -47,9 +47,9 @@ An example of the required changes in a client contract may look like:
 #[cw_serde]
 pub struct MerklePath {
 + #[schemars(with = "String")]
-+	#[serde(with = "Base64", default)]
-+	pub key_path: Vec<Bytes>,
--	pub key_path: Vec<String>,
++ #[serde(with = "Base64", default)]
++ pub key_path: Vec<Bytes>,
+- pub key_path: Vec<String>,
 }
 ```
 
@@ -91,9 +91,9 @@ An example of the required changes in a client contract may look like:
 #[cw_serde]
 pub struct MerklePath {
 + #[schemars(with = "String")]
-+	#[serde(with = "Base64", default)]
-+	pub key_path: Vec<Bytes>,
--	pub key_path: Vec<String>,
++ #[serde(with = "Base64", default)]
++ pub key_path: Vec<Bytes>,
+- pub key_path: Vec<String>,
 }
 ```
 
