@@ -6,6 +6,11 @@ on:
         required: false
         type: string
         default: '' # empty string means run all tests
+      temp-run-full-suite:
+        description: 'This flag exists to run a hard coded set of tests and will be phased out'
+        required: false
+        type: boolean
+        default: false
       test:
         description: 'test name to run as standalone'
         required: false
@@ -255,6 +260,8 @@ jobs:
           retention-days: 5
 
   e2e-test-suites:
+    # temporary flag. eventually this field will not exist and this will be the default.
+    if: ${{ inputs.temp-run-full-suite }}
     runs-on: ubuntu-latest
     needs:
       - build-test-matrix
