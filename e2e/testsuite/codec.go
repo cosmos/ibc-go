@@ -36,19 +36,12 @@ import (
 	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	simappparams "github.com/cosmos/ibc-go/v8/testing/simapp/params"
 )
 
 // Codec returns the global E2E protobuf codec.
 func Codec() *codec.ProtoCodec {
 	cdc, _ := codecAndEncodingConfig()
 	return cdc
-}
-
-// EncodingConfig returns the global E2E encoding config.
-func EncodingConfig() simappparams.EncodingConfig {
-	_, cfg := codecAndEncodingConfig()
-	return cfg
 }
 
 // SDKEncodingConfig returns the global E2E encoding config.
@@ -62,8 +55,8 @@ func SDKEncodingConfig() *testutil.TestEncodingConfig {
 	}
 }
 
-func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
-	cfg := simappparams.MakeTestEncodingConfig()
+func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
+	cfg := testutil.MakeTestEncodingConfig()
 
 	// ibc types
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)

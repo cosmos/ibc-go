@@ -149,7 +149,6 @@ var (
 )
 
 var (
-	_ runtime.AppI            = (*SimApp)(nil)
 	_ servertypes.Application = (*SimApp)(nil)
 )
 
