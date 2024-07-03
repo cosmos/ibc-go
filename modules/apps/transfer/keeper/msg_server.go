@@ -36,7 +36,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
-	if msg.Forwarding.Unwind {
+	if msg.Forwarding.GetUnwind() {
 		msg, err = k.unwindHops(ctx, msg)
 		if err != nil {
 			return nil, err
@@ -45,7 +45,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, coins, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Memo, msg.Forwarding.Hops)
+		msg.Memo, msg.Forwarding.GetHops())
 	if err != nil {
 		return nil, err
 	}

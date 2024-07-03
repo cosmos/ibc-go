@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 		sdk.NewCoins(ibctesting.TestCoin), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, "",
-		transfertypes.Forwarding{},
+		nil,
 	)
 
 	res, err := suite.chainA.SendMsgs(msgPayPacketFee, msgTransfer)
