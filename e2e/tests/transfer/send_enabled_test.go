@@ -6,8 +6,6 @@ import (
 	"context"
 	"testing"
 
-
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -26,15 +24,7 @@ func TestTransferTestSuiteSendEnabled(t *testing.T) {
 }
 
 type TransferTestSuiteSendEnabled struct {
-	TransferTester
-}
-
-// SetupTransferPath sets up a path between chainA and chainB with a transfer channel and returns the relayer wired
-// up to watch the channel and port IDs created.
-func (s *TransferTestSuiteSendEnabled) SetupTransferPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	relayer, channel := s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
-	s.T().Logf("test %s running on portID %s channelID %s", testName, channel.PortID, channel.ChannelID)
-	return relayer, channel
+	transferTester
 }
 
 func (s *TransferTestSuiteSendEnabled) SetupSuite() {
@@ -49,7 +39,7 @@ func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	// Note: explicitly no parallel in this test as it makes chain wide changes
+	// Note: explicitly not using t.Parallel() in this test as it makes chain wide changes
 	s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()

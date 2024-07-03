@@ -24,7 +24,7 @@ func TestTransferTestSuiteSendReceive(t *testing.T) {
 }
 
 type TransferTestSuiteSendReceive struct {
-	TransferTester
+	transferTester
 }
 
 func (s *TransferTestSuiteSendReceive) SetupSuite() {
@@ -39,7 +39,7 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	// Note: explicitly no parallel in this test as it makes chain wide changes
+	// Note: explicitly not using t.Parallel() in this test as it makes chain wide changes
 	s.SetupTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
