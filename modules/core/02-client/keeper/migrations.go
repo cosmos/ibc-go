@@ -31,7 +31,7 @@ func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 
 // Migrate3to4 migrates from consensus version 3 to 4.
 // This migration enables the localhost client.
-func (m Migrator) Migrate3to4(ctx sdk.Context) error {
+func (Migrator) Migrate3to4(ctx sdk.Context) error {
 	// localhost is now stateless, no changes necessary
 	return nil
 }

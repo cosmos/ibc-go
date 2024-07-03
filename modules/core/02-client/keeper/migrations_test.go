@@ -4,7 +4,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -46,7 +45,7 @@ func (suite *KeeperTestSuite) TestMigrateParams() {
 
 func (suite *KeeperTestSuite) TestMigrateToStatelessLocalhost() {
 	// set localhost in state
-	clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.LocalhostClientID)
+	clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), ibcexported.LocalhostClientID)
 	clientStore.Set(host.ClientStateKey(), []byte("clientState"))
 
 	m := keeper.NewMigrator(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)

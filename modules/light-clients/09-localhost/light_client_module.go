@@ -75,7 +75,7 @@ func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID str
 	// no-op
 }
 
-// UpdateState obtains the localhost client state and calls into the clientState.UpdateState method.
+// UpdateState performs a no-op and returns the context height in the updated heights return value.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
@@ -112,7 +112,7 @@ func (l LightClientModule) VerifyMembership(
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
-	bz := ibcStore.Get([]byte(merklePath.KeyPath[1]))
+	bz := ibcStore.Get(merklePath.KeyPath[1])
 	if bz == nil {
 		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
 	}
@@ -153,7 +153,7 @@ func (l LightClientModule) VerifyNonMembership(
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
-	if ibcStore.Has([]byte(merklePath.KeyPath[1])) {
+	if ibcStore.Has(merklePath.KeyPath[1]) {
 		return errorsmod.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
 	}
 
