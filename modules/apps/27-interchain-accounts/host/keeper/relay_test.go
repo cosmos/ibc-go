@@ -792,7 +792,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"@type": "/ibc.applications.transfer.v1.MsgTransfer",
 							"source_port": "transfer",
 							"source_channel": "` + transferPath.EndpointA.ChannelID + `",
-							"token": { "denom": "stake", "amount": "100" },
+							"tokens": [{ "denom": "stake", "amount": "100" }],
 							"sender": "` + icaAddress + `",
 							"receiver": "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk",
 							"timeout_height": { "revision_number": 1, "revision_height": 100 },

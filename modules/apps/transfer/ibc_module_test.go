@@ -394,14 +394,15 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			seq := uint64(1)
 			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
 
-			tc.malleate() // change fields in packet
-
 			ctx := suite.chainB.GetContext()
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(ctx, ibctesting.TransferPort)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
+
+			tc.malleate() // change fields in packet
+
 			ack := cbs.OnRecvPacket(ctx, packet, suite.chainB.SenderAccount.GetAddress())
 
 			suite.Require().Equal(tc.expAck, ack)
