@@ -1248,7 +1248,7 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	ackStr, err := parseAckFromTransferEvents(result.Events)
 	suite.Require().NoError(err)
 
-	expected := "error:\"forwarding packet failed on transfer/channel-1: forwarding packet failed on transfer/channel-1: ABCI code: 8: error handling packet: see events for details\" "
+	expected := fmt.Sprintf(`error:"forwarding packet failed on %s/%s: forwarding packet failed on %s/%s: ABCI code: 8: error handling packet: see events for details" `, pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, pathCtoD.EndpointA.ChannelConfig.PortID, pathCtoD.EndpointA.ChannelID)
 	suite.Require().Equal(expected, ackStr)
 }
 

@@ -3,7 +3,6 @@ package transfer_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 
 	sdkmath "cosmossdk.io/math"
@@ -284,7 +283,6 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 		packet             channeltypes.Packet
 		expectedAttributes []sdk.Attribute
 		path               *ibctesting.Path
-		recvChain          *ibctesting.TestChain
 	)
 	testCases := []struct {
 		name             string
@@ -307,11 +305,9 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					},
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(),
-					"", types.NewForwardingPacketData("", types.NewHop(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)),
+					"", types.NewForwardingPacketData("", types.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)),
 				)
 				packet.Data = packetData.GetBytes()
-
-				fmt.Printf("%+v\n", packetData.Forwarding.Hops)
 
 				forwardingHopsBz, err := json.Marshal(packetData.Forwarding.Hops)
 				suite.Require().NoError(err)
@@ -398,20 +394,15 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			seq := uint64(1)
 			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
 
-			recvChain = suite.chainB
-			fmt.Printf("%+v\n", path.EndpointA)
-
 			tc.malleate() // change fields in packet
 
-			ctx := recvChain.GetContext()
-			module, _, err := recvChain.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(ctx, ibctesting.TransferPort)
+			ctx := suite.chainB.GetContext()
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(ctx, ibctesting.TransferPort)
 			suite.Require().NoError(err)
 
-			cbs, ok := recvChain.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
-			ack := cbs.OnRecvPacket(ctx, packet, recvChain.SenderAccount.GetAddress())
-
-			fmt.Printf("%+v\n", string(ack.Acknowledgement()))
+			ack := cbs.OnRecvPacket(ctx, packet, suite.chainB.SenderAccount.GetAddress())
 
 			suite.Require().Equal(tc.expAck, ack)
 
