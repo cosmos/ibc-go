@@ -270,7 +270,7 @@ func (s *E2ETestSuite) GetChainAChannel() ibc.ChannelOutput {
 	return s.GetChainChannel(ChainChannelPair{ChainIdx: 0, ChannelIdx: 0})
 }
 
-// GetChainChannel returns the ibc.ChannelOutput for a specific
+// GetChainChannel returns the ibc.ChannelOutput at the specified index for a specific
 // entry in the list of chains.
 func (s *E2ETestSuite) GetChainChannel(id ChainChannelPair) ibc.ChannelOutput {
 	chains := s.GetAllChains()
