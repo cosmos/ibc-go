@@ -36,7 +36,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 			func() {
 				clientState := suite.chain.GetClientState(exported.LocalhostClientID)
 
-				merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(exported.LocalhostClientID))
+				merklePath := commitmenttypes.NewMerklePath(host.FullClientStateKey(exported.LocalhostClientID))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -57,7 +57,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 
 				suite.chain.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chain.GetContext(), exported.LocalhostConnectionID, connectionEnd)
 
-				merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(exported.LocalhostConnectionID))
+				merklePath := commitmenttypes.NewMerklePath(host.ConnectionKey(exported.LocalhostConnectionID))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -79,7 +79,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 
 				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, channel)
 
-				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(mock.PortID, ibctesting.FirstChannelID))
+				merklePath := commitmenttypes.NewMerklePath(host.ChannelKey(mock.PortID, ibctesting.FirstChannelID))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -94,7 +94,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				nextSeqRecv := uint64(100)
 				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, nextSeqRecv)
 
-				merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(mock.PortID, ibctesting.FirstChannelID))
+				merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvKey(mock.PortID, ibctesting.FirstChannelID))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -120,7 +120,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				commitmentBz := channeltypes.CommitPacket(suite.chain.Codec, packet)
 				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1, commitmentBz)
 
-				merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence()))
+				merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence()))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -134,7 +134,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 			func() {
 				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1, ibctesting.MockAcknowledgement)
 
-				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(mock.PortID, ibctesting.FirstChannelID, 1))
+				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementKey(mock.PortID, ibctesting.FirstChannelID, 1))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -153,14 +153,14 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 		{
 			"key path has too many elements",
 			func() {
-				path = commitmenttypes.NewMerklePath("ibc", "test", "key")
+				path = commitmenttypes.NewMerklePath([]byte("ibc"), []byte("test"), []byte("key"))
 			},
 			false,
 		},
 		{
 			"no value found at provided key path",
 			func() {
-				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(mock.PortID, ibctesting.FirstChannelID, 100))
+				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementKey(mock.PortID, ibctesting.FirstChannelID, 100))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -182,7 +182,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 
 				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, channel)
 
-				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(mock.PortID, ibctesting.FirstChannelID))
+				merklePath := commitmenttypes.NewMerklePath(host.ChannelKey(mock.PortID, ibctesting.FirstChannelID))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -237,7 +237,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 		{
 			"success: packet receipt absence verification",
 			func() {
-				merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(mock.PortID, ibctesting.FirstChannelID, 1))
+				merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptKey(mock.PortID, ibctesting.FirstChannelID, 1))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -250,7 +250,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 			func() {
 				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1)
 
-				merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(mock.PortID, ibctesting.FirstChannelID, 1))
+				merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptKey(mock.PortID, ibctesting.FirstChannelID, 1))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -268,7 +268,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 		{
 			"key path has too many elements",
 			func() {
-				path = commitmenttypes.NewMerklePath("ibc", "test", "key")
+				path = commitmenttypes.NewMerklePath([]byte("ibc"), []byte("test"), []byte("key"))
 			},
 			false,
 		},

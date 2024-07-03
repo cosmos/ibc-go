@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
 	math "math"
@@ -82,8 +83,120 @@ func (m *Params) GetReceiveEnabled() bool {
 	return false
 }
 
+// Forwarding defines a list of port ID, channel ID pairs determining the path
+// through which a packet must be forwarded, and an unwind boolean indicating if
+// the coin should be unwinded to its native chain before forwarding.
+type Forwarding struct {
+	// optional unwinding for the token transfered
+	Unwind bool `protobuf:"varint,1,opt,name=unwind,proto3" json:"unwind,omitempty"`
+	// optional intermediate path through which packet will be forwarded
+	Hops []Hop `protobuf:"bytes,2,rep,name=hops,proto3" json:"hops"`
+}
+
+func (m *Forwarding) Reset()         { *m = Forwarding{} }
+func (m *Forwarding) String() string { return proto.CompactTextString(m) }
+func (*Forwarding) ProtoMessage()    {}
+func (*Forwarding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5041673e96e97901, []int{1}
+}
+func (m *Forwarding) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Forwarding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Forwarding.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Forwarding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Forwarding.Merge(m, src)
+}
+func (m *Forwarding) XXX_Size() int {
+	return m.Size()
+}
+func (m *Forwarding) XXX_DiscardUnknown() {
+	xxx_messageInfo_Forwarding.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Forwarding proto.InternalMessageInfo
+
+func (m *Forwarding) GetUnwind() bool {
+	if m != nil {
+		return m.Unwind
+	}
+	return false
+}
+
+func (m *Forwarding) GetHops() []Hop {
+	if m != nil {
+		return m.Hops
+	}
+	return nil
+}
+
+// Hop defines a port ID, channel ID pair specifying where tokens must be forwarded
+// next in a multihop transfer.
+type Hop struct {
+	PortId    string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
+	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+}
+
+func (m *Hop) Reset()      { *m = Hop{} }
+func (*Hop) ProtoMessage() {}
+func (*Hop) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5041673e96e97901, []int{2}
+}
+func (m *Hop) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Hop) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Hop.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Hop) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Hop.Merge(m, src)
+}
+func (m *Hop) XXX_Size() int {
+	return m.Size()
+}
+func (m *Hop) XXX_DiscardUnknown() {
+	xxx_messageInfo_Hop.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Hop proto.InternalMessageInfo
+
+func (m *Hop) GetPortId() string {
+	if m != nil {
+		return m.PortId
+	}
+	return ""
+}
+
+func (m *Hop) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*Params)(nil), "ibc.applications.transfer.v1.Params")
+	proto.RegisterType((*Forwarding)(nil), "ibc.applications.transfer.v1.Forwarding")
+	proto.RegisterType((*Hop)(nil), "ibc.applications.transfer.v1.Hop")
 }
 
 func init() {
@@ -91,21 +204,28 @@ func init() {
 }
 
 var fileDescriptor_5041673e96e97901 = []byte{
-	// 214 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0xce, 0x4c, 0x4a, 0xd6,
-	0x4f, 0x2c, 0x28, 0xc8, 0xc9, 0x4c, 0x4e, 0x2c, 0xc9, 0xcc, 0xcf, 0x2b, 0xd6, 0x2f, 0x29, 0x4a,
-	0xcc, 0x2b, 0x4e, 0x4b, 0x2d, 0xd2, 0x2f, 0x33, 0x84, 0xb3, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2,
-	0x85, 0x64, 0x32, 0x93, 0x92, 0xf5, 0x90, 0x15, 0xeb, 0xc1, 0x15, 0x94, 0x19, 0x2a, 0x85, 0x70,
-	0xb1, 0x05, 0x24, 0x16, 0x25, 0xe6, 0x16, 0x0b, 0x29, 0x72, 0xf1, 0x14, 0xa7, 0xe6, 0xa5, 0xc4,
-	0xa7, 0xe6, 0x25, 0x26, 0xe5, 0xa4, 0xa6, 0x48, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x04, 0x71, 0x83,
-	0xc4, 0x5c, 0x21, 0x42, 0x42, 0xea, 0x5c, 0xfc, 0x45, 0xa9, 0xc9, 0xa9, 0x99, 0x65, 0xa9, 0x70,
-	0x55, 0x4c, 0x60, 0x55, 0x7c, 0x50, 0x61, 0xa8, 0x42, 0xa7, 0xc0, 0x13, 0x8f, 0xe4, 0x18, 0x2f,
-	0x3c, 0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e, 0x71, 0xc2, 0x63, 0x39, 0x86, 0x0b, 0x8f, 0xe5, 0x18,
-	0x6e, 0x3c, 0x96, 0x63, 0x88, 0x32, 0x4f, 0xcf, 0x2c, 0xc9, 0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf,
-	0xd5, 0x4f, 0xce, 0x2f, 0xce, 0xcd, 0x2f, 0xd6, 0xcf, 0x4c, 0x4a, 0xd6, 0x4d, 0xcf, 0xd7, 0x2f,
-	0xb3, 0xd0, 0xcf, 0xcd, 0x4f, 0x29, 0xcd, 0x49, 0x2d, 0x06, 0x79, 0x0d, 0xc9, 0x4b, 0x25, 0x95,
-	0x05, 0xa9, 0xc5, 0x49, 0x6c, 0x60, 0xdf, 0x18, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0xc7, 0x93,
-	0x43, 0xf8, 0xfc, 0x00, 0x00, 0x00,
+	// 332 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x91, 0xcf, 0x4a, 0xc3, 0x40,
+	0x10, 0x87, 0x93, 0xb6, 0x44, 0xbb, 0x15, 0x85, 0x45, 0xb4, 0x88, 0xa6, 0x7f, 0x2e, 0x16, 0xc4,
+	0x2c, 0xd5, 0x83, 0xa2, 0xb7, 0x8a, 0xd2, 0xde, 0xb4, 0x78, 0xf2, 0x52, 0x36, 0x9b, 0x35, 0x5d,
+	0x48, 0x76, 0x96, 0xdd, 0x34, 0xc5, 0xb7, 0xf0, 0xe8, 0xd1, 0xc7, 0xe9, 0xb1, 0x47, 0x4f, 0x22,
+	0xed, 0x8b, 0x48, 0xd2, 0x58, 0x7a, 0xf2, 0x36, 0xf3, 0xcd, 0x37, 0xc3, 0xb2, 0x3f, 0x74, 0x26,
+	0x7c, 0x46, 0xa8, 0x52, 0x91, 0x60, 0x34, 0x11, 0x20, 0x0d, 0x49, 0x34, 0x95, 0xe6, 0x95, 0x6b,
+	0x92, 0x76, 0xd7, 0xb5, 0xa7, 0x34, 0x24, 0x80, 0x8f, 0x85, 0xcf, 0xbc, 0x4d, 0xd9, 0x5b, 0x0b,
+	0x69, 0xf7, 0x68, 0x3f, 0x84, 0x10, 0x72, 0x91, 0x64, 0xd5, 0x6a, 0xa7, 0xfd, 0x8c, 0x9c, 0x47,
+	0xaa, 0x69, 0x6c, 0x70, 0x0b, 0xed, 0x18, 0x2e, 0x83, 0x11, 0x97, 0xd4, 0x8f, 0x78, 0x50, 0xb7,
+	0x9b, 0x76, 0x67, 0x7b, 0x58, 0xcb, 0xd8, 0xfd, 0x0a, 0xe1, 0x53, 0xb4, 0xa7, 0x39, 0xe3, 0x22,
+	0xe5, 0x6b, 0xab, 0x94, 0x5b, 0xbb, 0x05, 0x2e, 0xc4, 0x36, 0x45, 0xe8, 0x01, 0xf4, 0x94, 0xea,
+	0x40, 0xc8, 0x10, 0x1f, 0x20, 0x67, 0x22, 0xa7, 0x42, 0xfe, 0xdd, 0x2c, 0x3a, 0x7c, 0x8b, 0x2a,
+	0x63, 0x50, 0xa6, 0x5e, 0x6a, 0x96, 0x3b, 0xb5, 0x8b, 0x96, 0xf7, 0xdf, 0xf3, 0xbd, 0x3e, 0xa8,
+	0x5e, 0x65, 0xf6, 0xdd, 0xb0, 0x86, 0xf9, 0x52, 0xfb, 0x0e, 0x95, 0xfb, 0xa0, 0xf0, 0x21, 0xda,
+	0x52, 0xa0, 0x93, 0x91, 0x58, 0x1d, 0xaf, 0x0e, 0x9d, 0xac, 0x1d, 0x04, 0xf8, 0x04, 0x21, 0x36,
+	0xa6, 0x52, 0xf2, 0x28, 0x9b, 0x95, 0xf2, 0x59, 0xb5, 0x20, 0x83, 0xe0, 0xa6, 0xf2, 0xf1, 0xd9,
+	0xb0, 0x7a, 0x4f, 0xb3, 0x85, 0x6b, 0xcf, 0x17, 0xae, 0xfd, 0xb3, 0x70, 0xed, 0xf7, 0xa5, 0x6b,
+	0xcd, 0x97, 0xae, 0xf5, 0xb5, 0x74, 0xad, 0x97, 0xab, 0x50, 0x24, 0xe3, 0x89, 0xef, 0x31, 0x88,
+	0x09, 0x03, 0x13, 0x83, 0x21, 0xc2, 0x67, 0xe7, 0x21, 0x90, 0xf4, 0x9a, 0xc4, 0x10, 0x4c, 0x22,
+	0x6e, 0xb2, 0x60, 0x36, 0x02, 0x49, 0xde, 0x14, 0x37, 0xbe, 0x93, 0xff, 0xeb, 0xe5, 0x6f, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0x47, 0xd5, 0x1b, 0x06, 0xba, 0x01, 0x00, 0x00,
 }
 
 func (m *Params) Marshal() (dAtA []byte, err error) {
@@ -151,6 +271,90 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Forwarding) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Forwarding) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Forwarding) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Hops) > 0 {
+		for iNdEx := len(m.Hops) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Hops[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTransfer(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.Unwind {
+		i--
+		if m.Unwind {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Hop) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Hop) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Hop) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintTransfer(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.PortId) > 0 {
+		i -= len(m.PortId)
+		copy(dAtA[i:], m.PortId)
+		i = encodeVarintTransfer(dAtA, i, uint64(len(m.PortId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTransfer(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTransfer(v)
 	base := offset
@@ -173,6 +377,41 @@ func (m *Params) Size() (n int) {
 	}
 	if m.ReceiveEnabled {
 		n += 2
+	}
+	return n
+}
+
+func (m *Forwarding) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Unwind {
+		n += 2
+	}
+	if len(m.Hops) > 0 {
+		for _, e := range m.Hops {
+			l = e.Size()
+			n += 1 + l + sovTransfer(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *Hop) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.PortId)
+	if l > 0 {
+		n += 1 + l + sovTransfer(uint64(l))
+	}
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovTransfer(uint64(l))
 	}
 	return n
 }
@@ -252,6 +491,224 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.ReceiveEnabled = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTransfer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTransfer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Forwarding) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTransfer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Forwarding: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Forwarding: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Unwind", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTransfer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Unwind = bool(v != 0)
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hops", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTransfer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTransfer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTransfer
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Hops = append(m.Hops, Hop{})
+			if err := m.Hops[len(m.Hops)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTransfer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTransfer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Hop) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTransfer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Hop: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Hop: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PortId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTransfer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTransfer
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTransfer
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PortId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTransfer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTransfer
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTransfer
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTransfer(dAtA[iNdEx:])
