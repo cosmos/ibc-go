@@ -34,7 +34,7 @@ func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientK
 
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		if !ok {
-			return 0, errorsmod.Wrapf(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint, %s", clientID)
+			return 0, errorsmod.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 		}
 
 		totalPruned += ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)

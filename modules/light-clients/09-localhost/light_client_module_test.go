@@ -132,7 +132,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 		{
 			"failure: stateless client state verification",
 			func() {
-				clientState := suite.chain.GetClientState(exported.LocalhostClientID)
+				clientState := localhost.NewClientState(clienttypes.GetSelfHeight(suite.chain.GetContext()))
 
 				merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(exported.LocalhostClientID))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)

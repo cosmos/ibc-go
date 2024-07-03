@@ -99,10 +99,6 @@ func (k *Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) st
 
 // GetClientState gets a particular client from the store
 func (k *Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
-	if clientID == exported.LocalhostClientID {
-		return localhost.NewClientState(types.GetSelfHeight(ctx)), true
-	}
-
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ClientStateKey())
 	if len(bz) == 0 {
