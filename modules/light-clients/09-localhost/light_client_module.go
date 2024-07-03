@@ -51,38 +51,40 @@ func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientS
 	l.storeProvider = storeProvider
 }
 
-// Initialize returns an error because it is stateless
+// Initialize returns an error because it is stateless.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) Initialize(ctx sdk.Context, clientID string, clientState, consensusStateBz []byte) error {
+func (LightClientModule) Initialize(_ sdk.Context, _ string, _, _ []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrClientExists, "localhost is stateless and cannot be initialized")
 }
 
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (LightClientModule) VerifyClientMessage(_ sdk.Context, _ string, _ exported.ClientMessage) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
 
 // CheckForMisbehaviour is unsupported by the 09-localhost client type and performs a no-op, returning false.
-func (LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (LightClientModule) CheckForMisbehaviour(_ sdk.Context, _ string, _ exported.ClientMessage) bool {
 	return false
 }
 
 // UpdateStateOnMisbehaviour is unsupported by the 09-localhost client type and performs a no-op.
-func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+func (LightClientModule) UpdateStateOnMisbehaviour(_ sdk.Context, _ string, _ exported.ClientMessage) {
 	// no-op
 }
 
 // UpdateState performs a no-op and returns the context height in the updated heights return value.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+func (LightClientModule) UpdateState(ctx sdk.Context, _ string, _ exported.ClientMessage) []exported.Height {
 	return []exported.Height{clienttypes.GetSelfHeight(ctx)}
 }
 
-// VerifyMembership obtains the localhost client state and calls into the clientState.VerifyMembership method.
+// VerifyMembership is a generic proof verification method which verifies the existence of a given key and value within the IBC store.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// The caller must provide the full IBC store.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyMembership(
@@ -124,7 +126,9 @@ func (l LightClientModule) VerifyMembership(
 	return nil
 }
 
-// VerifyNonMembership obtains the localhost client state and calls into the clientState.VerifyNonMembership method.
+// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath within the IBC store.
+// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
+// The caller must provide the full IBC store.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyNonMembership(
@@ -161,21 +165,20 @@ func (l LightClientModule) VerifyNonMembership(
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
-func (LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+func (LightClientModule) Status(_ sdk.Context, _ string) exported.Status {
 	return exported.Active
 }
 
-// LatestHeight returns the latest height for the client state for the given client identifier.
-// If no client is present for the provided client identifier a zero value height is returned.
+// LatestHeight returns the context height.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+func (LightClientModule) LatestHeight(ctx sdk.Context, _ string) exported.Height {
 	return clienttypes.GetSelfHeight(ctx)
 }
 
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
-func (LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
+func (LightClientModule) TimestampAtHeight(ctx sdk.Context, _ string, _ exported.Height) (uint64, error) {
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
@@ -185,6 +188,6 @@ func (LightClientModule) RecoverClient(_ sdk.Context, _, _ string) error {
 }
 
 // VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded.
-func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient, newConsState, upgradeClientProof, upgradeConsensusStateProof []byte) error {
+func (LightClientModule) VerifyUpgradeAndUpdateState(_ sdk.Context, _ string, _, _, _, _ []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }

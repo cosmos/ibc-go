@@ -26,7 +26,7 @@ applications on a single chain, using the familiar IBC application layer semanti
 
 ### Implementation
 
-There exists a [single sentinel `ClientState`](03-client-state.md) with the client identifier `09-localhost`. The light
+There exists a localhost light client module which can be invoked with the client identifier `09-localhost`. The light
 client is stateless, so the `ClientState` is constructed on demand when required.
 
 To supplement this, a [sentinel `ConnectionEnd` is stored in core IBC](04-connection.md) state with the connection
@@ -48,10 +48,9 @@ The table below lists some important differences:
 |----------------------------------------------|-----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
 | Number of clients                            | Many instances of a client *type* corresponding to different counterparties | A single sentinel client with the client identifier `09-localhost`                                                           |
 | Client creation                              | Relayer (permissionless)                                                    | Implicitly made available by the 02-client submodule in core IBC                                                             |
-| Client updates                               | Relayer submits headers using `MsgUpdateClient`                             | No client updates are required as the `ClientState` is constructed with the latest height when queried                       |
+| Client updates                               | Relayer submits headers using `MsgUpdateClient`                             | No client updates are required as the localhost implementation is stateless                                                  |
 | Number of connections                        | Many connections, 1 (or more) per client                                    | A single sentinel connection with the connection identifier `connection-localhost`                                           |
 | Connection creation                          | Connection handshake, provided underlying client                            | Sentinel `ConnectionEnd` is created and set in store in the `InitGenesis` handler of the 03-connection submodule in core IBC |
 | Counterparty                                 | Underlying client, representing another chain                               | Client with identifier `09-localhost` in same chain                                                                          |
 | `VerifyMembership` and `VerifyNonMembership` | Performs proof verification using consensus state roots                     | Performs state verification using key-value lookups in the core IBC store                                                    |
-| Integration                                  | Expected to register codec types using the `AppModuleBasic` interface       | Registers codec types within the core IBC module                                                                             |
 | `ClientState` storage                        | `ClientState` stored and directly provable with `VerifyMembership`          | Stateless, so `ClientState` is not provable directly with `VerifyMembership`                                                 |
