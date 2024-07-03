@@ -55,13 +55,11 @@ type E2ETestSuite struct {
 	// chains is a list of chains that are created for the test suite.
 	// each test suite has a single slice of chains that are used for all individual test
 	// cases.
-	chains         []ibc.Chain
-	relayers       relayer.Map
-	logger         *zap.Logger
-	DockerClient   *dockerclient.Client
-	network        string
-	startRelayerFn func(relayer ibc.Relayer, testName string)
-	channelLock    sync.Mutex
+	chains       []ibc.Chain
+	relayers     relayer.Map
+	logger       *zap.Logger
+	DockerClient *dockerclient.Client
+	network      string
 
 	// pathNameIndex is the latest index to be used for generating chains
 	pathNameIndex int64
@@ -71,6 +69,8 @@ type E2ETestSuite struct {
 	testPaths     map[string][]string
 	channels      map[string]map[ibc.Chain][]ibc.ChannelOutput
 
+	// channelLock ensures concurrent tests are not creating and accessing channels as the same time.
+	channelLock sync.Mutex
 	// relayerLock ensures concurrent tests are not accessing the pool of relayers as the same time.
 	relayerLock sync.Mutex
 	// relayerPool is a pool of relayers that can be used in tests.
@@ -180,7 +180,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 
 	s.relayerPool = s.initalizeRelayerPool(chainOptions.RelayerCount)
 
-	ic := s.newInterchain(ctx, s.relayerPool, s.chains, channelOptionsModifier)
+	ic := s.newInterchain(s.relayerPool, s.chains, channelOptionsModifier)
 
 	buildOpts := interchaintest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
@@ -330,8 +330,8 @@ func (s *E2ETestSuite) GetRelayerForTest(testName string) ibc.Relayer {
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
-func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOptionConfiguration) (ibc.Wallet, ibc.Wallet) {
-	chains := s.GetAllChains(chainOpts...)
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context) (ibc.Wallet, ibc.Wallet) {
+	chains := s.GetAllChains()
 	chainA, chainB := chains[0], chains[1]
 	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
 	s.Require().NoError(err)
@@ -356,7 +356,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 type ChainOptionModifier func(chainA, chainB ibc.Chain) func(options *ibc.CreateChannelOptions)
 
 // newInterchain constructs a new interchain instance that creates channels between the chains.
-func (s *E2ETestSuite) newInterchain(ctx context.Context, relayers []ibc.Relayer, chains []ibc.Chain, modificationProvider ChainOptionModifier) *interchaintest.Interchain {
+func (s *E2ETestSuite) newInterchain(relayers []ibc.Relayer, chains []ibc.Chain, modificationProvider ChainOptionModifier) *interchaintest.Interchain {
 	ic := interchaintest.NewInterchain()
 	for _, chain := range chains {
 		ic.AddChain(chain)
@@ -390,18 +390,6 @@ func (s *E2ETestSuite) newInterchain(ctx context.Context, relayers []ibc.Relayer
 				CreateChannelOpts: channelOpts,
 			})
 		}
-	}
-
-	s.startRelayerFn = func(relayer ibc.Relayer, testName string) {
-		s.Require().NoError(relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)...), "failed to start relayer")
-
-		var chainHeighters []test.ChainHeighter
-		for _, c := range chains {
-			chainHeighters = append(chainHeighters, c)
-		}
-
-		// wait for every chain to produce some blocks before using the relayer.
-		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainHeighters...), "failed to wait for blocks")
 	}
 
 	return ic
@@ -459,14 +447,14 @@ func (s *E2ETestSuite) UpdateClients(ctx context.Context, ibcrelayer ibc.Relayer
 
 // GetChains returns two chains that can be used in a test. The pair returned
 // is unique to the current test being run. Note: this function does not create containers.
-func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Chain, ibc.Chain) {
-	chains := s.GetAllChains(chainOpts...)
+func (s *E2ETestSuite) GetChains() (ibc.Chain, ibc.Chain) {
+	chains := s.GetAllChains()
 	return chains[0], chains[1]
 }
 
 // GetAllChains returns all chains that can be used in a test. The chains returned
 // are unique to the current test being run. Note: this function does not create containers.
-func (s *E2ETestSuite) GetAllChains(chainOpts ...ChainOptionConfiguration) []ibc.Chain {
+func (s *E2ETestSuite) GetAllChains() []ibc.Chain {
 	// chains are stored on a per test suite level
 	chains := s.chains
 	s.Require().NotEmpty(chains, "chains not found for test %s", s.testSuiteName)
@@ -510,12 +498,17 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc
 }
 
 // StartRelayer starts the given ibcrelayer.
-func (s *E2ETestSuite) StartRelayer(ibcrelayer ibc.Relayer, testName string) {
-	if s.startRelayerFn == nil {
-		panic(errors.New("cannot start relayer before it is created"))
+func (s *E2ETestSuite) StartRelayer(r ibc.Relayer, testName string) {
+	s.Require().NoError(r.StartRelayer(context.TODO(), s.GetRelayerExecReporter(), s.GetPaths(testName)...), "failed to start relayer")
+
+	chains := s.GetAllChains()
+	var chainHeighters []test.ChainHeighter
+	for _, c := range chains {
+		chainHeighters = append(chainHeighters, c)
 	}
 
-	s.startRelayerFn(ibcrelayer, testName)
+	// wait for every chain to produce some blocks before using the relayer.
+	s.Require().NoError(test.WaitForBlocks(context.TODO(), 10, chainHeighters...), "failed to wait for blocks")
 }
 
 // StopRelayer stops the given ibcrelayer.
