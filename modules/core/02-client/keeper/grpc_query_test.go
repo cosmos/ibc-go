@@ -787,7 +787,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 
 				channelProof, proofHeight := path.EndpointB.QueryProof(host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 
-				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+				merklePath := commitmenttypes.NewMerklePath(host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -874,7 +874,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 					ClientId:    ibctesting.FirstClientID,
 					Proof:       []byte{0x01},
 					ProofHeight: types.NewHeight(1, 100),
-					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					MerklePath:  commitmenttypes.NewMerklePath([]byte("/ibc"), host.ChannelKey(mock.PortID, ibctesting.FirstChannelID)),
 				}
 			},
 			errors.New("empty value"),
@@ -886,7 +886,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 					ClientId:    wasmClientID, // use a client type that is not registered
 					Proof:       []byte{0x01},
 					ProofHeight: types.NewHeight(1, 100),
-					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					MerklePath:  commitmenttypes.NewMerklePath([]byte("/ibc"), host.ChannelKey(mock.PortID, ibctesting.FirstChannelID)),
 					Value:       []byte{0x01},
 				}
 			},
@@ -902,7 +902,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 					ClientId:    path.EndpointA.ClientID,
 					Proof:       []byte{0x01},
 					ProofHeight: types.NewHeight(1, 100),
-					MerklePath:  commitmenttypes.NewMerklePath("/ibc", host.ChannelPath(mock.PortID, ibctesting.FirstChannelID)),
+					MerklePath:  commitmenttypes.NewMerklePath([]byte("/ibc"), host.ChannelKey(mock.PortID, ibctesting.FirstChannelID)),
 					Value:       []byte{0x01},
 				}
 			},
