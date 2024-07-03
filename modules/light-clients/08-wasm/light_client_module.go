@@ -260,16 +260,9 @@ func (l LightClientModule) VerifyMembership(
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
+			Path:             merklePath,
 			Value:            value,
 		},
-	}
-
-	// NOTE(Backwards compatibility): Encode merkle path to legacy merkle path (string key) if it contains valid utf8 bytes.
-	// Otherwise encode the merkle path bytes to JSON as base64 encoded string.
-	if internaltypes.IsValidUTF8(merklePath.KeyPath) {
-		payload.VerifyMembership.Path = internaltypes.ToLegacyMerklePath(merklePath)
-	} else {
-		payload.VerifyMembership.MerklePath = &merklePath
 	}
 
 	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
@@ -322,15 +315,8 @@ func (l LightClientModule) VerifyNonMembership(
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
+			Path:             merklePath,
 		},
-	}
-
-	// NOTE(Backwards compatibility): Encode merkle path to legacy merkle path (string key) if it contains valid utf8 bytes.
-	// Otherwise encode the merkle path bytes to JSON as base64 encoded string.
-	if internaltypes.IsValidUTF8(merklePath.KeyPath) {
-		payload.VerifyNonMembership.Path = internaltypes.ToLegacyMerklePath(merklePath)
-	} else {
-		payload.VerifyNonMembership.MerklePath = &merklePath
 	}
 
 	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)

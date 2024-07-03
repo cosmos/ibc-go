@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -414,46 +413,8 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
 					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
+					suite.Require().Equal(path, payload.VerifyMembership.Path)
 					suite.Require().Equal(value, payload.VerifyMembership.Value)
-
-					mpath, ok := path.(commitmenttypesv2.MerklePath)
-					suite.Require().True(ok)
-					suite.Require().Equal(internaltypes.ToLegacyMerklePath(mpath), payload.VerifyMembership.Path)
-
-					bz, err := json.Marshal(types.EmptyResult{})
-					suite.Require().NoError(err)
-
-					expClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
-					store.Set(host.ClientStateKey(), expClientStateBz)
-
-					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: bz}}, wasmtesting.DefaultGasUsed, nil
-				})
-			},
-			nil,
-		},
-		{
-			"success: with non utf-8 key path",
-			func() {
-				path = commitmenttypes.NewMerklePath([]byte{0xff, 0xfe, 0xfd}) // invalid utf8 bytes
-				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
-					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-				) (*wasmvmtypes.ContractResult, uint64, error) {
-					var payload types.SudoMsg
-					err := json.Unmarshal(sudoMsg, &payload)
-					suite.Require().NoError(err)
-
-					suite.Require().NotNil(payload.VerifyMembership)
-					suite.Require().Nil(payload.UpdateState)
-					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
-					suite.Require().Nil(payload.VerifyNonMembership)
-					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
-					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
-					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
-					suite.Require().Equal(value, payload.VerifyMembership.Value)
-
-					mpath, ok := path.(commitmenttypesv2.MerklePath)
-					suite.Require().True(ok)
-					suite.Require().Equal(&mpath, payload.VerifyMembership.MerklePath)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -580,10 +541,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
-
-					mpath, ok := path.(commitmenttypesv2.MerklePath)
-					suite.Require().True(ok)
-					suite.Require().Equal(internaltypes.ToLegacyMerklePath(mpath), payload.VerifyNonMembership.Path)
+					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -610,44 +568,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
-
-					mpath, ok := path.(commitmenttypesv2.MerklePath)
-					suite.Require().True(ok)
-					suite.Require().Equal(internaltypes.ToLegacyMerklePath(mpath), payload.VerifyNonMembership.Path)
-
-					bz, err := json.Marshal(types.EmptyResult{})
-					suite.Require().NoError(err)
-
-					expClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
-					store.Set(host.ClientStateKey(), expClientStateBz)
-
-					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: bz}}, wasmtesting.DefaultGasUsed, nil
-				})
-			},
-			nil,
-		},
-		{
-			"success: with with non utf-8 key path",
-			func() {
-				path = commitmenttypes.NewMerklePath([]byte{0xff, 0xfe, 0xfd}) // invalid utf8 bytes
-				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
-					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
-				) (*wasmvmtypes.ContractResult, uint64, error) {
-					var payload types.SudoMsg
-					err := json.Unmarshal(sudoMsg, &payload)
-					suite.Require().NoError(err)
-
-					suite.Require().NotNil(payload.VerifyNonMembership)
-					suite.Require().Nil(payload.UpdateState)
-					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
-					suite.Require().Nil(payload.VerifyMembership)
-					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
-					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
-
-					mpath, ok := path.(commitmenttypesv2.MerklePath)
-					suite.Require().True(ok)
-					suite.Require().Equal(&mpath, payload.VerifyNonMembership.MerklePath)
+					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
