@@ -14,7 +14,7 @@ import (
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
@@ -249,9 +249,9 @@ func (l LightClientModule) VerifyMembership(
 		)
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	payload := types.SudoMsg{
@@ -264,6 +264,7 @@ func (l LightClientModule) VerifyMembership(
 			Value:            value,
 		},
 	}
+
 	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	return err
 }
@@ -303,9 +304,9 @@ func (l LightClientModule) VerifyNonMembership(
 		)
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	payload := types.SudoMsg{
@@ -317,6 +318,7 @@ func (l LightClientModule) VerifyNonMembership(
 			Path:             merklePath,
 		},
 	}
+
 	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	return err
 }
