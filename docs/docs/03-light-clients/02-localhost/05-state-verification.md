@@ -5,7 +5,6 @@ sidebar_position: 5
 slug: /ibc/light-clients/localhost/state-verification
 ---
 
-
 # State verification
 
 The localhost client handles state verification through the `LightClientModule` interface methods `VerifyMembership` and `VerifyNonMembership` by performing read-only operations directly on the core IBC store.
@@ -22,4 +21,3 @@ var SentinelProof = []byte{0x01}
 ```
 
 The `ClientState` of `09-localhost` is stateless, so it is not directly provable with `VerifyMembership` or `VerifyNonMembership`. 
-
