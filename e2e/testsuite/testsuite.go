@@ -251,7 +251,10 @@ func (s *E2ETestSuite) CreatePath(
 
 	s.createChannelWithLock(ctx, r, pathName, testName, channelOpts, chainA, chainB)
 
-	return s.channels[testName][chainA][0], s.channels[testName][chainB][0]
+	aChannels := s.channels[testName][chainA]
+	bChannels := s.channels[testName][chainB]
+
+	return aChannels[len(aChannels)-1], bChannels[len(bChannels)-1]
 }
 
 // createChannelWithLock creates a channel between the two provided chains for the given test name. This applies a lock
@@ -271,9 +274,13 @@ func (s *E2ETestSuite) createChannelWithLock(ctx context.Context, r ibc.Relayer,
 		channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
 		s.Require().NoError(err)
 
+		if _, ok := s.channels[testName][c]; !ok {
+			s.channels[testName][c] = []ibc.ChannelOutput{}
+		}
+
 		// keep track of channels associated with a given chain for access within the tests.
 		// only the most recent channel is relevant.
-		s.channels[testName][c] = []ibc.ChannelOutput{getLatestChannel(channels)}
+		s.channels[testName][c] = append(s.channels[testName][c], getLatestChannel(channels))
 
 		err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, s.channels[testName][c])
 		s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
