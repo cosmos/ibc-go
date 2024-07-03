@@ -42,7 +42,7 @@ func NewIBCMiddleware(k keeper.Keeper) IBCMiddleware {
 	}
 }
 
-// NewIBCMiddleware creates a new IBCMiddleware given the associated keeper and underlying application
+// NewIBCMiddlewareWithAuth creates a new IBCMiddleware given the associated keeper and underlying application
 func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    app,
