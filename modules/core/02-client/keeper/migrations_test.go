@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -40,4 +42,20 @@ func (suite *KeeperTestSuite) TestMigrateParams() {
 			suite.Require().Equal(tc.expectedParams, params)
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestMigrateStatelessLocalhost() {
+	// set localhost in state
+	clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.LocalhostClientID)
+	clientStore.Set(host.ClientStateKey(), []byte("clientState"))
+
+	m := keeper.NewMigrator(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err := m.MigrateStatelessLocalhost(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	suite.Require().False(clientStore.Has(host.ClientStateKey()))
+
+	// rerun migration on no localhost set
+	err = m.MigrateStatelessLocalhost(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	suite.Require().False(clientStore.Has(host.ClientStateKey()))
 }

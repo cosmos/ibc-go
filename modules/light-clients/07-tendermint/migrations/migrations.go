@@ -16,9 +16,6 @@ import (
 func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientKeeper ClientKeeper) (int, error) {
 	var clientIDs []string
 	clientKeeper.IterateClientStates(ctx, []byte(exported.Tendermint), func(clientID string, _ exported.ClientState) bool {
-		if clientID == exported.Localhost {
-			return false
-		}
 		clientIDs = append(clientIDs, clientID)
 		return false
 	})
@@ -37,7 +34,7 @@ func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientK
 
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		if !ok {
-			return 0, errorsmod.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
+			return 0, errorsmod.Wrapf(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint, %s", clientID)
 		}
 
 		totalPruned += ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)

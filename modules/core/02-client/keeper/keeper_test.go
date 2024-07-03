@@ -303,26 +303,21 @@ func (suite *KeeperTestSuite) TestIterateClientStates() {
 			"all clientIDs",
 			nil,
 			func() []string {
-				allClientIDs := []string{exported.LocalhostClientID}
-				allClientIDs = append(allClientIDs, expSMClientIDs...)
-				allClientIDs = append(allClientIDs, expTMClientIDs...)
-				return allClientIDs
+				return append(expSMClientIDs, expTMClientIDs...)
 			},
 		},
 		{
 			"tendermint clientIDs",
 			[]byte(exported.Tendermint),
 			func() []string {
-				clientIDs := []string{exported.LocalhostClientID}
-				return append(clientIDs, expTMClientIDs...)
+				return expTMClientIDs
 			},
 		},
 		{
 			"solo machine clientIDs",
 			[]byte(exported.Solomachine),
 			func() []string {
-				clientIDs := []string{exported.LocalhostClientID}
-				return append(clientIDs, expSMClientIDs...)
+				return expSMClientIDs
 			},
 		},
 	}

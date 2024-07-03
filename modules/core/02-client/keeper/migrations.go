@@ -3,9 +3,10 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v9"
+	v7 "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -49,6 +50,10 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	return nil
 }
 
-func (m Migrator) Migrate6to7(ctx sdk.Context) error {
-	return v9.MigrateStore(ctx, m.keeper)
+func (m Migrator) MigrateStatelessLocalhost(ctx sdk.Context) error {
+	clientStore := m.keeper.ClientStore(ctx, exported.LocalhostClientID)
+
+	// delete the client state
+	clientStore.Delete(host.ClientStateKey())
+	return nil
 }
