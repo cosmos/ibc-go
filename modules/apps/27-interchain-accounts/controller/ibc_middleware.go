@@ -33,8 +33,8 @@ type IBCMiddleware struct {
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the associated keeper.
-// The underlying application is set to nil and then authentication fallbacks
-// to a Cosmos SDK module using the message server.
+// The underlying application is set to nil and authentication is assumed to
+// be performed by a Cosmos SDK module that sends messages to controller message server.
 func NewIBCMiddleware(k keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    nil,
