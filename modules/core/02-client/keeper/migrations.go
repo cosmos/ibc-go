@@ -29,13 +29,6 @@ func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 	return v7.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, m.keeper)
 }
 
-// Migrate3to4 migrates from consensus version 3 to 4.
-// This migration enables the localhost client.
-func (Migrator) Migrate3to4(ctx sdk.Context) error {
-	// localhost is now stateless, no changes necessary
-	return nil
-}
-
 // MigrateParams migrates from consensus version 4 to 5.
 // This migration takes the parameters that are currently stored and managed by x/params
 // and stores them directly in the ibc module's state.
