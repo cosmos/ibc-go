@@ -1,6 +1,8 @@
 package localhost
 
 import (
+	"bytes"
+
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -8,8 +10,22 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
+
+const (
+	// ModuleName defines the 09-localhost light client module name
+	ModuleName = "09-localhost"
+)
+
+// SentinelProof defines the 09-localhost sentinel proof.
+// Submission of nil or empty proofs is disallowed in core IBC messaging.
+// This serves as a placeholder value for relayers to leverage as the proof field in various message types.
+// Localhost client state verification will fail if the sentintel proof value is not provided.
+var SentinelProof = []byte{0x01}
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
 
@@ -81,9 +97,31 @@ func (l LightClientModule) VerifyMembership(
 ) error {
 	ibcStore := ctx.KVStore(l.key)
 
-	clientState := NewClientState(clienttypes.GetSelfHeight(ctx))
+	// ensure the proof provided is the expected sentinel localhost client proof
+	if !bytes.Equal(proof, SentinelProof) {
+		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
+	}
 
-	return clientState.VerifyMembership(ctx, ibcStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	if len(merklePath.GetKeyPath()) != 2 {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+	}
+
+	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
+	bz := ibcStore.Get([]byte(merklePath.KeyPath[1]))
+	if bz == nil {
+		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
+	}
+
+	if !bytes.Equal(bz, value) {
+		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value provided does not equal value stored at path: %s", path)
+	}
+
+	return nil
 }
 
 // VerifyNonMembership obtains the localhost client state and calls into the clientState.VerifyNonMembership method.
@@ -100,9 +138,26 @@ func (l LightClientModule) VerifyNonMembership(
 ) error {
 	ibcStore := ctx.KVStore(l.key)
 
-	clientState := NewClientState(clienttypes.GetSelfHeight(ctx))
+	// ensure the proof provided is the expected sentinel localhost client proof
+	if !bytes.Equal(proof, SentinelProof) {
+		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "expected %s, got %s", string(SentinelProof), string(proof))
+	}
 
-	return clientState.VerifyNonMembership(ctx, ibcStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	if len(merklePath.GetKeyPath()) != 2 {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+	}
+
+	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
+	if ibcStore.Has([]byte(merklePath.KeyPath[1])) {
+		return errorsmod.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
+	}
+
+	return nil
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
