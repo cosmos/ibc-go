@@ -334,11 +334,11 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					sdk.NewAttribute(types.AttributeKeyMemo, ""),
 					sdk.NewAttribute(types.AttributeKeyForwardingHops, "null"),
 					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
-					sdk.NewAttribute(types.AttributeKeyAckError, "cannot unmarshal ICS20-V2 transfer packet data: invalid character 'i' looking for beginning of value: invalid type: invalid type"),
+					sdk.NewAttribute(types.AttributeKeyAckError, "cannot unmarshal ICS20-V2 transfer packet data: errUnknownField \"*types.FungibleTokenPacketDataV2\": {TagNum: 13, WireType:\"fixed64\"}: invalid type: invalid type"),
 				}
 			},
 			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType),
-			"cannot unmarshal ICS20-V2 transfer packet data: invalid character 'i' looking for beginning of value: invalid type: invalid type",
+			"cannot unmarshal ICS20-V2 transfer packet data: unexpected EOF: invalid type: invalid type",
 		},
 		{
 			"failure: receive disabled",

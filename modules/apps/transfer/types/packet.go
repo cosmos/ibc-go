@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
@@ -152,9 +154,10 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 	return nil
 }
 
-// GetBytes is a helper for serialising
+// GetBytes is a helper for serialising a FungibleTokenPacketDataV2. It uses protobuf to serialise
+// the packet data and panics on failure.
 func (ftpd FungibleTokenPacketDataV2) GetBytes() []byte {
-	bz, err := json.Marshal(&ftpd)
+	bz, err := proto.Marshal(&ftpd)
 	if err != nil {
 		panic(errors.New("cannot marshal FungibleTokenPacketDataV2 into bytes"))
 	}

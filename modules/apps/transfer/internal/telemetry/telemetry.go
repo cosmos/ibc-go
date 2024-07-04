@@ -1,6 +1,8 @@
 package telemetry
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-metrics"
 
 	sdkmath "cosmossdk.io/math"
@@ -11,7 +13,12 @@ import (
 	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
-func ReportTransferTelemetry(tokens types.Tokens, labels []metrics.Label) {
+func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel string, tokens types.Tokens) {
+	labels := []metrics.Label{
+		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
+		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
+	}
+
 	for _, token := range tokens {
 		amount, ok := sdkmath.NewIntFromString(token.Amount)
 		if ok && amount.IsInt64() {
@@ -21,6 +28,8 @@ func ReportTransferTelemetry(tokens types.Tokens, labels []metrics.Label) {
 				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.Denom.Path())},
 			)
 		}
+
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, fmt.Sprintf("%t", !token.Denom.HasPrefix(sourcePort, sourceChannel))))
 	}
 
 	telemetry.IncrCounterWithLabels(
@@ -30,7 +39,16 @@ func ReportTransferTelemetry(tokens types.Tokens, labels []metrics.Label) {
 	)
 }
 
-func ReportOnRecvPacketTelemetry(transferAmount sdkmath.Int, denomPath string, labels []metrics.Label) {
+func ReportOnRecvPacket(sourcePort, sourceChannel string, token types.Token) {
+	labels := []metrics.Label{
+		telemetry.NewLabel(coretypes.LabelSourcePort, sourcePort),
+		telemetry.NewLabel(coretypes.LabelSourceChannel, sourceChannel),
+		telemetry.NewLabel(coretypes.LabelSource, fmt.Sprintf("%t", token.Denom.HasPrefix(sourcePort, sourceChannel))),
+	}
+	// Transfer amount has already been parsed in caller.
+	transferAmount, _ := sdkmath.NewIntFromString(token.Amount)
+	denomPath := token.Denom.Path()
+
 	if transferAmount.IsInt64() {
 		telemetry.SetGaugeWithLabels(
 			[]string{"ibc", types.ModuleName, "packet", "receive"},
