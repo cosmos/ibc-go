@@ -234,7 +234,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
@@ -384,7 +384,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelID, path.EndpointB.ChannelConfig.Version)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				if tc.expPass {
@@ -517,7 +517,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				err = cbs.OnChanCloseConfirm(
@@ -679,7 +679,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, []byte("ack"), nil)
@@ -776,7 +776,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
@@ -867,7 +867,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				version, err = cbs.OnChanUpgradeInit(
@@ -995,7 +995,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				err = cbs.OnChanUpgradeAck(
@@ -1098,12 +1098,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				if tc.expPanic != nil {
 					mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
 					mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
-					cbs = controller.NewIBCMiddleware(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddlewareWithAuth(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
 
 					suite.Require().PanicsWithError(tc.expPanic.Error(), func() { upgradeOpenCb(cbs) })
 				} else {
 					if isNilApp {
-						cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+						cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 					}
 
 					upgradeOpenCb(cbs)
