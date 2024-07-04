@@ -1,9 +1,8 @@
 package types
 
 import (
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-
 	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 // InstantiateMessage is the message that is sent to the contract's instantiate entry point.
