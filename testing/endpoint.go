@@ -35,6 +35,11 @@ type Endpoint struct {
 	ClientConfig     ClientConfig
 	ConnectionConfig *ConnectionConfig
 	ChannelConfig    *ChannelConfig
+
+	// disableUniqueChannelIDs is used to enforce, in a test,
+	// the old way to generate channel IDs (all channels are called channel-0)
+	// It is used only by one test suite and should not be used for new tests.
+	disableUniqueChannelIDs bool
 }
 
 // NewEndpoint constructs a new endpoint without the counterparty.
@@ -323,8 +328,22 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	return clientState, clientProof, consensusProof, consensusHeight, connectionProof, proofHeight
 }
 
+var sequenceNumber int
+
+// IncrementNextChannelSequence incrementes the value "nextChannelSequence" in the store,
+// which is used to determine the next channel ID.
+// This guarantees that we'll have always different IDs while running tests.
+func (endpoint *Endpoint) IncrementNextChannelSequence() {
+	if endpoint.disableUniqueChannelIDs {
+		return
+	}
+	sequenceNumber++
+	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetNextChannelSequence(endpoint.Chain.GetContext(), uint64(sequenceNumber))
+}
+
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenInit() error {
+	endpoint.IncrementNextChannelSequence()
 	msg := channeltypes.NewMsgChannelOpenInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
@@ -349,6 +368,7 @@ func (endpoint *Endpoint) ChanOpenInit() error {
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenTry() error {
+	endpoint.IncrementNextChannelSequence()
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
@@ -577,7 +597,7 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
 	closedProof, _ := endpoint.Counterparty.QueryProof(channelKey)
 
-	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
 
 	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnClose(

@@ -185,7 +185,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 				suite.Require().Equal(originalBalances.AmountOf(coin.Denom).Sub(amount).Int64(), chainABalance.Amount.Int64())
 
 				// check that module account escrow address is unchanged
-				escrowAddress = types.GetEscrowAddress(traceAToB.PortId, traceAToB.ChannelId)
+				escrowAddress = types.GetEscrowAddress(pathAToB.EndpointA.ChannelConfig.PortID, pathAToB.EndpointA.ChannelID)
 				chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, coin.Denom)
 				suite.Require().Equal(coin, chainAEscrowBalance)
 			}
