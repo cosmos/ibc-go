@@ -1,15 +1,13 @@
 package keeper
 
 import (
-	metrics "github.com/hashicorp/go-metrics"
-
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/internal/telemetry"
 )
 
 // CreateClient generates a new client identifier and invokes the associated light client module in order to
@@ -48,11 +46,7 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 	initialHeight := clientModule.LatestHeight(ctx, clientID)
 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", initialHeight.String())
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "client", "create"},
-		1,
-		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientType)},
-	)
+	defer telemetry.ReportCreateClient(clientType)
 
 	emitCreateClientEvent(ctx, clientID, clientType, initialHeight)
 
@@ -85,15 +79,7 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID)
 
-		defer telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "misbehaviour"},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, clientType),
-				telemetry.NewLabel(types.LabelClientID, clientID),
-				telemetry.NewLabel(types.LabelMsgType, "update"),
-			},
-		)
+		defer telemetry.ReportUpdateClient(foundMisbehaviour, clientType, clientID)
 
 		emitSubmitMisbehaviourEvent(ctx, clientID, clientType)
 
@@ -104,15 +90,7 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 
 	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "client", "update"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(types.LabelClientType, clientType),
-			telemetry.NewLabel(types.LabelClientID, clientID),
-			telemetry.NewLabel(types.LabelUpdateType, "msg"),
-		},
-	)
+	defer telemetry.ReportUpdateClient(foundMisbehaviour, clientType, clientID)
 
 	// emitting events in the keeper emits for both begin block and handler client updates
 	emitUpdateClientEvent(ctx, clientID, clientType, consensusHeights, k.cdc, clientMsg)
@@ -148,14 +126,7 @@ func (k *Keeper) UpgradeClient(
 	latestHeight := clientModule.LatestHeight(ctx, clientID)
 	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", latestHeight.String())
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "client", "upgrade"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(types.LabelClientType, clientType),
-			telemetry.NewLabel(types.LabelClientID, clientID),
-		},
-	)
+	defer telemetry.ReportUpgradeClient(clientType, clientID)
 
 	emitUpgradeClientEvent(ctx, clientID, clientType, latestHeight)
 
@@ -198,15 +169,7 @@ func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClien
 
 	k.Logger(ctx).Info("client recovered", "client-id", subjectClientID)
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "client", "update"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(types.LabelClientType, clientType),
-			telemetry.NewLabel(types.LabelClientID, subjectClientID),
-			telemetry.NewLabel(types.LabelUpdateType, "recovery"),
-		},
-	)
+	defer telemetry.ReportRecoverClient(clientType, subjectClientID)
 
 	// emitting events in the keeper for recovering clients
 	emitRecoverClientEvent(ctx, subjectClientID, clientType)
