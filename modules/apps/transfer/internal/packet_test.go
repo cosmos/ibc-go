@@ -83,7 +83,11 @@ func TestUnmarshalPacketData(t *testing.T) {
 // FungibleTokenPacketDataV2 fail to unmarshal with previous versions. In essence, permit backwards compatibility
 // but restrict forward one.
 func TestV2ForwardsCompatibilityFails(t *testing.T) {
-	var packetDataBz []byte
+	var (
+		packet       types.FungibleTokenPacketDataV2
+		packetDataBz []byte
+	)
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -98,14 +102,14 @@ func TestV2ForwardsCompatibilityFails(t *testing.T) {
 			"failure: new field present in packet data",
 			func() {
 				// packet data containing extra field unknown to current proto file.
-				packetDataBz = []byte("\n%\n\x1d\n\x04atom\x1a\x15\n\btransfer\x12\tchannel-0\x12\x041000\x12\x06sender\x1a\breceiver*\x002\tnew_value")
+				packetDataBz = append(packet.GetBytes(), []byte("22\tnew_value")...)
 			},
 			ibcerrors.ErrInvalidType,
 		},
 	}
 
 	for _, tc := range testCases {
-		packet := types.NewFungibleTokenPacketDataV2(
+		packet = types.NewFungibleTokenPacketDataV2(
 			[]types.Token{
 				{
 					Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
