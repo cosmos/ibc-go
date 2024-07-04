@@ -36,6 +36,9 @@ type Endpoint struct {
 	ConnectionConfig *ConnectionConfig
 	ChannelConfig    *ChannelConfig
 
+	// disableUniqueChannelIDs is used to enforce, in a test,
+	// the old way to generate channel IDs (all channels are called channel-0)
+	// It is used only by one test suite and should not be used for new tests.
 	disableUniqueChannelIDs bool
 }
 

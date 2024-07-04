@@ -66,6 +66,8 @@ func (path *Path) SetChannelOrdered() {
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 }
 
+// DisableUniqueChannelIDs provides an opt-out way to not have all channel IDs be different
+// while testing.
 func (path *Path) DisableUniqueChannelIDs() *Path {
 	path.EndpointA.disableUniqueChannelIDs = true
 	path.EndpointB.disableUniqueChannelIDs = true
