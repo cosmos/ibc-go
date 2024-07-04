@@ -10,6 +10,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	mock "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/mock"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -372,9 +373,12 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					suite.Require().Nil(payload.VerifyNonMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
-					suite.Require().Equal(path, payload.VerifyMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
 					suite.Require().Equal(value, payload.VerifyMembership.Value)
+
+					mpath, ok := path.(commitmenttypes.MerklePath)
+					suite.Require().True(ok)
+					suite.Require().Equal(internaltypes.ToMerklePathV2(mpath), payload.VerifyMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -400,9 +404,12 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					suite.Require().Nil(payload.VerifyNonMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
-					suite.Require().Equal(path, payload.VerifyMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
 					suite.Require().Equal(value, payload.VerifyMembership.Value)
+
+					mpath, ok := path.(commitmenttypes.MerklePath)
+					suite.Require().True(ok)
+					suite.Require().Equal(internaltypes.ToMerklePathV2(mpath), payload.VerifyMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -515,8 +522,11 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
+
+					mpath, ok := path.(commitmenttypes.MerklePath)
+					suite.Require().True(ok)
+					suite.Require().Equal(internaltypes.ToMerklePathV2(mpath), payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -542,8 +552,11 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
+
+					mpath, ok := path.(commitmenttypes.MerklePath)
+					suite.Require().True(ok)
+					suite.Require().Equal(internaltypes.ToMerklePathV2(mpath), payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
