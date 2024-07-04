@@ -187,6 +187,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
+	if k.isBlockedAddr(receiver) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+	}
+
 	receivedCoins := make(sdk.Coins, 0, len(data.Tokens))
 	for _, token := range data.Tokens {
 		labels := []metrics.Label{
@@ -214,10 +218,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			token.Denom.Trace = token.Denom.Trace[1:]
 
 			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
-
-			if k.isBlockedAddr(receiver) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
-			}
 
 			escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 			if err := k.unescrowCoin(ctx, escrowAddress, receiver, coin); err != nil {
@@ -258,9 +258,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			}
 
 			// send to receiver
-			if k.isBlockedAddr(receiver) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
-			}
 			moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 			if moduleAddr == nil {
 				return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName)
