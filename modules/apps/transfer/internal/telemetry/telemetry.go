@@ -1,6 +1,8 @@
 package telemetry
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-metrics"
 
 	sdkmath "cosmossdk.io/math"
@@ -27,11 +29,7 @@ func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChann
 			)
 		}
 
-		if token.Denom.HasPrefix(sourcePort, sourceChannel) {
-			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
-		} else {
-			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
-		}
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, fmt.Sprintf("%t", !token.Denom.HasPrefix(sourcePort, sourceChannel))))
 	}
 
 	telemetry.IncrCounterWithLabels(
@@ -45,6 +43,7 @@ func ReportOnRecvPacket(sourcePort, sourceChannel string, token types.Token) {
 	labels := []metrics.Label{
 		telemetry.NewLabel(coretypes.LabelSourcePort, sourcePort),
 		telemetry.NewLabel(coretypes.LabelSourceChannel, sourceChannel),
+		telemetry.NewLabel(coretypes.LabelSource, fmt.Sprintf("%t", token.Denom.HasPrefix(sourcePort, sourceChannel))),
 	}
 	// Transfer amount has already been parsed in caller.
 	transferAmount, _ := sdkmath.NewIntFromString(token.Amount)
@@ -58,11 +57,6 @@ func ReportOnRecvPacket(sourcePort, sourceChannel string, token types.Token) {
 		)
 	}
 
-	if token.Denom.HasPrefix(sourcePort, sourceChannel) {
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
-	} else {
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
-	}
 	telemetry.IncrCounterWithLabels(
 		[]string{"ibc", types.ModuleName, "receive"},
 		1,
