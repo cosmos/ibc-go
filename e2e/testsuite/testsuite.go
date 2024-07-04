@@ -55,11 +55,11 @@ type E2ETestSuite struct {
 	// chains is a list of chains that are created for the test suite.
 	// each test suite has a single slice of chains that are used for all individual test
 	// cases.
-	chains       []ibc.Chain
-	relayers     relayer.Map
-	logger       *zap.Logger
-	DockerClient *dockerclient.Client
-	network      string
+	chains         []ibc.Chain
+	relayerWallets relayer.Map
+	logger         *zap.Logger
+	DockerClient   *dockerclient.Client
+	network        string
 
 	// pathNameIndex is the latest index to be used for generating chains
 	pathNameIndex int64
@@ -89,6 +89,7 @@ func (s *E2ETestSuite) initState() {
 	s.channels = make(map[string]map[ibc.Chain][]ibc.ChannelOutput)
 	s.relayerPool = []ibc.Relayer{}
 	s.testRelayerMap = make(map[string]ibc.Relayer)
+	s.relayerWallets = make(relayer.Map)
 
 	// testSuiteName gets populated in the context of SetupSuite and stored as s.T().Name()
 	// will return the name of the suite and test when called from SetupTest or within the body of tests.
@@ -353,11 +354,8 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, testName string) (ib
 	chainARelayerUser := cosmos.NewWallet(rlyAName, chainAAccountBytes, "", chainA.Config())
 	chainBRelayerUser := cosmos.NewWallet(rlyBName, chainBAccountBytes, "", chainB.Config())
 
-	if s.relayers == nil {
-		s.relayers = make(relayer.Map)
-	}
-	s.relayers.AddRelayer(testName, chainARelayerUser)
-	s.relayers.AddRelayer(testName, chainBRelayerUser)
+	s.relayerWallets.AddRelayer(testName, chainARelayerUser)
+	s.relayerWallets.AddRelayer(testName, chainBRelayerUser)
 
 	return chainARelayerUser, chainBRelayerUser
 }
@@ -415,7 +413,7 @@ func (s *E2ETestSuite) generatePathName() string {
 
 func (s *E2ETestSuite) GetPaths(testName string) []string {
 	paths, ok := s.testPaths[testName]
-	s.Require().True(ok, "paths not found for test %s", s.T().Name())
+	s.Require().True(ok, "paths not found for test %s", testName)
 	return paths
 }
 
