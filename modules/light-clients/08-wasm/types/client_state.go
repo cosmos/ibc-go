@@ -13,6 +13,8 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+
+	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -166,7 +168,7 @@ func (cs ClientState) VerifyMembership(
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             merklePath,
+			Path:             internaltypes.ToMerklePathV2(merklePath),
 			Value:            value,
 		},
 	}
@@ -210,7 +212,7 @@ func (cs ClientState) VerifyNonMembership(
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             merklePath,
+			Path:             internaltypes.ToMerklePathV2(merklePath),
 		},
 	}
 	_, err := wasmSudo[EmptyResult](ctx, cdc, clientStore, &cs, payload)
