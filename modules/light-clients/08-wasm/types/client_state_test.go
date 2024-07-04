@@ -378,6 +378,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 					mpath, ok := path.(commitmenttypes.MerklePath)
 					suite.Require().True(ok)
+					// assert that merkle path key path is unmarshalled as bytes rather than strings
 					suite.Require().Equal(internaltypes.ToMerklePathV2(mpath), payload.VerifyMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
@@ -409,6 +410,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 					mpath, ok := path.(commitmenttypes.MerklePath)
 					suite.Require().True(ok)
+					// assert that merkle path key path is unmarshalled as bytes rather than strings
 					suite.Require().Equal(internaltypes.ToMerklePathV2(mpath), payload.VerifyMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
@@ -526,6 +528,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 
 					mpath, ok := path.(commitmenttypes.MerklePath)
 					suite.Require().True(ok)
+					// assert that merkle path key path is unmarshalled as bytes rather than strings
 					suite.Require().Equal(internaltypes.ToMerklePathV2(mpath), payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
@@ -556,6 +559,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 
 					mpath, ok := path.(commitmenttypes.MerklePath)
 					suite.Require().True(ok)
+					// assert that merkle path key path is unmarshalled as bytes rather than strings
 					suite.Require().Equal(internaltypes.ToMerklePathV2(mpath), payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
