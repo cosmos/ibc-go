@@ -286,6 +286,7 @@ jobs:
           - entrypoint: TestAuthzTransferTestSuite
           - entrypoint: TestTransferTestSuiteSendReceive
           - entrypoint: TestTransferTestSuiteSendEnabled
+          - entrypoint: TestTransferLocalhostTestSuite
     steps:
       - uses: actions/checkout@v4
         with:
