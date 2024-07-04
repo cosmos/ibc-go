@@ -941,7 +941,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID)),
+				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID)),
 				Amount: "100",
 			},
 		},
@@ -972,7 +972,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().NoError(err)
 
 	// Ensure that chainB has an ack.
-	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID, packet.GetSequence())
 	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
@@ -1250,7 +1250,7 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	ackStr, err := parseAckFromTransferEvents(result.Events)
 	suite.Require().NoError(err)
 
-	expected := "error:\"forwarding packet failed on transfer/channel-1: forwarding packet failed on transfer/channel-1: ABCI code: 8: error handling packet: see events for details\" "
+	expected := fmt.Sprintf(`error:"forwarding packet failed on %s/%s: forwarding packet failed on %s/%s: ABCI code: 8: error handling packet: see events for details" `, pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, pathCtoD.EndpointA.ChannelConfig.PortID, pathCtoD.EndpointA.ChannelID)
 	suite.Require().Equal(expected, ackStr)
 }
 

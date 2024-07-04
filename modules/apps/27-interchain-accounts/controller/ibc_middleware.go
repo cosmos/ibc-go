@@ -32,8 +32,18 @@ type IBCMiddleware struct {
 	keeper keeper.Keeper
 }
 
-// NewIBCMiddleware creates a new IBCMiddleware given the associated keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+// NewIBCMiddleware creates a new IBCMiddleware given the associated keeper.
+// The underlying application is set to nil and authentication is assumed to
+// be performed by a Cosmos SDK module that sends messages to controller message server.
+func NewIBCMiddleware(k keeper.Keeper) IBCMiddleware {
+	return IBCMiddleware{
+		app:    nil,
+		keeper: k,
+	}
+}
+
+// NewIBCMiddlewareWithAuth creates a new IBCMiddleware given the associated keeper and underlying application
+func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    app,
 		keeper: k,
