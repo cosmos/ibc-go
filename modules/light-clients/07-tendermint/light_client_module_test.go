@@ -356,7 +356,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 
-				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+				key := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(key)
 
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
@@ -380,7 +380,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
-				key := host.NextSequenceRecvKey(packet.GetSourcePort(), packet.GetSourceChannel())
+				key := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 				merklePath := commitmenttypes.NewMerklePath(key)
 
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
