@@ -64,5 +64,5 @@ jobs:
       chain-binary: 'simd'
       # on regular PRs we won't run upgrade tests.
       # NOTE: we are exluding TestTransferTestSuite as we run this full suite instead of each individual test.
-      test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite,TestTransferTestSuite,TestAuthzTransferTestSuite,TestTransferTestSuiteSendReceive,TestTransferTestSuiteSendEnabled,TestTransferLocalhostTestSuite'
+      test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite,TestTransferTestSuite,TestAuthzTransferTestSuite,TestTransferTestSuiteSendReceive,TestTransferTestSuiteSendEnabled,TestTransferLocalhostTestSuite,TestConnectionTestSuite'
       temp-run-full-suite: true
