@@ -337,23 +337,27 @@ func (s *E2ETestSuite) GetRelayerForTest(testName string) ibc.Relayer {
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
-func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context) (ibc.Wallet, ibc.Wallet) {
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, testName string) (ibc.Wallet, ibc.Wallet) {
 	chains := s.GetAllChains()
 	chainA, chainB := chains[0], chains[1]
-	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
+
+	rlyAName := fmt.Sprintf("%s-%s", ChainARelayerName, testName)
+	rlyBName := fmt.Sprintf("%s-%s", ChainBRelayerName, testName)
+
+	chainAAccountBytes, err := chainA.GetAddress(ctx, rlyAName)
 	s.Require().NoError(err)
 
-	chainBAccountBytes, err := chainB.GetAddress(ctx, ChainBRelayerName)
+	chainBAccountBytes, err := chainB.GetAddress(ctx, rlyBName)
 	s.Require().NoError(err)
 
-	chainARelayerUser := cosmos.NewWallet(ChainARelayerName, chainAAccountBytes, "", chainA.Config())
-	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
+	chainARelayerUser := cosmos.NewWallet(rlyAName, chainAAccountBytes, "", chainA.Config())
+	chainBRelayerUser := cosmos.NewWallet(rlyBName, chainBAccountBytes, "", chainB.Config())
 
 	if s.relayers == nil {
 		s.relayers = make(relayer.Map)
 	}
-	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
-	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
+	s.relayers.AddRelayer(testName, chainARelayerUser)
+	s.relayers.AddRelayer(testName, chainBRelayerUser)
 
 	return chainARelayerUser, chainBRelayerUser
 }
@@ -486,22 +490,25 @@ func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ib
 
 // RecoverRelayerWallets adds the corresponding ibcrelayer address to the keychain of the chain.
 // This is useful if commands executed on the chains expect the relayer information to present in the keychain.
-func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer) error {
+func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer, testName string) (ibc.Wallet, ibc.Wallet, error) {
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(ibcrelayer)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	chains := s.GetAllChains()
 	chainA, chainB := chains[0], chains[1]
 
-	if err := chainA.RecoverKey(ctx, ChainARelayerName, chainARelayerWallet.Mnemonic()); err != nil {
-		return fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
+	rlyAName := fmt.Sprintf("%s-%s", ChainARelayerName, testName)
+	rlyBName := fmt.Sprintf("%s-%s", ChainBRelayerName, testName)
+
+	if err := chainA.RecoverKey(ctx, rlyAName, chainARelayerWallet.Mnemonic()); err != nil {
+		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
 	}
-	if err := chainB.RecoverKey(ctx, ChainBRelayerName, chainBRelayerWallet.Mnemonic()); err != nil {
-		return fmt.Errorf("could not recover relayer wallet on chain B: %s", err)
+	if err := chainB.RecoverKey(ctx, rlyBName, chainBRelayerWallet.Mnemonic()); err != nil {
+		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain B: %s", err)
 	}
-	return nil
+	return chainARelayerWallet, chainBRelayerWallet, nil
 }
 
 // StartRelayer starts the given ibcrelayer.

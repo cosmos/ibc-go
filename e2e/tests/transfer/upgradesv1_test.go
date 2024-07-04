@@ -267,7 +267,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 	)
 
 	t.Run("recover relayer wallets", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
+		_, _, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 		s.Require().NoError(err)
 
 		chainARelayerWallet, chainBRelayerWallet, err = s.GetRelayerWallets(relayer)
@@ -279,7 +279,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 	})
 
 	t.Run("register and verify counterparty payee", func(t *testing.T) {
-		_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+		_, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.AssertTxSuccess(resp)
 

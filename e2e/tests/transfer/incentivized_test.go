@@ -29,7 +29,7 @@ const (
 )
 
 type IncentivizedTransferTestSuite struct {
-	TransferTestSuite
+	transferTester
 }
 
 func TestIncentivizedTransferTestSuite(t *testing.T) {
@@ -46,7 +46,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	ctx := context.TODO()
 
 	testName := t.Name()
-
+	t.Parallel()
 	relayer, channelA := s.SetupTransferFeePath(testName)
 
 	chainA, chainB := s.GetChains()
@@ -61,19 +61,14 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
+	chainARelayerWallet, chainBRelayerWallet, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
-		s.Require().NoError(err)
-	})
-
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
-	t.Run("relayer wallets fetched", func(t *testing.T) {
 		s.Require().NoError(err)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+	_, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 
 	t.Run("register counterparty payee", func(t *testing.T) {
 		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
@@ -167,6 +162,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := s.SetupTransferFeePath(testName)
 
 	chainA, chainB := s.GetChains()
@@ -180,19 +176,14 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
+	chainARelayerWallet, chainBRelayerWallet, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
-		s.Require().NoError(err)
-	})
-
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
-	t.Run("relayer wallets fetched", func(t *testing.T) {
 		s.Require().NoError(err)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+	_, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 
 	t.Run("register counterparty payee", func(t *testing.T) {
 		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
@@ -297,6 +288,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := s.SetupTransferFeePath(testName)
 
 	chainA, chainB := s.GetChains()
@@ -313,19 +305,14 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
+	chainARelayerWallet, chainBRelayerWallet, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
-		s.Require().NoError(err)
-	})
-
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
-	t.Run("relayer wallets fetched", func(t *testing.T) {
 		s.Require().NoError(err)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx)
+	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 
 	relayerAStartingBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
 	s.Require().NoError(err)
@@ -419,6 +406,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := s.SetupTransferFeePath(testName)
 
 	chainA, chainB := s.GetChains()
@@ -434,16 +422,12 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
+	chainARelayerWallet, chainBRelayerWallet, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		s.Require().NoError(s.RecoverRelayerWallets(ctx, relayer))
-	})
-
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
-	t.Run("relayer wallets fetched", func(t *testing.T) {
 		s.Require().NoError(err)
 	})
 
-	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+	_, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 
 	t.Run("register counterparty payee", func(t *testing.T) {
 		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
@@ -537,6 +521,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := s.SetupTransferFeePath(testName)
 
 	chainA, _ := s.GetChains()
@@ -551,8 +536,8 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
+	_, _, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
 		s.Require().NoError(err)
 	})
 
@@ -640,6 +625,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := s.SetupTransferFeePath(testName)
 
 	chainA, chainB := s.GetChains()
@@ -655,16 +641,14 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	chainAWallet1 := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAWallet2 := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
+	chainARelayerWallet, chainBRelayerWallet, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
 		s.Require().NoError(err)
 	})
 
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
-	s.Require().NoError(err)
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+	_, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 
 	t.Run("register counterparty payee", func(t *testing.T) {
 		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
