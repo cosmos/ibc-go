@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -61,9 +61,9 @@ func (cs *ClientState) VerifyMembership(
 		return err
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
@@ -117,9 +117,9 @@ func (cs *ClientState) VerifyNonMembership(
 		return err
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {

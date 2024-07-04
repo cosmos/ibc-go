@@ -535,7 +535,7 @@ func NewSimApp(
 	if !ok {
 		panic(fmt.Errorf("cannot convert %T to %T", icaControllerStack, app.ICAAuthModule))
 	}
-	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
+	icaControllerStack = icacontroller.NewIBCMiddlewareWithAuth(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	var icaICS4Wrapper porttypes.ICS4Wrapper
 	icaICS4Wrapper, ok = icaControllerStack.(porttypes.ICS4Wrapper)

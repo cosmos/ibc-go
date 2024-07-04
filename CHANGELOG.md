@@ -59,7 +59,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/transfer) [\#6440](https://github.com/cosmos/ibc-go/pull/6440) Remove `GetPrefixedDenom`.
 * (apps/transfer) [\#6508](https://github.com/cosmos/ibc-go/pull/6508) Remove the `DenomTrace` type.
 * (apps/27-interchain-accounts) [\#6598](https://github.com/cosmos/ibc-go/pull/6598) Mark the `requests` repeated field of `MsgModuleQuerySafe` non-nullable.
+* (23-commmitment) [\#6644](https://github.com/cosmos/ibc-go/pull/6644) Introduce commitment/v2 `MerklePath` to include `repeated bytes` in favour of `repeated string`. This supports using merkle path keys which include non UTF-8 encoded runes.
 * (23-commmitment) [\#6633](https://github.com/cosmos/ibc-go/pull/6633) MerklePath has been changed to use `repeated bytes` in favour of `repeated strings`.
+* (apps/27-interchain-accounts) [\#6749](https://github.com/cosmos/ibc-go/pull/6749) The ICA controller `NewIBCMiddleware` constructor function sets by default the auth module to nil.
 
 ### State Machine Breaking
 
