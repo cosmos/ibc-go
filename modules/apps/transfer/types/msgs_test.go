@@ -14,6 +14,8 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -38,56 +40,78 @@ var (
 	receiver  = sdk.AccAddress("testaddr2").String()
 	emptyAddr string
 
-	coin             = sdk.NewCoin("atom", sdkmath.NewInt(100))
-	ibcCoin          = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.NewInt(100))
-	invalidIBCCoin   = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554", sdkmath.NewInt(100))
-	invalidDenomCoin = sdk.Coin{Denom: "0atom", Amount: sdkmath.NewInt(100)}
-	zeroCoin         = sdk.Coin{Denom: "atoms", Amount: sdkmath.NewInt(0)}
+	coin              = ibctesting.TestCoin
+	coins             = ibctesting.TestCoins
+	ibcCoins          = sdk.NewCoins(sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.NewInt(100)))
+	invalidIBCCoins   = sdk.NewCoins(sdk.NewCoin("ibc/7F1D3FCF4AE79E1554", sdkmath.NewInt(100)))
+	invalidDenomCoins = []sdk.Coin{{Denom: "0atom", Amount: sdkmath.NewInt(100)}}
+	zeroCoins         = []sdk.Coin{{Denom: "atoms", Amount: sdkmath.NewInt(0)}}
 
-	timeoutHeight = clienttypes.NewHeight(0, 10)
+	timeoutHeight   = clienttypes.NewHeight(0, 10)
+	emptyForwarding *types.Forwarding
 )
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
 func TestMsgTransferValidation(t *testing.T) {
 	testCases := []struct {
-		name    string
-		msg     *types.MsgTransfer
-		expPass bool
+		name     string
+		msg      *types.MsgTransfer
+		expError error
 	}{
-		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), true},
-		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoin, sender, receiver, timeoutHeight, 0, ""), true},
-		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoin, sender, receiver, timeoutHeight, 0, ""), false},
-		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
-		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
-		{"port id contains non-alpha", types.NewMsgTransfer(invalidPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
-		{"too short channel id", types.NewMsgTransfer(validPort, invalidShortChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
-		{"too long channel id", types.NewMsgTransfer(validPort, invalidLongChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
-		{"too long memo", types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ibctesting.GenerateString(types.MaximumMemoLength+1)), false},
-		{"channel id contains non-alpha", types.NewMsgTransfer(validPort, invalidChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
-		{"invalid denom", types.NewMsgTransfer(validPort, validChannel, invalidDenomCoin, sender, receiver, timeoutHeight, 0, ""), false},
-		{"zero coin", types.NewMsgTransfer(validPort, validChannel, zeroCoin, sender, receiver, timeoutHeight, 0, ""), false},
-		{"missing sender address", types.NewMsgTransfer(validPort, validChannel, coin, emptyAddr, receiver, timeoutHeight, 0, ""), false},
-		{"missing recipient address", types.NewMsgTransfer(validPort, validChannel, coin, sender, "", timeoutHeight, 0, ""), false},
-		{"too long recipient address", types.NewMsgTransfer(validPort, validChannel, coin, sender, ibctesting.GenerateString(types.MaximumReceiverLength+1), timeoutHeight, 0, ""), false},
-		{"empty coin", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, sender, receiver, timeoutHeight, 0, ""), false},
+		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), nil},
+		{"valid msg with unwind", types.NewMsgTransfer("", "", sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), nil},
+		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), nil},
+		{"multidenom", types.NewMsgTransfer(validPort, validChannel, coins.Add(ibcCoins...), sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), nil},
+		{"memo with forwarding path hops not empty", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "memo", types.NewForwarding(false, validHop)), nil},
+		{"memo with forwarding unwind set to true", types.NewMsgTransfer("", "", sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "memo", types.NewForwarding(true)), nil},
+		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
+		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), host.ErrInvalidID},
+		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), host.ErrInvalidID},
+		{"port id contains non-alpha", types.NewMsgTransfer(invalidPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), host.ErrInvalidID},
+		{"too short channel id", types.NewMsgTransfer(validPort, invalidShortChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), host.ErrInvalidID},
+		{"too long channel id", types.NewMsgTransfer(validPort, invalidLongChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), host.ErrInvalidID},
+		{"too long memo", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, ibctesting.GenerateString(types.MaximumMemoLength+1), emptyForwarding), types.ErrInvalidMemo},
+		{"channel id contains non-alpha", types.NewMsgTransfer(validPort, invalidChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), host.ErrInvalidID},
+		{"invalid denom", types.NewMsgTransfer(validPort, validChannel, invalidDenomCoins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
+		{"zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
+		{"missing sender address", types.NewMsgTransfer(validPort, validChannel, coins, emptyAddr, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidAddress},
+		{"missing recipient address", types.NewMsgTransfer(validPort, validChannel, coins, sender, "", clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidAddress},
+		{"too long recipient address", types.NewMsgTransfer(validPort, validChannel, coins, sender, ibctesting.GenerateString(types.MaximumReceiverLength+1), clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidAddress},
+		{"empty coins", types.NewMsgTransfer(validPort, validChannel, sdk.NewCoins(), sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
+		{"multidenom: invalid denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidDenomCoins...), sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
+		{"multidenom: invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, coins.Add(invalidIBCCoins...), sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
+		{"multidenom: zero coins", types.NewMsgTransfer(validPort, validChannel, zeroCoins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
+		{"multidenom: too many coins", types.NewMsgTransfer(validPort, validChannel, make([]sdk.Coin, types.MaximumTokensLength+1), sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
+		{"multidenom: both token and tokens are set", &types.MsgTransfer{validPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, "", coins, emptyForwarding}, ibcerrors.ErrInvalidCoins},
+		{"timeout height must be zero if forwarding path hops is not empty", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, timeoutHeight, 100, "memo", types.NewForwarding(false, validHop)), types.ErrInvalidPacketTimeout},
+		{"invalid forwarding info port", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, types.NewHop(invalidPort, validChannel))), types.ErrInvalidForwarding},
+		{"invalid forwarding info channel", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, types.NewHop(validPort, invalidChannel))), types.ErrInvalidForwarding},
+		{"invalid forwarding info too many hops", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, generateHops(types.MaximumNumberOfForwardingHops+1)...)), types.ErrInvalidForwarding},
+		{"invalid portID when forwarding is set but unwind is not", types.NewMsgTransfer("", validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, validHop)), host.ErrInvalidID},
+		{"invalid channelID when forwarding is set but unwind is not", types.NewMsgTransfer(validPort, "", coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, validHop)), host.ErrInvalidID},
+		{"unwind specified but source port is not empty", types.NewMsgTransfer(validPort, "", sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), types.ErrInvalidForwarding},
+		{"unwind specified but source channel is not empty", types.NewMsgTransfer("", validChannel, sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), types.ErrInvalidForwarding},
+		{"unwind specified but more than one coin in the message", types.NewMsgTransfer("", "", coins.Add(sdk.NewCoin("atom", ibctesting.TestCoin.Amount)), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), ibcerrors.ErrInvalidCoins},
 	}
 
-	for i, tc := range testCases {
-		tc := tc
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.msg.ValidateBasic()
 
-		err := tc.msg.ValidateBasic()
-		if tc.expPass {
-			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
-		} else {
-			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
-		}
+			expPass := tc.expError == nil
+			if expPass {
+				require.NoError(t, err)
+			} else {
+				require.ErrorIs(t, err, tc.expError)
+			}
+		})
 	}
 }
 
 // TestMsgTransferGetSigners tests GetSigners for MsgTransfer
 func TestMsgTransferGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr.String(), receiver, timeoutHeight, 0, "")
+	msg := types.NewMsgTransfer(validPort, validChannel, coins, addr.String(), receiver, timeoutHeight, 0, "", emptyForwarding)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
@@ -98,24 +122,26 @@ func TestMsgTransferGetSigners(t *testing.T) {
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
 func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
+		name     string
+		msg      *types.MsgUpdateParams
+		expError error
 	}{
-		{"success: valid signer and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
-		{"failure: invalid signer with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), false},
-		{"failure: empty signer with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), false},
+		{"success: valid signer and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), nil},
+		{"failure: invalid signer with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), ibcerrors.ErrInvalidAddress},
+		{"failure: empty signer with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), ibcerrors.ErrInvalidAddress},
 	}
 
-	for i, tc := range testCases {
-		tc := tc
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.msg.ValidateBasic()
 
-		err := tc.msg.ValidateBasic()
-		if tc.expPass {
-			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
-		} else {
-			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
-		}
+			expPass := tc.expError == nil
+			if expPass {
+				require.NoError(t, err)
+			} else {
+				require.ErrorIs(t, err, tc.expError)
+			}
+		})
 	}
 }
 
@@ -131,20 +157,21 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			msg := types.MsgUpdateParams{
+				Signer: tc.address.String(),
+				Params: types.DefaultParams(),
+			}
 
-		msg := types.MsgUpdateParams{
-			Signer: tc.address.String(),
-			Params: types.DefaultParams(),
-		}
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+			signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
-		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
-		if tc.expPass {
-			require.NoError(t, err)
-			require.Equal(t, tc.address.Bytes(), signers[0])
-		} else {
-			require.Error(t, err)
-		}
+			if tc.expPass {
+				require.NoError(t, err)
+				require.Equal(t, tc.address.Bytes(), signers[0])
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }

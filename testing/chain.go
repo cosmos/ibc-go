@@ -115,7 +115,10 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		// add sender account
 		balance := banktypes.Balance{
 			Address: acc.GetAddress().String(),
-			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount)),
+			Coins: sdk.NewCoins(
+				sdk.NewCoin(sdk.DefaultBondDenom, amount),
+				sdk.NewCoin(SecondaryDenom, amount),
+			),
 		}
 
 		genAccs = append(genAccs, acc)
@@ -613,7 +616,7 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 }
 
 // GetClientLatestHeight returns the latest height for the client state with the given client identifier.
-// If an invalid client identifier is provided then a zero value height will be returned and testing wil fail.
+// If an invalid client identifier is provided then a zero value height will be returned and testing will fail.
 func (chain *TestChain) GetClientLatestHeight(clientID string) exported.Height {
 	latestHeight := chain.App.GetIBCKeeper().ClientKeeper.GetClientLatestHeight(chain.GetContext(), clientID)
 	require.False(chain.TB, latestHeight.IsZero())
@@ -624,6 +627,12 @@ func (chain *TestChain) GetClientLatestHeight(clientID string) exported.Height {
 // to be used for testing. It returns the current IBC height + 100 blocks
 func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.ChainID), uint64(chain.GetContext().BlockHeight())+100)
+}
+
+// GetTimeoutTimestamp is a convenience function which returns a IBC packet timeout timestamp
+// to be used for testing. It returns the current block timestamp + default timestamp delta (1 hour).
+func (chain *TestChain) GetTimeoutTimestamp() uint64 {
+	return uint64(chain.GetContext().BlockTime().UnixNano()) + DefaultTimeoutTimestampDelta
 }
 
 // DeleteKey deletes the specified key from the ibc store.

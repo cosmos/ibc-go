@@ -10,7 +10,7 @@
 
 In ICS 26, the routing module is defined as a layer above each application module
 which verifies and routes messages to the destination modules. It is possible to
-implement it as a separate module, however, we already have functionality to route
+implement it as a separate module, however, we already have the functionality to route
 messages upon the destination identifiers in the baseapp. This ADR suggests
 to utilize existing `baseapp.router` to route packets to application modules.
 
@@ -167,7 +167,7 @@ which will make the channel unable to proceed.
 under the routing module specification. Instead of define each channel handshake callback
 functions, application modules can provide `ChannelChecker` function with the `AppModule`
 which will be injected to `ChannelKeeper.Port()` at the top level application.
-`CheckOpen` will find the correct `ChennelChecker` using the
+`CheckOpen` will find the correct `ChannelChecker` using the
 `PortID` and call it, which will return an error if it is unacceptable by the application.
 
 The `ProofVerificationDecorator` will be inserted to the top level application.

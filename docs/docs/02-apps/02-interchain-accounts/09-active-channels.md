@@ -11,7 +11,7 @@ The Interchain Accounts module uses either [ORDERED or UNORDERED](https://github
 
 When using `ORDERED` channels, the order of transactions when sending packets from a controller to a host chain is maintained.
 
-When using `UNORDERED` channels, there is no guarantee that the order of transactions when sending packets from the controller to the host chain is maintained.
+When using `UNORDERED` channels, there is no guarantee that the order of transactions when sending packets from the controller to the host chain is maintained. If no ordering is specified in `MsgRegisterInterchainAccount`, then the default ordering for new ICA channels is `UNORDERED`.
 
 > A limitation when using ORDERED channels is that when a packet times out the channel will be closed.
 

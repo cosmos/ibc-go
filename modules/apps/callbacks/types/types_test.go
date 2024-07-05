@@ -14,13 +14,17 @@ type CallbacksTypesTestSuite struct {
 
 	coord *ibctesting.Coordinator
 
-	chain *ibctesting.TestChain
+	chainA, chainB *ibctesting.TestChain
+
+	path *ibctesting.Path
 }
 
-// SetupTest creates a coordinator with 1 test chain.
-func (s *CallbacksTypesTestSuite) SetupSuite() {
-	s.coord = ibctesting.NewCoordinator(s.T(), 1)
-	s.chain = s.coord.GetChain(ibctesting.GetChainID(1))
+// SetupTest creates a coordinator with 2 test chains.
+func (s *CallbacksTypesTestSuite) SetupTest() {
+	s.coord = ibctesting.NewCoordinator(s.T(), 2)
+	s.chainA = s.coord.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coord.GetChain(ibctesting.GetChainID(2))
+	s.path = ibctesting.NewPath(s.chainA, s.chainB)
 }
 
 func TestCallbacksTypesTestSuite(t *testing.T) {

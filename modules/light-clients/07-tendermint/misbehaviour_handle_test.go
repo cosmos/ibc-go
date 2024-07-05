@@ -368,13 +368,12 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
 
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
 			tc.malleate()
 
-			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
-			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, misbehaviour)
+			err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), path.EndpointA.ClientID, misbehaviour)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -678,13 +677,12 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
 
+			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
+			suite.Require().True(found)
+
 			tc.malleate()
 
-			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
-			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, misbehaviour)
+			err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), path.EndpointA.ClientID, misbehaviour)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

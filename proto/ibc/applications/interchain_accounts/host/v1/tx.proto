@@ -47,7 +47,7 @@ message MsgModuleQuerySafe {
   string signer = 1;
 
   // requests defines the module safe queries to execute.
-  repeated QueryRequest requests = 2;
+  repeated QueryRequest requests = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgModuleQuerySafeResponse defines the response for Msg/ModuleQuerySafe

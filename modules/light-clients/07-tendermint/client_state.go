@@ -17,6 +17,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
@@ -230,9 +231,9 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	consensusState, found := GetConsensusState(clientStore, cdc, height)
@@ -272,9 +273,9 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	consensusState, found := GetConsensusState(clientStore, cdc, height)

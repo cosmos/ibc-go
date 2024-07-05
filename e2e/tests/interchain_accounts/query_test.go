@@ -40,7 +40,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer := s.GetRelayer()
 	chainA, chainB := s.GetChains()
 	chainBVersion := chainB.Config().Images[0].Version
 
@@ -82,7 +82,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			queryBz, err := balanceQuery.Marshal()
 			s.Require().NoError(err)
 
-			queryMsg := icahosttypes.NewMsgModuleQuerySafe(hostAccount, []*icahosttypes.QueryRequest{
+			queryMsg := icahosttypes.NewMsgModuleQuerySafe(hostAccount, []icahosttypes.QueryRequest{
 				{
 					Path: "/cosmos.bank.v1beta1.Query/Balance",
 					Data: queryBz,

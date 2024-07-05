@@ -70,7 +70,7 @@ As part of the handling of the `MsgChannelUpgradeInit` message, the application'
 
 After this message is handled successfully, the channel's upgrade sequence will be incremented. This upgrade sequence will serve as a nonce for the upgrade process to provide replay protection.
 
-::: warning
+:::warning
 Initiating an upgrade in the same block as opening a channel may potentially prevent the counterparty channel from also opening. 
 :::
 

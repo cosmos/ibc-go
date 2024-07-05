@@ -35,9 +35,9 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	chainA, _ := s.GetChains()
+	channelA := s.GetChainAChannel()
 
+	chainA, _ := s.GetChains()
 	chainADenom := chainA.Config().Denom
 
 	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -53,24 +53,9 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
-	t.Run("verify begin blocker was executed", func(t *testing.T) {
-		cs, err := query.ClientState(ctx, chainA, exported.LocalhostClientID)
-		s.Require().NoError(err)
-
-		localhostClientState, ok := cs.(*localhost.ClientState)
-		s.Require().True(ok)
-		originalHeight := localhostClientState.LatestHeight
-
-		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
-
-		cs, err = query.ClientState(ctx, chainA, exported.LocalhostClientID)
-		s.Require().NoError(err)
-		s.Require().True(cs.(*localhost.ClientState).LatestHeight.GT(originalHeight), "client state height was not incremented")
-	})
-
 	t.Run("channel open init localhost", func(t *testing.T) {
 		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
-			transfertypes.PortID, transfertypes.Version,
+			transfertypes.PortID, channelA.Version,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, rlyWallet.FormattedAddress(),
 		)
@@ -85,10 +70,10 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	t.Run("channel open try localhost", func(t *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
-			transfertypes.PortID, transfertypes.Version,
+			transfertypes.PortID, channelA.Version,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
-			transfertypes.Version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+			channelA.Version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
@@ -100,7 +85,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
-			msgChanOpenTryRes.ChannelId, transfertypes.Version,
+			msgChanOpenTryRes.ChannelId, channelA.Version,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -132,7 +117,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	t.Run("send packet localhost ibc transfer", func(t *testing.T) {
 		var err error
-		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
+		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferCoins(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
 		s.AssertTxSuccess(txResp)
 
 		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)

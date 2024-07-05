@@ -26,7 +26,7 @@ To prevent a single token from being transferred from the chain, set the `SendEn
 - For Cosmos SDK v0.46.x or earlier, set the bank module's [`SendEnabled` parameter](https://github.com/cosmos/cosmos-sdk/blob/release/v0.46.x/x/bank/spec/05_params.md#sendenabled) for the denomination to `false`.
 - For Cosmos SDK versions above v0.46.x, set the bank module's `SendEnabled` entry for the denomination to `false` using `MsgSetSendEnabled` as a governance proposal.
 
-::: warning
+:::warning
 Doing so will prevent the token from being transferred between any accounts in the blockchain.
 :::
 
@@ -39,7 +39,7 @@ To prevent a single token from being transferred to the chain, set the `ReceiveE
 - For Cosmos SDK v0.46.x or earlier, set the bank module's [`SendEnabled` parameter](https://github.com/cosmos/cosmos-sdk/blob/release/v0.46.x/x/bank/spec/05_params.md#sendenabled) for the denomination to `false`.
 - For Cosmos SDK versions above v0.46.x, set the bank module's `SendEnabled` entry for the denomination to `false` using `MsgSetSendEnabled` as a governance proposal.
 
-::: warning
+:::warning
 Doing so will prevent the token from being transferred between any accounts in the blockchain.
 :::
 

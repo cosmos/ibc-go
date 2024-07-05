@@ -18,6 +18,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -144,74 +145,78 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store.Set([]byte(types.ParamsKey), bz)
 }
 
-// GetDenomTrace retrieves the full identifiers trace and base denomination from the store.
-func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash cmtbytes.HexBytes) (types.DenomTrace, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
-	bz := store.Get(denomTraceHash)
+// GetDenom retrieves the denom from store given the hash of the denom.
+func (k Keeper) GetDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) (types.Denom, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomKey)
+	bz := store.Get(denomHash)
 	if len(bz) == 0 {
-		return types.DenomTrace{}, false
+		return types.Denom{}, false
 	}
 
-	denomTrace := k.MustUnmarshalDenomTrace(bz)
-	return denomTrace, true
+	var denom types.Denom
+	k.cdc.MustUnmarshal(bz, &denom)
+
+	return denom, true
 }
 
-// HasDenomTrace checks if a the key with the given denomination trace hash exists on the store.
-func (k Keeper) HasDenomTrace(ctx sdk.Context, denomTraceHash cmtbytes.HexBytes) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
-	return store.Has(denomTraceHash)
+// HasDenom checks if a the key with the given denomination hash exists on the store.
+func (k Keeper) HasDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomKey)
+	return store.Has(denomHash)
 }
 
-// SetDenomTrace sets a new {trace hash -> denom trace} pair to the store.
-func (k Keeper) SetDenomTrace(ctx sdk.Context, denomTrace types.DenomTrace) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
-	bz := k.MustMarshalDenomTrace(denomTrace)
-	store.Set(denomTrace.Hash(), bz)
+// SetDenom sets a new {denom hash -> denom } pair to the store.
+// This allows for reverse lookup of the denom given the hash.
+func (k Keeper) SetDenom(ctx sdk.Context, denom types.Denom) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomKey)
+	bz := k.cdc.MustMarshal(&denom)
+	store.Set(denom.Hash(), bz)
 }
 
-// GetAllDenomTraces returns the trace information for all the denominations.
-func (k Keeper) GetAllDenomTraces(ctx sdk.Context) types.Traces {
-	traces := types.Traces{}
-	k.IterateDenomTraces(ctx, func(denomTrace types.DenomTrace) bool {
-		traces = append(traces, denomTrace)
+// GetAllDenoms returns all the denominations.
+func (k Keeper) GetAllDenoms(ctx sdk.Context) types.Denoms {
+	denoms := types.Denoms{}
+	k.IterateDenoms(ctx, func(denom types.Denom) bool {
+		denoms = append(denoms, denom)
 		return false
 	})
 
-	return traces.Sort()
+	return denoms.Sort()
 }
 
-// IterateDenomTraces iterates over the denomination traces in the store
-// and performs a callback function.
-func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.DenomTrace) bool) {
+// IterateDenoms iterates over the denominations in the store and performs a callback function.
+func (k Keeper) IterateDenoms(ctx sdk.Context, cb func(denom types.Denom) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.DenomKey)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
-		denomTrace := k.MustUnmarshalDenomTrace(iterator.Value())
-		if cb(denomTrace) {
+		var denom types.Denom
+		k.cdc.MustUnmarshal(iterator.Value(), &denom)
+
+		if cb(denom) {
 			break
 		}
 	}
 }
 
 // setDenomMetadata sets an IBC token's denomination metadata
-func (k Keeper) setDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
+func (k Keeper) setDenomMetadata(ctx sdk.Context, denom types.Denom) {
 	metadata := banktypes.Metadata{
-		Description: fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath()),
+		Description: fmt.Sprintf("IBC token from %s", denom.Path()),
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    denomTrace.BaseDenom,
+				Denom:    denom.Base,
 				Exponent: 0,
 			},
 		},
 		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
 		// Base as key path and the IBC hash is what gives this token uniqueness
 		// on the executing chain
-		Base:    denomTrace.IBCDenom(),
-		Display: denomTrace.GetFullDenomPath(),
-		Name:    fmt.Sprintf("%s IBC token", denomTrace.GetFullDenomPath()),
-		Symbol:  strings.ToUpper(denomTrace.BaseDenom),
+		Base:    denom.IBCDenom(),
+		Display: denom.Path(),
+		Name:    fmt.Sprintf("%s IBC token", denom.Path()),
+		Symbol:  strings.ToUpper(denom.Base),
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
@@ -301,4 +306,44 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// setForwardedPacket sets the forwarded packet in the store.
+func (k Keeper) setForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&packet)
+	store.Set(types.PacketForwardKey(portID, channelID, sequence), bz)
+}
+
+// getForwardedPacket gets the forwarded packet from the store.
+func (k Keeper) getForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.PacketForwardKey(portID, channelID, sequence))
+	if bz == nil {
+		return channeltypes.Packet{}, false
+	}
+
+	var storedPacket channeltypes.Packet
+	k.cdc.MustUnmarshal(bz, &storedPacket)
+
+	return storedPacket, true
+}
+
+// deleteForwardedPacket deletes the forwarded packet from the store.
+func (k Keeper) deleteForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	packetKey := types.PacketForwardKey(portID, channelID, sequence)
+
+	store.Delete(packetKey)
+}
+
+// IsBlockedAddr checks if the given address is allowed to send or receive tokens.
+// The module account is always allowed to send and receive tokens.
+func (k Keeper) isBlockedAddr(addr sdk.AccAddress) bool {
+	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+	if addr.Equals(moduleAddr) {
+		return false
+	}
+
+	return k.bankKeeper.BlockedAddr(addr)
 }

@@ -65,7 +65,6 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
@@ -164,23 +163,20 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 
 	var (
 		pathName           string
-		relayer            ibc.Relayer
 		subjectClientID    string
 		substituteClientID string
 		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
 		badTrustingPeriod = time.Second * 10
 	)
 
-	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer := s.GetRelayer()
 
+	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		// TODO: replace with better handling of path names
-		pathName = fmt.Sprintf("%s-path-%d", s.T().Name(), 0)
-		pathName = strings.ReplaceAll(pathName, "/", "-")
+		pathName = s.GetPaths()[0]
 	})
 
 	chainA, chainB := s.GetChains()
@@ -247,23 +243,20 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 
 	var (
 		pathName           string
-		relayer            ibc.Relayer
 		subjectClientID    string
 		substituteClientID string
 		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
 		badTrustingPeriod = time.Second * 10
 	)
 
-	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer := s.GetRelayer()
 
+	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		// TODO: replace with better handling of path names
-		pathName = fmt.Sprintf("%s-path-%d", s.T().Name(), 0)
-		pathName = strings.ReplaceAll(pathName, "/", "-")
+		pathName = s.GetPaths()[0]
 	})
 
 	chainA, chainB := s.GetChains()
@@ -341,13 +334,13 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err             error
 	)
 
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
+	relayer := s.GetRelayer()
 	chainA, chainB := s.GetChains()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
@@ -363,7 +356,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
@@ -397,11 +390,15 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 
 		t.Run("extract validator private keys", func(t *testing.T) {
 			privateKeys := s.extractChainPrivateKeys(ctx, chainB)
+			s.Require().NotEmpty(privateKeys, "private keys are empty")
+
 			for i, pv := range privateKeys {
 				pubKey, err := pv.GetPubKey()
 				s.Require().NoError(err)
 
 				validator := cmttypes.NewValidator(pubKey, validators[i].VotingPower)
+				err = validator.ValidateBasic()
+				s.Require().NoError(err, "invalid validator: %s", err)
 
 				validatorSet = append(validatorSet, validator)
 				signers = append(signers, pv)
@@ -409,8 +406,12 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		})
 	})
 
+	s.Require().NotEmpty(validatorSet, "validator set is empty")
+
 	t.Run("create malicious header", func(t *testing.T) {
 		valSet := cmttypes.NewValidatorSet(validatorSet)
+		err := valSet.ValidateBasic()
+		s.Require().NoError(err, "invalid validator set: %s", err)
 		maliciousHeader, err = createMaliciousTMHeader(chainB.Config().ChainID, int64(latestHeight.GetRevisionHeight()), trustedHeight,
 			header.GetTime(), valSet, valSet, signers, header)
 		s.Require().NoError(err)
@@ -437,10 +438,8 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
-
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -488,14 +487,19 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 		status, err := query.ClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Unauthorized.String(), status)
+
+		status, err = query.ClientStatus(ctx, chainA, ibcexported.Localhost)
+		s.Require().NoError(err)
+		s.Require().Equal(ibcexported.Unauthorized.String(), status)
 	})
 }
 
 // extractChainPrivateKeys returns a slice of cmttypes.PrivValidator which hold the private keys for all validator
 // nodes for a given chain.
 func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc.Chain) []cmttypes.PrivValidator {
-	testContainers, err := dockerutil.GetTestContainers(ctx, s.T(), s.DockerClient)
+	testContainers, err := dockerutil.GetTestContainers(ctx, s.SuiteName(), s.DockerClient)
 	s.Require().NoError(err)
+	s.Require().NotEmpty(testContainers, "no test containers found")
 
 	var filePvs []privval.FilePVKey
 	var pvs []cmttypes.PrivValidator
@@ -503,6 +507,7 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc
 		isNodeForDifferentChain := !strings.Contains(container.Names[0], chain.Config().ChainID)
 		isFullNode := strings.Contains(container.Names[0], fmt.Sprintf("%s-fn", chain.Config().ChainID))
 		if isNodeForDifferentChain || isFullNode {
+			s.T().Logf("skipping container %s for chain %s", container.Names[0], chain.Config().ChainID)
 			continue
 		}
 

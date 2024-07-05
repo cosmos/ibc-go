@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -29,13 +30,15 @@ type KeeperTestSuite struct {
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 	chainC *ibctesting.TestChain
+	chainD *ibctesting.TestChain
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 4)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
+	suite.chainD = suite.coordinator.GetChain(ibctesting.GetChainID(4))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().TransferKeeper)
@@ -199,7 +202,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 		{
 			"success",
 			func() {
-				denom := "uatom"
+				denom := "uatom" //nolint:goconst
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
@@ -349,4 +352,38 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	ics4Wrapper = suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
 	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
+}
+
+func (suite *KeeperTestSuite) TestIsBlockedAddr() {
+	suite.SetupTest()
+
+	testCases := []struct {
+		name     string
+		addr     sdk.AccAddress
+		expBlock bool
+	}{
+		{
+			"transfer module account address",
+			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName),
+			false,
+		},
+		{
+			"regular address",
+			suite.chainA.SenderAccount.GetAddress(),
+			false,
+		},
+		{
+			"blocked address",
+			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName),
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(tc.expBlock, suite.chainA.GetSimApp().TransferKeeper.IsBlockedAddr(tc.addr))
+		})
+	}
 }

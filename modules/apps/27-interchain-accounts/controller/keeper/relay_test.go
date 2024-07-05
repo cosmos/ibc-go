@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"github.com/cosmos/gogoproto/proto"
 
-	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -36,7 +34,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 				msg := &banktypes.MsgSend{
 					FromAddress: interchainAccountAddr,
 					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					Amount:      sdk.NewCoins(ibctesting.TestCoin),
 				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
@@ -59,12 +57,12 @@ func (suite *KeeperTestSuite) TestSendTx() {
 					&banktypes.MsgSend{
 						FromAddress: interchainAccountAddr,
 						ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-						Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+						Amount:      sdk.NewCoins(ibctesting.TestCoin),
 					},
 					&banktypes.MsgSend{
 						FromAddress: interchainAccountAddr,
 						ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-						Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+						Amount:      sdk.NewCoins(ibctesting.TestCoin),
 					},
 				}
 
@@ -125,7 +123,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 				msg := &banktypes.MsgSend{
 					FromAddress: interchainAccountAddr,
 					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
+					Amount:      sdk.NewCoins(ibctesting.TestCoin),
 				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainB.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
@@ -142,30 +140,32 @@ func (suite *KeeperTestSuite) TestSendTx() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.msg, func() {
-			suite.SetupTest()             // reset
-			timeoutTimestamp = ^uint64(0) // default
+			suite.Run(tc.msg, func() {
+				suite.SetupTest()             // reset
+				timeoutTimestamp = ^uint64(0) // default
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			tc.malleate() // malleate mutates test data
-
-			//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
-			_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
-
-			if tc.expPass {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				tc.malleate() // malleate mutates test data
+
+				//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
+				_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }
 
@@ -184,38 +184,40 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.msg, func() {
-			suite.SetupTest() // reset
+			suite.Run(tc.msg, func() {
+				suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			tc.malleate() // malleate mutates test data
-
-			packet := channeltypes.NewPacket(
-				[]byte{},
-				1,
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				path.EndpointB.ChannelConfig.PortID,
-				path.EndpointB.ChannelID,
-				clienttypes.NewHeight(0, 100),
-				0,
-			)
-
-			err = suite.chainA.GetSimApp().ICAControllerKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet)
-
-			if tc.expPass {
+				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				tc.malleate() // malleate mutates test data
+
+				packet := channeltypes.NewPacket(
+					[]byte{},
+					1,
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					path.EndpointB.ChannelConfig.PortID,
+					path.EndpointB.ChannelID,
+					clienttypes.NewHeight(0, 100),
+					0,
+				)
+
+				err = suite.chainA.GetSimApp().ICAControllerKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet)
+
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			})
+		}
 	}
 }

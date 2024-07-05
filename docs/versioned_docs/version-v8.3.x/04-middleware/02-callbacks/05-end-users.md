@@ -18,11 +18,11 @@ This section explains how to use the callbacks middleware from the perspective o
 
 For a given channel, the source callbacks are supported if the source chain has the callbacks middleware wired up in the channel's IBC stack. Similarly, the destination callbacks are supported if the destination chain has the callbacks middleware wired up in the channel's IBC stack.
 
-::: tip
+:::tip
 Callbacks are always executed after the packet has been processed by the underlying IBC module.
 :::
 
-::: warning
+:::warning
 If the underlying application module is doing an asynchronous acknowledgement on packet receive (for example, if the [packet forward middleware](https://github.com/cosmos/ibc-apps/tree/main/middleware/packet-forward-middleware) is in the stack, and is being used by this packet), then the callbacks middleware will execute the `ReceivePacket` callback after the acknowledgement has been received.
 :::
 
@@ -85,12 +85,12 @@ User defined gas limit was added for the following reasons:
 - To prevent callbacks from blocking packet lifecycle.
 - To prevent relayers from being able to DOS the callback execution by sending a packet with a low amount of gas.
 
-::: tip
+:::tip
 There is a chain wide parameter that sets the maximum gas limit that a user can set for a callback. This is to prevent a user from setting a gas limit that is too high for relayers. If the `"gas_limit"` is not set in the packet memo, then the maximum gas limit is used.
 :::
 
 These goals are achieved by creating a minimum gas amount required for callback execution. If the relayer provides at least the minimum gas limit for the callback execution, then the packet lifecycle will not be blocked if the callback runs out of gas during execution, and the callback cannot be retried. If the relayer does not provided the minimum amount of gas and the callback executions runs out of gas, the entire tx is reverted and it may be executed again.
 
-::: tip
+:::tip
 `SendPacket` callback is always reverted if the callback execution fails or returns an error for any reason. This is so that the packet is not sent if the callback execution fails.
 :::

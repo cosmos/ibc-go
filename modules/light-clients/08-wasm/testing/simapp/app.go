@@ -571,7 +571,7 @@ func NewSimApp(
 	if !ok {
 		panic(fmt.Errorf("cannot convert %T into %T", icaControllerStack, app.ICAAuthModule))
 	}
-	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
+	icaControllerStack = icacontroller.NewIBCMiddlewareWithAuth(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
@@ -814,7 +814,7 @@ func NewSimApp(
 	// meaning that both `runMsgs` and `postHandler` state will be committed if
 	// both are successful, and both will be reverted if any of the two fails.
 	//
-	// The SDK exposes a default postHandlers chain, which comprises of only
+	// The SDK exposes a default postHandlers chain, which is comprised of only
 	// one decorator: the Transaction Tips decorator. However, some chains do
 	// not need it by default, so feel free to comment the next line if you do
 	// not need tips.
@@ -999,7 +999,7 @@ func (app *SimApp) GetKey(storeKey string) *storetypes.KVStoreKey {
 
 // GetStoreKeys returns all the stored store keys.
 func (app *SimApp) GetStoreKeys() []storetypes.StoreKey {
-	keys := make([]storetypes.StoreKey, len(app.keys))
+	keys := make([]storetypes.StoreKey, 0, len(app.keys))
 	for _, key := range app.keys {
 		keys = append(keys, key)
 	}

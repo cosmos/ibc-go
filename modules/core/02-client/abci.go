@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
@@ -24,19 +24,12 @@ func BeginBlocker(ctx sdk.Context, k *keeper.Keeper) {
 				Timestamp:          ctx.BlockTime(),
 				NextValidatorsHash: ctx.BlockHeader().NextValidatorsHash,
 			}
-			bz := k.MustMarshalConsensusState(upgradedConsState)
+			bz := types.MustMarshalConsensusState(k.Codec(), upgradedConsState)
 
 			// SetUpgradedConsensusState always returns nil, hence the blank here.
 			_ = k.SetUpgradedConsensusState(ctx, plan.Height, bz)
 
 			keeper.EmitUpgradeChainEvent(ctx, plan.Height)
-		}
-	}
-
-	// update the localhost client with the latest block height if it is active.
-	if clientState, found := k.GetClientState(ctx, exported.Localhost); found {
-		if k.GetClientStatus(ctx, exported.LocalhostClientID) == exported.Active {
-			k.UpdateLocalhostClient(ctx, clientState)
 		}
 	}
 }

@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -64,10 +63,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		},
 		{
 			"failure: 09-localhost client type not supported",
-			func() {
-				lhClientState := localhost.NewClientState(clienttypes.GetSelfHeight(suite.chainA.GetContext()))
-				clientState = suite.chainA.App.AppCodec().MustMarshal(lhClientState)
-			},
+			func() {},
 			exported.Localhost,
 			false,
 		},
@@ -508,7 +504,9 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	trustedHeight := path.EndpointA.GetClientState().(*ibctm.ClientState).LatestHeight
+	tmClientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+	suite.Require().True(ok)
+	trustedHeight := tmClientState.LatestHeight
 	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	suite.Require().NoError(err)
 

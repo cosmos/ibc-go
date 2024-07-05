@@ -18,7 +18,7 @@ For the purposes of ibc-go, there are two types of proofs which are important: e
 
 Existence proofs are used in IBC transactions which involve verification of counterparty state for transactions which will result in the writing of provable state. For example, this includes verification of IBC store state for handshakes and packets.
 
-Put simply, existence proofs prove that a particular key and value exists in the tree. Under the hood, an IBC existence proof comprises of two  proofs: an IAVL proof that the key exists in IBC store/IBC root hash, and a proof that the IBC root hash exists in the multistore root hash.
+Put simply, existence proofs prove that a particular key and value exists in the tree. Under the hood, an IBC existence proof is comprised of two proofs: an IAVL proof that the key exists in IBC store/IBC root hash, and a proof that the IBC root hash exists in the multistore root hash.
 
 ## Non-existence proofs
 

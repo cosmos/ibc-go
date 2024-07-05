@@ -16,7 +16,7 @@ import (
 // Value to the corresponding ibc type.
 func NewDecodeStore(k keeper.Keeper) func(kvA, kvB kv.Pair) string {
 	return func(kvA, kvB kv.Pair) string {
-		if res, found := clientsim.NewDecodeStore(k.ClientKeeper, kvA, kvB); found {
+		if res, found := clientsim.NewDecodeStore(k.Codec(), kvA, kvB); found {
 			return res
 		}
 

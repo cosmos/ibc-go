@@ -62,7 +62,7 @@ const (
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
 	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "sean-channel-upgradability"
+	defaultHermesTag = "1.10.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
@@ -71,7 +71,7 @@ const (
 )
 
 // defaultChainNames contains the default name for chainA and chainB.
-var defaultChainNames = []string{"simapp-a", "simapp-b"}
+var defaultChainNames = []string{"simapp-a", "simapp-b", "simapp-c"}
 
 func getChainImage(binary string) string {
 	if binary == "" {
@@ -525,9 +525,9 @@ func IsFork() bool {
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
 type ChainOptions struct {
-	ChainASpec       *interchaintest.ChainSpec
-	ChainBSpec       *interchaintest.ChainSpec
+	ChainSpecs       []*interchaintest.ChainSpec
 	SkipPathCreation bool
+	RelayerCount     int
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
@@ -544,17 +544,23 @@ func DefaultChainOptions() ChainOptions {
 	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
 	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
 
+	chainASpec := &interchaintest.ChainSpec{
+		ChainConfig:   chainACfg,
+		NumFullNodes:  &chainAFn,
+		NumValidators: &chainAVal,
+	}
+
+	chainBSpec := &interchaintest.ChainSpec{
+		ChainConfig:   chainBCfg,
+		NumFullNodes:  &chainBFn,
+		NumValidators: &chainBVal,
+	}
+
 	return ChainOptions{
-		ChainASpec: &interchaintest.ChainSpec{
-			ChainConfig:   chainACfg,
-			NumFullNodes:  &chainAFn,
-			NumValidators: &chainAVal,
-		},
-		ChainBSpec: &interchaintest.ChainSpec{
-			ChainConfig:   chainBCfg,
-			NumFullNodes:  &chainBFn,
-			NumValidators: &chainBVal,
-		},
+		ChainSpecs: []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		// arbitrary number that will not be required if https://github.com/strangelove-ventures/interchaintest/issues/1153 is resolved.
+		// It can be overridden in individual test suites in SetupSuite if required.
+		RelayerCount: 10,
 	}
 }
 

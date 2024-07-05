@@ -11,62 +11,80 @@ import (
 
 // Integration test to ensure ics29 works with ics20
 func (suite *FeeTestSuite) TestFeeTransfer() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
-	path.EndpointA.ChannelConfig.Version = feeTransferVersion
-	path.EndpointB.ChannelConfig.Version = feeTransferVersion
-	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
-	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
-
-	path.Setup()
-
-	// set up coin & ics20 packet
-	coin := ibctesting.TestCoin
-	fee := types.Fee{
-		RecvFee:    defaultRecvFee,
-		AckFee:     defaultAckFee,
-		TimeoutFee: defaultTimeoutFee,
+	testCases := []struct {
+		name            string
+		coinsToTransfer sdk.Coins
+	}{
+		{
+			"transfer single denom",
+			sdk.NewCoins(ibctesting.TestCoin),
+		},
+		{
+			"transfer multiple denoms",
+			sdk.NewCoins(ibctesting.TestCoin, ibctesting.SecondaryTestCoin),
+		},
 	}
 
-	msgs := []sdk.Msg{
-		types.NewMsgPayPacketFee(fee, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetAddress().String(), nil),
-		transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 100), 0, ""),
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
+			path.EndpointA.ChannelConfig.Version = feeTransferVersion
+			path.EndpointB.ChannelConfig.Version = feeTransferVersion
+			path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
+			path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
+
+			path.Setup()
+
+			fee := types.Fee{
+				RecvFee:    defaultRecvFee,
+				AckFee:     defaultAckFee,
+				TimeoutFee: defaultTimeoutFee,
+			}
+
+			msgs := []sdk.Msg{
+				types.NewMsgPayPacketFee(fee, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetAddress().String(), nil),
+				transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, tc.coinsToTransfer, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 100), 0, "", nil),
+			}
+
+			res, err := suite.chainA.SendMsgs(msgs...)
+			suite.Require().NoError(err) // message committed
+
+			// after incentivizing the packets
+			originalChainASenderAccountBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+
+			packet, err := ibctesting.ParsePacketFromEvents(res.Events)
+			suite.Require().NoError(err)
+
+			// register counterparty address on chainB
+			payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+			suite.Require().NoError(err)
+
+			msgRegister := types.NewMsgRegisterCounterpartyPayee(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, suite.chainB.SenderAccount.GetAddress().String(), payeeAddr.String())
+			_, err = suite.chainB.SendMsgs(msgRegister)
+			suite.Require().NoError(err) // message committed
+
+			// relay packet
+			err = path.RelayPacket(packet)
+			suite.Require().NoError(err) // relay committed
+
+			// ensure relayers got paid
+			// relayer for forward relay: chainB.SenderAccount
+			// relayer for reverse relay: chainA.SenderAccount
+
+			// check forward relay balance
+			suite.Require().Equal(
+				fee.RecvFee,
+				sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), payeeAddr, ibctesting.TestCoin.Denom)),
+			)
+
+			suite.Require().Equal(
+				fee.AckFee, // ack fee paid, no refund needed since timeout_fee = recv_fee + ack_fee
+				sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance[0]))
+		})
 	}
-	res, err := suite.chainA.SendMsgs(msgs...)
-	suite.Require().NoError(err) // message committed
-
-	// after incentivizing the packets
-	originalChainASenderAccountBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-
-	packet, err := ibctesting.ParsePacketFromEvents(res.Events)
-	suite.Require().NoError(err)
-
-	// register counterparty address on chainB
-	// relayerAddress is address of sender account on chainB, but we will use it on chainA
-	// to differentiate from the chainA.SenderAccount for checking successful relay payouts
-	relayerAddress := suite.chainB.SenderAccount.GetAddress()
-
-	msgRegister := types.NewMsgRegisterCounterpartyPayee(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String())
-	_, err = suite.chainB.SendMsgs(msgRegister)
-	suite.Require().NoError(err) // message committed
-
-	// relay packet
-	err = path.RelayPacket(packet)
-	suite.Require().NoError(err) // relay committed
-
-	// ensure relayers got paid
-	// relayer for forward relay: chainB.SenderAccount
-	// relayer for reverse relay: chainA.SenderAccount
-
-	// check forward relay balance
-	suite.Require().Equal(
-		fee.RecvFee,
-		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
-	)
-
-	suite.Require().Equal(
-		fee.AckFee, // ack fee paid, no refund needed since timeout_fee = recv_fee + ack_fee
-		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance[0]))
 }
 
 func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
@@ -94,13 +112,13 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 			// configure the initial path to create a regular transfer channel
 			path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 			path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
-			path.EndpointA.ChannelConfig.Version = transfertypes.Version
-			path.EndpointB.ChannelConfig.Version = transfertypes.Version
+			path.EndpointA.ChannelConfig.Version = transfertypes.V2
+			path.EndpointB.ChannelConfig.Version = transfertypes.V2
 
 			path.Setup()
 
-			// configure the channel upgrade to upgrade to an incentivized fee enabled transfer channel
-			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
+			// configure the channel upgrade to an incentivized fee enabled transfer channel
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
@@ -138,7 +156,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 				msgs := []sdk.Msg{
 					types.NewMsgPayPacketFee(fee, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetAddress().String(), nil),
-					transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.TestCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 100), 0, ""),
+					transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoins(ibctesting.TestCoin), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 100), 0, "", nil),
 				}
 
 				res, err := suite.chainA.SendMsgs(msgs...)
@@ -168,7 +186,7 @@ func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareTransferHandshake() {
 	RemoveFeeMiddleware(suite.chainB) // remove fee middleware from chainB
 
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
+	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
 	path.EndpointA.ChannelConfig.Version = feeTransferVersion // this will be renegotiated by the Try step
 	path.EndpointB.ChannelConfig.Version = ""                 // this will be overwritten by the Try step
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
@@ -176,6 +194,6 @@ func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareTransferHandshake() {
 
 	path.Setup()
 
-	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, transfertypes.Version)
-	suite.Require().Equal(path.EndpointB.ChannelConfig.Version, transfertypes.Version)
+	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, transfertypes.V2)
+	suite.Require().Equal(path.EndpointB.ChannelConfig.Version, transfertypes.V2)
 }

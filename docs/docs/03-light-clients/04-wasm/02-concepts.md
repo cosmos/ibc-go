@@ -11,7 +11,23 @@ Learn about the differences between a proxy light client and a Wasm light client
 
 ## Proxy light client
 
-The `08-wasm` module is not a regular light client in the same sense as, for example, the 07-tendermint light client. `08-wasm` is instead a *proxy* light client module, and this means that the module acts a proxy to the actual implementations of light clients. The module will act as a wrapper for the actual light clients uploaded as Wasm byte code and will delegate all operations to them (i.e. `08-wasm` just passes through the requests to the Wasm light clients). Still, the `08-wasm` module implements all the required interfaces necessary to integrate with core IBC, so that 02-client can call into it as it would for any other light client module. These interfaces are `ClientState`, `ConsensusState` and `ClientMessage`, and we will describe them in the context of `08-wasm` in the following sections. For more information about this set of interfaces, please read section [Overview of the light client module developer guide](../01-developer-guide/01-overview.md#overview).
+The `08-wasm` module is not a regular light client in the same sense as, for example, the 07-tendermint light client. `08-wasm` is instead a *proxy* light client module, and this means that the module acts a proxy to the actual implementations of light clients. The module will act as a wrapper for the actual light clients uploaded as Wasm byte code and will delegate all operations to them (i.e. `08-wasm` just passes through the requests to the Wasm light clients). Still, the `08-wasm` module implements all the required interfaces necessary to integrate with core IBC, so that 02-client can call into it as it would for any other light client module. These interfaces are `LightClientModule`, `ClientState`, `ConsensusState` and `ClientMessage`, and we will describe them in the context of `08-wasm` in the following sections. For more information about this set of interfaces, please read section [Overview of the light client module developer guide](../01-developer-guide/01-overview.md#overview).
+
+### `LightClientModule`
+
+The `08-wasm`'s `LightClientModule` data structure contains two fields:
+
+- `keeper` is the `08-wasm` module keeper.
+- `storeProvider` encapsulates the IBC core store key and provides access to isolated prefix stores for each client so they can read/write in separate namespaces.
+
+```go
+type LightClientModule struct {
+  keeper        wasmkeeper.Keeper
+  storeProvider exported.ClientStoreProvider
+}
+```
+
+See section [`LightClientModule` of the light client module developer guide](../01-developer-guide/01-overview.md#lightclientmodule) for more information about the `LightClientModule` interface.
 
 ### `ClientState`
 

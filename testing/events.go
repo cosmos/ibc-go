@@ -62,10 +62,21 @@ func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 }
 
 // ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns
-// the first packet found.
+// the first EventTypeSendPacket packet found.
 // Returns an error if no packet is found.
 func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
-	packets, err := ParsePacketsFromEvents(events)
+	packets, err := ParsePacketsFromEvents(channeltypes.EventTypeSendPacket, events)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+	return packets[0], nil
+}
+
+// ParseRecvPacketFromEvents parses events emitted from a MsgRecvPacket and returns
+// the first EventTypeRecvPacket packet found.
+// Returns an error if no packet is found.
+func ParseRecvPacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
+	packets, err := ParsePacketsFromEvents(channeltypes.EventTypeRecvPacket, events)
 	if err != nil {
 		return channeltypes.Packet{}, err
 	}
@@ -75,13 +86,13 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 // ParsePacketsFromEvents parses events emitted from a MsgRecvPacket and returns
 // all the packets found.
 // Returns an error if no packet is found.
-func ParsePacketsFromEvents(events []abci.Event) ([]channeltypes.Packet, error) {
+func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltypes.Packet, error) {
 	ferr := func(err error) ([]channeltypes.Packet, error) {
 		return nil, fmt.Errorf("ibctesting.ParsePacketsFromEvents: %w", err)
 	}
 	var packets []channeltypes.Packet
 	for _, ev := range events {
-		if ev.Type == channeltypes.EventTypeSendPacket {
+		if ev.Type == eventType {
 			var packet channeltypes.Packet
 			for _, attr := range ev.Attributes {
 				switch attr.Key {
@@ -172,6 +183,19 @@ func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 	}
 
 	return 0, fmt.Errorf("proposalID event attribute not found")
+}
+
+// ParsePacketSequenceFromEvents parses events emitted from MsgRecvPacket and returns the packet sequence
+func ParsePacketSequenceFromEvents(events []abci.Event) (uint64, error) {
+	for _, event := range events {
+		for _, attribute := range event.Attributes {
+			if attribute.Key == "packet_sequence" {
+				return strconv.ParseUint(attribute.Value, 10, 64)
+			}
+		}
+	}
+
+	return 0, fmt.Errorf("packet sequence event attribute not found")
 }
 
 // AssertEvents asserts that expected events are present in the actual events.

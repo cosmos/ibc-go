@@ -47,8 +47,8 @@ func NewTransferPath(chainA, chainB *TestChain) *Path {
 	path := NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = TransferPort
 	path.EndpointB.ChannelConfig.PortID = TransferPort
-	path.EndpointA.ChannelConfig.Version = transfertypes.Version
-	path.EndpointB.ChannelConfig.Version = transfertypes.Version
+	path.EndpointA.ChannelConfig.Version = transfertypes.V2
+	path.EndpointB.ChannelConfig.Version = transfertypes.V2
 
 	return path
 }
@@ -64,6 +64,14 @@ func NewTransferPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
 func (path *Path) SetChannelOrdered() {
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
+}
+
+// DisableUniqueChannelIDs provides an opt-out way to not have all channel IDs be different
+// while testing.
+func (path *Path) DisableUniqueChannelIDs() *Path {
+	path.EndpointA.disableUniqueChannelIDs = true
+	path.EndpointB.disableUniqueChannelIDs = true
+	return path
 }
 
 // RelayPacket attempts to relay the packet first on EndpointA and then on EndpointB

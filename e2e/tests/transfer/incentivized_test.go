@@ -16,10 +16,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
@@ -36,11 +36,16 @@ func TestIncentivizedTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
 }
 
+// SetupTest explicitly enables fee middleware in the channel options.
+func (s *IncentivizedTransferTestSuite) SetupTest() {
+	s.SetupPaths(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions())
+}
+
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -158,7 +163,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -198,7 +203,21 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		version, err := feetypes.MetadataFromVersion(channelA.Version)
+		s.Require().NoError(err)
+
+		msgTransfer := testsuite.GetMsgTransfer(
+			channelA.PortID,
+			channelA.ChannelID,
+			version.AppVersion,
+			sdk.NewCoins(transferAmount),
+			chainAWallet.FormattedAddress(),
+			testvalues.InvalidAddress,
+			s.GetTimeoutHeight(ctx, chainB),
+			0,
+			"",
+			nil,
+		)
 		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgTransfer)
 		// this message should be successful, as receiver account is not validated on the sending chain.
 		s.AssertTxSuccess(txResp)
@@ -272,7 +291,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -322,8 +341,22 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		s.Require().Empty(packets)
 	})
 
+	version, err := feetypes.MetadataFromVersion(channelA.Version)
+	s.Require().NoError(err)
+
 	msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.FormattedAddress(), nil)
-	msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
+	msgTransfer := testsuite.GetMsgTransfer(
+		channelA.PortID,
+		channelA.ChannelID,
+		version.AppVersion,
+		sdk.NewCoins(transferAmount),
+		chainAWallet.FormattedAddress(),
+		chainBWallet.FormattedAddress(),
+		s.GetTimeoutHeight(ctx, chainB),
+		0,
+		"",
+		nil,
+	)
 	resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 	s.AssertTxSuccess(resp)
 
@@ -378,7 +411,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -494,7 +527,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -595,7 +628,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
+	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 

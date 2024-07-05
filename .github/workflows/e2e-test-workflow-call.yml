@@ -112,7 +112,7 @@ jobs:
         if: ${{ inputs.build-and-push-docker-image }}
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -127,7 +127,7 @@ jobs:
 
       - name: Build and push Docker image
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
+        uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c
         with:
           context: .
           push: true
@@ -159,7 +159,7 @@ jobs:
 
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image-wasm }}
-        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -174,7 +174,7 @@ jobs:
 
       - name: Build and push Docker image
         if: ${{ inputs.build-and-push-docker-image-wasm }}
-        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
+        uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c
         with:
           context: .
           push: true
@@ -200,7 +200,7 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
       - id: set-matrix
         run: |
           output=$(go run cmd/build_test_matrix/main.go)
@@ -238,7 +238,8 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
+          cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         id: e2e_test
         run: |

@@ -4,7 +4,7 @@ reviews:
     request_changes_workflow: false
     high_level_summary: true
     poem: false
-    review_status: true
+    review_status: false
     collapse_walkthrough: true
     path_filters:
       - "!**/*.pb.go"
@@ -24,7 +24,7 @@ reviews:
           instructions: |
               "Assess the documentation for misspellings, grammatical errors, missing documentation and correctness"
     auto_review:
-        enabled: true
+        enabled: false
         ignore_title_keywords:
             - "WIP"
             - "DO NOT MERGE"

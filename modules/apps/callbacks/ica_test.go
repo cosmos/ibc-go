@@ -162,7 +162,7 @@ func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string) {
 	s.Require().NoError(err)
 }
 
-// ExecuteICATx sends and times out an ICA tx
+// ExecuteICATimeout sends and times out an ICA tx
 func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string) {
 	relativeTimeout := uint64(1)
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
