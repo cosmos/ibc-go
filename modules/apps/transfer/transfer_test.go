@@ -80,7 +80,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			}
 
 			// send from chainA to chainB
-			msg := types.NewMsgTransfer(pathAToB.EndpointA.ChannelConfig.PortID, pathAToB.EndpointA.ChannelID, originalCoins, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", types.Forwarding{})
+			msg := types.NewMsgTransfer(pathAToB.EndpointA.ChannelConfig.PortID, pathAToB.EndpointA.ChannelID, originalCoins, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", nil)
 			res, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
@@ -120,7 +120,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			traceBToC := types.NewHop(pathBToC.EndpointB.ChannelConfig.PortID, pathBToC.EndpointB.ChannelID)
 
 			// send from chainB to chainC
-			msg = types.NewMsgTransfer(pathBToC.EndpointA.ChannelConfig.PortID, pathBToC.EndpointA.ChannelID, coinsSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", types.Forwarding{})
+			msg = types.NewMsgTransfer(pathBToC.EndpointA.ChannelConfig.PortID, pathBToC.EndpointA.ChannelID, coinsSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", nil)
 			res, err = suite.chainB.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
@@ -149,7 +149,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			}
 
 			// send from chainC back to chainB
-			msg = types.NewMsgTransfer(pathBToC.EndpointB.ChannelConfig.PortID, pathBToC.EndpointB.ChannelID, coinsSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", types.Forwarding{})
+			msg = types.NewMsgTransfer(pathBToC.EndpointB.ChannelConfig.PortID, pathBToC.EndpointB.ChannelID, coinsSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", nil)
 			res, err = suite.chainC.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
@@ -185,7 +185,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 				suite.Require().Equal(originalBalances.AmountOf(coin.Denom).Sub(amount).Int64(), chainABalance.Amount.Int64())
 
 				// check that module account escrow address is unchanged
-				escrowAddress = types.GetEscrowAddress(traceAToB.PortId, traceAToB.ChannelId)
+				escrowAddress = types.GetEscrowAddress(pathAToB.EndpointA.ChannelConfig.PortID, pathAToB.EndpointA.ChannelID)
 				chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, coin.Denom)
 				suite.Require().Equal(coin, chainAEscrowBalance)
 			}

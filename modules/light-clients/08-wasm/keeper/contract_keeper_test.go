@@ -12,7 +12,6 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
 func (suite *KeeperTestSuite) TestWasmInstantiate() {
@@ -105,8 +104,7 @@ func (suite *KeeperTestSuite) TestWasmInstantiate() {
 			"failure: change clientstate type",
 			func() {
 				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
-					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
-					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
+					store.Set(host.ClientStateKey(), []byte("changed client state"))
 
 					data, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -269,8 +267,7 @@ func (suite *KeeperTestSuite) TestWasmMigrate() {
 			"failure: change clientstate type",
 			func() {
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
-					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
-					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
+					store.Set(host.ClientStateKey(), []byte("changed client state"))
 
 					data, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -485,21 +482,6 @@ func (suite *KeeperTestSuite) TestWasmSudo() {
 				})
 			},
 			types.ErrWasmAttributesNotAllowed,
-		},
-		{
-			"failure: invalid clientstate type",
-			func() {
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
-					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
-					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
-
-					resp, err := json.Marshal(types.UpdateStateResult{})
-					suite.Require().NoError(err)
-
-					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: resp}}, wasmtesting.DefaultGasUsed, nil
-				})
-			},
-			types.ErrWasmInvalidContractModification,
 		},
 		{
 			"failure: unmarshallable clientstate bytes",

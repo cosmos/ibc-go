@@ -487,6 +487,10 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 		status, err := query.ClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Unauthorized.String(), status)
+
+		status, err = query.ClientStatus(ctx, chainA, ibcexported.Localhost)
+		s.Require().NoError(err)
+		s.Require().Equal(ibcexported.Unauthorized.String(), status)
 	})
 }
 

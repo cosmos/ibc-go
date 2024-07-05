@@ -309,8 +309,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB).DisableUniqueChannelIDs()
+		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC).DisableUniqueChannelIDs()
 		pathAtoB.Setup()
 		pathBtoC.Setup()
 
@@ -358,7 +358,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
 							"",
-							types.Forwarding{},
+							nil,
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)

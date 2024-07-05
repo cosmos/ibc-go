@@ -48,7 +48,7 @@ var (
 	zeroCoins         = []sdk.Coin{{Denom: "atoms", Amount: sdkmath.NewInt(0)}}
 
 	timeoutHeight   = clienttypes.NewHeight(0, 10)
-	emptyForwarding = types.Forwarding{}
+	emptyForwarding *types.Forwarding
 )
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
@@ -59,11 +59,11 @@ func TestMsgTransferValidation(t *testing.T) {
 		expError error
 	}{
 		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), nil},
-		{"valid msg with unwind", types.NewMsgTransfer("", "", sdk.NewCoins(ibctesting.TestCoin), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), nil},
+		{"valid msg with unwind", types.NewMsgTransfer("", "", sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), nil},
 		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), nil},
 		{"multidenom", types.NewMsgTransfer(validPort, validChannel, coins.Add(ibcCoins...), sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), nil},
 		{"memo with forwarding path hops not empty", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "memo", types.NewForwarding(false, validHop)), nil},
-		{"memo with forwarding unwind set to true", types.NewMsgTransfer("", "", sdk.NewCoins(ibctesting.TestCoin), sender, receiver, clienttypes.ZeroHeight(), 100, "memo", types.NewForwarding(true)), nil},
+		{"memo with forwarding unwind set to true", types.NewMsgTransfer("", "", sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "memo", types.NewForwarding(true)), nil},
 		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), ibcerrors.ErrInvalidCoins},
 		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), host.ErrInvalidID},
 		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", emptyForwarding), host.ErrInvalidID},
@@ -89,8 +89,8 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"invalid forwarding info too many hops", types.NewMsgTransfer(validPort, validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, generateHops(types.MaximumNumberOfForwardingHops+1)...)), types.ErrInvalidForwarding},
 		{"invalid portID when forwarding is set but unwind is not", types.NewMsgTransfer("", validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, validHop)), host.ErrInvalidID},
 		{"invalid channelID when forwarding is set but unwind is not", types.NewMsgTransfer(validPort, "", coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, validHop)), host.ErrInvalidID},
-		{"unwind specified but source port is not empty", types.NewMsgTransfer(validPort, "", coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), types.ErrInvalidForwarding},
-		{"unwind specified but source channel is not empty", types.NewMsgTransfer("", validChannel, coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), types.ErrInvalidForwarding},
+		{"unwind specified but source port is not empty", types.NewMsgTransfer(validPort, "", sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), types.ErrInvalidForwarding},
+		{"unwind specified but source channel is not empty", types.NewMsgTransfer("", validChannel, sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), types.ErrInvalidForwarding},
 		{"unwind specified but more than one coin in the message", types.NewMsgTransfer("", "", coins.Add(sdk.NewCoin("atom", ibctesting.TestCoin.Amount)), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), ibcerrors.ErrInvalidCoins},
 	}
 

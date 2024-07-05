@@ -29,7 +29,7 @@ client is part of its codebase), re-build chains' binaries, pass a governance pr
 
 Another problem stemming from the above process is that if a chain wants to upgrade its own consensus, it will 
 need to convince every chain or hub connected to it to upgrade its light client in order to stay connected. Due 
-to the time consuming process required to upgrade a light client, a chain with lots of connections needs to be 
+to the time-consuming process required to upgrade a light client, a chain with lots of connections needs to be 
 disconnected for quite some time after upgrading its consensus, which can be very expensive in terms of time and effort.
 
 We are proposing simplifying this workflow by integrating a Wasm light client module that makes adding support for

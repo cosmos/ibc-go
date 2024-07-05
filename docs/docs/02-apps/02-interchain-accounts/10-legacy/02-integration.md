@@ -110,7 +110,7 @@ icaAuthModule := icaauth.NewAppModule(appCodec, app.ICAAuthKeeper)
 icaAuthIBCModule := icaauth.NewIBCModule(app.ICAAuthKeeper)
 
 // Create controller IBC application stack and host IBC module as desired
-icaControllerStack := icacontroller.NewIBCMiddleware(icaAuthIBCModule, app.ICAControllerKeeper)
+icaControllerStack := icacontroller.NewIBCMiddlewareWithAuth(icaAuthIBCModule, app.ICAControllerKeeper)
 icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
 // Register host and authentication routes
@@ -192,7 +192,7 @@ icaAuthModule := icaauth.NewAppModule(appCodec, app.ICAAuthKeeper)
 icaAuthIBCModule := icaauth.NewIBCModule(app.ICAAuthKeeper)
 
 // Create controller IBC application stack
-icaControllerStack := icacontroller.NewIBCMiddleware(icaAuthIBCModule, app.ICAControllerKeeper)
+icaControllerStack := icacontroller.NewIBCMiddlewareWithAuth(icaAuthIBCModule, app.ICAControllerKeeper)
 
 // Register controller and authentication routes
 ibcRouter.

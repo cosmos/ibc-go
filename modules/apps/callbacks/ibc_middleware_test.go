@@ -1,8 +1,9 @@
 package ibccallbacks_test
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -496,7 +497,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				sdk.NewCoins(ibctesting.TestCoin), s.chainA.SenderAccount.GetAddress().String(),
 				s.chainB.SenderAccount.GetAddress().String(), clienttypes.ZeroHeight(), timeoutTimestamp,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit), // set user gas limit above panic level in mock contract keeper
-				transfertypes.Forwarding{},
+				nil,
 			)
 
 			res, err := s.chainA.SendMsgs(msg)
@@ -507,7 +508,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().NoError(err)
 			s.Require().NotNil(packet)
 
-			err = json.Unmarshal(packet.Data, &packetData)
+			err = proto.Unmarshal(packet.Data, &packetData)
 			s.Require().NoError(err)
 
 			ctx = s.chainA.GetContext()
