@@ -17,6 +17,7 @@ require (
 	cosmossdk.io/x/tx v0.10.0
 	cosmossdk.io/x/upgrade v0.0.0-20230818115413-c402c51a1508
 	github.com/ava-labs/avalanchego v1.10.18
+	github.com/ava-labs/coreth v0.12.10-rc.5
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
