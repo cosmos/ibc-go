@@ -23,21 +23,37 @@ type MsgTransfer struct {
   TimeoutTimestamp  uint64
   Memo              string
   Tokens            []sdk.Coin
+  Forwarding        *Forwarding
+}
+
+type Forwarding struct {
+	Unwind bool
+	Hops  []Hop
+}
+
+type Hop struct {
+	PortId    string
+	ChannelId string
 }
 ```
 
-This message is expected to fail if:
+If `Forwarding` is `nil`, this message is expected to fail if:
 
 - `SourcePort` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
 - `SourceChannel` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 - `Tokens` must not be empty.
 - Each `Coin` in `Tokens` must satisfy the following:
-    - `Amount` must be positive.
-    - `Denom` must be a valid IBC denomination, as defined in [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
+  - `Amount` must be positive.
+  - `Denom` must be a valid IBC denomination, as defined in [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
 - `Sender` is empty.
 - `Receiver` is empty or contains more than 2048 bytes.
 - `Memo` contains more than 32768 bytes.
 - `TimeoutHeight` and `TimeoutTimestamp` are both zero.
+
+If `Forwarding` is not `nil`, then to use forwarding you must either set `Unwind` to true or provide a non-empty list of `Hops`. Setting both `Unwind` to true and providing a non-empty list of `Hops` is allowed, but the total number of hops that is formed as a combination of the hops needed to unwind the tokens and the hops to forward them afterwards to the final destination must not exceed 8. When using forwarding, timeout must be specified using only `TimeoutTimestamp` (i.e. `TimeoutHeight` must be zero). Please note that the timeout timestamp must take into account the time that it may take tokens to be forwarded through the intermediary chains. Additionally, please note that the `MsgTransfer` will fail if:
+
+- `Hops` is not empty, and the number of elements of `Hops` is greater than 8, or either the `PortId` or `ChannelIs` of any of the `Hops` is not a valid identifier.
+- `Unwind` is true, and either the number of elements in `Tokens` is greater than 1, or `SourcePort` and `SourceChannel` are not empty strings (they must be empty because they are set by the transfer module, since it has access to the denomination trace information and is thus able to know the source port ID, channel ID to use in order to unwind the tokens). If `Unwind` is true, the transfer module expects the tokens in `MsgTransfer` to not native to the sending chain (i.e. they must be IBC vouchers).
 
 Please note that the `Token` field is deprecated and users should now use `Tokens` instead. If `Token` is used then `Tokens` must be empty. Similarly, if `Tokens` is used then `Token` should be left empty.
 This message will send a fungible token to the counterparty chain represented by the counterparty Channel End connected to the Channel End with the identifiers `SourcePort` and `SourceChannel`.
@@ -61,3 +77,5 @@ For example, the following memo field is used by the [callbacks middleware](../.
 ```
 
 You can find more information about other applications that use the memo field in the [chain registry](https://github.com/cosmos/chain-registry/blob/master/_memo_keys/ICS20_memo_keys.json).
+
+Please note that the memo field is always meant to be consumed only on the final destination chain. The transfer module guarantees that the memo field in the intermediary chains is empty.

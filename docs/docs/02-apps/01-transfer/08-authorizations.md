@@ -4,6 +4,7 @@ sidebar_label: Authorizations
 sidebar_position: 8
 slug: /apps/transfer/authorizations
 ---
+
 # `TransferAuthorization`
 
 `TransferAuthorization` implements the `Authorization` interface for `ibc.applications.transfer.v1.MsgTransfer`. It allows a granter to grant a grantee the privilege to submit `MsgTransfer` on its behalf. Please see the [Cosmos SDK docs](https://docs.cosmos.network/v0.47/modules/authz) for more details on granting privileges via the `x/authz` module.
@@ -24,6 +25,8 @@ It takes:
 
 - an `AllowedPacketData` list that specifies the list of memo strings that are allowed to be included in the memo field of the packet. If this list is empty, then only an empty memo is allowed (a `memo` field with non-empty content will be denied). If this list includes a single element equal to `"*"`, then any content in `memo` field will be allowed.
 
+- an `AllowedForwarding` list that specifies the combinations of source port ID/channel ID pairs through which the tokens are allowed to be forwarded until final destination. Please note that granters are expected to specify the unwinding route of IBC vouchers if they wish to allow grantees to unwind the vouchers to their native chain (i.e. grantees cannot make use of the `Unwind` flag and must also set the source port ID, channel ID pairs required to unwind the vouchers in the forwarding `Hops` field).
+
 Setting a `TransferAuthorization` is expected to fail if:
 
 - the spend limit is nil
@@ -32,6 +35,7 @@ Setting a `TransferAuthorization` is expected to fail if:
 - the source channel ID is invalid
 - there are duplicate entries in the `AllowList`
 - the `memo` field is not allowed by `AllowedPacketData`
+- the forwarding hops do not match any of the combinations specified in `AllowedForwarding`
 
 Below is the `TransferAuthorization` message:
 
@@ -54,5 +58,9 @@ type Allocation struct {
   // allow list of memo strings, an empty list prohibits all memo strings;
   // a list only with "*" permits any memo string
   AllowedPacketData []string 
+  // Optional list of allowed combinations of source port ID/channel ID pairs
+  // through which the tokens are allowed to be forwarded until final
+	// destination
+	AllowedForwarding []AllowedForwarding
 }
 ```

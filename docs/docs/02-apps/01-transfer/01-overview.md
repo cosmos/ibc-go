@@ -112,6 +112,38 @@ chain #1 -> ... -> chain #(n-1) -> final chain`). These services could provide m
 The only viable alternative for clients (at the time of writing) to tokens with multiple connection hops, is to connect to all chains directly and perform relevant queries to each of them in the sequence.
 :::
 
+## Forwarding
+
+Forwarding allows tokens to be routed to a final destination through multiple (up to 8) intermediary
+chains. With forwarding is also possible to unwind IBC vouchers to their native chain, and forward 
+them afterwards to another destination, all with just a single transfer transaction on the sending chain.
+
+### Forward tokens
+
+Native tokens or IBC vouchers on any chain can be forwarded through intermediary chains to reach their 
+final destination. For example, native tokens on chain `A` can be sent to chain `C` through chain `B`.
+The routing is specified by the source port ID and channel ID of choice on every intermediary chain.
+In this example, there is only one forwarding hop on chain `B` and the port ID, channel ID pair is
+`transfer`, `channelBToC`. Forwarding of a multi-denom collection of tokens is allowed.
+
+### Unwind tokens
+
+Taking again as an example a sequence of transfers `A -> B -> C`, where the vouchers on chain `C` have
+the denomination trace `transfer/channelCtoB/transfer/channelBtoA`, with forwarding it is possible to
+submit a transfer message on chain `C` and automatically unwind the vouchers through chain `B` to
+chain `A`, so that the tokens recovered on the origin chain regain their native denomination. In order
+to execute automatic unwinding the transfer module does not require extra user input: the unwind route
+is encoded in the denomination trace with the pairs of destination port ID, channel ID that are added
+on every chain where the tokens are received.
+
+Please note that unwinding of vouchers is only allowed when vouchers of a single IBC denomination are 
+transferred (i.e. it is not possible to unwind vouchers of two different IBC denominations, since they 
+come from different source chains).
+
+### Unwind tokens and then forward
+
+Unwinding and forwarding can be used in combination, so that vouchers are first unwound to their origin chain and then forwarded to a final destination. The same restriction as in the unwinding case applies: only vouchers of a single IBC denomination can be used.
+
 ## Locked funds
 
 In some [exceptional cases](/architecture/adr-026-ibc-client-recovery-mechanisms#exceptional-cases), a client state associated with a given channel cannot be updated. This causes that funds from fungible tokens in that channel will be permanently locked and thus can no longer be transferred.
