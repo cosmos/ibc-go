@@ -31,29 +31,25 @@ function lint_and_add_modified_go_files() {
 }
 
 function run_proto_all_if_needed() {
-  local before_files=$(git status --porcelain | awk '{print $2}')
+  local proto_files_modified="$(git diff --name-only --diff-filter=d | grep '\.proto$')"
 
-  # Run make proto-all
-  make proto-all
+  if [[ -n "$proto_files_modified" ]]; then
+    echo "Detected changes in .proto files. Running 'make proto-all'."
+    local before_files=$(git status --porcelain | awk '{print $2}')
 
-  local after_files=$(git status --porcelain | awk '{print $2}')
-  local changed_files=$(comm -13 <(echo "$before_files" | sort) <(echo "$after_files" | sort))
+    # Run make proto-all
+    make proto-all
 
-  if [[ -n "$changed_files" ]]; then
-    echo "The following files have been modified by 'make proto-all' and have been added to the git index:"
-    for file in $changed_files; do
-      echo "$file"
-      git add "$file"
-    done
+    local after_files=$(git status --porcelain | awk '{print $2}')
+    local changed_files=$(comm -13 <(echo "$before_files" | sort) <(echo "$after_files" | sort))
 
-    # Add the modified .proto files as well
-    local modified_proto_files=$(echo "$before_files" "$after_files" | tr ' ' '\n' | grep '\.proto$' | sort | uniq)
-    if [[ -n "$modified_proto_files" ]]; then
-      echo "The following .proto files have been modified and have been added to the git index:"
-      for proto_file in $modified_proto_files; do
-        echo "$proto_file"
-        git add "$proto_file"
+    if [[ -n "$changed_files" ]]; then
+      echo "Running 'make proto-all' resulted in changes."
+      echo "The following files have been modified by 'make proto-all':"
+      for file in $changed_files; do
+        echo "$file"
       done
+      exit 1
     fi
   fi
 }
