@@ -323,11 +323,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 // loop since setup is intensive for all cases. The malleate function allows
 // for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
-	var (
-		coins    sdk.Coins
-		receiver string
-		memo     string
-	)
+	var packetData types.FungibleTokenPacketDataV2
 
 	testCases := []struct {
 		msg      string
@@ -342,28 +338,28 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 		{
 			"successful receive with memo",
 			func() {
-				memo = "memo"
+				packetData.Memo = "memo"
 			},
 			nil,
 		},
 		{
 			"failure: mint zero coin",
 			func() {
-				coins = []sdk.Coin{sdk.NewCoin(sdk.DefaultBondDenom, zeroAmount)}
+				packetData.Tokens[0].Amount = zeroAmount.String()
 			},
 			types.ErrInvalidAmount,
 		},
 		{
 			"failure: receiver is module account",
 			func() {
-				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+				packetData.Receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: receiver is invalid",
 			func() {
-				receiver = "invalid-address"
+				packetData.Receiver = "invalid-address"
 			},
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -388,30 +384,29 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			receiver = suite.chainB.SenderAccount.GetAddress().String() // must be explicitly changed in malleate
-			memo = ""                                                   // can be explicitly changed in malleate
-			coins = ibctesting.TestCoins
+			receiver := suite.chainB.SenderAccount.GetAddress().String() // must be explicitly changed in malleate
 
 			// send coins from chainA to chainB
-			transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coins, suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(1, 110), 0, memo, nil)
+			transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.TestCoins, suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(1, 110), 0, "", nil)
 			_, err := suite.chainA.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
-			tc.malleate()
-
 			var tokens []types.Token
-			for _, coin := range coins {
+			for _, coin := range ibctesting.TestCoins {
 				tokens = append(tokens, types.Token{Denom: types.NewDenom(coin.Denom), Amount: coin.Amount.String()})
 			}
-			data := types.NewFungibleTokenPacketDataV2(tokens, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, ibctesting.EmptyForwardingPacketData)
-			packet := channeltypes.NewPacket(data.GetBytes(), uint64(1), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+			packetData = types.NewFungibleTokenPacketDataV2(tokens, suite.chainA.SenderAccount.GetAddress().String(), receiver, "", ibctesting.EmptyForwardingPacketData)
+			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
-			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+			tc.malleate()
 
 			var denoms []types.Denom
-			for _, coin := range coins {
-				denoms = append(denoms, types.NewDenom(coin.Denom, types.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)))
+			for _, token := range packetData.Tokens {
+				// construct expected denom B will construct after running Recv logic.
+				denoms = append(denoms, types.NewDenom(token.Denom.Base, types.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)))
 			}
+
+			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, packetData)
 
 			expPass := tc.expError == nil
 			if expPass {
