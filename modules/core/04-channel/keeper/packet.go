@@ -489,13 +489,8 @@ func (k *Keeper) AcknowledgePacket(
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
-		if aborted := k.handleFlushState(ctx, packet, &channel); aborted {
-			k.Logger(ctx).Info(
-				"upgrade aborted",
-				"port_id", packet.GetSourcePort(),
-				"channel_id", packet.GetSourceChannel(),
-				"upgrade_sequence", channel.UpgradeSequence,
-			)
+		if aborted := k.handleFlushState(ctx, packet, channel); aborted {
+			k.Logger(ctx).Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
 			return nil
 		}
 	}
@@ -507,7 +502,7 @@ func (k *Keeper) AcknowledgePacket(
 // FLUSHING state. It checks if the upgrade has timed out and if so, aborts the upgrade. If all
 // packets have completed their lifecycle, it sets the channel state to FLUSHCOMPLETE and
 // emits a channel_flush_complete event. Returns true if the upgrade was aborted, false otherwise.
-func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel *types.Channel) bool {
+func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel types.Channel) bool {
 	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
 		return false
@@ -526,8 +521,8 @@ func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel 
 	// set the channel state to flush complete if all packets have been acknowledged/flushed.
 	if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 		channel.State = types.FLUSHCOMPLETE
-		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), *channel)
-		emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), *channel)
+		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 	}
 
 	return false
