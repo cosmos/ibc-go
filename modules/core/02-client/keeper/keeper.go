@@ -319,7 +319,7 @@ func (k *Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.Client
 }
 
 // VerifyMembershipp retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
-func (k *Keeper) VerifyMembershipp(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
+func (k *Keeper) VerifyMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
 	clientModule, err := k.getLightClientModule(ctx, clientID)
 	if err != nil {
 		return err

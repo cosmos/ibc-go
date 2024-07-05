@@ -3,60 +3,59 @@ package keeper
 import (
 	"context"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // ClientState implements the IBC QueryServer interface
-func (k *Keeper) ClientState(c context.Context, req *clienttypes.QueryClientStateRequest) (*clienttypes.QueryClientStateResponse, error) {
-	return k.ClientKeeper.ClientState(c, req)
-}
+// func (k *Keeper) ClientState(c context.Context, req *clienttypes.QueryClientStateRequest) (*clienttypes.QueryClientStateResponse, error) {
+// 	return k.ClientKeeper.ClientState(c, req)
+// }
 
-// ClientStates implements the IBC QueryServer interface
-func (k *Keeper) ClientStates(c context.Context, req *clienttypes.QueryClientStatesRequest) (*clienttypes.QueryClientStatesResponse, error) {
-	return k.ClientKeeper.ClientStates(c, req)
-}
+// // ClientStates implements the IBC QueryServer interface
+// func (k *Keeper) ClientStates(c context.Context, req *clienttypes.QueryClientStatesRequest) (*clienttypes.QueryClientStatesResponse, error) {
+// 	return k.ClientKeeper.ClientStates(c, req)
+// }
 
-// ConsensusState implements the IBC QueryServer interface
-func (k *Keeper) ConsensusState(c context.Context, req *clienttypes.QueryConsensusStateRequest) (*clienttypes.QueryConsensusStateResponse, error) {
-	return k.ClientKeeper.ConsensusState(c, req)
-}
+// // ConsensusState implements the IBC QueryServer interface
+// func (k *Keeper) ConsensusState(c context.Context, req *clienttypes.QueryConsensusStateRequest) (*clienttypes.QueryConsensusStateResponse, error) {
+// 	return k.ClientKeeper.ConsensusState(c, req)
+// }
 
-// ConsensusStates implements the IBC QueryServer interface
-func (k *Keeper) ConsensusStates(c context.Context, req *clienttypes.QueryConsensusStatesRequest) (*clienttypes.QueryConsensusStatesResponse, error) {
-	return k.ClientKeeper.ConsensusStates(c, req)
-}
+// // ConsensusStates implements the IBC QueryServer interface
+// func (k *Keeper) ConsensusStates(c context.Context, req *clienttypes.QueryConsensusStatesRequest) (*clienttypes.QueryConsensusStatesResponse, error) {
+// 	return k.ClientKeeper.ConsensusStates(c, req)
+// }
 
-// ConsensusStateHeights implements the IBC QueryServer interface
-func (k *Keeper) ConsensusStateHeights(c context.Context, req *clienttypes.QueryConsensusStateHeightsRequest) (*clienttypes.QueryConsensusStateHeightsResponse, error) {
-	return k.ClientKeeper.ConsensusStateHeights(c, req)
-}
+// // ConsensusStateHeights implements the IBC QueryServer interface
+// func (k *Keeper) ConsensusStateHeights(c context.Context, req *clienttypes.QueryConsensusStateHeightsRequest) (*clienttypes.QueryConsensusStateHeightsResponse, error) {
+// 	return k.ClientKeeper.ConsensusStateHeights(c, req)
+// }
 
-// ClientStatus implements the IBC QueryServer interface
-func (k *Keeper) ClientStatus(c context.Context, req *clienttypes.QueryClientStatusRequest) (*clienttypes.QueryClientStatusResponse, error) {
-	return k.ClientKeeper.ClientStatus(c, req)
-}
+// // ClientStatus implements the IBC QueryServer interface
+// func (k *Keeper) ClientStatus(c context.Context, req *clienttypes.QueryClientStatusRequest) (*clienttypes.QueryClientStatusResponse, error) {
+// 	return k.ClientKeeper.ClientStatus(c, req)
+// }
 
-// ClientParams implements the IBC QueryServer interface
-func (k *Keeper) ClientParams(c context.Context, req *clienttypes.QueryClientParamsRequest) (*clienttypes.QueryClientParamsResponse, error) {
-	return k.ClientKeeper.ClientParams(c, req)
-}
+// // ClientParams implements the IBC QueryServer interface
+// func (k *Keeper) ClientParams(c context.Context, req *clienttypes.QueryClientParamsRequest) (*clienttypes.QueryClientParamsResponse, error) {
+// 	return k.ClientKeeper.ClientParams(c, req)
+// }
 
-// UpgradedClientState implements the IBC QueryServer interface
-func (k *Keeper) UpgradedClientState(c context.Context, req *clienttypes.QueryUpgradedClientStateRequest) (*clienttypes.QueryUpgradedClientStateResponse, error) {
-	return k.ClientKeeper.UpgradedClientState(c, req)
-}
+// // UpgradedClientState implements the IBC QueryServer interface
+// func (k *Keeper) UpgradedClientState(c context.Context, req *clienttypes.QueryUpgradedClientStateRequest) (*clienttypes.QueryUpgradedClientStateResponse, error) {
+// 	return k.ClientKeeper.UpgradedClientState(c, req)
+// }
 
-// UpgradedConsensusState implements the IBC QueryServer interface
-func (k *Keeper) UpgradedConsensusState(c context.Context, req *clienttypes.QueryUpgradedConsensusStateRequest) (*clienttypes.QueryUpgradedConsensusStateResponse, error) {
-	return k.ClientKeeper.UpgradedConsensusState(c, req)
-}
+// // UpgradedConsensusState implements the IBC QueryServer interface
+// func (k *Keeper) UpgradedConsensusState(c context.Context, req *clienttypes.QueryUpgradedConsensusStateRequest) (*clienttypes.QueryUpgradedConsensusStateResponse, error) {
+// 	return k.ClientKeeper.UpgradedConsensusState(c, req)
+// }
 
-// VerifyMembership implements the IBC QueryServer interface.
-func (k *Keeper) VerifyMembership(c context.Context, req *clienttypes.QueryVerifyMembershipRequest) (*clienttypes.QueryVerifyMembershipResponse, error) {
-	return k.ClientKeeper.VerifyMembership(c, req)
-}
+// // VerifyMembership implements the IBC QueryServer interface.
+// func (k *Keeper) VerifyMembership(c context.Context, req *clienttypes.QueryVerifyMembershipRequest) (*clienttypes.QueryVerifyMembershipResponse, error) {
+// 	return k.ClientKeeper.VerifyMembership(c, req)
+// }
 
 // Connection implements the IBC QueryServer interface
 func (k *Keeper) Connection(c context.Context, req *connectiontypes.QueryConnectionRequest) (*connectiontypes.QueryConnectionResponse, error) {
