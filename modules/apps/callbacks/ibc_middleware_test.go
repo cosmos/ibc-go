@@ -25,8 +25,6 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-var emptyForwardingPacketData = transfertypes.ForwardingPacketData{}
-
 func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 	testCases := []struct {
 		name          string
@@ -189,7 +187,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				ibctesting.TestAccAddress,
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
-				emptyForwardingPacketData,
+				transfertypes.EmptyForwardingPacketData(),
 			)
 
 			chanCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
@@ -331,7 +329,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				ibctesting.TestAccAddress,
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
-				emptyForwardingPacketData,
+				transfertypes.EmptyForwardingPacketData(),
 			)
 
 			packet = channeltypes.Packet{
@@ -665,7 +663,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				ibctesting.TestAccAddress,
 				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit),
-				emptyForwardingPacketData,
+				transfertypes.EmptyForwardingPacketData(),
 			)
 
 			packet = channeltypes.Packet{
@@ -797,7 +795,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				ibctesting.TestAccAddress,
 				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress),
-				emptyForwardingPacketData,
+				transfertypes.EmptyForwardingPacketData(),
 			)
 
 			packet = channeltypes.Packet{
@@ -1021,7 +1019,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 		Sender:     ibctesting.TestAccAddress,
 		Receiver:   ibctesting.TestAccAddress,
 		Memo:       fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
-		Forwarding: emptyForwardingPacketData,
+		Forwarding: transfertypes.EmptyForwardingPacketData(),
 	}
 
 	portID := s.path.EndpointA.ChannelConfig.PortID
