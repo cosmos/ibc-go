@@ -274,11 +274,11 @@ func (s *E2ETestSuite) GetChainAChannel() ibc.ChannelOutput {
 // entry in the list of chains.
 func (s *E2ETestSuite) GetChainChannel(id ChainChannelPair) ibc.ChannelOutput {
 	chains := s.GetAllChains()
-	s.Require().Less(id.ChainIdx, len(chains), "required index %d is larger than the last index in the list of chains (%d)", id.ChainIdx, len(chains)-1)
+	s.Require().Less(id.ChainIdx, uint64(len(chains)), "required index %d is larger than the last index in the list of chains (%d)", id.ChainIdx, len(chains)-1)
 
 	chain := chains[id.ChainIdx]
 	channels := s.GetChannels(chain)
-	s.Require().Less(id.ChannelIdx, len(channels), "required channel index %d is larger than the last index in the list of channels (%d)", id.ChannelIdx, len(channels)-1)
+	s.Require().Less(id.ChannelIdx, uint64(len(channels)), "required channel index %d is larger than the last index in the list of channels (%d)", id.ChannelIdx, len(channels)-1)
 	return channels[id.ChannelIdx]
 }
 
