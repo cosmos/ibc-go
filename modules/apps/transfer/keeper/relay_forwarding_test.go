@@ -17,9 +17,20 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	testifysuite "github.com/stretchr/testify/suite"
 )
 
-func (suite *KeeperTestSuite) setupForwardingPaths() (pathAtoB, pathBtoC *ibctesting.Path) {
+type ForwardingTestSuite struct {
+	testifysuite.Suite
+
+	// testing chains used for convenience and readability
+	chainA *ibctesting.TestChain
+	chainB *ibctesting.TestChain
+	chainC *ibctesting.TestChain
+	chainD *ibctesting.TestChain
+}
+
+func (suite *ForwardingTestSuite) setupForwardingPaths() (pathAtoB, pathBtoC *ibctesting.Path) {
 	pathAtoB = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 	pathBtoC = ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 	pathAtoB.Setup()
@@ -34,7 +45,7 @@ const (
 	balance
 )
 
-func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string) {
+func (suite *ForwardingTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string) {
 	var total sdk.Coin
 	switch balanceType {
 	case escrow:
@@ -51,7 +62,7 @@ func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, b
 // from chain A to chain B is stored after when the packet is received on chain B
 // and then forwarded to chain C, and checks the balance of the escrow accounts
 // in chain A nad B.
-func (suite *KeeperTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() {
+func (suite *ForwardingTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain A
@@ -112,7 +123,7 @@ func (suite *KeeperTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() 
 }
 
 // TestSuccessfulForward tests a successful transfer from A to C through B.
-func (suite *KeeperTestSuite) TestSuccessfulForward() {
+func (suite *ForwardingTestSuite) TestSuccessfulForward() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -225,7 +236,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 }
 
 // TestSuccessfulForwardWithMemo tests a successful transfer from A to C through B with a memo that should arrive at C.
-func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
+func (suite *ForwardingTestSuite) TestSuccessfulForwardWithMemo() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -366,7 +377,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 // TestSuccessfulForwardWithNonCosmosAccAddress tests that a packet is successfully forwarded with a non-Cosmos account address.
 // The test stops before verifying the final receive, because we don't have a non-cosmos chain to test with.
-func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
+func (suite *ForwardingTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -445,7 +456,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 // TestSuccessfulUnwind tests unwinding of tokens sent from A -> B -> C by
 // forwarding the tokens back from C -> B -> A.
-func (suite *KeeperTestSuite) TestSuccessfulUnwind() {
+func (suite *ForwardingTestSuite) TestSuccessfulUnwind() {
 	/*
 		Given the following topolgy:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -590,7 +601,7 @@ func (suite *KeeperTestSuite) TestSuccessfulUnwind() {
 // middle chain is native source when receiving and sending the packet. In other words, the middle chain's native
 // token has been sent to chain C, and the multi-hop transfer from C -> B -> A has chain B being the source of
 // the token both when receiving and forwarding (sending).
-func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeTokenSource() {
+func (suite *ForwardingTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeTokenSource() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -758,7 +769,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 // TestAcknowledgementFailureWithMiddleChainAsNotBeingTokenSource tests a failure in the last hop where the middle chain
 // is not source of the token when receiving or sending the packet. In other words, the middle chain's is sent
 // (and forwarding) someone else's native token (in this case chain C).
-func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBeingTokenSource() {
+func (suite *ForwardingTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBeingTokenSource() {
 	/*
 		Given the following topology:
 		chain A (channel 0) 												<- (channel-0) chain B (channel-1) <- (channel-0) chain C
@@ -878,7 +889,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 // TestOnTimeoutPacketForwarding tests the scenario in which a packet goes from
 // A to C, using B as a forwarding hop. The packet times out when going to C
 // from B and we verify that funds are properly returned to A.
-func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
+func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
 	amount := sdkmath.NewInt(100)
@@ -1018,7 +1029,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 
 // TestForwardingWithMoreThanOneHop tests the scenario in which we
 // forward with more than one forwarding hop.
-func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
+func (suite *ForwardingTestSuite) TestForwardingWithMoreThanOneHop() {
 	// Setup A->B->C->D
 	coinOnA := ibctesting.TestCoin
 
@@ -1131,7 +1142,7 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	suite.Require().NoError(err)
 }
 
-func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
+func (suite *ForwardingTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	// Setup A->B->C->D
 	coinOnA := ibctesting.TestCoin
 
