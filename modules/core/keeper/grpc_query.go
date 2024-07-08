@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
@@ -57,35 +56,35 @@ import (
 // 	return k.ClientKeeper.VerifyMembership(c, req)
 // }
 
-// Connection implements the IBC QueryServer interface
-func (k *Keeper) Connection(c context.Context, req *connectiontypes.QueryConnectionRequest) (*connectiontypes.QueryConnectionResponse, error) {
-	return k.ConnectionKeeper.Connection(c, req)
-}
+// // Connection implements the IBC QueryServer interface
+// func (k *Keeper) Connection(c context.Context, req *connectiontypes.QueryConnectionRequest) (*connectiontypes.QueryConnectionResponse, error) {
+// 	return k.ConnectionKeeper.Connection(c, req)
+// }
 
-// Connections implements the IBC QueryServer interface
-func (k *Keeper) Connections(c context.Context, req *connectiontypes.QueryConnectionsRequest) (*connectiontypes.QueryConnectionsResponse, error) {
-	return k.ConnectionKeeper.Connections(c, req)
-}
+// // Connections implements the IBC QueryServer interface
+// func (k *Keeper) Connections(c context.Context, req *connectiontypes.QueryConnectionsRequest) (*connectiontypes.QueryConnectionsResponse, error) {
+// 	return k.ConnectionKeeper.Connections(c, req)
+// }
 
-// ClientConnections implements the IBC QueryServer interface
-func (k *Keeper) ClientConnections(c context.Context, req *connectiontypes.QueryClientConnectionsRequest) (*connectiontypes.QueryClientConnectionsResponse, error) {
-	return k.ConnectionKeeper.ClientConnections(c, req)
-}
+// // ClientConnections implements the IBC QueryServer interface
+// func (k *Keeper) ClientConnections(c context.Context, req *connectiontypes.QueryClientConnectionsRequest) (*connectiontypes.QueryClientConnectionsResponse, error) {
+// 	return k.ConnectionKeeper.ClientConnections(c, req)
+// }
 
-// ConnectionClientState implements the IBC QueryServer interface
-func (k *Keeper) ConnectionClientState(c context.Context, req *connectiontypes.QueryConnectionClientStateRequest) (*connectiontypes.QueryConnectionClientStateResponse, error) {
-	return k.ConnectionKeeper.ConnectionClientState(c, req)
-}
+// // ConnectionClientState implements the IBC QueryServer interface
+// func (k *Keeper) ConnectionClientState(c context.Context, req *connectiontypes.QueryConnectionClientStateRequest) (*connectiontypes.QueryConnectionClientStateResponse, error) {
+// 	return k.ConnectionKeeper.ConnectionClientState(c, req)
+// }
 
-// ConnectionConsensusState implements the IBC QueryServer interface
-func (k *Keeper) ConnectionConsensusState(c context.Context, req *connectiontypes.QueryConnectionConsensusStateRequest) (*connectiontypes.QueryConnectionConsensusStateResponse, error) {
-	return k.ConnectionKeeper.ConnectionConsensusState(c, req)
-}
+// // ConnectionConsensusState implements the IBC QueryServer interface
+// func (k *Keeper) ConnectionConsensusState(c context.Context, req *connectiontypes.QueryConnectionConsensusStateRequest) (*connectiontypes.QueryConnectionConsensusStateResponse, error) {
+// 	return k.ConnectionKeeper.ConnectionConsensusState(c, req)
+// }
 
-// ConnectionParams implements the IBC QueryServer interface
-func (k *Keeper) ConnectionParams(c context.Context, req *connectiontypes.QueryConnectionParamsRequest) (*connectiontypes.QueryConnectionParamsResponse, error) {
-	return k.ConnectionKeeper.ConnectionParams(c, req)
-}
+// // ConnectionParams implements the IBC QueryServer interface
+// func (k *Keeper) ConnectionParams(c context.Context, req *connectiontypes.QueryConnectionParamsRequest) (*connectiontypes.QueryConnectionParamsResponse, error) {
+// 	return k.ConnectionKeeper.ConnectionParams(c, req)
+// }
 
 // Channel implements the IBC QueryServer interface
 func (k *Keeper) Channel(c context.Context, req *channeltypes.QueryChannelRequest) (*channeltypes.QueryChannelResponse, error) {

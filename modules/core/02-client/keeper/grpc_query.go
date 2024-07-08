@@ -24,10 +24,12 @@ import (
 
 var _ types.QueryServer = (*queryServer)(nil)
 
+// queryServer implements the 02-client types.QueryServer interface.
 type queryServer struct {
 	*Keeper
 }
 
+// NewQueryServer returns a new 02-client QueryServer implementation.
 func NewQueryServer(k *Keeper) types.QueryServer {
 	return &queryServer{
 		Keeper: k,
