@@ -33,28 +33,16 @@ func (s *TransferForwardingTestSuite) SetupSuite() {
 // TestForwarding_WithLastChainBeingICS20v1_Succeeds tests the case where a token is forwarded and successfully
 // received on a destination chain that is on ics20-v1 version.
 func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_Succeeds() {
-	channelBToCCallback := func() ibc.ChannelOutput {
-		ctx := context.TODO()
-		// Creating a new path between chain B and chain C with a ICS20-v1 channel
-		opts := s.TransferChannelOptions()
-		opts.Version = transfertypes.V1
-		chains := s.GetAllChains()
-		channelBtoC, _ := s.CreatePath(ctx, chains[1], chains[2], ibc.DefaultClientOpts(), opts)
-		s.Require().Equal(transfertypes.V1, channelBtoC.Version, "the channel version is not ics20-1")
-		return channelBtoC
-	}
-	s.testForwardingThreeChains(channelBToCCallback)
+	s.testForwardingThreeChains(transfertypes.V1)
 }
 
 // TestForwarding_Succeeds tests the case where a token is forwarded and successfully
 // received on a destination chain.
 func (s *TransferForwardingTestSuite) TestForwarding_Succeeds() {
-	s.testForwardingThreeChains(func() ibc.ChannelOutput {
-		return s.GetChainChannel(testsuite.ChainChannelPair{ChainIdx: 1, ChannelIdx: 1})
-	})
+	s.testForwardingThreeChains(transfertypes.V2)
 }
 
-func (s *TransferForwardingTestSuite) testForwardingThreeChains(channelBToCCallback func() ibc.ChannelOutput) {
+func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion string) {
 	ctx := context.TODO()
 	t := s.T()
 
@@ -62,8 +50,17 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(channelBToCCallb
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 
+	var channelBtoC ibc.ChannelOutput
 	channelAtoB := s.GetChainAChannel()
-	channelBtoC := channelBToCCallback()
+	if lastChainVersion == transfertypes.V2 {
+		channelBtoC = s.GetChainChannel(testsuite.ChainChannelPair{ChainIdx: 1, ChannelIdx: 1})
+	} else {
+		opts := s.TransferChannelOptions()
+		opts.Version = transfertypes.V1
+		chains := s.GetAllChains()
+		channelBtoC, _ = s.CreatePath(ctx, chains[1], chains[2], ibc.DefaultClientOpts(), opts)
+		s.Require().Equal(transfertypes.V1, channelBtoC.Version, "the channel version is not ics20-1")
+	}
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()

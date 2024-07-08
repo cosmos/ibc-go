@@ -259,8 +259,8 @@ func (s *E2ETestSuite) CreatePath(
 }
 
 type ChainChannelPair struct {
-	ChainIdx   int
-	ChannelIdx int
+	ChainIdx   uint64
+	ChannelIdx uint64
 }
 
 // GetChainAChannel returns the ibc.ChannelOutput for the current test.
