@@ -1,6 +1,10 @@
 package localhost_test
 
 import (
+	"testing"
+
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -14,10 +18,53 @@ import (
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-func (suite *LocalhostTestSuite) TestStatus() {
+type LocalhostTestSuite struct {
+	testifysuite.Suite
+
+	coordinator ibctesting.Coordinator
+	chain       *ibctesting.TestChain
+}
+
+func (suite *LocalhostTestSuite) SetupTest() {
+	suite.coordinator = *ibctesting.NewCoordinator(suite.T(), 1)
+	suite.chain = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+}
+
+func TestLocalhostTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(LocalhostTestSuite))
+}
+
+func (suite *LocalhostTestSuite) TestInitialize() {
 	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
 	suite.Require().True(found)
-	suite.Require().Equal(exported.Active, lightClientModule.Status(suite.chain.GetContext(), exported.LocalhostClientID))
+
+	err := lightClientModule.Initialize(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil)
+	suite.Require().Error(err)
+}
+
+func (suite *LocalhostTestSuite) TestVerifyClientMessage() {
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
+	suite.Require().True(found)
+
+	err := lightClientModule.Initialize(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil)
+	suite.Require().Error(err)
+}
+
+func (suite *LocalhostTestSuite) TestVerifyCheckForMisbehaviour() {
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
+	suite.Require().True(found)
+
+	suite.Require().False(lightClientModule.CheckForMisbehaviour(suite.chain.GetContext(), exported.LocalhostClientID, nil))
+}
+
+func (suite *LocalhostTestSuite) TestUpdateState() {
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
+	suite.Require().True(found)
+
+	heights := lightClientModule.UpdateState(suite.chain.GetContext(), exported.LocalhostClientID, nil)
+
+	expHeight := clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight()))
+	suite.Require().True(heights[0].EQ(expHeight))
 }
 
 func (suite *LocalhostTestSuite) TestVerifyMembership() {
@@ -31,20 +78,6 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 		malleate func()
 		expPass  bool
 	}{
-		{
-			"success: client state verification",
-			func() {
-				clientState := suite.chain.GetClientState(exported.LocalhostClientID)
-
-				merklePath := commitmenttypes.NewMerklePath(host.FullClientStateKey(exported.LocalhostClientID))
-				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
-
-				path = merklePath
-				value = clienttypes.MustMarshalClientState(suite.chain.Codec, clientState)
-			},
-			true,
-		},
 		{
 			"success: connection state verification",
 			func() {
@@ -144,21 +177,21 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 			true,
 		},
 		{
-			"invalid type for key path",
+			"failure: invalid type for key path",
 			func() {
 				path = mock.KeyPath{}
 			},
 			false,
 		},
 		{
-			"key path has too many elements",
+			"failure: key path has too many elements",
 			func() {
 				path = commitmenttypes.NewMerklePath([]byte("ibc"), []byte("test"), []byte("key"))
 			},
 			false,
 		},
 		{
-			"no value found at provided key path",
+			"failure: no value found at provided key path",
 			func() {
 				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementKey(mock.PortID, ibctesting.FirstChannelID, 100))
 				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
@@ -170,7 +203,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 			false,
 		},
 		{
-			"invalid value, bytes are not equal",
+			"failure: invalid value, bytes are not equal",
 			func() {
 				channel := channeltypes.NewChannel(
 					channeltypes.OPEN,
@@ -301,6 +334,22 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 			}
 		})
 	}
+}
+
+func (suite *LocalhostTestSuite) TestStatus() {
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
+	suite.Require().True(found)
+	suite.Require().Equal(exported.Active, lightClientModule.Status(suite.chain.GetContext(), exported.LocalhostClientID))
+}
+
+func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
+	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
+	suite.Require().True(found)
+
+	ctx := suite.chain.GetContext()
+	timestamp, err := lightClientModule.TimestampAtHeight(ctx, exported.LocalhostClientID, nil)
+	suite.Require().NoError(err)
+	suite.Require().Equal(uint64(ctx.BlockTime().UnixNano()), timestamp)
 }
 
 func (suite *LocalhostTestSuite) TestRecoverClient() {

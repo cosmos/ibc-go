@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 				suite.Require().NoError(err)
 			}
 
-			counterparty := types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			counterparty := types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			channelKey := host.ChannelKey(counterparty.PortId, counterparty.ChannelId)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
@@ -427,7 +427,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			tc.malleate()
 
 			if counterpartyChannelID == "" {
-				counterpartyChannelID = ibctesting.FirstChannelID
+				counterpartyChannelID = path.EndpointB.ChannelID
 			}
 
 			if path.EndpointA.ClientID != "" {
@@ -436,7 +436,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 				suite.Require().NoError(err)
 			}
 
-			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proof, proofHeight := suite.chainB.QueryProof(channelKey)
 
 			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
@@ -576,11 +576,11 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 
 			}
 
-			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID,
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
 				channelCap, proof, malleateHeight(proofHeight, heightDiff),
 			)
 
@@ -680,7 +680,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 			tc.malleate()
 
 			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanCloseInit(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
+				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channelCap,
 			)
 
 			if tc.expPass {
@@ -822,12 +822,12 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 
 			tc.malleate()
 
-			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
+			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
 			ctx := suite.chainB.GetContext()
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
-				ctx, path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
+				ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channelCap,
 				proof, malleateHeight(proofHeight, heightDiff), counterpartyUpgradeSequence,
 			)
 
