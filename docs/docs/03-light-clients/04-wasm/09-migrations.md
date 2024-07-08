@@ -46,12 +46,12 @@ An example of the required changes in a client contract may look like:
 ```diff
 #[cw_serde]
 pub struct MerklePath {
-+   #[schemars(with = "String")]
-+   #[serde(with = "Base64", default)]
-+   pub key_path: Vec<Bytes>,
++   pub key_path: Vec<cosmwasm_std::Binary>,
 -   pub key_path: Vec<String>,
 }
 ```
+
+Please refer to the [`cosmwasm_std`](https://docs.rs/cosmwasm-std/2.0.4/cosmwasm_std/struct.Binary.html) documentation for more information.
 
 ## From v0.1.1+ibc-go-v7.3-wasmvm-v1.5 to v0.2.0-ibc-go-v7.6-wasmvm-v1.5
 
@@ -90,12 +90,12 @@ An example of the required changes in a client contract may look like:
 ```diff
 #[cw_serde]
 pub struct MerklePath {
-+   #[schemars(with = "String")]
-+   #[serde(with = "Base64", default)]
-+   pub key_path: Vec<Bytes>,
++   pub key_path: Vec<cosmwasm_std::Binary>,
 -   pub key_path: Vec<String>,
 }
 ```
+
+Please refer to the [`cosmwasm_std`](https://docs.rs/cosmwasm-std/2.0.4/cosmwasm_std/struct.Binary.html) documentation for more information.
 
 ## From ibc-go v7.3.x to ibc-go v8.0.x
 
