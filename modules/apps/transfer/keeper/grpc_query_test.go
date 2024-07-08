@@ -236,6 +236,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 
 func (suite *KeeperTestSuite) TestEscrowAddress() {
 	var req *types.QueryEscrowAddressRequest
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		msg      string
@@ -247,7 +248,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 			func() {
 				req = &types.QueryEscrowAddressRequest{
 					PortId:    ibctesting.TransferPort,
-					ChannelId: ibctesting.FirstChannelID,
+					ChannelId: path.EndpointA.ChannelID,
 				}
 			},
 			true,
@@ -288,7 +289,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			tc.malleate()
@@ -298,7 +299,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				expected := types.GetEscrowAddress(ibctesting.TransferPort, ibctesting.FirstChannelID).String()
+				expected := types.GetEscrowAddress(ibctesting.TransferPort, path.EndpointA.ChannelID).String()
 				suite.Require().Equal(expected, res.EscrowAddress)
 			} else {
 				suite.Require().Error(err)

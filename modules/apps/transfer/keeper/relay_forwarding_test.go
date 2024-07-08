@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -277,7 +279,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// Check that the memo is stored correctly in the packet sent from A
 	var tokenPacketOnA types.FungibleTokenPacketDataV2
-	err = suite.chainA.Codec.UnmarshalJSON(packetFromAtoB.Data, &tokenPacketOnA)
+	err = proto.Unmarshal(packetFromAtoB.Data, &tokenPacketOnA)
 	suite.Require().NoError(err)
 	suite.Require().Equal("", tokenPacketOnA.Memo)
 	suite.Require().Equal(testMemo, tokenPacketOnA.Forwarding.DestinationMemo)
@@ -299,7 +301,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// Check that the memo is stored correctly in the packet sent from B
 	var tokenPacketOnB types.FungibleTokenPacketDataV2
-	err = suite.chainB.Codec.UnmarshalJSON(packetFromBtoC.Data, &tokenPacketOnB)
+	err = proto.Unmarshal(packetFromBtoC.Data, &tokenPacketOnB)
 	suite.Require().NoError(err)
 	suite.Require().Equal(testMemo, tokenPacketOnB.Memo)
 	suite.Require().Equal("", tokenPacketOnB.Forwarding.DestinationMemo)
@@ -324,7 +326,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// Check that the memo is stored directly in the memo field on C
 	var tokenPacketOnC types.FungibleTokenPacketDataV2
-	err = suite.chainC.Codec.UnmarshalJSON(packetOnC.Data, &tokenPacketOnC)
+	err = proto.Unmarshal(packetOnC.Data, &tokenPacketOnC)
 	suite.Require().NoError(err)
 	suite.Require().Equal("", tokenPacketOnC.Forwarding.DestinationMemo)
 	suite.Require().Equal(testMemo, tokenPacketOnC.Memo)
@@ -412,7 +414,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 	// Check that the token sent from A has final receiver intact
 	var tokenPacketOnA types.FungibleTokenPacketDataV2
-	err = suite.chainA.Codec.UnmarshalJSON(packetFromAtoB.Data, &tokenPacketOnA)
+	err = proto.Unmarshal(packetFromAtoB.Data, &tokenPacketOnA)
 	suite.Require().NoError(err)
 	suite.Require().Equal(nonCosmosReceiver, tokenPacketOnA.Receiver)
 
@@ -432,7 +434,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 	// Check that the token sent from B has final receiver intact
 	var tokenPacketOnB types.FungibleTokenPacketDataV2
-	err = suite.chainB.Codec.UnmarshalJSON(packetFromBtoC.Data, &tokenPacketOnB)
+	err = proto.Unmarshal(packetFromBtoC.Data, &tokenPacketOnB)
 	suite.Require().NoError(err)
 	suite.Require().Equal(nonCosmosReceiver, tokenPacketOnB.Receiver)
 
@@ -939,7 +941,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID)),
+				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID)),
 				Amount: "100",
 			},
 		},
@@ -970,7 +972,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().NoError(err)
 
 	// Ensure that chainB has an ack.
-	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID, packet.GetSequence())
 	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
@@ -1248,7 +1250,7 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	ackStr, err := parseAckFromTransferEvents(result.Events)
 	suite.Require().NoError(err)
 
-	expected := "error:\"forwarding packet failed on transfer/channel-1: forwarding packet failed on transfer/channel-1: ABCI code: 8: error handling packet: see events for details\" "
+	expected := fmt.Sprintf(`error:"forwarding packet failed on %s/%s: forwarding packet failed on %s/%s: ABCI code: 8: error handling packet: see events for details" `, pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, pathCtoD.EndpointA.ChannelConfig.PortID, pathCtoD.EndpointA.ChannelID)
 	suite.Require().Equal(expected, ackStr)
 }
 

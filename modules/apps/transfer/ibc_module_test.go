@@ -279,8 +279,11 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 func (suite *TransferTestSuite) TestOnRecvPacket() {
 	// This test suite mostly covers the top-level logic of the ibc module OnRecvPacket function
 	// The core logic is covered in keeper OnRecvPacket
-	var packet channeltypes.Packet
-	var expectedAttributes []sdk.Attribute
+	var (
+		packet             channeltypes.Packet
+		expectedAttributes []sdk.Attribute
+		path               *ibctesting.Path
+	)
 	testCases := []struct {
 		name             string
 		malleate         func()
@@ -302,8 +305,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					},
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(),
-					"",
-					types.NewForwardingPacketData("", types.NewHop("transfer", "channel-0")),
+					"", types.NewForwardingPacketData("", types.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)),
 				)
 				packet.Data = packetData.GetBytes()
 
@@ -332,16 +334,16 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					sdk.NewAttribute(types.AttributeKeyMemo, ""),
 					sdk.NewAttribute(types.AttributeKeyForwardingHops, "null"),
 					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
-					sdk.NewAttribute(types.AttributeKeyAckError, "cannot unmarshal ICS20-V2 transfer packet data: invalid character 'i' looking for beginning of value: invalid type: invalid type"),
+					sdk.NewAttribute(types.AttributeKeyAckError, "cannot unmarshal ICS20-V2 transfer packet data: errUnknownField \"*types.FungibleTokenPacketDataV2\": {TagNum: 13, WireType:\"fixed64\"}: invalid type: invalid type"),
 				}
 			},
 			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType),
-			"cannot unmarshal ICS20-V2 transfer packet data: invalid character 'i' looking for beginning of value: invalid type: invalid type",
+			"cannot unmarshal ICS20-V2 transfer packet data: unexpected EOF: invalid type: invalid type",
 		},
 		{
 			"failure: receive disabled",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(), types.Params{SendEnabled: false})
+				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(), types.Params{ReceiveEnabled: false})
 			},
 			channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled),
 			"fungible token transfers to this chain are disabled",
@@ -352,7 +354,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			packetData := types.NewFungibleTokenPacketDataV2(
@@ -392,16 +394,16 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			seq := uint64(1)
 			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
+			ctx := suite.chainB.GetContext()
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(ctx, ibctesting.TransferPort)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			tc.malleate() // change fields in packet
 
-			ctx := suite.chainA.GetContext()
-			ack := cbs.OnRecvPacket(ctx, packet, suite.chainA.SenderAccount.GetAddress())
+			ack := cbs.OnRecvPacket(ctx, packet, suite.chainB.SenderAccount.GetAddress())
 
 			suite.Require().Equal(tc.expAck, ack)
 
