@@ -66,6 +66,14 @@ func (path *Path) SetChannelOrdered() {
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
 }
 
+// DisableUniqueChannelIDs provides an opt-out way to not have all channel IDs be different
+// while testing.
+func (path *Path) DisableUniqueChannelIDs() *Path {
+	path.EndpointA.disableUniqueChannelIDs = true
+	path.EndpointB.disableUniqueChannelIDs = true
+	return path
+}
+
 // RelayPacket attempts to relay the packet first on EndpointA and then on EndpointB
 // if EndpointA does not contain a packet commitment for that packet. An error is returned
 // if a relay step fails or the packet commitment does not exist on either endpoint.
