@@ -320,6 +320,16 @@ func (k Keeper) TimeoutPacket(
 	if !ok {
 		return clienttypes.ErrClientNotFound
 	}
+
+	timestamp, err := lightClientModule.TimestampAtHeight(ctx, packet.SourceChannel, proofHeight)
+	if err != nil {
+		return err
+	}
+	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	if !timeout.Elapsed(proofHeight.(clienttypes.Height), timestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), timestamp), "packet timeout not reached")
+	}
+
 	// TODO: Use context instead of sdk.Context eventually
 	if err := lightClientModule.VerifyNonMembership(
 		ctx,
