@@ -18,11 +18,6 @@ func NewForwarding(unwind bool, hops ...Hop) *Forwarding {
 	}
 }
 
-// NoForwarding is a helper function which returns a Forwarding instance with all values empty.
-func NoForwarding() *Forwarding {
-	return &Forwarding{}
-}
-
 // Validate performs a basic validation of the Forwarding fields.
 func (f Forwarding) Validate() error {
 	if err := validateHops(f.GetHops()); err != nil {
