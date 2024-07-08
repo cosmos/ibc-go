@@ -25,7 +25,7 @@ jobs:
   # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
   # this will be used to tag the images that are built during the workflow.
   determine-image-tag:
-    if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+    if: ${{ !github.event.pull_request.draft && github.repository == 'cosmos/ibc-go' && github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
@@ -50,7 +50,7 @@ jobs:
   e2e:
     # we will be running this job if the PR has not yet been marked for review, and we push additional changes.
     # we skip the job in this case.
-    if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+    if: ${{ !github.event.pull_request.draft && github.repository == 'cosmos/ibc-go' && github.actor != 'dependabot[bot]' }}
     needs: determine-image-tag # we are required to have a docker tag before we can build any images.
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     # unless we explicitly tell the workflow to inherit secrets, required secrets such as GITHUB_TOKEN will not be
