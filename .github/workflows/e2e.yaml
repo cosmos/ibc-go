@@ -18,7 +18,7 @@ on:
       - 'LICENSE'
 # cancel workflows if a new one is triggered on the same branch.
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
