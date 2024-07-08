@@ -154,11 +154,15 @@ func (k Keeper) sendTransfer(
 	return sequence, nil
 }
 
-// OnRecvPacket processes a cross chain fungible token transfer. If the
-// sender chain is the source of minted tokens then vouchers will be minted
+// OnRecvPacket processes a cross chain fungible token transfer.
+//
+// If the sender chain is the source of minted tokens then vouchers will be minted
 // and sent to the receiving address. Otherwise if the sender chain is sending
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
+//
+// In the case of packet forwarding, the packet is sent on the next hop as specified
+// in the packet's ForwardingPacketData.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
@@ -265,12 +269,15 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	return nil
 }
 
-// OnAcknowledgementPacket either reverts the state changes executed in receive
-// and send packet if the chain acted as a middle hop on a multihop transfer; or
-// responds to the success or failure of a packet acknowledgement written on the
-// final receiving chain, if it acted as the original sender chain. If the
-// acknowledgement was a success then nothing occurs. If the acknowledgement failed,
-// then the sender is refunded their tokens using the refundPacketToken function.
+// OnAcknowledgementPacket responds to the success or failure of a packet acknowledgment
+// written on the receiving chain.
+//
+// If no forwarding occurs and the acknowledgement was a success then nothing occurs. Otherwise,
+// if the acknowledgement failed, then the sender is refunded their tokens.
+//
+// If forwarding is used and the acknowledgement was a success, a successful acknowledgement is written
+// for the forwarded packet. Otherwise, if the acknowledgement failed, after refunding the sender, the
+// tokens of the forwarded packet that were received are in turn either refunded or burned.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
 	prevPacket, isForwarded := k.getForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
@@ -308,9 +315,13 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 }
 
-// OnTimeoutPacket either reverts the state changes executed in receive and send
-// packet if the chain acted as a middle hop on a multihop transfer; or refunds
-// the sender if the original packet sent was never received and has been timed out.
+// OnTimeoutPacket processes a transfer packet timeout.
+//
+// If no forwarding occurs, it refunds the tokens to the sender.
+//
+// If forwarding is used and the chain acted as a middle hop on a multihop transfer, after refunding
+// the tokens to the sender, the tokens of the forwarded packet that were received are in turn
+// either refunded or burned.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	if err := k.refundPacketTokens(ctx, packet, data); err != nil {
 		return err
