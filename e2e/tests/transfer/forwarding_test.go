@@ -203,6 +203,6 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 			return balance.Int64() == testvalues.IBCTransferAmount, nil
 		})
 		s.Require().NoError(err)
-		s.AssertPacketRelayed(ctx, chainA, channelBtoC.PortID, channelBtoC.ChannelID, 1)
+		s.AssertPacketRelayed(ctx, chainB, channelBtoC.PortID, channelBtoC.ChannelID, 1)
 	})
 }
