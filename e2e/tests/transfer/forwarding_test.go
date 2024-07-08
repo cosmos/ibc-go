@@ -110,6 +110,11 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 	})
 }
 
+// TestForwardingWithUnwindSucceeds tests the forwarding scenario in which
+// a packet is sent from A to B, then unwound back to A and forwarded to C
+// The overall flow of the packet is:
+// A ---> B
+// B --(unwind)-->A --(forward)-->B --(forward)--> C
 func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 	t := s.T()
 	ctx := context.TODO()
@@ -118,16 +123,7 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 
 	channelAtoB := s.GetChainAChannel()
-
-	var channelBtoC ibc.ChannelOutput
-	channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainB.Config().ChainID)
-	s.Require().NoError(err)
-	for _, c := range channels {
-		if c.ChannelID == "channel-1" {
-			channelBtoC = c
-			break
-		}
-	}
+	channelBtoC := s.GetChainChannel(testsuite.ChainChannelPair{ChainIdx: 1, ChannelIdx: 1})
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
