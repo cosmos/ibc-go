@@ -40,7 +40,7 @@ func (k *Keeper) VerifyClientState(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipp(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -77,7 +77,7 @@ func (k *Keeper) VerifyClientConsensusState(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipp(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -114,7 +114,7 @@ func (k *Keeper) VerifyConnectionState(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipp(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -152,7 +152,7 @@ func (k *Keeper) VerifyChannelState(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipp(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -190,7 +190,7 @@ func (k *Keeper) VerifyPacketCommitment(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipp(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height, timeDelay, blockDelay, proof, merklePath, commitmentBytes,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
@@ -226,7 +226,7 @@ func (k *Keeper) VerifyPacketAcknowledgement(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipp(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height, timeDelay, blockDelay,
 		proof, merklePath, channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
@@ -298,7 +298,7 @@ func (k *Keeper) VerifyNextSequenceRecv(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipp(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		timeDelay, blockDelay,
 		proof, merklePath, sdk.Uint64ToBigEndian(nextSequenceRecv),
@@ -335,7 +335,7 @@ func (k *Keeper) VerifyChannelUpgradeError(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipp(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -372,7 +372,7 @@ func (k *Keeper) VerifyChannelUpgrade(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipp(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, proofHeight,
 		0, 0, // skip delay period checks for non-packet processing verification
 		upgradeProof, merklePath, bz,
