@@ -168,7 +168,7 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 	})
 
 	t.Run("IBC transfer from B (unwind) to C through A", func(t *testing.T) {
-		inFiveMinutes := time.Now().Add(20 * time.Minute).UnixNano()
+		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
 
 		forwarding := transfertypes.NewForwarding(
 			true,
