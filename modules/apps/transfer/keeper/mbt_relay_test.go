@@ -159,6 +159,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
 			"",
+			types.ForwardingPacketData{},
 		),
 	}
 }
@@ -308,8 +309,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB).DisableUniqueChannelIDs()
+		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC).DisableUniqueChannelIDs()
 		pathAtoB.Setup()
 		pathBtoC.Setup()
 
@@ -348,6 +349,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						if !ok {
 							panic(errors.New("MBT failed to parse amount from string"))
 						}
+
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,
@@ -356,6 +358,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
 							"",
+							nil,
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
@@ -363,9 +366,11 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					}
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+
 				case "OnTimeoutPacket":
 					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+
 				case "OnRecvAcknowledgementResult":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,

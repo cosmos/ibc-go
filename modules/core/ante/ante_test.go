@@ -91,7 +91,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.M
 		suite.Require().NoError(err)
 	}
 
-	packetKey := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	proof, proofHeight := suite.chainA.QueryProof(packetKey)
 
 	return channeltypes.NewMsgAcknowledgement(packet, ibctesting.MockAcknowledgement, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
