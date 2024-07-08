@@ -4,8 +4,10 @@ import (
 	"bytes"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
@@ -139,7 +141,7 @@ func (k Keeper) RecvPacket(
 
 	// TODO: allow for custom prefix
 	path := host.PacketCommitmentPath(packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, []byte(path))
 
 	commitment := channeltypes.CommitLitePacket(k.cdc, packet)
 
@@ -240,7 +242,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	path := host.PacketAcknowledgementPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, []byte(path))
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter
@@ -312,7 +314,7 @@ func (k Keeper) TimeoutPacket(
 	}
 
 	path := host.PacketReceiptPath(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, []byte(path))
 
 	// Get LightClientModule associated with the destination channel
 	// Note: This can be implemented by the current clientRouter

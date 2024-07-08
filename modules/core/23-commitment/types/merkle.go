@@ -11,6 +11,7 @@ import (
 
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
+	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -69,33 +70,35 @@ func (mp MerklePrefix) Empty() bool {
 var _ exported.Path = (*MerklePath)(nil)
 
 // NewMerklePath creates a new MerklePath instance
-// The keys must be passed in from root-to-leaf order
-func NewMerklePath(keyPath ...string) MerklePath {
-	return MerklePath{
-		KeyPath: keyPath,
-	}
-}
+// The keys must be passed in from root-to-leaf order.
+// NOTE: NewMerklePath returns a commitment/v2 MerklePath.
+var NewMerklePath = v2.NewMerklePath
 
 // GetKey will return a byte representation of the key
-func (mp MerklePath) GetKey(i uint64) ([]byte, error) {
+// Deprecated: Please use commitment/v2 MerklePath instead.
+func (mp MerklePath) GetKey(i uint64) (string, error) {
 	if i >= uint64(len(mp.KeyPath)) {
-		return nil, fmt.Errorf("index out of range. %d (index) >= %d (len)", i, len(mp.KeyPath))
+		return "", fmt.Errorf("index out of range. %d (index) >= %d (len)", i, len(mp.KeyPath))
 	}
-	return []byte(mp.KeyPath[i]), nil
+	return mp.KeyPath[i], nil
 }
 
 // Empty returns true if the path is empty
+// Deprecated: Please use commitment/v2 MerklePath instead.
 func (mp MerklePath) Empty() bool {
 	return len(mp.KeyPath) == 0
 }
 
 // ApplyPrefix constructs a new commitment path from the arguments. It prepends the prefix key
 // with the given path.
-func ApplyPrefix(prefix exported.Prefix, path MerklePath) (MerklePath, error) {
+func ApplyPrefix(prefix exported.Prefix, path v2.MerklePath) (v2.MerklePath, error) {
 	if prefix == nil || prefix.Empty() {
-		return MerklePath{}, errorsmod.Wrap(ErrInvalidPrefix, "prefix can't be empty")
+		return v2.MerklePath{}, errorsmod.Wrap(ErrInvalidPrefix, "prefix can't be empty")
 	}
-	return NewMerklePath(append([]string{string(prefix.Bytes())}, path.KeyPath...)...), nil
+
+	return v2.MerklePath{
+		KeyPath: append([][]byte{prefix.Bytes()}, path.KeyPath...),
+	}, nil
 }
 
 var _ exported.Proof = (*MerkleProof)(nil)
@@ -108,7 +111,7 @@ func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exporte
 	}
 
 	// VerifyMembership specific argument validation
-	mpath, ok := path.(MerklePath)
+	mpath, ok := path.(v2.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ErrInvalidProof, "path %v is not of type MerklePath", path)
 	}
@@ -134,7 +137,7 @@ func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root expo
 	}
 
 	// VerifyNonMembership specific argument validation
-	mpath, ok := path.(MerklePath)
+	mpath, ok := path.(v2.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ErrInvalidProof, "path %v is not of type MerkleProof", path)
 	}
@@ -190,7 +193,7 @@ func (MerkleProof) BatchVerifyNonMembership(specs []*ics23.ProofSpec, root expor
 // The proofs and specs are passed in from lowest subtree to the highest subtree, but the keys are passed in from highest subtree to lowest.
 // The index specifies what index to start chaining the membership proofs, this is useful since the lowest proof may not be a membership proof, thus we
 // will want to start the membership proof chaining from index 1 with value being the lowest subroot
-func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs []*ics23.CommitmentProof, keys MerklePath, value []byte, index int) error {
+func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs []*ics23.CommitmentProof, keys v2.MerklePath, value []byte, index int) error {
 	var (
 		subroot []byte
 		err     error

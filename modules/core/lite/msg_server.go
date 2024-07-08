@@ -53,7 +53,11 @@ func (h Handler) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 	}
 
 	// Perform application logic callback
-	appModule.OnSendPacket(ctx, msg.SourcePort, msg.SourceChannel, sequence, "", msg.Data, msg.Signer)
+	err = appModule.OnSendPacket(ctx, msg.SourcePort, msg.SourceChannel, sequence, "", msg.Data, msg.Signer)
+	if err != nil {
+		ctx.Logger().Error("send packet failed", "port-id", msg.SourcePort, "channel-id", msg.SourceChannel, "error", errorsmod.Wrap(err, "send packet callback failed"))
+		return nil, errorsmod.Wrap(err, "send packet callback failed")
+	}
 
 	return &channeltypes.MsgSendPacketResponse{Sequence: sequence}, nil
 }

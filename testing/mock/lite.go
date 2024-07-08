@@ -12,7 +12,7 @@ var _ litetypes.PacketModule = (*LitePacketModule)(nil)
 
 type LitePacketModule struct{}
 
-func (lpm LitePacketModule) OnSendPacket(
+func (LitePacketModule) OnSendPacket(
 	ctx context.Context,
 	sourcePort string,
 	sourceChannel string,
@@ -32,7 +32,7 @@ func (lpm LitePacketModule) OnSendPacket(
 // If the acknowledgement returned is successful, the state changes on callback are written,
 // otherwise the application state changes are discarded. In either case the packet is received
 // and the acknowledgement is written (in synchronous cases).
-func (lpm LitePacketModule) OnRecvPacket(
+func (LitePacketModule) OnRecvPacket(
 	ctx context.Context,
 	version string,
 	packet exported.PacketI,
@@ -44,7 +44,7 @@ func (lpm LitePacketModule) OnRecvPacket(
 	return MockFailAcknowledgement
 }
 
-func (lpm LitePacketModule) OnAcknowledgementPacket(
+func (LitePacketModule) OnAcknowledgementPacket(
 	ctx context.Context,
 	version string,
 	packet exported.PacketI,
@@ -54,7 +54,7 @@ func (lpm LitePacketModule) OnAcknowledgementPacket(
 	return nil
 }
 
-func (lpm LitePacketModule) OnTimeoutPacket(
+func (LitePacketModule) OnTimeoutPacket(
 	ctx context.Context,
 	version string,
 	packet exported.PacketI,
