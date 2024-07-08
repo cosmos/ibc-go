@@ -40,11 +40,6 @@ func NewForwardingPacketData(destinationMemo string, hops ...Hop) ForwardingPack
 	}
 }
 
-// EmptyForwardingPacketData is a helper function which returns a ForwardingPacketData instance with all values empty.
-func EmptyForwardingPacketData() ForwardingPacketData {
-	return ForwardingPacketData{}
-}
-
 // Validate performs a basic validation of the ForwardingPacketData fields.
 func (fpd ForwardingPacketData) Validate() error {
 	if err := validateHops(fpd.Hops); err != nil {

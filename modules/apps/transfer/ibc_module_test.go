@@ -367,7 +367,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				"",
-				types.EmptyForwardingPacketData(),
+				ibctesting.EmptyForwardingPacketData,
 			)
 
 			tokensBz, err := json.Marshal(packetData.Tokens)
