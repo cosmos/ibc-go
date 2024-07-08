@@ -24,7 +24,7 @@ type queryServer struct {
 	*Keeper
 }
 
-// NewQueryServer returns a new 03-connection QueryServer implementation.
+// NewQueryServer returns a new 03-connection types.QueryServer implementation.
 func NewQueryServer(k *Keeper) types.QueryServer {
 	return &queryServer{
 		Keeper: k,

@@ -1,11 +1,5 @@
 package keeper
 
-import (
-	"context"
-
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-)
-
 // ClientState implements the IBC QueryServer interface
 // func (k *Keeper) ClientState(c context.Context, req *clienttypes.QueryClientStateRequest) (*clienttypes.QueryClientStateResponse, error) {
 // 	return k.ClientKeeper.ClientState(c, req)
@@ -86,87 +80,87 @@ import (
 // 	return k.ConnectionKeeper.ConnectionParams(c, req)
 // }
 
-// Channel implements the IBC QueryServer interface
-func (k *Keeper) Channel(c context.Context, req *channeltypes.QueryChannelRequest) (*channeltypes.QueryChannelResponse, error) {
-	return k.ChannelKeeper.Channel(c, req)
-}
+// // Channel implements the IBC QueryServer interface
+// func (k *Keeper) Channel(c context.Context, req *channeltypes.QueryChannelRequest) (*channeltypes.QueryChannelResponse, error) {
+// 	return k.ChannelKeeper.Channel(c, req)
+// }
 
-// Channels implements the IBC QueryServer interface
-func (k *Keeper) Channels(c context.Context, req *channeltypes.QueryChannelsRequest) (*channeltypes.QueryChannelsResponse, error) {
-	return k.ChannelKeeper.Channels(c, req)
-}
+// // Channels implements the IBC QueryServer interface
+// func (k *Keeper) Channels(c context.Context, req *channeltypes.QueryChannelsRequest) (*channeltypes.QueryChannelsResponse, error) {
+// 	return k.ChannelKeeper.Channels(c, req)
+// }
 
-// ConnectionChannels implements the IBC QueryServer interface
-func (k *Keeper) ConnectionChannels(c context.Context, req *channeltypes.QueryConnectionChannelsRequest) (*channeltypes.QueryConnectionChannelsResponse, error) {
-	return k.ChannelKeeper.ConnectionChannels(c, req)
-}
+// // ConnectionChannels implements the IBC QueryServer interface
+// func (k *Keeper) ConnectionChannels(c context.Context, req *channeltypes.QueryConnectionChannelsRequest) (*channeltypes.QueryConnectionChannelsResponse, error) {
+// 	return k.ChannelKeeper.ConnectionChannels(c, req)
+// }
 
-// ChannelClientState implements the IBC QueryServer interface
-func (k *Keeper) ChannelClientState(c context.Context, req *channeltypes.QueryChannelClientStateRequest) (*channeltypes.QueryChannelClientStateResponse, error) {
-	return k.ChannelKeeper.ChannelClientState(c, req)
-}
+// // ChannelClientState implements the IBC QueryServer interface
+// func (k *Keeper) ChannelClientState(c context.Context, req *channeltypes.QueryChannelClientStateRequest) (*channeltypes.QueryChannelClientStateResponse, error) {
+// 	return k.ChannelKeeper.ChannelClientState(c, req)
+// }
 
-// ChannelConsensusState implements the IBC QueryServer interface
-func (k *Keeper) ChannelConsensusState(c context.Context, req *channeltypes.QueryChannelConsensusStateRequest) (*channeltypes.QueryChannelConsensusStateResponse, error) {
-	return k.ChannelKeeper.ChannelConsensusState(c, req)
-}
+// // ChannelConsensusState implements the IBC QueryServer interface
+// func (k *Keeper) ChannelConsensusState(c context.Context, req *channeltypes.QueryChannelConsensusStateRequest) (*channeltypes.QueryChannelConsensusStateResponse, error) {
+// 	return k.ChannelKeeper.ChannelConsensusState(c, req)
+// }
 
-// PacketCommitment implements the IBC QueryServer interface
-func (k *Keeper) PacketCommitment(c context.Context, req *channeltypes.QueryPacketCommitmentRequest) (*channeltypes.QueryPacketCommitmentResponse, error) {
-	return k.ChannelKeeper.PacketCommitment(c, req)
-}
+// // PacketCommitment implements the IBC QueryServer interface
+// func (k *Keeper) PacketCommitment(c context.Context, req *channeltypes.QueryPacketCommitmentRequest) (*channeltypes.QueryPacketCommitmentResponse, error) {
+// 	return k.ChannelKeeper.PacketCommitment(c, req)
+// }
 
-// PacketCommitments implements the IBC QueryServer interface
-func (k *Keeper) PacketCommitments(c context.Context, req *channeltypes.QueryPacketCommitmentsRequest) (*channeltypes.QueryPacketCommitmentsResponse, error) {
-	return k.ChannelKeeper.PacketCommitments(c, req)
-}
+// // PacketCommitments implements the IBC QueryServer interface
+// func (k *Keeper) PacketCommitments(c context.Context, req *channeltypes.QueryPacketCommitmentsRequest) (*channeltypes.QueryPacketCommitmentsResponse, error) {
+// 	return k.ChannelKeeper.PacketCommitments(c, req)
+// }
 
-// PacketReceipt implements the IBC QueryServer interface
-func (k *Keeper) PacketReceipt(c context.Context, req *channeltypes.QueryPacketReceiptRequest) (*channeltypes.QueryPacketReceiptResponse, error) {
-	return k.ChannelKeeper.PacketReceipt(c, req)
-}
+// // PacketReceipt implements the IBC QueryServer interface
+// func (k *Keeper) PacketReceipt(c context.Context, req *channeltypes.QueryPacketReceiptRequest) (*channeltypes.QueryPacketReceiptResponse, error) {
+// 	return k.ChannelKeeper.PacketReceipt(c, req)
+// }
 
-// PacketAcknowledgement implements the IBC QueryServer interface
-func (k *Keeper) PacketAcknowledgement(c context.Context, req *channeltypes.QueryPacketAcknowledgementRequest) (*channeltypes.QueryPacketAcknowledgementResponse, error) {
-	return k.ChannelKeeper.PacketAcknowledgement(c, req)
-}
+// // PacketAcknowledgement implements the IBC QueryServer interface
+// func (k *Keeper) PacketAcknowledgement(c context.Context, req *channeltypes.QueryPacketAcknowledgementRequest) (*channeltypes.QueryPacketAcknowledgementResponse, error) {
+// 	return k.ChannelKeeper.PacketAcknowledgement(c, req)
+// }
 
-// PacketAcknowledgements implements the IBC QueryServer interface
-func (k *Keeper) PacketAcknowledgements(c context.Context, req *channeltypes.QueryPacketAcknowledgementsRequest) (*channeltypes.QueryPacketAcknowledgementsResponse, error) {
-	return k.ChannelKeeper.PacketAcknowledgements(c, req)
-}
+// // PacketAcknowledgements implements the IBC QueryServer interface
+// func (k *Keeper) PacketAcknowledgements(c context.Context, req *channeltypes.QueryPacketAcknowledgementsRequest) (*channeltypes.QueryPacketAcknowledgementsResponse, error) {
+// 	return k.ChannelKeeper.PacketAcknowledgements(c, req)
+// }
 
-// UnreceivedPackets implements the IBC QueryServer interface
-func (k *Keeper) UnreceivedPackets(c context.Context, req *channeltypes.QueryUnreceivedPacketsRequest) (*channeltypes.QueryUnreceivedPacketsResponse, error) {
-	return k.ChannelKeeper.UnreceivedPackets(c, req)
-}
+// // UnreceivedPackets implements the IBC QueryServer interface
+// func (k *Keeper) UnreceivedPackets(c context.Context, req *channeltypes.QueryUnreceivedPacketsRequest) (*channeltypes.QueryUnreceivedPacketsResponse, error) {
+// 	return k.ChannelKeeper.UnreceivedPackets(c, req)
+// }
 
-// UnreceivedAcks implements the IBC QueryServer interface
-func (k *Keeper) UnreceivedAcks(c context.Context, req *channeltypes.QueryUnreceivedAcksRequest) (*channeltypes.QueryUnreceivedAcksResponse, error) {
-	return k.ChannelKeeper.UnreceivedAcks(c, req)
-}
+// // UnreceivedAcks implements the IBC QueryServer interface
+// func (k *Keeper) UnreceivedAcks(c context.Context, req *channeltypes.QueryUnreceivedAcksRequest) (*channeltypes.QueryUnreceivedAcksResponse, error) {
+// 	return k.ChannelKeeper.UnreceivedAcks(c, req)
+// }
 
-// NextSequenceReceive implements the IBC QueryServer interface
-func (k *Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNextSequenceReceiveRequest) (*channeltypes.QueryNextSequenceReceiveResponse, error) {
-	return k.ChannelKeeper.NextSequenceReceive(c, req)
-}
+// // NextSequenceReceive implements the IBC QueryServer interface
+// func (k *Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNextSequenceReceiveRequest) (*channeltypes.QueryNextSequenceReceiveResponse, error) {
+// 	return k.ChannelKeeper.NextSequenceReceive(c, req)
+// }
 
-// NextSequenceSend implements the IBC QueryServer interface
-func (k *Keeper) NextSequenceSend(c context.Context, req *channeltypes.QueryNextSequenceSendRequest) (*channeltypes.QueryNextSequenceSendResponse, error) {
-	return k.ChannelKeeper.NextSequenceSend(c, req)
-}
+// // NextSequenceSend implements the IBC QueryServer interface
+// func (k *Keeper) NextSequenceSend(c context.Context, req *channeltypes.QueryNextSequenceSendRequest) (*channeltypes.QueryNextSequenceSendResponse, error) {
+// 	return k.ChannelKeeper.NextSequenceSend(c, req)
+// }
 
-// UpgradeError implements the IBC QueryServer interface
-func (k *Keeper) UpgradeError(c context.Context, req *channeltypes.QueryUpgradeErrorRequest) (*channeltypes.QueryUpgradeErrorResponse, error) {
-	return k.ChannelKeeper.UpgradeErrorReceipt(c, req)
-}
+// // UpgradeError implements the IBC QueryServer interface
+// func (k *Keeper) UpgradeError(c context.Context, req *channeltypes.QueryUpgradeErrorRequest) (*channeltypes.QueryUpgradeErrorResponse, error) {
+// 	return k.ChannelKeeper.UpgradeErrorReceipt(c, req)
+// }
 
-// Upgrade implements the IBC QueryServer interface
-func (k *Keeper) Upgrade(c context.Context, req *channeltypes.QueryUpgradeRequest) (*channeltypes.QueryUpgradeResponse, error) {
-	return k.ChannelKeeper.Upgrade(c, req)
-}
+// // Upgrade implements the IBC QueryServer interface
+// func (k *Keeper) Upgrade(c context.Context, req *channeltypes.QueryUpgradeRequest) (*channeltypes.QueryUpgradeResponse, error) {
+// 	return k.ChannelKeeper.Upgrade(c, req)
+// }
 
-// ChannelParams implements the IBC QueryServer interface
-func (k *Keeper) ChannelParams(c context.Context, req *channeltypes.QueryChannelParamsRequest) (*channeltypes.QueryChannelParamsResponse, error) {
-	return k.ChannelKeeper.ChannelParams(c, req)
-}
+// // ChannelParams implements the IBC QueryServer interface
+// func (k *Keeper) ChannelParams(c context.Context, req *channeltypes.QueryChannelParamsRequest) (*channeltypes.QueryChannelParamsResponse, error) {
+// 	return k.ChannelKeeper.ChannelParams(c, req)
+// }
