@@ -53,7 +53,7 @@ pub struct MerklePath {
 
 Please refer to the [`cosmwasm_std`](https://docs.rs/cosmwasm-std/2.0.4/cosmwasm_std/struct.Binary.html) documentation for more information.
 
-## From v0.1.1+ibc-go-v7.3-wasmvm-v1.5 to v0.2.0-ibc-go-v7.6-wasmvm-v1.5
+## From v0.1.1+ibc-go-v7.3-wasmvm-v1.5 to v0.2.0-ibc-go-v7.3-wasmvm-v1.5
 
 ### Contract developers
 
