@@ -18,9 +18,9 @@ func NewForwarding(unwind bool, hops ...Hop) *Forwarding {
 	}
 }
 
-// NoForwarding is a helper function which returns an Forwarding object with all values empty.
-func NoForwarding() Forwarding {
-	return Forwarding{}
+// NoForwarding is a helper function which returns a Forwarding instance with all values empty.
+func NoForwarding() *Forwarding {
+	return &Forwarding{}
 }
 
 // Validate performs a basic validation of the Forwarding fields.
@@ -40,7 +40,7 @@ func NewForwardingPacketData(destinationMemo string, hops ...Hop) ForwardingPack
 	}
 }
 
-// EmptyForwardingPacketData is a helper function which returns an ForwardingPacketData object with all values empty.
+// EmptyForwardingPacketData is a helper function which returns a ForwardingPacketData instance with all values empty.
 func EmptyForwardingPacketData() ForwardingPacketData {
 	return ForwardingPacketData{}
 }
