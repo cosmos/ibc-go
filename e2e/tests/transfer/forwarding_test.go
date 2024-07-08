@@ -167,7 +167,7 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 		s.Require().Equal(testvalues.IBCTransferAmount, balance.Int64())
 	})
 
-	t.Run("IBC transfer from B (unwind) to C through A", func(t *testing.T) {
+	t.Run("IBC transfer from B (unwind) to A and forwarded to C through B", func(t *testing.T) {
 		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
 
 		forwarding := transfertypes.NewForwarding(
@@ -203,5 +203,6 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 			return balance.Int64() == testvalues.IBCTransferAmount, nil
 		})
 		s.Require().NoError(err)
+		s.AssertPacketRelayed(ctx, chainA, channelBtoC.PortID, channelBtoC.ChannelID, 1)
 	})
 }
