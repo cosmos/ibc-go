@@ -127,12 +127,16 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 	t := s.T()
 	ctx := context.TODO()
-	relayer, chains := s.GetRelayer(), s.GetAllChains()
+	t.Parallel()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
+
+	chains := s.GetAllChains()
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 
-	channelAtoB := s.GetChainAChannel()
-	channelBtoC := s.GetChainChannel(testsuite.ChainChannelPair{ChainIdx: 1, ChannelIdx: 1})
+	channelAtoB := s.GetChainAChannelForTest(testName)
+	channelBtoC := s.GetChannelsForTest(chainB, testName)[0]
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -163,7 +167,7 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	chainBDenom := transfertypes.NewDenom(chainADenom, transfertypes.NewHop(channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID))
