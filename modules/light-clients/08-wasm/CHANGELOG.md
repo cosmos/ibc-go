@@ -40,6 +40,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* [\#6644](https://github.com/cosmos/ibc-go/pull/6644) Add `v2.MerklePath` for contract api `VerifyMembershipMsg` and `VerifyNonMembershipMsg` structs. Note, this requires a migration for existing client contracts to correctly handle deserialization of `MerklePath.KeyPath` which has changed from `[]string` to `[][]bytes`. In JSON message structures this change is reflected as the `KeyPath` being a marshalled as a list of base64 encoded byte strings. This change supports proving values stored under keys which contain non-utf8 encoded symbols. See migration docs for more details.
+
 ### State Machine Breaking
 
 ### Improvements
