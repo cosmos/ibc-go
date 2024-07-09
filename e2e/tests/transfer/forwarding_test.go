@@ -124,17 +124,20 @@ func (s *TransferForwardingTestSuite) TestChannelUpgradeForwarding_Succeeds() {
 	ctx := context.TODO()
 	t := s.T()
 
-	relayer, chains := s.GetRelayer(), s.GetAllChains()
+	testName := t.Name()
+	chains := s.GetAllChains()
+	t.Parallel()
+	relayer := s.CreateDefaultPaths(testName)
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 
 	opts := s.TransferChannelOptions()
 	opts.Version = transfertypes.V1
 
-	channelAtoB, _ := s.CreatePath(ctx, chains[0], chains[1], ibc.DefaultClientOpts(), opts)
+	channelAtoB, _ := s.CreatePath(ctx, relayer, chains[0], chains[1], ibc.DefaultClientOpts(), opts, testName)
 	s.Require().Equal(transfertypes.V1, channelAtoB.Version, "the channel version is not ics20-1")
 
-	channelBtoC, _ := s.CreatePath(ctx, chains[1], chains[2], ibc.DefaultClientOpts(), opts)
+	channelBtoC, _ := s.CreatePath(ctx, relayer, chains[1], chains[2], ibc.DefaultClientOpts(), opts, testName)
 	s.Require().Equal(transfertypes.V1, channelBtoC.Version, "the channel version is not ics20-1")
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -147,7 +150,7 @@ func (s *TransferForwardingTestSuite) TestChannelUpgradeForwarding_Succeeds() {
 	chainCAddress := chainCWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
 		chA, err := query.Channel(ctx, chainA, channelAtoB.PortID, channelAtoB.ChannelID)
