@@ -57,14 +57,9 @@ func getProtoPath(req proto.Message) (string, error) {
 }
 
 func getQueryProtoPath(queryTypeURL string) (string, error) {
-	querySubStr := "QueryV2"
-	queryIndex := strings.Index(queryTypeURL, querySubStr)
+	queryIndex := strings.Index(queryTypeURL, "Query")
 	if queryIndex == -1 {
-		querySubStr = "Query"
-		queryIndex = strings.Index(queryTypeURL, querySubStr)
-		if queryIndex == -1 {
-			return "", fmt.Errorf("invalid typeURL: %s", queryTypeURL)
-		}
+		return "", fmt.Errorf("invalid typeURL: %s", queryTypeURL)
 	}
 
 	// Add to the index to account for the length of "Query"
