@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -17,7 +18,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	testifysuite "github.com/stretchr/testify/suite"
 )
 
 type ForwardingTestSuite struct {
