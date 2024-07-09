@@ -32,8 +32,8 @@ type AuthzTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (suite *AuthzTransferTestSuite) SetupTest() {
-	suite.SetupPaths(ibc.DefaultClientOpts(), suite.TransferChannelOptions())
+func (suite *AuthzTransferTestSuite) CreateAuthzTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
+	return suite.CreatePaths(ibc.DefaultClientOpts(), suite.TransferChannelOptions(), testName), suite.GetChainAChannelForTest(testName)
 }
 
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
@@ -52,7 +52,9 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.GetRelayer(), suite.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := suite.CreateAuthzTestPath(testName)
+
 	chainA, chainB := suite.GetChains()
 	chainADenom := chainA.Config().Denom
 
@@ -66,7 +68,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
-		suite.StartRelayer(relayer)
+		suite.StartRelayer(relayer, testName)
 	})
 
 	// createMsgGrantFn initializes a TransferAuthorization and broadcasts a MsgGrant message.
@@ -212,7 +214,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.GetRelayer(), suite.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := suite.CreateAuthzTestPath(testName)
 
 	chainA, chainB := suite.GetChains()
 	chainADenom := chainA.Config().Denom
@@ -228,7 +231,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
-		suite.StartRelayer(relayer)
+		suite.StartRelayer(relayer, testName)
 	})
 
 	const spendLimit = 1000
