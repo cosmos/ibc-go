@@ -617,7 +617,7 @@ func (q *queryServer) NextSequenceSend(c context.Context, req *types.QueryNextSe
 }
 
 // UpgradeErrorReceipt implements the Query/UpgradeErrorReceipt gRPC method
-func (q *queryServer) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
+func (q *queryServer) UpgradeError(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
