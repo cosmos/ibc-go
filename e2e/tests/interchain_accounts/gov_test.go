@@ -40,7 +40,9 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
+
 	chainA, chainB := s.GetChains()
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
@@ -58,7 +60,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
