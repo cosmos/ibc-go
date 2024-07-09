@@ -36,16 +36,19 @@ func TestIncentivizedTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
 }
 
-// SetupTest explicitly enables fee middleware in the channel options.
-func (s *IncentivizedTransferTestSuite) SetupTest() {
-	s.SetupPaths(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions())
+// CreateTransferFeePath explicitly enables fee middleware in the channel options.
+func (s *IncentivizedTransferTestSuite) CreateTransferFeePath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
+	return s.CreatePaths(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
 }
 
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+
+	relayer, channelA := s.CreateTransferFeePath(testName)
+
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -140,7 +143,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -163,7 +166,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.CreateTransferFeePath(testName)
+
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -268,7 +273,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -291,7 +296,9 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.CreateTransferFeePath(testName)
+
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -381,7 +388,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -411,7 +418,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.CreateTransferFeePath(testName)
+
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -505,7 +514,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -527,7 +536,9 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.CreateTransferFeePath(testName)
+
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -603,7 +614,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("with no counterparty address", func(t *testing.T) {
@@ -628,7 +639,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.CreateTransferFeePath(testName)
+
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -749,7 +762,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {

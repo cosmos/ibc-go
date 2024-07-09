@@ -13,7 +13,7 @@ Identifying which channel to use can be difficult as it requires verifying infor
 Channels are based on a light client. A chain can be uniquely identified by its chain ID, validator set pairing. It is unsafe to rely only on the chain ID. 
 Any user can create a client with any chain ID, but only the chain with correct validator set and chain ID can produce headers which would update that client. 
 
-Which channel to use is based on social consensus. The desired channel should have the following properities:
+Which channel to use is based on social consensus. The desired channel should have the following properties:
 
 - based on a valid client (can only be updated by the chain it connects to)
 - has sizable activity

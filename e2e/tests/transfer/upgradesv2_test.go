@@ -31,8 +31,8 @@ type TransferChannelUpgradesTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *TransferChannelUpgradesTestSuite) SetupTest() {
-	s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions())
+func (s *TransferChannelUpgradesTestSuite) SetupChannelUpgradesPath(testName string) {
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware
@@ -40,7 +40,10 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
 
@@ -95,7 +98,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
@@ -191,7 +194,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("send incentivized transfer packet", func(t *testing.T) {
@@ -258,7 +261,10 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelDowngrade_WithICS20v1_Succ
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
@@ -284,7 +290,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelDowngrade_WithICS20v1_Succ
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
@@ -350,7 +356,10 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
 
@@ -396,7 +405,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
@@ -440,7 +449,11 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
+
 	chainA, chainB := s.GetChains()
 
 	channelB := channelA.Counterparty
@@ -462,7 +475,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
