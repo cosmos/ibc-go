@@ -69,6 +69,14 @@ func (app *SimApp) registerUpgradeHandlers() {
 		),
 	)
 
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V9,
+		upgrades.CreateDefaultUpgradeHandler(
+			app.ModuleManager,
+			app.configurator,
+		),
+	)
+
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(err)

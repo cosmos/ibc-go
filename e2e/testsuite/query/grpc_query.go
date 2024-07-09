@@ -18,6 +18,11 @@ func GRPCQuery[T any](ctx context.Context, chain ibc.Chain, req proto.Message, o
 		return nil, err
 	}
 
+	return GRPCQueryWithMethod[T](ctx, chain, req, path, opts...)
+}
+
+// GRPCQueryWithMethod queries the chain with a query request with a specific method (grpc path) and deserializes the response to T
+func GRPCQueryWithMethod[T any](ctx context.Context, chain ibc.Chain, req proto.Message, method string, opts ...grpc.CallOption) (*T, error) {
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(
 		chain.GetHostGRPCAddress(),
@@ -30,7 +35,7 @@ func GRPCQuery[T any](ctx context.Context, chain ibc.Chain, req proto.Message, o
 	defer grpcConn.Close()
 
 	resp := new(T)
-	err = grpcConn.Invoke(ctx, path, req, resp, opts...)
+	err = grpcConn.Invoke(ctx, method, req, resp, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +57,14 @@ func getProtoPath(req proto.Message) (string, error) {
 }
 
 func getQueryProtoPath(queryTypeURL string) (string, error) {
-	queryIndex := strings.Index(queryTypeURL, "Query")
+	querySubStr := "QueryV2"
+	queryIndex := strings.Index(queryTypeURL, querySubStr)
 	if queryIndex == -1 {
-		return "", fmt.Errorf("invalid typeURL: %s", queryTypeURL)
+		querySubStr = "Query"
+		queryIndex = strings.Index(queryTypeURL, querySubStr)
+		if queryIndex == -1 {
+			return "", fmt.Errorf("invalid typeURL: %s", queryTypeURL)
+		}
 	}
 
 	// Add to the index to account for the length of "Query"

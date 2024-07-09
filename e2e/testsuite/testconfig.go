@@ -299,7 +299,7 @@ type DebugConfig struct {
 	GenesisDebug GenesisDebugConfig `yaml:"genesis"`
 }
 
-// LoadConfig attempts to load a atest configuration from the default file path.
+// LoadConfig attempts to load a test configuration from the default file path.
 // if any environment variables are specified, they will take precedence over the individual configuration
 // options.
 func LoadConfig() TestConfig {

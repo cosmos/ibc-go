@@ -40,6 +40,8 @@ type GenesisTestSuite struct {
 func (s *GenesisTestSuite) TestIBCGenesis() {
 	t := s.T()
 
+	haltHeight := int64(100)
+
 	configFileOverrides := make(map[string]any)
 	appTomlOverrides := make(test.Toml)
 
