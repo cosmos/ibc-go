@@ -33,8 +33,8 @@ type ConnectionTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *ConnectionTestSuite) SetupConnectionTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	return s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
+func (s *ConnectionTestSuite) CreateConnectionTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
+	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
 }
 
 // QueryMaxExpectedTimePerBlockParam queries the on-chain max expected time per block param for 03-connection
@@ -65,7 +65,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t := s.T()
 	ctx := context.TODO()
 	testName := t.Name()
-	relayer, channelA := s.SetupConnectionTestPath(testName)
+	relayer, channelA := s.CreateConnectionTestPath(testName)
 
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version

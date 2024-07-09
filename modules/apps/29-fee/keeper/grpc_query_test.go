@@ -164,6 +164,8 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 	var (
 		req                     *types.QueryIncentivizedPacketsForChannelRequest
 		expIdentifiedPacketFees []*types.IdentifiedPacketFees
+		packetFees              types.PacketFees
+		path                    *ibctesting.Path
 	)
 
 	fee := types.Fee{
@@ -201,8 +203,16 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 						CountTotal: false,
 					},
 					PortId:      ibctesting.MockFeePort,
-					ChannelId:   ibctesting.FirstChannelID,
+					ChannelId:   path.EndpointA.ChannelID,
 					QueryHeight: 0,
+				}
+
+				expIdentifiedPacketFees = []*types.IdentifiedPacketFees{}
+				for i := 0; i < 3; i++ {
+					packetID := channeltypes.NewPacketID(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, uint64(i))
+					identifiedPacketFees := types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees)
+					expIdentifiedPacketFees = append(expIdentifiedPacketFees, &identifiedPacketFees)
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
 				}
 			},
 			true,
@@ -263,7 +273,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			// setup
 			refundAcc := suite.chainA.SenderAccount.GetAddress()
 			packetFee := types.NewPacketFee(fee, refundAcc.String(), nil)
-			packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
+			packetFees = types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
 
 			identifiedFees1 := types.NewIdentifiedPacketFees(channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1), packetFees.PacketFees)
 			identifiedFees2 := types.NewIdentifiedPacketFees(channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 2), packetFees.PacketFees)
@@ -276,7 +286,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
 			}
 
-			path := ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
 			path.Setup()
 
 			tc.malleate()
@@ -690,9 +700,10 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 		{
 			"success: pagination with multiple fee enabled channels",
 			func() {
-				// start at index 1, as channel-0 is already added to expFeeEnabledChannels below
-				for i := 1; i < 10; i++ {
-					channelID := channeltypes.FormatChannelIdentifier(uint64(i))
+				// Extract the next available sequence number for channel IDs.
+				nextSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
+				for i := 0; i < 9; i++ {
+					channelID := channeltypes.FormatChannelIdentifier(uint64(i + int(nextSeq)))
 					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, channelID)
 
 					expChannel := types.FeeEnabledChannel{
@@ -700,7 +711,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 						ChannelId: channelID,
 					}
 
-					if i < 5 { // add only the first 5 channels, as our default pagination limit is 5
+					if i < 4 { // add only the first 5 channels, as our default pagination limit is 5
 						expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
 					}
 				}

@@ -33,11 +33,22 @@ func (s *TransferForwardingTestSuite) SetupSuite() {
 // TestForwarding_WithLastChainBeingICS20v1_Succeeds tests the case where a token is forwarded and successfully
 // received on a destination chain that is on ics20-v1 version.
 func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_Succeeds() {
+	s.testForwardingThreeChains(transfertypes.V1)
+}
+
+// TestForwarding_Succeeds tests the case where a token is forwarded and successfully
+// received on a destination chain.
+func (s *TransferForwardingTestSuite) TestForwarding_Succeeds() {
+	s.testForwardingThreeChains(transfertypes.V2)
+}
+
+func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion string) {
 	ctx := context.TODO()
 	t := s.T()
 
 	testName := t.Name()
-	relayer := s.SetupDefaultPath(testName)
+	t.Parallel()
+	relayer := s.CreateDefaultPaths(testName)
 
 	chains := s.GetAllChains()
 
@@ -49,12 +60,16 @@ func (s *TransferForwardingTestSuite) TestForwarding_WithLastChainBeingICS20v1_S
 	s.Require().Len(s.GetChannelsForTest(chainB, testName), 2, "expected two channels on chain B")
 	s.Require().Len(s.GetChannelsForTest(chainC, testName), 1, "expected one channel on chain C")
 
-	// Creating a new path between chain B and chain C with a ICS20-v1 channel
-	opts := s.TransferChannelOptions()
-	opts.Version = transfertypes.V1
-	channelBtoC, _ := s.CreatePath(ctx, relayer, chainB, chainC, ibc.DefaultClientOpts(), opts, testName)
-
-	s.Require().Equal(transfertypes.V1, channelBtoC.Version, "the channel version is not ics20-1")
+	var channelBtoC ibc.ChannelOutput
+	if lastChainVersion == transfertypes.V2 {
+		channelBtoC = s.GetChannelsForTest(chainB, testName)[1]
+		s.Require().Equal(transfertypes.V2, channelBtoC.Version, "the channel version is not ics20-2")
+	} else {
+		opts := s.TransferChannelOptions()
+		opts.Version = transfertypes.V1
+		channelBtoC, _ = s.CreatePath(ctx, relayer, chainB, chainC, ibc.DefaultClientOpts(), opts, testName)
+		s.Require().Equal(transfertypes.V1, channelBtoC.Version, "the channel version is not ics20-1")
+	}
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()

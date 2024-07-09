@@ -88,6 +88,8 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain, encoding string, ordering 
 
 // SetupICAPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
 func SetupICAPath(path *ibctesting.Path, owner string) error {
+	path.EndpointA.IncrementNextChannelSequence()
+
 	if err := RegisterInterchainAccount(path.EndpointA, owner); err != nil {
 		return err
 	}

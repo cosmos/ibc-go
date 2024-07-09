@@ -22,11 +22,6 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-var (
-	emptyForwarding           *types.Forwarding
-	emptyForwardingPacketData = types.ForwardingPacketData{}
-)
-
 // TestSendTransfer tests sending from chainA to chainB using both coin
 // that originate on chainA and coin that originate on chainB.
 func (suite *KeeperTestSuite) TestSendTransfer() {
@@ -201,10 +196,9 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			memo = ""
 			timeoutHeight = suite.chainB.GetTimeoutHeight()
 			expEscrowAmount = sdkmath.ZeroInt()
-			forwarding = emptyForwarding
 
 			// create IBC token on chainA
-			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.NewCoins(coin), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainA.GetTimeoutHeight(), 0, "", emptyForwarding)
+			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.NewCoins(coin), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainA.GetTimeoutHeight(), 0, "", nil)
 			result, err := suite.chainB.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
@@ -293,7 +287,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainB.GetTimeoutHeight(), 0, "",
-		emptyForwarding,
+		nil,
 	)
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
@@ -314,7 +308,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainA.GetTimeoutHeight(), 0, "",
-		emptyForwarding,
+		nil,
 	)
 
 	res, err := suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
@@ -420,7 +414,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 
 			// send coin from chainA to chainB
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
-			transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoins(coin), suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(1, 110), 0, memo, emptyForwarding)
+			transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoins(coin), suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(1, 110), 0, memo, nil)
 			_, err := suite.chainA.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
@@ -433,7 +427,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 						Denom:  types.NewDenom(sdk.DefaultBondDenom, []types.Hop{}...),
 						Amount: amount.String(),
 					},
-				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, emptyForwardingPacketData)
+				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, ibctesting.EmptyForwardingPacketData)
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
@@ -555,7 +549,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 
 			// send coin from chainB to chainA, receive them, acknowledge them
 			coin := ibctesting.TestCoin
-			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.NewCoins(coin), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 110), 0, memo, emptyForwarding)
+			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.NewCoins(coin), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 110), 0, memo, nil)
 			res, err := suite.chainB.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
@@ -572,7 +566,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 
 			// send coin back from chainA to chainB
 			coin = sdk.NewCoin(denom.IBCDenom(), amount)
-			transferMsg = types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoins(coin), suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(1, 110), 0, memo, emptyForwarding)
+			transferMsg = types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoins(coin), suite.chainA.SenderAccount.GetAddress().String(), receiver, clienttypes.NewHeight(1, 110), 0, memo, nil)
 			_, err = suite.chainA.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
@@ -584,7 +578,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 						Denom:  denom,
 						Amount: amount.String(),
 					},
-				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, emptyForwardingPacketData)
+				}, suite.chainA.SenderAccount.GetAddress().String(), receiver, memo, ibctesting.EmptyForwardingPacketData)
 			packet = channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
@@ -662,7 +656,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", emptyForwardingPacketData)
+		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", ibctesting.EmptyForwardingPacketData)
 	packet := channeltypes.NewPacket(
 		data.GetBytes(),
 		seq,
@@ -793,7 +787,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 						Denom:  denom,
 						Amount: amount.String(),
 					},
-				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", emptyForwardingPacketData)
+				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", ibctesting.EmptyForwardingPacketData)
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 			preAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
@@ -888,7 +882,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
 		"",
-		emptyForwardingPacketData,
+		ibctesting.EmptyForwardingPacketData,
 	)
 	packet := channeltypes.NewPacket(
 		data.GetBytes(),
@@ -1028,7 +1022,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 						Denom:  denom,
 						Amount: amount,
 					},
-				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "", emptyForwardingPacketData)
+				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "", ibctesting.EmptyForwardingPacketData)
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 			preTimeoutBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
@@ -1114,7 +1108,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 				Denom:  denom,
 				Amount: amount.String(),
 			},
-		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "", emptyForwardingPacketData)
+		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "", ibctesting.EmptyForwardingPacketData)
 	packet := channeltypes.NewPacket(
 		data.GetBytes(),
 		seq,
@@ -1155,54 +1149,8 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		expAckError error
 	}{
 		{
-			"success: no new field with memo v2",
-			func() {
-				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packetData = []byte(jsonString)
-			},
-			nil,
-			nil,
-		},
-		{
-			"success: no new field without memo",
-			func() {
-				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packetData = []byte(jsonString)
-			},
-			nil,
-			nil,
-		},
-		{
-			"failure: invalid packet data v2",
-			func() {
-				packetData = []byte("invalid packet data")
-			},
-			ibcerrors.ErrInvalidType,
-			ibcerrors.ErrInvalidType,
-		},
-		{
-			"failure: new field v2",
-			func() {
-				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"base": "atom", "trace": []},"amount":"100"}],"sender":"%s","receiver":"%s", "new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packetData = []byte(jsonString)
-			},
-			ibcerrors.ErrInvalidType,
-			ibcerrors.ErrInvalidType,
-		},
-		{
-			"failure: missing field v2",
-			func() {
-				jsonString := fmt.Sprintf(`{"tokens":[{"denom": {"trace": []},"amount":"100"}],"sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
-				packetData = []byte(jsonString)
-			},
-			types.ErrInvalidDenomForTransfer,
-			ibcerrors.ErrInvalidType,
-		},
-		{
 			"success: no new field with memo",
 			func() {
-				path.EndpointA.ChannelConfig.Version = types.V1
-				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
@@ -1212,8 +1160,6 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		{
 			"success: no new field without memo",
 			func() {
-				path.EndpointA.ChannelConfig.Version = types.V1
-				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
@@ -1223,8 +1169,6 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		{
 			"failure: invalid packet data",
 			func() {
-				path.EndpointA.ChannelConfig.Version = types.V1
-				path.EndpointB.ChannelConfig.Version = types.V1
 				packetData = []byte("invalid packet data")
 			},
 			ibcerrors.ErrInvalidType,
@@ -1233,8 +1177,6 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		{
 			"failure: new field",
 			func() {
-				path.EndpointA.ChannelConfig.Version = types.V1
-				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"denom":"denom","amount":"100","sender":"%s","receiver":"%s","memo":"memo","new_field":"value"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
@@ -1244,8 +1186,6 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 		{
 			"failure: missing field",
 			func() {
-				path.EndpointA.ChannelConfig.Version = types.V1
-				path.EndpointB.ChannelConfig.Version = types.V1
 				jsonString := fmt.Sprintf(`{"amount":"100","sender":%s","receiver":"%s"}`, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String())
 				packetData = []byte(jsonString)
 			},
@@ -1261,6 +1201,8 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			packetData = nil
 
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.EndpointA.ChannelConfig.Version = types.V1
+			path.EndpointB.ChannelConfig.Version = types.V1
 
 			tc.malleate()
 
@@ -1323,7 +1265,7 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 			types.V2,
 			func() {},
 			func(bz []byte, err error) {
-				expPacketData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, "", emptyForwardingPacketData)
+				expPacketData := types.NewFungibleTokenPacketDataV2(tokens, sender, receiver, "", ibctesting.EmptyForwardingPacketData)
 				suite.Require().Equal(bz, expPacketData.GetBytes())
 				suite.Require().NoError(err)
 			},

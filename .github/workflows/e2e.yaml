@@ -16,6 +16,10 @@ on:
       - 'docs/**'
       - '**.md'
       - 'LICENSE'
+# cancel workflows if a new one is triggered on the same branch.
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.

@@ -4,24 +4,20 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-metrics"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
-	internaltelemetry "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
 	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 // sendTransfer handles transfer sending logic. There are 2 possible cases:
@@ -93,11 +89,6 @@ func (k Keeper) sendTransfer(
 	destinationPort := channel.Counterparty.PortId
 	destinationChannel := channel.Counterparty.ChannelId
 
-	labels := []metrics.Label{
-		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
-		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
-	}
-
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
@@ -120,8 +111,6 @@ func (k Keeper) sendTransfer(
 		// if the denom is prefixed by the port and channel on which we are sending
 		// the token, then we must be returning the token back to the chain they originated from
 		if token.Denom.HasPrefix(sourcePort, sourceChannel) {
-			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
-
 			// transfer the coins to the module account and burn them
 			if err := k.bankKeeper.SendCoinsFromAccountToModule(
 				ctx, sender, types.ModuleName, sdk.NewCoins(coin),
@@ -138,8 +127,6 @@ func (k Keeper) sendTransfer(
 				panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
 			}
 		} else {
-			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
-
 			// obtain the escrow address for the source channel end
 			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
 			if err := k.escrowCoin(ctx, sender, escrowAddress, coin); err != nil {
@@ -162,7 +149,7 @@ func (k Keeper) sendTransfer(
 
 	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
 
-	defer internaltelemetry.ReportTransferTelemetry(tokens, labels)
+	defer telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
 
 	return sequence, nil
 }
@@ -187,13 +174,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
+	if k.isBlockedAddr(receiver) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+	}
+
 	receivedCoins := make(sdk.Coins, 0, len(data.Tokens))
 	for _, token := range data.Tokens {
-		labels := []metrics.Label{
-			telemetry.NewLabel(coretypes.LabelSourcePort, packet.GetSourcePort()),
-			telemetry.NewLabel(coretypes.LabelSourceChannel, packet.GetSourceChannel()),
-		}
-
 		// parse the transfer amount
 		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
 		if !ok {
@@ -215,18 +201,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-			if k.isBlockedAddr(receiver) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
-			}
-
 			escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 			if err := k.unescrowCoin(ctx, escrowAddress, receiver, coin); err != nil {
 				return err
 			}
 
-			denomPath := token.Denom.Path()
-			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
-			defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
+			defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
 
 			// Appending token. The new denom has been computed
 			receivedCoins = append(receivedCoins, coin)
@@ -258,9 +238,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			}
 
 			// send to receiver
-			if k.isBlockedAddr(receiver) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
-			}
 			moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 			if moduleAddr == nil {
 				return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName)
@@ -271,9 +248,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 			}
 
-			denomPath := token.Denom.Path()
-			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
-			defer internaltelemetry.ReportOnRecvPacketTelemetry(transferAmount, denomPath, labels)
+			defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
 
 			receivedCoins = append(receivedCoins, voucher)
 		}

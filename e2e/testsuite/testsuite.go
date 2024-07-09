@@ -194,15 +194,15 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 	s.Require().NoError(ic.Build(ctx, s.GetRelayerExecReporter(), buildOpts))
 }
 
-// SetupDefaultPath creates a path between the chains using the default client and channel options.
+// CreateDefaultPaths creates a path between the chains using the default client and channel options.
 // this should be called as the setup function in most tests if no additional options are required.
-func (s *E2ETestSuite) SetupDefaultPath(testName string) ibc.Relayer {
-	return s.SetupPaths(ibc.DefaultClientOpts(), DefaultChannelOpts(s.GetAllChains()), testName)
+func (s *E2ETestSuite) CreateDefaultPaths(testName string) ibc.Relayer {
+	return s.CreatePaths(ibc.DefaultClientOpts(), DefaultChannelOpts(s.GetAllChains()), testName)
 }
 
-// SetupPaths creates paths between the chains using the provided client and channel options.
+// CreatePaths creates paths between the chains using the provided client and channel options.
 // The paths are created such that ChainA is connected to ChainB, ChainB is connected to ChainC etc.
-func (s *E2ETestSuite) SetupPaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) ibc.Relayer {
+func (s *E2ETestSuite) CreatePaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) ibc.Relayer {
 	s.T().Logf("Setting up path for: %s", testName)
 
 	if s.channels[testName] == nil {

@@ -42,10 +42,10 @@ func (s *transferTester) QueryTransferParams(ctx context.Context, chain ibc.Chai
 	return *res.Params
 }
 
-// SetupTransferPath sets up a path between chainA and chainB with a transfer channel and returns the relayer wired
+// CreateTransferPath sets up a path between chainA and chainB with a transfer channel and returns the relayer wired
 // up to watch the channel and port IDs created.
-func (s *transferTester) SetupTransferPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	relayer, channel := s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
+func (s *transferTester) CreateTransferPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
+	relayer, channel := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
 	s.T().Logf("test %s running on portID %s channelID %s", testName, channel.PortID, channel.ChannelID)
 	return relayer, channel
 }
@@ -64,7 +64,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	// deterministic.
 	t.Parallel()
 
-	relayer, channelA := s.SetupTransferPath(testName)
+	relayer, channelA := s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -179,7 +179,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.SetupTransferPath(testName)
+	relayer, channelA := s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -284,7 +284,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.SetupTransferPath(testName)
+	relayer, channelA := s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -407,7 +407,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.SetupTransferPath(testName)
+	relayer, channelA := s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -454,7 +454,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.SetupTransferPath(testName)
+	relayer, channelA := s.CreateTransferPath(testName)
 
 	chainA, _ := s.GetChains()
 
@@ -512,7 +512,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.SetupTransferPath(testName)
+	relayer, channelA := s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
