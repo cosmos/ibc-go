@@ -60,6 +60,9 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
+	testName := t.Name()
+	s.CreateDefaultPaths(testName)
+
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -112,7 +115,9 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
+
 	chainA, chainB := s.GetChains()
 	chainBVersion := chainB.Config().Images[0].Version
 
@@ -142,7 +147,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
-			s.StartRelayer(relayer)
+			s.StartRelayer(relayer, testName)
 		})
 
 		t.Run("verify interchain account", func(t *testing.T) {
@@ -229,7 +234,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
-			s.StartRelayer(relayer)
+			s.StartRelayer(relayer, testName)
 		})
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))

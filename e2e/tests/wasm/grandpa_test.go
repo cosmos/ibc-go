@@ -119,7 +119,7 @@ func (s *GrandpaTestSuite) SetupSuite() {
 	})
 }
 
-func (s *GrandpaTestSuite) SetupTest() {
+func (s *GrandpaTestSuite) SetupGrandpaPath(testName string) {
 	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 
@@ -143,7 +143,7 @@ func (s *GrandpaTestSuite) SetupTest() {
 	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
 	s.T().Log("pushed wasm client proposal")
 
-	r := s.GetRelayer()
+	r := s.GetRelayerForTest(testName)
 
 	err = r.SetClientContractHash(ctx, s.GetRelayerExecReporter(), cosmosChain.Config(), checksum)
 	s.Require().NoError(err)
@@ -154,7 +154,7 @@ func (s *GrandpaTestSuite) SetupTest() {
 
 	channelOpts := ibc.DefaultChannelOpts()
 	channelOpts.Version = transfertypes.V1
-	s.SetupPaths(ibc.DefaultClientOpts(), channelOpts)
+	s.CreatePaths(ibc.DefaultClientOpts(), channelOpts, testName)
 }
 
 // TestMsgTransfer_Succeeds_GrandpaContract features
@@ -170,6 +170,9 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	ctx := context.Background()
 	t := s.T()
 
+	testName := t.Name()
+	s.SetupGrandpaPath(testName)
+
 	chainA, chainB := s.GetChains()
 
 	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
@@ -178,7 +181,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
 	s.Require().True(ok)
 
-	r := s.GetRelayer()
+	r := s.GetRelayerForTest(testName)
 
 	eRep := s.GetRelayerExecReporter()
 
@@ -196,7 +199,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	}
 
 	// Start relayer
-	s.Require().NoError(r.StartRelayer(ctx, eRep, s.GetPaths()...))
+	s.Require().NoError(r.StartRelayer(ctx, eRep, s.GetPaths(testName)...))
 
 	t.Run("send successful IBC transfer from Cosmos to Polkadot parachain", func(t *testing.T) {
 		// Send 1.77 stake from cosmosUser to parachainUser
@@ -280,6 +283,9 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	ctx := context.Background()
 	t := s.T()
 
+	testName := t.Name()
+	s.SetupGrandpaPath(testName)
+
 	chainA, chainB := s.GetChains()
 
 	polkadotChain, ok := chainA.(*polkadot.PolkadotChain)
@@ -288,7 +294,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
 	s.Require().True(ok)
 
-	r := s.GetRelayer()
+	r := s.GetRelayerForTest(testName)
 
 	eRep := s.GetRelayerExecReporter()
 
@@ -352,7 +358,11 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 // * Pushes a new wasm client contract to the Cosmos chain
 // * Migrates the wasm client contract
 func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
+	t := s.T()
 	ctx := context.Background()
+
+	testName := t.Name()
+	s.SetupGrandpaPath(testName)
 
 	_, chainB := s.GetChains()
 
@@ -404,7 +414,11 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 // * Pushes a new wasm client contract to the Cosmos chain
 // * Migrates the wasm client contract with a contract that will always fail migration
 func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract() {
+	t := s.T()
 	ctx := context.Background()
+
+	testName := t.Name()
+	s.SetupGrandpaPath(testName)
 
 	_, chainB := s.GetChains()
 
@@ -458,7 +472,12 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 // - ics10_grandpa_cw_expiry.wasm.gz
 // This contract modifies the unbonding period to 1600s with the trusting period being calculated as (unbonding period / 3).
 func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
+	t := s.T()
+
 	ctx := context.Background()
+
+	testName := t.Name()
+	s.SetupGrandpaPath(testName)
 
 	// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
 	// the contract uses 1600s as the unbonding period with the trusting period evaluating to (unbonding period / 3)
@@ -472,7 +491,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	cosmosChain, ok := chainB.(*cosmos.CosmosChain)
 	s.Require().True(ok)
 
-	r := s.GetRelayer()
+	r := s.GetRelayerForTest(testName)
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 

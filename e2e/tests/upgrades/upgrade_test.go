@@ -5,7 +5,6 @@ package upgrades
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -58,13 +57,8 @@ type UpgradeTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *UpgradeTestSuite) SetupTest() {
-	channelOpts := s.TransferChannelOptions()
-	// TODO(chatton) hack to handle special case for the v8 to v8.1 upgrade test.
-	if strings.HasSuffix(s.T().Name(), "TestV8ToV8_1ChainUpgrade") {
-		channelOpts = s.FeeTransferChannelOptions()
-	}
-	s.SetupPaths(ibc.DefaultClientOpts(), channelOpts)
+func (s *UpgradeTestSuite) CreateUpgradeTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
+	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
 }
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
@@ -138,7 +132,9 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
+
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -175,7 +171,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -197,7 +193,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 
 	t.Run("restart relayer", func(t *testing.T) {
 		s.StopRelayer(ctx, relayer)
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
@@ -242,6 +238,9 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	t := s.T()
 
 	ctx := context.Background()
+
+	testName := t.Name()
+	s.CreateUpgradeTestPath(testName)
 
 	// TODO(chatton): this test is still creating a relayer and a channel, but it is not using them.
 	chain := s.GetAllChains()[0]
@@ -303,7 +302,10 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
+
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -391,7 +393,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -417,7 +419,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	// in some cases after an upgrade.
 	tc := testsuite.LoadConfig()
 	if tc.GetActiveRelayerConfig().ID == e2erelayer.Hermes {
-		s.RestartRelayer(ctx, relayer)
+		s.RestartRelayer(ctx, relayer, testName)
 	}
 
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {
@@ -457,7 +459,10 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
+
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -484,7 +489,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
@@ -548,7 +553,10 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
+
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -575,7 +583,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
@@ -641,7 +649,10 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	t := s.T()
 	ctx := context.Background()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions(), testName)
+
+	channelA := s.GetChainAChannelForTest(testName)
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
@@ -730,7 +741,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
@@ -768,7 +779,10 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
+
 	channelB := channelA.Counterparty
 
 	chainA, chainB := s.GetChains()
@@ -871,7 +885,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
@@ -965,7 +979,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("send incentivized transfer packet", func(t *testing.T) {
@@ -1031,7 +1045,9 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
@@ -1049,7 +1065,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("transfer native tokens from chainA to chainB", func(t *testing.T) {
@@ -1111,7 +1127,9 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_Localhost() {
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
 
-	_, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+
+	_, channelA := s.CreateUpgradeTestPath(testName)
 	channelVersion := channelA.Version
 
 	chainA, chainB := s.GetChains()

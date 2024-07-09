@@ -217,8 +217,6 @@ func (suite *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
 	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/AllBalances")
 	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validator")
 	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validators")
-	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/Account")
-	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/DisabledList")
 	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/Accounts")
 	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/ModuleAccountByName")
 	suite.Require().Contains(allowList, "/ibc.core.client.v1.Query/VerifyMembership")
