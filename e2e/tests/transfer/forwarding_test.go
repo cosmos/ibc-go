@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -115,5 +116,107 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
+	})
+}
+
+// TestForwardingWithUnwindSucceeds tests the forwarding scenario in which
+// a packet is sent from A to B, then unwound back to A and forwarded to C
+// The overall flow of the packet is:
+// A ---> B
+// B --(unwind)-->A --(forward)-->B --(forward)--> C
+func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
+	t := s.T()
+	ctx := context.TODO()
+	t.Parallel()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
+
+	chains := s.GetAllChains()
+
+	chainA, chainB, chainC := chains[0], chains[1], chains[2]
+
+	channelAtoB := s.GetChainAChannelForTest(testName)
+	channelBtoC := s.GetChannelsForTest(chainB, testName)[1]
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.FormattedAddress()
+	chainADenom := chainA.Config().Denom
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.FormattedAddress()
+
+	chainCWallet := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
+	chainCAddress := chainCWallet.FormattedAddress()
+
+	t.Run("IBC transfer from A to B", func(t *testing.T) {
+		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
+
+		msgTransfer := testsuite.GetMsgTransfer(
+			channelAtoB.PortID,
+			channelAtoB.ChannelID,
+			transfertypes.V2,
+			testvalues.DefaultTransferCoins(chainADenom),
+			chainAAddress,
+			chainBAddress,
+			clienttypes.ZeroHeight(),
+			uint64(inFiveMinutes),
+			"",
+			nil)
+		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgTransfer)
+		s.AssertTxSuccess(resp)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer, testName)
+	})
+
+	chainBDenom := transfertypes.NewDenom(chainADenom, transfertypes.NewHop(channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID))
+	t.Run("packet has reached B", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelAtoB.PortID, channelAtoB.ChannelID, 1)
+
+		balance, err := query.Balance(ctx, chainB, chainBAddress, chainBDenom.IBCDenom())
+		s.Require().NoError(err)
+
+		s.Require().Equal(testvalues.IBCTransferAmount, balance.Int64())
+	})
+
+	t.Run("IBC transfer from B (unwind) to A and forwarded to C through B", func(t *testing.T) {
+		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
+
+		forwarding := transfertypes.NewForwarding(
+			true,
+			transfertypes.NewHop(channelAtoB.PortID, channelAtoB.ChannelID),
+			transfertypes.NewHop(channelBtoC.PortID, channelBtoC.ChannelID),
+		)
+		msgTransfer := testsuite.GetMsgTransfer(
+			"",
+			"",
+			transfertypes.V2,
+			testvalues.DefaultTransferCoins(chainBDenom.IBCDenom()),
+			chainBAddress,
+			chainCAddress,
+			clienttypes.ZeroHeight(),
+			uint64(inFiveMinutes),
+			"",
+			forwarding)
+		resp := s.BroadcastMessages(ctx, chainB, chainBWallet, msgTransfer)
+		s.AssertTxSuccess(resp)
+	})
+
+	t.Run("packet has reached C", func(t *testing.T) {
+		chainCDenom := transfertypes.NewDenom(chainADenom,
+			transfertypes.NewHop(channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID),
+			transfertypes.NewHop(channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID),
+		)
+
+		err := test.WaitForCondition(time.Minute*10, time.Second*30, func() (bool, error) {
+			balance, err := query.Balance(ctx, chainC, chainCAddress, chainCDenom.IBCDenom())
+			if err != nil {
+				return false, err
+			}
+			return balance.Int64() == testvalues.IBCTransferAmount, nil
+		})
+		s.Require().NoError(err)
+		s.AssertPacketRelayed(ctx, chainB, channelBtoC.PortID, channelBtoC.ChannelID, 1)
 	})
 }
