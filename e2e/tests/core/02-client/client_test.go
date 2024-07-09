@@ -65,6 +65,9 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
+	testName := t.Name()
+	s.CreateDefaultPaths(testName)
+
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
@@ -169,14 +172,15 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		badTrustingPeriod = time.Second * 10
 	)
 
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		pathName = s.GetPaths()[0]
+		pathName = s.GetPaths(testName)[0]
 	})
 
 	chainA, chainB := s.GetChains()
@@ -249,14 +253,15 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		badTrustingPeriod = time.Second * 10
 	)
 
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		pathName = s.GetPaths()[0]
+		pathName = s.GetPaths(testName)[0]
 	})
 
 	chainA, chainB := s.GetChains()
@@ -334,13 +339,15 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err             error
 	)
 
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
+
 	chainA, chainB := s.GetChains()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
@@ -356,7 +363,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
@@ -437,6 +444,9 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 func (s *ClientTestSuite) TestAllowedClientsParam() {
 	t := s.T()
 	ctx := context.TODO()
+
+	testName := t.Name()
+	s.CreateDefaultPaths(testName)
 
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version

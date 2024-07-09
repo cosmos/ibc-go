@@ -47,19 +47,28 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 	ctx := context.TODO()
 	t := s.T()
 
-	relayer, chains := s.GetRelayer(), s.GetAllChains()
+	testName := t.Name()
+	t.Parallel()
+	relayer := s.CreateDefaultPaths(testName)
+
+	chains := s.GetAllChains()
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 
+	s.Require().Len(s.GetChannelsForTest(chainA, testName), 1, "expected one channel on chain A")
+	s.Require().Len(s.GetChannelsForTest(chainB, testName), 2, "expected two channels on chain B")
+	s.Require().Len(s.GetChannelsForTest(chainC, testName), 1, "expected one channel on chain C")
+
+	channelAtoB := s.GetChainAChannelForTest(testName)
+
 	var channelBtoC ibc.ChannelOutput
-	channelAtoB := s.GetChainAChannel()
 	if lastChainVersion == transfertypes.V2 {
-		channelBtoC = s.GetChainChannel(testsuite.ChainChannelPair{ChainIdx: 1, ChannelIdx: 1})
+		channelBtoC = s.GetChannelsForTest(chainB, testName)[1]
+		s.Require().Equal(transfertypes.V2, channelBtoC.Version, "the channel version is not ics20-2")
 	} else {
 		opts := s.TransferChannelOptions()
 		opts.Version = transfertypes.V1
-		chains := s.GetAllChains()
-		channelBtoC, _ = s.CreatePath(ctx, chains[1], chains[2], ibc.DefaultClientOpts(), opts)
+		channelBtoC, _ = s.CreatePath(ctx, relayer, chainB, chainC, ibc.DefaultClientOpts(), opts, testName)
 		s.Require().Equal(transfertypes.V1, channelBtoC.Version, "the channel version is not ics20-1")
 	}
 
@@ -90,7 +99,7 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed from A to B to C", func(t *testing.T) {
