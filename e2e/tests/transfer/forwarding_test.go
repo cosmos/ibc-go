@@ -136,7 +136,7 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 
 	channelAtoB := s.GetChainAChannelForTest(testName)
-	channelBtoC := s.GetChannelsForTest(chainB, testName)[0]
+	channelBtoC := s.GetChannelsForTest(chainB, testName)[1]
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
