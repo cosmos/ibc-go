@@ -189,6 +189,7 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 		resp := s.BroadcastMessages(ctx, chainB, chainBWallet, msgTransfer)
 		s.AssertTxSuccess(resp)
 	})
+
 	t.Run("packet has reached C", func(t *testing.T) {
 		chainCDenom := transfertypes.NewDenom(chainADenom,
 			transfertypes.NewHop(channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID),
