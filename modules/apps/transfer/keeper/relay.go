@@ -272,14 +272,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 // acknowledgement was a success then nothing occurs. If the acknowledgement failed,
 // then the sender is refunded their tokens using the refundPacketToken function.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
-	prevPacket, isForwarded := k.getForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	forwardedPacket, isForwarded := k.getForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
 		if isForwarded {
-			// Write a successful async ack for the prevPacket
+			// Write a successful async ack for the forwardedPacket
 			forwardAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-			return k.acknowledgeForwardedPacket(ctx, prevPacket, packet, forwardAck)
+			return k.acknowledgeForwardedPacket(ctx, forwardedPacket, packet, forwardAck)
 		}
 
 		// the acknowledgement succeeded on the receiving chain so nothing
@@ -294,12 +294,12 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 			// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 			// we must revert the changes that came from successfully receiving the tokens on our chain
 			// before propagating the error acknowledgement back to original sender chain
-			if err := k.revertForwardedPacket(ctx, prevPacket, data); err != nil {
+			if err := k.revertForwardedPacket(ctx, forwardedPacket, data); err != nil {
 				return err
 			}
 
 			forwardAck := internaltypes.NewForwardErrorAcknowledgement(packet, ack)
-			return k.acknowledgeForwardedPacket(ctx, prevPacket, packet, forwardAck)
+			return k.acknowledgeForwardedPacket(ctx, forwardedPacket, packet, forwardAck)
 		}
 
 		return nil
@@ -316,14 +316,14 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 		return err
 	}
 
-	prevPacket, isForwarded := k.getForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	forwardedPacket, isForwarded := k.getForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if isForwarded {
-		if err := k.revertForwardedPacket(ctx, prevPacket, data); err != nil {
+		if err := k.revertForwardedPacket(ctx, forwardedPacket, data); err != nil {
 			return err
 		}
 
 		forwardAck := internaltypes.NewForwardTimeoutAcknowledgement(packet)
-		return k.acknowledgeForwardedPacket(ctx, prevPacket, packet, forwardAck)
+		return k.acknowledgeForwardedPacket(ctx, forwardedPacket, packet, forwardAck)
 	}
 
 	return nil
