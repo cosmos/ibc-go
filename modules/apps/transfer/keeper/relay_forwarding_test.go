@@ -947,7 +947,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 		},
 		address,
 		receiver.GetAddress().String(),
-		"", types.ForwardingPacketData{},
+		"", ibctesting.EmptyForwardingPacketData,
 	)
 
 	packet = channeltypes.NewPacket(
