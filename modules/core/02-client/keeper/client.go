@@ -22,19 +22,11 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientType)
 	}
 
-	params := k.GetParams(ctx)
-	if !params.IsAllowedClient(clientType) {
-		return "", errorsmod.Wrapf(
-			types.ErrInvalidClientType,
-			"client state type %s is not registered in the allowlist", clientType,
-		)
-	}
-
 	clientID := k.GenerateClientIdentifier(ctx, clientType)
 
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
-		return "", errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
+		return "", err
 	}
 
 	if err := clientModule.Initialize(ctx, clientID, clientState, consensusState); err != nil {
@@ -70,9 +62,9 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 		return errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
 	}
 
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
-		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
+		return err
 	}
 
 	if err := clientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
@@ -136,9 +128,9 @@ func (k *Keeper) UpgradeClient(
 		return errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
 	}
 
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
-		return errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
+		return err
 	}
 
 	if err := clientModule.VerifyUpgradeAndUpdateState(ctx, clientID, upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof); err != nil {
