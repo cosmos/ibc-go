@@ -26,21 +26,19 @@ const (
 	balance
 )
 
-type (
-	ForwardingTestSuite struct {
-		testifysuite.Suite
+type ForwardingTestSuite struct {
+	testifysuite.Suite
 
-		coordinator *ibctesting.Coordinator
+	coordinator *ibctesting.Coordinator
 
-		// testing chains used for convenience and readability
-		chainA *ibctesting.TestChain
-		chainB *ibctesting.TestChain
-		chainC *ibctesting.TestChain
-		chainD *ibctesting.TestChain
-	}
+	// testing chains used for convenience and readability
+	chainA *ibctesting.TestChain
+	chainB *ibctesting.TestChain
+	chainC *ibctesting.TestChain
+	chainD *ibctesting.TestChain
+}
 
-	amountType int
-)
+type amountType int
 
 func TestForwardingTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(ForwardingTestSuite))
