@@ -193,9 +193,6 @@ func (s *TransferForwardingTestSuite) TestChannelUpgradeForwarding_Succeeds() {
 			transfertypes.NewHop(channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID),
 		)
 
-		// s.AssertPacketRelayed(ctx, chainA, channelAtoB.PortID, channelAtoB.ChannelID, 1)
-		// s.AssertPacketRelayed(ctx, chainB, channelBtoC.PortID, channelBtoC.ChannelID, 1)
-
 		actualBalance, err := query.Balance(ctx, chainC, chainCAddress, chainCDenom.IBCDenom())
 		s.Require().NoError(err)
 
