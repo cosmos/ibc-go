@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -154,7 +154,7 @@ func (s *TransferForwardingTestSuite) TestChannelUpgradeForwarding_Succeeds() {
 		s.InitiateChannelUpgrade(ctx, chainB, chainBWallet, channelBtoC.PortID, channelBtoC.ChannelID, upgradeFields)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+	s.Require().NoError(testutil.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("verify channel A upgraded and transfer version is ics20-2", func(t *testing.T) {
 		channel, err := query.Channel(ctx, chainA, channelAtoB.PortID, channelAtoB.ChannelID)
