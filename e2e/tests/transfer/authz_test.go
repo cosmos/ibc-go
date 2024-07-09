@@ -361,7 +361,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 // extractTransferAuthorizationFromGrantAuthorization extracts a TransferAuthorization from the given
 // GrantAuthorization.
 func (suite *AuthzTransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
-	cfg := testsuite.EncodingConfig()
+	cfg := testsuite.SDKEncodingConfig()
 	var authorization authz.Authorization
 	err := cfg.InterfaceRegistry.UnpackAny(grantAuth.Authorization, &authorization)
 	suite.Require().NoError(err)
