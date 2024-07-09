@@ -154,7 +154,7 @@ func (s *GrandpaTestSuite) SetupGrandpaPath(testName string) {
 
 	channelOpts := ibc.DefaultChannelOpts()
 	channelOpts.Version = transfertypes.V1
-	s.SetupPaths(ibc.DefaultClientOpts(), channelOpts, testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), channelOpts, testName)
 }
 
 // TestMsgTransfer_Succeeds_GrandpaContract features

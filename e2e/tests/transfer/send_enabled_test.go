@@ -40,7 +40,7 @@ func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 
 	testName := t.Name()
 	// Note: explicitly not using t.Parallel() in this test as it makes chain wide changes
-	s.SetupTransferPath(testName)
+	s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 

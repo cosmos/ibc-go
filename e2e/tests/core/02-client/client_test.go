@@ -66,7 +66,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
+	s.CreateDefaultPaths(testName)
 
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -173,7 +173,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	)
 
 	testName := t.Name()
-	relayer := s.SetupDefaultPath(testName)
+	relayer := s.CreateDefaultPaths(testName)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
@@ -254,7 +254,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	)
 
 	testName := t.Name()
-	relayer := s.SetupDefaultPath(testName)
+	relayer := s.CreateDefaultPaths(testName)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
@@ -340,7 +340,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	)
 
 	testName := t.Name()
-	relayer := s.SetupDefaultPath(testName)
+	relayer := s.CreateDefaultPaths(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -446,7 +446,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
+	s.CreateDefaultPaths(testName)
 
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version

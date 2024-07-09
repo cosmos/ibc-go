@@ -39,7 +39,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	relayer := s.SetupDefaultPath(testName)
+	relayer := s.CreateDefaultPaths(testName)
 
 	chainA, chainB := s.GetChains()
 	chainBVersion := chainB.Config().Images[0].Version

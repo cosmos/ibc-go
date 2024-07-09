@@ -48,7 +48,7 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 
 	testName := t.Name()
 	t.Parallel()
-	relayer := s.SetupDefaultPath(testName)
+	relayer := s.CreateDefaultPaths(testName)
 
 	chains := s.GetAllChains()
 

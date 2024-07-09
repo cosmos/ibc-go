@@ -32,7 +32,7 @@ type TransferChannelUpgradesTestSuite struct {
 }
 
 func (s *TransferChannelUpgradesTestSuite) SetupChannelUpgradesPath(testName string) {
-	s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware

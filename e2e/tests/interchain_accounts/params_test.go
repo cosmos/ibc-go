@@ -61,7 +61,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.SetupDefaultPath(testName)
+	s.CreateDefaultPaths(testName)
 
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
@@ -116,7 +116,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	relayer := s.SetupDefaultPath(testName)
+	relayer := s.CreateDefaultPaths(testName)
 
 	chainA, chainB := s.GetChains()
 	chainBVersion := chainB.Config().Images[0].Version

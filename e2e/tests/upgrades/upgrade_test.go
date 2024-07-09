@@ -55,8 +55,8 @@ type UpgradeTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *UpgradeTestSuite) SetupUpgradeTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	return s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
+func (s *UpgradeTestSuite) CreateUpgradeTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
+	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
 }
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
@@ -124,7 +124,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 
 	ctx := context.Background()
 	testName := t.Name()
-	relayer, channelA := s.SetupUpgradeTestPath(testName)
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -231,7 +231,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	ctx := context.Background()
 
 	testName := t.Name()
-	s.SetupUpgradeTestPath(testName)
+	s.CreateUpgradeTestPath(testName)
 
 	// TODO(chatton): this test is still creating a relayer and a channel, but it is not using them.
 	chain := s.GetAllChains()[0]
@@ -295,7 +295,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	ctx := context.Background()
 	testName := t.Name()
 
-	relayer, channelA := s.SetupUpgradeTestPath(testName)
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -452,7 +452,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	ctx := context.Background()
 	testName := t.Name()
 
-	relayer, channelA := s.SetupUpgradeTestPath(testName)
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -546,7 +546,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	ctx := context.Background()
 	testName := t.Name()
 
-	relayer, channelA := s.SetupUpgradeTestPath(testName)
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -641,7 +641,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	ctx := context.Background()
 
 	testName := t.Name()
-	relayer := s.SetupPaths(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions(), testName)
+	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.FeeTransferChannelOptions(), testName)
 
 	channelA := s.GetChainAChannelForTest(testName)
 
@@ -772,7 +772,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 
 	testName := t.Name()
 
-	relayer, channelA := s.SetupUpgradeTestPath(testName)
+	relayer, channelA := s.CreateUpgradeTestPath(testName)
 
 	channelB := channelA.Counterparty
 
