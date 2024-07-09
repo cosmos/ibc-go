@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"testing"
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -20,14 +21,38 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-type ForwardingTestSuite struct {
-	testifysuite.Suite
+const (
+	escrow amountType = iota
+	balance
+)
 
-	// testing chains used for convenience and readability
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
-	chainD *ibctesting.TestChain
+type (
+	ForwardingTestSuite struct {
+		testifysuite.Suite
+
+		coordinator *ibctesting.Coordinator
+
+		// testing chains used for convenience and readability
+		chainA *ibctesting.TestChain
+		chainB *ibctesting.TestChain
+		chainC *ibctesting.TestChain
+		chainD *ibctesting.TestChain
+	}
+
+	amountType int
+)
+
+func TestForwardingTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(ForwardingTestSuite))
+}
+
+func (suite *ForwardingTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 4)
+
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
+	suite.chainD = suite.coordinator.GetChain(ibctesting.GetChainID(4))
 }
 
 func (suite *ForwardingTestSuite) setupForwardingPaths() (pathAtoB, pathBtoC *ibctesting.Path) {
@@ -35,27 +60,8 @@ func (suite *ForwardingTestSuite) setupForwardingPaths() (pathAtoB, pathBtoC *ib
 	pathBtoC = ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 	pathAtoB.Setup()
 	pathBtoC.Setup()
+
 	return pathAtoB, pathBtoC
-}
-
-type amountType int
-
-const (
-	escrow amountType = iota
-	balance
-)
-
-func (suite *ForwardingTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string) {
-	var total sdk.Coin
-	switch balanceType {
-	case escrow:
-		total = chain.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(chain.GetContext(), denom)
-	case balance:
-		total = chain.GetSimApp().BankKeeper.GetBalance(chain.GetContext(), chain.SenderAccounts[0].SenderAccount.GetAddress(), denom)
-	default:
-		suite.Fail("invalid amountType %s", balanceType)
-	}
-	suite.Require().Equal(amount, total.Amount, fmt.Sprintf("Chain %s: got balance of %d, wanted %d", chain.Name(), total.Amount, amount))
 }
 
 // TestStoredForwardedPacketAndEscrowAfterFirstHop tests that the forwarded packet
@@ -1277,4 +1283,17 @@ func parseAckFromTransferEvents(events []abci.Event) (string, error) {
 	}
 
 	return "", fmt.Errorf("acknowledgement event attribute not found")
+}
+
+func (suite *ForwardingTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string) {
+	var total sdk.Coin
+	switch balanceType {
+	case escrow:
+		total = chain.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(chain.GetContext(), denom)
+	case balance:
+		total = chain.GetSimApp().BankKeeper.GetBalance(chain.GetContext(), chain.SenderAccounts[0].SenderAccount.GetAddress(), denom)
+	default:
+		suite.Fail("invalid amountType %s", balanceType)
+	}
+	suite.Require().Equal(amount, total.Amount, fmt.Sprintf("Chain %s: got balance of %d, wanted %d", chain.Name(), total.Amount, amount))
 }
