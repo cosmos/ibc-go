@@ -39,7 +39,7 @@ func (k Keeper) UnwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	return k.unwindHops(ctx, msg)
 }
 
-// UnwindHops is a wrapper around getForwardedPacket for testing purposes.
+// GetForwardedPacket is a wrapper around getForwardedPacket for testing purposes.
 func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
 	return k.getForwardedPacket(ctx, portID, channelID, sequence)
 }
