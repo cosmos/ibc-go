@@ -159,7 +159,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
 			"",
-			types.ForwardingPacketData{},
+			ibctesting.EmptyForwardingPacketData,
 		),
 	}
 }
@@ -309,8 +309,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB).DisableUniqueChannelIDs()
+		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC).DisableUniqueChannelIDs()
 		pathAtoB.Setup()
 		pathBtoC.Setup()
 

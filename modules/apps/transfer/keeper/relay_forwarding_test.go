@@ -2,7 +2,11 @@ package keeper_test
 
 import (
 	"fmt"
+	"testing"
 	"time"
+
+	"github.com/cosmos/gogoproto/proto"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -17,39 +21,52 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func (suite *KeeperTestSuite) setupForwardingPaths() (pathAtoB, pathBtoC *ibctesting.Path) {
-	pathAtoB = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	pathBtoC = ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-	pathAtoB.Setup()
-	pathBtoC.Setup()
-	return pathAtoB, pathBtoC
-}
-
-type amountType int
-
 const (
 	escrow amountType = iota
 	balance
 )
 
-func (suite *KeeperTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string) {
-	var total sdk.Coin
-	switch balanceType {
-	case escrow:
-		total = chain.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(chain.GetContext(), denom)
-	case balance:
-		total = chain.GetSimApp().BankKeeper.GetBalance(chain.GetContext(), chain.SenderAccounts[0].SenderAccount.GetAddress(), denom)
-	default:
-		suite.Fail("invalid amountType %s", balanceType)
-	}
-	suite.Require().Equal(amount, total.Amount, fmt.Sprintf("Chain %s: got balance of %d, wanted %d", chain.Name(), total.Amount, amount))
+type ForwardingTestSuite struct {
+	testifysuite.Suite
+
+	coordinator *ibctesting.Coordinator
+
+	// testing chains used for convenience and readability
+	chainA *ibctesting.TestChain
+	chainB *ibctesting.TestChain
+	chainC *ibctesting.TestChain
+	chainD *ibctesting.TestChain
+}
+
+type amountType int
+
+func TestForwardingTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(ForwardingTestSuite))
+}
+
+func (suite *ForwardingTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 4)
+
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
+	suite.chainD = suite.coordinator.GetChain(ibctesting.GetChainID(4))
+}
+
+func (suite *ForwardingTestSuite) setupForwardingPaths() (pathAtoB, pathBtoC *ibctesting.Path) {
+	pathAtoB = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	pathBtoC = ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+	pathAtoB.Setup()
+	pathBtoC.Setup()
+
+	return pathAtoB, pathBtoC
 }
 
 // TestStoredForwardedPacketAndEscrowAfterFirstHop tests that the forwarded packet
 // from chain A to chain B is stored after when the packet is received on chain B
 // and then forwarded to chain C, and checks the balance of the escrow accounts
 // in chain A nad B.
-func (suite *KeeperTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() {
+func (suite *ForwardingTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain A
@@ -110,7 +127,7 @@ func (suite *KeeperTestSuite) TestStoredForwardedPacketAndEscrowAfterFirstHop() 
 }
 
 // TestSuccessfulForward tests a successful transfer from A to C through B.
-func (suite *KeeperTestSuite) TestSuccessfulForward() {
+func (suite *ForwardingTestSuite) TestSuccessfulForward() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -223,7 +240,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForward() {
 }
 
 // TestSuccessfulForwardWithMemo tests a successful transfer from A to C through B with a memo that should arrive at C.
-func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
+func (suite *ForwardingTestSuite) TestSuccessfulForwardWithMemo() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -277,7 +294,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// Check that the memo is stored correctly in the packet sent from A
 	var tokenPacketOnA types.FungibleTokenPacketDataV2
-	err = suite.chainA.Codec.UnmarshalJSON(packetFromAtoB.Data, &tokenPacketOnA)
+	err = proto.Unmarshal(packetFromAtoB.Data, &tokenPacketOnA)
 	suite.Require().NoError(err)
 	suite.Require().Equal("", tokenPacketOnA.Memo)
 	suite.Require().Equal(testMemo, tokenPacketOnA.Forwarding.DestinationMemo)
@@ -299,7 +316,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// Check that the memo is stored correctly in the packet sent from B
 	var tokenPacketOnB types.FungibleTokenPacketDataV2
-	err = suite.chainB.Codec.UnmarshalJSON(packetFromBtoC.Data, &tokenPacketOnB)
+	err = proto.Unmarshal(packetFromBtoC.Data, &tokenPacketOnB)
 	suite.Require().NoError(err)
 	suite.Require().Equal(testMemo, tokenPacketOnB.Memo)
 	suite.Require().Equal("", tokenPacketOnB.Forwarding.DestinationMemo)
@@ -324,7 +341,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 	// Check that the memo is stored directly in the memo field on C
 	var tokenPacketOnC types.FungibleTokenPacketDataV2
-	err = suite.chainC.Codec.UnmarshalJSON(packetOnC.Data, &tokenPacketOnC)
+	err = proto.Unmarshal(packetOnC.Data, &tokenPacketOnC)
 	suite.Require().NoError(err)
 	suite.Require().Equal("", tokenPacketOnC.Forwarding.DestinationMemo)
 	suite.Require().Equal(testMemo, tokenPacketOnC.Memo)
@@ -364,7 +381,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithMemo() {
 
 // TestSuccessfulForwardWithNonCosmosAccAddress tests that a packet is successfully forwarded with a non-Cosmos account address.
 // The test stops before verifying the final receive, because we don't have a non-cosmos chain to test with.
-func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
+func (suite *ForwardingTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -412,7 +429,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 	// Check that the token sent from A has final receiver intact
 	var tokenPacketOnA types.FungibleTokenPacketDataV2
-	err = suite.chainA.Codec.UnmarshalJSON(packetFromAtoB.Data, &tokenPacketOnA)
+	err = proto.Unmarshal(packetFromAtoB.Data, &tokenPacketOnA)
 	suite.Require().NoError(err)
 	suite.Require().Equal(nonCosmosReceiver, tokenPacketOnA.Receiver)
 
@@ -432,7 +449,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 	// Check that the token sent from B has final receiver intact
 	var tokenPacketOnB types.FungibleTokenPacketDataV2
-	err = suite.chainB.Codec.UnmarshalJSON(packetFromBtoC.Data, &tokenPacketOnB)
+	err = proto.Unmarshal(packetFromBtoC.Data, &tokenPacketOnB)
 	suite.Require().NoError(err)
 	suite.Require().Equal(nonCosmosReceiver, tokenPacketOnB.Receiver)
 
@@ -443,7 +460,7 @@ func (suite *KeeperTestSuite) TestSuccessfulForwardWithNonCosmosAccAddress() {
 
 // TestSuccessfulUnwind tests unwinding of tokens sent from A -> B -> C by
 // forwarding the tokens back from C -> B -> A.
-func (suite *KeeperTestSuite) TestSuccessfulUnwind() {
+func (suite *ForwardingTestSuite) TestSuccessfulUnwind() {
 	/*
 		Given the following topolgy:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -588,7 +605,7 @@ func (suite *KeeperTestSuite) TestSuccessfulUnwind() {
 // middle chain is native source when receiving and sending the packet. In other words, the middle chain's native
 // token has been sent to chain C, and the multi-hop transfer from C -> B -> A has chain B being the source of
 // the token both when receiving and forwarding (sending).
-func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeTokenSource() {
+func (suite *ForwardingTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeTokenSource() {
 	/*
 		Given the following topology:
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
@@ -756,7 +773,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNativeT
 // TestAcknowledgementFailureWithMiddleChainAsNotBeingTokenSource tests a failure in the last hop where the middle chain
 // is not source of the token when receiving or sending the packet. In other words, the middle chain's is sent
 // (and forwarding) someone else's native token (in this case chain C).
-func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBeingTokenSource() {
+func (suite *ForwardingTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBeingTokenSource() {
 	/*
 		Given the following topology:
 		chain A (channel 0) 												<- (channel-0) chain B (channel-1) <- (channel-0) chain C
@@ -876,7 +893,7 @@ func (suite *KeeperTestSuite) TestAcknowledgementFailureWithMiddleChainAsNotBein
 // TestOnTimeoutPacketForwarding tests the scenario in which a packet goes from
 // A to C, using B as a forwarding hop. The packet times out when going to C
 // from B and we verify that funds are properly returned to A.
-func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
+func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
 	amount := sdkmath.NewInt(100)
@@ -939,13 +956,13 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{
-				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID)),
+				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID)),
 				Amount: "100",
 			},
 		},
 		address,
 		receiver.GetAddress().String(),
-		"", types.ForwardingPacketData{},
+		"", ibctesting.EmptyForwardingPacketData,
 	)
 
 	packet = channeltypes.NewPacket(
@@ -970,7 +987,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().NoError(err)
 
 	// Ensure that chainB has an ack.
-	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID, packet.GetSequence())
 	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
@@ -1016,7 +1033,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketForwarding() {
 
 // TestForwardingWithMoreThanOneHop tests the scenario in which we
 // forward with more than one forwarding hop.
-func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
+func (suite *ForwardingTestSuite) TestForwardingWithMoreThanOneHop() {
 	// Setup A->B->C->D
 	coinOnA := ibctesting.TestCoin
 
@@ -1129,7 +1146,7 @@ func (suite *KeeperTestSuite) TestForwardingWithMoreThanOneHop() {
 	suite.Require().NoError(err)
 }
 
-func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
+func (suite *ForwardingTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	// Setup A->B->C->D
 	coinOnA := ibctesting.TestCoin
 
@@ -1248,7 +1265,7 @@ func (suite *KeeperTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	ackStr, err := parseAckFromTransferEvents(result.Events)
 	suite.Require().NoError(err)
 
-	expected := "error:\"forwarding packet failed on transfer/channel-1: forwarding packet failed on transfer/channel-1: ABCI code: 8: error handling packet: see events for details\" "
+	expected := fmt.Sprintf(`error:"forwarding packet failed on %s/%s: forwarding packet failed on %s/%s: ABCI code: 8: error handling packet: see events for details" `, pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, pathCtoD.EndpointA.ChannelConfig.PortID, pathCtoD.EndpointA.ChannelID)
 	suite.Require().Equal(expected, ackStr)
 }
 
@@ -1264,4 +1281,17 @@ func parseAckFromTransferEvents(events []abci.Event) (string, error) {
 	}
 
 	return "", fmt.Errorf("acknowledgement event attribute not found")
+}
+
+func (suite *ForwardingTestSuite) assertAmountOnChain(chain *ibctesting.TestChain, balanceType amountType, amount sdkmath.Int, denom string) {
+	var total sdk.Coin
+	switch balanceType {
+	case escrow:
+		total = chain.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(chain.GetContext(), denom)
+	case balance:
+		total = chain.GetSimApp().BankKeeper.GetBalance(chain.GetContext(), chain.SenderAccounts[0].SenderAccount.GetAddress(), denom)
+	default:
+		suite.Fail("invalid amountType %s", balanceType)
+	}
+	suite.Require().Equal(amount, total.Amount, fmt.Sprintf("Chain %s: got balance of %d, wanted %d", chain.Name(), total.Amount, amount))
 }
