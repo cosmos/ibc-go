@@ -9,6 +9,94 @@ slug: /ibc/light-clients/wasm/migrations
 
 This guide provides instructions for migrating 08-wasm versions.
 
+## From v0.2.0+ibc-go-v8.3-wasmvm-v2.0 to v0.3.0-ibc-go-v8.3-wasmvm-v2.0
+
+### Contract developers
+
+The `v0.3.0` release of 08-wasm for ibc-go `v8.3.x` and above introduces a breaking change for client contract developers.
+
+The contract API `SudoMsg` payloads `VerifyMembershipMsg` and `VerifyNonMembershipMsg` have been modified. 
+The encoding of the `Path` field of both structs has been updated from `v1.MerklePath` to `v2.MerklePath` to support proving values stored under keys which contain non-utf8 encoded symbols. 
+
+As a result, the `Path` field now contains a `MerklePath` composed of `key_path` of `[][]byte` as opposed to `[]string`. The JSON field `path` containing `key_path` of both `VerifyMembershipMsg` and `VerifyNonMembershipMsg` structs will now marshal elements as base64 encoded bytestrings. See below for example JSON diff.
+
+```diff
+{
+  "verify_membership": {
+    "height": {
+      "revision_height": 1
+    },
+    "delay_time_period": 0,
+    "delay_block_period": 0,
+    "proof":"dmFsaWQgcHJvb2Y=",
+    "path": {
++      "key_path":["L2liYw==","L2tleS9wYXRo"]
+-      "key_path":["/ibc","/key/path"]
+    },
+    "value":"dmFsdWU="
+  }
+}
+```
+
+A migration is required for existing 08-wasm client contracts in order to correctly handle the deserialisation of `key_path` from `[]string` to `[][]byte`.
+Contract developers should familiarise themselves with the migration path offered by 08-wasm [here](./05-governance.md#migrating-an-existing-wasm-light-client-contract).
+
+An example of the required changes in a client contract may look like:
+
+```diff
+#[cw_serde]
+pub struct MerklePath {
++   pub key_path: Vec<cosmwasm_std::Binary>,
+-   pub key_path: Vec<String>,
+}
+```
+
+Please refer to the [`cosmwasm_std`](https://docs.rs/cosmwasm-std/2.0.4/cosmwasm_std/struct.Binary.html) documentation for more information.
+
+## From v0.1.1+ibc-go-v7.3-wasmvm-v1.5 to v0.2.0-ibc-go-v7.3-wasmvm-v1.5
+
+### Contract developers
+
+The `v0.2.0` release of 08-wasm for ibc-go `v7.6.x` and above introduces a breaking change for client contract developers.
+
+The contract API `SudoMsg` payloads `VerifyMembershipMsg` and `VerifyNonMembershipMsg` have been modified. 
+The encoding of the `Path` field of both structs has been updated from `v1.MerklePath` to `v2.MerklePath` to support proving values stored under keys which contain non-utf8 encoded symbols. 
+
+As a result, the `Path` field now contains a `MerklePath` composed of `key_path` of `[][]byte` as opposed to `[]string`. The JSON field `path` containing `key_path` of both `VerifyMembershipMsg` and `VerifyNonMembershipMsg` structs will now marshal elements as base64 encoded bytestrings. See below for example JSON diff.
+
+```diff
+{
+  "verify_membership": {
+    "height": {
+      "revision_height": 1
+    },
+    "delay_time_period": 0,
+    "delay_block_period": 0,
+    "proof":"dmFsaWQgcHJvb2Y=",
+    "path": {
++      "key_path":["L2liYw==","L2tleS9wYXRo"]
+-      "key_path":["/ibc","/key/path"]
+    },
+    "value":"dmFsdWU="
+  }
+}
+```
+
+A migration is required for existing 08-wasm client contracts in order to correctly handle the deserialisation of `key_path` from `[]string` to `[][]byte`.
+Contract developers should familiarise themselves with the migration path offered by 08-wasm [here](./05-governance.md#migrating-an-existing-wasm-light-client-contract).
+
+An example of the required changes in a client contract may look like:
+
+```diff
+#[cw_serde]
+pub struct MerklePath {
++   pub key_path: Vec<cosmwasm_std::Binary>,
+-   pub key_path: Vec<String>,
+}
+```
+
+Please refer to the [`cosmwasm_std`](https://docs.rs/cosmwasm-std/2.0.4/cosmwasm_std/struct.Binary.html) documentation for more information.
+
 ## From ibc-go v7.3.x to ibc-go v8.0.x
 
 ### Chains
