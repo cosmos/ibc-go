@@ -8,7 +8,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -177,19 +176,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				testProposal := &govtypes.TextProposal{
-					Title:       "IBC Gov Proposal",
-					Description: "tokens for all!",
-				}
-
-				protoAny, err := codectypes.NewAnyWithValue(testProposal)
+				msg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{}, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))), interchainAccountAddr, "metadata", "title", "summary", false)
 				suite.Require().NoError(err)
-
-				msg := &govtypes.MsgSubmitProposal{
-					Content:        protoAny,
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
-					Proposer:       interchainAccountAddr,
-				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 				suite.Require().NoError(err)
@@ -673,12 +661,12 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				msgBytes := []byte(`{
 					"messages": [
 						{
-							"@type": "/cosmos.gov.v1beta1.MsgSubmitProposal",
-							"content": {
-								"@type": "/cosmos.gov.v1beta1.TextProposal",
-								"title": "IBC Gov Proposal",
-								"description": "tokens for all!"
-							},
+							"@type": "/cosmos.gov.v1.MsgSubmitProposal",
+							"messages": [],
+							"metadata": "ipfs://CID",
+ 							"title": "IBC Gov Proposal",
+							"summary": "tokens for all!",
+							"expedited": false,
 							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						}
@@ -691,7 +679,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"data":` + byteArrayString + `
 				}`)
 
-				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil))})
+				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govv1.MsgSubmitProposal)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			nil,
@@ -744,12 +732,12 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				msgBytes := []byte(`{
 					"messages": [
 						{
-							"@type": "/cosmos.gov.v1beta1.MsgSubmitProposal",
-							"content": {
-								"@type": "/cosmos.gov.v1beta1.TextProposal",
-								"title": "IBC Gov Proposal",
-								"description": "tokens for all!"
-							},
+							"@type": "/cosmos.gov.v1.MsgSubmitProposal",
+							"messages": [],
+							"metadata": "ipfs://CID",
+ 							"title": "IBC Gov Proposal",
+							"summary": "tokens for all!",
+							"expedited": false,
 							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						},
@@ -774,7 +762,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"data":` + byteArrayString + `
 				}`)
 
-				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govtypes.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
+				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govv1.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govtypes.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			nil,
