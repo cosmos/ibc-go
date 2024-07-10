@@ -34,7 +34,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/core/types"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
@@ -59,7 +58,6 @@ type TestChain struct {
 	ChainID               string
 	LatestCommittedHeader *ibctm.Header   // header for last block height committed
 	ProposedHeader        cmtproto.Header // proposed (uncommitted) header for current block height
-	QueryServer           types.QueryServer
 	TxConfig              client.TxConfig
 	Codec                 codec.Codec
 
@@ -150,7 +148,6 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		ChainID:        chainID,
 		App:            app,
 		ProposedHeader: header,
-		QueryServer:    app.GetIBCKeeper(),
 		TxConfig:       txConfig,
 		Codec:          app.AppCodec(),
 		Vals:           valSet,
