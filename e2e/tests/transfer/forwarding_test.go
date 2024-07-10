@@ -56,11 +56,11 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 
 	chainA, chainB, chainC := chains[0], chains[1], chains[2]
 
+	channelAtoB := s.GetChainAChannelForTest(testName)
+
 	s.Require().Len(s.GetChannelsForTest(chainA, testName), 1, "expected one channel on chain A")
 	s.Require().Len(s.GetChannelsForTest(chainB, testName), 2, "expected two channels on chain B")
 	s.Require().Len(s.GetChannelsForTest(chainC, testName), 1, "expected one channel on chain C")
-
-	channelAtoB := s.GetChainAChannelForTest(testName)
 
 	var channelBtoC ibc.ChannelOutput
 	if lastChainVersion == transfertypes.V2 {
