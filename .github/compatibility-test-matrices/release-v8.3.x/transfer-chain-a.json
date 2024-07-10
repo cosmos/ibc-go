@@ -13,7 +13,6 @@
   "entrypoint": [
     "TestTransferTestSuite"
   ],
-  "test": [],
   "relayer-type": [
     "hermes"
   ]
