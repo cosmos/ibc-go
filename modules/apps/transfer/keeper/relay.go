@@ -210,8 +210,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return err
 			}
 
-			defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
-
 			// Appending token. The new denom has been computed
 			receivedCoins = append(receivedCoins, coin)
 		} else {
@@ -252,10 +250,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 			}
 
-			defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
-
 			receivedCoins = append(receivedCoins, voucher)
 		}
+
+		defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
 	}
 
 	if data.HasForwarding() {
