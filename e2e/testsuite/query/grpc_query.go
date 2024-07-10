@@ -18,11 +18,11 @@ func GRPCQuery[T any](ctx context.Context, chain ibc.Chain, req proto.Message, o
 		return nil, err
 	}
 
-	return GRPCQueryWithMethod[T](ctx, chain, req, path, opts...)
+	return grpcQueryWithMethod[T](ctx, chain, req, path, opts...)
 }
 
-// GRPCQueryWithMethod queries the chain with a query request with a specific method (grpc path) and deserializes the response to T
-func GRPCQueryWithMethod[T any](ctx context.Context, chain ibc.Chain, req proto.Message, method string, opts ...grpc.CallOption) (*T, error) {
+// grpcQueryWithMethod queries the chain with a query request with a specific method (grpc path) and deserializes the response to T
+func grpcQueryWithMethod[T any](ctx context.Context, chain ibc.Chain, req proto.Message, method string, opts ...grpc.CallOption) (*T, error) {
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(
 		chain.GetHostGRPCAddress(),

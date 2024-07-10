@@ -86,11 +86,8 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
 	}
 
-	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
-	defer timeoutCtxCancel()
-
 	err = test.WaitForCondition(time.Minute*2, time.Second*2, func() (bool, error) {
-		status, err := chain.GetNode().Client.Status(timeoutCtx)
+		status, err := chain.GetNode().Client.Status(ctx)
 		if err != nil {
 			return false, err
 		}
@@ -115,7 +112,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err, "error starting upgraded node(s)")
 
-	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
+	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
 	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
@@ -1102,7 +1099,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade() {
 	})
 
 	t.Run("query denoms after upgrade", func(t *testing.T) {
-		resp, err := query.GRPCQueryWithMethod[transfertypes.QueryDenomsResponse](ctx, chainA, &transfertypes.QueryDenomsRequest{}, "/ibc.applications.transfer.v2.QueryV2/Denoms")
+		resp, err := query.TransferDenoms(ctx, chainA)
 		s.Require().NoError(err)
 		s.Require().Len(resp.Denoms, 1)
 		s.Require().Equal(chainAIBCToken, resp.Denoms[0])
@@ -1127,11 +1124,6 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_Localhost() {
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
 
-	testName := t.Name()
-
-	_, channelA := s.CreateUpgradeTestPath(testName)
-	channelVersion := channelA.Version
-
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
 
@@ -1153,7 +1145,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_Localhost() {
 		)
 
 		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
-			transfertypes.PortID, channelVersion,
+			transfertypes.PortID, transfertypes.V1,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, rlyWallet.FormattedAddress(),
 		)
@@ -1163,10 +1155,10 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_Localhost() {
 		srcChannelID = msgChanOpenInitRes.ChannelId
 
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
-			transfertypes.PortID, channelVersion,
+			transfertypes.PortID, transfertypes.V1,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, srcChannelID,
-			channelVersion, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+			transfertypes.V1, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 		txResp = s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
 		s.AssertTxSuccess(txResp)
@@ -1175,7 +1167,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_Localhost() {
 
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			transfertypes.PortID, srcChannelID,
-			dstChannelID, channelVersion,
+			dstChannelID, transfertypes.V1,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 		txResp = s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
