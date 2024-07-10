@@ -166,7 +166,9 @@ func (s *E2ETestSuite) initalizeRelayerPool(n int) []ibc.Relayer {
 func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier ChainOptionModifier, chainSpecOpts ...ChainOptionConfiguration) {
 	s.T().Logf("Setting up chains: %s", s.T().Name())
 
-	s.Require().NoError(os.Setenv("KEEP_CONTAINERS", "true"))
+	if LoadConfig().DebugConfig.KeepContainers {
+		s.Require().NoError(os.Setenv(KeepContainersEnv, "true"))
+	}
 
 	s.initState()
 	s.configureGenesisDebugExport()
