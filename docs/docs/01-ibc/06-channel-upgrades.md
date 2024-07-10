@@ -290,10 +290,10 @@ In app.go, the existing transfer stack must be wrapped with the fee middleware.
 
 import (
   // ... 
-  ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
-  ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-  transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-  porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+  ibcfee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
+  ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
+  transfer "github.com/cosmos/ibc-go/v9/modules/apps/transfer"
+  porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
   // ...
 )
 

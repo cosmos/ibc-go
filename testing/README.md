@@ -259,8 +259,8 @@ import (
   "github.com/cometbft/cometbft/libs/log"
   dbm "github.com/cometbft/cometbft-db"
 
-  "github.com/cosmos/ibc-go/v8/modules/apps/transfer/simapp"
-  ibctesting "github.com/cosmos/ibc-go/v8/testing"
+  "github.com/cosmos/ibc-go/v9/modules/apps/transfer/simapp"
+  ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
