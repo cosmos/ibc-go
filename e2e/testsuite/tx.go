@@ -64,7 +64,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 	broadcastFunc := func() (sdk.TxResponse, error) {
 		return cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	}
-	if s.relayers.ContainsRelayer(s.T().Name(), user) {
+	if s.relayerWallets.ContainsRelayer(s.T().Name(), user) {
 		// Retry five times, the value of 5 chosen is arbitrary.
 		resp, err = s.retryNtimes(broadcastFunc, 5)
 	} else {
