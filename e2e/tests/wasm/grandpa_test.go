@@ -31,7 +31,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 const (
@@ -548,19 +547,13 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Active.String(), status, "unexpected substitute client status")
 
-	version := cosmosChain.Nodes()[0].Image.Version
-	if govV1FeatureReleases.IsSupported(version) {
-		// create and execute a client recovery proposal
-		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
-		s.Require().NoError(err)
+	// create and execute a client recovery proposal
+	authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
+	s.Require().NoError(err)
 
-		msgRecoverClient := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
-		s.Require().NotNil(msgRecoverClient)
-		s.ExecuteAndPassGovV1Proposal(ctx, msgRecoverClient, cosmosChain, cosmosUser)
-	} else {
-		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
-		s.ExecuteAndPassGovV1Beta1Proposal(ctx, cosmosChain, cosmosWallet, proposal)
-	}
+	msgRecoverClient := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
+	s.Require().NotNil(msgRecoverClient)
+	s.ExecuteAndPassGovV1Proposal(ctx, msgRecoverClient, cosmosChain, cosmosUser)
 
 	// ensure subject client is active
 	status, err = query.ClientStatus(ctx, cosmosChain, subjectClientID)

@@ -62,6 +62,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (23-commmitment) [\#6644](https://github.com/cosmos/ibc-go/pull/6644) Introduce commitment/v2 `MerklePath` to include `repeated bytes` in favour of `repeated string`. This supports using merkle path keys which include non UTF-8 encoded runes.
 * (23-commmitment) [\#6633](https://github.com/cosmos/ibc-go/pull/6633) MerklePath has been changed to use `repeated bytes` in favour of `repeated strings`.
 * (apps/27-interchain-accounts) [\#6749](https://github.com/cosmos/ibc-go/pull/6749) The ICA controller `NewIBCMiddleware` constructor function sets by default the auth module to nil.
+* (core, core/02-client) [\#6763](https://github.com/cosmos/ibc-go/pull/6763) Move prometheus metric labels for 02-client and core into a separate `metrics` package on core.
 * (core/02-client) [\#6777](https://github.com/cosmos/ibc-go/pull/6777) The `NewClientProposalHandler` of `02-client` has been removed.
 
 ### State Machine Breaking
