@@ -48,7 +48,14 @@ jobs:
       - name: Run e2e Test
         run: |
           cd e2e
-          make e2e-test test=${{ matrix.test }}
+          # if specifying a single test, run as usual
+          if [ "${{ matrix.test }}" ]; then
+            make e2e-test test=${{ matrix.test }}
+            exit 0
+          fi
+          
+          # otherwise we run the full suite
+          make e2e-suite entrypoint=${{ matrix.entrypoint }}
         env:
           # each test has its own set of variables to specify which images are used.
           # Note: this is significant as the standard behaviour when running e2es on PRs
