@@ -21,7 +21,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
-var _ types.QueryServer = (*Keeper)(nil)
+var _ types.QueryServer = (*queryServer)(nil)
 
 // queryServer implements the 04-channel types.QueryServer interface.
 type queryServer struct {
