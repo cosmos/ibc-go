@@ -175,26 +175,20 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 // ParseProposalIDFromEvents parses events emitted from MsgSubmitProposal and returns proposalID
 func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 	for _, event := range events {
-		for _, attribute := range event.Attributes {
-			if attribute.Key == "proposal_id" {
-				return strconv.ParseUint(attribute.Value, 10, 64)
-			}
+		if attribute, found := attributeByKey("proposal_id", event.Attributes); found {
+			return strconv.ParseUint(attribute.Value, 10, 64)
 		}
 	}
-
 	return 0, fmt.Errorf("proposalID event attribute not found")
 }
 
 // ParsePacketSequenceFromEvents parses events emitted from MsgRecvPacket and returns the packet sequence
 func ParsePacketSequenceFromEvents(events []abci.Event) (uint64, error) {
 	for _, event := range events {
-		for _, attribute := range event.Attributes {
-			if attribute.Key == "packet_sequence" {
-				return strconv.ParseUint(attribute.Value, 10, 64)
-			}
+		if attribute, found := attributeByKey("packet_sequence", event.Attributes); found {
+			return strconv.ParseUint(attribute.Value, 10, 64)
 		}
 	}
-
 	return 0, fmt.Errorf("packet sequence event attribute not found")
 }
 
@@ -256,4 +250,12 @@ func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
 	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
 		return attr.Key == key
 	})
+}
+
+func attributeByKey(key string, attributes []abci.EventAttribute) (abci.EventAttribute, bool) {
+	idx := slices.IndexFunc(attributes, func(a abci.EventAttribute) bool { return a.Key == key })
+	if idx == -1 {
+		return abci.EventAttribute{}, false
+	}
+	return attributes[idx], true
 }
