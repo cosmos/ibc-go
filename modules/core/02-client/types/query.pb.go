@@ -11,7 +11,7 @@ import (
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
-	v2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
+	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"

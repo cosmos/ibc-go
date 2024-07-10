@@ -27,14 +27,14 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	v7migrations "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	v7migrations "github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const (

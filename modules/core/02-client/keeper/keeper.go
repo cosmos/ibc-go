@@ -14,11 +14,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v9/modules/light-clients/09-localhost"
 )
 
 // Keeper represents a type that grants read and write permissions to any client

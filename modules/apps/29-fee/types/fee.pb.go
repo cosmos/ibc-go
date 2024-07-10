@@ -11,7 +11,7 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types1 "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	types1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"

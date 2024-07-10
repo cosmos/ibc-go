@@ -15,8 +15,8 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestTransferTestSuiteSendReceive(t *testing.T) {

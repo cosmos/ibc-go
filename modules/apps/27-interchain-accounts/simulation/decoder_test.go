@@ -8,9 +8,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/simulation"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/simulation"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestDecodeStore(t *testing.T) {

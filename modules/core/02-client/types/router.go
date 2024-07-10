@@ -5,7 +5,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // Router is a map from a clientType to a LightClientModule instance.

@@ -13,12 +13,12 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
+	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
+	"github.com/cosmos/ibc-go/v9/testing/simapp"
 )
 
 const (

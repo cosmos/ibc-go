@@ -2,7 +2,7 @@ go 1.22.2
 
 toolchain go1.22.3
 
-module github.com/cosmos/ibc-go/v8
+module github.com/cosmos/ibc-go/v9
 
 require (
 	cosmossdk.io/api v0.7.5

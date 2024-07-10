@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 )
 
 const (

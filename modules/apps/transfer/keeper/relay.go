@@ -10,14 +10,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
-	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
+	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 // sendTransfer handles transfer sending logic. There are 2 possible cases:

@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 // RecvPacketReCheckTx applies replay protection ensuring that when relay messages are
