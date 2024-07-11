@@ -1,12 +1,12 @@
 ---
 title: Best Practices
 sidebar_label: Best Practices
-sidebar_position: 12
+sidebar_position: 13
 slug: /ibc/best-practices
 ---
 
 # Best practices
-
+
 ## Identifying legitimate channels
 
 Identifying which channel to use can be difficult as it requires verifying information about the chains you want to connect to. 
