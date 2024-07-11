@@ -109,6 +109,8 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			s.ExecuteAndPassGovV1Proposal(ctx, msgSendTx, chainA, controllerAccount)
 		})
 
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB)) // wait for the ica tx to be relayed
+
 		t.Run("verify tokens transferred", func(t *testing.T) {
 			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
