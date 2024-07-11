@@ -380,7 +380,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 		{
 			"success",
 			func() {
-				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
+				expClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.ContractResult, uint64, error) {
@@ -412,8 +412,8 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 					suite.Require().Nil(payload.VerifyNonMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
-					suite.Require().Equal(path, payload.VerifyMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
+					suite.Require().Equal(path, payload.VerifyMembership.Path)
 					suite.Require().Equal(value, payload.VerifyMembership.Value)
 
 					bz, err := json.Marshal(types.EmptyResult{})
@@ -480,7 +480,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			path = commitmenttypes.NewMerklePath("/ibc/key/path")
+			path = commitmenttypes.NewMerklePath([]byte("/ibc/key/path"))
 			proof = wasmtesting.MockValidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 			value = []byte("value")
@@ -526,7 +526,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 		{
 			"success",
 			func() {
-				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
+				expClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.ContractResult, uint64, error) {
@@ -540,8 +540,8 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
+					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -567,8 +567,8 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
+					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -647,7 +647,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			path = commitmenttypes.NewMerklePath("/ibc/key/path")
+			path = commitmenttypes.NewMerklePath([]byte("/ibc/key/path"))
 			proof = wasmtesting.MockInvalidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 

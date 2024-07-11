@@ -38,7 +38,7 @@ type IBCMiddleware struct {
 	maxCallbackGas uint64
 }
 
-// NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application.
+// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application.
 // The underlying application must implement the required callback interfaces.
 func NewIBCMiddleware(
 	app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper,
@@ -92,7 +92,7 @@ func (im IBCMiddleware) OnSendPacket(
 	data []byte,
 	signer sdk.AccAddress,
 ) error {
-	callbackData, err := types.GetSourceCallbackData(im.app, data, sourcePort, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetSourceCallbackData(ctx, im.app, sourcePort, sourceChannel, data, im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
@@ -131,10 +131,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(
-		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
-	)
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
+	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetData(), im.maxCallbackGas)
 	if err != nil {
 		return nil
 	}
@@ -165,10 +163,8 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(
-		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
-	)
 	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
+	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetData(), im.maxCallbackGas)
 	if err != nil {
 		return nil
 	}
@@ -201,10 +197,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return ack
 	}
 
-	callbackData, err := types.GetDestCallbackData(
-		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
-	)
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
+	callbackData, err := types.GetDestCallbackData(ctx, im.app, packet, im.maxCallbackGas)
 	if err != nil {
 		return ack
 	}
@@ -238,10 +232,13 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	callbackData, err := types.GetDestCallbackData(
-		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
-	)
+	chanPacket, ok := packet.(channeltypes.Packet)
+	if !ok {
+		panic(fmt.Errorf("expected type %T, got %T", &channeltypes.Packet{}, packet))
+	}
+
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
+	callbackData, err := types.GetDestCallbackData(ctx, im.app, chanPacket, im.maxCallbackGas)
 	if err != nil {
 		return nil
 	}
@@ -410,6 +407,6 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 
 // UnmarshalPacketData defers to the underlying app to unmarshal the packet data.
 // This function implements the optional PacketDataUnmarshaler interface.
-func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	return im.app.UnmarshalPacketData(bz)
+func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
+	return im.app.UnmarshalPacketData(ctx, portID, channelID, bz)
 }

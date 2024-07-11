@@ -29,12 +29,7 @@ func (k *Keeper) VerifyClientState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.Counterparty.ClientId))
+	merklePath := commitmenttypes.NewMerklePath(host.FullClientStateKey(connection.Counterparty.ClientId))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -45,7 +40,7 @@ func (k *Keeper) VerifyClientState(
 		return err
 	}
 
-	if err := clientModule.VerifyMembership(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -71,12 +66,7 @@ func (k *Keeper) VerifyClientConsensusState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.Counterparty.ClientId, consensusHeight))
+	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStateKey(connection.Counterparty.ClientId, consensusHeight))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -87,7 +77,7 @@ func (k *Keeper) VerifyClientConsensusState(
 		return err
 	}
 
-	if err := clientModule.VerifyMembership(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -113,12 +103,7 @@ func (k *Keeper) VerifyConnectionState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
+	merklePath := commitmenttypes.NewMerklePath(host.ConnectionKey(connectionID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -129,7 +114,7 @@ func (k *Keeper) VerifyConnectionState(
 		return err
 	}
 
-	if err := clientModule.VerifyMembership(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -156,12 +141,7 @@ func (k *Keeper) VerifyChannelState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -172,7 +152,7 @@ func (k *Keeper) VerifyChannelState(
 		return err
 	}
 
-	if err := clientModule.VerifyMembership(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -200,22 +180,17 @@ func (k *Keeper) VerifyPacketCommitment(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
-	}
-
 	// get time and block delays
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
+	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentKey(portID, channelID, sequence))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
 
-	if err := clientModule.VerifyMembership(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height, timeDelay, blockDelay, proof, merklePath, commitmentBytes,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
@@ -241,22 +216,17 @@ func (k *Keeper) VerifyPacketAcknowledgement(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
-	}
-
 	// get time and block delays
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
+	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementKey(portID, channelID, sequence))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
 
-	if err := clientModule.VerifyMembership(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height, timeDelay, blockDelay,
 		proof, merklePath, channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
@@ -283,27 +253,17 @@ func (k *Keeper) VerifyPacketReceiptAbsence(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return err
-	}
-
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
-	}
-
 	// get time and block delays
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptKey(portID, channelID, sequence))
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
 
-	if err := clientModule.VerifyNonMembership(
+	if err := k.clientKeeper.VerifyNonMembership(
 		ctx, clientID, height, timeDelay, blockDelay, proof, merklePath,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
@@ -328,22 +288,17 @@ func (k *Keeper) VerifyNextSequenceRecv(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
-	}
-
 	// get time and block delays
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
-	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
+	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
 	}
 
-	if err := clientModule.VerifyMembership(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		timeDelay, blockDelay,
 		proof, merklePath, sdk.Uint64ToBigEndian(nextSequenceRecv),
@@ -369,12 +324,7 @@ func (k *Keeper) VerifyChannelUpgradeError(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -385,7 +335,7 @@ func (k *Keeper) VerifyChannelUpgradeError(
 		return err
 	}
 
-	if err := clientModule.VerifyMembership(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -411,12 +361,7 @@ func (k *Keeper) VerifyChannelUpgrade(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	clientModule, found := k.clientKeeper.Route(clientID)
-	if !found {
-		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientID)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
 		return err
@@ -427,7 +372,7 @@ func (k *Keeper) VerifyChannelUpgrade(
 		return err
 	}
 
-	if err := clientModule.VerifyMembership(
+	if err := k.clientKeeper.VerifyMembershipProof(
 		ctx, clientID, proofHeight,
 		0, 0, // skip delay period checks for non-packet processing verification
 		upgradeProof, merklePath, bz,

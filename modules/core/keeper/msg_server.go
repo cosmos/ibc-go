@@ -4,11 +4,8 @@ import (
 	"context"
 	"errors"
 
-	metrics "github.com/hashicorp/go-metrics"
-
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -17,6 +14,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/internal/telemetry"
 	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
@@ -545,16 +543,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		}
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"tx", "msg", "ibc", channeltypes.EventTypeRecvPacket},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-		},
-	)
+	defer telemetry.ReportRecvPacket(msg.Packet)
 
 	ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
@@ -616,17 +605,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "timeout", "packet"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-			telemetry.NewLabel(coretypes.LabelTimeoutType, "height"),
-		},
-	)
+	defer telemetry.ReportTimeoutPacket(msg.Packet, "height")
 
 	ctx.Logger().Info("timeout packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
@@ -691,17 +670,7 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 		return nil, errorsmod.Wrap(err, "timeout on close callback failed")
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "timeout", "packet"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-			telemetry.NewLabel(coretypes.LabelTimeoutType, "channel-closed"),
-		},
-	)
+	defer telemetry.ReportTimeoutPacket(msg.Packet, "channel-closed")
 
 	ctx.Logger().Info("timeout on close callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
@@ -758,16 +727,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 		return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"tx", "msg", "ibc", channeltypes.EventTypeAcknowledgePacket},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-		},
-	)
+	defer telemetry.ReportAcknowledgePacket(msg.Packet)
 
 	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 

@@ -34,21 +34,13 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	simappparams "github.com/cosmos/ibc-go/v8/testing/simapp/params"
 )
 
 // Codec returns the global E2E protobuf codec.
 func Codec() *codec.ProtoCodec {
 	cdc, _ := codecAndEncodingConfig()
 	return cdc
-}
-
-// EncodingConfig returns the global E2E encoding config.
-func EncodingConfig() simappparams.EncodingConfig {
-	_, cfg := codecAndEncodingConfig()
-	return cfg
 }
 
 // SDKEncodingConfig returns the global E2E encoding config.
@@ -62,8 +54,8 @@ func SDKEncodingConfig() *testutil.TestEncodingConfig {
 	}
 }
 
-func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
-	cfg := simappparams.MakeTestEncodingConfig()
+func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
+	cfg := testutil.MakeTestEncodingConfig()
 
 	// ibc types
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -76,7 +68,6 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	localhost.RegisterInterfaces(cfg.InterfaceRegistry)
 	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	// all other types

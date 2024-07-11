@@ -1,8 +1,9 @@
 package ibccallbacks_test
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -93,7 +94,7 @@ func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 }
 
 func (s *CallbacksTestSuite) TestSendPacket() {
-	var packetData transfertypes.FungibleTokenPacketData
+	var packetData transfertypes.FungibleTokenPacketDataV2
 
 	testCases := []struct {
 		name         string
@@ -105,6 +106,18 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		{
 			"success",
 			func() {},
+			types.CallbackTypeSendPacket,
+			false,
+			nil,
+		},
+		{
+			"success: multiple denoms",
+			func() {
+				packetData.Tokens = append(packetData.Tokens, transfertypes.Token{
+					Denom:  transfertypes.NewDenom(ibctesting.SecondaryDenom),
+					Amount: ibctesting.SecondaryTestCoin.Amount.String(),
+				})
+			},
 			types.CallbackTypeSendPacket,
 			false,
 			nil,
@@ -159,9 +172,17 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			callbacksModule, ok := cbs[1].(ibccallbacks.IBCMiddleware) // callbacks module is routed second
 			s.Require().True(ok)
 
-			packetData = transfertypes.NewFungibleTokenPacketData(
-				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress,
-				ibctesting.TestAccAddress, fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
+			packetData = transfertypes.NewFungibleTokenPacketDataV2(
+				[]transfertypes.Token{
+					{
+						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
+						Amount: ibctesting.TestCoin.Amount.String(),
+					},
+				},
+				ibctesting.TestAccAddress,
+				ibctesting.TestAccAddress,
+				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
+				ibctesting.EmptyForwardingPacketData,
 			)
 
 			tc.malleate()
@@ -182,7 +203,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				s.Require().Nil(err)
 
 				expEvent, exists := GetExpectedEvent(
-					callbacksModule, gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					ctx, callbacksModule, gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
 					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1, types.CallbackTypeSendPacket, nil,
 				)
 				if exists {
@@ -211,7 +232,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 	)
 
 	var (
-		packetData   transfertypes.FungibleTokenPacketData
+		packetData   transfertypes.FungibleTokenPacketDataV2
 		packet       channeltypes.Packet
 		ack          []byte
 		ctx          sdk.Context
@@ -287,9 +308,17 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			s.SetupTransferTest()
 
 			userGasLimit = 600000
-			packetData = transfertypes.NewFungibleTokenPacketData(
-				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, ibctesting.TestAccAddress,
+			packetData = transfertypes.NewFungibleTokenPacketDataV2(
+				[]transfertypes.Token{
+					{
+						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
+						Amount: ibctesting.TestCoin.Amount.String(),
+					},
+				},
+				ibctesting.TestAccAddress,
+				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
+				ibctesting.EmptyForwardingPacketData,
 			)
 
 			packet = channeltypes.Packet{
@@ -354,7 +383,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeAcknowledgementPacket, nil,
 				)
 				s.Require().True(exists)
@@ -373,7 +402,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 	)
 
 	var (
-		packetData transfertypes.FungibleTokenPacketData
+		packetData transfertypes.FungibleTokenPacketDataV2
 		packet     channeltypes.Packet
 		ctx        sdk.Context
 	)
@@ -396,7 +425,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				packet.Data = []byte("invalid packet data")
 			},
 			noExecution,
-			ibcerrors.ErrUnknownRequest,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"success: no-op on callback data is not valid",
@@ -452,9 +481,10 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
 			msg := transfertypes.NewMsgTransfer(
 				s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
-				ibctesting.TestCoin, s.chainA.SenderAccount.GetAddress().String(),
+				sdk.NewCoins(ibctesting.TestCoin), s.chainA.SenderAccount.GetAddress().String(),
 				s.chainB.SenderAccount.GetAddress().String(), clienttypes.ZeroHeight(), timeoutTimestamp,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit), // set user gas limit above panic level in mock contract keeper
+				nil,
 			)
 
 			res, err := s.chainA.SendMsgs(msg)
@@ -465,7 +495,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().NoError(err)
 			s.Require().NotNil(packet)
 
-			err = json.Unmarshal(packet.Data, &packetData)
+			err = proto.Unmarshal(packet.Data, &packetData)
 			s.Require().NoError(err)
 
 			ctx = s.chainA.GetContext()
@@ -516,7 +546,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().Equal(uint8(2), sourceStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeTimeoutPacket, nil,
 				)
 				s.Require().True(exists)
@@ -535,7 +565,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	)
 
 	var (
-		packetData   transfertypes.FungibleTokenPacketData
+		packetData   transfertypes.FungibleTokenPacketDataV2
 		packet       channeltypes.Packet
 		ctx          sdk.Context
 		userGasLimit uint64
@@ -612,9 +642,17 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 			// set user gas limit above panic level in mock contract keeper
 			userGasLimit = 600_000
-			packetData = transfertypes.NewFungibleTokenPacketData(
-				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, s.chainB.SenderAccount.GetAddress().String(),
+			packetData = transfertypes.NewFungibleTokenPacketDataV2(
+				[]transfertypes.Token{
+					{
+						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
+						Amount: ibctesting.TestCoin.Amount.String(),
+					},
+				},
+				ibctesting.TestAccAddress,
+				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit),
+				ibctesting.EmptyForwardingPacketData,
 			)
 
 			packet = channeltypes.Packet{
@@ -677,7 +715,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().Equal(uint8(1), destStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				s.Require().True(exists)
@@ -689,7 +727,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 	var (
-		packetData transfertypes.FungibleTokenPacketData
+		packetData transfertypes.FungibleTokenPacketDataV2
 		packet     channeltypes.Packet
 		ctx        sdk.Context
 		ack        ibcexported.Acknowledgement
@@ -736,9 +774,17 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			s.SetupTransferTest()
 
 			// set user gas limit above panic level in mock contract keeper
-			packetData = transfertypes.NewFungibleTokenPacketData(
-				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, s.chainB.SenderAccount.GetAddress().String(),
+			packetData = transfertypes.NewFungibleTokenPacketDataV2(
+				[]transfertypes.Token{
+					{
+						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
+						Amount: ibctesting.TestCoin.Amount.String(),
+					},
+				},
+				ibctesting.TestAccAddress,
+				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress),
+				ibctesting.EmptyForwardingPacketData,
 			)
 
 			packet = channeltypes.Packet{
@@ -769,7 +815,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				s.Require().NoError(err)
 
 				expEvent, exists := GetExpectedEvent(
-					transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				if exists {
@@ -926,8 +972,13 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 	}
 }
 
-func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
+func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	s.setupChains()
+	s.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	s.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+	s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
+	s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
+	s.path.Setup()
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
@@ -937,18 +988,68 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
 	s.Require().True(ok)
 
-	expPacketData := transfertypes.FungibleTokenPacketData{
+	expPacketDataICS20V1 := transfertypes.FungibleTokenPacketData{
 		Denom:    ibctesting.TestCoin.Denom,
 		Amount:   ibctesting.TestCoin.Amount.String(),
 		Sender:   ibctesting.TestAccAddress,
 		Receiver: ibctesting.TestAccAddress,
 		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
 	}
-	data := expPacketData.GetBytes()
 
-	packetData, err := unmarshalerStack.UnmarshalPacketData(data)
+	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
+		Tokens: []transfertypes.Token{
+			{
+				Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
+				Amount: ibctesting.TestCoin.Amount.String(),
+			},
+		},
+		Sender:     ibctesting.TestAccAddress,
+		Receiver:   ibctesting.TestAccAddress,
+		Memo:       fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
+		Forwarding: ibctesting.EmptyForwardingPacketData,
+	}
+
+	portID := s.path.EndpointA.ChannelConfig.PortID
+	channelID := s.path.EndpointA.ChannelID
+
+	// Unmarshal ICS20 v1 packet data into v2 packet data
+	data := expPacketDataICS20V1.GetBytes()
+	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
-	s.Require().Equal(expPacketData, packetData)
+	s.Require().Equal(expPacketDataICS20V2, packetData)
+}
+
+func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
+	s.SetupTransferTest()
+
+	// We will pass the function call down the transfer stack to the transfer module
+	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
+	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+	s.Require().True(ok)
+
+	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
+	s.Require().True(ok)
+
+	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
+		Tokens: []transfertypes.Token{
+			{
+				Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
+				Amount: ibctesting.TestCoin.Amount.String(),
+			},
+		},
+		Sender:   ibctesting.TestAccAddress,
+		Receiver: ibctesting.TestAccAddress,
+		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
+	}
+
+	portID := s.path.EndpointA.ChannelConfig.PortID
+	channelID := s.path.EndpointA.ChannelID
+
+	// Unmarshal ICS20 v2 packet data
+	data := expPacketDataICS20V2.GetBytes()
+	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
+	s.Require().NoError(err)
+	s.Require().Equal(expPacketDataICS20V2, packetData)
 }
 
 func (s *CallbacksTestSuite) TestGetAppVersion() {

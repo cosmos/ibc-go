@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -28,36 +27,64 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	if !k.bankKeeper.IsSendEnabledCoin(ctx, msg.Token) {
-		return nil, errorsmod.Wrapf(types.ErrSendDisabled, "%s transfers are currently disabled", msg.Token.Denom)
+	coins := msg.GetCoins()
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
 	}
 
-	if k.bankKeeper.BlockedAddr(sender) {
+	if k.isBlockedAddr(sender) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
-	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
-	fullDenomPath := msg.Token.Denom
+	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
+	if !found {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", msg.SourcePort, msg.SourceChannel)
+	}
 
-	// deconstruct the token denomination into the denomination trace info
-	// to determine if the sender is the source chain
-	if strings.HasPrefix(msg.Token.Denom, "ibc/") {
-		fullDenomPath, err = k.DenomPathFromHash(ctx, msg.Token.Denom)
+	if appVersion == types.V1 {
+		// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
+		if len(msg.Tokens) > 1 {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
+		}
+
+		// ics20-1 does not support forwarding, so if that is the current version, we must reject the transfer.
+		if msg.HasForwarding() {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
+		}
+	}
+
+	if msg.Forwarding.GetUnwind() {
+		msg, err = k.unwindHops(ctx, msg)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	packetData := types.NewFungibleTokenPacketData(
-		fullDenomPath, msg.Token.Amount.String(), sender.String(), msg.Receiver, msg.Memo,
-	)
+	tokens := make([]types.Token, 0, len(coins))
+	for _, coin := range coins {
+		token, err := k.tokenFromCoin(ctx, coin)
+		if err != nil {
+			return nil, err
+		}
+
+		tokens = append(tokens, token)
+	}
+
+	packetDataBz, err := createPacketDataBytesFromVersion(appVersion, sender.String(), msg.Receiver, msg.Memo, tokens, msg.Forwarding.GetHops())
+	if err != nil {
+		return nil, err
+	}
+
+	// packetData := types.NewFungibleTokenPacketData(
+	// 	fullDenomPath, msg.Token.Amount.String(), sender.String(), msg.Receiver, msg.Memo,
+	// )
 
 	msgSendPacket := &channeltypes.MsgSendPacket{
 		PortId:           msg.SourcePort,
 		ChannelId:        msg.SourceChannel,
 		TimeoutHeight:    msg.TimeoutHeight,
 		TimeoutTimestamp: msg.TimeoutTimestamp,
-		Data:             packetData.GetBytes(),
+		Data:             packetDataBz,
 		Signer:           msg.Sender,
 	}
 
@@ -77,20 +104,20 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeTransfer,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
-			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+	// ctx.EventManager().EmitEvents(sdk.Events{
+	// 	sdk.NewEvent(
+	// 		types.EventTypeTransfer,
+	// 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	// 		sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+	// 		sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
+	// 		sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
+	// 		sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+	// 	),
+	// 	sdk.NewEvent(
+	// 		sdk.EventTypeMessage,
+	// 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	// 	),
+	// })
 
 	return &types.MsgTransferResponse{Sequence: sendPacketResp.Sequence}, nil
 }
@@ -105,4 +132,33 @@ func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) 
 	k.SetParams(ctx, msg.Params)
 
 	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+// unwindHops unwinds the hops present in the tokens denomination and returns the message modified to reflect
+// the unwound path to take. It assumes that only a single token is present (as this is verified in ValidateBasic)
+// in the tokens list and ensures that the token is not native to the chain.
+func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
+	coins := msg.GetCoins()
+	token, err := k.tokenFromCoin(ctx, coins[0])
+	if err != nil {
+		return nil, err
+	}
+
+	if token.Denom.IsNative() {
+		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind a native token")
+	}
+
+	// remove the first hop in denom as it is the current port/channel on this chain
+	unwindHops := token.Denom.Trace[1:]
+
+	// Update message fields.
+	msg.SourcePort, msg.SourceChannel = token.Denom.Trace[0].PortId, token.Denom.Trace[0].ChannelId
+	msg.Forwarding.Hops = append(unwindHops, msg.Forwarding.Hops...)
+	msg.Forwarding.Unwind = false
+
+	// Message is validate again, this would only fail if hops now exceeds maximum allowed.
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+	return msg, nil
 }

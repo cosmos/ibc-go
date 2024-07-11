@@ -21,6 +21,10 @@ import (
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)
 
+const (
+	allocationNotFound = -1
+)
+
 // maxUint256 is the maximum value for a 256 bit unsigned integer.
 var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
@@ -37,59 +41,71 @@ func (TransferAuthorization) MsgTypeURL() string {
 }
 
 // Accept implements Authorization.Accept.
-func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
+func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
 	msgTransfer, ok := msg.(*MsgTransfer)
 	if !ok {
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
 	}
 
-	for index, allocation := range a.Allocations {
-		if !(allocation.SourceChannel == msgTransfer.SourceChannel && allocation.SourcePort == msgTransfer.SourcePort) {
+	index := getAllocationIndex(*msgTransfer, a.Allocations)
+	if index == allocationNotFound {
+		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
+	}
+
+	if err := validateForwarding(msgTransfer.Forwarding, a.Allocations[index].AllowedForwarding); err != nil {
+		return authz.AcceptResponse{}, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !isAllowedAddress(ctx, msgTransfer.Receiver, a.Allocations[index].AllowList) {
+		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
+	}
+
+	if err := validateMemo(ctx, msgTransfer.Memo, a.Allocations[index].AllowedPacketData); err != nil {
+		return authz.AcceptResponse{}, err
+	}
+
+	// bool flag to see if we have updated any of the allocations
+	allocationModified := false
+
+	// update spend limit for each token in the MsgTransfer
+	for _, coin := range msgTransfer.GetCoins() {
+		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
+		// if there is no unlimited spend, then we need to subtract the amount from the spend limit to get the limit left
+		if a.Allocations[index].SpendLimit.AmountOf(coin.Denom).Equal(UnboundedSpendLimit()) {
 			continue
 		}
 
-		if !isAllowedAddress(sdk.UnwrapSDKContext(ctx), msgTransfer.Receiver, allocation.AllowList) {
-			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
-		}
-
-		err := validateMemo(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowedPacketData)
-		if err != nil {
-			return authz.AcceptResponse{}, err
-		}
-
-		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
-		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(UnboundedSpendLimit()) {
-			return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
-		}
-
-		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
+		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(coin)
 		if isNegative {
-			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
+			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", coin.Denom)
 		}
 
-		if limitLeft.IsZero() {
-			a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
-			if len(a.Allocations) == 0 {
-				return authz.AcceptResponse{Accept: true, Delete: true}, nil
-			}
-			return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
-				Allocations: a.Allocations,
-			}}, nil
-		}
-		a.Allocations[index] = Allocation{
-			SourcePort:        allocation.SourcePort,
-			SourceChannel:     allocation.SourceChannel,
-			SpendLimit:        limitLeft,
-			AllowList:         allocation.AllowList,
-			AllowedPacketData: allocation.AllowedPacketData,
-		}
+		allocationModified = true
 
-		return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
-			Allocations: a.Allocations,
-		}}, nil
+		// modify the spend limit with the reduced amount.
+		a.Allocations[index].SpendLimit = limitLeft
 	}
 
-	return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
+	// if the spend limit is zero of the associated allocation then we delete it.
+	// NOTE: SpendLimit is an array of coins, with each one representing the remaining spend limit for an
+	// individual denomination.
+	if a.Allocations[index].SpendLimit.IsZero() {
+		a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
+	}
+
+	if len(a.Allocations) == 0 {
+		return authz.AcceptResponse{Accept: true, Delete: true}, nil
+	}
+
+	if !allocationModified {
+		return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
+	}
+
+	return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+		Allocations: a.Allocations,
+	}}, nil
 }
 
 // ValidateBasic implements Authorization.ValidateBasic.
@@ -130,6 +146,14 @@ func (a TransferAuthorization) ValidateBasic() error {
 			}
 			found[allocation.AllowList[i]] = true
 		}
+
+		for i := 0; i < len(allocation.AllowedForwarding); i++ {
+			for _, hop := range allocation.AllowedForwarding[i].Hops {
+				if err := hop.Validate(); err != nil {
+					return errorsmod.Wrap(err, "invalid forwarding hop")
+				}
+			}
+		}
 	}
 
 	return nil
@@ -150,6 +174,42 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 			return true
 		}
 	}
+	return false
+}
+
+// validateForwarding performs the validation of forwarding info.
+func validateForwarding(forwarding *Forwarding, allowedForwarding []AllowedForwarding) error {
+	if forwarding == nil {
+		return nil
+	}
+
+	if forwarding.Unwind {
+		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed automatic unwind")
+	}
+
+	if !isAllowedForwarding(forwarding.Hops, allowedForwarding) {
+		return errorsmod.Wrapf(ErrInvalidForwarding, "not allowed hops %s", forwarding.Hops)
+	}
+
+	return nil
+}
+
+// isAllowedForwarding returns whether the provided slice of Hop matches one of the allowed ones.
+func isAllowedForwarding(hops []Hop, allowed []AllowedForwarding) bool {
+	if len(hops) == 0 {
+		return true
+	}
+
+	// We want to ensure that at least one of the Hops in "allowed"
+	// is equal to "hops".
+	// Note that we can't use slices.Contains() as that is a generic
+	// function that requires the type Hop to satisfy the "comparable" constraint.
+	for _, allowedHops := range allowed {
+		if slices.Equal(hops, allowedHops.Hops) {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -191,4 +251,14 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 // of the denomination available at the granter's account.
 func UnboundedSpendLimit() sdkmath.Int {
 	return sdkmath.NewIntFromBigInt(maxUint256)
+}
+
+// getAllocationIndex ranges through a set of allocations, and returns the index of the allocation if found. If not, returns -1.
+func getAllocationIndex(msg MsgTransfer, allocations []Allocation) int {
+	for index, allocation := range allocations {
+		if allocation.SourceChannel == msg.SourceChannel && allocation.SourcePort == msg.SourcePort {
+			return index
+		}
+	}
+	return allocationNotFound
 }

@@ -33,7 +33,7 @@ func NewErrorAcknowledgementWithCodespace(err error) Acknowledgement {
 	// The ABCI code is included in the abcitypes.ResponseDeliverTx hash
 	// constructed in Tendermint and is therefore deterministic.
 	// However, a code without codespace is incomplete information (e.g. sdk/5 and wasm/5 are
-	// different errors). We add this codespace here, in oder to provide a meaningful error
+	// different errors). We add this codespace here, in order to provide a meaningful error
 	// identifier which means changing the codespace of an error becomes a consensus breaking change.
 	codespace, code, _ := errorsmod.ABCIInfo(err, false)
 

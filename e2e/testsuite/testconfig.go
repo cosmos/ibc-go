@@ -52,6 +52,10 @@ const (
 	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
 	// E2EConfigFilePathEnv allows you to specify a custom path for the config file to be used.
 	E2EConfigFilePathEnv = "E2E_CONFIG_PATH"
+	// KeepContainersEnv instructs interchaintest to not delete the containers after a test has run.
+	// this ensures that chain containers are not deleted after a test suite is run if other tests
+	// depend on those chains.
+	KeepContainersEnv = "KEEP_CONTAINERS"
 
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
@@ -62,7 +66,7 @@ const (
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
 	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "sean-channel-upgradability"
+	defaultHermesTag = "1.10.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
@@ -71,7 +75,7 @@ const (
 )
 
 // defaultChainNames contains the default name for chainA and chainB.
-var defaultChainNames = []string{"simapp-a", "simapp-b"}
+var defaultChainNames = []string{"simapp-a", "simapp-b", "simapp-c"}
 
 func getChainImage(binary string) string {
 	if binary == "" {
@@ -297,9 +301,14 @@ type DebugConfig struct {
 
 	// GenesisDebug contains debug information specific to Genesis.
 	GenesisDebug GenesisDebugConfig `yaml:"genesis"`
+
+	// KeepContainers specifies if the containers should be kept after the test suite is done.
+	// NOTE: when running a full test suite, this value should be set to true in order to preserve
+	// shared resources.
+	KeepContainers bool `yaml:"keepContainers"`
 }
 
-// LoadConfig attempts to load a atest configuration from the default file path.
+// LoadConfig attempts to load a test configuration from the default file path.
 // if any environment variables are specified, they will take precedence over the individual configuration
 // options.
 func LoadConfig() TestConfig {
@@ -370,6 +379,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 
 	if os.Getenv(ChainUpgradeTagEnv) != "" {
 		fromFile.UpgradeConfig.Tag = envTc.UpgradeConfig.Tag
+	}
+
+	if isEnvTrue(KeepContainersEnv) {
+		fromFile.DebugConfig.KeepContainers = true
 	}
 
 	return fromFile
@@ -513,21 +526,25 @@ func GetChainBTag() string {
 // if the tests are running locally.
 // Note: github actions passes a CI env value of true by default to all runners.
 func IsCI() bool {
-	return strings.ToLower(os.Getenv("CI")) == "true"
+	return isEnvTrue("CI")
 }
 
 // IsFork returns true if the tests are running in fork mode, false is returned otherwise.
 func IsFork() bool {
-	return strings.ToLower(os.Getenv("FORK")) == "true"
+	return isEnvTrue("FORK")
+}
+
+func isEnvTrue(env string) bool {
+	return strings.ToLower(os.Getenv(env)) == "true"
 }
 
 // ChainOptions stores chain configurations for the chains that will be
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
 type ChainOptions struct {
-	ChainASpec       *interchaintest.ChainSpec
-	ChainBSpec       *interchaintest.ChainSpec
+	ChainSpecs       []*interchaintest.ChainSpec
 	SkipPathCreation bool
+	RelayerCount     int
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
@@ -544,17 +561,23 @@ func DefaultChainOptions() ChainOptions {
 	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
 	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
 
+	chainASpec := &interchaintest.ChainSpec{
+		ChainConfig:   chainACfg,
+		NumFullNodes:  &chainAFn,
+		NumValidators: &chainAVal,
+	}
+
+	chainBSpec := &interchaintest.ChainSpec{
+		ChainConfig:   chainBCfg,
+		NumFullNodes:  &chainBFn,
+		NumValidators: &chainBVal,
+	}
+
 	return ChainOptions{
-		ChainASpec: &interchaintest.ChainSpec{
-			ChainConfig:   chainACfg,
-			NumFullNodes:  &chainAFn,
-			NumValidators: &chainAVal,
-		},
-		ChainBSpec: &interchaintest.ChainSpec{
-			ChainConfig:   chainBCfg,
-			NumFullNodes:  &chainBFn,
-			NumValidators: &chainBVal,
-		},
+		ChainSpecs: []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		// arbitrary number that will not be required if https://github.com/strangelove-ventures/interchaintest/issues/1153 is resolved.
+		// It can be overridden in individual test suites in SetupSuite if required.
+		RelayerCount: 10,
 	}
 }
 

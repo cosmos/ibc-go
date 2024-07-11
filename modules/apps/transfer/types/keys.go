@@ -11,10 +11,6 @@ const (
 	// ModuleName defines the IBC transfer name
 	ModuleName = "transfer"
 
-	// Version defines the current version the IBC transfer
-	// module supports
-	Version = "ics20-1"
-
 	// PortID is the default port id that transfer module binds to
 	PortID = "transfer"
 
@@ -36,6 +32,22 @@ const (
 	KeyTotalEscrowPrefix = "totalEscrowForDenom"
 
 	ParamsKey = "params"
+
+	KeyPacketForwardPrefix = "forwardedPacket"
+)
+
+const (
+	// V1 defines first version of the IBC transfer module
+	V1 = "ics20-1"
+
+	// V2 defines the transfer version which introduces multidenom support
+	// through the FungibleTokenPacketDataV2. It is the latest version.
+	V2 = "ics20-2"
+
+	// escrowAddressVersion should remain as ics20-1 to avoid the address changing.
+	// this address has been reasoned about to avoid collisions with other addresses
+	// https://github.com/cosmos/cosmos-sdk/issues/7737#issuecomment-735671951
+	escrowAddressVersion = V1
 )
 
 var (
@@ -43,6 +55,11 @@ var (
 	PortKey = []byte{0x01}
 	// DenomTraceKey defines the key to store the denomination trace info in store
 	DenomTraceKey = []byte{0x02}
+	// DenomKey defines the key to store the token denomination in store
+	DenomKey = []byte{0x03}
+
+	// SupportedVersions defines all versions that are supported by the module
+	SupportedVersions = []string{V2, V1}
 )
 
 // GetEscrowAddress returns the escrow address for the specified channel.
@@ -54,7 +71,7 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	contents := fmt.Sprintf("%s/%s", portID, channelID)
 
 	// ADR 028 AddressHash construction
-	preImage := []byte(Version)
+	preImage := []byte(escrowAddressVersion)
 	preImage = append(preImage, 0)
 	preImage = append(preImage, contents...)
 	hash := sha256.Sum256(preImage)
@@ -65,4 +82,10 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 // source chain tokens in escrow is stored.
 func TotalEscrowForDenomKey(denom string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", KeyTotalEscrowPrefix, denom))
+}
+
+// PacketForwardKey returns the store key under which the forwarded packet is stored
+// for the provided portID, channelID, and packet sequence.
+func PacketForwardKey(portID, channelID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s/%d", KeyPacketForwardPrefix, portID, channelID, sequence))
 }

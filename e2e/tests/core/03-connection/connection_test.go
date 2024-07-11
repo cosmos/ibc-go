@@ -33,6 +33,10 @@ type ConnectionTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+func (s *ConnectionTestSuite) CreateConnectionTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
+	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
+}
+
 // QueryMaxExpectedTimePerBlockParam queries the on-chain max expected time per block param for 03-connection
 func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Context, chain ibc.Chain) uint64 {
 	if testvalues.SelfParamsFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
@@ -60,8 +64,9 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t := s.T()
 	ctx := context.TODO()
+	testName := t.Name()
+	relayer, channelA := s.CreateConnectionTestPath(testName)
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -108,7 +113,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 
 	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
 		t.Run("send tokens from chainB to chainA", func(t *testing.T) {
-			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferCoins(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 			s.AssertTxSuccess(transferTxResp)
 		})
 
@@ -121,7 +126,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
-			s.StartRelayer(relayer)
+			s.StartRelayer(relayer, testName)
 		})
 
 		t.Run("packets are relayed", func(t *testing.T) {

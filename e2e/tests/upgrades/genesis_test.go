@@ -37,27 +37,38 @@ type GenesisTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// TODO: this configuration was originally being applied to `GetChains` in the test body, but it is not
+// actually being propagated correctly. If we want to apply the configuration, we can uncomment this code
+// however the test actually fails when this is done.
+// func (s *GenesisTestSuite) SetupSuite() {
+//	configFileOverrides := make(map[string]any)
+//	appTomlOverrides := make(test.Toml)
+//
+//	appTomlOverrides["halt-height"] = haltHeight
+//	configFileOverrides["config/app.toml"] = appTomlOverrides
+//
+//	s.SetupChains(context.TODO(), nil, func(options *testsuite.ChainOptions) {
+//		// create chains with specified chain configuration options
+//		options.ChainSpecs[0].ConfigFileOverrides = configFileOverrides
+//	})
+// }
+
 func (s *GenesisTestSuite) TestIBCGenesis() {
 	t := s.T()
 
-	configFileOverrides := make(map[string]any)
-	appTomlOverrides := make(test.Toml)
+	haltHeight := int64(100)
 
-	appTomlOverrides["halt-height"] = haltHeight
-	configFileOverrides["config/app.toml"] = appTomlOverrides
-	chainOpts := func(options *testsuite.ChainOptions) {
-		options.ChainASpec.ConfigFileOverrides = configFileOverrides
-	}
-
-	// create chains with specified chain configuration options
-	chainA, chainB := s.GetChains(chainOpts)
+	chainA, chainB := s.GetChains()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+	testName := t.Name()
+
+	relayer := s.CreateDefaultPaths(testName)
+	channelA := s.GetChainAChannelForTest(testName)
+
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
-
 	)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -69,7 +80,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -98,7 +109,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("ics20: packets are relayed", func(t *testing.T) {
@@ -111,6 +122,8 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ics27: verify interchain account", func(t *testing.T) {
 		res, err := query.GRPCQuery[controllertypes.QueryInterchainAccountResponse](ctx, chainA, &controllertypes.QueryInterchainAccountRequest{
@@ -131,11 +144,11 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
-		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), relayer, haltHeight)
+		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), haltHeight)
 	})
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -194,7 +207,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 }
 
-func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain, relayer ibc.Relayer, haltHeight int64) {
+func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain, haltHeight int64) {
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 

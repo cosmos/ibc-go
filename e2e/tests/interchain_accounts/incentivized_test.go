@@ -40,9 +40,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 	t := s.T()
 	ctx := context.TODO()
 
-	// setup relayers and connection-0 between two chains
-	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
+
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -51,19 +51,14 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		testFee       = testvalues.DefaultFee(chainADenom)
 	)
 
+	chainARelayerWallet, chainBRelayerWallet, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
-		s.Require().NoError(err)
-	})
-
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
-	t.Run("relayer wallets fetched", func(t *testing.T) {
 		s.Require().NoError(err)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
-	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx)
+	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 	relayerAStartingBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
 	s.Require().NoError(err)
 	t.Logf("relayer A user starting with balance: %d", relayerAStartingBalance)
@@ -80,7 +75,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	var channelOutput ibc.ChannelOutput
@@ -176,7 +171,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
-			s.StartRelayer(relayer)
+			s.StartRelayer(relayer, testName)
 		})
 
 		t.Run("packets are relayed", func(t *testing.T) {
@@ -218,9 +213,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	t := s.T()
 	ctx := context.TODO()
 
-	// setup relayers and connection-0 between two chains
-	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
+
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -229,19 +224,14 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 		testFee       = testvalues.DefaultFee(chainADenom)
 	)
 
+	chainARelayerWallet, chainBRelayerWallet, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
-		s.Require().NoError(err)
-	})
-
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
-	t.Run("relayer wallets fetched", func(t *testing.T) {
 		s.Require().NoError(err)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
-	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx)
+	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 	relayerAStartingBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
 	s.Require().NoError(err)
 	t.Logf("relayer A user starting with balance: %d", relayerAStartingBalance)
@@ -258,7 +248,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	var channelOutput ibc.ChannelOutput
@@ -345,7 +335,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
-			s.StartRelayer(relayer)
+			s.StartRelayer(relayer, testName)
 		})
 
 		t.Run("packets are relayed", func(t *testing.T) {

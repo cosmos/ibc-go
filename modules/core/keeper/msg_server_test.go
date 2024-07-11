@@ -1368,10 +1368,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeError,
-						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
-						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
-						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
-						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
 						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
 						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "expected upgrade ordering (ORDER_NONE_UNSPECIFIED) to match counterparty upgrade ordering (ORDER_UNORDERED): incompatible counterparty upgrade"),
@@ -1414,10 +1414,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeError,
-						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
-						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
-						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
-						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
 						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
 						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "mock app callback failed"),
@@ -1439,8 +1439,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 				path.Setup()
 
-				msg.PortId = path.EndpointB.ChannelConfig.PortID
-				msg.ChannelId = path.EndpointB.ChannelID
+				msg.PortId = path.EndpointA.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointA.ChannelID
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
@@ -1958,8 +1958,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 
 				path.Setup()
 
-				msg.PortId = path.EndpointB.ChannelConfig.PortID
-				msg.ChannelId = path.EndpointB.ChannelID
+				msg.PortId = path.EndpointA.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointA.ChannelID
 			},
 			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
@@ -2384,7 +2384,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
-				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channelProof, proofHeight := path.EndpointB.QueryProof(channelKey)
 
 				msg.ProofChannel = channelProof

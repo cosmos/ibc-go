@@ -32,8 +32,18 @@ type IBCMiddleware struct {
 	keeper keeper.Keeper
 }
 
-// NewIBCMiddleware creates a new IBCMiddleware given the associated keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+// NewIBCMiddleware creates a new IBCMiddleware given the associated keeper.
+// The underlying application is set to nil and authentication is assumed to
+// be performed by a Cosmos SDK module that sends messages to controller message server.
+func NewIBCMiddleware(k keeper.Keeper) IBCMiddleware {
+	return IBCMiddleware{
+		app:    nil,
+		keeper: k,
+	}
+}
+
+// NewIBCMiddlewareWithAuth creates a new IBCMiddleware given the associated keeper and underlying application
+func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    app,
 		keeper: k,
@@ -376,7 +386,7 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into an InterchainAccountPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
+func (IBCMiddleware) UnmarshalPacketData(_ sdk.Context, _, _ string, bz []byte) (interface{}, error) {
 	var data icatypes.InterchainAccountPacketData
 	err := data.UnmarshalJSON(bz)
 	if err != nil {

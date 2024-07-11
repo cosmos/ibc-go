@@ -12,7 +12,7 @@ slug: /ibc/overview
 Learn about IBC, its components, and IBC use cases. 
 :::
 
-## What is the Interblockchain Communication Protocol (IBC)?
+## What is the Inter-Blockchain Communication Protocol (IBC)?
 
 This document serves as a guide for developers who want to write their own Inter-Blockchain
 Communication protocol (IBC) applications for custom use cases.
