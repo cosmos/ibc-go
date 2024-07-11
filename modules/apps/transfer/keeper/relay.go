@@ -149,7 +149,7 @@ func (k Keeper) sendTransfer(
 
 	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
 
-	defer telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
+	telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
 
 	return sequence, nil
 }
@@ -252,8 +252,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			receivedCoins = append(receivedCoins, voucher)
 		}
-
-		defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
 	}
 
 	if data.HasForwarding() {
@@ -262,6 +260,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return err
 		}
 	}
+
+	telemetry.ReportOnRecvPacket(packet, data.Tokens)
 
 	// The ibc_module.go module will return the proper ack.
 	return nil
