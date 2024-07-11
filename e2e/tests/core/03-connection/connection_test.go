@@ -64,7 +64,6 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t := s.T()
 	ctx := context.TODO()
-
 	testName := t.Name()
 	relayer, channelA := s.CreateConnectionTestPath(testName)
 
