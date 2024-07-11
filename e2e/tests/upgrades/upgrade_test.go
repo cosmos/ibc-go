@@ -1288,6 +1288,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_ChannelUpgrade() {
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
+	chainBDenom := chainB.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -1345,17 +1346,27 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_ChannelUpgrade() {
 		s.Require().Equal(transfertypes.V2, channel.Version, "the channel version is not ics20-2")
 	})
 
-	t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+	t.Run("Multi-denom IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
+		transferCoins := []sdk.Coin{
+			testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()),
+			testvalues.DefaultTransferAmount(chainBDenom),
+		}
+
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoins, chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 
-		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 2)
+		s.AssertPacketRelayed(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 2)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualNativeBalance, err := chainA.GetBalance(ctx, chainAAddress, chainADenom)
 		s.Require().NoError(err)
+		expected := testvalues.StartingTokenAmount
+		s.Require().Equal(expected, actualNativeBalance.Int64())
 
-		expected := testvalues.IBCTransferAmount * 2
-		s.Require().Equal(expected, actualBalance.Int64())
+		chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)
+		actualIBCTokenBalance, err := query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+		s.Require().NoError(err)
+		expected = testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualIBCTokenBalance.Int64())
 	})
 }
 
