@@ -157,15 +157,13 @@ func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltyp
 func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
-			for _, attr := range ev.Attributes {
-				if attr.Key == channeltypes.AttributeKeyAckHex {
-					value, err := hex.DecodeString(attr.Value)
-					if err != nil {
-						return nil, err
-					}
-
-					return value, nil
+			if attribute, found := attributeByKey(ev.Attributes, channeltypes.AttributeKeyAckHex); found {
+				value, err := hex.DecodeString(attribute.Value)
+				if err != nil {
+					return nil, err
 				}
+
+				return value, nil
 			}
 		}
 	}
@@ -175,7 +173,7 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 // ParseProposalIDFromEvents parses events emitted from MsgSubmitProposal and returns proposalID
 func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 	for _, event := range events {
-		if attribute, found := attributeByKey("proposal_id", event.Attributes); found {
+		if attribute, found := attributeByKey(event.Attributes, "proposal_id"); found {
 			return strconv.ParseUint(attribute.Value, 10, 64)
 		}
 	}
@@ -185,7 +183,7 @@ func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 // ParsePacketSequenceFromEvents parses events emitted from MsgRecvPacket and returns the packet sequence
 func ParsePacketSequenceFromEvents(events []abci.Event) (uint64, error) {
 	for _, event := range events {
-		if attribute, found := attributeByKey("packet_sequence", event.Attributes); found {
+		if attribute, found := attributeByKey(event.Attributes, "packet_sequence"); found {
 			return strconv.ParseUint(attribute.Value, 10, 64)
 		}
 	}
@@ -247,12 +245,12 @@ func containsAttribute(attrs []abci.EventAttribute, key, value string) bool {
 
 // containsAttributeKey returns true if the given key is contained in the given attributes.
 func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
-	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
-		return attr.Key == key
-	})
+	_, found := attributeByKey(attrs, key)
+	return found
 }
 
-func attributeByKey(key string, attributes []abci.EventAttribute) (abci.EventAttribute, bool) {
+// attributeByKey returns the event attribute's value keyed by the given key and a boolean indicating its presence in the given attributes.
+func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAttribute, bool) {
 	idx := slices.IndexFunc(attributes, func(a abci.EventAttribute) bool { return a.Key == key })
 	if idx == -1 {
 		return abci.EventAttribute{}, false
