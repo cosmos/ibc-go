@@ -20,6 +20,7 @@ import (
 var _ types.QueryServer = (*queryServer)(nil)
 
 // queryServer implements the 03-connection types.QueryServer interface.
+// It embeds the connection keeper to leverage store access while limiting the api of the connection keeper.
 type queryServer struct {
 	*Keeper
 }

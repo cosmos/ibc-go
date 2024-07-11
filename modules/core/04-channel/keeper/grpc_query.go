@@ -24,6 +24,7 @@ import (
 var _ types.QueryServer = (*queryServer)(nil)
 
 // queryServer implements the 04-channel types.QueryServer interface.
+// It embeds the channel keeper to leverage store access while limiting the api of the channel keeper.
 type queryServer struct {
 	*Keeper
 }

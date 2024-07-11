@@ -25,6 +25,7 @@ import (
 var _ types.QueryServer = (*queryServer)(nil)
 
 // queryServer implements the 02-client types.QueryServer interface.
+// It embeds the client keeper to leverage store access while limiting the api of the client keeper.
 type queryServer struct {
 	*Keeper
 }
