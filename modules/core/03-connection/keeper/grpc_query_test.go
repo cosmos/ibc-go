@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -74,7 +75,8 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
 
-			res, err := suite.chainA.QueryServer.Connection(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
+			res, err := queryServer.Connection(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -166,7 +168,8 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
 
-			res, err := suite.chainA.QueryServer.Connections(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
+			res, err := queryServer.Connections(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -246,7 +249,8 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
 
-			res, err := suite.chainA.QueryServer.ClientConnections(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
+			res, err := queryServer.ClientConnections(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -335,7 +339,8 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
 
-			res, err := suite.chainA.QueryServer.ConnectionClientState(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
+			res, err := queryServer.ConnectionClientState(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -437,7 +442,8 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
 
-			res, err := suite.chainA.QueryServer.ConnectionConsensusState(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
+			res, err := queryServer.ConnectionConsensusState(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -458,8 +464,10 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 }
 
 func (suite *KeeperTestSuite) TestQueryConnectionParams() {
-	ctx := suite.chainA.GetContext()
 	expParams := types.DefaultParams()
-	res, _ := suite.chainA.QueryServer.ConnectionParams(ctx, &types.QueryConnectionParamsRequest{})
+
+	queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
+	res, err := queryServer.ConnectionParams(suite.chainA.GetContext(), &types.QueryConnectionParamsRequest{})
+	suite.Require().NoError(err)
 	suite.Require().Equal(&expParams, res.Params)
 }
