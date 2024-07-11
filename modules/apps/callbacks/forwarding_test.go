@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	callbacktypes "github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -58,7 +59,7 @@ func TestIBCCallbacksForwardingTestsuite(t *testing.T) {
 // the callback is executed only on the final hop.
 // NOTE: this does not test the full forwarding behaviour (assert on amounts, packets, acks etc)
 // as this is covered in other forwarding tests.
-func (suite *CallbacksForwardingTestSuite) TestForwardingWithMemoCallback() {
+func (s *CallbacksForwardingTestSuite) TestForwardingWithMemoCallback() {
 	testCases := []struct {
 		name                   string
 		testMemo               string
@@ -96,87 +97,87 @@ func (suite *CallbacksForwardingTestSuite) TestForwardingWithMemoCallback() {
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			coinOnA := ibctesting.TestCoin
-			sender := suite.chainA.SenderAccounts[0].SenderAccount
-			receiver := suite.chainC.SenderAccounts[0].SenderAccount
+			sender := s.chainA.SenderAccounts[0].SenderAccount
+			receiver := s.chainC.SenderAccounts[0].SenderAccount
 			forwarding := types.NewForwarding(false, types.NewHop(
-				suite.pathBtoC.EndpointA.ChannelConfig.PortID,
-				suite.pathBtoC.EndpointA.ChannelID,
+				s.pathBtoC.EndpointA.ChannelConfig.PortID,
+				s.pathBtoC.EndpointA.ChannelID,
 			))
 			successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
 			transferMsg := types.NewMsgTransfer(
-				suite.pathAtoB.EndpointA.ChannelConfig.PortID,
-				suite.pathAtoB.EndpointA.ChannelID,
+				s.pathAtoB.EndpointA.ChannelConfig.PortID,
+				s.pathAtoB.EndpointA.ChannelID,
 				sdk.NewCoins(coinOnA),
 				sender.GetAddress().String(),
 				receiver.GetAddress().String(),
 				clienttypes.ZeroHeight(),
-				suite.chainA.GetTimeoutTimestamp(),
+				s.chainA.GetTimeoutTimestamp(),
 				tc.testMemo,
 				forwarding,
 			)
 
-			result, err := suite.chainA.SendMsgs(transferMsg)
-			suite.Require().NoError(err) // message committed
+			result, err := s.chainA.SendMsgs(transferMsg)
+			s.Require().NoError(err) // message committed
 
 			// parse the packet from result events and recv packet on chainB
 			packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
-			suite.Require().NoError(err)
-			suite.Require().NotNil(packetFromAtoB)
+			s.Require().NoError(err)
+			s.Require().NotNil(packetFromAtoB)
 
-			err = suite.pathAtoB.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
+			err = s.pathAtoB.EndpointB.UpdateClient()
+			s.Require().NoError(err)
 
-			result, err = suite.pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
-			suite.Require().NoError(err)
-			suite.Require().NotNil(result)
+			result, err = s.pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
+			s.Require().NoError(err)
+			s.Require().NotNil(result)
 
 			packetFromBtoC, err := ibctesting.ParsePacketFromEvents(result.Events)
-			suite.Require().NoError(err)
-			suite.Require().NotNil(packetFromBtoC)
+			s.Require().NoError(err)
+			s.Require().NotNil(packetFromBtoC)
 
-			err = suite.pathBtoC.EndpointA.UpdateClient()
-			suite.Require().NoError(err)
+			err = s.pathBtoC.EndpointA.UpdateClient()
+			s.Require().NoError(err)
 
-			err = suite.pathBtoC.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
+			err = s.pathBtoC.EndpointB.UpdateClient()
+			s.Require().NoError(err)
 
-			result, err = suite.pathBtoC.EndpointB.RecvPacketWithResult(packetFromBtoC)
-			suite.Require().NoError(err)
-			suite.Require().NotNil(result)
+			result, err = s.pathBtoC.EndpointB.RecvPacketWithResult(packetFromBtoC)
+			s.Require().NoError(err)
+			s.Require().NotNil(result)
 
 			packetOnC, err := ibctesting.ParseRecvPacketFromEvents(result.Events)
-			suite.Require().NoError(err)
-			suite.Require().NotNil(packetOnC)
+			s.Require().NoError(err)
+			s.Require().NotNil(packetOnC)
 
 			// Ack back to B
-			err = suite.pathBtoC.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
+			err = s.pathBtoC.EndpointB.UpdateClient()
+			s.Require().NoError(err)
 
-			err = suite.pathBtoC.EndpointA.AcknowledgePacket(packetFromBtoC, successAck.Acknowledgement())
-			suite.Require().NoError(err)
+			err = s.pathBtoC.EndpointA.AcknowledgePacket(packetFromBtoC, successAck.Acknowledgement())
+			s.Require().NoError(err)
 
 			// Ack back to A
-			err = suite.pathAtoB.EndpointA.UpdateClient()
-			suite.Require().NoError(err)
+			err = s.pathAtoB.EndpointA.UpdateClient()
+			s.Require().NoError(err)
 
-			err = suite.pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, successAck.Acknowledgement())
-			suite.Require().NoError(err)
+			err = s.pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, successAck.Acknowledgement())
+			s.Require().NoError(err)
 
 			// We never expect chainA to have executed any callback
-			suite.Require().Empty(GetSimApp(suite.chainA).MockContractKeeper.Counters, "chainA's callbacks counter map is not empty")
+			s.Require().Empty(GetSimApp(s.chainA).MockContractKeeper.Counters, "chainA's callbacks counter map is not empty")
 
 			// We expect chainB to have executed callbacks when the memo is of type `src_callback`
-			chainBCallbackMap := GetSimApp(suite.chainB).MockContractKeeper.Counters
-			suite.Require().Equal(tc.expCallbackMapOnChainB, chainBCallbackMap, "chainB: expected callback counters map to be %v, got %v instead", tc.expCallbackMapOnChainB, chainBCallbackMap)
+			chainBCallbackMap := GetSimApp(s.chainB).MockContractKeeper.Counters
+			s.Require().Equal(tc.expCallbackMapOnChainB, chainBCallbackMap, "chainB: expected callback counters map to be %v, got %v instead", tc.expCallbackMapOnChainB, chainBCallbackMap)
 
 			// We expect chainC to have executed callbacks when the memo is of type `dest_callback`
-			chainCCallbackMap := GetSimApp(suite.chainC).MockContractKeeper.Counters
-			suite.Require().Equal(tc.expCallbackMapOnChainC, chainCCallbackMap, "chainC: expected callback counters map to be %v, got %v instead", tc.expCallbackMapOnChainC, chainCCallbackMap)
+			chainCCallbackMap := GetSimApp(s.chainC).MockContractKeeper.Counters
+			s.Require().Equal(tc.expCallbackMapOnChainC, chainCCallbackMap, "chainC: expected callback counters map to be %v, got %v instead", tc.expCallbackMapOnChainC, chainCCallbackMap)
 		})
 	}
 }
