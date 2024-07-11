@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
 			},
-			errors.New("Wasm bytes do not start with Wasm magic number"), // Do not fix typo, it is fixed in upstream wasmvm.
+			errors.New("Wasm bytes do not start with Wasm magic number"),
 		},
 		{
 			"fails with wasm code too large",
