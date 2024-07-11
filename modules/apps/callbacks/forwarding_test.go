@@ -167,11 +167,14 @@ func (suite *CallbacksForwardingTestSuite) TestForwardingWithMemoCallback() {
 			err = suite.pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, successAck.Acknowledgement())
 			suite.Require().NoError(err)
 
+			// We never expect chainA to have executed any callback
 			suite.Require().Empty(GetSimApp(suite.chainA).MockContractKeeper.Counters, "chainA's callbacks counter map is not empty")
 
+			// We expect chainB to have executed callbacks when the memo is of type `src_callback`
 			chainBCallbackMap := GetSimApp(suite.chainB).MockContractKeeper.Counters
-			suite.Require().Equal(tc.expCallbackMapOnChainB, chainBCallbackMap, "chainC: expected callback counters map to be %v, got %v instead", tc.expCallbackMapOnChainB, chainBCallbackMap)
+			suite.Require().Equal(tc.expCallbackMapOnChainB, chainBCallbackMap, "chainB: expected callback counters map to be %v, got %v instead", tc.expCallbackMapOnChainB, chainBCallbackMap)
 
+			// We expect chainC to have executed callbacks when the memo is of type `dest_callback`
 			chainCCallbackMap := GetSimApp(suite.chainC).MockContractKeeper.Counters
 			suite.Require().Equal(tc.expCallbackMapOnChainC, chainCCallbackMap, "chainC: expected callback counters map to be %v, got %v instead", tc.expCallbackMapOnChainC, chainCCallbackMap)
 		})
