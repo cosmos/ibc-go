@@ -283,6 +283,14 @@ jobs:
         include:
             # for now we explicitly specify this test suite.
           - entrypoint: TestTransferTestSuite
+          - entrypoint: TestAuthzTransferTestSuite
+          - entrypoint: TestTransferTestSuiteSendReceive
+          - entrypoint: TestTransferTestSuiteSendEnabled
+          - entrypoint: TestTransferLocalhostTestSuite
+          - entrypoint: TestConnectionTestSuite
+          - entrypoint: TestInterchainAccountsGovTestSuite
+          - entrypoint: TestIncentivizedTransferTestSuite
+          - entrypoint: TestTransferForwardingTestSuite
     steps:
       - uses: actions/checkout@v4
         with:

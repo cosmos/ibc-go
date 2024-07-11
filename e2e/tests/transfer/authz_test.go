@@ -53,6 +53,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := suite.CreateAuthzTestPath(testName)
 
 	chainA, chainB := suite.GetChains()
@@ -215,6 +216,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := suite.CreateAuthzTestPath(testName)
 
 	chainA, chainB := suite.GetChains()
@@ -364,7 +366,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 // extractTransferAuthorizationFromGrantAuthorization extracts a TransferAuthorization from the given
 // GrantAuthorization.
 func (suite *AuthzTransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
-	cfg := testsuite.EncodingConfig()
+	cfg := testsuite.SDKEncodingConfig()
 	var authorization authz.Authorization
 	err := cfg.InterfaceRegistry.UnpackAny(grantAuth.Authorization, &authorization)
 	suite.Require().NoError(err)
