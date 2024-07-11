@@ -167,7 +167,7 @@ jobs:
       chain-binary: simd
       chain-a-tag: v8.3.2
       chain-b-tag: v8.3.2
-      chain-upgrade-tag: pr-6791 # TODO: Update tag to v9.0.0 once it is (pre)released
+      chain-upgrade-tag: pr-6806 # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV8ToV9ChainUpgrade"
@@ -181,7 +181,7 @@ jobs:
       chain-binary: simd
       chain-a-tag: v8.3.2
       chain-b-tag: v8.3.2
-      chain-upgrade-tag: pr-6791 # TODO: Update tag to v9.0.0 once it is (pre)released
+      chain-upgrade-tag: pr-6806 # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV8ToV9ChainUpgrade"
@@ -197,7 +197,7 @@ jobs:
       chain-binary: simd
       chain-a-tag: v8.3.2
       chain-b-tag: v8.3.2
-      chain-upgrade-tag: pr-6791 # TODO: Update tag to v9.0.0 once it is (pre)released
+      chain-upgrade-tag: pr-6806 # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV8ToV9ChainUpgrade_Localhost"
@@ -210,8 +210,8 @@ jobs:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
       chain-a-tag: v8.3.2
-      chain-b-tag: pr-6791 # TODO: Update tag to v9.0.0 once it is (pre)released
-      chain-upgrade-tag: pr-6791 # TODO: Update tag to v9.0.0 once it is (pre)released
+      chain-b-tag: pr-6806 # TODO: Update tag to v9.0.0 once it is (pre)released
+      chain-upgrade-tag: pr-6806 # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV8ToV9ChainUpgrade_ChannelUpgrade"
@@ -224,8 +224,8 @@ jobs:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
       chain-a-tag: v8.3.2
-      chain-b-tag: pr-6791 # TODO: Update tag to v9.0.0 once it is (pre)released
-      chain-upgrade-tag: pr-6791 # TODO: Update tag to v9.0.0 once it is (pre)released
+      chain-b-tag: pr-6806 # TODO: Update tag to v9.0.0 once it is (pre)released
+      chain-upgrade-tag: pr-6806 # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV8ToV9ChainUpgrade_ChannelUpgrade"
