@@ -1338,12 +1338,16 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_ChannelUpgrade() {
 		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, upgradeFields)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
-
 	t.Run("verify channel A upgraded and transfer version is ics20-2", func(t *testing.T) {
-		channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
-		s.Require().NoError(err)
-		s.Require().Equal(transfertypes.V2, channel.Version, "the channel version is not ics20-2")
+		err := test.WaitForCondition(time.Minute*2, time.Second*2, func() (bool, error) {
+			channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			if err != nil {
+				return false, err
+			}
+
+			return channel.Version == transfertypes.V2, nil
+		})
+		s.Require().NoError(err, "failed to wait for channel to be upgraded to ics20-2")
 	})
 
 	t.Run("Multi-denom IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
