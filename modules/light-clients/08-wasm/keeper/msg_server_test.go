@@ -63,30 +63,12 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
 			},
-<<<<<<< HEAD
-			errors.New("Wasm bytes do not not start with Wasm magic number"),
-=======
 			errors.New("Wasm bytes do not start with Wasm magic number"),
->>>>>>> 086c647a (chore(deps): bump github.com/CosmWasm/wasmvm/v2 from 2.0.1 to 2.1.0 in /modules/light-clients/08-wasm (#6807))
 		},
 		{
 			"fails with wasm code too large",
 			func() {
 				msg = types.NewMsgStoreCode(signer, append(wasmtesting.WasmMagicNumber, []byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))...))
-			},
-			types.ErrWasmCodeTooLarge,
-		},
-		{
-			"fails with checksum",
-			func() {
-				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
-			},
-			errors.New("Wasm bytes do not not start with Wasm magic number"),
-		},
-		{
-			"fails with wasm code too large",
-			func() {
-				msg = types.NewMsgStoreCode(signer, wasmtesting.CreateMockContract([]byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))))
 			},
 			types.ErrWasmCodeTooLarge,
 		},
