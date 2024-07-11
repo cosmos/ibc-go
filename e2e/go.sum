@@ -231,8 +231,8 @@ github.com/ChainSafe/go-schnorrkel v1.0.0 h1:3aDA67lAykLaG1y3AOjs88dMxC88PgUuHRr
 github.com/ChainSafe/go-schnorrkel v1.0.0/go.mod h1:dpzHYVxLZcp8pjlV+O+UR8K0Hp/z7vcchBSbMBEhCw4=
 github.com/ComposableFi/go-subkey/v2 v2.0.0-tm03420 h1:oknQF/iIhf5lVjbwjsVDzDByupRhga8nhA3NAmwyHDA=
 github.com/ComposableFi/go-subkey/v2 v2.0.0-tm03420/go.mod h1:KYkiMX5AbOlXXYfxkrYPrRPV6EbVUALTQh5ptUOJzu8=
-github.com/CosmWasm/wasmvm/v2 v2.0.1 h1:0YCQ7MKGNri7NFeRp75erPJXrqyCtH4gdc9jMstyMzk=
-github.com/CosmWasm/wasmvm/v2 v2.0.1/go.mod h1:su9lg5qLr7adV95eOfzjZWkGiky8WNaNIHDr7Fpu7Ck=
+github.com/CosmWasm/wasmvm/v2 v2.1.0 h1:bleLhNA36hM8iPjFJsNRi9RjrQW6MtXafw2+wVjAWAE=
+github.com/CosmWasm/wasmvm/v2 v2.1.0/go.mod h1:bMhLQL4Yp9CzJi9A83aR7VO9wockOsSlZbT4ztOl6bg=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/datadog-go v4.8.3+incompatible h1:fNGaYSuObuQb5nzeTQqowRAd9bpDIRRV4/gUtIBjh8Q=
 github.com/DataDog/datadog-go v4.8.3+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
@@ -1016,6 +1016,8 @@ github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da/go.mod h1:gi+0
 github.com/sasha-s/go-deadlock v0.3.1 h1:sqv7fDNShgjcaxkO0JNcOAlr8B9+cV5Ey/OB71efZx0=
 github.com/sasha-s/go-deadlock v0.3.1/go.mod h1:F73l+cr82YSh10GxyRI6qZiCgK64VaZjwesgfQ1/iLM=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
+github.com/shamaton/msgpack/v2 v2.2.0 h1:IP1m01pHwCrMa6ZccP9B3bqxEMKMSmMVAVKk54g3L/Y=
+github.com/shamaton/msgpack/v2 v2.2.0/go.mod h1:6khjYnkx73f7VQU7wjcFS9DFjs+59naVWJv1TB7qdOI=
 github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible h1:Bn1aCHHRnjv4Bl16T8rcaFjYSrGrIZvpiGO6P3Q4GpU=
 github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible/go.mod h1:5b4v6he4MtMOwMlS0TUMTu2PcXUg8+E1lC7eC3UO/RA=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=

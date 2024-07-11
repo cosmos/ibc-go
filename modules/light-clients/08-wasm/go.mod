@@ -13,6 +13,7 @@ require (
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/store v1.1.0
+<<<<<<< HEAD
 	cosmossdk.io/tools/confix v0.1.0
 	cosmossdk.io/x/circuit v0.1.0
 	cosmossdk.io/x/evidence v0.1.0
@@ -21,6 +22,16 @@ require (
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/CosmWasm/wasmvm/v2 v2.0.1
 	github.com/cometbft/cometbft v0.38.7
+=======
+	cosmossdk.io/tools/confix v0.1.1
+	cosmossdk.io/x/circuit v0.1.1
+	cosmossdk.io/x/evidence v0.1.1
+	cosmossdk.io/x/feegrant v0.1.1
+	cosmossdk.io/x/tx v0.13.3
+	cosmossdk.io/x/upgrade v0.1.3
+	github.com/CosmWasm/wasmvm/v2 v2.1.0
+	github.com/cometbft/cometbft v0.38.9
+>>>>>>> 086c647a (chore(deps): bump github.com/CosmWasm/wasmvm/v2 from 2.0.1 to 2.1.0 in /modules/light-clients/08-wasm (#6807))
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-sdk v0.50.6
 	github.com/cosmos/gogoproto v1.4.12
@@ -162,6 +173,7 @@ require (
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
+	github.com/shamaton/msgpack/v2 v2.2.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
