@@ -22,6 +22,8 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
+const queryPathTransferDenoms = "/ibc.applications.transfer.v2.QueryV2/Denoms"
+
 // ModuleAccountAddress returns the address of the given module on the given chain.
 // Added because interchaintest's method doesn't work.
 func ModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chain) (sdk.AccAddress, error) {
@@ -210,4 +212,8 @@ func InterchainAccount(ctx context.Context, chain ibc.Chain, address, connection
 		return "", err
 	}
 	return res.Address, nil
+}
+
+func TransferDenoms(ctx context.Context, chain ibc.Chain) (*transfertypes.QueryDenomsResponse, error) {
+	return grpcQueryWithMethod[transfertypes.QueryDenomsResponse](ctx, chain, &transfertypes.QueryDenomsRequest{}, queryPathTransferDenoms)
 }

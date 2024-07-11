@@ -308,7 +308,7 @@ type DebugConfig struct {
 	KeepContainers bool `yaml:"keepContainers"`
 }
 
-// LoadConfig attempts to load a atest configuration from the default file path.
+// LoadConfig attempts to load a test configuration from the default file path.
 // if any environment variables are specified, they will take precedence over the individual configuration
 // options.
 func LoadConfig() TestConfig {
