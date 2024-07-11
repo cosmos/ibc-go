@@ -56,6 +56,8 @@ type GenesisTestSuite struct {
 func (s *GenesisTestSuite) TestIBCGenesis() {
 	t := s.T()
 
+	haltHeight := int64(100)
+
 	chainA, chainB := s.GetChains()
 
 	ctx := context.Background()

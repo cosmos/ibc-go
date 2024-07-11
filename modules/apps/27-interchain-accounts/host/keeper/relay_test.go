@@ -3,17 +3,18 @@ package keeper_test
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cosmos/gogoproto/proto"
 
 	sdkmath "cosmossdk.io/math"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
@@ -44,16 +45,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				// Populate the gov keeper in advance with an active proposal
-				testProposal := &govtypes.TextProposal{
-					Title:       "IBC Gov Proposal",
-					Description: "tokens for all!",
-				}
-
-				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
-				suite.Require().NoError(err)
-
-				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
 				suite.Require().NoError(err)
 
 				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
@@ -61,10 +53,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
 				suite.Require().NoError(err)
 
-				msg := &govtypes.MsgVote{
-					ProposalId: govtypes.DefaultStartingProposalID,
+				msg := &govtypesv1.MsgVote{
+					ProposalId: govtypesv1.DefaultStartingProposalID,
 					Voter:      interchainAccountAddr,
-					Option:     govtypes.OptionYes,
+					Option:     govtypesv1.OptionYes,
 				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -172,24 +164,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			nil,
 		},
 		{
-			"interchain account successfully executes govtypes.MsgSubmitProposal",
+			"interchain account successfully executes govtypesv1.MsgSubmitProposal",
 			func(encoding string) {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				testProposal := &govtypes.TextProposal{
-					Title:       "IBC Gov Proposal",
-					Description: "tokens for all!",
-				}
-
-				protoAny, err := codectypes.NewAnyWithValue(testProposal)
+				msg, err := govtypesv1.NewMsgSubmitProposal([]sdk.Msg{}, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))), interchainAccountAddr, "metadata", "title", "summary", false)
 				suite.Require().NoError(err)
-
-				msg := &govtypes.MsgSubmitProposal{
-					Content:        protoAny,
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
-					Proposer:       interchainAccountAddr,
-				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
 				suite.Require().NoError(err)
@@ -207,21 +188,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			nil,
 		},
 		{
-			"interchain account successfully executes govtypes.MsgVote",
+			"interchain account successfully executes govtypesv1.MsgVote",
 			func(encoding string) {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				// Populate the gov keeper in advance with an active proposal
-				testProposal := &govtypes.TextProposal{
-					Title:       "IBC Gov Proposal",
-					Description: "tokens for all!",
-				}
-
-				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
-				suite.Require().NoError(err)
-
-				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "description", sdk.AccAddress(interchainAccountAddr), false)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
 				suite.Require().NoError(err)
 
 				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
@@ -229,10 +201,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
 				suite.Require().NoError(err)
 
-				msg := &govtypes.MsgVote{
-					ProposalId: govtypes.DefaultStartingProposalID,
+				msg := &govtypesv1.MsgVote{
+					ProposalId: govtypesv1.DefaultStartingProposalID,
 					Voter:      interchainAccountAddr,
-					Option:     govtypes.OptionYes,
+					Option:     govtypesv1.OptionYes,
 				}
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -601,16 +573,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		{
 			"interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
 			func(icaAddress string) {
-				// Populate the gov keeper in advance with an active proposal
-				testProposal := &govtypes.TextProposal{
-					Title:       "IBC Gov Proposal",
-					Description: "tokens for all!",
-				}
-
-				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
-				suite.Require().NoError(err)
-
-				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
 				suite.Require().NoError(err)
 
 				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
@@ -621,7 +584,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				msgBytes := []byte(`{
 					"messages": [
 						{
-							"@type": "/cosmos.gov.v1beta1.MsgVote",
+							"@type": "/cosmos.gov.v1.MsgVote",
 							"voter": "` + icaAddress + `",
 							"proposal_id": 1,
 							"option": 1
@@ -668,17 +631,17 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			nil,
 		},
 		{
-			"interchain account successfully executes govtypes.MsgSubmitProposal",
+			"interchain account successfully executes govtypesv1.MsgSubmitProposal",
 			func(icaAddress string) {
 				msgBytes := []byte(`{
 					"messages": [
 						{
-							"@type": "/cosmos.gov.v1beta1.MsgSubmitProposal",
-							"content": {
-								"@type": "/cosmos.gov.v1beta1.TextProposal",
-								"title": "IBC Gov Proposal",
-								"description": "tokens for all!"
-							},
+							"@type": "/cosmos.gov.v1.MsgSubmitProposal",
+							"messages": [],
+							"metadata": "ipfs://CID",
+ 							"title": "IBC Gov Proposal",
+							"summary": "tokens for all!",
+							"expedited": false,
 							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						}
@@ -691,24 +654,15 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"data":` + byteArrayString + `
 				}`)
 
-				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil))})
+				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypesv1.MsgSubmitProposal)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
-			"interchain account successfully executes govtypes.MsgVote",
+			"interchain account successfully executes govtypesv1.MsgVote",
 			func(icaAddress string) {
-				// Populate the gov keeper in advance with an active proposal
-				testProposal := &govtypes.TextProposal{
-					Title:       "IBC Gov Proposal",
-					Description: "tokens for all!",
-				}
-
-				proposalMsg, err := govv1.NewLegacyContent(testProposal, interchainAccountAddr)
-				suite.Require().NoError(err)
-
-				proposal, err := govv1.NewProposal([]sdk.Msg{proposalMsg}, govtypes.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "description", sdk.AccAddress(interchainAccountAddr), false)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
 				suite.Require().NoError(err)
 
 				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
@@ -719,7 +673,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				msgBytes := []byte(`{
 					"messages": [
 						{
-							"@type": "/cosmos.gov.v1beta1.MsgVote",
+							"@type": "/cosmos.gov.v1.MsgVote",
 							"voter": "` + icaAddress + `",
 							"proposal_id": 1,
 							"option": 1
@@ -733,34 +687,34 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"data":` + byteArrayString + `
 				}`)
 
-				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
+				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypesv1.MsgVote)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
-			"interchain account successfully executes govtypes.MsgSubmitProposal, govtypes.MsgDeposit, and then govtypes.MsgVote sequentially",
+			"interchain account successfully executes govtypesv1.MsgSubmitProposal, govtypesv1.MsgDeposit, and then govtypesv1.MsgVote sequentially",
 			func(icaAddress string) {
 				msgBytes := []byte(`{
 					"messages": [
 						{
-							"@type": "/cosmos.gov.v1beta1.MsgSubmitProposal",
-							"content": {
-								"@type": "/cosmos.gov.v1beta1.TextProposal",
-								"title": "IBC Gov Proposal",
-								"description": "tokens for all!"
-							},
+							"@type": "/cosmos.gov.v1.MsgSubmitProposal",
+							"messages": [],
+							"metadata": "ipfs://CID",
+ 							"title": "IBC Gov Proposal",
+							"summary": "tokens for all!",
+							"expedited": false,
 							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						},
 						{
-							"@type": "/cosmos.gov.v1beta1.MsgDeposit",
+							"@type": "/cosmos.gov.v1.MsgDeposit",
 							"proposal_id": 1,
 							"depositor": "` + icaAddress + `",
 							"amount": [{ "denom": "stake", "amount": "10000000" }]
 						},
 						{
-							"@type": "/cosmos.gov.v1beta1.MsgVote",
+							"@type": "/cosmos.gov.v1.MsgVote",
 							"voter": "` + icaAddress + `",
 							"proposal_id": 1,
 							"option": 1
@@ -774,7 +728,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"data":` + byteArrayString + `
 				}`)
 
-				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govtypes.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
+				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypesv1.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govtypesv1.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypesv1.MsgVote)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			nil,
@@ -945,4 +899,9 @@ func (suite *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amou
 	res, err := suite.chainB.SendMsgs(msgBankSend)
 	suite.Require().NotEmpty(res)
 	suite.Require().NoError(err)
+}
+
+func getTestProposalMessage() sdk.Msg {
+	_, _, addr := testdata.KeyTestPubAddr()
+	return banktypes.NewMsgSend(authtypes.NewModuleAddress("gov"), addr, sdk.NewCoins(sdk.NewCoin("stake", sdkmath.NewInt(1000))))
 }
