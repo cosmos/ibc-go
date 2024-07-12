@@ -28,7 +28,7 @@ func newSubmitStoreCodeProposalCmd() *cobra.Command {
 		Use:     "store-code [path/to/wasm-file]",
 		Short:   "Reads wasm code from the file and creates a proposal to store the wasm code",
 		Long:    "Reads wasm code from the file and creates a proposal to store the wasm code",
-		Example: fmt.Sprintf("%s tx %s-wasm store-code [path/to/wasm_file]", version.AppName, ibcexported.ModuleName)
+		Example: fmt.Sprintf("%s tx %s-wasm store-code [path/to/wasm_file]", version.AppName, ibcexported.ModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
