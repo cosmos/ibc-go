@@ -78,4 +78,4 @@ For example, the following memo field is used by the [callbacks middleware](../.
 
 You can find more information about other applications that use the memo field in the [chain registry](https://github.com/cosmos/chain-registry/blob/master/_memo_keys/ICS20_memo_keys.json).
 
-Please note that the memo field is always meant to be consumed only on the final destination chain. The transfer module guarantees that the memo field in the intermediary chains is empty.
+Please note that the memo field is always meant to be consumed only on the final destination chain. This means that the transfer module will guarantee that the memo field in the intermediary chains is empty.
