@@ -1237,17 +1237,15 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 
 func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 	var (
-		bz               []byte
 		tokens           types.Tokens
 		sender, receiver string
 	)
 
 	testCases := []struct {
-		name        string
-		appVersion  string
-		malleate    func()
-		expResult   func(bz []byte, err error)
-		expPanicErr error
+		name       string
+		appVersion string
+		malleate   func()
+		expResult  func(bz []byte, err error)
 	}{
 		{
 			"success",
@@ -1258,7 +1256,6 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 				suite.Require().Equal(bz, expPacketData.GetBytes())
 				suite.Require().NoError(err)
 			},
-			nil,
 		},
 		{
 			"success: version 2",
@@ -1269,7 +1266,6 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 				suite.Require().Equal(bz, expPacketData.GetBytes())
 				suite.Require().NoError(err)
 			},
-			nil,
 		},
 		{
 			"failure: fails v1 validation",
@@ -1281,7 +1277,6 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 				suite.Require().Nil(bz)
 				suite.Require().ErrorIs(err, ibcerrors.ErrInvalidAddress)
 			},
-			nil,
 		},
 		{
 			"failure: fails v2 validation",
@@ -1293,7 +1288,6 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 				suite.Require().Nil(bz)
 				suite.Require().ErrorIs(err, ibcerrors.ErrInvalidAddress)
 			},
-			nil,
 		},
 		{
 			"failure: must have single coin if using version 1.",
@@ -1301,15 +1295,19 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 			func() {
 				tokens = types.Tokens{}
 			},
-			nil,
-			fmt.Errorf("length of tokens must be equal to 1 if using %s version", types.V1),
+			func(bz []byte, err error) {
+				suite.Require().Nil(bz)
+				suite.Require().ErrorIs(err, ibcerrors.ErrInvalidRequest)
+			},
 		},
 		{
 			"failure: invalid version",
 			ibcmock.Version,
 			func() {},
-			nil,
-			fmt.Errorf("app version must be one of %s", types.SupportedVersions),
+			func(bz []byte, err error) {
+				suite.Require().Nil(bz)
+				suite.Require().ErrorIs(err, types.ErrInvalidVersion)
+			},
 		},
 	}
 
@@ -1332,18 +1330,9 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 
 			tc.malleate()
 
-			var err error
-			createFunc := func() {
-				bz, err = transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, sender, receiver, "", tokens, nil)
-			}
+			bz, err := transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, sender, receiver, "", tokens, nil)
 
-			expPanic := tc.expPanicErr != nil
-			if expPanic {
-				suite.Require().PanicsWithError(tc.expPanicErr.Error(), createFunc)
-			} else {
-				createFunc()
-				tc.expResult(bz, err)
-			}
+			tc.expResult(bz, err)
 		})
 	}
 }
