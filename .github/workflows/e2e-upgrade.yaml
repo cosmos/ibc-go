@@ -78,7 +78,7 @@ jobs:
       chain-upgrade-tag: v8.1.0
       upgrade-plan-name: "v8.1"
       test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV8ToV8_1ChainUpgrade_ChannelUpgrades"
+      test: "TestV8ToV8_1ChainUpgrade_FeeMiddlewareChannelUpgrade"
       upload-logs: true
       relayer-type: hermes
 
@@ -214,7 +214,7 @@ jobs:
       chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV8ToV9ChainUpgrade_ChannelUpgrade"
+      test: "TestV8ToV9ChainUpgrade_ICS20v2ChannelUpgrade"
       upload-logs: true
       relayer-type: hermes
 
@@ -228,7 +228,7 @@ jobs:
       chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV8ToV9ChainUpgrade_ChannelUpgrade"
+      test: "TestV8ToV9ChainUpgrade_ICS20v2ChannelUpgrade"
       upload-logs: true
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer

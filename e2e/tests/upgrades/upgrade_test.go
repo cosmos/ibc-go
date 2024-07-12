@@ -771,7 +771,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	})
 }
 
-func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
+func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_FeeMiddlewareChannelUpgrade() {
 	t := s.T()
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
@@ -1277,7 +1277,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_Localhost() {
 	})
 }
 
-func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_ChannelUpgrade() {
+func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_ICS20v2ChannelUpgrade() {
 	t := s.T()
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
@@ -1350,7 +1350,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_ChannelUpgrade() {
 		s.Require().NoError(err, "failed to wait for channel to be upgraded to ics20-2")
 	})
 
-	t.Run("Multi-denom IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
+	t.Run("multi-denom IBC token transfer from chainB to chainA, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
 		transferCoins := []sdk.Coin{
 			testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()),
 			testvalues.DefaultTransferAmount(chainBDenom),
