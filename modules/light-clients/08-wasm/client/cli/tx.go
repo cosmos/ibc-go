@@ -28,7 +28,7 @@ func newSubmitStoreCodeProposalCmd() *cobra.Command {
 		Use:     "store-code [path/to/wasm-file]",
 		Short:   "Reads wasm code from the file and creates a proposal to store the wasm code",
 		Long:    "Reads wasm code from the file and creates a proposal to store the wasm code",
-		Example: fmt.Sprintf("%s tx %s wasm [path/to/wasm_file]", version.AppName, ibcexported.ModuleName),
+		Example: fmt.Sprintf("%s tx %s-wasm store-code [path/to/wasm_file]", version.AppName, ibcexported.ModuleName)
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -83,8 +83,6 @@ func newSubmitStoreCodeProposalCmd() *cobra.Command {
 
 	return cmd
 }
-<<<<<<< HEAD
-=======
 
 func newMigrateContractCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -128,4 +126,3 @@ func newMigrateContractCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
->>>>>>> d51ab023 (fix(08-wasm): decode checksum hex string to bytes in migrate contract CLI (#6815))
