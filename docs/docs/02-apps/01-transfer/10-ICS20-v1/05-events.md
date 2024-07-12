@@ -13,14 +13,14 @@ This document is relevant only for fungible token transfers over channels on v1 
 
 ## `MsgTransfer`
 
-| Type         | Attribute Key   | Attribute Value        |
-|--------------|-----------------|------------------------|
-| ibc_transfer | sender          | \{sender\}             |
-| ibc_transfer | receiver        | \{receiver\}           |
-| ibc_transfer | tokens          | \{jsonTokens\}         |
-| ibc_transfer | memo            | \{memo\}               |
-| ibc_transfer | forwarding_hops | \{jsonForwardingHops\} |
-| message      | module          | transfer               |
+| Type         | Attribute Key   | Attribute Value |
+|--------------|-----------------|-----------------|
+| ibc_transfer | sender          | \{sender\}      |
+| ibc_transfer | receiver        | \{receiver\}    |
+| ibc_transfer | tokens          | \{jsonTokens\}  |
+| ibc_transfer | memo            | \{memo\}        |
+| ibc_transfer | forwarding_hops | `nil`           |
+| message      | module          | transfer        |
 
 ## `OnRecvPacket` callback
 
