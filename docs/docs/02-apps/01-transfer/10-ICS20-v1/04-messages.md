@@ -40,7 +40,6 @@ This message is expected to fail if:
 - `Memo` contains more than 32768 bytes.
 - `TimeoutHeight` and `TimeoutTimestamp` are both zero.
 
-Please note that the `Token` field is deprecated and users should now use `Tokens` instead. If `Token` is used then `Tokens` must be empty. Similarly, if `Tokens` is used then `Token` should be left empty.
 This message will send a fungible token to the counterparty chain represented by the counterparty Channel End connected to the Channel End with the identifiers `SourcePort` and `SourceChannel`.
 
 The denomination provided for transfer should correspond to the same denomination represented on this chain. The prefixes will be added as necessary upon by the receiving chain.
