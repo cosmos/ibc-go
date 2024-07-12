@@ -37,14 +37,18 @@ type Hop struct {
 }
 ```
 
+:::info
+Multi-denom token transfers and token forwarding are features supported only on ICS20 v2 transfer channels.
+:::
+
 If `Forwarding` is `nil`, this message is expected to fail if:
 
 - `SourcePort` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
 - `SourceChannel` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 - `Tokens` must not be empty.
 - Each `Coin` in `Tokens` must satisfy the following:
-  - `Amount` must be positive.
-  - `Denom` must be a valid IBC denomination, as defined in [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
+    - `Amount` must be positive.
+    - `Denom` must be a valid IBC denomination, as defined in [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
 - `Sender` is empty.
 - `Receiver` is empty or contains more than 2048 bytes.
 - `Memo` contains more than 32768 bytes.
