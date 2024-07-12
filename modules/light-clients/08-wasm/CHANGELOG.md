@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* [#\6231](https://github.com/cosmos/ibc-go/pull/6231) feat: add CLI to broadcast transaction with `MsgMigrateContract`.
+
 ### Bug Fixes
 
 * [\#6815](https://github.com/cosmos/ibc-go/pull/6815) Decode to bytes the hex-encoded checksum argument of the `migrate-contract` CLI. 
