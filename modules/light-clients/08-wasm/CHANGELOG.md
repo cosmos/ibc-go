@@ -56,6 +56,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* [\#6815](https://github.com/cosmos/ibc-go/pull/6815) Decode to bytes the hex-encoded checksum argument of the `"migrate-contract` CLI. 
+
 <!-- markdown-link-check-disable-next-line -->
 ## [v0.2.0+ibc-go-v8.3-wasmvm-v2.0](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.2.0%2Bibc-go-v8.3-wasmvm-v2.0) - 2024-05-23
 
