@@ -119,7 +119,7 @@ Token forwarding and unwinding is supported only on ICS20 v2 transfer channels.
 :::
 
 Forwarding allows tokens to be routed to a final destination through multiple (up to 8) intermediary
-chains. With forwarding is also possible to unwind IBC vouchers to their native chain, and forward 
+chains. With forwarding, it's also possible to unwind IBC vouchers to their native chain, and forward 
 them afterwards to another destination, all with just a single transfer transaction on the sending chain.
 
 ### Forward tokens

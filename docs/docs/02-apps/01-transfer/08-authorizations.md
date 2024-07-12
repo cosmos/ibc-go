@@ -56,8 +56,8 @@ type Allocation struct {
   AllowedPacketData []string 
   // Optional list of allowed combinations of source port ID/channel ID pairs
   // through which the tokens are allowed to be forwarded until final
-	// destination
-	AllowedForwarding []AllowedForwarding
+  // destination
+  AllowedForwarding []AllowedForwarding
 }
 
 type AllowedForwarding struct {
