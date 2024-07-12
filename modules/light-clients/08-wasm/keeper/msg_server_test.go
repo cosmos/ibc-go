@@ -63,26 +63,12 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
 			},
-			errors.New("Wasm bytes do not not start with Wasm magic number"),
+			errors.New("Wasm bytes do not start with Wasm magic number"),
 		},
 		{
 			"fails with wasm code too large",
 			func() {
 				msg = types.NewMsgStoreCode(signer, append(wasmtesting.WasmMagicNumber, []byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))...))
-			},
-			types.ErrWasmCodeTooLarge,
-		},
-		{
-			"fails with checksum",
-			func() {
-				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
-			},
-			errors.New("Wasm bytes do not not start with Wasm magic number"),
-		},
-		{
-			"fails with wasm code too large",
-			func() {
-				msg = types.NewMsgStoreCode(signer, wasmtesting.CreateMockContract([]byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))))
 			},
 			types.ErrWasmCodeTooLarge,
 		},
