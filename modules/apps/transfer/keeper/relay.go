@@ -8,7 +8,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
@@ -243,9 +242,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			// send to receiver
 			moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
-			if moduleAddr == nil {
-				return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName)
-			}
 			if err := k.bankKeeper.SendCoins(
 				ctx, moduleAddr, receiver, sdk.NewCoins(voucher),
 			); err != nil {
