@@ -347,14 +347,17 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
+	sender, err := sdk.AccAddressFromBech32(data.Sender)
+	if err != nil {
+		return err
+	}
+	if k.isBlockedAddr(sender) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
+	}
+
 	moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()
-		if err != nil {
-			return err
-		}
-
-		sender, err := sdk.AccAddressFromBech32(data.Sender)
 		if err != nil {
 			return err
 		}
@@ -369,9 +372,6 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 				return err
 			}
 
-			if k.isBlockedAddr(sender) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
-			}
 			if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
 				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 			}
