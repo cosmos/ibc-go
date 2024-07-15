@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -29,10 +28,10 @@ type LightClientModule struct {
 }
 
 // NewLightClientModule creates and returns a new 08-wasm LightClientModule.
-func NewLightClientModule(keeper wasmkeeper.Keeper, key storetypes.StoreKey) LightClientModule {
+func NewLightClientModule(keeper wasmkeeper.Keeper, storeProvider exported.ClientStoreProvider) LightClientModule {
 	return LightClientModule{
 		keeper:        keeper,
-		storeProvider: clienttypes.NewStoreProvider(key),
+		storeProvider: storeProvider,
 	}
 }
 

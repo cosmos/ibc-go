@@ -120,6 +120,7 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -569,11 +570,12 @@ func NewSimApp(
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+	storeProvider := ibcclienttypes.NewStoreProvider(keys[ibcexported.StoreKey])
 
-	tmLightClientModule := ibctm.NewLightClientModule(keys[ibcexported.StoreKey], appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
-	smLightClientModule := solomachine.NewLightClientModule(keys[ibcexported.StoreKey], appCodec)
+	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
 	// create evidence keeper with router

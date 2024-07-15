@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,10 +23,10 @@ type LightClientModule struct {
 }
 
 // NewLightClientModule creates and returns a new 07-tendermint LightClientModule.
-func NewLightClientModule(key storetypes.StoreKey, cdc codec.BinaryCodec, authority string) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeProvider exported.ClientStoreProvider, authority string) LightClientModule {
 	return LightClientModule{
 		keeper:        keeper.NewKeeper(cdc, authority),
-		storeProvider: clienttypes.NewStoreProvider(key),
+		storeProvider: storeProvider,
 	}
 }
 

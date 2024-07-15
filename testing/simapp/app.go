@@ -515,11 +515,12 @@ func NewSimApp(
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+	storeProvider := ibcclienttypes.NewStoreProvider(keys[ibcexported.StoreKey])
 
-	tmLightClientModule := ibctm.NewLightClientModule(keys[ibcexported.StoreKey], appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
-	smLightClientModule := solomachine.NewLightClientModule(keys[ibcexported.StoreKey], appCodec)
+	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
 	// ****  Module Options ****

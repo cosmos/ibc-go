@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,10 +21,10 @@ type LightClientModule struct {
 }
 
 // NewLightClientModule creates and returns a new 06-solomachine LightClientModule.
-func NewLightClientModule(key storetypes.StoreKey, cdc codec.BinaryCodec) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeProvider exported.ClientStoreProvider) LightClientModule {
 	return LightClientModule{
 		cdc:           cdc,
-		storeProvider: clienttypes.NewStoreProvider(key),
+		storeProvider: storeProvider,
 	}
 }
 
