@@ -552,7 +552,7 @@ func NewSimApp(
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
-	storeProvider := ibcclienttypes.NewStoreProvider(keys[ibcexported.StoreKey])
+	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
 
 	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
