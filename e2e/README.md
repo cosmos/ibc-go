@@ -50,7 +50,6 @@ options specified in your config file. These are primarily used for CI and are n
 | RELAYER_TAG          | The tag used for the relayer              | 1.10.0                      |
 | RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes                      |
 
-
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 > The images which are used only exist locally only.
 
@@ -122,11 +121,11 @@ params.
 
 ### When to use t.Parallel
 
-`t.Parallel()` should **not** be used when: 
- - the test is not modifying chain wide state such as modifying params via a gov proposal.
- - the test needs to perform a chain restart.
- - the test must make assertions which may not be deterministic due to other tests. (e.g. the TotalEscrowForDenom may be modified between tests)
+tests should **not** be run in parallel when:
 
+- the test is not modifying chain wide state such as modifying params via a gov proposal.
+- the test needs to perform a chain restart.
+- the test must make assertions which may not be deterministic due to other tests. (e.g. the TotalEscrowForDenom may be modified between tests)
 
 ### CI configuration
 
