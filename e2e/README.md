@@ -98,6 +98,13 @@ make e2e-suite entrypoint=TestTransferTestSuite
 Similar to running a single test, if `jq` and `fzf` are installed you can run `make e2e-suite` and be prompted
 to interactively select a test suite to run.
 
+### Running tests outside the context of the Makefile
+
+In order to run tests outside the context of the Makefile (e.g. from an IDE)
+
+The main thing that needs to be set is the `E2E_CONFIG_PATH` environment variable. This should point to a valid config
+file, setting this will depend on the IDE being used.
+
 ## Test design
 
 ### interchaintest
