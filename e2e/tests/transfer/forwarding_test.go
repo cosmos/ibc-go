@@ -117,6 +117,11 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
+
+		// packet from B to C is acknowledged on chain C
+		s.AssertPacketAcknowledged(ctx, chainC, channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID, 1)
+		// packet from A to B is acknowledged on chain B
+		s.AssertPacketAcknowledged(ctx, chainB, channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID, 1)
 	})
 }
 
@@ -219,8 +224,12 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 			return balance.Int64() == testvalues.IBCTransferAmount, nil
 		})
 		s.Require().NoError(err)
+		// packet from B to C is relayed
 		s.AssertPacketRelayed(ctx, chainB, channelBtoC.PortID, channelBtoC.ChannelID, 1)
-		s.AssertPacketAcknowledged(ctx, chainB, channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID, 1)
+		// packet from B to C is acknowledged on chain C
+		s.AssertPacketAcknowledged(ctx, chainC, channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID, 1)
+		// packet from A to B is acknowledged on chain B
+		s.AssertPacketAcknowledged(ctx, chainB, channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID, 2)
 	})
 }
 
