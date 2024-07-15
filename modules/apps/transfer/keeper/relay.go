@@ -149,7 +149,7 @@ func (k Keeper) sendTransfer(
 
 	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
 
-	defer telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
+	telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
 
 	return sequence, nil
 }
@@ -210,8 +210,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return err
 			}
 
-			defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
-
 			// Appending token. The new denom has been computed
 			receivedCoins = append(receivedCoins, coin)
 		} else {
@@ -252,8 +250,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 			}
 
-			defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
-
 			receivedCoins = append(receivedCoins, voucher)
 		}
 	}
@@ -264,6 +260,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return err
 		}
 	}
+
+	telemetry.ReportOnRecvPacket(packet, data.Tokens)
 
 	// The ibc_module.go module will return the proper ack.
 	return nil
