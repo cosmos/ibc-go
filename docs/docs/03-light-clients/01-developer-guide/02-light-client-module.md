@@ -8,10 +8,6 @@ slug: /ibc/light-clients/light-client-module
 
 # Implementing the `LightClientModule` interface
 
-## `RegisterStoreProvider` method
-
-`RegisterStoreProvider` is called by core IBC when a `LightClientModule` is added to the router. It allows the `LightClientModule` to set a `ClientStoreProvider` ([interface defined in `modules/core/exported`](https://github.com/cosmos/ibc-go/blob/06fd8eb5ee1697e3b43be7528a6e42f5e4a4613c/modules/core/exported/client.go#L49-L52)) which supplies isolated prefix client stores to IBC light client instances.
-
 ## `Status` method
 
 `Status` must return the status of the client.
