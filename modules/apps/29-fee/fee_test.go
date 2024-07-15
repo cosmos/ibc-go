@@ -88,7 +88,7 @@ func RemoveFeeMiddleware(chain *ibctesting.TestChain) {
 
 	// Remove Fee middleware from icacontroller submodule
 	chain.GetSimApp().ICAControllerKeeper.WithICS4Wrapper(channelKeeper)
-	icaControllerStack := icacontroller.NewIBCMiddleware(nil, chain.GetSimApp().ICAControllerKeeper)
+	icaControllerStack := icacontroller.NewIBCMiddleware(chain.GetSimApp().ICAControllerKeeper)
 	newRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
 
 	// Override and seal the router

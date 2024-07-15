@@ -49,7 +49,11 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 
 	index := getAllocationIndex(*msgTransfer, a.Allocations)
 	if index == allocationNotFound {
-		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
+		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
+	}
+
+	if err := validateForwarding(msgTransfer.Forwarding, a.Allocations[index].AllowedForwarding); err != nil {
+		return authz.AcceptResponse{}, err
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -58,8 +62,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 	}
 
-	err := validateMemo(ctx, msgTransfer.Memo, a.Allocations[index].AllowedPacketData)
-	if err != nil {
+	if err := validateMemo(ctx, msgTransfer.Memo, a.Allocations[index].AllowedPacketData); err != nil {
 		return authz.AcceptResponse{}, err
 	}
 
@@ -143,6 +146,14 @@ func (a TransferAuthorization) ValidateBasic() error {
 			}
 			found[allocation.AllowList[i]] = true
 		}
+
+		for i := 0; i < len(allocation.AllowedForwarding); i++ {
+			for _, hop := range allocation.AllowedForwarding[i].Hops {
+				if err := hop.Validate(); err != nil {
+					return errorsmod.Wrap(err, "invalid forwarding hop")
+				}
+			}
+		}
 	}
 
 	return nil
@@ -163,6 +174,42 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 			return true
 		}
 	}
+	return false
+}
+
+// validateForwarding performs the validation of forwarding info.
+func validateForwarding(forwarding *Forwarding, allowedForwarding []AllowedForwarding) error {
+	if forwarding == nil {
+		return nil
+	}
+
+	if forwarding.GetUnwind() {
+		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed automatic unwind")
+	}
+
+	if !isAllowedForwarding(forwarding.GetHops(), allowedForwarding) {
+		return errorsmod.Wrapf(ErrInvalidForwarding, "not allowed hops %s", forwarding.Hops)
+	}
+
+	return nil
+}
+
+// isAllowedForwarding returns whether the provided slice of Hop matches one of the allowed ones.
+func isAllowedForwarding(hops []Hop, allowed []AllowedForwarding) bool {
+	if len(hops) == 0 {
+		return true
+	}
+
+	// We want to ensure that at least one of the Hops in "allowed"
+	// is equal to "hops".
+	// Note that we can't use slices.Contains() as that is a generic
+	// function that requires the type Hop to satisfy the "comparable" constraint.
+	for _, allowedHops := range allowed {
+		if slices.Equal(hops, allowedHops.Hops) {
+			return true
+		}
+	}
+
 	return false
 }
 

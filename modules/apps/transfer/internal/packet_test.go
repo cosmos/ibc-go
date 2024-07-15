@@ -8,6 +8,12 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+)
+
+const (
+	sender   = "sender"
+	receiver = "receiver"
 )
 
 func TestUnmarshalPacketData(t *testing.T) {
@@ -32,10 +38,10 @@ func TestUnmarshalPacketData(t *testing.T) {
 				packetData := types.NewFungibleTokenPacketDataV2(
 					[]types.Token{
 						{
-							Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
+							Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
 							Amount: "1000",
 						},
-					}, "sender", "receiver", "")
+					}, sender, receiver, "", types.ForwardingPacketData{})
 
 				packetDataBz = packetData.GetBytes()
 				version = types.V2
@@ -53,7 +59,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 
 	for _, tc := range testCases {
 
-		packetDataV1 := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", "sender", "receiver", "")
+		packetDataV1 := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
 
 		packetDataBz = packetDataV1.GetBytes()
 		version = types.V1
@@ -65,6 +71,61 @@ func TestUnmarshalPacketData(t *testing.T) {
 		expPass := tc.expError == nil
 		if expPass {
 			require.IsType(t, types.FungibleTokenPacketDataV2{}, packetData)
+		} else {
+			require.ErrorIs(t, err, tc.expError)
+		}
+	}
+}
+
+// TestV2ForwardsCompatibilityFails asserts that new fields being added to a future proto definition of
+// FungibleTokenPacketDataV2 fail to unmarshal with previous versions. In essence, permit backwards compatibility
+// but restrict forward one.
+func TestV2ForwardsCompatibilityFails(t *testing.T) {
+	var (
+		packet       types.FungibleTokenPacketDataV2
+		packetDataBz []byte
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: new field present in packet data",
+			func() {
+				// packet data containing extra field unknown to current proto file.
+				packetDataBz = append(packet.GetBytes(), []byte("22\tnew_value")...)
+			},
+			ibcerrors.ErrInvalidType,
+		},
+	}
+
+	for _, tc := range testCases {
+		packet = types.NewFungibleTokenPacketDataV2(
+			[]types.Token{
+				{
+					Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
+					Amount: "1000",
+				},
+			}, "sender", "receiver", "", types.ForwardingPacketData{},
+		)
+
+		packetDataBz = packet.GetBytes()
+
+		tc.malleate()
+
+		packetData, err := UnmarshalPacketData(packetDataBz, types.V2)
+
+		expPass := tc.expError == nil
+		if expPass {
+			require.NoError(t, err)
+			require.NotEqual(t, types.FungibleTokenPacketDataV2{}, packetData)
 		} else {
 			require.ErrorIs(t, err, tc.expError)
 		}
@@ -89,10 +150,10 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
+						Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
 						Amount: "1000",
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", types.ForwardingPacketData{}),
 			nil,
 		},
 		{
@@ -104,7 +165,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 						Denom:  types.NewDenom("atom"),
 						Amount: "1000",
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", types.ForwardingPacketData{}),
 			nil,
 		},
 		{
@@ -113,10 +174,10 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom/withslash", types.NewTrace("transfer", "channel-0")),
+						Denom:  types.NewDenom("atom/withslash", types.NewHop("transfer", "channel-0")),
 						Amount: "1000",
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", types.ForwardingPacketData{}),
 			nil,
 		},
 		{
@@ -125,10 +186,10 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom/", types.NewTrace("transfer", "channel-0")),
+						Denom:  types.NewDenom("atom/", types.NewHop("transfer", "channel-0")),
 						Amount: "1000",
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", types.ForwardingPacketData{}),
 			nil,
 		},
 		{
@@ -137,10 +198,10 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom/pool", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1")),
+						Denom:  types.NewDenom("atom/pool", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 						Amount: "1000",
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", types.ForwardingPacketData{}),
 			nil,
 		},
 		{
@@ -149,10 +210,10 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer-custom", "channel-2")),
+						Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1"), types.NewHop("transfer-custom", "channel-2")),
 						Amount: "1000",
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", types.ForwardingPacketData{}),
 			nil,
 		},
 		{
@@ -161,10 +222,10 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]types.Token{
 					{
-						Denom:  types.NewDenom("atom/pool", types.NewTrace("transfer", "channel-0"), types.NewTrace("transfer", "channel-1"), types.NewTrace("transfer-custom", "channel-2")),
+						Denom:  types.NewDenom("atom/pool", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1"), types.NewHop("transfer-custom", "channel-2")),
 						Amount: "1000",
 					},
-				}, sender, receiver, ""),
+				}, sender, receiver, "", types.ForwardingPacketData{}),
 			nil,
 		},
 		{

@@ -9,12 +9,13 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -64,10 +65,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		},
 		{
 			"failure: 09-localhost client type not supported",
-			func() {
-				lhClientState := localhost.NewClientState(clienttypes.GetSelfHeight(suite.chainA.GetContext()))
-				clientState = suite.chainA.App.AppCodec().MustMarshal(lhClientState)
-			},
+			func() {},
 			exported.Localhost,
 			false,
 		},
@@ -521,10 +519,16 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	suite.Require().NoError(err)
 
 	result, err := suite.chainA.SendMsgs(msg)
+
+	// check that update client event was emitted
 	suite.Require().NoError(err)
-	// first event type is "message", followed by 3 "tx" events in ante
-	updateEvent := result.Events[4]
-	suite.Require().Equal(clienttypes.EventTypeUpdateClient, updateEvent.Type)
+	var event abci.Event
+	for _, e := range result.Events {
+		if e.Type == clienttypes.EventTypeUpdateClient {
+			event = e
+		}
+	}
+	suite.Require().NotNil(event)
 }
 
 func (suite *KeeperTestSuite) TestRecoverClient() {

@@ -3,7 +3,11 @@ package internal
 import (
 	"encoding/json"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	errorsmod "cosmossdk.io/errors"
+
+	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -22,7 +26,11 @@ func UnmarshalPacketData(bz []byte, ics20Version string) (types.FungibleTokenPac
 		return packetDataV1ToV2(datav1)
 	case types.V2:
 		var datav2 types.FungibleTokenPacketDataV2
-		if err := json.Unmarshal(bz, &datav2); err != nil {
+		if err := unknownproto.RejectUnknownFieldsStrict(bz, &datav2, unknownproto.DefaultAnyResolver{}); err != nil {
+			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
+		}
+
+		if err := proto.Unmarshal(bz, &datav2); err != nil {
 			return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
 		}
 
@@ -51,8 +59,9 @@ func packetDataV1ToV2(packetData types.FungibleTokenPacketData) (types.FungibleT
 				Amount: packetData.Amount,
 			},
 		},
-		Sender:   packetData.Sender,
-		Receiver: packetData.Receiver,
-		Memo:     packetData.Memo,
+		Sender:     packetData.Sender,
+		Receiver:   packetData.Receiver,
+		Memo:       packetData.Memo,
+		Forwarding: types.ForwardingPacketData{},
 	}, nil
 }

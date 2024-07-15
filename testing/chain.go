@@ -34,7 +34,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/core/types"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
@@ -59,7 +58,6 @@ type TestChain struct {
 	ChainID               string
 	LatestCommittedHeader *ibctm.Header   // header for last block height committed
 	ProposedHeader        cmtproto.Header // proposed (uncommitted) header for current block height
-	QueryServer           types.QueryServer
 	TxConfig              client.TxConfig
 	Codec                 codec.Codec
 
@@ -150,7 +148,6 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		ChainID:        chainID,
 		App:            app,
 		ProposedHeader: header,
-		QueryServer:    app.GetIBCKeeper(),
 		TxConfig:       txConfig,
 		Codec:          app.AppCodec(),
 		Vals:           valSet,
@@ -627,6 +624,12 @@ func (chain *TestChain) GetClientLatestHeight(clientID string) exported.Height {
 // to be used for testing. It returns the current IBC height + 100 blocks
 func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.ChainID), uint64(chain.GetContext().BlockHeight())+100)
+}
+
+// GetTimeoutTimestamp is a convenience function which returns a IBC packet timeout timestamp
+// to be used for testing. It returns the current block timestamp + default timestamp delta (1 hour).
+func (chain *TestChain) GetTimeoutTimestamp() uint64 {
+	return uint64(chain.GetContext().BlockTime().UnixNano()) + DefaultTimeoutTimestampDelta
 }
 
 // DeleteKey deletes the specified key from the ibc store.

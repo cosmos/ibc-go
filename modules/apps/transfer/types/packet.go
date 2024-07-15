@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
@@ -103,12 +105,14 @@ func NewFungibleTokenPacketDataV2(
 	tokens []Token,
 	sender, receiver string,
 	memo string,
+	forwarding ForwardingPacketData,
 ) FungibleTokenPacketDataV2 {
 	return FungibleTokenPacketDataV2{
-		Tokens:   tokens,
-		Sender:   sender,
-		Receiver: receiver,
-		Memo:     memo,
+		Tokens:     tokens,
+		Sender:     sender,
+		Receiver:   receiver,
+		Memo:       memo,
+		Forwarding: forwarding,
 	}
 }
 
@@ -138,12 +142,22 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 
+	if err := ftpd.Forwarding.Validate(); err != nil {
+		return err
+	}
+
+	// We cannot have non-empty memo and non-empty forwarding path hops at the same time.
+	if ftpd.HasForwarding() && ftpd.Memo != "" {
+		return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", ftpd.Memo, ftpd.Forwarding.Hops)
+	}
+
 	return nil
 }
 
-// GetBytes is a helper for serialising
+// GetBytes is a helper for serialising a FungibleTokenPacketDataV2. It uses protobuf to serialise
+// the packet data and panics on failure.
 func (ftpd FungibleTokenPacketDataV2) GetBytes() []byte {
-	bz, err := json.Marshal(&ftpd)
+	bz, err := proto.Marshal(&ftpd)
 	if err != nil {
 		panic(errors.New("cannot marshal FungibleTokenPacketDataV2 into bytes"))
 	}
@@ -182,4 +196,9 @@ func (ftpd FungibleTokenPacketDataV2) GetCustomPacketData(key string) interface{
 //   - sourcePortID is not used in this implementation.
 func (ftpd FungibleTokenPacketDataV2) GetPacketSender(sourcePortID string) string {
 	return ftpd.Sender
+}
+
+// HasForwarding determines if the packet should be forwarded to the next hop.
+func (ftpd FungibleTokenPacketDataV2) HasForwarding() bool {
+	return len(ftpd.Forwarding.Hops) > 0
 }

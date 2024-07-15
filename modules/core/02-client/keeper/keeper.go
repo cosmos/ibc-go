@@ -68,16 +68,6 @@ func (k *Keeper) Route(clientID string) (exported.LightClientModule, bool) {
 	return k.router.GetRoute(clientID)
 }
 
-// CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
-func (k *Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
-	if !found {
-		return errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID)
-	}
-
-	return clientModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
-}
-
 // UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
 func (k *Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
 	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
@@ -305,8 +295,8 @@ func (k *Keeper) HasClientConsensusState(ctx sdk.Context, clientID string, heigh
 
 // GetLatestClientConsensusState gets the latest ConsensusState stored for a given client
 func (k *Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) (exported.ConsensusState, bool) {
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
 		return nil, false
 	}
 
@@ -326,6 +316,26 @@ func (k *Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) 
 // This allows support for non-Tendermint clients, for example 08-wasm clients.
 func (k *Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
 	return k.consensusHost.ValidateSelfClient(ctx, clientState)
+}
+
+// VerifyMembershipProof retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
+func (k *Keeper) VerifyMembershipProof(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	return clientModule.VerifyMembership(ctx, clientID, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+}
+
+// VerifyNonMembership retrieves the light client module for the clientID and verifies the absence of a given key at a specified height.
+func (k *Keeper) VerifyNonMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path) error {
+	clientModule, err := k.getLightClientModule(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	return clientModule.VerifyNonMembership(ctx, clientID, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
 // GetUpgradePlan executes the upgrade keeper GetUpgradePlan function.
@@ -393,17 +403,8 @@ func (k *Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStor
 // GetClientStatus returns the status for a client state  given a client identifier. If the client type is not in the allowed
 // clients param field, Unauthorized is returned, otherwise the client state status is returned.
 func (k *Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Status {
-	clientType, _, err := types.ParseClientIdentifier(clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
 	if err != nil {
-		return exported.Unauthorized
-	}
-
-	if !k.GetParams(ctx).IsAllowedClient(clientType) {
-		return exported.Unauthorized
-	}
-
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
 		return exported.Unauthorized
 	}
 
@@ -413,17 +414,8 @@ func (k *Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Stat
 // GetClientLatestHeight returns the latest height of a client state for a given client identifier. If the client type is not in the allowed
 // clients param field, a zero value height is returned, otherwise the client state latest height is returned.
 func (k *Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.Height {
-	clientType, _, err := types.ParseClientIdentifier(clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
 	if err != nil {
-		return types.ZeroHeight()
-	}
-
-	if !k.GetParams(ctx).IsAllowedClient(clientType) {
-		return types.ZeroHeight()
-	}
-
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
 		return types.ZeroHeight()
 	}
 
@@ -437,18 +429,9 @@ func (k *Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.H
 
 // GetClientTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (k *Keeper) GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
-	clientType, _, err := types.ParseClientIdentifier(clientID)
+	clientModule, err := k.getLightClientModule(ctx, clientID)
 	if err != nil {
-		return 0, errorsmod.Wrapf(err, "clientID (%s)", clientID)
-	}
-
-	if !k.GetParams(ctx).IsAllowedClient(clientType) {
-		return 0, errorsmod.Wrapf(types.ErrInvalidClientType, "client state type %s is not registered in the allowlist", clientType)
-	}
-
-	clientModule, found := k.router.GetRoute(clientID)
-	if !found {
-		return 0, errorsmod.Wrap(types.ErrRouteNotFound, clientType)
+		return 0, err
 	}
 
 	return clientModule.TimestampAtHeight(ctx, clientID, height)
@@ -502,4 +485,26 @@ func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.P
 	emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
 
 	return nil
+}
+
+// getLightClientModule checks that the clientType of clientID is allowed and returns the corresponding light client module
+func (k *Keeper) getLightClientModule(ctx sdk.Context, clientID string) (exported.LightClientModule, error) {
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
+	}
+
+	if !k.GetParams(ctx).IsAllowedClient(clientType) {
+		return nil, errorsmod.Wrapf(
+			types.ErrInvalidClientType,
+			"client (%s) type %s is not in the allowed client list", clientID, clientType,
+		)
+	}
+
+	clientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return nil, errorsmod.Wrap(types.ErrRouteNotFound, clientID)
+	}
+
+	return clientModule, nil
 }

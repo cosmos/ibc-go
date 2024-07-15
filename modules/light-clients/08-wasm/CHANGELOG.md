@@ -34,27 +34,43 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [[Unreleased]]
 
 ### Dependencies
 
-* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.6.
-* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
-* [#\6097](https://github.com/cosmos/ibc-go/pull/6097) Update wasmvm to v2.0.1.
-* [\#6239](https://github.com/cosmos/ibc-go/pull/6239) Bump CometBFT to v0.38.7.
+* [\#6807](https://github.com/cosmos/ibc-go/pull/6807) Update wasmvm to v2.1.0.
 
 ### API Breaking
+
+* [\#6644](https://github.com/cosmos/ibc-go/pull/6644) api!: add `v2.MerklePath` for contract api `VerifyMembershipMsg` and `VerifyNonMembershipMsg` structs. Note, this requires a migration for existing client contracts to correctly handle deserialization of `MerklePath.KeyPath` which has changed from `repeated string` to `repeated bytes`. In JSON message structures this change is reflected as the `KeyPath` being a marshalled as a list of base64 encoded byte strings. 
 
 ### State Machine Breaking
 
 ### Improvements
 
+* [\#5923](https://github.com/cosmos/ibc-go/pull/5923) imp: add 08-wasm build opts for libwasmvm linking disabled 
+
 ### Features
 
-* [#\5821](https://github.com/cosmos/ibc-go/pull/5821) feat: add `VerifyMembershipProof` RPC query (querier approach for conditional clients).
-* [#\6231](https://github.com/cosmos/ibc-go/pull/6231) feat: add CLI to broadcast transaction with `MsgMigrateContract`.
+* [\#6055](https://github.com/cosmos/ibc-go/pull/6055) feat: add 08-wasm `ConsensusHost` implementation for custom self client/consensus state validation in 03-connection handshake.
 
 ### Bug Fixes
+
+* [\#6815](https://github.com/cosmos/ibc-go/pull/6815) Decode to bytes the hex-encoded checksum argument of the `migrate-contract` CLI. 
+
+<!-- markdown-link-check-disable-next-line -->
+## [v0.2.0+ibc-go-v8.3-wasmvm-v2.0](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.2.0%2Bibc-go-v8.3-wasmvm-v2.0) - 2024-05-23
+
+### Dependencies
+
+* [\#5909](https://github.com/cosmos/ibc-go/pull/5909) Update wasmvm to v2.0.0 and cometBFT to v0.38.6.
+* [\#6097](https://github.com/cosmos/ibc-go/pull/6097) Update wasmvm to v2.0.1.
+* [\#6350](https://github.com/cosmos/ibc-go/pull/6350) Upgrade Cosmos SDK to v0.50.6.
+
+### Features
+
+* [\#5821](https://github.com/cosmos/ibc-go/pull/5821) feat: add `VerifyMembershipProof` RPC query (querier approach for conditional clients).
+* [\#6231](https://github.com/cosmos/ibc-go/pull/6231) feat: add CLI to broadcast transaction with `MsgMigrateContract`.
 
 <!-- markdown-link-check-disable-next-line -->
 ## [v0.1.0+ibc-go-v8.0-wasmvm-v1.5](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.1.0%2Bibc-go-v7.3-wasmvm-v1.5) - 2023-12-18
