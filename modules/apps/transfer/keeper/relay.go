@@ -149,7 +149,7 @@ func (k Keeper) sendTransfer(
 
 	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
 
-	defer telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
+	telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
 
 	return sequence, nil
 }
@@ -210,8 +210,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return err
 			}
 
-			defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
-
 			// Appending token. The new denom has been computed
 			receivedCoins = append(receivedCoins, coin)
 		} else {
@@ -252,8 +250,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 			}
 
-			defer telemetry.ReportOnRecvPacket(packet.GetSourcePort(), packet.GetSourceChannel(), token)
-
 			receivedCoins = append(receivedCoins, voucher)
 		}
 	}
@@ -264,6 +260,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return err
 		}
 	}
+
+	telemetry.ReportOnRecvPacket(packet, data.Tokens)
 
 	// The ibc_module.go module will return the proper ack.
 	return nil
@@ -457,7 +455,7 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 	case types.V1:
 		// Sanity check, tokens must always be of length 1 if using app version V1.
 		if len(tokens) != 1 {
-			panic(fmt.Errorf("length of tokens must be equal to 1 if using %s version", types.V1))
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
 		}
 
 		token := tokens[0]
@@ -484,6 +482,6 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 
 		return packetData.GetBytes(), nil
 	default:
-		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
+		return nil, errorsmod.Wrapf(types.ErrInvalidVersion, "app version must be one of %s", types.SupportedVersions)
 	}
 }
