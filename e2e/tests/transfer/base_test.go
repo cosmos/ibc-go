@@ -177,6 +177,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 	t := s.T()
 	ctx := context.TODO()
 
+	s.SkipIf(t, func() (bool, string) {
+		return s.TransferChannelOptions().Version == transfertypes.V1, "skipping test, only v2 is supported"
+	})
+
 	testName := t.Name()
 	t.Parallel()
 	relayer, channelA := s.CreateTransferPath(testName)
@@ -281,6 +285,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 	t := s.T()
 	ctx := context.TODO()
+
+	s.SkipIf(t, func() (bool, string) {
+		return s.TransferChannelOptions().Version == transfertypes.V1, "skipping test, only v2 is supported"
+	})
 
 	testName := t.Name()
 	t.Parallel()

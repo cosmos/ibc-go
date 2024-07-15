@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"testing"
 
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
@@ -78,6 +79,12 @@ type E2ETestSuite struct {
 	// testRelayerMap is a map of test suite names to relayers that are used in the test suite.
 	// this is used as a cache after a relayer has been assigned to a test suite.
 	testRelayerMap map[string]ibc.Relayer
+}
+
+func (s *E2ETestSuite) SkipIf(t *testing.T, f func() (bool, string)) {
+	if skip, reason := f(); skip {
+		t.Skip(reason)
+	}
 }
 
 // initState populates variables that are used across the test suite.

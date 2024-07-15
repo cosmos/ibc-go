@@ -13,10 +13,6 @@
   "entrypoint": [
     "TestAuthzTransferTestSuite"
   ],
-  "test": [
-    "TestAuthz_MsgTransfer_Succeeds",
-    "TestAuthz_InvalidTransferAuthorizations"
-  ],
   "relayer-type": [
     "hermes"
   ]
