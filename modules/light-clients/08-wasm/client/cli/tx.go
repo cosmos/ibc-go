@@ -106,7 +106,6 @@ func newMigrateContractCmd() *cobra.Command {
 				return fmt.Errorf("invalid checksum format: %w", err)
 			}
 
-			// Construct the message
 			msg := &types.MsgMigrateContract{
 				Signer:   clientCtx.GetFromAddress().String(),
 				ClientId: clientID,
