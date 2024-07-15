@@ -29,6 +29,16 @@ simd tx ibc-wasm store-code [path/to/wasm-file] [flags]
 
 `path/to/wasm-file` is the path to the `.wasm` or `.wasm.gz` file.
 
+#### `migrate-contract`
+
+The `migrate-contract` command allows users to broadcast a transaction with a `MsgMigrateContract` to migrate the contract for a given light client to a new byte code denoted by the given checksum.
+
+```shell
+simd tx ibc-wasm migrate-contract [client-id] [checksum] [migrate-msg]
+```
+
+The migrate message must not be emptied and is expected to be a JSON-encoded string.
+
 ### Query
 
 The `query` commands allow users to query `08-wasm` state.

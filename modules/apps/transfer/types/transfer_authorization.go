@@ -183,11 +183,11 @@ func validateForwarding(forwarding *Forwarding, allowedForwarding []AllowedForwa
 		return nil
 	}
 
-	if forwarding.Unwind {
+	if forwarding.GetUnwind() {
 		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed automatic unwind")
 	}
 
-	if !isAllowedForwarding(forwarding.Hops, allowedForwarding) {
+	if !isAllowedForwarding(forwarding.GetHops(), allowedForwarding) {
 		return errorsmod.Wrapf(ErrInvalidForwarding, "not allowed hops %s", forwarding.Hops)
 	}
 
