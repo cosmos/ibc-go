@@ -62,16 +62,16 @@ A user on one chain, for example the Cosmos Hub holds an asset, e.g. ATOM and wa
 1. A functional relayer implementation is required for this feature.
 2. Routing information for the final hop for unwinding or for forwarding is configured for the user through a front end client, or configured by another means using off-chain data. 
 3. The feature will have no impact on the existing function of a typical ICS-20 transfer where a native token is sent to another chain.
-4. Fees will be treated the same as with other IBC applications.
+4. Fees are not within the scope of these requirements.
 5. The functionality to enable a specific action before forwarding is not in scope of these requirements.
-6. If a transfer contains multiple unique tokens, the unwinding functionality only needs to support forwarding through the same path, i.e. if there is a transfer containing a native token and 1 hop denom being sent from source to destination, both tokens would unwind through the same path. In the future, it may be desirable for different tokens to be unwound through different paths, to support actions such as atomic transfer and supply liquidity to a liquidity pool, but it is currently out of scope for the first version of this feature. 
+6. If a transfer contains multiple unique tokens, the unwinding and forwarding functionalities only need to support unwinding or forwarding through the same path, i.e. if there is a transfer containing a native token and 1 hop denom being sent from source to destination, both tokens would always go through the same path. In the future, it may be desirable for different tokens to be unwound through different paths, to support actions such as atomic transfer and supply liquidity to a liquidity pool, but it is currently out of scope for the first version of this feature. 
 
 ## Features
 
 | ID | Description | Verification | Status | 
 | -- | ----------- | ------------ | ------ | 
-| 1.01 | When a user initiates a transfer to a destination chain with an IBC denom with > 1 hop, the token shall be sent back to its originating chain before being sent onto the destination as a default | | `Draft` | 
-| 1.02 | If a user does not want to unwind the tokens, then they can override the default unwinding | | `Draft` | 
+| 1.01 | When a user initiates a transfer to a destination chain with an IBC denom with > 1 hop, the token shall be sent back to its originating chain before being sent onto the destination as a user selected option | | `Draft` | 
+| 1.02 | If a user wants to unwind tokens, then they can select this as option for the transfer | | `Draft` | 
 | 1.03 | The unwinding shall completely succeed or the tokens are recoverable on the chain they were sent from by the user | | `Draft` | 
 | 1.04 | When unwinding is used in combination with forwarding, both the unwind and forwarding should succeed or the tokens should be recoverable on the sending chain | | `Draft` | 
 | 1.05 | The forwarding mechanism shall allow a user to transfer tokens beyond the first destination for those tokens | | `Draft` | 
