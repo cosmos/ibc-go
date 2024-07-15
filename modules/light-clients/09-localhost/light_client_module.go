@@ -32,9 +32,8 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
-	cdc           codec.BinaryCodec
-	key           storetypes.StoreKey
-	storeProvider exported.ClientStoreProvider
+	cdc codec.BinaryCodec
+	key storetypes.StoreKey
 }
 
 // NewLightClientModule creates and returns a new 09-localhost LightClientModule.
@@ -43,13 +42,6 @@ func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *Light
 		cdc: cdc,
 		key: key,
 	}
-}
-
-// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-// to IBC light client instances.
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	l.storeProvider = storeProvider
 }
 
 // Initialize returns an error because it is stateless.

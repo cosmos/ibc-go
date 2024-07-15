@@ -21,17 +21,11 @@ type LightClientModule struct {
 }
 
 // NewLightClientModule creates and returns a new 06-solomachine LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeProvider exported.ClientStoreProvider) LightClientModule {
 	return LightClientModule{
-		cdc: cdc,
+		cdc:           cdc,
+		storeProvider: storeProvider,
 	}
-}
-
-// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-// to IBC light client instances.
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	l.storeProvider = storeProvider
 }
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It calls into the
