@@ -23,7 +23,7 @@ require (
 	cosmossdk.io/x/upgrade v0.1.3
 	github.com/cometbft/cometbft v0.38.9
 	github.com/cosmos/cosmos-db v1.0.2
-	github.com/cosmos/cosmos-sdk v0.50.7
+	github.com/cosmos/cosmos-sdk v0.50.8
 	github.com/cosmos/gogoproto v1.5.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/v8 v8.3.2
