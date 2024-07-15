@@ -455,7 +455,7 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 	case types.V1:
 		// Sanity check, tokens must always be of length 1 if using app version V1.
 		if len(tokens) != 1 {
-			panic(fmt.Errorf("length of tokens must be equal to 1 if using %s version", types.V1))
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
 		}
 
 		token := tokens[0]
@@ -482,6 +482,6 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 
 		return packetData.GetBytes(), nil
 	default:
-		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
+		return nil, errorsmod.Wrapf(types.ErrInvalidVersion, "app version must be one of %s", types.SupportedVersions)
 	}
 }
