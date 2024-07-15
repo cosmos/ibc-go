@@ -65,11 +65,13 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
+	testName := t.Name()
+	s.CreateDefaultPaths(testName)
+
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	const planHeight = int64(300)
-	const legacyPlanHeight = planHeight * 2
 	var newChainID string
 
 	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
@@ -127,113 +129,6 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().Equal("upgrade-client", plan.Name)
 		s.Require().Equal(planHeight, plan.Height)
 	})
-
-	t.Run("ensure legacy proposal does not succeed", func(t *testing.T) {
-		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
-		s.Require().NoError(err)
-		s.Require().NotNil(authority)
-
-		clientState, err := query.ClientState(ctx, chainB, ibctesting.FirstClientID)
-		s.Require().NoError(err)
-
-		originalChainID := clientState.(*ibctm.ClientState).ChainId
-		revisionNumber := clienttypes.ParseChainID(originalChainID)
-		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
-		newChainID, err = clienttypes.SetRevisionNumber(originalChainID, revisionNumber+1)
-		s.Require().NoError(err)
-		s.Require().NotEqual(originalChainID, newChainID)
-
-		upgradedClientState := clientState.(*ibctm.ClientState).ZeroCustomFields()
-		upgradedClientState.ChainId = newChainID
-
-		legacyUpgradeProposal, err := clienttypes.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, upgradetypes.Plan{
-			Name:   "upgrade-client-legacy",
-			Height: legacyPlanHeight,
-		}, upgradedClientState)
-
-		s.Require().NoError(err)
-		txResp := s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, legacyUpgradeProposal)
-		s.AssertTxFailure(txResp, govtypes.ErrInvalidProposalContent)
-	})
-}
-
-func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
-	t := s.T()
-	ctx := context.TODO()
-
-	var (
-		pathName           string
-		subjectClientID    string
-		substituteClientID string
-		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
-		badTrustingPeriod = time.Second * 10
-	)
-
-	relayer := s.GetRelayer()
-
-	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		// TODO: update when client identifier created is accessible
-		// currently assumes first client is 07-tendermint-0
-		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
-
-		pathName = s.GetPaths()[0]
-	})
-
-	chainA, chainB := s.GetChains()
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-
-	t.Run("create subject client with bad trusting period", func(t *testing.T) {
-		createClientOptions := ibc.CreateClientOptions{
-			TrustingPeriod: badTrustingPeriod.String(),
-		}
-
-		s.SetupClients(ctx, relayer, createClientOptions)
-
-		// TODO: update when client identifier created is accessible
-		// currently assumes second client is 07-tendermint-1
-		subjectClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 1)
-	})
-
-	time.Sleep(badTrustingPeriod)
-
-	t.Run("update substitute client", func(t *testing.T) {
-		s.UpdateClients(ctx, relayer, pathName)
-	})
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
-	t.Run("check status of each client", func(t *testing.T) {
-		t.Run("substitute should be active", func(t *testing.T) {
-			status, err := query.ClientStatus(ctx, chainA, substituteClientID)
-			s.Require().NoError(err)
-			s.Require().Equal(ibcexported.Active.String(), status)
-		})
-
-		t.Run("subject should be expired", func(t *testing.T) {
-			status, err := query.ClientStatus(ctx, chainA, subjectClientID)
-			s.Require().NoError(err)
-			s.Require().Equal(ibcexported.Expired.String(), status)
-		})
-	})
-
-	t.Run("pass client update proposal", func(t *testing.T) {
-		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
-		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
-	})
-
-	t.Run("check status of each client", func(t *testing.T) {
-		t.Run("substitute should be active", func(t *testing.T) {
-			status, err := query.ClientStatus(ctx, chainA, substituteClientID)
-			s.Require().NoError(err)
-			s.Require().Equal(ibcexported.Active.String(), status)
-		})
-
-		t.Run("subject should be active", func(t *testing.T) {
-			status, err := query.ClientStatus(ctx, chainA, subjectClientID)
-			s.Require().NoError(err)
-			s.Require().Equal(ibcexported.Active.String(), status)
-		})
-	})
 }
 
 // TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
@@ -249,14 +144,15 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		badTrustingPeriod = time.Second * 10
 	)
 
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
-		pathName = s.GetPaths()[0]
+		pathName = s.GetPaths(testName)[0]
 	})
 
 	chainA, chainB := s.GetChains()
@@ -334,13 +230,15 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err             error
 	)
 
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
+
 	chainA, chainB := s.GetChains()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
@@ -356,7 +254,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths()[0])
+		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)[0])
 		s.Require().NoError(err)
 
 		clientState, err = query.ClientState(ctx, chainA, ibctesting.FirstClientID)
@@ -437,6 +335,9 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 func (s *ClientTestSuite) TestAllowedClientsParam() {
 	t := s.T()
 	ctx := context.TODO()
+
+	testName := t.Name()
+	s.CreateDefaultPaths(testName)
 
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version

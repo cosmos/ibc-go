@@ -56,11 +56,12 @@ var (
 	DefaultTrustLevel = ibctm.DefaultTrustLevel
 
 	DefaultTimeoutTimestampDelta = uint64(time.Hour.Nanoseconds())
+	DefaultCoinAmount            = sdkmath.NewInt(100)
 
 	TestAccAddress    = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
-	TestCoin          = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+	TestCoin          = sdk.NewCoin(sdk.DefaultBondDenom, DefaultCoinAmount)
 	SecondaryDenom    = "ufoo"
-	SecondaryTestCoin = sdk.NewCoin(SecondaryDenom, sdkmath.NewInt(100))
+	SecondaryTestCoin = sdk.NewCoin(SecondaryDenom, DefaultCoinAmount)
 	TestCoins         = sdk.NewCoins(TestCoin, SecondaryTestCoin)
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
@@ -71,6 +72,8 @@ var (
 	MockPacketData               = mock.MockPacketData
 	MockFailPacketData           = mock.MockFailPacketData
 	MockRecvCanaryCapabilityName = mock.MockRecvCanaryCapabilityName
+
+	EmptyForwardingPacketData = ibctransfertypes.ForwardingPacketData{}
 
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
 	// unusedHash is a placeholder hash used for testing.

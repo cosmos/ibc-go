@@ -40,7 +40,9 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer := s.GetRelayer()
+	testName := t.Name()
+	relayer := s.CreateDefaultPaths(testName)
+
 	chainA, chainB := s.GetChains()
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
@@ -58,7 +60,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
@@ -106,6 +108,8 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			msgSendTx := controllertypes.NewMsgSendTx(govModuleAddress.String(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 			s.ExecuteAndPassGovV1Proposal(ctx, msgSendTx, chainA, controllerAccount)
 		})
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB)) // wait for the ica tx to be relayed
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
 			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)

@@ -11,6 +11,7 @@ RUN test -n "${IBC_GO_VERSION}"
 # Copy relevant files before go mod download. Replace directives to local paths break if local
 # files are not copied before go mod download.
 ADD internal internal
+ADD simapp simapp
 ADD testing testing
 ADD modules modules
 ADD LICENSE LICENSE
