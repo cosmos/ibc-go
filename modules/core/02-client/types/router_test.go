@@ -78,11 +78,7 @@ func (suite *TypesTestSuite) TestAddRoute() {
 }
 
 func (suite *TypesTestSuite) TestHasGetRoute() {
-	var (
-		err        error
-		clientType string
-		clientID   string
-	)
+	var clientType string
 
 	testCases := []struct {
 		name     string
@@ -92,25 +88,20 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 		{
 			"success",
 			func() {
-				clientID = fmt.Sprintf("%s-%d", exported.Tendermint, 0)
-				clientType, _, err = types.ParseClientIdentifier(clientID)
-				suite.Require().NoError(err)
+				clientType = exported.Tendermint
 			},
 			true,
 		},
 		{
 			"failure: route does not exist",
 			func() {
-				clientID = "06-solomachine-0"
-				clientType, _, err = types.ParseClientIdentifier(clientID)
-				suite.Require().NoError(err)
+				clientType = exported.Solomachine
 			},
 			false,
 		},
 		{
 			"failure: invalid client ID",
 			func() {
-				clientID = "invalid-client-id"
 				clientType = "invalid-client-type"
 			},
 			false,
@@ -126,13 +117,14 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 
 			storeKey := storetypes.NewKVStoreKey("store-key")
 			tmLightClientModule := ibctm.NewLightClientModule(cdc, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+
 			router := types.NewRouter(storeKey)
 			router.AddRoute(exported.Tendermint, &tmLightClientModule)
 
 			tc.malleate()
 
 			hasRoute := router.HasRoute(clientType)
-			route, ok := router.GetRoute(clientID)
+			route, ok := router.GetRoute(clientType)
 
 			if tc.expPass {
 				suite.Require().True(hasRoute)

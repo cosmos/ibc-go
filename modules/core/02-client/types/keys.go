@@ -80,3 +80,14 @@ func ParseClientIdentifier(clientID string) (string, uint64, error) {
 
 	return clientType, sequence, nil
 }
+
+// MustParseClientIdentifier parses the client type from the provided client identifier.
+// If an invalid client identifier is provided this function will panic.
+func MustParseClientIdentifier(clientID string) string {
+	clientType, _, err := ParseClientIdentifier(clientID)
+	if err != nil {
+		panic(err)
+	}
+
+	return clientType
+}

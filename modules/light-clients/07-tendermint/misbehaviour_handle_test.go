@@ -368,8 +368,8 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -677,8 +677,8 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 

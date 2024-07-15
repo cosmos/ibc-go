@@ -307,8 +307,8 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 			header, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -522,8 +522,8 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 			clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -586,8 +586,8 @@ func (suite *TendermintTestSuite) TestUpdateStateCheckTx() {
 	// Increment the time by a week
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
 
-	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	suite.Require().NoError(err)
 
 	ctx = path.EndpointA.Chain.GetContext().WithIsCheckTx(true)
 	lightClientModule.UpdateState(ctx, path.EndpointA.ClientID, createClientMessage())
@@ -894,8 +894,8 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 			clientMessage, err = path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 			suite.Require().NoError(err)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -940,8 +940,8 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
