@@ -33,10 +33,6 @@ const (
 
 	ParamsKey = "params"
 
-	KeyPacketForwardPrefix = "forwardedPacket"
-)
-
-const (
 	// V1 defines first version of the IBC transfer module
 	V1 = "ics20-1"
 
@@ -57,6 +53,8 @@ var (
 	DenomTraceKey = []byte{0x02}
 	// DenomKey defines the key to store the token denomination in store
 	DenomKey = []byte{0x03}
+	// ForwardPacketKey defines the key to store the forwarded packet in store
+	forwardPacketKey = []byte{0x04}
 
 	// SupportedVersions defines all versions that are supported by the module
 	SupportedVersions = []string{V2, V1}
@@ -87,5 +85,5 @@ func TotalEscrowForDenomKey(denom string) []byte {
 // PacketForwardKey returns the store key under which the forwarded packet is stored
 // for the provided portID, channelID, and packet sequence.
 func PacketForwardKey(portID, channelID string, sequence uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/%d", KeyPacketForwardPrefix, portID, channelID, sequence))
+	return []byte(fmt.Sprintf("%s/%s/%s/%d", forwardPacketKey, portID, channelID, sdk.Uint64ToBigEndian(sequence)))
 }
