@@ -85,5 +85,5 @@ func TotalEscrowForDenomKey(denom string) []byte {
 // PacketForwardKey returns the store key under which the forwarded packet is stored
 // for the provided portID, channelID, and packet sequence.
 func PacketForwardKey(portID, channelID string, sequence uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/%d", forwardPacketKey, portID, channelID, sdk.Uint64ToBigEndian(sequence)))
+	return []byte(fmt.Sprintf("%s/%s/%s/%s", forwardPacketKey, portID, channelID, sdk.Uint64ToBigEndian(sequence)))
 }
