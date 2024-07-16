@@ -117,6 +117,11 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
+
+		// packet from B to C is acknowledged on chain C
+		s.AssertPacketAcknowledged(ctx, chainC, channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID, 1)
+		// packet from A to B is acknowledged on chain B
+		s.AssertPacketAcknowledged(ctx, chainB, channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID, 1)
 	})
 }
 
@@ -174,6 +179,7 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 	chainBDenom := transfertypes.NewDenom(chainADenom, transfertypes.NewHop(channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID))
 	t.Run("packet has reached B", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelAtoB.PortID, channelAtoB.ChannelID, 1)
+		s.AssertPacketAcknowledged(ctx, chainB, channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID, 1)
 
 		balance, err := query.Balance(ctx, chainB, chainBAddress, chainBDenom.IBCDenom())
 		s.Require().NoError(err)
@@ -218,7 +224,12 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 			return balance.Int64() == testvalues.IBCTransferAmount, nil
 		})
 		s.Require().NoError(err)
+		// packet from B to C is relayed
 		s.AssertPacketRelayed(ctx, chainB, channelBtoC.PortID, channelBtoC.ChannelID, 1)
+		// packet from B to C is acknowledged on chain C
+		s.AssertPacketAcknowledged(ctx, chainC, channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID, 1)
+		// packet from A to B is acknowledged on chain B
+		s.AssertPacketAcknowledged(ctx, chainB, channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID, 2)
 	})
 }
 

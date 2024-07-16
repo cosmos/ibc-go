@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	storetypes "cosmossdk.io/store/types"
-
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -58,9 +56,9 @@ func (suite *TypesTestSuite) TestAddRoute() {
 			suite.SetupTest()
 			cdc := suite.chainA.App.AppCodec()
 
-			storeKey := storetypes.NewKVStoreKey("store-key")
-			tmLightClientModule := ibctm.NewLightClientModule(cdc, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-			router = types.NewRouter(storeKey)
+			storeProvider := types.NewStoreProvider(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
+			tmLightClientModule := ibctm.NewLightClientModule(cdc, storeProvider, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+			router = types.NewRouter()
 
 			tc.malleate()
 
@@ -115,10 +113,9 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 			suite.SetupTest()
 			cdc := suite.chainA.App.AppCodec()
 
-			storeKey := storetypes.NewKVStoreKey("store-key")
-			tmLightClientModule := ibctm.NewLightClientModule(cdc, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-
-			router := types.NewRouter(storeKey)
+			storeProvider := types.NewStoreProvider(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
+			tmLightClientModule := ibctm.NewLightClientModule(cdc, storeProvider, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+			router := types.NewRouter()
 			router.AddRoute(exported.Tendermint, &tmLightClientModule)
 
 			tc.malleate()
