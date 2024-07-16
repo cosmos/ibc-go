@@ -52,6 +52,10 @@ const (
 	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
 	// E2EConfigFilePathEnv allows you to specify a custom path for the config file to be used.
 	E2EConfigFilePathEnv = "E2E_CONFIG_PATH"
+	// KeepContainersEnv instructs interchaintest to not delete the containers after a test has run.
+	// this ensures that chain containers are not deleted after a test suite is run if other tests
+	// depend on those chains.
+	KeepContainersEnv = "KEEP_CONTAINERS"
 
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
@@ -297,9 +301,14 @@ type DebugConfig struct {
 
 	// GenesisDebug contains debug information specific to Genesis.
 	GenesisDebug GenesisDebugConfig `yaml:"genesis"`
+
+	// KeepContainers specifies if the containers should be kept after the test suite is done.
+	// NOTE: when running a full test suite, this value should be set to true in order to preserve
+	// shared resources.
+	KeepContainers bool `yaml:"keepContainers"`
 }
 
-// LoadConfig attempts to load a atest configuration from the default file path.
+// LoadConfig attempts to load a test configuration from the default file path.
 // if any environment variables are specified, they will take precedence over the individual configuration
 // options.
 func LoadConfig() TestConfig {
@@ -370,6 +379,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 
 	if os.Getenv(ChainUpgradeTagEnv) != "" {
 		fromFile.UpgradeConfig.Tag = envTc.UpgradeConfig.Tag
+	}
+
+	if isEnvTrue(KeepContainersEnv) {
+		fromFile.DebugConfig.KeepContainers = true
 	}
 
 	return fromFile
@@ -513,12 +526,16 @@ func GetChainBTag() string {
 // if the tests are running locally.
 // Note: github actions passes a CI env value of true by default to all runners.
 func IsCI() bool {
-	return strings.ToLower(os.Getenv("CI")) == "true"
+	return isEnvTrue("CI")
 }
 
 // IsFork returns true if the tests are running in fork mode, false is returned otherwise.
 func IsFork() bool {
-	return strings.ToLower(os.Getenv("FORK")) == "true"
+	return isEnvTrue("FORK")
+}
+
+func isEnvTrue(env string) bool {
+	return strings.ToLower(os.Getenv(env)) == "true"
 }
 
 // ChainOptions stores chain configurations for the chains that will be

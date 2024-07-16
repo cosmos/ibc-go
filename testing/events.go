@@ -20,7 +20,7 @@ import (
 func ParseClientIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == clienttypes.EventTypeCreateClient {
-			if attribute, found := attributeByKey(clienttypes.AttributeKeyClientID, ev.Attributes); found {
+			if attribute, found := attributeByKey(ev.Attributes, clienttypes.AttributeKeyClientID); found {
 				return attribute.Value, nil
 			}
 		}
@@ -34,7 +34,7 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == connectiontypes.EventTypeConnectionOpenInit ||
 			ev.Type == connectiontypes.EventTypeConnectionOpenTry {
-			if attribute, found := attributeByKey(connectiontypes.AttributeKeyConnectionID, ev.Attributes); found {
+			if attribute, found := attributeByKey(ev.Attributes, connectiontypes.AttributeKeyConnectionID); found {
 				return attribute.Value, nil
 			}
 		}
@@ -47,7 +47,7 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
-			if attribute, found := attributeByKey(channeltypes.AttributeKeyChannelID, ev.Attributes); found {
+			if attribute, found := attributeByKey(ev.Attributes, channeltypes.AttributeKeyChannelID); found {
 				return attribute.Value, nil
 			}
 		}
@@ -151,7 +151,7 @@ func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltyp
 func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
-			if attribute, found := attributeByKey(channeltypes.AttributeKeyAckHex, ev.Attributes); found {
+			if attribute, found := attributeByKey(ev.Attributes, channeltypes.AttributeKeyAckHex); found {
 				value, err := hex.DecodeString(attribute.Value)
 				if err != nil {
 					return nil, err
@@ -166,7 +166,7 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 // ParseProposalIDFromEvents parses events emitted from MsgSubmitProposal and returns proposalID
 func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 	for _, event := range events {
-		if attribute, found := attributeByKey("proposal_id", event.Attributes); found {
+		if attribute, found := attributeByKey(event.Attributes, "proposal_id"); found {
 			return strconv.ParseUint(attribute.Value, 10, 64)
 		}
 	}
@@ -176,7 +176,7 @@ func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 // ParsePacketSequenceFromEvents parses events emitted from MsgRecvPacket and returns the packet sequence
 func ParsePacketSequenceFromEvents(events []abci.Event) (uint64, error) {
 	for _, event := range events {
-		if attribute, found := attributeByKey("packet_sequence", event.Attributes); found {
+		if attribute, found := attributeByKey(event.Attributes, "packet_sequence"); found {
 			return strconv.ParseUint(attribute.Value, 10, 64)
 		}
 	}
@@ -238,12 +238,12 @@ func containsAttribute(attrs []abci.EventAttribute, key, value string) bool {
 
 // containsAttributeKey returns true if the given key is contained in the given attributes.
 func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
-	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
-		return attr.Key == key
-	})
+	_, found := attributeByKey(attrs, key)
+	return found
 }
 
-func attributeByKey(key string, attributes []abci.EventAttribute) (abci.EventAttribute, bool) {
+// attributeByKey returns the event attribute's value keyed by the given key and a boolean indicating its presence in the given attributes.
+func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAttribute, bool) {
 	idx := slices.IndexFunc(attributes, func(a abci.EventAttribute) bool { return a.Key == key })
 	if idx == -1 {
 		return abci.EventAttribute{}, false

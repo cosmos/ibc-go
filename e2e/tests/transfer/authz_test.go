@@ -53,6 +53,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := suite.CreateAuthzTestPath(testName)
 
 	chainA, chainB := suite.GetChains()
@@ -215,6 +216,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := suite.CreateAuthzTestPath(testName)
 
 	chainA, chainB := suite.GetChains()
