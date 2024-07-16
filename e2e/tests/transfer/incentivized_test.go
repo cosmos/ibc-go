@@ -199,24 +199,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		version, err := feetypes.MetadataFromVersion(channelA.Version)
-		s.Require().NoError(err)
-
-		msgTransfer := testsuite.GetMsgTransfer(
-			channelA.PortID,
-			channelA.ChannelID,
-			version.AppVersion,
-			sdk.NewCoins(transferAmount),
-			chainAWallet.FormattedAddress(),
-			testvalues.InvalidAddress,
-			s.GetTimeoutHeight(ctx, chainB),
-			0,
-			"",
-			nil,
-		)
-		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgTransfer)
+		resp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, sdk.NewCoins(transferAmount), chainAWallet.FormattedAddress(), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", nil)
 		// this message should be successful, as receiver account is not validated on the sending chain.
-		s.AssertTxSuccess(txResp)
+		s.AssertTxSuccess(resp)
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {

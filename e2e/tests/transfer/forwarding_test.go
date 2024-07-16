@@ -83,19 +83,7 @@ func (s *TransferForwardingTestSuite) testForwardingThreeChains(lastChainVersion
 	t.Run("IBC transfer from A to C with forwarding through B", func(t *testing.T) {
 		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
 		forwarding := transfertypes.NewForwarding(false, transfertypes.NewHop(channelBtoC.PortID, channelBtoC.ChannelID))
-
-		msgTransfer := testsuite.GetMsgTransfer(
-			channelAtoB.PortID,
-			channelAtoB.ChannelID,
-			transfertypes.V2,
-			testvalues.DefaultTransferCoins(chainADenom),
-			chainAAddress,
-			chainCAddress,
-			clienttypes.ZeroHeight(),
-			uint64(inFiveMinutes),
-			"",
-			forwarding)
-		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgTransfer)
+		resp := s.Transfer(ctx, chainA, chainAWallet, channelAtoB.PortID, channelAtoB.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainCAddress, clienttypes.ZeroHeight(), uint64(inFiveMinutes), "", forwarding)
 		s.AssertTxSuccess(resp)
 	})
 
@@ -156,19 +144,7 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 
 	t.Run("IBC transfer from A to B", func(t *testing.T) {
 		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
-
-		msgTransfer := testsuite.GetMsgTransfer(
-			channelAtoB.PortID,
-			channelAtoB.ChannelID,
-			transfertypes.V2,
-			testvalues.DefaultTransferCoins(chainADenom),
-			chainAAddress,
-			chainBAddress,
-			clienttypes.ZeroHeight(),
-			uint64(inFiveMinutes),
-			"",
-			nil)
-		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgTransfer)
+		resp := s.Transfer(ctx, chainA, chainAWallet, channelAtoB.PortID, channelAtoB.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, clienttypes.ZeroHeight(), uint64(inFiveMinutes), "", nil)
 		s.AssertTxSuccess(resp)
 	})
 
@@ -195,18 +171,7 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 			transfertypes.NewHop(channelAtoB.PortID, channelAtoB.ChannelID),
 			transfertypes.NewHop(channelBtoC.PortID, channelBtoC.ChannelID),
 		)
-		msgTransfer := testsuite.GetMsgTransfer(
-			"",
-			"",
-			transfertypes.V2,
-			testvalues.DefaultTransferCoins(chainBDenom.IBCDenom()),
-			chainBAddress,
-			chainCAddress,
-			clienttypes.ZeroHeight(),
-			uint64(inFiveMinutes),
-			"",
-			forwarding)
-		resp := s.BroadcastMessages(ctx, chainB, chainBWallet, msgTransfer)
+		resp := s.Transfer(ctx, chainB, chainBWallet, "", "", testvalues.DefaultTransferCoins(chainBDenom.IBCDenom()), chainBAddress, chainCAddress, clienttypes.ZeroHeight(), uint64(inFiveMinutes), "", forwarding)
 		s.AssertTxSuccess(resp)
 	})
 
@@ -296,19 +261,7 @@ func (s *TransferForwardingTestSuite) TestChannelUpgradeForwarding_Succeeds() {
 	t.Run("IBC transfer from A to C with forwarding through B", func(t *testing.T) {
 		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
 		forwarding := transfertypes.NewForwarding(false, transfertypes.NewHop(channelBtoC.PortID, channelBtoC.ChannelID))
-
-		msgTransfer := testsuite.GetMsgTransfer(
-			channelAtoB.PortID,
-			channelAtoB.ChannelID,
-			transfertypes.V2,
-			testvalues.DefaultTransferCoins(chainADenom),
-			chainAAddress,
-			chainCAddress,
-			clienttypes.ZeroHeight(),
-			uint64(inFiveMinutes),
-			"",
-			forwarding)
-		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgTransfer)
+		resp := s.Transfer(ctx, chainA, chainAWallet, channelAtoB.PortID, channelAtoB.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainCAddress, clienttypes.ZeroHeight(), uint64(inFiveMinutes), "", forwarding)
 		s.AssertTxSuccess(resp)
 	})
 
