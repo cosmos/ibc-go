@@ -349,6 +349,9 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
 	}
 
+	// escrow address for unescrowing tokens back to sender
+	escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
+
 	moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()
@@ -370,8 +373,6 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 			}
 		} else {
-			// unescrow tokens back to sender
-			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
 			if err := k.unescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
 				return err
 			}
