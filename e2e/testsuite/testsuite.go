@@ -602,6 +602,16 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain ibc.Chain,
 	s.Require().ErrorContains(err, "packet commitment hash not found")
 }
 
+// AssertPacketAcknowledged asserts that the packet has been acknowledged on the specified chain.
+func (s *E2ETestSuite) AssertPacketAcknowledged(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) {
+	_, err := query.GRPCQuery[channeltypes.QueryPacketAcknowledgementResponse](ctx, chain, &channeltypes.QueryPacketAcknowledgementRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+		Sequence:  sequence,
+	})
+	s.Require().NoError(err)
+}
+
 // AssertHumanReadableDenom asserts that a human readable denom is present for a given chain.
 func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.Chain, counterpartyNativeDenom string, counterpartyChannel ibc.ChannelOutput) {
 	chainIBCDenom := GetIBCToken(counterpartyNativeDenom, counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID)
