@@ -20,10 +20,8 @@ import (
 func ParseClientIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == clienttypes.EventTypeCreateClient {
-			for _, attr := range ev.Attributes {
-				if attr.Key == clienttypes.AttributeKeyClientID {
-					return attr.Value, nil
-				}
+			if attribute, found := attributeByKey(clienttypes.AttributeKeyClientID, ev.Attributes); found {
+				return attribute.Value, nil
 			}
 		}
 	}
@@ -36,10 +34,8 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == connectiontypes.EventTypeConnectionOpenInit ||
 			ev.Type == connectiontypes.EventTypeConnectionOpenTry {
-			for _, attr := range ev.Attributes {
-				if attr.Key == connectiontypes.AttributeKeyConnectionID {
-					return attr.Value, nil
-				}
+			if attribute, found := attributeByKey(connectiontypes.AttributeKeyConnectionID, ev.Attributes); found {
+				return attribute.Value, nil
 			}
 		}
 	}
@@ -51,10 +47,8 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
-			for _, attr := range ev.Attributes {
-				if attr.Key == channeltypes.AttributeKeyChannelID {
-					return attr.Value, nil
-				}
+			if attribute, found := attributeByKey(channeltypes.AttributeKeyChannelID, ev.Attributes); found {
+				return attribute.Value, nil
 			}
 		}
 	}
@@ -157,15 +151,12 @@ func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltyp
 func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
-			for _, attr := range ev.Attributes {
-				if attr.Key == channeltypes.AttributeKeyAckHex {
-					value, err := hex.DecodeString(attr.Value)
-					if err != nil {
-						return nil, err
-					}
-
-					return value, nil
+			if attribute, found := attributeByKey(channeltypes.AttributeKeyAckHex, ev.Attributes); found {
+				value, err := hex.DecodeString(attribute.Value)
+				if err != nil {
+					return nil, err
 				}
+				return value, nil
 			}
 		}
 	}
