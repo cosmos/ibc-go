@@ -27,6 +27,7 @@ type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.BinaryCodec
 	router         *types.Router
+	storeProvider  exported.ClientStoreProvider
 	consensusHost  types.ConsensusHost
 	legacySubspace types.ParamSubspace
 	upgradeKeeper  types.UpgradeKeeper
@@ -34,7 +35,8 @@ type Keeper struct {
 
 // NewKeeper creates a new NewKeeper instance
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, consensusHost types.ConsensusHost, uk types.UpgradeKeeper) *Keeper {
-	router := types.NewRouter(key)
+	router := types.NewRouter()
+	storeProvider := types.NewStoreProvider(key)
 	localhostModule := localhost.NewLightClientModule(cdc, key)
 	router.AddRoute(exported.Localhost, localhostModule)
 
@@ -42,6 +44,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace ty
 		storeKey:       key,
 		cdc:            cdc,
 		router:         router,
+		storeProvider:  storeProvider,
 		consensusHost:  consensusHost,
 		legacySubspace: legacySubspace,
 		upgradeKeeper:  uk,
@@ -63,19 +66,14 @@ func (k *Keeper) GetRouter() *types.Router {
 	return k.router
 }
 
+// GetStoreProvider returns the light client store provider.
+func (k *Keeper) GetStoreProvider() exported.ClientStoreProvider {
+	return k.storeProvider
+}
+
 // Route returns the light client module for the given client identifier.
 func (k *Keeper) Route(clientID string) (exported.LightClientModule, bool) {
 	return k.router.GetRoute(clientID)
-}
-
-// UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
-func (k *Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
-	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
-	if !found {
-		panic(errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID))
-	}
-
-	return clientModule.UpdateState(ctx, exported.LocalhostClientID, nil)
 }
 
 // SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.

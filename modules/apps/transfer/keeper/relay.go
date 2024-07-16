@@ -8,7 +8,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
@@ -241,9 +240,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 			// send to receiver
 			moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
-			if moduleAddr == nil {
-				return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName)
-			}
 			if err := k.bankKeeper.SendCoins(
 				ctx, moduleAddr, receiver, sdk.NewCoins(voucher),
 			); err != nil {
@@ -455,7 +451,7 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 	case types.V1:
 		// Sanity check, tokens must always be of length 1 if using app version V1.
 		if len(tokens) != 1 {
-			panic(fmt.Errorf("length of tokens must be equal to 1 if using %s version", types.V1))
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
 		}
 
 		token := tokens[0]
@@ -482,6 +478,6 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 
 		return packetData.GetBytes(), nil
 	default:
-		panic(fmt.Errorf("app version must be one of %s", types.SupportedVersions))
+		return nil, errorsmod.Wrapf(types.ErrInvalidVersion, "app version must be one of %s", types.SupportedVersions)
 	}
 }
