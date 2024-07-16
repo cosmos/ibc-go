@@ -53,7 +53,7 @@ var (
 	DenomTraceKey = []byte{0x02}
 	// DenomKey defines the key to store the token denomination in store
 	DenomKey = []byte{0x03}
-	// ForwardPacketKey defines the key to store the forwarded packet in store
+	// forwardPacketKey defines the key to store the forwarded packet in store
 	forwardPacketKey = []byte{0x04}
 
 	// SupportedVersions defines all versions that are supported by the module
