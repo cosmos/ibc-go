@@ -171,7 +171,18 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 			transfertypes.NewHop(channelAtoB.PortID, channelAtoB.ChannelID),
 			transfertypes.NewHop(channelBtoC.PortID, channelBtoC.ChannelID),
 		)
-		resp := s.Transfer(ctx, chainB, chainBWallet, "", "", testvalues.DefaultTransferCoins(chainBDenom.IBCDenom()), chainBAddress, chainCAddress, clienttypes.ZeroHeight(), uint64(inFiveMinutes), "", forwarding)
+		msgTransfer := testsuite.GetMsgTransfer(
+			"",
+			"",
+			transfertypes.V2,
+			testvalues.DefaultTransferCoins(chainBDenom.IBCDenom()),
+			chainBAddress,
+			chainCAddress,
+			clienttypes.ZeroHeight(),
+			uint64(inFiveMinutes),
+			"",
+			forwarding)
+		resp := s.BroadcastMessages(ctx, chainB, chainBWallet, msgTransfer)
 		s.AssertTxSuccess(resp)
 	})
 
