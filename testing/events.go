@@ -20,10 +20,8 @@ import (
 func ParseClientIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == clienttypes.EventTypeCreateClient {
-			for _, attr := range ev.Attributes {
-				if attr.Key == clienttypes.AttributeKeyClientID {
-					return attr.Value, nil
-				}
+			if attribute, found := attributeByKey(ev.Attributes, clienttypes.AttributeKeyClientID); found {
+				return attribute.Value, nil
 			}
 		}
 	}
@@ -36,10 +34,8 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == connectiontypes.EventTypeConnectionOpenInit ||
 			ev.Type == connectiontypes.EventTypeConnectionOpenTry {
-			for _, attr := range ev.Attributes {
-				if attr.Key == connectiontypes.AttributeKeyConnectionID {
-					return attr.Value, nil
-				}
+			if attribute, found := attributeByKey(ev.Attributes, connectiontypes.AttributeKeyConnectionID); found {
+				return attribute.Value, nil
 			}
 		}
 	}
@@ -51,10 +47,8 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
-			for _, attr := range ev.Attributes {
-				if attr.Key == channeltypes.AttributeKeyChannelID {
-					return attr.Value, nil
-				}
+			if attribute, found := attributeByKey(ev.Attributes, channeltypes.AttributeKeyChannelID); found {
+				return attribute.Value, nil
 			}
 		}
 	}
@@ -162,7 +156,6 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 				if err != nil {
 					return nil, err
 				}
-
 				return value, nil
 			}
 		}
