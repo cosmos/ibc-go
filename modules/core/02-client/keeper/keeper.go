@@ -76,16 +76,6 @@ func (k *Keeper) Route(clientID string) (exported.LightClientModule, bool) {
 	return k.router.GetRoute(clientID)
 }
 
-// UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
-func (k *Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
-	clientModule, found := k.router.GetRoute(exported.LocalhostClientID)
-	if !found {
-		panic(errorsmod.Wrap(types.ErrRouteNotFound, exported.LocalhostClientID))
-	}
-
-	return clientModule.UpdateState(ctx, exported.LocalhostClientID, nil)
-}
-
 // SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
 func (k *Keeper) SetConsensusHost(consensusHost types.ConsensusHost) {
 	if consensusHost == nil {
