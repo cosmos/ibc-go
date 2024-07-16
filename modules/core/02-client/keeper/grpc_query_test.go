@@ -906,7 +906,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			errors.New(wasmClientID),
 		},
 		{
-			"client not active",
+			"client type not allowed",
 			func() {
 				params := types.NewParams("") // disable all clients
 				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
@@ -919,7 +919,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 					Value:       []byte{0x01},
 				}
 			},
-			types.ErrClientNotActive,
+			types.ErrInvalidClientType,
 		},
 	}
 

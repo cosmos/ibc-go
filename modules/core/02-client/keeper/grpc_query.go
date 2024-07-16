@@ -383,13 +383,13 @@ func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerify
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
 	}()
 
-	if clientStatus := q.GetClientStatus(ctx, req.ClientId); clientStatus != exported.Active {
-		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
-	}
-
 	clientModule, err := q.Route(ctx, req.ClientId)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	if clientStatus := q.GetClientStatus(ctx, req.ClientId); clientStatus != exported.Active {
+		return nil, status.Error(codes.FailedPrecondition, errorsmod.Wrapf(types.ErrClientNotActive, "cannot verify membership using client (%s) with status %s", req.ClientId, clientStatus).Error())
 	}
 
 	// consume flat gas fee for proof verification queries.
