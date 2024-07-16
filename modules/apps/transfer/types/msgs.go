@@ -127,13 +127,6 @@ func (msg MsgTransfer) validateForwarding() error {
 		return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must be zero if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.GetHops())
 	}
 
-	if msg.Forwarding.GetUnwind() {
-		if len(msg.GetCoins()) > 1 {
-			// When unwinding, we must have at most one token.
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot unwind more than one token")
-		}
-	}
-
 	return nil
 }
 
