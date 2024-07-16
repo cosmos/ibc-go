@@ -2,6 +2,14 @@ module github.com/cosmos/ibc-go/modules/light-clients/08-wasm
 
 go 1.21
 
+retract (
+	// use MerklePath type with []string for KeyPath in contract API messages
+	v0.2.1-0.20240523101951-4b45d1822fb6
+	v0.1.2-0.20240412103620-7ee2a2452b79
+	v0.1.1-0.20231213092650-57fcdb9a9a9d
+	v0.1.1-0.20231213092633-b306e7a706e1
+)
+
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
