@@ -17,6 +17,8 @@ import (
 var (
 	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
+	_ ibcexported.PacketData         = (*FungibleTokenPacketDataV2)(nil)
+	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketDataV2)(nil)
 )
 
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
