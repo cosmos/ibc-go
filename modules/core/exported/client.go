@@ -3,8 +3,6 @@ package exported
 import (
 	"github.com/cosmos/gogoproto/proto"
 
-	storetypes "cosmossdk.io/store/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -42,14 +40,6 @@ const (
 	// Unauthorized indicates that the client type is not registered as an allowed client type.
 	Unauthorized Status = "Unauthorized"
 )
-
-// ClientStoreProvider is an interface which gives access to the client prefixed stores.
-// It is implemented by the 02-client keeper and may be called by a light client module
-// to obtain a client prefixed store for the given client identifier.
-type ClientStoreProvider interface {
-	// ClientStore will return a client prefixed store using the given client identifier
-	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
-}
 
 // LightClientModule is an interface which core IBC uses to interact with light client modules.
 // Light client modules must implement this interface to integrate with core IBC.
