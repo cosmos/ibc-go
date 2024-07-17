@@ -307,7 +307,7 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 			},
 		},
 		{
-			"sucess: multiple denoms with equal traces",
+			"success: multiple denoms with equal traces",
 			func() {
 				coins = []sdk.Coin{}
 				for _, base := range []string{sdk.DefaultBondDenom, ibctesting.SecondaryDenom} {
