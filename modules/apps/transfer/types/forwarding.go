@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 const MaximumNumberOfForwardingHops = 8 // denotes the maximum number of forwarding hops allowed
