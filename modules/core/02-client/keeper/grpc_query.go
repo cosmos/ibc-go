@@ -383,9 +383,9 @@ func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerify
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
 	}()
 
-	clientModule, found := q.Route(req.ClientId)
-	if !found {
-		return nil, status.Error(codes.NotFound, req.ClientId)
+	clientModule, err := q.Route(ctx, req.ClientId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
 	if clientStatus := q.GetClientStatus(ctx, req.ClientId); clientStatus != exported.Active {

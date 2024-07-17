@@ -571,7 +571,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			func() {
 				subject = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrRouteNotFound,
 		},
 		{
 			"subject is Active",
