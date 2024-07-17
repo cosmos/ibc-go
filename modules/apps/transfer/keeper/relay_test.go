@@ -114,6 +114,16 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			nil,
 		},
 		{
+			"successful transfer of entire balance",
+			func() {
+				coins = sdk.NewCoins(sdk.NewCoin(coins[0].Denom, types.UnboundedSpendLimit()))
+				var ok bool
+				expEscrowAmounts[0], ok = sdkmath.NewIntFromString(ibctesting.DefaultChainAmount)
+				suite.Require().True(ok)
+			},
+			nil,
+		},
+		{
 			"failure: source channel not found",
 			func() {
 				// channel references wrong ID

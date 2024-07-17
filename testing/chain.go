@@ -45,6 +45,10 @@ type SenderAccount struct {
 	SenderAccount sdk.AccountI
 }
 
+const (
+	DefaultChainAmount = "10000000000000000000"
+)
+
 // TestChain is a testing struct that wraps a simapp with the last TM Header, the current ABCI
 // header and the validators of the TestChain. It also contains a field called ChainID. This
 // is the clientID that *other* chains use to refer to this TestChain. The SenderAccount
@@ -107,7 +111,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 	for i := 0; i < MaxAccounts; i++ {
 		senderPrivKey := secp256k1.GenPrivKey()
 		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), 0)
-		amount, ok := sdkmath.NewIntFromString("10000000000000000000")
+		amount, ok := sdkmath.NewIntFromString(DefaultChainAmount)
 		require.True(tb, ok)
 
 		// add sender account
