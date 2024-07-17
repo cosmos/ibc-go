@@ -185,7 +185,6 @@ callbacks to IBC applications.
 
 | Type        | Attribute Key            | Attribute Value                  | Status     |
 | ----------- | ------------------------ | -------------------------------- | ---------- |
-| send_packet | packet_data              | \{data\}                           | Deprecated |
 | send_packet | packet_data_hex          | \{hex.Encode(data)\}               |            |
 | send_packet | packet_timeout_height    | \{timeoutHeight\}                  |            |
 | send_packet | packet_timeout_timestamp | \{timeoutTimestamp\}               |            |
@@ -204,7 +203,6 @@ callbacks to IBC applications.
 
 | Type        | Attribute Key            | Attribute Value             | Status     |
 | ----------- | ------------------------ | --------------------------- | ---------- |
-| recv_packet | packet_data              | \{data\}                      | Deprecated |
 | recv_packet | packet_data_hex          | \{hex.Encode(data)\}          |            |
 | recv_packet | packet_timeout_height    | \{timeoutHeight\}             |            |
 | recv_packet | packet_timeout_timestamp | \{timeoutTimestamp\}          |            |
@@ -221,7 +219,6 @@ callbacks to IBC applications.
 
 | Type                  | Attribute Key            | Attribute Value             | Status     |
 | --------------------- | ------------------------ | --------------------------- | ---------- |
-| write_acknowledgement | packet_data              | \{data\}                      | Deprecated |
 | write_acknowledgement | packet_data_hex          | \{hex.Encode(data)\}          |            |
 | write_acknowledgement | packet_timeout_height    | \{timeoutHeight\}             |            |
 | write_acknowledgement | packet_timeout_timestamp | \{timeoutTimestamp\}          |            |
@@ -230,9 +227,7 @@ callbacks to IBC applications.
 | write_acknowledgement | packet_src_channel       | \{sourceChannel\}             |            |
 | write_acknowledgement | packet_dst_port          | \{destinationPort\}           |            |
 | write_acknowledgement | packet_dst_channel       | \{destinationChannel\}        |            |
-| write_acknowledgement | packet_ack               | \{ack\}                       | Deprecated |
 | write_acknowledgement | packet_ack_hex           | \{hex.Encode(ack)\}           |            |
-| write_acknowledgement | packet_channel_ordering  | \{channel.Ordering\}          |            |
 | write_acknowledgement | packet_connection        | \{channel.ConnectionHops[0]\} | Deprecated |
 | write_acknowledgement | connection_id            | \{channel.ConnectionHops[0]\} |            |
 | message               | action                   | write_acknowledgement       |            |
