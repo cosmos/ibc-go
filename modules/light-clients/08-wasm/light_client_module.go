@@ -24,11 +24,11 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
 	keeper        wasmkeeper.Keeper
-	storeProvider exported.ClientStoreProvider
+	storeProvider clienttypes.StoreProvider
 }
 
 // NewLightClientModule creates and returns a new 08-wasm LightClientModule.
-func NewLightClientModule(keeper wasmkeeper.Keeper, storeProvider exported.ClientStoreProvider) LightClientModule {
+func NewLightClientModule(keeper wasmkeeper.Keeper, storeProvider clienttypes.StoreProvider) LightClientModule {
 	return LightClientModule{
 		keeper:        keeper,
 		storeProvider: storeProvider,
