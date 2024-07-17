@@ -72,14 +72,14 @@ func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) 
 // the unwound path to take. It assumes that only a single token is present (as this is verified in ValidateBasic)
 // in the tokens list and ensures that the token is not native to the chain.
 func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
-	fullTokenHops, err := k.getUnwindHops(ctx, msg.GetCoins())
+	unwindHops, err := k.getUnwindHops(ctx, msg.GetCoins())
 	if err != nil {
 		return nil, err
 	}
 
 	// Update message fields.
-	msg.SourcePort, msg.SourceChannel = fullTokenHops[0].PortId, fullTokenHops[0].ChannelId
-	msg.Forwarding.Hops = append(fullTokenHops[1:], msg.Forwarding.Hops...)
+	msg.SourcePort, msg.SourceChannel = unwindHops[0].PortId, unwindHops[0].ChannelId
+	msg.Forwarding.Hops = append(unwindHops[1:], msg.Forwarding.Hops...)
 	msg.Forwarding.Unwind = false
 
 	// Message is validate again, this would only fail if hops now exceeds maximum allowed.
@@ -107,7 +107,7 @@ func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, er
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind a native token")
 	}
 
-	fullTokenTrace := token.Denom.Trace
+	unwindTrace := token.Denom.Trace
 	for _, coin := range coins[1:] {
 		token, err := k.tokenFromCoin(ctx, coin)
 		if err != nil {
@@ -115,10 +115,10 @@ func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, er
 		}
 
 		// Implicitly ensures coin we're iterating over is not native.
-		if !slices.Equal(token.Denom.Trace, fullTokenTrace) {
+		if !slices.Equal(token.Denom.Trace, unwindTrace) {
 			return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind tokens with different traces.")
 		}
 	}
 
-	return fullTokenTrace, nil
+	return unwindTrace, nil
 }
