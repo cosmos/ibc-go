@@ -3,8 +3,6 @@ package types
 import (
 	"errors"
 
-	errorsmod "cosmossdk.io/errors"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -54,24 +52,4 @@ func (w *WasmConsensusHost) GetSelfConsensusState(ctx sdk.Context, height export
 	}
 
 	return wasmConsensusState, nil
-}
-
-// ValidateSelfClient implements the 02-client types.ConsensusHost interface.
-func (w *WasmConsensusHost) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
-	wasmClientState, ok := clientState.(*ClientState)
-	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "client must be a wasm client, expected: %T, got: %T", ClientState{}, wasmClientState)
-	}
-
-	if wasmClientState.Data == nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "wasm client state data is nil")
-	}
-
-	// unmarshal the wasmClientState bytes into the ClientState interface and call self validation
-	var unwrappedClientState exported.ClientState
-	if err := w.cdc.UnmarshalInterface(wasmClientState.Data, &unwrappedClientState); err != nil {
-		return err
-	}
-
-	return w.delegate.ValidateSelfClient(ctx, unwrappedClientState)
 }

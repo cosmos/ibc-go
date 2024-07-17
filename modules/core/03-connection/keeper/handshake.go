@@ -88,11 +88,6 @@ func (k *Keeper) ConnOpenTry(
 		)
 	}
 
-	// validate client parameters of a chainB client stored on chainA
-	if err := k.clientKeeper.ValidateSelfClient(ctx, clientState); err != nil {
-		return "", err
-	}
-
 	expectedConsensusState, err := k.clientKeeper.GetSelfConsensusState(ctx, consensusHeight)
 	if err != nil {
 		return "", errorsmod.Wrapf(err, "self consensus state not found for height %s", consensusHeight.String())
@@ -197,11 +192,6 @@ func (k *Keeper) ConnOpenAck(
 			types.ErrInvalidConnectionState,
 			"the counterparty selected version %s is not supported by versions selected on INIT", version,
 		)
-	}
-
-	// validate client parameters of a chainA client stored on chainB
-	if err := k.clientKeeper.ValidateSelfClient(ctx, clientState); err != nil {
-		return err
 	}
 
 	// Retrieve chainA's consensus state at consensusheight
