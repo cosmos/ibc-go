@@ -18,7 +18,7 @@ type WasmConsensusHost struct {
 
 var _ clienttypes.ConsensusHost = (*WasmConsensusHost)(nil)
 
-// NewWasmConsensusHost creates and returns a new ConsensusHost for wasm wrapped consensus client state and consensus state self validation.
+// NewWasmConsensusHost creates and returns a new ConsensusHost for wasm wrapped consensus client state.
 func NewWasmConsensusHost(cdc codec.BinaryCodec, delegate clienttypes.ConsensusHost) (*WasmConsensusHost, error) {
 	if cdc == nil {
 		return nil, errors.New("wasm consensus host codec is nil")
