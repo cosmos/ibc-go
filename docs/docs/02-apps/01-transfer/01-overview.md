@@ -145,9 +145,9 @@ on the origin chain regain their native denomination. In order to execute automa
 module does not require extra user input: the unwind route is encoded in the denomination trace with the 
 pairs of destination port ID, channel ID that are added on every chain where the tokens are received.
 
-Please note that unwinding of vouchers is only allowed when vouchers of a single IBC denomination are 
-transferred (i.e. it is not possible to unwind vouchers of two different IBC denominations, since they 
-come from different source chains).
+Please note that unwinding of vouchers is only allowed when vouchers transferred all share the same denomination
+trace (signifying coins that all originate from the same source). It is not possible to unwind vouchers of two different 
+IBC denominations, since they come from different source chains.
 
 ### Unwind tokens and then forward
 

@@ -90,7 +90,6 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"invalid channelID when forwarding is set but unwind is not", types.NewMsgTransfer(validPort, "", coins, sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(false, validHop)), host.ErrInvalidID},
 		{"unwind specified but source port is not empty", types.NewMsgTransfer(validPort, "", sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), types.ErrInvalidForwarding},
 		{"unwind specified but source channel is not empty", types.NewMsgTransfer("", validChannel, sdk.NewCoins(coin), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), types.ErrInvalidForwarding},
-		{"unwind specified but more than one coin in the message", types.NewMsgTransfer("", "", coins.Add(sdk.NewCoin("atom", ibctesting.TestCoin.Amount)), sender, receiver, clienttypes.ZeroHeight(), 100, "", types.NewForwarding(true)), ibcerrors.ErrInvalidCoins},
 	}
 
 	for _, tc := range testCases {
