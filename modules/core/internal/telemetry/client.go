@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 
-	ibcmetrics "github.com/cosmos/ibc-go/v8/modules/core/metrics"
+	ibcmetrics "github.com/cosmos/ibc-go/v9/modules/core/metrics"
 )
 
 func ReportCreateClient(clientType string) {
