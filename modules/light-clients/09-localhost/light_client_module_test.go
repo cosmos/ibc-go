@@ -35,31 +35,31 @@ func TestLocalhostTestSuite(t *testing.T) {
 }
 
 func (suite *LocalhostTestSuite) TestInitialize() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+	suite.Require().NoError(err)
 
-	err := lightClientModule.Initialize(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil)
+	err = lightClientModule.Initialize(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil)
 	suite.Require().Error(err)
 }
 
 func (suite *LocalhostTestSuite) TestVerifyClientMessage() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+	suite.Require().NoError(err)
 
-	err := lightClientModule.Initialize(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil)
+	err = lightClientModule.Initialize(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil)
 	suite.Require().Error(err)
 }
 
 func (suite *LocalhostTestSuite) TestVerifyCheckForMisbehaviour() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+	suite.Require().NoError(err)
 
 	suite.Require().False(lightClientModule.CheckForMisbehaviour(suite.chain.GetContext(), exported.LocalhostClientID, nil))
 }
 
 func (suite *LocalhostTestSuite) TestUpdateState() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+	suite.Require().NoError(err)
 
 	heights := lightClientModule.UpdateState(suite.chain.GetContext(), exported.LocalhostClientID, nil)
 
@@ -237,10 +237,10 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 
 			tc.malleate()
 
-			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+			suite.Require().NoError(err)
 
-			err := lightClientModule.VerifyMembership(
+			err = lightClientModule.VerifyMembership(
 				suite.chain.GetContext(),
 				exported.LocalhostClientID,
 				clienttypes.ZeroHeight(),
@@ -315,10 +315,10 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 
 			tc.malleate()
 
-			lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+			suite.Require().NoError(err)
 
-			err := lightClientModule.VerifyNonMembership(
+			err = lightClientModule.VerifyNonMembership(
 				suite.chain.GetContext(),
 				exported.LocalhostClientID,
 				clienttypes.ZeroHeight(),
@@ -337,14 +337,15 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 }
 
 func (suite *LocalhostTestSuite) TestStatus() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+	suite.Require().NoError(err)
+
 	suite.Require().Equal(exported.Active, lightClientModule.Status(suite.chain.GetContext(), exported.LocalhostClientID))
 }
 
 func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+	suite.Require().NoError(err)
 
 	ctx := suite.chain.GetContext()
 	timestamp, err := lightClientModule.TimestampAtHeight(ctx, exported.LocalhostClientID, nil)
@@ -353,17 +354,17 @@ func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
 }
 
 func (suite *LocalhostTestSuite) TestRecoverClient() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+	suite.Require().NoError(err)
 
-	err := lightClientModule.RecoverClient(suite.chain.GetContext(), exported.LocalhostClientID, exported.LocalhostClientID)
+	err = lightClientModule.RecoverClient(suite.chain.GetContext(), exported.LocalhostClientID, exported.LocalhostClientID)
 	suite.Require().Error(err)
 }
 
 func (suite *LocalhostTestSuite) TestVerifyUpgradeAndUpdateState() {
-	lightClientModule, found := suite.chain.GetSimApp().IBCKeeper.ClientKeeper.Route(exported.LocalhostClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
+	suite.Require().NoError(err)
 
-	err := lightClientModule.VerifyUpgradeAndUpdateState(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil, nil, nil)
+	err = lightClientModule.VerifyUpgradeAndUpdateState(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil, nil, nil)
 	suite.Require().Error(err)
 }
