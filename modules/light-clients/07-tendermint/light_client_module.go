@@ -18,11 +18,11 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
 	cdc           codec.BinaryCodec
-	storeProvider exported.ClientStoreProvider
+	storeProvider clienttypes.StoreProvider
 }
 
 // NewLightClientModule creates and returns a new 07-tendermint LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, storeProvider exported.ClientStoreProvider, authority string) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.StoreProvider, authority string) LightClientModule {
 	return LightClientModule{
 		cdc:           cdc,
 		storeProvider: storeProvider,
