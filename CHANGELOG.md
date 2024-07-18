@@ -65,7 +65,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core, core/02-client) [\#6763](https://github.com/cosmos/ibc-go/pull/6763) Move prometheus metric labels for 02-client and core into a separate `metrics` package on core.
 * (core/02-client) [\#6777](https://github.com/cosmos/ibc-go/pull/6777) The `NewClientProposalHandler` of `02-client` has been removed.
 * (core/types) [\#6794](https://github.com/cosmos/ibc-go/pull/6794) The composite interface `QueryServer` has been removed from package `core/types`. Please use the granular `QueryServer` interfaces provided by each core submodule.
-
+* (light-clients/06-solomachine, light-clients/07-tendermint) [\#6891](https://github.com/cosmos/ibc-go/pull/6891) The `VerifyMembership` and `VerifyNonMembership` functions of solomachine's `ClientState` have been made private. The `VerifyMembership`, `VerifyNonMembership`, `GetTimestampAtHeight`, `Status` and `Initialize` functions of tendermint's `ClientState` have been made private.
 ### State Machine Breaking
 
 * (light-clients/07-tendermint) [\#6276](https://github.com/cosmos/ibc-go/pull/6276) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
