@@ -10,7 +10,7 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	callbacktypes "github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
