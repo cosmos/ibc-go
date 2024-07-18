@@ -317,10 +317,10 @@ func (s *TransferForwardingTestSuite) TestFailedForwarding() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	chainBstartingBalance, err := GetChainBalanceForDenom(ctx, chainB, chainADenom, chainBWallet)
+	chainBstartingBalance, err := testsuite.GetChainBalanceForDenom(ctx, chainB, chainADenom, chainBWallet)
 	s.Require().NoError(err)
 
-	chainCstartingBalance, err := GetChainBalanceForDenom(ctx, chainC, chainADenom, chainCWallet)
+	chainCstartingBalance, err := testsuite.GetChainBalanceForDenom(ctx, chainC, chainADenom, chainCWallet)
 	s.Require().NoError(err)
 
 	t.Run("native IBC token transfer from chainA to invalid address through B", func(t *testing.T) {
