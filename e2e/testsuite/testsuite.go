@@ -670,7 +670,7 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
 func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 	opts := ibc.DefaultChannelOpts()
-	opts.Version = determineDefaultTransferVersion(s.GetAllChains())
+	opts.Version = DetermineDefaultTransferVersion(s.GetAllChains())
 	return opts
 }
 
@@ -678,7 +678,7 @@ func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 func (s *E2ETestSuite) FeeTransferChannelOptions() ibc.CreateChannelOptions {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: determineDefaultTransferVersion(s.GetAllChains()),
+		AppVersion: DetermineDefaultTransferVersion(s.GetAllChains()),
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
@@ -797,13 +797,13 @@ func ThreeChainSetup() ChainOptionConfiguration {
 // DefaultChannelOpts returns the default chain options for the test suite based on the provided chains.
 func DefaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
 	channelOptions := ibc.DefaultChannelOpts()
-	channelOptions.Version = determineDefaultTransferVersion(chains)
+	channelOptions.Version = DetermineDefaultTransferVersion(chains)
 	return channelOptions
 }
 
-// determineDefaultTransferVersion determines the version of transfer that should be used with an arbitrary number of chains.
+// DetermineDefaultTransferVersion determines the version of transfer that should be used with an arbitrary number of chains.
 // the default is V2, but if any chain does not support V2, then V1 is used.
-func determineDefaultTransferVersion(chains []ibc.Chain) string {
+func DetermineDefaultTransferVersion(chains []ibc.Chain) string {
 	for _, chain := range chains {
 		chainVersion := chain.Config().Images[0].Version
 		if !testvalues.ICS20v2FeatureReleases.IsSupported(chainVersion) {
