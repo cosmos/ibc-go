@@ -3,7 +3,6 @@ package query
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
