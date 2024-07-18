@@ -290,6 +290,8 @@ func (s *TransferForwardingTestSuite) TestChannelUpgradeForwarding_Succeeds() {
 	})
 }
 
+// TestFailedForwarding tests the scenario in which the packet is sent from
+// A to C (through B) but it can't reach C (we use an invalid address).
 func (s *TransferForwardingTestSuite) TestFailedForwarding() {
 	t := s.T()
 	ctx := context.TODO()
