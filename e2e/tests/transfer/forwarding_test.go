@@ -354,7 +354,7 @@ func (s *TransferForwardingTestSuite) TestFailedForwarding() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	t.Run("chain B and C balance has not changed", func(t *testing.T) {
+	t.Run("balances for B and C have not changed", func(t *testing.T) {
 		chainBBalance, err := s.GetChainBalanceForDenom(ctx, chainB, chainADenom, chainBWallet)
 		s.Require().NoError(err)
 		s.Require().Equal(chainBstartingBalance, chainBBalance)
