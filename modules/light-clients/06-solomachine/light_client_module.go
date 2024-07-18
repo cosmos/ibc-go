@@ -118,7 +118,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 	return clientState.UpdateState(ctx, l.cdc, clientStore, clientMsg)
 }
 
-// VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyMembership method.
+// VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.verifyMembership method.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
 func (l LightClientModule) VerifyMembership(
@@ -137,10 +137,10 @@ func (l LightClientModule) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.verifyMembership(clientStore, l.cdc, proof, path, value)
 }
 
-// VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyNonMembership method.
+// VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
 func (l LightClientModule) VerifyNonMembership(
@@ -158,7 +158,7 @@ func (l LightClientModule) VerifyNonMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyNonMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	return clientState.verifyNonMembership(clientStore, l.cdc, proof, path)
 }
 
 // Status returns the status of the solo machine client.
