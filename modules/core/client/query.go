@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -30,7 +31,7 @@ func QueryTendermintProof(clientCtx client.Context, key []byte) ([]byte, []byte,
 	// Therefore, a query at height 2 would be equivalent to a query at height 3.
 	// A height of 0 will query with the latest state.
 	if height != 0 && height <= 2 {
-		return nil, nil, clienttypes.Height{}, fmt.Errorf("proof queries at height <= 2 are not supported")
+		return nil, nil, clienttypes.Height{}, errors.New("proof queries at height <= 2 are not supported")
 	}
 
 	// Use the IAVL height if a valid tendermint height is passed in.
