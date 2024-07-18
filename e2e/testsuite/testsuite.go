@@ -564,25 +564,20 @@ func (s *E2ETestSuite) createWalletOnChainIndex(ctx context.Context, amount, cha
 // GetChainANativeBalance gets the balance of a given user on chain A.
 func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	chainA := s.GetAllChains()[0]
-
-	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainA, &banktypes.QueryBalanceRequest{
-		Address: user.FormattedAddress(),
-		Denom:   chainA.Config().Denom,
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	return balanceResp.Balance.Amount.Int64(), nil
+	return s.GetChainBalanceForDenom(ctx, chainA, chainA.Config().Denom, user)
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
 func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	chainB := s.GetAllChains()[1]
+	return s.GetChainBalanceForDenom(ctx, chainB, chainB.Config().Denom, user)
+}
 
-	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainB, &banktypes.QueryBalanceRequest{
+// GetChainBalanceForDenom returns the balance for a given denom given a chain.
+func (s *E2ETestSuite) GetChainBalanceForDenom(ctx context.Context, chain ibc.Chain, denom string, user ibc.Wallet) (int64, error) {
+	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chain, &banktypes.QueryBalanceRequest{
 		Address: user.FormattedAddress(),
-		Denom:   chainB.Config().Denom,
+		Denom:   denom,
 	})
 	if err != nil {
 		return 0, err

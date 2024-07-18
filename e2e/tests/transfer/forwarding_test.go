@@ -289,3 +289,76 @@ func (s *TransferForwardingTestSuite) TestChannelUpgradeForwarding_Succeeds() {
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
 }
+
+func (s *TransferForwardingTestSuite) TestFailedForwarding() {
+	t := s.T()
+	ctx := context.TODO()
+
+	testName := t.Name()
+	t.Parallel()
+	relayer := s.CreateDefaultPaths(testName)
+	chains := s.GetAllChains()
+
+	chainA, chainB, chainC := chains[0], chains[1], chains[2]
+
+	chainADenom := chainA.Config().Denom
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.FormattedAddress()
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	chainCWallet := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
+
+	channelAtoB := s.GetChainAChannelForTest(testName)
+	channelBtoC := s.GetChannelsForTest(chainB, testName)[1]
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	chainBstartingBalance, err := s.GetChainBalanceForDenom(ctx, chainB, chainADenom, chainBWallet)
+	s.Require().NoError(err)
+
+	chainCstartingBalance, err := s.GetChainBalanceForDenom(ctx, chainC, chainADenom, chainCWallet)
+	s.Require().NoError(err)
+
+	t.Run("native IBC token transfer from chainA to invalid address through B", func(t *testing.T) {
+		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
+		forwarding := transfertypes.NewForwarding(false, transfertypes.NewHop(channelBtoC.PortID, channelBtoC.ChannelID))
+		resp := s.Transfer(ctx, chainA, chainAWallet, channelAtoB.PortID, channelAtoB.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, testvalues.InvalidAddress, clienttypes.ZeroHeight(), uint64(inFiveMinutes), "", forwarding)
+		s.AssertTxSuccess(resp)
+	})
+
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer, testName)
+	})
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelAtoB.PortID, channelAtoB.ChannelID, 1)
+	})
+
+	t.Run("token transfer amount unescrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("chain B and C balance has not changed", func(t *testing.T) {
+		chainBBalance, err := s.GetChainBalanceForDenom(ctx, chainB, chainADenom, chainBWallet)
+		s.Require().NoError(err)
+		s.Require().Equal(chainBstartingBalance, chainBBalance)
+
+		chainCBalance, err := s.GetChainBalanceForDenom(ctx, chainC, chainADenom, chainCWallet)
+		s.Require().NoError(err)
+		s.Require().Equal(chainCstartingBalance, chainCBalance)
+	})
+}
