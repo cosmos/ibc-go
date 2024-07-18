@@ -32,7 +32,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations(
 		(*exported.Path)(nil),
-		&MerklePath{},
 		&v2.MerklePath{},
 	)
 }
