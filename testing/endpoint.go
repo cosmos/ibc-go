@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -171,7 +172,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 // see reference https://github.com/cosmos/ibc-go/pull/1169
 func (endpoint *Endpoint) UpgradeChain() error {
 	if strings.TrimSpace(endpoint.Counterparty.ClientID) == "" {
-		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
+		return errors.New("cannot upgrade chain if there is no counterparty client")
 	}
 
 	clientState := endpoint.Counterparty.GetClientState()

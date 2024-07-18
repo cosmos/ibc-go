@@ -478,12 +478,12 @@ func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ib
 	chainA, chainB := chains[0], chains[1]
 	chainARelayerWallet, ok := ibcrelayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
-		return nil, nil, fmt.Errorf("unable to find chain A relayer wallet")
+		return nil, nil, errors.New("unable to find chain A relayer wallet")
 	}
 
 	chainBRelayerWallet, ok := ibcrelayer.GetWallet(chainB.Config().ChainID)
 	if !ok {
-		return nil, nil, fmt.Errorf("unable to find chain B relayer wallet")
+		return nil, nil, errors.New("unable to find chain B relayer wallet")
 	}
 	return chainARelayerWallet, chainBRelayerWallet, nil
 }

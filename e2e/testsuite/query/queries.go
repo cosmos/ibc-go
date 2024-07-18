@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -43,10 +44,10 @@ func ModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chai
 
 	govAccount, ok := account.(sdk.ModuleAccountI)
 	if !ok {
-		return nil, fmt.Errorf("account is not a module account")
+		return nil, errors.New("account is not a module account")
 	}
 	if govAccount.GetAddress().String() == "" {
-		return nil, fmt.Errorf("module account address is empty")
+		return nil, errors.New("module account address is empty")
 	}
 
 	return govAccount.GetAddress(), nil
