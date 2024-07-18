@@ -186,6 +186,38 @@ jobs:
       test-file-directory: "unreleased"
       test-suite: "transfer-channel-upgrade-chain-b"
 
+  transfer-v2-1-channel-upgrade:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-1-channel-upgrade"
+
+  transfer-v2-2-channel-upgrade:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-2-channel-upgrade"
+
+  transfer-v2-forwarding:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-forwarding"
+
+  transfer-v2-multidenom:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-multidenom"
+
   ica-channel-upgrade:
     needs:
       - build-release-images

@@ -118,6 +118,24 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "transfer-authz-chain-b"
 
+  transfer-v2-forwarding-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-v2-forwarding-chain-a"
+
+  transfer-v2-multidenom-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-v2-multidenom-chain-a"
+
   connection-chain-a:
     needs:
       - build-release-images
@@ -307,6 +325,24 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "transfer-channel-upgrade-chain-b"
 
+  transfer-v2-1-channel-upgrade-chain-1:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-v2-1-channel-upgrade-chain-1"
+
+  transfer-v2-2-channel-upgrade-chain-1:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-v2-2-channel-upgrade-chain-1"
+
   ica-channel-upgrade-chain-a:
     needs:
       - build-release-images
@@ -314,7 +350,7 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-channel-upgrade-chain-a"
+      test-suite: "ica-channel-upgrade-chain-a"
 
   ica-channel-upgrade-chain-b:
     needs:
@@ -323,4 +359,4 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-channel-upgrade-chain-b"
+      test-suite: "ica-channel-upgrade-chain-b"
