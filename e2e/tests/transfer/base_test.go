@@ -579,7 +579,7 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("IBC token transfer from chainA to chainB", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, sdk.NewCoins(coinFromA), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, sdk.NewCoins(coinFromA), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainA), 0, "", nil)
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -610,7 +610,7 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	})
 
 	t.Run("send entire balance from B to A", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, sdk.NewCoins(sdk.NewCoin(chainBIBCToken.IBCDenom(), transfertypes.UnboundedSpendLimit())), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, sdk.NewCoins(sdk.NewCoin(chainBIBCToken.IBCDenom(), transfertypes.UnboundedSpendLimit())), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", nil)
 		s.AssertTxSuccess(transferTxResp)
 	})
 
