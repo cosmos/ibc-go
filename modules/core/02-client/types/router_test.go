@@ -6,9 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
@@ -57,7 +54,7 @@ func (suite *TypesTestSuite) TestAddRoute() {
 			cdc := suite.chainA.App.AppCodec()
 
 			storeProvider := types.NewStoreProvider(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
-			tmLightClientModule := ibctm.NewLightClientModule(cdc, storeProvider, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+			tmLightClientModule := ibctm.NewLightClientModule(cdc, storeProvider)
 			router = types.NewRouter()
 
 			tc.malleate()
@@ -114,7 +111,7 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 			cdc := suite.chainA.App.AppCodec()
 
 			storeProvider := types.NewStoreProvider(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
-			tmLightClientModule := ibctm.NewLightClientModule(cdc, storeProvider, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+			tmLightClientModule := ibctm.NewLightClientModule(cdc, storeProvider)
 			router := types.NewRouter()
 			router.AddRoute(exported.Tendermint, &tmLightClientModule)
 
