@@ -317,12 +317,6 @@ func (s *TransferForwardingTestSuite) TestFailedForwarding() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	chainBstartingBalance, err := testsuite.GetChainBalanceForDenom(ctx, chainB, chainADenom, chainBWallet)
-	s.Require().NoError(err)
-
-	chainCstartingBalance, err := testsuite.GetChainBalanceForDenom(ctx, chainC, chainADenom, chainCWallet)
-	s.Require().NoError(err)
-
 	t.Run("native IBC token transfer from chainA to invalid address through B", func(t *testing.T) {
 		inFiveMinutes := time.Now().Add(5 * time.Minute).UnixNano()
 		forwarding := transfertypes.NewForwarding(false, transfertypes.NewHop(channelBtoC.PortID, channelBtoC.ChannelID))
@@ -355,12 +349,14 @@ func (s *TransferForwardingTestSuite) TestFailedForwarding() {
 	})
 
 	t.Run("balances for B and C have not changed", func(t *testing.T) {
-		chainBBalance, err := testsuite.GetChainBalanceForDenom(ctx, chainB, chainADenom, chainBWallet)
+		chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelAtoB.Counterparty.PortID, channelAtoB.Counterparty.ChannelID) // IBC token sent to chainB
+		chainBBalance, err := testsuite.GetChainBalanceForDenom(ctx, chainB, chainBIBCToken.IBCDenom(), chainBWallet)
 		s.Require().NoError(err)
-		s.Require().Equal(chainBstartingBalance, chainBBalance)
+		s.Require().Zero(chainBBalance)
 
-		chainCBalance, err := testsuite.GetChainBalanceForDenom(ctx, chainC, chainADenom, chainCWallet)
+		chainCIBCToken := testsuite.GetIBCToken(chainBIBCToken.IBCDenom(), channelBtoC.Counterparty.PortID, channelBtoC.Counterparty.ChannelID) // IBC token sent to chainC
+		chainCBalance, err := testsuite.GetChainBalanceForDenom(ctx, chainC, chainCIBCToken.IBCDenom(), chainCWallet)
 		s.Require().NoError(err)
-		s.Require().Equal(chainCstartingBalance, chainCBalance)
+		s.Require().Zero(chainCBalance)
 	})
 }
