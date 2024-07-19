@@ -1,7 +1,7 @@
 package host
 
 import (
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // FullClientKey returns the full path of specific client path in the format:

@@ -9,9 +9,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 func (suite *TypesTestSuite) TestAddRoute() {
@@ -76,11 +76,7 @@ func (suite *TypesTestSuite) TestAddRoute() {
 }
 
 func (suite *TypesTestSuite) TestHasGetRoute() {
-	var (
-		err        error
-		clientType string
-		clientID   string
-	)
+	var clientType string
 
 	testCases := []struct {
 		name     string
@@ -90,25 +86,20 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 		{
 			"success",
 			func() {
-				clientID = fmt.Sprintf("%s-%d", exported.Tendermint, 0)
-				clientType, _, err = types.ParseClientIdentifier(clientID)
-				suite.Require().NoError(err)
+				clientType = exported.Tendermint
 			},
 			true,
 		},
 		{
 			"failure: route does not exist",
 			func() {
-				clientID = "06-solomachine-0"
-				clientType, _, err = types.ParseClientIdentifier(clientID)
-				suite.Require().NoError(err)
+				clientType = exported.Solomachine
 			},
 			false,
 		},
 		{
 			"failure: invalid client ID",
 			func() {
-				clientID = "invalid-client-id"
 				clientType = "invalid-client-type"
 			},
 			false,
@@ -130,7 +121,7 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 			tc.malleate()
 
 			hasRoute := router.HasRoute(clientType)
-			route, ok := router.GetRoute(clientID)
+			route, ok := router.GetRoute(clientType)
 
 			if tc.expPass {
 				suite.Require().True(hasRoute)

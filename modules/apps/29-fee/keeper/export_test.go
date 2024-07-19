@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 )
 
 // LegacyTotal is a wrapper for the legacyTotal function for testing.
