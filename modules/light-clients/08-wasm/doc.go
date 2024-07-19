@@ -13,3 +13,5 @@ This allows disabling linking of libwasmvm and not forcing users to have specifi
 Please refer to the 08-wasm module documentation for more information.
 */
 package wasm
+
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
