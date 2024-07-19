@@ -158,8 +158,8 @@ func (k *Keeper) ChanOpenTry(
 	)
 
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, initProof,
-		counterparty.PortId, counterparty.ChannelId, expectedChannel,
+		ctx, counterparty.PortId, counterparty.ChannelId,
+		connectionEnd, proofHeight, initProof, expectedChannel,
 	); err != nil {
 		return "", nil, err
 	}
@@ -248,8 +248,7 @@ func (k *Keeper) ChanOpenAck(
 	)
 
 	return k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, tryProof,
-		channel.Counterparty.PortId, counterpartyChannelID,
+		ctx, channel.Counterparty.PortId, counterpartyChannelID, connectionEnd, proofHeight, tryProof,
 		expectedChannel)
 }
 
@@ -325,9 +324,8 @@ func (k *Keeper) ChanOpenConfirm(
 	// NOTE: If the counterparty has initialized an upgrade in the same block as performing the
 	// ACK handshake step, this channel end will be incapable of opening.
 	return k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, ackProof,
-		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
-		expectedChannel)
+		ctx, channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+		connectionEnd, proofHeight, ackProof, expectedChannel)
 }
 
 // WriteOpenConfirmChannel writes an updated channel state for the successful OpenConfirm handshake step.
@@ -448,9 +446,8 @@ func (k *Keeper) ChanCloseConfirm(
 	}
 
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, initProof,
-		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
-		expectedChannel,
+		ctx, channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+		connectionEnd, proofHeight, initProof, expectedChannel,
 	); err != nil {
 		return err
 	}

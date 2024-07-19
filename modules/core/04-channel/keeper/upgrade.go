@@ -117,10 +117,10 @@ func (k *Keeper) ChanUpgradeTry(
 	// verify the counterparty channel state containing the upgrade sequence
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, channelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, channelProof,
 		counterpartyChannel,
 	); err != nil {
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
@@ -173,10 +173,10 @@ func (k *Keeper) ChanUpgradeTry(
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
-		connection,
-		proofHeight, upgradeProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, upgradeProof,
 		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
 	); err != nil {
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
@@ -291,10 +291,10 @@ func (k *Keeper) ChanUpgradeAck(
 	// verify the counterparty channel state containing the upgrade sequence
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, channelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, channelProof,
 		counterpartyChannel,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
@@ -303,10 +303,10 @@ func (k *Keeper) ChanUpgradeAck(
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
-		connection,
-		proofHeight, upgradeProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, upgradeProof,
 		counterpartyUpgrade,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
@@ -426,10 +426,10 @@ func (k *Keeper) ChanUpgradeConfirm(
 
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, channelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, channelProof,
 		counterpartyChannel,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
@@ -437,10 +437,10 @@ func (k *Keeper) ChanUpgradeConfirm(
 
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
-		connection,
-		proofHeight, upgradeProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, upgradeProof,
 		counterpartyUpgrade,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
@@ -559,10 +559,10 @@ func (k *Keeper) ChanUpgradeOpen(
 
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, channelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, channelProof,
 		counterpartyChannel,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty channel")
@@ -679,11 +679,11 @@ func (k *Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, er
 
 	if err := k.connectionKeeper.VerifyChannelUpgradeError(
 		ctx,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
 		connection,
 		proofHeight,
 		errorReceiptProof,
-		channel.Counterparty.PortId,
-		channel.Counterparty.ChannelId,
 		errorReceipt,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty error receipt")
@@ -793,10 +793,10 @@ func (k *Keeper) ChanUpgradeTimeout(
 	// verify the counterparty channel state
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, counterpartyChannelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, counterpartyChannelProof,
 		counterpartyChannel,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty channel state")

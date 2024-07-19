@@ -129,11 +129,11 @@ func (k *Keeper) VerifyConnectionState(
 // channel end, under the specified port, stored on the target machine.
 func (k *Keeper) VerifyChannelState(
 	ctx sdk.Context,
+	portID,
+	channelID string,
 	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
-	portID,
-	channelID string,
 	channel channeltypes.Channel,
 ) error {
 	clientID := connection.ClientId
@@ -167,11 +167,11 @@ func (k *Keeper) VerifyChannelState(
 // the specified port, specified channel, and specified sequence.
 func (k *Keeper) VerifyPacketCommitment(
 	ctx sdk.Context,
+	portID,
+	channelID string,
 	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
-	portID,
-	channelID string,
 	sequence uint64,
 	commitmentBytes []byte,
 ) error {
@@ -203,11 +203,11 @@ func (k *Keeper) VerifyPacketCommitment(
 // acknowledgement at the specified port, specified channel, and specified sequence.
 func (k *Keeper) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
+	portID,
+	channelID string,
 	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
-	portID,
-	channelID string,
 	sequence uint64,
 	acknowledgement []byte,
 ) error {
@@ -241,11 +241,11 @@ func (k *Keeper) VerifyPacketAcknowledgement(
 // specified sequence.
 func (k *Keeper) VerifyPacketReceiptAbsence(
 	ctx sdk.Context,
+	portID,
+	channelID string,
 	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
-	portID,
-	channelID string,
 	sequence uint64,
 ) error {
 	clientID := connection.ClientId
@@ -276,11 +276,11 @@ func (k *Keeper) VerifyPacketReceiptAbsence(
 // received of the specified channel at the specified port.
 func (k *Keeper) VerifyNextSequenceRecv(
 	ctx sdk.Context,
+	portID,
+	channelID string,
 	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
-	portID,
-	channelID string,
 	nextSequenceRecv uint64,
 ) error {
 	clientID := connection.ClientId

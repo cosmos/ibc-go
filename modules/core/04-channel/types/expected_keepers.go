@@ -23,67 +23,67 @@ type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
 	VerifyChannelState(
 		ctx sdk.Context,
+		portID,
+		channelID string,
 		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
-		portID,
-		channelID string,
 		channel Channel,
 	) error
 	VerifyPacketCommitment(
 		ctx sdk.Context,
+		portID,
+		channelID string,
 		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
-		portID,
-		channelID string,
 		sequence uint64,
 		commitmentBytes []byte,
 	) error
 	VerifyPacketAcknowledgement(
 		ctx sdk.Context,
+		portID,
+		channelID string,
 		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
-		portID,
-		channelID string,
 		sequence uint64,
 		acknowledgement []byte,
 	) error
 	VerifyPacketReceiptAbsence(
 		ctx sdk.Context,
+		portID,
+		channelID string,
 		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
-		portID,
-		channelID string,
 		sequence uint64,
 	) error
 	VerifyNextSequenceRecv(
 		ctx sdk.Context,
+		portID,
+		channelID string,
 		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
-		portID,
-		channelID string,
 		nextSequenceRecv uint64,
 	) error
 	VerifyChannelUpgrade(
 		ctx sdk.Context,
+		portID,
+		channelID string,
 		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
-		portID,
-		channelID string,
 		upgrade Upgrade,
 	) error
 	VerifyChannelUpgradeError(
 		ctx sdk.Context,
+		portID,
+		channelID string,
 		connection connectiontypes.ConnectionEnd,
 		height exported.Height,
 		proof []byte,
-		portID,
-		channelID string,
 		errorReceipt ErrorReceipt,
 	) error
 }
