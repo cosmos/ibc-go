@@ -130,3 +130,11 @@ pull_request_rules:
       backport:
         branches:
           - release/v8.3.x
+  - name: backport patches to v9.0.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v9.0.x
+    actions:
+      backport:
+        branches:
+          - release/v9.0.x

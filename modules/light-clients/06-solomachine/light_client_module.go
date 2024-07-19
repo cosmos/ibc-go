@@ -8,8 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
@@ -17,11 +17,11 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 // LightClientModule implements the core IBC api.LightClientModule interface
 type LightClientModule struct {
 	cdc           codec.BinaryCodec
-	storeProvider exported.ClientStoreProvider
+	storeProvider clienttypes.StoreProvider
 }
 
 // NewLightClientModule creates and returns a new 06-solomachine LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, storeProvider exported.ClientStoreProvider) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.StoreProvider) LightClientModule {
 	return LightClientModule{
 		cdc:           cdc,
 		storeProvider: storeProvider,

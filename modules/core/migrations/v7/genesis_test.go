@@ -9,14 +9,14 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
-	clientv7 "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/core/migrations/v7"
-	"github.com/cosmos/ibc-go/v8/modules/core/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/02-client"
+	clientv7 "github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/migrations/v7"
+	"github.com/cosmos/ibc-go/v9/modules/core/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type MigrationsV7TestSuite struct {

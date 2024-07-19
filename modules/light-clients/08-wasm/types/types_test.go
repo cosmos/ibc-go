@@ -13,7 +13,7 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const (

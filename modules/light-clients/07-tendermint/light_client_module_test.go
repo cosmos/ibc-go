@@ -11,16 +11,16 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var (
@@ -91,15 +91,15 @@ func (suite *TendermintTestSuite) TestInitialize() {
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
 			clientStateBz := suite.chainA.Codec.MustMarshal(clientState)
 			consStateBz := suite.chainA.Codec.MustMarshal(consensusState)
 
-			err := lightClientModule.Initialize(suite.chainA.GetContext(), path.EndpointA.ClientID, clientStateBz, consStateBz)
+			err = lightClientModule.Initialize(suite.chainA.GetContext(), path.EndpointA.ClientID, clientStateBz, consStateBz)
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
@@ -148,8 +148,8 @@ func (suite *TendermintTestSuite) TestVerifyClientMessage() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
@@ -178,8 +178,8 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviourPanicsOnClientStateNot
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	suite.Require().NoError(err)
 
 	// ensure counterparty state is committed
 	suite.coordinator.CommitBlock(suite.chainB)
@@ -205,8 +205,8 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviourPanicsOnClientSta
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	suite.Require().NoError(err)
 
 	// ensure counterparty state is committed
 	suite.coordinator.CommitBlock(suite.chainB)
@@ -233,8 +233,8 @@ func (suite *TendermintTestSuite) TestUpdateStatePanicsOnClientStateNotFound() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	suite.Require().NoError(err)
 
 	// ensure counterparty state is committed
 	suite.coordinator.CommitBlock(suite.chainB)
@@ -508,8 +508,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 			tc.malleate() // make changes as necessary
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(testingpath.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			err = lightClientModule.VerifyMembership(
 				suite.chainA.GetContext(), testingpath.EndpointA.ClientID, proofHeight, delayTimePeriod, delayBlockPeriod,
@@ -733,8 +733,8 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 
 			tc.malleate() // make changes as necessary
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(testingpath.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			err = lightClientModule.VerifyNonMembership(
 				suite.chainA.GetContext(), testingpath.EndpointA.ClientID, proofHeight, delayTimePeriod, delayBlockPeriod,
@@ -810,8 +810,8 @@ func (suite *TendermintTestSuite) TestStatus() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			var ok bool
 			clientState, ok = path.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -860,8 +860,8 @@ func (suite *TendermintTestSuite) TestLatestHeight() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -927,8 +927,8 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 			tmConsensusState.Timestamp = expectedTimestamp
 			path.EndpointA.SetConsensusState(tmConsensusState, height)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -1014,12 +1014,12 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectPath.EndpointA.ClientID, tmClientState)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			err := lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
+			err = lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
 
 			expPass := tc.expErr == nil
 			if expPass {
@@ -1173,8 +1173,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			tc.malleate()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			err = lightClientModule.VerifyUpgradeAndUpdateState(
 				suite.chainA.GetContext(),

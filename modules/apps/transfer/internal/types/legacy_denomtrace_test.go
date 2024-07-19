@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
+	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 )
 
 func TestDenomTrace_IBCDenom(t *testing.T) {

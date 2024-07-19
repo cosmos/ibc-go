@@ -15,7 +15,6 @@
     "TestClientTestSuite"
   ],
   "test": [
-    "TestClientUpdateProposal_Succeeds",
     "TestClient_Update_Misbehaviour",
     "TestAllowedClientsParam"
   ],

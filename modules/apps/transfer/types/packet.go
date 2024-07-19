@@ -10,13 +10,15 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
 	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
+	_ ibcexported.PacketData         = (*FungibleTokenPacketDataV2)(nil)
+	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketDataV2)(nil)
 )
 
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance

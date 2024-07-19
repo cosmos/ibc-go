@@ -17,9 +17,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ types.QueryServer = (*queryServer)(nil)
@@ -383,9 +383,9 @@ func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerify
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), "verify membership query")
 	}()
 
-	clientModule, found := q.Route(req.ClientId)
-	if !found {
-		return nil, status.Error(codes.NotFound, req.ClientId)
+	clientModule, err := q.Route(ctx, req.ClientId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
 	if clientStatus := q.GetClientStatus(ctx, req.ClientId); clientStatus != exported.Active {

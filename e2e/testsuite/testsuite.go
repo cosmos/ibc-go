@@ -30,10 +30,10 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 const (
@@ -478,12 +478,12 @@ func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ib
 	chainA, chainB := chains[0], chains[1]
 	chainARelayerWallet, ok := ibcrelayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
-		return nil, nil, fmt.Errorf("unable to find chain A relayer wallet")
+		return nil, nil, errors.New("unable to find chain A relayer wallet")
 	}
 
 	chainBRelayerWallet, ok := ibcrelayer.GetWallet(chainB.Config().ChainID)
 	if !ok {
-		return nil, nil, fmt.Errorf("unable to find chain B relayer wallet")
+		return nil, nil, errors.New("unable to find chain B relayer wallet")
 	}
 	return chainARelayerWallet, chainBRelayerWallet, nil
 }
@@ -670,7 +670,7 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
 func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 	opts := ibc.DefaultChannelOpts()
-	opts.Version = determineDefaultTransferVersion(s.GetAllChains())
+	opts.Version = DetermineDefaultTransferVersion(s.GetAllChains())
 	return opts
 }
 
@@ -678,7 +678,7 @@ func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 func (s *E2ETestSuite) FeeTransferChannelOptions() ibc.CreateChannelOptions {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: determineDefaultTransferVersion(s.GetAllChains()),
+		AppVersion: DetermineDefaultTransferVersion(s.GetAllChains()),
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
@@ -797,13 +797,13 @@ func ThreeChainSetup() ChainOptionConfiguration {
 // DefaultChannelOpts returns the default chain options for the test suite based on the provided chains.
 func DefaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
 	channelOptions := ibc.DefaultChannelOpts()
-	channelOptions.Version = determineDefaultTransferVersion(chains)
+	channelOptions.Version = DetermineDefaultTransferVersion(chains)
 	return channelOptions
 }
 
-// determineDefaultTransferVersion determines the version of transfer that should be used with an arbitrary number of chains.
+// DetermineDefaultTransferVersion determines the version of transfer that should be used with an arbitrary number of chains.
 // the default is V2, but if any chain does not support V2, then V1 is used.
-func determineDefaultTransferVersion(chains []ibc.Chain) string {
+func DetermineDefaultTransferVersion(chains []ibc.Chain) string {
 	for _, chain := range chains {
 		chainVersion := chain.Config().Images[0].Version
 		if !testvalues.ICS20v2FeatureReleases.IsSupported(chainVersion) {
