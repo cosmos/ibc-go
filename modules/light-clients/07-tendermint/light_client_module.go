@@ -22,7 +22,7 @@ type LightClientModule struct {
 }
 
 // NewLightClientModule creates and returns a new 07-tendermint LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.StoreProvider, authority string) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.StoreProvider) LightClientModule {
 	return LightClientModule{
 		cdc:           cdc,
 		storeProvider: storeProvider,
