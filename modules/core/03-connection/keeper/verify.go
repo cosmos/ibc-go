@@ -312,11 +312,11 @@ func (k *Keeper) VerifyNextSequenceRecv(
 // VerifyChannelUpgradeError verifies a proof of the provided upgrade error receipt.
 func (k *Keeper) VerifyChannelUpgradeError(
 	ctx sdk.Context,
+	portID,
+	channelID string,
 	connection types.ConnectionEnd,
 	height exported.Height,
 	proof []byte,
-	portID,
-	channelID string,
 	errorReceipt channeltypes.ErrorReceipt,
 ) error {
 	clientID := connection.ClientId
@@ -349,11 +349,11 @@ func (k *Keeper) VerifyChannelUpgradeError(
 // VerifyChannelUpgrade verifies the proof that a particular proposed upgrade has been stored in the upgrade path.
 func (k *Keeper) VerifyChannelUpgrade(
 	ctx sdk.Context,
+	portID,
+	channelID string,
 	connection types.ConnectionEnd,
 	proofHeight exported.Height,
 	upgradeProof []byte,
-	portID,
-	channelID string,
 	upgrade channeltypes.Upgrade,
 ) error {
 	clientID := connection.ClientId
