@@ -821,7 +821,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		{
 			"ICA OnChanUpgradeInit fails - invalid version", func() {
 				version = invalidVersion
-			}, icatypes.ErrUnknownDataType,
+			}, icatypes.ErrUnMarshalFailed,
 		},
 		{
 			"ICA auth module callback fails", func() {
@@ -949,7 +949,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 		{
 			"ICA OnChanUpgradeAck fails - invalid version", func() {
 				counterpartyVersion = invalidVersion
-			}, icatypes.ErrUnknownDataType,
+			}, icatypes.ErrUnMarshalFailed,
 		},
 		{
 			"ICA auth module callback fails", func() {

@@ -409,7 +409,7 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 			[]proto.Message{
 				&mockSdkMsg{},
 			},
-			types.ErrUnknownDataType,
+			types.ErrUnMarshalFailed,
 		},
 		{
 			"failure: multiple unregistered msg types",
@@ -419,13 +419,13 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 				&mockSdkMsg{},
 				&mockSdkMsg{},
 			},
-			types.ErrUnknownDataType,
+			types.ErrUnMarshalFailed,
 		},
 		{
 			"failure: empty bytes",
 			[]byte{},
 			nil,
-			types.ErrUnknownDataType,
+			types.ErrUnMarshalFailed,
 		},
 	}
 

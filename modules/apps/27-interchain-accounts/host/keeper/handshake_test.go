@@ -515,14 +515,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			malleate: func() {
 				counterpartyVersion = "invalid-version"
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: icatypes.ErrUnMarshalFailed,
 		},
 		{
 			name: "failure: cannot decode version string from channel",
 			malleate: func() {
 				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = "invalid-metadata-string" })
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: icatypes.ErrUnMarshalFailed,
 		},
 		{
 			name: "failure: metadata encoding not supported",

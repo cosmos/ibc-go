@@ -60,7 +60,7 @@ func SerializeCosmosTx(cdc codec.Codec, msgs []proto.Message, encoding string) (
 	case EncodingProto3JSON:
 		bz, err = cdc.MarshalJSON(cosmosTx)
 		if err != nil {
-			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot marshal CosmosTx with proto3 json")
+			return nil, errorsmod.Wrapf(ErrUnMarshalFailed, "cannot marshal CosmosTx with proto3 json")
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", encoding)
@@ -84,11 +84,11 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 	switch encoding {
 	case EncodingProtobuf:
 		if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
-			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal CosmosTx with protobuf: %v", err)
+			return nil, errorsmod.Wrapf(ErrUnMarshalFailed, "cannot unmarshal CosmosTx with protobuf: %v", err)
 		}
 	case EncodingProto3JSON:
 		if err := cdc.UnmarshalJSON(data, &cosmosTx); err != nil {
-			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal CosmosTx with proto3 json")
+			return nil, errorsmod.Wrapf(ErrUnMarshalFailed, "cannot unmarshal CosmosTx with proto3 json: %v", err)
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", encoding)
