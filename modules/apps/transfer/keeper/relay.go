@@ -98,7 +98,6 @@ func (k Keeper) sendTransfer(
 	tokens := make([]types.Token, 0, len(coins))
 
 	for _, coin := range coins {
-
 		// Using types.UnboundedSpendLimit allows us to send the entire balance of a given denom.
 		if coin.Amount.Equal(types.UnboundedSpendLimit()) {
 			coin.Amount = k.bankKeeper.GetBalance(ctx, sender, coin.Denom).Amount
