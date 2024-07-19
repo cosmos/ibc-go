@@ -2,6 +2,7 @@ package ibctesting
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
@@ -25,7 +26,7 @@ func ParseClientIDFromEvents(events []abci.Event) (string, error) {
 			}
 		}
 	}
-	return "", fmt.Errorf("client identifier event attribute not found")
+	return "", errors.New("client identifier event attribute not found")
 }
 
 // ParseConnectionIDFromEvents parses events emitted from a MsgConnectionOpenInit or
@@ -39,7 +40,7 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 			}
 		}
 	}
-	return "", fmt.Errorf("connection identifier event attribute not found")
+	return "", errors.New("connection identifier event attribute not found")
 }
 
 // ParseChannelIDFromEvents parses events emitted from a MsgChannelOpenInit or
@@ -52,7 +53,7 @@ func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 			}
 		}
 	}
-	return "", fmt.Errorf("channel identifier event attribute not found")
+	return "", errors.New("channel identifier event attribute not found")
 }
 
 // ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns
@@ -141,7 +142,7 @@ func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltyp
 		}
 	}
 	if len(packets) == 0 {
-		return ferr(fmt.Errorf("acknowledgement event attribute not found"))
+		return ferr(errors.New("acknowledgement event attribute not found"))
 	}
 	return packets, nil
 }
@@ -160,7 +161,7 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 			}
 		}
 	}
-	return nil, fmt.Errorf("acknowledgement event attribute not found")
+	return nil, errors.New("acknowledgement event attribute not found")
 }
 
 // ParseProposalIDFromEvents parses events emitted from MsgSubmitProposal and returns proposalID
@@ -170,7 +171,7 @@ func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 			return strconv.ParseUint(attribute.Value, 10, 64)
 		}
 	}
-	return 0, fmt.Errorf("proposalID event attribute not found")
+	return 0, errors.New("proposalID event attribute not found")
 }
 
 // ParsePacketSequenceFromEvents parses events emitted from MsgRecvPacket and returns the packet sequence
@@ -180,7 +181,7 @@ func ParsePacketSequenceFromEvents(events []abci.Event) (uint64, error) {
 			return strconv.ParseUint(attribute.Value, 10, 64)
 		}
 	}
-	return 0, fmt.Errorf("packet sequence event attribute not found")
+	return 0, errors.New("packet sequence event attribute not found")
 }
 
 // AssertEvents asserts that expected events are present in the actual events.

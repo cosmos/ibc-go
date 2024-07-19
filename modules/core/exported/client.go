@@ -10,9 +10,6 @@ import (
 type Status string
 
 const (
-	// TypeClientMisbehaviour is the shared evidence misbehaviour type
-	TypeClientMisbehaviour string = "client_misbehaviour"
-
 	// Solomachine is used to indicate that the light client is a solo machine.
 	Solomachine string = "06-solomachine"
 

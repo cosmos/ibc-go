@@ -93,7 +93,7 @@ func (k *Keeper) Route(ctx sdk.Context, clientID string) (exported.LightClientMo
 // SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
 func (k *Keeper) SetConsensusHost(consensusHost types.ConsensusHost) {
 	if consensusHost == nil {
-		panic(fmt.Errorf("cannot set a nil self consensus host"))
+		panic(errors.New("cannot set a nil self consensus host"))
 	}
 
 	k.consensusHost = consensusHost
@@ -330,8 +330,8 @@ func (k *Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.Client
 	return k.consensusHost.ValidateSelfClient(ctx, clientState)
 }
 
-// VerifyMembershipProof retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
-func (k *Keeper) VerifyMembershipProof(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
+// VerifyMembership retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
+func (k *Keeper) VerifyMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return err

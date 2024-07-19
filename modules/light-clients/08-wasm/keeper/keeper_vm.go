@@ -14,7 +14,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -26,8 +25,8 @@ func NewKeeperWithVM(
 	storeService store.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
-	vm ibcwasm.WasmEngine,
-	queryRouter ibcwasm.QueryRouter,
+	vm types.WasmEngine,
+	queryRouter types.QueryRouter,
 	opts ...Option,
 ) Keeper {
 	if clientKeeper == nil {
@@ -86,7 +85,7 @@ func NewKeeperWithConfig(
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
-	queryRouter ibcwasm.QueryRouter,
+	queryRouter types.QueryRouter,
 	opts ...Option,
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)

@@ -2,6 +2,7 @@ package testsuite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
@@ -347,7 +348,7 @@ func (*E2ETestSuite) QueryTxsByEvents(
 ) (*sdk.SearchTxsResult, error) {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
-		return nil, fmt.Errorf("QueryTxsByEvents must be passed a cosmos.CosmosChain")
+		return nil, errors.New("QueryTxsByEvents must be passed a cosmos.CosmosChain")
 	}
 
 	cmd := []string{"txs"}

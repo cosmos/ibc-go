@@ -1,7 +1,7 @@
 package types
 
 import (
-	"fmt"
+	"errors"
 	"time"
 )
 
@@ -23,7 +23,7 @@ func DefaultParams() Params {
 // Validate ensures MaxExpectedTimePerBlock is non-zero
 func (p Params) Validate() error {
 	if p.MaxExpectedTimePerBlock == 0 {
-		return fmt.Errorf("MaxExpectedTimePerBlock cannot be zero")
+		return errors.New("MaxExpectedTimePerBlock cannot be zero")
 	}
 	return nil
 }

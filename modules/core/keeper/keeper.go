@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -78,7 +77,7 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 // SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
 func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
 	if consensusHost == nil {
-		panic(fmt.Errorf("cannot set a nil self consensus host"))
+		panic(errors.New("cannot set a nil self consensus host"))
 	}
 
 	k.ClientKeeper.SetConsensusHost(consensusHost)

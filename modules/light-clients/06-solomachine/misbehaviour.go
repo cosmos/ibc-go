@@ -16,11 +16,6 @@ func (Misbehaviour) ClientType() string {
 	return exported.Solomachine
 }
 
-// Type implements Misbehaviour interface.
-func (Misbehaviour) Type() string {
-	return exported.TypeClientMisbehaviour
-}
-
 // ValidateBasic implements Misbehaviour interface.
 func (misbehaviour Misbehaviour) ValidateBasic() error {
 	if misbehaviour.Sequence == 0 {

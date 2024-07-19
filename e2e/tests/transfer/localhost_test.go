@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -37,7 +38,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	chainA, _ := s.GetChains()
 
-	channelVersion := transfertypes.V2
+	channelVersion := testsuite.DetermineDefaultTransferVersion([]ibc.Chain{chainA})
 
 	chainADenom := chainA.Config().Denom
 
