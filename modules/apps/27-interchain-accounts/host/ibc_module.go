@@ -115,6 +115,7 @@ func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
+	_ string,
 ) ibcexported.Acknowledgement {
 	if !im.keeper.GetParams(ctx).HostEnabled {
 		im.keeper.Logger(ctx).Info("host submodule is disabled")
@@ -144,6 +145,7 @@ func (IBCModule) OnAcknowledgementPacket(
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot receive acknowledgement on a host channel end, a host chain does not send a packet over the channel")
 }
@@ -153,6 +155,7 @@ func (IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
 }

@@ -71,6 +71,7 @@ type IBCApp struct {
 		ctx sdk.Context,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
+		channelVersion string,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket func(
@@ -78,12 +79,14 @@ type IBCApp struct {
 		packet channeltypes.Packet,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
+		channelVersion string,
 	) error
 
 	OnTimeoutPacket func(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
+		channelVersion string,
 	) error
 
 	OnChanUpgradeInit func(

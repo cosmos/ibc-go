@@ -424,7 +424,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		{
 			"success with ICA auth module callback failure", func() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, channelVersion string,
 				) exported.Acknowledgement {
 					return channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
@@ -503,7 +503,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				suite.Require().True(ok)
 
 				ctx := suite.chainB.GetContext()
-				ack := cbs.OnRecvPacket(ctx, packet, nil)
+				ack := cbs.OnRecvPacket(ctx, packet, nil, path.EndpointB.GetChannel().Version)
 
 				expectedAttributes := []sdk.Attribute{
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
@@ -587,7 +587,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 					0,
 				)
 
-				err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, []byte("ackBytes"), nil)
+				err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, []byte("ackBytes"), nil, path.EndpointB.GetChannel().Version)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -642,7 +642,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 					0,
 				)
 
-				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
+				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil, path.EndpointA.GetChannel().Version)
 
 				if tc.expPass {
 					suite.Require().NoError(err)

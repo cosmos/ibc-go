@@ -183,6 +183,7 @@ func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) ibcexported.Acknowledgement {
 	var (
 		ackErr error
@@ -227,6 +228,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) error {
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
@@ -252,6 +254,7 @@ func (im IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) error {
 	data, err := im.getICS20PacketData(ctx, packet.GetData(), packet.GetSourcePort(), packet.GetSourceChannel())
 	if err != nil {

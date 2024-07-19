@@ -472,7 +472,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// If the packet was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+	channelVersion, err := k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -490,7 +490,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	//
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn = ctx.CacheContext()
-	ack := cbs.OnRecvPacket(cacheCtx, msg.Packet, relayer)
+	ack := cbs.OnRecvPacket(cacheCtx, msg.Packet, relayer, channelVersion)
 	if ack == nil || ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
@@ -544,7 +544,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	// If the timeout was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
+	channelVersion, err := k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
 
 	switch err {
 	case nil:
@@ -564,7 +564,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	}
 
 	// Perform application logic callback
-	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
+	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer, channelVersion)
 	if err != nil {
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
@@ -606,7 +606,7 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 	// If the timeout was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.TimeoutOnClose(cacheCtx, capability, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv, msg.CounterpartyUpgradeSequence)
+	channelVersion, err := k.ChannelKeeper.TimeoutOnClose(cacheCtx, capability, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv, msg.CounterpartyUpgradeSequence)
 
 	switch err {
 	case nil:
@@ -629,7 +629,7 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 	//
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
 	// application logic callback.
-	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
+	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer, channelVersion)
 	if err != nil {
 		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout on close callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout on close callback failed")
@@ -671,7 +671,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	// If the acknowledgement was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.AcknowledgePacket(cacheCtx, capability, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+	channelVersion, err := k.ChannelKeeper.AcknowledgePacket(cacheCtx, capability, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -686,7 +686,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	}
 
 	// Perform application logic callback
-	err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
+	err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer, channelVersion)
 	if err != nil {
 		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")

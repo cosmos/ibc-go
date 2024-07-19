@@ -218,12 +218,13 @@ func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) exported.Acknowledgement {
 	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
-		return im.app.OnRecvPacket(ctx, packet, relayer)
+		return im.app.OnRecvPacket(ctx, packet, relayer, channelVersion)
 	}
 
-	ack := im.app.OnRecvPacket(ctx, packet, relayer)
+	ack := im.app.OnRecvPacket(ctx, packet, relayer, channelVersion)
 
 	// in case of async acknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
 	if ack == nil {
@@ -244,9 +245,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) error {
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer, channelVersion)
 	}
 
 	var ack types.IncentivizedAcknowledgement
@@ -263,14 +265,14 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		// for fee enabled channels
 		//
 		// Please see ADR 004 for more information.
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer, channelVersion)
 	}
 
 	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// call underlying callback
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer, channelVersion)
 	}
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
@@ -286,7 +288,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, payeeAddr, feesInEscrow.PacketFees, packetID)
 
 	// call underlying callback
-	return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+	return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer, channelVersion)
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
@@ -295,6 +297,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) error {
 	// if the fee keeper is locked then fee logic should be skipped
 	// this may occur in the presence of a severe bug which leads to invalid state
@@ -302,14 +305,14 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	//
 	// Please see ADR 004 for more information.
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) || im.keeper.IsLocked(ctx) {
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.app.OnTimeoutPacket(ctx, packet, relayer, channelVersion)
 	}
 
 	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// call underlying callback
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.app.OnTimeoutPacket(ctx, packet, relayer, channelVersion)
 	}
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
@@ -325,7 +328,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	im.keeper.DistributePacketFeesOnTimeout(ctx, payeeAddr, feesInEscrow.PacketFees, packetID)
 
 	// call underlying callback
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	return im.app.OnTimeoutPacket(ctx, packet, relayer, channelVersion)
 }
 
 // OnChanUpgradeInit implements the IBCModule interface

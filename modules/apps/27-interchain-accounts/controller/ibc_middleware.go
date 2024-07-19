@@ -185,6 +185,7 @@ func (IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
+	_ string,
 ) ibcexported.Acknowledgement {
 	err := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
 	ack := channeltypes.NewErrorAcknowledgement(err)
@@ -198,6 +199,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) error {
 	if !im.keeper.GetParams(ctx).ControllerEnabled {
 		return types.ErrControllerSubModuleDisabled
@@ -210,7 +212,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	// call underlying app's OnAcknowledgementPacket callback.
 	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), connectionID) {
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer, channelVersion)
 	}
 
 	return nil
@@ -221,6 +223,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
+	channelVersion string,
 ) error {
 	if !im.keeper.GetParams(ctx).ControllerEnabled {
 		return types.ErrControllerSubModuleDisabled
@@ -236,7 +239,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 
 	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), connectionID) {
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.app.OnTimeoutPacket(ctx, packet, relayer, channelVersion)
 	}
 
 	return nil

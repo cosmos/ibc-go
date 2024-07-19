@@ -90,6 +90,7 @@ type IBCModule interface {
 		ctx sdk.Context,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
+		channelVersion string,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket(
@@ -97,12 +98,14 @@ type IBCModule interface {
 		packet channeltypes.Packet,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
+		channelVersion string,
 	) error
 
 	OnTimeoutPacket(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
+		channelVersion string,
 	) error
 }
 

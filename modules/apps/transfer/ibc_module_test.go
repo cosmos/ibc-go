@@ -403,7 +403,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 
 			tc.malleate() // change fields in packet
 
-			ack := cbs.OnRecvPacket(ctx, packet, suite.chainB.SenderAccount.GetAddress())
+			ack := cbs.OnRecvPacket(ctx, packet, suite.chainB.SenderAccount.GetAddress(), path.EndpointB.GetChannel().Version)
 
 			suite.Require().Equal(tc.expAck, ack)
 
@@ -468,7 +468,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 				suite.Require().True(ok)
 
-				suite.Require().NoError(cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress()))
+				suite.Require().NoError(cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress(), path.EndpointA.GetChannel().Version))
 			},
 			errors.New("unable to unescrow tokens"),
 		},
@@ -508,7 +508,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 
 			tc.malleate() // change fields in packet
 
-			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress(), path.EndpointA.GetChannel().Version)
 
 			expPass := tc.expError == nil
 			if expPass {

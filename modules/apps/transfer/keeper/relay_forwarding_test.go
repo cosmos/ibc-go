@@ -983,7 +983,7 @@ func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().True(ok)
 
 	// Trigger OnTimeoutPacket for chainB
-	err = cbs.OnTimeoutPacket(suite.chainB.GetContext(), packet, nil)
+	err = cbs.OnTimeoutPacket(suite.chainB.GetContext(), packet, nil, pathBtoC.EndpointA.GetChannel().Version)
 	suite.Require().NoError(err)
 
 	// Ensure that chainB has an ack.
