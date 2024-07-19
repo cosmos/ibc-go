@@ -247,13 +247,10 @@ import (
 // after sealing the IBC router
 
 clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
 
-tmLightClientModule := ibctm.NewLightClientModule(
-  appCodec, 
-  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-)
+tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
 clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
-
 app.ModuleManager = module.NewManager(
   // ...
   capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
