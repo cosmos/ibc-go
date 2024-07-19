@@ -322,14 +322,6 @@ func (k *Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) 
 	return k.consensusHost.GetSelfConsensusState(ctx, height)
 }
 
-// ValidateSelfClient validates the client parameters for a client of the running chain.
-// This function is only used to validate the client state the counterparty stores for this chain.
-// NOTE: If the client type is not of type Tendermint then delegate to a custom client validator function.
-// This allows support for non-Tendermint clients, for example 08-wasm clients.
-func (k *Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
-	return k.consensusHost.ValidateSelfClient(ctx, clientState)
-}
-
 // VerifyMembershipProof retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
 func (k *Keeper) VerifyMembershipProof(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
 	clientModule, err := k.Route(ctx, clientID)
