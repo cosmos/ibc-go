@@ -9,6 +9,25 @@ slug: /ibc/light-clients/wasm/migrations
 
 This guide provides instructions for migrating 08-wasm versions.
 
+## From ibc-go v8.3.x to ibc-go v9.0.x
+
+### Chains
+
+- The `Initialize`, `Status`, `GetTimestampAtHeight`, `GetLatestHeight`, `VerifyMembership`, `VerifyNonMembership`, `VerifyClientMessage`, `UpdateState` and `UpdateStateOnMisbehaviour` functions in `ClientState` have been removed and all their logic has been moved to functions of the `LightClientModule`.
+- The `MigrateContract` function has been removed from `ClientState`.
+- The `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for `SudoMsg` have been modified. The `Path` field of both structs has been updated from `v1.MerklePath` to `v2.MerklePath`. The new `v2.MerklePath` field contains a `KeyPath` of `[][]byte` as opposed to `[]string`, see [23-commitment](../../05-migrations/13-v8-to-v9.md#23-commitment). This supports proving values stored under keys which contain non-utf8 encoded symbols. As a result, the JSON field `path` containing `key_path` of both messages will marshal elements as a base64 encoded bytestrings. This is a breaking change for 08-wasm client contracts and they should be migrated to correctly support deserialisation of the `v2.MerklePath` field.
+- The `ExportMetadataMsg` struct has been removed and is no longer required for contracts to implement. Core IBC will handle exporting all key/value's written to the store by a light client contract.
+- The `ZeroCustomFields` interface function has been removed from the `ClientState` interface. Core IBC only used this function to set tendermint client states when scheduling an IBC software upgrade. The interface function has been replaced by a type assertion.
+- The `MaxWasmByteSize` function has been removed in favor of the `MaxWasmSize` constant.
+- The `HasChecksum`, `GetAllChecksums` and `Logger` functions have been moved from the `types` package to a method on the `Keeper` type in the `keeper` package.
+- The `InitializePinnedCodes` function has been moved to a method on the `Keeper` type in the `keeper` package.
+- The `CustomQuerier`, `StargateQuerier` and `QueryPlugins` types have been moved from the `types` package to the `keeper` package.
+- The `NewDefaultQueryPlugins`, `AcceptListStargateQuerier` and `RejectCustomQuerier` functions has been moved from the `types` package to the `keeper` package.
+- The `NewDefaultQueryPlugins` function signature has changed to take an argument: `queryRouter ibcwasm.QueryRouter`.
+- The `AcceptListStargateQuerier` function signature has changed to take an additional argument: `queryRouter ibcwasm.QueryRouter`.
+- The `WithQueryPlugins` function signature has changed to take in the `QueryPlugins` type from the `keeper` package (previously from the `types` package).
+- The `VMGasRegister` variable has been moved from the `types` package to the `keeper` package.
+
 ## From v0.2.0+ibc-go-v8.3-wasmvm-v2.0 to v0.3.0-ibc-go-v8.3-wasmvm-v2.0
 
 ### Contract developers
