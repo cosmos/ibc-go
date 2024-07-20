@@ -1,6 +1,6 @@
 //go:build cgo && !nolink_libwasmvm
 
-package ibcwasm
+package types
 
 import wasmvm "github.com/CosmWasm/wasmvm/v2"
 
