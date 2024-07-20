@@ -86,6 +86,11 @@ func TestForwarding_Validate(t *testing.T) {
 			),
 			types.ErrInvalidForwarding,
 		},
+		{
+			"unwind forwarding with hop forwarding back to itself",
+			types.NewForwarding(true, types.NewHop(types.PortID, types.PortID)),
+			nil,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
