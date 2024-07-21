@@ -23,5 +23,5 @@ var (
 	ErrInvalidTimeoutTimestamp     = errorsmod.Register(ModuleName, 17, "timeout timestamp must be in the future")
 	ErrInvalidCodec                = errorsmod.Register(ModuleName, 18, "codec is not supported")
 	ErrInvalidAccountReopening     = errorsmod.Register(ModuleName, 19, "invalid account reopening")
-	ErrUnMarshalFailed             = errorsmod.Register(ModuleName, 20, "failed to unmarshal data")
+	ErrUnmarshalFailed             = errorsmod.Register(ModuleName, 20, "failed to unmarshal data")
 )

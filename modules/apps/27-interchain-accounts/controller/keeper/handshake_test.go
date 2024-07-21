@@ -142,7 +142,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 					path.EndpointA.SetChannel(*channel)
 					channel.Version = "invalid-metadata-bytestring"
 				},
-				icatypes.ErrUnMarshalFailed,
+				icatypes.ErrUnmarshalFailed,
 			},
 			{
 				"unsupported encoding format",
@@ -586,14 +586,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			malleate: func() {
 				version = invalidVersion
 			},
-			expError: icatypes.ErrUnMarshalFailed,
+			expError: icatypes.ErrUnmarshalFailed,
 		},
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
-			expError: icatypes.ErrUnMarshalFailed,
+			expError: icatypes.ErrUnmarshalFailed,
 		},
 		{
 			name: "failure: failed controller metadata validation, invalid encoding",
@@ -746,14 +746,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			malleate: func() {
 				counterpartyVersion = invalidVersion
 			},
-			expError: icatypes.ErrUnMarshalFailed,
+			expError: icatypes.ErrUnmarshalFailed,
 		},
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
-			expError: icatypes.ErrUnMarshalFailed,
+			expError: icatypes.ErrUnmarshalFailed,
 		},
 		{
 			name: "failure: channel not found",
