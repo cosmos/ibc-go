@@ -1,0 +1,17 @@
+{
+  "chain-a": [
+    "release-v9.0.x"
+  ],
+  "chain-b": [
+    "release-v9.0.x"
+  ],
+  "entrypoint": [
+    "TestConnectionTestSuite"
+  ],
+  "test": [
+    "TestMaxExpectedTimePerBlockParam"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}
