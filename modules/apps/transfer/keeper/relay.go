@@ -141,7 +141,12 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
+	timeout := channeltypes.Timeout{
+		Height:    timeoutHeight,
+		Timestamp: timeoutTimestamp,
+	}
+
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeout, packetDataBytes)
 	if err != nil {
 		return 0, err
 	}

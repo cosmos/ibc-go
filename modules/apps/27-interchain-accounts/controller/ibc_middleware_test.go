@@ -572,8 +572,10 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 					path.EndpointB.ChannelID,
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
-					clienttypes.NewHeight(0, 100),
-					0,
+					channeltypes.Timeout{
+						Height:    clienttypes.NewHeight(0, 100),
+						Timestamp: 0,
+					},
 				)
 
 				ctx := suite.chainA.GetContext()
@@ -666,8 +668,10 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 					path.EndpointA.ChannelID,
 					path.EndpointB.ChannelConfig.PortID,
 					path.EndpointB.ChannelID,
-					clienttypes.NewHeight(0, 100),
-					0,
+					channeltypes.Timeout{
+						Height:    clienttypes.NewHeight(0, 100),
+						Timestamp: 0,
+					},
 				)
 
 				tc.malleate() // malleate mutates test data
@@ -763,8 +767,10 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 					path.EndpointA.ChannelID,
 					path.EndpointB.ChannelConfig.PortID,
 					path.EndpointB.ChannelID,
-					clienttypes.NewHeight(0, 100),
-					0,
+					channeltypes.Timeout{
+						Height:    clienttypes.NewHeight(0, 100),
+						Timestamp: 0,
+					},
 				)
 
 				tc.malleate() // malleate mutates test data

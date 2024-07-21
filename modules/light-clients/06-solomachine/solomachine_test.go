@@ -86,8 +86,10 @@ func (suite *SoloMachineTestSuite) TestRecvPacket() {
 		channelIDSolomachine,
 		transfertypes.PortID,
 		channelID,
-		clienttypes.ZeroHeight(),
-		uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano()),
+		channeltypes.Timeout{
+			Height:    clienttypes.ZeroHeight(),
+			Timestamp: uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano()),
+		},
 	)
 
 	// send packet is not necessary as the solo machine implementation is mocked

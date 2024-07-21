@@ -25,8 +25,7 @@ func (k *Keeper) SendPacket(
 	channelCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	timeOut types.Timeout,
 	data []byte,
 ) (uint64, error) {
 	channel, found := k.GetChannel(ctx, sourcePort, sourceChannel)
@@ -52,7 +51,7 @@ func (k *Keeper) SendPacket(
 
 	// construct packet from given fields and channel state
 	packet := types.NewPacket(data, sequence, sourcePort, sourceChannel,
-		channel.Counterparty.PortId, channel.Counterparty.ChannelId, timeoutHeight, timeoutTimestamp)
+		channel.Counterparty.PortId, channel.Counterparty.ChannelId, timeOut)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, errorsmod.Wrap(err, "constructed packet failed basic validation")
@@ -89,7 +88,7 @@ func (k *Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	emitSendPacketEvent(ctx, packet, channel, timeoutHeight)
+	emitSendPacketEvent(ctx, packet, channel, timeOut.Height)
 
 	k.Logger(ctx).Info(
 		"packet sent",

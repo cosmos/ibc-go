@@ -202,7 +202,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				err error
 			)
 			sendPacket := func() {
-				seq, err = transferICS4Wrapper.SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+				seq, err = transferICS4Wrapper.SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, channeltypes.Timeout{Height: s.chainB.GetTimeoutHeight(), Timestamp: 0}, packetData.GetBytes())
 			}
 
 			expPass := tc.expValue == nil
@@ -1128,8 +1128,10 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 		s.path.EndpointA.ChannelID,
 		s.path.EndpointB.ChannelConfig.PortID,
 		s.path.EndpointB.ChannelID,
-		clienttypes.NewHeight(0, 100),
-		0,
+		channeltypes.Timeout{
+			Height:    clienttypes.NewHeight(0, 100),
+			Timestamp: 0,
+		},
 	)
 
 	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), packet, s.chainA.SenderAccount.GetAddress())

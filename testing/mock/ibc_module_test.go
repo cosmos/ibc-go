@@ -18,8 +18,10 @@ func TestCreateCapabilityName(t *testing.T) {
 		"channel-0",
 		mock.PortID,
 		"channel-0",
-		clienttypes.NewHeight(0, 100),
-		0,
+		channeltypes.Timeout{
+			Height:    clienttypes.NewHeight(0, 100),
+			Timestamp: 0,
+		},
 	)
 
 	name := mock.GetMockRecvCanaryCapabilityName(packet)

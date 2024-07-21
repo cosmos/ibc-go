@@ -62,8 +62,7 @@ sequence, err := IBCChannelKeeper.SendPacket(
     channelCap,
     sourcePort,
     sourceChannel,
-    timeoutHeight,
-    timeoutTimestamp,
+    timeout,
     data,
 )
 ```

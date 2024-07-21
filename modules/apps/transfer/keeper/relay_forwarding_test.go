@@ -972,8 +972,11 @@ func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 		pathBtoC.EndpointA.ChannelID,
 		pathBtoC.EndpointB.ChannelConfig.PortID,
 		pathBtoC.EndpointB.ChannelID,
-		packet.TimeoutHeight,
-		packet.TimeoutTimestamp)
+		channeltypes.Timeout{
+			Height:    packet.TimeoutHeight,
+			Timestamp: packet.TimeoutTimestamp,
+		},
+	)
 
 	// retrieve module callbacks
 	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID)
@@ -1015,8 +1018,11 @@ func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 		pathAtoB.EndpointA.ChannelID,
 		pathAtoB.EndpointB.ChannelConfig.PortID,
 		pathAtoB.EndpointB.ChannelID,
-		packet.TimeoutHeight,
-		packet.TimeoutTimestamp)
+		channeltypes.Timeout{
+			Height:    packet.TimeoutHeight,
+			Timestamp: packet.TimeoutTimestamp,
+		},
+	)
 
 	// Send the ack to chain A.
 	err = suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, ack)

@@ -13,7 +13,7 @@ import (
 )
 
 func TestCommitPacket(t *testing.T) {
-	packet := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
+	packet := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeout)
 
 	registry := codectypes.NewInterfaceRegistry()
 	clienttypes.RegisterInterfaces(registry)
@@ -31,16 +31,16 @@ func TestPacketValidateBasic(t *testing.T) {
 		expPass bool
 		errMsg  string
 	}{
-		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), true, ""},
-		{types.NewPacket(validPacketData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), false, "invalid sequence"},
-		{types.NewPacket(validPacketData, 1, invalidPort, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), false, "invalid source port"},
-		{types.NewPacket(validPacketData, 1, portid, invalidChannel, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), false, "invalid source channel"},
-		{types.NewPacket(validPacketData, 1, portid, chanid, invalidPort, cpchanid, timeoutHeight, timeoutTimestamp), false, "invalid destination port"},
-		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, invalidChannel, timeoutHeight, timeoutTimestamp), false, "invalid destination channel"},
-		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, disabledTimeout, 0), false, "disabled both timeout height and timestamp"},
-		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, disabledTimeout, timeoutTimestamp), true, "disabled timeout height, valid timeout timestamp"},
-		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, 0), true, "disabled timeout timestamp, valid timeout height"},
-		{types.NewPacket(unknownPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), true, ""},
+		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeout), true, ""},
+		{types.NewPacket(validPacketData, 0, portid, chanid, cpportid, cpchanid, timeout), false, "invalid sequence"},
+		{types.NewPacket(validPacketData, 1, invalidPort, chanid, cpportid, cpchanid, timeout), false, "invalid source port"},
+		{types.NewPacket(validPacketData, 1, portid, invalidChannel, cpportid, cpchanid, timeout), false, "invalid source channel"},
+		{types.NewPacket(validPacketData, 1, portid, chanid, invalidPort, cpchanid, timeout), false, "invalid destination port"},
+		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, invalidChannel, timeout), false, "invalid destination channel"},
+		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeout1), false, "disabled both timeout height and timestamp"},
+		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeout2), true, "disabled timeout height, valid timeout timestamp"},
+		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeout3), true, "disabled timeout timestamp, valid timeout height"},
+		{types.NewPacket(unknownPacketData, 1, portid, chanid, cpportid, cpchanid, timeout), true, ""},
 	}
 
 	for i, tc := range testCases {

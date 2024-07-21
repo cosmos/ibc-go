@@ -436,8 +436,10 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						ibctesting.FirstChannelID,
 						ibctesting.MockPort,
 						ibctesting.FirstChannelID,
-						clienttypes.NewHeight(0, 10),
-						0,
+						channeltypes.Timeout{
+							Height:    clienttypes.NewHeight(0, 10),
+							Timestamp: 0,
+						},
 					)
 
 					commitmentBz := channeltypes.CommitPacket(suite.chainA.Codec, packet)

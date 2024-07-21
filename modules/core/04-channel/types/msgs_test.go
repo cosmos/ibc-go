@@ -65,8 +65,28 @@ var (
 	validPacketData   = []byte("testdata")
 	unknownPacketData = []byte("unknown")
 
-	packet        = types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
-	invalidPacket = types.NewPacket(unknownPacketData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
+	timeout = types.Timeout{
+		Height:    timeoutHeight,
+		Timestamp: timeoutTimestamp,
+	}
+
+	timeout1 = types.Timeout{
+		Height:    disabledTimeout,
+		Timestamp: 0,
+	}
+
+	timeout2 = types.Timeout{
+		Height:    disabledTimeout,
+		Timestamp: timeoutTimestamp,
+	}
+
+	timeout3 = types.Timeout{
+		Height:    timeoutHeight,
+		Timestamp: 0,
+	}
+
+	packet        = types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeout)
+	invalidPacket = types.NewPacket(unknownPacketData, 0, portid, chanid, cpportid, cpchanid, timeout)
 
 	emptyProof = []byte{}
 

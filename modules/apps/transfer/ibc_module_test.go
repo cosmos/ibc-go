@@ -392,7 +392,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			}
 
 			seq := uint64(1)
-			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
+			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channeltypes.Timeout{Height: clienttypes.ZeroHeight(), Timestamp: suite.chainA.GetTimeoutTimestamp()})
 
 			ctx := suite.chainB.GetContext()
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(ctx, ibctesting.TransferPort)

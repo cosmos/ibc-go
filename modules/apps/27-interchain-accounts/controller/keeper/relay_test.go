@@ -206,8 +206,10 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 					path.EndpointA.ChannelID,
 					path.EndpointB.ChannelConfig.PortID,
 					path.EndpointB.ChannelID,
-					clienttypes.NewHeight(0, 100),
-					0,
+					channeltypes.Timeout{
+						Height:    clienttypes.NewHeight(0, 100),
+						Timestamp: 0,
+					},
 				)
 
 				err = suite.chainA.GetSimApp().ICAControllerKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet)

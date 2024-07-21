@@ -61,8 +61,7 @@ type ICS4Wrapper interface {
         chanCap *capabilitytypes.Capability,
         sourcePort string,
         sourceChannel string,
-        timeoutHeight clienttypes.Height,
-        timeoutTimestamp uint64,
+        timeout channeltypes.Timeout,
         data []byte,
     ) (sequence uint64, err error)
 
@@ -382,8 +381,7 @@ func SendPacket(
     chanCap *capabilitytypes.Capability,
     sourcePort string,
     sourceChannel string,
-    timeoutHeight clienttypes.Height,
-    timeoutTimestamp uint64,
+    timeout channeltypes.Timeout,
     appData []byte,
 ) {
     // middleware may modify data
@@ -394,8 +392,7 @@ func SendPacket(
         chanCap,
         sourcePort,
         sourceChannel,
-        timeoutHeight,
-        timeoutTimestamp,
+        timeout,
         data,
     )
 }

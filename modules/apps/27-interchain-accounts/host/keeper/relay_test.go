@@ -538,8 +538,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 						path.EndpointA.ChannelID,
 						path.EndpointB.ChannelConfig.PortID,
 						path.EndpointB.ChannelID,
-						suite.chainB.GetTimeoutHeight(),
-						0,
+						channeltypes.Timeout{
+							Height:    suite.chainB.GetTimeoutHeight(),
+							Timestamp: 0,
+						},
 					)
 
 					txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
@@ -867,8 +869,10 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					path.EndpointA.ChannelID,
 					path.EndpointB.ChannelConfig.PortID,
 					path.EndpointB.ChannelID,
-					suite.chainB.GetTimeoutHeight(),
-					0,
+					channeltypes.Timeout{
+						Height:    suite.chainB.GetTimeoutHeight(),
+						Timestamp: 0,
+					},
 				)
 
 				txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)

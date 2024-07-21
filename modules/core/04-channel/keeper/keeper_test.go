@@ -923,14 +923,18 @@ func (suite *KeeperTestSuite) sendMockPackets(path *ibctesting.Path, numPackets 
 
 		timeoutHeight := clienttypes.NewHeight(1, 1000)
 		timeoutTimestamp := disabledTimeoutTimestamp
+		timeout := types.Timeout{
+			Height:    timeoutHeight,
+			Timestamp: timeoutTimestamp,
+		}
 		if !acknowledge {
 			timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 		}
 
-		sequence, err := path.EndpointB.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+		sequence, err := path.EndpointB.SendPacket(timeout, ibctesting.MockPacketData)
 		suite.Require().NoError(err)
 
-		packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp)
+		packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeout)
 
 		if acknowledge {
 			err = path.RelayPacket(packet)

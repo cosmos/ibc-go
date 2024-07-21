@@ -396,7 +396,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 				tokens = append(tokens, types.Token{Denom: types.NewDenom(coin.Denom), Amount: coin.Amount.String()})
 			}
 			packetData = types.NewFungibleTokenPacketDataV2(tokens, suite.chainA.SenderAccount.GetAddress().String(), receiver, "", ibctesting.EmptyForwardingPacketData)
-			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channeltypes.Timeout{Height: clienttypes.NewHeight(1, 100), Timestamp: 0})
 
 			tc.malleate()
 
@@ -532,7 +532,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 
 			tc.malleate()
 
-			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
+			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channeltypes.Timeout{Height: clienttypes.NewHeight(1, 100), Timestamp: 0})
 			err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packet, packetData)
 
 			expPass := tc.expError == nil
@@ -618,7 +618,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		path2.EndpointA.ChannelID,
 		path2.EndpointB.ChannelConfig.PortID,
 		path2.EndpointB.ChannelID,
-		timeout, 0,
+		channeltypes.Timeout{Height: timeout, Timestamp: 0},
 	)
 
 	// fund escrow account for transfer and channel-1 on chain B
@@ -742,7 +742,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 						Amount: amount.String(),
 					},
 				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", ibctesting.EmptyForwardingPacketData)
-			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channeltypes.Timeout{Height: clienttypes.NewHeight(1, 100), Timestamp: 0})
 			preAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
 			err := suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, tc.ack)
@@ -845,7 +845,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		path2.EndpointB.ChannelID,
 		path2.EndpointA.ChannelConfig.PortID,
 		path2.EndpointA.ChannelID,
-		suite.chainA.GetTimeoutHeight(), 0,
+		channeltypes.Timeout{Height: suite.chainA.GetTimeoutHeight(), Timestamp: 0},
 	)
 
 	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin)
@@ -977,7 +977,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 						Amount: amount,
 					},
 				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "", ibctesting.EmptyForwardingPacketData)
-			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channeltypes.Timeout{Height: clienttypes.NewHeight(1, 100), Timestamp: 0})
 			preTimeoutBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
 			err := suite.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet, data)
@@ -1070,7 +1070,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		path2.EndpointB.ChannelID,
 		path2.EndpointA.ChannelConfig.PortID,
 		path2.EndpointA.ChannelID,
-		suite.chainA.GetTimeoutHeight(), 0,
+		channeltypes.Timeout{Height: suite.chainA.GetTimeoutHeight(), Timestamp: 0},
 	)
 
 	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin)
@@ -1164,10 +1164,10 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 
 			timeoutHeight := suite.chainB.GetTimeoutHeight()
 
-			seq, err := path.EndpointB.SendPacket(timeoutHeight, 0, packetData)
+			seq, err := path.EndpointB.SendPacket(channeltypes.Timeout{Height: timeoutHeight, Timestamp: 0}, packetData)
 			suite.Require().NoError(err)
 
-			packet := channeltypes.NewPacket(packetData, seq, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, 0)
+			packet := channeltypes.NewPacket(packetData, seq, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channeltypes.Timeout{Height: timeoutHeight, Timestamp: 0})
 
 			// receive packet on chainA
 			err = path.RelayPacket(packet)

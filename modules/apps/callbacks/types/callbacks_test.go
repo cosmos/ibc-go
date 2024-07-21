@@ -616,7 +616,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 			gasMeter := storetypes.NewGasMeter(2_000_000)
 			ctx := s.chainA.GetContext().WithGasMeter(gasMeter)
-			packet := channeltypes.NewPacket(packetDataBytes, 0, transfertypes.PortID, s.path.EndpointA.ChannelID, transfertypes.PortID, s.path.EndpointB.ChannelID, clienttypes.ZeroHeight(), 0)
+			packet := channeltypes.NewPacket(packetDataBytes, 0, transfertypes.PortID, s.path.EndpointA.ChannelID, transfertypes.PortID, s.path.EndpointB.ChannelID, channeltypes.Timeout{Height: clienttypes.ZeroHeight(), Timestamp: 0})
 			callbackData, err := types.GetSourceCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
 			s.Require().NoError(err)
 			s.Require().Equal(tc.expCallbackData, callbackData)
@@ -703,7 +703,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 
 			gasMeter := storetypes.NewGasMeter(2_000_000)
 			ctx := s.chainA.GetContext().WithGasMeter(gasMeter)
-			packet := channeltypes.NewPacket(packetDataBytes, 0, transfertypes.PortID, s.path.EndpointB.ChannelID, transfertypes.PortID, s.path.EndpointA.ChannelID, clienttypes.ZeroHeight(), 0)
+			packet := channeltypes.NewPacket(packetDataBytes, 0, transfertypes.PortID, s.path.EndpointB.ChannelID, transfertypes.PortID, s.path.EndpointA.ChannelID, channeltypes.Timeout{Height: clienttypes.ZeroHeight(), Timestamp: 0})
 			callbackData, err := types.GetDestCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
 			s.Require().NoError(err)
 			s.Require().Equal(tc.expCallbackdata, callbackData)

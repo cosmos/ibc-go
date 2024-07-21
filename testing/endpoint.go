@@ -457,14 +457,13 @@ func (endpoint *Endpoint) ChanCloseInit() error {
 // The packet sequence generated for the packet to be sent is returned. An error
 // is returned if one occurs.
 func (endpoint *Endpoint) SendPacket(
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	timeout channeltypes.Timeout,
 	data []byte,
 ) (uint64, error) {
 	channelCap := endpoint.Chain.GetChannelCapability(endpoint.ChannelConfig.PortID, endpoint.ChannelID)
 
 	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), channelCap, endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
+	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), channelCap, endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeout, data)
 	if err != nil {
 		return 0, err
 	}

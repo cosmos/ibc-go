@@ -57,8 +57,10 @@ func (suite *FeeTestSuite) CreateMockPacket() channeltypes.Packet {
 		suite.path.EndpointA.ChannelID,
 		suite.path.EndpointB.ChannelConfig.PortID,
 		suite.path.EndpointB.ChannelID,
-		clienttypes.NewHeight(0, 100),
-		0,
+		channeltypes.Timeout{
+			Height:    clienttypes.NewHeight(0, 100),
+			Timestamp: 0,
+		},
 	)
 }
 

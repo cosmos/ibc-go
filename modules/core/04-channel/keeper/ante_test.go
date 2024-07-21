@@ -45,9 +45,9 @@ func (suite *KeeperTestSuite) TestRecvPacketReCheckTx() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(defaultTimeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeout)
 
 			tc.malleate()
 

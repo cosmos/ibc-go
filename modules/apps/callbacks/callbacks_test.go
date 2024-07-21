@@ -306,12 +306,16 @@ func GetExpectedEvent(
 	// Set up gas meter with remainingGas.
 	gasMeter := storetypes.NewGasMeter(remainingGas)
 	ctx = ctx.WithGasMeter(gasMeter)
+	timeout := channeltypes.Timeout{
+		Height:    clienttypes.ZeroHeight(),
+		Timestamp: 0,
+	}
 
 	if callbackType == types.CallbackTypeReceivePacket {
-		packet := channeltypes.NewPacket(data, seq, "", "", eventPortID, eventChannelID, clienttypes.ZeroHeight(), 0)
+		packet := channeltypes.NewPacket(data, seq, "", "", eventPortID, eventChannelID, timeout)
 		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {
-		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
+		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", timeout)
 		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	}
 	if err != nil {

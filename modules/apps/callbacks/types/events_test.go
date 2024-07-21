@@ -11,6 +11,11 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
+var timeout = channeltypes.Timeout{
+	Height:    clienttypes.NewHeight(1, 100),
+	Timestamp: 0,
+}
+
 func (s *CallbacksTypesTestSuite) TestEvents() {
 	testCases := []struct {
 		name           string
@@ -24,7 +29,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: ack callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				ibctesting.MockFeePort, ibctesting.InvalidID, timeout,
 			),
 			types.CallbackTypeAcknowledgementPacket,
 			types.CallbackData{
@@ -54,7 +59,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: send packet callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				ibctesting.MockFeePort, ibctesting.InvalidID, timeout,
 			),
 			types.CallbackTypeSendPacket,
 			types.CallbackData{
@@ -84,7 +89,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: timeout callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				ibctesting.MockFeePort, ibctesting.InvalidID, timeout,
 			),
 			types.CallbackTypeTimeoutPacket,
 			types.CallbackData{
@@ -114,7 +119,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: receive packet callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				ibctesting.MockFeePort, ibctesting.InvalidID, timeout,
 			),
 			types.CallbackTypeReceivePacket,
 			types.CallbackData{
@@ -144,7 +149,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: unknown callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				ibctesting.MockFeePort, ibctesting.InvalidID, timeout,
 			),
 			"something",
 			types.CallbackData{
@@ -174,7 +179,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"failure: ack callback with error",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				ibctesting.MockFeePort, ibctesting.InvalidID, timeout,
 			),
 			types.CallbackTypeAcknowledgementPacket,
 			types.CallbackData{

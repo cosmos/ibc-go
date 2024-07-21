@@ -223,8 +223,10 @@ func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint6
 		path.EndpointA.ChannelID,
 		path.EndpointB.ChannelConfig.PortID,
 		path.EndpointB.ChannelID,
-		clienttypes.NewHeight(1, 100),
-		0,
+		channeltypes.Timeout{
+			Height:    clienttypes.NewHeight(1, 100),
+			Timestamp: 0,
+		},
 	)
 
 	return packet

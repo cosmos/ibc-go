@@ -267,13 +267,12 @@ func (im IBCMiddleware) SendPacket(
 	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
+	timeout channeltypes.Timeout,
 	data []byte,
 ) (uint64, error) {
     // run underlying app logic first
     // IBCActor logic will postprocess
-	seq, err := im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	seq, err := im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeout, data)
 	if err != nil {
 		return 0, err
 	}

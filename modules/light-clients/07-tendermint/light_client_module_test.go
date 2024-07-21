@@ -329,12 +329,16 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		},
 		{
 			"successful PacketCommitment verification", func() {
+				timeout := channeltypes.Timeout{
+					Height:    clienttypes.NewHeight(1, 100),
+					Timestamp: 0,
+				}
 				// send from chainB to chainA since we are proving chainB sent a packet
-				sequence, err := testingpath.EndpointB.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
+				sequence, err := testingpath.EndpointB.SendPacket(timeout, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// make packet commitment proof
-				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, timeout)
 				key := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
@@ -347,12 +351,16 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		},
 		{
 			"successful Acknowledgement verification", func() {
+				timeout := channeltypes.Timeout{
+					Height:    clienttypes.NewHeight(1, 100),
+					Timestamp: 0,
+				}
 				// send from chainA to chainB since we are proving chainB wrote an acknowledgement
-				sequence, err := testingpath.EndpointA.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
+				sequence, err := testingpath.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// write receipt and ack
-				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, timeout)
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 
@@ -371,13 +379,16 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful NextSequenceRecv verification", func() {
 				// send from chainA to chainB since we are proving chainB incremented the sequence recv
-
+				timeout := channeltypes.Timeout{
+					Height:    clienttypes.NewHeight(1, 100),
+					Timestamp: 0,
+				}
 				// send packet
-				sequence, err := testingpath.EndpointA.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
+				sequence, err := testingpath.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				// next seq recv incremented
-				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, timeout)
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 				key := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())

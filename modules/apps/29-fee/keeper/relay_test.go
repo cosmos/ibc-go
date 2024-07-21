@@ -49,8 +49,10 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 				suite.path.EndpointA.ChannelID,
 				suite.path.EndpointB.ChannelConfig.PortID,
 				suite.path.EndpointB.ChannelID,
-				clienttypes.ZeroHeight(),
-				timeoutTimestamp,
+				channeltypes.Timeout{
+					Height:    clienttypes.ZeroHeight(),
+					Timestamp: timeoutTimestamp,
+				},
 			)
 
 			ack := channeltypes.NewResultAcknowledgement([]byte("success"))
@@ -90,8 +92,10 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 		suite.path.EndpointA.ChannelID,
 		suite.path.EndpointB.ChannelConfig.PortID,
 		suite.path.EndpointB.ChannelID,
-		clienttypes.ZeroHeight(),
-		timeoutTimestamp,
+		channeltypes.Timeout{
+			Height:    clienttypes.ZeroHeight(),
+			Timestamp: timeoutTimestamp,
+		},
 	)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))

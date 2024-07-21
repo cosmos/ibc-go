@@ -54,10 +54,15 @@ func (suite *IBCTestSuite) TestReplayProtectionAfterReceivePruning() {
 			// Setup replay attack by sending a packet. We will save the receive
 			// proof to replay relaying after the channel upgrade completes.
 			disabledTimeoutTimestamp := uint64(0)
-			timeoutHeight := clienttypes.NewHeight(1, 110)
-			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+
+			timeout := channeltypes.Timeout{
+				Height:    clienttypes.NewHeight(1, 110),
+				Timestamp: disabledTimeoutTimestamp,
+			}
+
+			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout)
 
 			// save receive proof for replay submission
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())

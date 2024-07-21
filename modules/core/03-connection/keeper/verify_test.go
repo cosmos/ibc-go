@@ -14,7 +14,10 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
-var defaultTimeoutHeight = clienttypes.NewHeight(1, 100000)
+var timeout = channeltypes.Timeout{
+	Height:    clienttypes.NewHeight(1, 100000),
+	Timestamp: 0,
+}
 
 // TestVerifyClientState verifies a client state of chainA
 // stored on path.EndpointB (which is on chainB)
@@ -330,9 +333,9 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout)
 
 			// reset variables
 			heightDiff = 0
@@ -423,14 +426,14 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			path.Setup()
 
 			// send and receive packet
-			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			// increment receiving chain's (chainB) time by 2 hour to always pass receive
 			suite.coordinator.IncrementTimeBy(time.Hour * 2)
 			suite.coordinator.CommitBlock(suite.chainB)
 
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout)
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
@@ -527,9 +530,9 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			path.Setup()
 
 			// send, only receive in malleate if applicable
-			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
+			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout)
 
 			// reset variables
 			heightDiff = 0
@@ -628,14 +631,14 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			path.Setup()
 
 			// send and receive packet
-			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(timeout, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
 			// increment receiving chain's (chainB) time by 2 hour to always pass receive
 			suite.coordinator.IncrementTimeBy(time.Hour * 2)
 			suite.coordinator.CommitBlock(suite.chainB)
 
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout)
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 

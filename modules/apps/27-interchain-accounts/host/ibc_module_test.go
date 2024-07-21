@@ -42,6 +42,11 @@ var (
 		Encoding:               icatypes.EncodingProtobuf,
 		TxType:                 icatypes.TxTypeSDKMultiMsg,
 	}))
+
+	timeout = channeltypes.Timeout{
+		Height:    clienttypes.NewHeight(0, 100),
+		Timestamp: 0,
+	}
 )
 
 type InterchainAccountsTestSuite struct {
@@ -492,7 +497,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				tc.malleate()
 
 				seq := uint64(1)
-				packet := channeltypes.NewPacket(packetData, seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+				packet := channeltypes.NewPacket(packetData, seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeout)
 
 				tc.malleate()
 
@@ -583,8 +588,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 					path.EndpointB.ChannelID,
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
-					clienttypes.NewHeight(0, 100),
-					0,
+					timeout,
 				)
 
 				err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, []byte("ackBytes"), nil)
@@ -638,8 +642,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 					path.EndpointB.ChannelID,
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
-					clienttypes.NewHeight(0, 100),
-					0,
+					timeout,
 				)
 
 				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
@@ -860,7 +863,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 		suite.Require().NoError(err)
 
 		// relay the packet
-		packetRelay := channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
+		packetRelay := channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channeltypes.Timeout{Height: clienttypes.ZeroHeight(), Timestamp: ^uint64(0)})
 		err = path.RelayPacket(packetRelay)
 		suite.Require().NoError(err) // relay committed
 
@@ -886,7 +889,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 		suite.Require().NoError(err)
 
 		// relay the packet
-		packetRelay = channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), ^uint64(0))
+		packetRelay = channeltypes.NewPacket(icaPacketData.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channeltypes.Timeout{Height: clienttypes.ZeroHeight(), Timestamp: ^uint64(0)})
 		err = path.RelayPacket(packetRelay)
 		suite.Require().NoError(err) // relay committed
 
