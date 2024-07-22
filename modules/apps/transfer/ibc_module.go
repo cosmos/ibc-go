@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -322,5 +321,5 @@ func (im IBCModule) getICS20PacketData(ctx sdk.Context, packetData []byte, portI
 		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
-	return internal.UnmarshalPacketData(packetData, ics20Version)
+	return types.UnmarshalPacketData(packetData, ics20Version)
 }
