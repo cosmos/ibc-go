@@ -12,6 +12,7 @@ This allows disabling linking of libwasmvm and not forcing users to have specifi
 
 Please refer to the 08-wasm module documentation for more information.
 
-CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
+Note that client identifiers are expected to be in the form: 08-wasm-{N}.
+Client identifiers are generated and validated by core IBC, unexpected client identifiers will result in errors.
 */
 package wasm
