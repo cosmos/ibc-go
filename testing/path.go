@@ -2,7 +2,7 @@ package ibctesting
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
@@ -137,7 +137,7 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 		return res, ack, nil
 	}
 
-	return nil, nil, fmt.Errorf("packet commitment does not exist on either endpoint for provided packet")
+	return nil, nil, errors.New("packet commitment does not exist on either endpoint for provided packet")
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
