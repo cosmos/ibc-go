@@ -355,7 +355,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			s.Require().True(ok)
 
 			onAcknowledgementPacket := func() error {
-				return transferStack.OnAcknowledgementPacket(ctx, packet, ack, s.chainA.SenderAccount.GetAddress(), s.path.EndpointA.GetChannel().Version)
+				return transferStack.OnAcknowledgementPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress())
 			}
 
 			switch tc.expError {
@@ -519,7 +519,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().True(ok)
 
 			onTimeoutPacket := func() error {
-				return transferStack.OnTimeoutPacket(ctx, packet, s.chainA.SenderAccount.GetAddress(), s.path.EndpointA.GetChannel().Version)
+				return transferStack.OnTimeoutPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainA.SenderAccount.GetAddress())
 			}
 
 			switch expValue := tc.expValue.(type) {
@@ -687,7 +687,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			s.Require().True(ok)
 
 			onRecvPacket := func() ibcexported.Acknowledgement {
-				return transferStack.OnRecvPacket(ctx, packet, s.chainB.SenderAccount.GetAddress(), s.path.EndpointA.GetChannel().Version)
+				return transferStack.OnRecvPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
 			}
 
 			switch tc.expAck {
@@ -1132,7 +1132,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 		0,
 	)
 
-	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), packet, s.chainA.SenderAccount.GetAddress(), ibcmock.MockFeeVersion)
+	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
 	s.Require().Nil(ack)
 	s.AssertHasExecutedExpectedCallback("none", true)
 }
