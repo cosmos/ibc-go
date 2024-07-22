@@ -466,9 +466,8 @@ func (suite *ForwardingTestSuite) TestSuccessfulUnwind() {
 		chain A (channel 0) -> (channel-0) chain B (channel-1) -> (channel-0) chain C
 		stake                  transfer/channel-0/stake           transfer/channel-0/transfer/channel-0/stake
 		We want to trigger:
-			1. Send vouchers from C to B.
-			2. Receive on B.
-				2.1 B sends B over channel-0
+			1. Set up the initial state as tokens would have been sent from A -> B -> C.
+			2. Send vouchers from C back to A through B.
 			3. Receive on A.
 			At this point we want to assert:
 				- escrow on B and C is zero

@@ -1,0 +1,21 @@
+{
+  "chain-a": [
+    "main"
+  ],
+  "chain-b": [
+    "main"
+  ],
+  "entrypoint": [
+    "TransferForwardingTestSuite"
+  ],
+  "test": [
+    "TestForwarding_Succeeds",
+    "TestForwarding_WithLastChainBeingICS20v1_Succeeds",
+    "TestForwardingWithUnwindSucceeds",
+    "TestFailedForwarding",
+    "TestChannelUpgradeForwarding_Succeeds"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

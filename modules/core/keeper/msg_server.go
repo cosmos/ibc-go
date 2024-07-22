@@ -38,11 +38,12 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 		return nil, err
 	}
 
-	if _, err = k.ClientKeeper.CreateClient(ctx, clientState.ClientType(), msg.ClientState.Value, msg.ConsensusState.Value); err != nil {
+	clientID, err := k.ClientKeeper.CreateClient(ctx, clientState.ClientType(), msg.ClientState.Value, msg.ConsensusState.Value)
+	if err != nil {
 		return nil, err
 	}
 
-	return &clienttypes.MsgCreateClientResponse{}, nil
+	return &clienttypes.MsgCreateClientResponse{ClientId: clientID}, nil
 }
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.
