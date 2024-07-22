@@ -22,7 +22,7 @@ type LightClientModule struct {
 }
 
 // NewLightClientModule creates and returns a new 07-tendermint LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.StoreProvider, authority string) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.StoreProvider) LightClientModule {
 	return LightClientModule{
 		cdc:           cdc,
 		storeProvider: storeProvider,
@@ -30,7 +30,7 @@ func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.Store
 }
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It calls into the
-// clientState.Initialize method.
+// clientState.initialize method.
 func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState ClientState
 	if err := l.cdc.Unmarshal(clientStateBz, &clientState); err != nil {
@@ -52,7 +52,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
-	return clientState.Initialize(ctx, l.cdc, clientStore, &consensusState)
+	return clientState.initialize(ctx, l.cdc, clientStore, &consensusState)
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier and calls into the clientState.VerifyClientMessage method.
@@ -99,7 +99,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 	return clientState.UpdateState(ctx, l.cdc, clientStore, clientMsg)
 }
 
-// VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyMembership method.
+// VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.verifyMembership method.
 func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -116,10 +116,10 @@ func (l LightClientModule) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.verifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
-// VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyNonMembership method.
+// VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -135,10 +135,10 @@ func (l LightClientModule) VerifyNonMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyNonMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	return clientState.verifyNonMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
-// Status obtains the client state associated with the client identifier and calls into the clientState.Status method.
+// Status obtains the client state associated with the client identifier and calls into the clientState.status method.
 func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
@@ -146,7 +146,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 		return exported.Unknown
 	}
 
-	return clientState.Status(ctx, clientStore, l.cdc)
+	return clientState.status(ctx, clientStore, l.cdc)
 }
 
 // LatestHeight returns the latest height for the client state for the given client identifier.
@@ -161,7 +161,7 @@ func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) export
 	return clientState.LatestHeight
 }
 
-// TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.GetTimestampAtHeight method.
+// TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.getTimestampAtHeight method.
 func (l LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
@@ -173,7 +173,7 @@ func (l LightClientModule) TimestampAtHeight(
 		return 0, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.GetTimestampAtHeight(ctx, clientStore, l.cdc, height)
+	return clientState.getTimestampAtHeight(clientStore, l.cdc, height)
 }
 
 // RecoverClient asserts that the substitute client is a tendermint client. It obtains the client state associated with the

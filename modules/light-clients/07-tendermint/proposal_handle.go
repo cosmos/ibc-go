@@ -39,7 +39,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		return errorsmod.Wrap(clienttypes.ErrInvalidSubstitute, "subject client state does not match substitute client state")
 	}
 
-	if cs.Status(ctx, subjectClientStore, cdc) == exported.Frozen {
+	if cs.status(ctx, subjectClientStore, cdc) == exported.Frozen {
 		// unfreeze the client
 		cs.FrozenHeight = clienttypes.ZeroHeight()
 	}
