@@ -31,8 +31,6 @@ func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.Store
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It calls into the
 // clientState.initialize method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState ClientState
 	if err := l.cdc.Unmarshal(clientStateBz, &clientState); err != nil {
@@ -58,8 +56,6 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier and calls into the clientState.VerifyClientMessage method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
@@ -71,8 +67,6 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 }
 
 // CheckForMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.CheckForMisbehaviour method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
@@ -84,8 +78,6 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 }
 
 // UpdateStateOnMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.UpdateStateOnMisbehaviour method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
@@ -97,8 +89,6 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 }
 
 // UpdateState obtains the client state associated with the client identifier and calls into the clientState.UpdateState method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
@@ -110,8 +100,6 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 }
 
 // VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.verifyMembership method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -132,8 +120,6 @@ func (l LightClientModule) VerifyMembership(
 }
 
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -153,8 +139,6 @@ func (l LightClientModule) VerifyNonMembership(
 }
 
 // Status obtains the client state associated with the client identifier and calls into the clientState.status method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
@@ -167,8 +151,6 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 
 // LatestHeight returns the latest height for the client state for the given client identifier.
 // If no client is present for the provided client identifier a zero value height is returned.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
@@ -180,8 +162,6 @@ func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) export
 }
 
 // TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.getTimestampAtHeight method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
@@ -198,8 +178,6 @@ func (l LightClientModule) TimestampAtHeight(
 
 // RecoverClient asserts that the substitute client is a tendermint client. It obtains the client state associated with the
 // subject client and calls into the subjectClientState.CheckSubstituteAndUpdateState method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
@@ -228,8 +206,6 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 // VerifyUpgradeAndUpdateState obtains the client state associated with the client identifier and calls into the clientState.VerifyUpgradeAndUpdateState method.
 // The new client and consensus states will be unmarshaled and an error is returned if the new client state is not at a height greater
 // than the existing client.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
 func (l LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
