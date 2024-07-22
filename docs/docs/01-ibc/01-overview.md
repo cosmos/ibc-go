@@ -5,7 +5,6 @@ sidebar_position: 1
 slug: /ibc/overview
 ---
 
-
 # Overview
 
 :::note Synopsis

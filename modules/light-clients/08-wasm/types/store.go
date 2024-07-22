@@ -10,8 +10,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 // GetClientState retrieves the client state from the store using the provided KVStore and codec.

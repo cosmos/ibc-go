@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	ibc "github.com/cosmos/ibc-go/v9/modules/core"
+	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 )
 
 func (suite *MerkleTestSuite) TestCodecTypeRegistration() {

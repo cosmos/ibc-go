@@ -13,10 +13,10 @@ import (
 	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
@@ -24,21 +24,15 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
 	keeper        wasmkeeper.Keeper
-	storeProvider exported.ClientStoreProvider
+	storeProvider clienttypes.StoreProvider
 }
 
 // NewLightClientModule creates and returns a new 08-wasm LightClientModule.
-func NewLightClientModule(keeper wasmkeeper.Keeper) LightClientModule {
+func NewLightClientModule(keeper wasmkeeper.Keeper, storeProvider clienttypes.StoreProvider) LightClientModule {
 	return LightClientModule{
-		keeper: keeper,
+		keeper:        keeper,
+		storeProvider: storeProvider,
 	}
-}
-
-// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-// to IBC light client instances.
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	l.storeProvider = storeProvider
 }
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It sets the client

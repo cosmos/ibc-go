@@ -40,7 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.7.
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
-* [\#6737](https://github.com/cosmos/ibc-go/pull/6737) Bump CometBFT to v0.38.9.
+* [\#6848](https://github.com/cosmos/ibc-go/pull/6848) Bump CometBFT to v0.38.10.
 * [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump go to v1.22.
 
 ### API Breaking
@@ -65,6 +65,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core, core/02-client) [\#6763](https://github.com/cosmos/ibc-go/pull/6763) Move prometheus metric labels for 02-client and core into a separate `metrics` package on core.
 * (core/02-client) [\#6777](https://github.com/cosmos/ibc-go/pull/6777) The `NewClientProposalHandler` of `02-client` has been removed.
 * (core/types) [\#6794](https://github.com/cosmos/ibc-go/pull/6794) The composite interface `QueryServer` has been removed from package `core/types`. Please use the granular `QueryServer` interfaces provided by each core submodule.
+* (light-clients/06-solomachine) [\#6888](https://github.com/cosmos/ibc-go/pull/6888) Remove `TypeClientMisbehaviour` constant and the `Type` method on `Misbehaviour`.
 
 ### State Machine Breaking
 

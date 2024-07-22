@@ -8,8 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
@@ -17,21 +17,15 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 // LightClientModule implements the core IBC api.LightClientModule interface
 type LightClientModule struct {
 	cdc           codec.BinaryCodec
-	storeProvider exported.ClientStoreProvider
+	storeProvider clienttypes.StoreProvider
 }
 
 // NewLightClientModule creates and returns a new 06-solomachine LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.StoreProvider) LightClientModule {
 	return LightClientModule{
-		cdc: cdc,
+		cdc:           cdc,
+		storeProvider: storeProvider,
 	}
-}
-
-// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-// to IBC light client instances.
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	l.storeProvider = storeProvider
 }
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It calls into the
