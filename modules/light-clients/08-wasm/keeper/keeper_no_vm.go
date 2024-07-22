@@ -7,7 +7,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -20,8 +19,8 @@ func NewKeeperWithVM(
 	_ storetypes.KVStoreService,
 	_ types.ClientKeeper,
 	_ string,
-	_ ibcwasm.WasmEngine,
-	_ ibcwasm.QueryRouter,
+	_ types.WasmEngine,
+	_ types.QueryRouter,
 	_ ...Option,
 ) Keeper {
 	panic("not implemented, please build with cgo enabled or nolink_libwasmvm disabled")
@@ -37,7 +36,7 @@ func NewKeeperWithConfig(
 	_ types.ClientKeeper,
 	_ string,
 	_ types.WasmConfig,
-	_ ibcwasm.QueryRouter,
+	_ types.QueryRouter,
 	_ ...Option,
 ) Keeper {
 	panic("not implemented, please build with cgo enabled or nolink_libwasmvm disabled")
