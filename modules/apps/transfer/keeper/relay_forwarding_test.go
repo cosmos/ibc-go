@@ -1310,15 +1310,14 @@ func (suite *ForwardingTestSuite) TestForwardingUnwind() {
 			A: finalReceiver = amount,transfer/channel-0/denom
 			B: no tokens should be held in escrow.
 	*/
+	amount := sdkmath.NewInt(100)
+	pathAtoB, _ := suite.setupForwardingPaths()
+
 	sender := suite.chainB.SenderAccount
 	receiver := suite.chainA.SenderAccount
 
-	pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	pathAtoB.Setup()
-	denomAB := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID))
-
-	amount := sdkmath.NewInt(100)
 	denomA := types.NewDenom(sdk.DefaultBondDenom)
+	denomAB := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
 
 	// Mint coins on chain A
 	coinOnA := sdk.NewCoin(denomA.IBCDenom(), amount)
@@ -1342,6 +1341,7 @@ func (suite *ForwardingTestSuite) TestForwardingUnwind() {
 
 	// Set the denomination on chain B
 	suite.chainB.GetSimApp().TransferKeeper.SetDenom(suite.chainB.GetContext(), denomAB)
+
 	err = suite.chainB.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainB.GetContext(), types.ModuleName, sender.GetAddress(), sdk.NewCoins(coinOnB))
 	suite.Require().NoError(err)
 
@@ -1364,17 +1364,19 @@ func (suite *ForwardingTestSuite) TestForwardingUnwind() {
 	result, err := suite.chainB.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
 
+	suite.assertAmountOnChain(suite.chainB, balance, sdkmath.NewInt(0), denomAB.IBCDenom())
+
 	// // parse the packet from result events and recv packet on chainB
-	packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
+	packetFromBtoA, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(packetFromAtoB)
+	suite.Require().NotNil(packetFromBtoA)
 
-	// err = pathAtoB.EndpointB.UpdateClient()
-	// suite.Require().NoError(err)
+	err = pathAtoB.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
 
-	// result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
-	// suite.Require().NoError(err)
-	// suite.Require().NotNil(result)
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromBtoA)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
 
 	// // Check that Escrow A has amount
 	// suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
