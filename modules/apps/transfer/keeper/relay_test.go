@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {
 				coins = sdk.NewCoins(sdk.NewCoin(coins[0].Denom, types.UnboundedSpendLimit()))
 				var ok bool
-				expEscrowAmounts[0], ok = sdkmath.NewIntFromString(ibctesting.DefaultChainAmount)
+				expEscrowAmounts[0], ok = sdkmath.NewIntFromString(ibctesting.DefaultGenesisAccBalance)
 				suite.Require().True(ok)
 			},
 			nil,

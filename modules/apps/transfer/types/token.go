@@ -1,6 +1,8 @@
 package types
 
 import (
+	"math/big"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
@@ -9,6 +11,9 @@ import (
 
 // Tokens is a slice of Tokens
 type Tokens []Token
+
+// maxUint256 is the maximum value for a 256 bit unsigned integer.
+var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
 // Validate validates a token denomination and amount.
 func (t Token) Validate() error {

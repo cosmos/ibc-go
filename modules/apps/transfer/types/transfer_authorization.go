@@ -2,7 +2,6 @@ package types
 
 import (
 	"context"
-	"math/big"
 	"slices"
 	"strings"
 
@@ -23,9 +22,6 @@ var _ authz.Authorization = (*TransferAuthorization)(nil)
 const (
 	allocationNotFound = -1
 )
-
-// maxUint256 is the maximum value for a 256 bit unsigned integer.
-var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {

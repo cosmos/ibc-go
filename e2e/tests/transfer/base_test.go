@@ -610,18 +610,33 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	})
 
 	t.Run("send entire balance from B to A", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, sdk.NewCoins(sdk.NewCoin(chainBIBCToken.IBCDenom(), transfertypes.UnboundedSpendLimit())), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", nil)
+		transferCoins := sdk.NewCoins((sdk.NewCoin(chainBIBCToken.IBCDenom(), transfertypes.UnboundedSpendLimit())), sdk.NewCoin(chainB.Config().Denom, transfertypes.UnboundedSpendLimit()))
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoins, chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", nil)
 		s.AssertTxSuccess(transferTxResp)
 	})
 
+	chainAIBCToken := testsuite.GetIBCToken(chainB.Config().Denom, channelA.PortID, channelA.ChannelID)
 	t.Run("packets relayed", func(t *testing.T) {
+		// test that chainA has the entire balance back of its native token.
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 		actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainADenom)
 
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.StartingTokenAmount, actualBalance.Int64())
 
+		// test that chainA has the entirety of chainB's token IBC denom.
+		actualBalance, err = query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+
+		s.Require().NoError(err)
+		s.Require().Equal(testvalues.StartingTokenAmount, actualBalance.Int64())
+
+		// Tests that chainB has a zero balance for both.
 		actualBalance, err = query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+
+		s.Require().NoError(err)
+		s.Require().Zero(actualBalance.Int64())
+
+		actualBalance, err = query.Balance(ctx, chainB, chainBAddress, chainB.Config().Denom)
 
 		s.Require().NoError(err)
 		s.Require().Zero(actualBalance.Int64())
