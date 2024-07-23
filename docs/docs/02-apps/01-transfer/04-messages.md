@@ -57,12 +57,13 @@ If `Forwarding` is `nil`, this message is expected to fail if:
 If `Forwarding` is not `nil`, then to use forwarding you must either set `Unwind` to true or provide a non-empty list of `Hops`. Setting both `Unwind` to true and providing a non-empty list of `Hops` is allowed, but the total number of hops that is formed as a combination of the hops needed to unwind the tokens and the hops to forward them afterwards to the final destination must not exceed 8. When using forwarding, timeout must be specified using only `TimeoutTimestamp` (i.e. `TimeoutHeight` must be zero). Please note that the timeout timestamp must take into account the time that it may take tokens to be forwarded through the intermediary chains. Additionally, please note that the `MsgTransfer` will fail if:
 
 - `Hops` is not empty, and the number of elements of `Hops` is greater than 8, or either the `PortId` or `ChannelId` of any of the `Hops` is not a valid identifier.
-- `Unwind` is true, and either the coins to be transfered have different denomination traces, or `SourcePort` and `SourceChannel` are not empty strings (they must be empty because they are set by the transfer module, since it has access to the denomination trace information and is thus able to know the source port ID, channel ID to use in order to unwind the tokens). If `Unwind` is true, the transfer module expects the tokens in `MsgTransfer` to not be native to the sending chain (i.e. they must be IBC vouchers).
+- `Unwind` is true, and either the coins to be transferred have different denomination traces, or `SourcePort` and `SourceChannel` are not empty strings (they must be empty because they are set by the transfer module, since it has access to the denomination trace information and is thus able to know the source port ID, channel ID to use in order to unwind the tokens). If `Unwind` is true, the transfer module expects the tokens in `MsgTransfer` to not be native to the sending chain (i.e. they must be IBC vouchers).
 
-Please note that the `Token` field is deprecated and users should now use `Tokens` instead. If `Token` is used then `Tokens` must be empty. Similarly, if `Tokens` is used then `Token` should be left empty.
-This message will send a fungible token to the counterparty chain represented by the counterparty Channel End connected to the Channel End with the identifiers `SourcePort` and `SourceChannel`.
+Please note that the `Token` field is deprecated and users should now use `Tokens` instead. If `Token` is used then `Tokens` must be empty. Similarly, if `Tokens` is used then `Token` should be left empty. This message will send a fungible token to the counterparty chain represented by the counterparty Channel End connected to the Channel End with the identifiers `SourcePort` and `SourceChannel`.
 
 The denomination provided for transfer should correspond to the same denomination represented on this chain. The prefixes will be added as necessary upon by the receiving chain.
+
+If the `Amount` is set to the maximum value for a 256-bit unsigned integer (i.e. 2^256 - 1), then the whole balance of the corrsponding denomination will be transferred. The helper function `UnboundedSpendLimit` in the `types` package of the `transfer` module provides the sentinel value that can be used.
 
 ### Memo
 
