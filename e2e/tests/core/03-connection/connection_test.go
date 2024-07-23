@@ -20,9 +20,9 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestConnectionTestSuite(t *testing.T) {
@@ -113,7 +113,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 
 	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
 		t.Run("send tokens from chainB to chainA", func(t *testing.T) {
-			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferCoins(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferCoins(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "", nil)
 			s.AssertTxSuccess(transferTxResp)
 		})
 

@@ -7,8 +7,8 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 // AccountKeeper defines the expected account keeper

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v8/internal/validate"
+	"github.com/cosmos/ibc-go/v9/internal/validate"
 )
 
 func TestGRPCRequest(t *testing.T) {

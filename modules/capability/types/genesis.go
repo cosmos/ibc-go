@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -21,12 +22,12 @@ func DefaultGenesis() *GenesisState {
 func (gs GenesisState) Validate() error {
 	// NOTE: index must be greater than 0
 	if gs.Index == 0 {
-		return fmt.Errorf("capability index must be non-zero")
+		return errors.New("capability index must be non-zero")
 	}
 
 	for _, genOwner := range gs.Owners {
 		if len(genOwner.IndexOwners.Owners) == 0 {
-			return fmt.Errorf("empty owners in genesis")
+			return errors.New("empty owners in genesis")
 		}
 
 		// all exported existing indices must be between [1, gs.Index)

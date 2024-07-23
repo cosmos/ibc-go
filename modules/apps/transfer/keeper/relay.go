@@ -9,14 +9,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/events"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/telemetry"
-	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
+	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 // sendTransfer handles transfer sending logic. There are 2 possible cases:
@@ -346,14 +346,20 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
+	sender, err := sdk.AccAddressFromBech32(data.Sender)
+	if err != nil {
+		return err
+	}
+	if k.isBlockedAddr(sender) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
+	}
+
+	// escrow address for unescrowing tokens back to sender
+	escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
+
 	moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()
-		if err != nil {
-			return err
-		}
-
-		sender, err := sdk.AccAddressFromBech32(data.Sender)
 		if err != nil {
 			return err
 		}
@@ -368,15 +374,10 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 				return err
 			}
 
-			if k.isBlockedAddr(sender) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
-			}
 			if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
 				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 			}
 		} else {
-			// unescrow tokens back to sender
-			escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
 			if err := k.unescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
 				return err
 			}

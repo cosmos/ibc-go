@@ -7,9 +7,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 const (
@@ -125,13 +125,6 @@ func (msg MsgTransfer) validateForwarding() error {
 	if !msg.TimeoutHeight.IsZero() {
 		// when forwarding, the timeout height must not be set
 		return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must be zero if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.GetHops())
-	}
-
-	if msg.Forwarding.GetUnwind() {
-		if len(msg.GetCoins()) > 1 {
-			// When unwinding, we must have at most one token.
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot unwind more than one token")
-		}
 	}
 
 	return nil

@@ -138,7 +138,7 @@ func NewSimApp(
     ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
 
     // Initialize pinned codes in wasmvm as they are not persisted there
-    if err := ibcwasmkeeper.InitializePinnedCodes(ctx); err != nil {
+    if err := app.WasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
       cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
     }
   }

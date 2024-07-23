@@ -9,12 +9,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 const (
@@ -45,15 +45,11 @@ func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *Light
 }
 
 // Initialize returns an error because it is stateless.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (LightClientModule) Initialize(_ sdk.Context, _ string, _, _ []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrClientExists, "localhost is stateless and cannot be initialized")
 }
 
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (LightClientModule) VerifyClientMessage(_ sdk.Context, _ string, _ exported.ClientMessage) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
@@ -69,8 +65,6 @@ func (LightClientModule) UpdateStateOnMisbehaviour(_ sdk.Context, _ string, _ ex
 }
 
 // UpdateState performs a no-op and returns the context height in the updated heights return value.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (LightClientModule) UpdateState(ctx sdk.Context, _ string, _ exported.ClientMessage) []exported.Height {
 	return []exported.Height{clienttypes.GetSelfHeight(ctx)}
 }
@@ -78,8 +72,6 @@ func (LightClientModule) UpdateState(ctx sdk.Context, _ string, _ exported.Clien
 // VerifyMembership is a generic proof verification method which verifies the existence of a given key and value within the IBC store.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // The caller must provide the full IBC store.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -122,8 +114,6 @@ func (l LightClientModule) VerifyMembership(
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath within the IBC store.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // The caller must provide the full IBC store.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -163,8 +153,6 @@ func (LightClientModule) Status(_ sdk.Context, _ string) exported.Status {
 }
 
 // LatestHeight returns the context height.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (LightClientModule) LatestHeight(ctx sdk.Context, _ string) exported.Height {
 	return clienttypes.GetSelfHeight(ctx)
 }

@@ -4,7 +4,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 // GRPCRequest validates that the portID and channelID of a gRPC Request are valid identifiers.

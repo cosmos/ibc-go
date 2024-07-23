@@ -10,14 +10,13 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 const DefaultGasUsed = uint64(1)
 
 var (
-	_ ibcwasm.WasmEngine = (*MockWasmEngine)(nil)
+	_ types.WasmEngine = (*MockWasmEngine)(nil)
 
 	// queryTypes contains all the possible query message types.
 	queryTypes = [...]any{types.StatusMsg{}, types.TimestampAtHeightMsg{}, types.VerifyClientMessageMsg{}, types.CheckForMisbehaviourMsg{}}
