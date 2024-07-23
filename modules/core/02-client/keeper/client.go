@@ -31,7 +31,7 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 		return "", err
 	}
 
-	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
+	if status := clientModule.Status(ctx, clientID); status != exported.Active {
 		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client (%s) with status %s", clientID, status)
 	}
 
@@ -46,13 +46,13 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 
 // UpdateClient updates the consensus state and the state root from a provided header.
 func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
-	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
-	}
-
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return err
+	}
+
+	if status := clientModule.Status(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
 	if err := clientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
@@ -90,13 +90,13 @@ func (k *Keeper) UpgradeClient(
 	clientID string,
 	upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof []byte,
 ) error {
-	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
-	}
-
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return err
+	}
+
+	if status := clientModule.Status(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
 	if err := clientModule.VerifyUpgradeAndUpdateState(ctx, clientID, upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof); err != nil {
@@ -119,17 +119,17 @@ func (k *Keeper) UpgradeClient(
 // as well as copying the necessary consensus states from the substitute to the subject client store.
 // The substitute must be Active and the subject must not be Active.
 func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
-	if status := k.GetClientStatus(ctx, subjectClientID); status == exported.Active {
-		return errorsmod.Wrapf(types.ErrInvalidRecoveryClient, "cannot recover %s subject client", exported.Active)
-	}
-
-	if status := k.GetClientStatus(ctx, substituteClientID); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not %s, status is %s", exported.Active, status)
-	}
-
 	clientModule, err := k.Route(ctx, subjectClientID)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrRouteNotFound, subjectClientID)
+	}
+
+	if status := clientModule.Status(ctx, subjectClientID); status == exported.Active {
+		return errorsmod.Wrapf(types.ErrInvalidRecoveryClient, "cannot recover subject client (%s) with status %s", subjectClientID, status)
+	}
+
+	if status := clientModule.Status(ctx, substituteClientID); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot recover client using substitute client (%s) with status %s", subjectClientID, status)
 	}
 
 	subjectLatestHeight := clientModule.LatestHeight(ctx, subjectClientID)
