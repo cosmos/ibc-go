@@ -448,7 +448,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			func() {
 				packet.SourceChannel = "channel-100"
 			},
-			ibcerrors.ErrNotFound,
+			errors.New("unable to unescrow tokens"),
 		},
 		{
 			"invalid packet data",
