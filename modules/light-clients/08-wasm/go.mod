@@ -3,6 +3,8 @@ module github.com/cosmos/ibc-go/modules/light-clients/08-wasm
 go 1.21
 
 retract (
+	// explicitly break api for client contracts
+	v0.2.1-0.20240717085554-570d057959e3
 	// use MerklePath type with []string for KeyPath in contract API messages
 	v0.2.1-0.20240523101951-4b45d1822fb6
 	v0.1.2-0.20240412103620-7ee2a2452b79
