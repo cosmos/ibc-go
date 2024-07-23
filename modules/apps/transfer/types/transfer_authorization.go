@@ -19,10 +19,6 @@ import (
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)
 
-const (
-	allocationNotFound = -1
-)
-
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
 	return &TransferAuthorization{
@@ -181,14 +177,4 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	}
 
 	return nil
-}
-
-// getAllocationIndex ranges through a set of allocations, and returns the index of the allocation if found. If not, returns -1.
-func getAllocationIndex(msg MsgTransfer, allocations []Allocation) int {
-	for index, allocation := range allocations {
-		if allocation.SourceChannel == msg.SourceChannel && allocation.SourcePort == msg.SourcePort {
-			return index
-		}
-	}
-	return allocationNotFound
 }
