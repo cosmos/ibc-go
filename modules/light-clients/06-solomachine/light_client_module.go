@@ -108,13 +108,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 	return clientState.UpdateState(ctx, l.cdc, clientStore, clientMsg)
 }
 
-<<<<<<< HEAD
-// VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyMembership method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
-=======
 // VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.verifyMembership method.
->>>>>>> dab878ef (chore: moved the CONTRACT godoc to doc.go (#6894))
 func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -134,13 +128,7 @@ func (l LightClientModule) VerifyMembership(
 	return clientState.VerifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
-<<<<<<< HEAD
-// VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyNonMembership method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 06-solomachine-{n}.
-=======
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
->>>>>>> dab878ef (chore: moved the CONTRACT godoc to doc.go (#6894))
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,

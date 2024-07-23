@@ -30,13 +30,7 @@ func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.Store
 }
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It calls into the
-<<<<<<< HEAD
-// clientState.Initialize method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-=======
 // clientState.initialize method.
->>>>>>> dab878ef (chore: moved the CONTRACT godoc to doc.go (#6894))
 func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState ClientState
 	if err := l.cdc.Unmarshal(clientStateBz, &clientState); err != nil {
@@ -105,13 +99,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 	return clientState.UpdateState(ctx, l.cdc, clientStore, clientMsg)
 }
 
-<<<<<<< HEAD
-// VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyMembership method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-=======
 // VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.verifyMembership method.
->>>>>>> dab878ef (chore: moved the CONTRACT godoc to doc.go (#6894))
 func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -131,13 +119,7 @@ func (l LightClientModule) VerifyMembership(
 	return clientState.VerifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
-<<<<<<< HEAD
-// VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.VerifyNonMembership method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-=======
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
->>>>>>> dab878ef (chore: moved the CONTRACT godoc to doc.go (#6894))
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -156,13 +138,7 @@ func (l LightClientModule) VerifyNonMembership(
 	return clientState.VerifyNonMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
-<<<<<<< HEAD
-// Status obtains the client state associated with the client identifier and calls into the clientState.Status method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-=======
 // Status obtains the client state associated with the client identifier and calls into the clientState.status method.
->>>>>>> dab878ef (chore: moved the CONTRACT godoc to doc.go (#6894))
 func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
@@ -185,13 +161,7 @@ func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) export
 	return clientState.LatestHeight
 }
 
-<<<<<<< HEAD
-// TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.GetTimestampAtHeight method.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 07-tendermint-{n}.
-=======
 // TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.getTimestampAtHeight method.
->>>>>>> dab878ef (chore: moved the CONTRACT godoc to doc.go (#6894))
 func (l LightClientModule) TimestampAtHeight(
 	ctx sdk.Context,
 	clientID string,
