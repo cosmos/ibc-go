@@ -108,13 +108,8 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 	for i := 0; i < MaxAccounts; i++ {
 		senderPrivKey := secp256k1.GenPrivKey()
 		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), 0)
-<<<<<<< HEAD
-		amount, ok := sdk.NewIntFromString("10000000000000000000")
+		amount, ok := sdk.NewIntFromString(DefaultGenesisAccBalance)
 		require.True(t, ok)
-=======
-		amount, ok := sdkmath.NewIntFromString(DefaultGenesisAccBalance)
-		require.True(tb, ok)
->>>>>>> 92e1f387 ((feat) Add possibility to transfer entire balance. (#6877))
 
 		// add sender account
 		balance := banktypes.Balance{

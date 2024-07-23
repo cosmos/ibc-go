@@ -77,22 +77,12 @@ func (k Keeper) sendTransfer(
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
 	fullDenomPath := token.Denom
 
-<<<<<<< HEAD
 	var err error
 
 	// deconstruct the token denomination into the denomination trace info
 	// to determine if the sender is the source chain
 	if strings.HasPrefix(token.Denom, "ibc/") {
 		fullDenomPath, err = k.DenomPathFromHash(ctx, token.Denom)
-=======
-	for _, coin := range coins {
-		// Using types.UnboundedSpendLimit allows us to send the entire balance of a given denom.
-		if coin.Amount.Equal(types.UnboundedSpendLimit()) {
-			coin.Amount = k.bankKeeper.GetBalance(ctx, sender, coin.Denom).Amount
-		}
-
-		token, err := k.tokenFromCoin(ctx, coin)
->>>>>>> 92e1f387 ((feat) Add possibility to transfer entire balance. (#6877))
 		if err != nil {
 			return 0, err
 		}
@@ -101,6 +91,11 @@ func (k Keeper) sendTransfer(
 	labels := []metrics.Label{
 		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
 		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
+	}
+
+	// Using types.UnboundedSpendLimit allows us to send the entire balance of a given denom.
+	if token.Amount.Equal(types.UnboundedSpendLimit()) {
+		token.Amount = k.bankKeeper.GetBalance(ctx, sender, token.Denom).Amount
 	}
 
 	// NOTE: SendTransfer simply sends the denomination as it exists on its own

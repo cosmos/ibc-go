@@ -59,45 +59,16 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, true,
 		},
 		{
-<<<<<<< HEAD
-			"source channel not found",
-=======
-			"successful transfer of native token with ics20-1",
-			func() {
-				coins = sdk.NewCoins(coins[0])
-
-				// Set version to isc20-1.
-				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
-					channel.Version = types.V1
-				})
-			},
-			nil,
-		},
-		{
-			"successful transfer with empty forwarding hops and ics20-1",
-			func() {
-				coins = sdk.NewCoins(coins[0])
-
-				// Set version to isc20-1.
-				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
-					channel.Version = types.V1
-				})
-			},
-			nil,
-		},
-		{
 			"successful transfer of entire balance",
 			func() {
-				coins = sdk.NewCoins(sdk.NewCoin(coins[0].Denom, types.UnboundedSpendLimit()))
+				coin.Amount = types.UnboundedSpendLimit()
 				var ok bool
-				expEscrowAmounts[0], ok = sdkmath.NewIntFromString(ibctesting.DefaultGenesisAccBalance)
+				expEscrowAmount, ok = sdk.NewIntFromString(ibctesting.DefaultGenesisAccBalance)
 				suite.Require().True(ok)
-			},
-			nil,
+			}, true,
 		},
 		{
 			"failure: source channel not found",
->>>>>>> 92e1f387 ((feat) Add possibility to transfer entire balance. (#6877))
 			func() {
 				// channel references wrong ID
 				path.EndpointA.ChannelID = ibctesting.InvalidID
