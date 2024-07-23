@@ -1,10 +1,21 @@
 package types
 
 import (
+<<<<<<< HEAD
 	"math/big"
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
+=======
+	"context"
+	"slices"
+	"strings"
+
+	"github.com/cosmos/gogoproto/proto"
+
+	errorsmod "cosmossdk.io/errors"
+
+>>>>>>> 92e1f387 ((feat) Add possibility to transfer entire balance. (#6877))
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -14,9 +25,6 @@ import (
 )
 
 var _ authz.Authorization = &TransferAuthorization{}
-
-// maxUint256 is the maximum value for a 256 bit unsigned integer.
-var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
@@ -175,6 +183,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	return sdkerrors.Wrapf(ErrInvalidAuthorization, "not allowed memo: %s", memo)
 }
 
+<<<<<<< HEAD
 // UnboundedSpendLimit returns the sentinel value that can be used
 // as the amount for a denomination's spend limit for which spend limit updating
 // should be disabled. Please note that using this sentinel value means that a grantee
@@ -182,4 +191,14 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 // of the denomination available at the granter's account.
 func UnboundedSpendLimit() sdkmath.Int {
 	return sdk.NewIntFromBigInt(maxUint256)
+=======
+// getAllocationIndex ranges through a set of allocations, and returns the index of the allocation if found. If not, returns -1.
+func getAllocationIndex(msg MsgTransfer, allocations []Allocation) int {
+	for index, allocation := range allocations {
+		if allocation.SourceChannel == msg.SourceChannel && allocation.SourcePort == msg.SourcePort {
+			return index
+		}
+	}
+	return allocationNotFound
+>>>>>>> 92e1f387 ((feat) Add possibility to transfer entire balance. (#6877))
 }
