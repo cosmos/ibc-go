@@ -82,6 +82,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#6492](https://github.com/cosmos/ibc-go/pull/6492) Added new `Tokens` field to `MsgTransfer` to enable sending of multiple denoms, and deprecated the `Token` field.
 * (apps/transfer) [\#6693](https://github.com/cosmos/ibc-go/pull/6693) Added new `Forwarding` field to `MsgTransfer` to enable forwarding tokens through multiple intermediary chains with a single transaction. This also enables automatic unwinding of tokens to their native chain. `x/authz` support for transfer allows granters to specify a set of possible forwarding hops that are allowed for grantees.
+* (apps/transfer) [\#6877](https://github.com/cosmos/ibc-go/pull/6877) Added the possibility to transfer the entire user balance of a particular denomination by using [`UnboundedSpendLimit`](https://github.com/cosmos/ibc-go/blob/715f00eef8727da41db25fdd4763b709bdbba07e/modules/apps/transfer/types/transfer_authorization.go#L253-L255) as the token amount.
 
 ### Bug Fixes
 
