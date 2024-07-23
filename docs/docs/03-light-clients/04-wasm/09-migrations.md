@@ -28,6 +28,24 @@ This guide provides instructions for migrating 08-wasm versions.
 - The `WithQueryPlugins` function signature has changed to take in the `QueryPlugins` type from the `keeper` package (previously from the `types` package).
 - The `VMGasRegister` variable has been moved from the `types` package to the `keeper` package.
 
+## From v0.3.0+ibc-go-v8.3-wasmvm-v2.0 to v0.4.0-ibc-go-v8.3-wasmvm-v2.0
+
+### Contract developers
+
+Contract developers are required to update their JSON api message structure for the `SudoMsg` payloads `VerifyMembershipMsg` and `VerifyNonMembershipMsg`.
+The `path` field on both JSON api messages has been renamed to `merkle_path`.
+
+A migration is required for existing 08-wasm client contracts in order to correctly handle the deserialisation of these fields.
+
+## From v0.2.0+ibc-go-v7.3-wasmvm-v1.5 to v0.3.0-ibc-go-v7.3-wasmvm-v1.5
+
+### Contract developers
+
+Contract developers are required to update their JSON api message structure for the `SudoMsg` payloads `VerifyMembershipMsg` and `VerifyNonMembershipMsg`.
+The `path` field on both JSON api messages has been renamed to `merkle_path`.
+
+A migration is required for existing 08-wasm client contracts in order to correctly handle the deserialisation of these fields.
+
 ## From v0.2.0+ibc-go-v8.3-wasmvm-v2.0 to v0.3.0-ibc-go-v8.3-wasmvm-v2.0
 
 ### Contract developers
