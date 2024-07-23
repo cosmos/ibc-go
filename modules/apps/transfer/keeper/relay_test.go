@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, true,
 		},
 		{
-			"failure: source channel not found",
+			"source channel not found",
 			func() {
 				// channel references wrong ID
 				path.EndpointA.ChannelID = ibctesting.InvalidID
