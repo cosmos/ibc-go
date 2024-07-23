@@ -52,7 +52,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
-	return clientState.Initialize(ctx, l.cdc, clientStore, &consensusState)
+	return clientState.initialize(ctx, l.cdc, clientStore, &consensusState)
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier and calls into the clientState.VerifyClientMessage method.
@@ -116,7 +116,7 @@ func (l LightClientModule) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.verifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
@@ -135,7 +135,7 @@ func (l LightClientModule) VerifyNonMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyNonMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	return clientState.verifyNonMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
 // Status obtains the client state associated with the client identifier and calls into the clientState.status method.
@@ -146,7 +146,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 		return exported.Unknown
 	}
 
-	return clientState.Status(ctx, clientStore, l.cdc)
+	return clientState.status(ctx, clientStore, l.cdc)
 }
 
 // LatestHeight returns the latest height for the client state for the given client identifier.
@@ -173,7 +173,7 @@ func (l LightClientModule) TimestampAtHeight(
 		return 0, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.GetTimestampAtHeight(ctx, clientStore, l.cdc, height)
+	return clientState.getTimestampAtHeight(clientStore, l.cdc, height)
 }
 
 // RecoverClient asserts that the substitute client is a tendermint client. It obtains the client state associated with the

@@ -125,7 +125,7 @@ func (l LightClientModule) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.verifyMembership(clientStore, l.cdc, proof, path, value)
 }
 
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
@@ -144,7 +144,7 @@ func (l LightClientModule) VerifyNonMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyNonMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	return clientState.verifyNonMembership(clientStore, l.cdc, proof, path)
 }
 
 // Status returns the status of the solo machine client.
