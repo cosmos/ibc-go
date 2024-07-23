@@ -19,14 +19,9 @@ import (
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)
 
-<<<<<<< HEAD
-// maxUint256 is the maximum value for a 256 bit unsigned integer.
-var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
-=======
 const (
 	allocationNotFound = -1
 )
->>>>>>> 92e1f387 ((feat) Add possibility to transfer entire balance. (#6877))
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
@@ -188,15 +183,6 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	return nil
 }
 
-<<<<<<< HEAD
-// UnboundedSpendLimit returns the sentinel value that can be used
-// as the amount for a denomination's spend limit for which spend limit updating
-// should be disabled. Please note that using this sentinel value means that a grantee
-// will be granted the privilege to do ICS20 token transfers for the total amount
-// of the denomination available at the granter's account.
-func UnboundedSpendLimit() sdkmath.Int {
-	return sdkmath.NewIntFromBigInt(maxUint256)
-=======
 // getAllocationIndex ranges through a set of allocations, and returns the index of the allocation if found. If not, returns -1.
 func getAllocationIndex(msg MsgTransfer, allocations []Allocation) int {
 	for index, allocation := range allocations {
@@ -205,5 +191,4 @@ func getAllocationIndex(msg MsgTransfer, allocations []Allocation) int {
 		}
 	}
 	return allocationNotFound
->>>>>>> 92e1f387 ((feat) Add possibility to transfer entire balance. (#6877))
 }
