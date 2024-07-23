@@ -6,7 +6,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -43,15 +42,11 @@ func (cs ClientState) Validate() error {
 	return cs.ConsensusState.ValidateBasic()
 }
 
-// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
+// verifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-func (cs *ClientState) VerifyMembership(
-	ctx sdk.Context,
+func (cs *ClientState) verifyMembership(
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
-	_ exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
 	proof []byte,
 	path exported.Path,
 	value []byte,
@@ -100,15 +95,11 @@ func (cs *ClientState) VerifyMembership(
 	return nil
 }
 
-// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at the latest sequence.
+// verifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-func (cs *ClientState) VerifyNonMembership(
-	ctx sdk.Context,
+func (cs *ClientState) verifyNonMembership(
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
-	_ exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
 	proof []byte,
 	path exported.Path,
 ) error {
