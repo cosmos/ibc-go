@@ -593,17 +593,17 @@ func NewSimApp(
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
-	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
 
 	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
-	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+	clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
-	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
+	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
 	wasmLightClientModule := wasm.NewLightClientModule(app.WasmClientKeeper, storeProvider)
-	clientRouter.AddRoute(wasmtypes.ModuleName, &wasmLightClientModule)
+	clientKeeper.AddRoute(wasmtypes.ModuleName, &wasmLightClientModule)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(

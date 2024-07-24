@@ -56,9 +56,9 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
-// GetRouter returns the light client module router.
-func (k *Keeper) GetRouter() *types.Router {
-	return k.router
+// AddRoute adds a new route to the underlying router.
+func (k *Keeper) AddRoute(clientType string, module exported.LightClientModule) {
+	k.router.AddRoute(clientType, module)
 }
 
 // GetStoreProvider returns the light client store provider.
