@@ -71,7 +71,7 @@ message MsgConnectionOpenTry {
   // Deprecated: this field is unused.
   bytes proof_client = 9 [deprecated = true];
   // Deprecated: this field is unused.
-  bytes                     proof_consensus  = 10 [deprecated = true];
+  bytes proof_consensus = 10 [deprecated = true];
   // Deprecated: this field is unused.
   ibc.core.client.v1.Height consensus_height = 11 [deprecated = true];
   string                    signer           = 12;
@@ -89,19 +89,19 @@ message MsgConnectionOpenAck {
 
   option (gogoproto.goproto_getters) = false;
 
-  string                    connection_id              = 1;
-  string                    counterparty_connection_id = 2;
-  Version                   version                    = 3;
+  string  connection_id              = 1;
+  string  counterparty_connection_id = 2;
+  Version version                    = 3;
   // Deprecated: this field is unused.
-  google.protobuf.Any       client_state               = 4 [deprecated = true];
-  ibc.core.client.v1.Height proof_height               = 5 [(gogoproto.nullable) = false];
+  google.protobuf.Any       client_state = 4 [deprecated = true];
+  ibc.core.client.v1.Height proof_height = 5 [(gogoproto.nullable) = false];
   // proof of the initialization the connection on Chain B: `UNINITIALIZED ->
   // TRYOPEN`
   bytes proof_try = 6;
   // Deprecated: this field is unused.
   bytes proof_client = 7 [deprecated = true];
   // Deprecated: this field is unused.
-  bytes                     proof_consensus  = 8 [deprecated = true];
+  bytes proof_consensus = 8 [deprecated = true];
   // Deprecated: this field is unused.
   ibc.core.client.v1.Height consensus_height = 9 [deprecated = true];
   string                    signer           = 10;
