@@ -9,7 +9,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -67,26 +66,12 @@ func (k *Keeper) ConnOpenTry(
 	counterparty types.Counterparty, // counterpartyConnectionIdentifier, counterpartyPrefix and counterpartyClientIdentifier
 	delayPeriod uint64,
 	clientID string, // clientID of chainA
-	clientState exported.ClientState, // clientState that chainA has for chainB
 	counterpartyVersions []*types.Version, // supported versions of chain A
 	initProof []byte, // proof that chainA stored connectionEnd in state (on ConnOpenInit)
-	clientProof []byte, // proof that chainA stored a light client of chainB
-	consensusProof []byte, // proof that chainA stored chainB's consensus state at consensus height
 	proofHeight exported.Height, // height at which relayer constructs proof of A storing connectionEnd in state
-	consensusHeight exported.Height, // latest height of chain B which chain A has stored in its chain B client
 ) (string, error) {
 	// generate a new connection
 	connectionID := k.GenerateConnectionIdentifier(ctx)
-
-	// check that the consensus height the counterparty chain is using to store a representation
-	// of this chain's consensus state is at a height in the past
-	selfHeight := clienttypes.GetSelfHeight(ctx)
-	if consensusHeight.GTE(selfHeight) {
-		return "", errorsmod.Wrapf(
-			ibcerrors.ErrInvalidHeight,
-			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
-		)
-	}
 
 	// expectedConnection defines Chain A's ConnectionEnd
 	// NOTE: chain A's counterparty is chain B (i.e where this code is executed)
@@ -133,28 +118,15 @@ func (k *Keeper) ConnOpenTry(
 // to chain A (this code is executed on chain A).
 //
 // NOTE: Identifiers are checked on msg validation.
+// TODO: Remove uneeded proofs
 func (k *Keeper) ConnOpenAck(
 	ctx sdk.Context,
 	connectionID string,
-	clientState exported.ClientState, // client state for chainA on chainB
 	version *types.Version, // version that ChainB chose in ConnOpenTry
 	counterpartyConnectionID string,
 	tryProof []byte, // proof that connectionEnd was added to ChainB state in ConnOpenTry
-	clientProof []byte, // proof of client state on chainB for chainA
-	consensusProof []byte, // proof that chainB has stored ConsensusState of chainA on its client
 	proofHeight exported.Height, // height that relayer constructed proofTry
-	consensusHeight exported.Height, // latest height of chainA that chainB has stored on its chainA client
 ) error {
-	// check that the consensus height the counterparty chain is using to store a representation
-	// of this chain's consensus state is at a height in the past
-	selfHeight := clienttypes.GetSelfHeight(ctx)
-	if consensusHeight.GTE(selfHeight) {
-		return errorsmod.Wrapf(
-			ibcerrors.ErrInvalidHeight,
-			"consensus height is greater than or equal to the current block height (%s >= %s)", consensusHeight, selfHeight,
-		)
-	}
-
 	// Retrieve connection
 	connection, found := k.GetConnection(ctx, connectionID)
 	if !found {
