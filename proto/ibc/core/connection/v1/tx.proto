@@ -58,15 +58,15 @@ message MsgConnectionOpenTry {
   option (gogoproto.goproto_getters) = false;
 
   reserved 2, 3, 9 to 11, 13;
-  string client_id = 1;
-  Counterparty              counterparty           = 4 [(gogoproto.nullable) = false];
-  uint64                    delay_period           = 5;
-  repeated Version          counterparty_versions  = 6;
-  ibc.core.client.v1.Height proof_height           = 7 [(gogoproto.nullable) = false];
+  string                    client_id             = 1;
+  Counterparty              counterparty          = 4 [(gogoproto.nullable) = false];
+  uint64                    delay_period          = 5;
+  repeated Version          counterparty_versions = 6;
+  ibc.core.client.v1.Height proof_height          = 7 [(gogoproto.nullable) = false];
   // proof of the initialization the connection on Chain A: `UNINITIALIZED ->
   // INIT`
-  bytes proof_init = 8;
-  string                    signer           = 12;
+  bytes  proof_init = 8;
+  string signer     = 12;
 }
 
 // MsgConnectionOpenTryResponse defines the Msg/ConnectionOpenTry response type.
@@ -86,8 +86,8 @@ message MsgConnectionOpenAck {
   ibc.core.client.v1.Height proof_height               = 5 [(gogoproto.nullable) = false];
   // proof of the initialization the connection on Chain B: `UNINITIALIZED ->
   // TRYOPEN`
-  bytes proof_try = 6;
-  string                    signer           = 10;
+  bytes  proof_try = 6;
+  string signer    = 10;
 }
 
 // MsgConnectionOpenAckResponse defines the Msg/ConnectionOpenAck response type.
