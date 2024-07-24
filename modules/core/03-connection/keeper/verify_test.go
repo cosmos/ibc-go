@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 	}
 }
 
-// TestVerifyPacketCommitmentState has chainB verify the packet commitment
+// TestVerifyPacketCommitment has chainB verify the packet commitment
 // on channelA. The channels on chainA and chainB are fully opened and a
 // packet is sent from chainA to chainB, but has not been received.
 func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {

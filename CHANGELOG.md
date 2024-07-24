@@ -65,6 +65,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core, core/02-client) [\#6763](https://github.com/cosmos/ibc-go/pull/6763) Move prometheus metric labels for 02-client and core into a separate `metrics` package on core.
 * (core/02-client) [\#6777](https://github.com/cosmos/ibc-go/pull/6777) The `NewClientProposalHandler` of `02-client` has been removed.
 * (core/types) [\#6794](https://github.com/cosmos/ibc-go/pull/6794) The composite interface `QueryServer` has been removed from package `core/types`. Please use the granular `QueryServer` interfaces provided by each core submodule.
+* (light-clients/06-solomachine) [\#6888](https://github.com/cosmos/ibc-go/pull/6888) Remove `TypeClientMisbehaviour` constant and the `Type` method on `Misbehaviour`.
+* (light-clients/06-solomachine, light-clients/07-tendermint) [\#6891](https://github.com/cosmos/ibc-go/pull/6891) The `VerifyMembership` and `VerifyNonMembership` functions of solomachine's `ClientState` have been made private. The `VerifyMembership`, `VerifyNonMembership`, `GetTimestampAtHeight`, `Status` and `Initialize` functions of tendermint's `ClientState` have been made private.
 
 ### State Machine Breaking
 
@@ -80,6 +82,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#6492](https://github.com/cosmos/ibc-go/pull/6492) Added new `Tokens` field to `MsgTransfer` to enable sending of multiple denoms, and deprecated the `Token` field.
 * (apps/transfer) [\#6693](https://github.com/cosmos/ibc-go/pull/6693) Added new `Forwarding` field to `MsgTransfer` to enable forwarding tokens through multiple intermediary chains with a single transaction. This also enables automatic unwinding of tokens to their native chain. `x/authz` support for transfer allows granters to specify a set of possible forwarding hops that are allowed for grantees.
+* (apps/transfer) [\#6877](https://github.com/cosmos/ibc-go/pull/6877) Added the possibility to transfer the entire user balance of a particular denomination by using [`UnboundedSpendLimit`](https://github.com/cosmos/ibc-go/blob/715f00eef8727da41db25fdd4763b709bdbba07e/modules/apps/transfer/types/transfer_authorization.go#L253-L255) as the token amount.
 
 ### Bug Fixes
 

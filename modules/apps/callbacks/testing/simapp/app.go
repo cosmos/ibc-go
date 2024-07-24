@@ -571,7 +571,7 @@ func NewSimApp(
 	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
 
-	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
 	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)

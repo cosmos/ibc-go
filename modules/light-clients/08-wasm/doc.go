@@ -11,5 +11,8 @@ In this case, it is possible to build the code with either cgo disabled or a cus
 This allows disabling linking of libwasmvm and not forcing users to have specific libraries available on their systems.
 
 Please refer to the 08-wasm module documentation for more information.
+
+Note that client identifiers are expected to be in the form: 08-wasm-{N}.
+Client identifiers are generated and validated by core IBC, unexpected client identifiers will result in errors.
 */
 package wasm

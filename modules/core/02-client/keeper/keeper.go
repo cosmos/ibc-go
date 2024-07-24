@@ -304,8 +304,8 @@ func (k *Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string)
 	return k.GetClientConsensusState(ctx, clientID, clientModule.LatestHeight(ctx, clientID))
 }
 
-// VerifyMembershipProof retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
-func (k *Keeper) VerifyMembershipProof(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
+// VerifyMembership retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
+func (k *Keeper) VerifyMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return err

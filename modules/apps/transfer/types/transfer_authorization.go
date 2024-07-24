@@ -2,14 +2,12 @@ package types
 
 import (
 	"context"
-	"math/big"
 	"slices"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -24,9 +22,6 @@ var _ authz.Authorization = (*TransferAuthorization)(nil)
 const (
 	allocationNotFound = -1
 )
-
-// maxUint256 is the maximum value for a 256 bit unsigned integer.
-var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
@@ -242,15 +237,6 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	}
 
 	return nil
-}
-
-// UnboundedSpendLimit returns the sentinel value that can be used
-// as the amount for a denomination's spend limit for which spend limit updating
-// should be disabled. Please note that using this sentinel value means that a grantee
-// will be granted the privilege to do ICS20 token transfers for the total amount
-// of the denomination available at the granter's account.
-func UnboundedSpendLimit() sdkmath.Int {
-	return sdkmath.NewIntFromBigInt(maxUint256)
 }
 
 // getAllocationIndex ranges through a set of allocations, and returns the index of the allocation if found. If not, returns -1.
