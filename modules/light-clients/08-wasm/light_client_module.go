@@ -38,8 +38,6 @@ func NewLightClientModule(keeper wasmkeeper.Keeper, storeProvider clienttypes.St
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It sets the client
 // state and consensus state in the client store.
 // It also initializes the wasm contract for the client.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState types.ClientState
 	if err := l.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
@@ -80,8 +78,6 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 // It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
@@ -105,8 +101,6 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 
 // CheckForMisbehaviour obtains the client state associated with the client identifier, it detects misbehaviour in a submitted Header
 // message and verifies the correctness of a submitted Misbehaviour ClientMessage.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
@@ -141,8 +135,6 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 // UpdateStateOnMisbehaviour obtains the client state associated with the client identifier performs appropriate state changes on
 // a client state given that misbehaviour has been detected and verified.
 // Client state is updated in the store by the contract.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
@@ -169,8 +161,6 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 
 // UpdateState obtains the client state associated with the client identifier and calls into the appropriate
 // contract endpoint. Client state and new consensus states are updated in the store by the contract.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
@@ -211,8 +201,6 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -267,8 +255,6 @@ func (l LightClientModule) VerifyMembership(
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -327,8 +313,6 @@ func (l LightClientModule) VerifyNonMembership(
 //
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
@@ -359,8 +343,6 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 
 // LatestHeight returns the latest height for the client state for the given client identifier.
 // If no client is present for the provided client identifier a zero value height is returned.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
@@ -375,8 +357,6 @@ func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) export
 
 // TimestampAtHeight obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
 // It returns the timestamp in nanoseconds of the consensus state at the given height.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
@@ -414,8 +394,6 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 // subject client and calls into the appropriate contract endpoint.
 // It will verify that a substitute client state is valid and update the subject client state.
 // Note that this method is used only for recovery and will not allow changes to the checksum.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
@@ -459,8 +437,6 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 // VerifyUpgradeAndUpdateState obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
 // The new client and consensus states will be unmarshaled and an error is returned if the new client state is not at a height greater
 // than the existing client. On a successful verification, it expects the contract to update the new client state, consensus state, and any other client metadata.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	clientID string,
