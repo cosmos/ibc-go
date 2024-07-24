@@ -305,7 +305,7 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 ) {
 	// query proof for the connection on the counterparty
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
-	connectionProof, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
+	connectionProof, proofHeight = endpoint.Counterparty.QueryProof(connectionKey)
 
 	return connectionProof, proofHeight
 }
