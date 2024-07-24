@@ -48,13 +48,13 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
 
 	suite.Require().NoError(path.EndpointB.UpdateClient())
 
-	counterpartyClient, clientProof, consensusProof, consensusHeight, initProof, proofHeight := path.EndpointB.QueryConnectionHandshakeProof()
+	initProof, proofHeight := path.EndpointB.QueryConnectionHandshakeProof()
 
 	msg := types.NewMsgConnectionOpenTry(
 		path.EndpointB.ClientID, path.EndpointB.Counterparty.ConnectionID, path.EndpointB.Counterparty.ClientID,
-		counterpartyClient, path.EndpointB.Counterparty.Chain.GetPrefix(), []*types.Version{ibctesting.ConnectionVersion}, path.EndpointB.ConnectionConfig.DelayPeriod,
-		initProof, clientProof, consensusProof,
-		proofHeight, consensusHeight,
+		path.EndpointB.Counterparty.Chain.GetPrefix(), []*types.Version{ibctesting.ConnectionVersion}, path.EndpointB.ConnectionConfig.DelayPeriod,
+		initProof,
+		proofHeight,
 		path.EndpointB.Chain.SenderAccount.GetAddress().String(),
 	)
 
@@ -88,13 +88,11 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
 
 	suite.Require().NoError(path.EndpointA.UpdateClient())
 
-	counterpartyClient, clientProof, consensusProof, consensusHeight, tryProof, proofHeight := path.EndpointA.QueryConnectionHandshakeProof()
+	tryProof, proofHeight := path.EndpointA.QueryConnectionHandshakeProof()
 
 	msg := types.NewMsgConnectionOpenAck(
-		path.EndpointA.ConnectionID, path.EndpointA.Counterparty.ConnectionID, counterpartyClient,
-		tryProof, clientProof, consensusProof,
-		proofHeight, consensusHeight,
-		ibctesting.ConnectionVersion,
+		path.EndpointA.ConnectionID, path.EndpointA.Counterparty.ConnectionID,
+		tryProof, proofHeight, ibctesting.ConnectionVersion,
 		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
 	)
 

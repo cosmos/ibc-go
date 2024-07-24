@@ -24,7 +24,6 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 var (
@@ -287,18 +286,9 @@ func (solo *Solomachine) ConnOpenInit(chain *TestChain, clientID string) string 
 func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID string) {
 	tryProof := solo.GenerateConnOpenTryProof(clientID, connectionID)
 
-	clientState := ibctm.NewClientState(chain.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift, chain.LatestCommittedHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), UpgradePath)
-	clientProof := solo.GenerateClientStateProof(clientState)
-
-	consensusState := chain.LatestCommittedHeader.ConsensusState()
-	consensusHeight := chain.LatestCommittedHeader.GetHeight()
-	consensusProof := solo.GenerateConsensusStateProof(consensusState, consensusHeight)
-
 	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
-		connectionID, connectionIDSolomachine, clientState,
-		tryProof, clientProof, consensusProof,
-		clienttypes.ZeroHeight(), clientState.LatestHeight,
-		ConnectionVersion,
+		connectionID, connectionIDSolomachine, tryProof,
+		clienttypes.ZeroHeight(), ConnectionVersion,
 		chain.SenderAccount.GetAddress().String(),
 	)
 
