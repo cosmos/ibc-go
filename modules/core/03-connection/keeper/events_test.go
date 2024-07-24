@@ -52,9 +52,8 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
 
 	msg := types.NewMsgConnectionOpenTry(
 		path.EndpointB.ClientID, path.EndpointB.Counterparty.ConnectionID, path.EndpointB.Counterparty.ClientID,
-		path.EndpointB.Counterparty.Chain.GetPrefix(), []*types.Version{ibctesting.ConnectionVersion}, path.EndpointB.ConnectionConfig.DelayPeriod,
-		initProof,
-		proofHeight,
+		path.EndpointB.Counterparty.Chain.GetPrefix(), []*types.Version{ibctesting.ConnectionVersion},
+		path.EndpointB.ConnectionConfig.DelayPeriod, initProof, proofHeight,
 		path.EndpointB.Chain.SenderAccount.GetAddress().String(),
 	)
 
