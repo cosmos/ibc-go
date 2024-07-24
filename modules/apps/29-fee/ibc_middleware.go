@@ -1,6 +1,7 @@
 package fee
 
 import (
+	"encoding/json"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -250,7 +251,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	var ack types.IncentivizedAcknowledgement
-	if err := ack.UnmarshalJSON(acknowledgement); err != nil {
+	if err := json.Unmarshal(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
 	}
 
