@@ -27,13 +27,12 @@ type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.BinaryCodec
 	router         *types.Router
-	consensusHost  types.ConsensusHost
 	legacySubspace types.ParamSubspace
 	upgradeKeeper  types.UpgradeKeeper
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, consensusHost types.ConsensusHost, uk types.UpgradeKeeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
 	router := types.NewRouter()
 	localhostModule := localhost.NewLightClientModule(cdc, key)
 	router.AddRoute(exported.Localhost, localhostModule)
@@ -42,7 +41,6 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace ty
 		storeKey:       key,
 		cdc:            cdc,
 		router:         router,
-		consensusHost:  consensusHost,
 		legacySubspace: legacySubspace,
 		upgradeKeeper:  uk,
 	}
@@ -88,15 +86,6 @@ func (k *Keeper) Route(ctx sdk.Context, clientID string) (exported.LightClientMo
 	}
 
 	return clientModule, nil
-}
-
-// SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
-func (k *Keeper) SetConsensusHost(consensusHost types.ConsensusHost) {
-	if consensusHost == nil {
-		panic(errors.New("cannot set a nil self consensus host"))
-	}
-
-	k.consensusHost = consensusHost
 }
 
 // GenerateClientIdentifier returns the next client identifier.
@@ -313,13 +302,6 @@ func (k *Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string)
 	}
 
 	return k.GetClientConsensusState(ctx, clientID, clientModule.LatestHeight(ctx, clientID))
-}
-
-// GetSelfConsensusState introspects the (self) past historical info at a given height
-// and returns the expected consensus state at that height.
-// For now, can only retrieve self consensus states for the current revision
-func (k *Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
-	return k.consensusHost.GetSelfConsensusState(ctx, height)
 }
 
 // VerifyMembershipProof retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.

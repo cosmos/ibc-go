@@ -88,11 +88,6 @@ func (k *Keeper) ConnOpenTry(
 		)
 	}
 
-	expectedConsensusState, err := k.clientKeeper.GetSelfConsensusState(ctx, consensusHeight)
-	if err != nil {
-		return "", errorsmod.Wrapf(err, "self consensus state not found for height %s", consensusHeight.String())
-	}
-
 	// expectedConnection defines Chain A's ConnectionEnd
 	// NOTE: chain A's counterparty is chain B (i.e where this code is executed)
 	// NOTE: chainA and chainB must have the same delay period
@@ -115,18 +110,6 @@ func (k *Keeper) ConnOpenTry(
 	if err := k.VerifyConnectionState(
 		ctx, connection, proofHeight, initProof, counterparty.ConnectionId,
 		expectedConnection,
-	); err != nil {
-		return "", err
-	}
-
-	// Check that ChainA stored the clientState provided in the msg
-	if err := k.VerifyClientState(ctx, connection, proofHeight, clientProof, clientState); err != nil {
-		return "", err
-	}
-
-	// Check that ChainA stored the correct ConsensusState of chainB at the given consensusHeight
-	if err := k.VerifyClientConsensusState(
-		ctx, connection, proofHeight, consensusHeight, consensusProof, expectedConsensusState,
 	); err != nil {
 		return "", err
 	}
@@ -194,12 +177,6 @@ func (k *Keeper) ConnOpenAck(
 		)
 	}
 
-	// Retrieve chainA's consensus state at consensusheight
-	expectedConsensusState, err := k.clientKeeper.GetSelfConsensusState(ctx, consensusHeight)
-	if err != nil {
-		return errorsmod.Wrapf(err, "self consensus state not found for height %s", consensusHeight.String())
-	}
-
 	prefix := k.GetCommitmentPrefix()
 	expectedCounterparty := types.NewCounterparty(connection.ClientId, connectionID, commitmenttypes.NewMerklePrefix(prefix.Bytes()))
 	expectedConnection := types.NewConnectionEnd(types.TRYOPEN, connection.Counterparty.ClientId, expectedCounterparty, []*types.Version{version}, connection.DelayPeriod)
@@ -208,18 +185,6 @@ func (k *Keeper) ConnOpenAck(
 	if err := k.VerifyConnectionState(
 		ctx, connection, proofHeight, tryProof, counterpartyConnectionID,
 		expectedConnection,
-	); err != nil {
-		return err
-	}
-
-	// Check that ChainB stored the clientState provided in the msg
-	if err := k.VerifyClientState(ctx, connection, proofHeight, clientProof, clientState); err != nil {
-		return err
-	}
-
-	// Ensure that ChainB has stored the correct ConsensusState for chainA at the consensusHeight
-	if err := k.VerifyClientConsensusState(
-		ctx, connection, proofHeight, consensusHeight, consensusProof, expectedConsensusState,
 	); err != nil {
 		return err
 	}
