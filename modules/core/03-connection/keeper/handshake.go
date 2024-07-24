@@ -118,7 +118,6 @@ func (k *Keeper) ConnOpenTry(
 // to chain A (this code is executed on chain A).
 //
 // NOTE: Identifiers are checked on msg validation.
-// TODO: Remove uneeded proofs
 func (k *Keeper) ConnOpenAck(
 	ctx sdk.Context,
 	connectionID string,

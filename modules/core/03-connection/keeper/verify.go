@@ -25,10 +25,6 @@ func (k *Keeper) VerifyConnectionState(
 	connectionID string,
 	counterpartyConnection types.ConnectionEnd, // opposite connection
 ) error {
-	if !types.IsValidConnectionID(connectionID) {
-		return types.ErrInvalidConnectionIdentifier
-	}
-
 	clientID := connection.ClientId
 	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
