@@ -58,6 +58,7 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
+// AddRoute adds a new route to the underlying router.
 func (k *Keeper) AddRoute(clientType string, module exported.LightClientModule) {
 	k.router.AddRoute(clientType, module)
 }
