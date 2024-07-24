@@ -37,14 +37,14 @@ func NewIBCModule(k keeper.Keeper) IBCModule {
 
 // OnChanOpenInit implements the IBCModule interface
 func (IBCModule) OnChanOpenInit(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID string,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version string,
+	_ sdk.Context,
+	_ channeltypes.Order,
+	_ []string,
+	_ string,
+	_ string,
+	_ *capabilitytypes.Capability,
+	_ channeltypes.Counterparty,
+	_ string,
 ) (string, error) {
 	return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
@@ -69,11 +69,11 @@ func (im IBCModule) OnChanOpenTry(
 
 // OnChanOpenAck implements the IBCModule interface
 func (IBCModule) OnChanOpenAck(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	counterpartyChannelID string,
-	counterpartyVersion string,
+	_ sdk.Context,
+	_,
+	_ string,
+	_ string,
+	_ string,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
@@ -93,9 +93,9 @@ func (im IBCModule) OnChanOpenConfirm(
 
 // OnChanCloseInit implements the IBCModule interface
 func (IBCModule) OnChanCloseInit(
-	ctx sdk.Context,
-	portID,
-	channelID string,
+	_ sdk.Context,
+	_ string,
+	_ string,
 ) error {
 	// Disallow user-initiated channel closing for interchain account channels
 	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel")
@@ -141,27 +141,27 @@ func (im IBCModule) OnRecvPacket(
 
 // OnAcknowledgementPacket implements the IBCModule interface
 func (IBCModule) OnAcknowledgementPacket(
-	ctx sdk.Context,
-	channelVersion string,
-	packet channeltypes.Packet,
-	acknowledgement []byte,
-	relayer sdk.AccAddress,
+	_ sdk.Context,
+	_ string,
+	_ channeltypes.Packet,
+	_ []byte,
+	_ sdk.AccAddress,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot receive acknowledgement on a host channel end, a host chain does not send a packet over the channel")
 }
 
 // OnTimeoutPacket implements the IBCModule interface
 func (IBCModule) OnTimeoutPacket(
-	ctx sdk.Context,
-	channelVersion string,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
+	_ sdk.Context,
+	_ string,
+	_ channeltypes.Packet,
+	_ sdk.AccAddress,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
+func (IBCModule) OnChanUpgradeInit(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 	return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel upgrade handshake must be initiated by controller chain")
 }
 
@@ -175,12 +175,12 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+func (IBCModule) OnChanUpgradeAck(_ sdk.Context, _, _, _ string) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel upgrade handshake must be initiated by controller chain")
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
+func (IBCModule) OnChanUpgradeOpen(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) {
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
