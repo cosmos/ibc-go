@@ -116,7 +116,7 @@ func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, cha
 // OnRecvPacket implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if im.IBCApp.OnRecvPacket != nil {
-		return im.IBCApp.OnRecvPacket(ctx, packet, relayer, channelVersion)
+		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	// set state by claiming capability to check if revert happens return
@@ -139,7 +139,7 @@ func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion st
 // OnAcknowledgementPacket implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnAcknowledgementPacket != nil {
-		return im.IBCApp.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer, channelVersion)
+		return im.IBCApp.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
 	capName := GetMockAckCanaryCapabilityName(packet)
@@ -155,7 +155,7 @@ func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channe
 // OnTimeoutPacket implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
-		return im.IBCApp.OnTimeoutPacket(ctx, packet, relayer, channelVersion)
+		return im.IBCApp.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	capName := GetMockTimeoutCanaryCapabilityName(packet)

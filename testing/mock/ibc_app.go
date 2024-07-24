@@ -69,24 +69,24 @@ type IBCApp struct {
 	// and the acknowledgement is written (in synchronous cases).
 	OnRecvPacket func(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
-		channelVersion string,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket func(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
-		channelVersion string,
 	) error
 
 	OnTimeoutPacket func(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
-		channelVersion string,
 	) error
 
 	OnChanUpgradeInit func(

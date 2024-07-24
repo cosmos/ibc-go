@@ -621,7 +621,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, channelVersion string,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
@@ -637,7 +637,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress, channelVersion string,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
@@ -718,7 +718,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, channelVersion string,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
@@ -734,7 +734,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, channelVersion string,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}

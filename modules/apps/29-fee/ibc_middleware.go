@@ -224,10 +224,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	appVersion, err := unwrapAppVersion(channelVersion)
-	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
+	appVersion := unwrapAppVersion(channelVersion)
 	ack := im.app.OnRecvPacket(ctx, appVersion, packet, relayer)
 
 	// in case of async acknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
@@ -255,10 +252,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
-	appVersion, err := unwrapAppVersion(channelVersion)
-	if err != nil {
-		return err
-	}
+	appVersion := unwrapAppVersion(channelVersion)
 
 	var ack types.IncentivizedAcknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
@@ -312,10 +306,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	appVersion, err := unwrapAppVersion(channelVersion)
-	if err != nil {
-		return err
-	}
+	appVersion := unwrapAppVersion(channelVersion)
 
 	// if the fee keeper is locked then fee logic should be skipped
 	// this may occur in the presence of a severe bug which leads to invalid state
@@ -502,11 +493,12 @@ func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID, channelID s
 	return unmarshaler.UnmarshalPacketData(ctx, portID, channelID, bz)
 }
 
-func unwrapAppVersion(channelVersion string) (string, error) {
+func unwrapAppVersion(channelVersion string) string {
 	metadata, err := types.MetadataFromVersion(channelVersion)
 	if err != nil {
-		return "", err
+		// This should not happen, as it would mean that the channel is broken. Only a severe bug would cause this.
+		panic(errorsmod.Wrap(err, "failed to unwrap app version from channel version"))
 	}
 
-	return metadata.AppVersion, nil
+	return metadata.AppVersion
 }

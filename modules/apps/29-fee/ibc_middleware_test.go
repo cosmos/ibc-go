@@ -513,9 +513,9 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				// setup mock callback
 				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context,
+					channelVersion string,
 					packet channeltypes.Packet,
 					relayer sdk.AccAddress,
-					channelVersion string,
 				) exported.Acknowledgement {
 					return nil
 				}
@@ -799,7 +799,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress, _ string) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
@@ -1013,7 +1013,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ channeltypes.Packet, _ sdk.AccAddress, _ string) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
