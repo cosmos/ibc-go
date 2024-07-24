@@ -1,6 +1,7 @@
 package fee_test
 
 import (
+	"encoding/json"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -1612,8 +1613,8 @@ func (suite *FeeTestSuite) TestAckUnmarshal() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			ack := types.IncentivizedAcknowledgement{}
-			err := ack.UnmarshalJSON(tc.ackBytes)
+			ack := &types.IncentivizedAcknowledgement{}
+			err := json.Unmarshal(tc.ackBytes, ack)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
