@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// UnmarshalJSON implements the Unmarshaller interface for FungibleTokenPacketData.
+// UnmarshalJSON implements the Unmarshaller interface for IncentivizedAcknowledgement.
 func (ack *IncentivizedAcknowledgement) UnmarshalJSON(bz []byte) error {
 	// Recursion protection. We cannot unmarshal into IncentivizedAcknowledgment directly
 	// else UnmarshalJSON is going to get invoked again, ad infinum. Create an alias
