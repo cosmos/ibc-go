@@ -1,15 +1,11 @@
 package keeper_test
 
 import (
-	"context"
 	"testing"
-	"time"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -41,19 +37,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
-}
-
-// MockStakingKeeper implements clienttypes.StakingKeeper used in ibckeeper.NewKeeper
-type MockStakingKeeper struct {
-	mockField string
-}
-
-func (MockStakingKeeper) GetHistoricalInfo(_ context.Context, _ int64) (stakingtypes.HistoricalInfo, error) {
-	return stakingtypes.HistoricalInfo{}, nil
-}
-
-func (MockStakingKeeper) UnbondingTime(_ context.Context) (time.Duration, error) {
-	return 0, nil
 }
 
 // Test ibckeeper.NewKeeper used to initialize IBCKeeper when creating an app instance.
