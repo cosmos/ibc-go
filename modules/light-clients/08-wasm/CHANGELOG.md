@@ -34,7 +34,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [[Unreleased]]
+## [Unreleased]
 
 ### Dependencies
 
@@ -52,8 +52,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#5923](https://github.com/cosmos/ibc-go/pull/5923) imp: add 08-wasm build opts for libwasmvm linking disabled 
 
 ### Features
-
-* [\#6055](https://github.com/cosmos/ibc-go/pull/6055) feat: add 08-wasm `ConsensusHost` implementation for custom self client/consensus state validation in 03-connection handshake.
 
 ### Bug Fixes
 
