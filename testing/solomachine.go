@@ -27,9 +27,9 @@ import (
 )
 
 var (
-	clientIDSolomachine     = "client-on-solomachine"  // clientID generated on solo machine side
-	connectionIDSolomachine = "connection-0"           // connectionID generated on solo machine side
-	channelIDSolomachine    = "channel-on-solomachine" // channelID generated on solo machine side
+	clientIDSolomachine     = "client-on-solomachine"     // clientID generated on solo machine side
+	connectionIDSolomachine = "connection-on-solomachine" // connectionID generated on solo machine side
+	channelIDSolomachine    = "channel-on-solomachine"    // channelID generated on solo machine side
 )
 
 // DefaultSolomachineClientID is the default solo machine client id used for testing
