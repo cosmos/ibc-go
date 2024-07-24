@@ -6,7 +6,6 @@ option go_package = "github.com/cosmos/ibc-go/v9/modules/core/03-connection/type
 
 import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
-import "google/protobuf/any.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/connection/v1/connection.proto";
 
