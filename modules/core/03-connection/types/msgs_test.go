@@ -117,7 +117,6 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 
 func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 	prefix := commitmenttypes.NewMerklePrefix([]byte("storePrefixKey"))
-	counterparty := types.NewCounterparty("connectiontotest", "clienttotest", prefix)
 
 	testCases := []struct {
 		name    string
@@ -125,7 +124,6 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 		expPass bool
 	}{
 		{"success", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, clientHeight, signer), true},
-		{"non empty connection ID", &types.MsgConnectionOpenTry{"connection-0", counterparty, 500, []*types.Version{ibctesting.ConnectionVersion}, clientHeight, suite.proof, signer}, false},
 		{"localhost client ID", types.NewMsgConnectionOpenTry(exported.LocalhostClientID, "connectiontotest", "clienttotest", prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, clientHeight, signer), false},
 		{"invalid client ID", types.NewMsgConnectionOpenTry("test/iris", "connectiontotest", "clienttotest", prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, clientHeight, signer), false},
 		{"invalid counterparty connection ID", types.NewMsgConnectionOpenTry("clienttotesta", "ibc/test", "clienttotest", prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, clientHeight, signer), false},
