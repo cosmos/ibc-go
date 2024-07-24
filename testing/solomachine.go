@@ -513,6 +513,42 @@ func (solo *Solomachine) GenerateProof(signBytes *solomachine.SignBytes) []byte 
 	return proof
 }
 
+// GenerateClientStateProof generates the proof of the client state required for the connection open try and ack handshake steps.
+// The client state should be the self client states of the tendermint chain.
+func (solo *Solomachine) GenerateClientStateProof(clientState exported.ClientState) []byte {
+	data, err := clienttypes.MarshalClientState(solo.cdc, clientState)
+	require.NoError(solo.t, err)
+
+	path := host.FullClientStateKey(clientIDSolomachine)
+	signBytes := &solomachine.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        path,
+		Data:        data,
+	}
+
+	return solo.GenerateProof(signBytes)
+}
+
+// GenerateConsensusStateProof generates the proof of the consensus state required for the connection open try and ack handshake steps.
+// The consensus state should be the self consensus states of the tendermint chain.
+func (solo *Solomachine) GenerateConsensusStateProof(consensusState exported.ConsensusState, consensusHeight exported.Height) []byte {
+	data, err := clienttypes.MarshalConsensusState(solo.cdc, consensusState)
+	require.NoError(solo.t, err)
+
+	path := host.FullConsensusStateKey(clientIDSolomachine, consensusHeight)
+	signBytes := &solomachine.SignBytes{
+		Sequence:    solo.Sequence,
+		Timestamp:   solo.Time,
+		Diversifier: solo.Diversifier,
+		Path:        path,
+		Data:        data,
+	}
+
+	return solo.GenerateProof(signBytes)
+}
+
 // GenerateConnOpenTryProof generates the proofTry required for the connection open ack handshake step.
 // The clientID, connectionID provided represent the clientID and connectionID created on the counterparty chain, that is the tendermint chain.
 func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterpartyConnectionID string) []byte {
@@ -619,6 +655,22 @@ func (solo *Solomachine) GenerateReceiptAbsenceProof(packet channeltypes.Packet)
 		Data:        nil,
 	}
 	return solo.GenerateProof(signBytes)
+}
+
+// GetClientStatePath returns the commitment path for the client state.
+func (solo *Solomachine) GetClientStatePath(counterpartyClientIdentifier string) commitmenttypesv2.MerklePath {
+	path, err := commitmenttypes.ApplyPrefix(prefix, commitmenttypes.NewMerklePath(host.FullClientStateKey(counterpartyClientIdentifier)))
+	require.NoError(solo.t, err)
+
+	return path
+}
+
+// GetConsensusStatePath returns the commitment path for the consensus state.
+func (solo *Solomachine) GetConsensusStatePath(counterpartyClientIdentifier string, consensusHeight exported.Height) commitmenttypesv2.MerklePath {
+	path, err := commitmenttypes.ApplyPrefix(prefix, commitmenttypes.NewMerklePath(host.FullConsensusStateKey(counterpartyClientIdentifier, consensusHeight)))
+	require.NoError(solo.t, err)
+
+	return path
 }
 
 // GetConnectionStatePath returns the commitment path for the connection state.
