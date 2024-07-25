@@ -44,18 +44,18 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 	return nil
 }
 
-// acknowledgeForwardedPacket writes the async acknowledgement for packet
-func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet, forwardedPacket channeltypes.Packet, ack channeltypes.Acknowledgement) error {
-	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.DestinationPort, packet.DestinationChannel))
+// acknowledgeForwardedPacket writes the async acknowledgement for forwardedPacket
+func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, forwardedPacket, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
+	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel))
 	if !ok {
 		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, capability, packet, ack); err != nil {
+	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, capability, forwardedPacket, ack); err != nil {
 		return err
 	}
 
-	k.deleteForwardedPacket(ctx, forwardedPacket.SourcePort, forwardedPacket.SourceChannel, forwardedPacket.Sequence)
+	k.deleteForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	return nil
 }
 
