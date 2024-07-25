@@ -59,6 +59,15 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}, true,
 		},
 		{
+			"successful transfer of entire balance",
+			func() {
+				coin.Amount = types.UnboundedSpendLimit()
+				var ok bool
+				expEscrowAmount, ok = sdk.NewIntFromString(ibctesting.DefaultGenesisAccBalance)
+				suite.Require().True(ok)
+			}, true,
+		},
+		{
 			"source channel not found",
 			func() {
 				// channel references wrong ID

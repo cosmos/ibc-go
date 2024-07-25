@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (apps/transfer) [\#6877](https://github.com/cosmos/ibc-go/pull/6877) Added the possibility to transfer the entire user balance of a particular denomination by using [`UnboundedSpendLimit`](https://github.com/cosmos/ibc-go/blob/715f00eef8727da41db25fdd4763b709bdbba07e/modules/apps/transfer/types/transfer_authorization.go#L253-L255) as the token amount.
+
 ### Bug Fixes
 
 ## [v7.6.0](https://github.com/cosmos/ibc-go/releases/tag/v7.6.0) - 2024-06-20
