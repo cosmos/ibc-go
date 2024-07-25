@@ -7,6 +7,7 @@ retract (
 	// 08-wasm client contracts deployed using the following releases MUST migrate in conjunction with the upgrade from the listed releases.
 	// For more information please refer to the 08-wasm migrations documentation: https://ibc.cosmos.network/main/ibc/light-clients/wasm/migrations/
 	v0.3.1-0.20240717085919-bb71eef0f3bf
+	v0.2.1-0.20240717085554-570d057959e3
 	v0.2.1-0.20240523101951-4b45d1822fb6
 	v0.1.2-0.20240412103620-7ee2a2452b79
 	v0.1.1-0.20231213092650-57fcdb9a9a9d
