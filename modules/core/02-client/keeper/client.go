@@ -129,7 +129,7 @@ func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClien
 	}
 
 	if status := clientModule.Status(ctx, substituteClientID); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot recover client using substitute client (%s) with status %s", subjectClientID, status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot recover client using substitute client (%s) with status %s", substituteClientID, status)
 	}
 
 	subjectLatestHeight := clientModule.LatestHeight(ctx, subjectClientID)
