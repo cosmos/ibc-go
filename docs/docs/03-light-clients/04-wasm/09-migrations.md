@@ -9,6 +9,17 @@ slug: /ibc/light-clients/wasm/migrations
 
 This guide provides instructions for migrating 08-wasm versions.
 
+Please note that the following releases are retracted. Please refer to the appropriate migrations section for upgrading.
+
+```
+v0.3.1-0.20240717085919-bb71eef0f3bf => v0.3.0+ibc-go-v8.3-wasmvm-v2.0
+v0.2.1-0.20240717085554-570d057959e3 => v0.2.0+ibc-go-v7.6-wasmvm-v1.5
+v0.2.1-0.20240523101951-4b45d1822fb6 => v0.2.0+ibc-go-v8.3-wasmvm-v2.0
+v0.1.2-0.20240412103620-7ee2a2452b79 => v0.1.1+ibc-go-v7.3-wasmvm-v1.5
+v0.1.1-0.20231213092650-57fcdb9a9a9d => v0.1.0+ibc-go-v8.0-wasmvm-v1.5
+v0.1.1-0.20231213092633-b306e7a706e1 => v0.1.0+ibc-go-v7.3-wasmvm-v1.5
+```
+
 ## From ibc-go v8.3.x to ibc-go v9.0.x
 
 ### Chains
