@@ -137,6 +137,13 @@ func (k Keeper) RecvPacket(
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
+	// check if packet timed out by comparing it with the latest height of the chain
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(selfHeight, selfTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
+	}
+
 	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
 
 	// TODO: allow for custom prefix
