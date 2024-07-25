@@ -3,7 +3,10 @@ module github.com/cosmos/ibc-go/modules/light-clients/08-wasm
 go 1.21
 
 retract (
-	// use MerklePath type with []string for KeyPath in contract API messages
+	// Note the following releases are retracted and require a migration for deployed 08-wasm client contracts.
+	// 08-wasm client contracts deployed using the following releases MUST migrate in conjunction with the upgrade from the listed releases.
+	// For more information please refer to the 08-wasm migrations documentation: https://ibc.cosmos.network/main/ibc/light-clients/wasm/migrations/
+	v0.2.1-0.20240717085554-570d057959e3
 	v0.2.1-0.20240523101951-4b45d1822fb6
 	v0.1.2-0.20240412103620-7ee2a2452b79
 	v0.1.1-0.20231213092650-57fcdb9a9a9d
