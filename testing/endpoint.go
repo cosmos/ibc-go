@@ -297,9 +297,7 @@ func (endpoint *Endpoint) ConnOpenConfirm() error {
 }
 
 // QueryConnectionHandshakeProof returns all the proofs necessary to execute OpenTry or Open Ack of
-// the connection handshakes. It returns the counterparty client state, proof of the counterparty
-// client state, proof of the counterparty consensus state, the consensus state height, proof of
-// the counterparty connection, and the proof height for all the proofs returned.
+// the connection handshakes. It returns the proof of the counterparty connection and the proof height.
 func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	connectionProof []byte, proofHeight clienttypes.Height,
 ) {
