@@ -113,7 +113,15 @@ pull_request_rules:
     actions:
       backport:
         branches:
-          - release/v7.6.x         
+          - release/v7.6.x
+  - name: backport patches to v7.7.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v7.7.x
+    actions:
+      backport:
+        branches:
+          - release/v7.7.x
   - name: backport patches to v8.2.x branch
     conditions:
       - base=main
@@ -130,6 +138,14 @@ pull_request_rules:
       backport:
         branches:
           - release/v8.3.x
+  - name: backport patches to v8.4.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v8.4.x
+    actions:
+      backport:
+        branches:
+          - release/v8.4.x
   - name: backport patches to v9.0.x branch
     conditions:
       - base=main
