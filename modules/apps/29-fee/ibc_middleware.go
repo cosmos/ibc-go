@@ -1,6 +1,7 @@
 package fee
 
 import (
+	"encoding/json"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -13,6 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -250,8 +252,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	var ack types.IncentivizedAcknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
+	if err := json.Unmarshal(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-29 incentivized packet acknowledgement %v: %s", ack, err)
 	}
 
 	if im.keeper.IsLocked(ctx) {
