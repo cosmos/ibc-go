@@ -97,6 +97,11 @@ func (k Keeper) sendTransfer(
 		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
 	}
 
+	// Using types.UnboundedSpendLimit allows us to send the entire balance of a given denom.
+	if token.Amount.Equal(types.UnboundedSpendLimit()) {
+		token.Amount = k.bankKeeper.GetBalance(ctx, sender, token.Denom).Amount
+	}
+
 	// NOTE: SendTransfer simply sends the denomination as it exists on its own
 	// chain inside the packet data. The receiving chain will perform denom
 	// prefixing as necessary.
