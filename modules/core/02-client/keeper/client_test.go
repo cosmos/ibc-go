@@ -682,10 +682,9 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 
 				// Assert that client status is now Active
-				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
-				tmClientState, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
-				suite.Require().True(ok)
-				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
+				suite.Require().NoError(err)
+				suite.Require().Equal(lightClientModule.Status(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID), exported.Active)
 
 			} else {
 				suite.Require().Error(err)
