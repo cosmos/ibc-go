@@ -27,14 +27,14 @@ callbacks to IBC applications.
 
 ### MsgUpdateClient
 
-| Type          | Attribute Key    | Attribute Value   |
-| ------------- | ---------------- | ----------------- |
-| update_client | client_id        | \{clientId\}        |
-| update_client | client_type      | \{clientType\}      |
-| update_client | consensus_height | \{consensusHeight\} |
-| update_client | header           | \{header\}          |
-| message       | action           | update_client     |
-| message       | module           | ibc_client        |
+| Type          | Attribute Key     | Attribute Value                 | Status     |
+| ------------- | ----------------- | ------------------------------- | ---------- |
+| update_client | client_id         | \{clientId\}                    |            |
+| update_client | client_type       | \{clientType\}                  |            |
+| update_client | consensus_height  | \{consensusHeight\}             | Deprecated |    
+| update_client | consensus_heights | \{join(consensusHeights, ",")\} |            |
+| message       | action            | update_client                   |            |
+| message       | module            | ibc_client                      |            |
 
 ### MsgSubmitMisbehaviour
 
