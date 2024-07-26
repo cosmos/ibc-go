@@ -130,12 +130,13 @@ func (im IBCMiddleware) SendPacket(
 // reverted via a panic.
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
 	// we first call the underlying app to handle the acknowledgement
-	err := im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	err := im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	if err != nil {
 		return err
 	}
@@ -168,8 +169,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
-	err := im.app.OnTimeoutPacket(ctx, packet, relayer)
+func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+	err := im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	if err != nil {
 		return err
 	}
@@ -201,8 +202,8 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	ack := im.app.OnRecvPacket(ctx, packet, relayer)
+func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	// if ack is nil (asynchronous acknowledgements), then the callback will be handled in WriteAcknowledgement
 	// if ack is not successful, all state changes are reverted. If a packet cannot be received, then there is
 	// no need to execute a callback on the receiving chain.
