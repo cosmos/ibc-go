@@ -123,9 +123,9 @@ func (im IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string
 }
 
 // OnRecvPacket implements the IBCModule interface.
-func (im IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if im.IBCApp.OnRecvPacket != nil {
-		return im.IBCApp.OnRecvPacket(ctx, packet, relayer)
+		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	// set state by claiming capability to check if revert happens return
@@ -148,9 +148,9 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.
-func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnAcknowledgementPacket != nil {
-		return im.IBCApp.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.IBCApp.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
 	capName := GetMockAckCanaryCapabilityName(packet)
@@ -166,9 +166,9 @@ func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
-func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
-		return im.IBCApp.OnTimeoutPacket(ctx, packet, relayer)
+		return im.IBCApp.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	capName := GetMockTimeoutCanaryCapabilityName(packet)

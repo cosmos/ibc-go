@@ -218,14 +218,16 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
 	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
-		return im.app.OnRecvPacket(ctx, packet, relayer)
+		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	ack := im.app.OnRecvPacket(ctx, packet, relayer)
+	appVersion := unwrapAppVersion(channelVersion)
+	ack := im.app.OnRecvPacket(ctx, appVersion, packet, relayer)
 
 	// in case of async acknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
 	if ack == nil {
@@ -243,13 +245,16 @@ func (im IBCMiddleware) OnRecvPacket(
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
+
+	appVersion := unwrapAppVersion(channelVersion)
 
 	var ack types.IncentivizedAcknowledgement
 	if err := json.Unmarshal(acknowledgement, &ack); err != nil {
@@ -265,14 +270,14 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		// for fee enabled channels
 		//
 		// Please see ADR 004 for more information.
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, appVersion, packet, ack.AppAcknowledgement, relayer)
 	}
 
 	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// call underlying callback
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, appVersion, packet, ack.AppAcknowledgement, relayer)
 	}
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
@@ -288,30 +293,37 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, payeeAddr, feesInEscrow.PacketFees, packetID)
 
 	// call underlying callback
-	return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+	return im.app.OnAcknowledgementPacket(ctx, appVersion, packet, ack.AppAcknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
+	}
+
+	appVersion := unwrapAppVersion(channelVersion)
+
 	// if the fee keeper is locked then fee logic should be skipped
 	// this may occur in the presence of a severe bug which leads to invalid state
 	// the fee keeper will be unlocked after manual intervention
 	//
 	// Please see ADR 004 for more information.
-	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) || im.keeper.IsLocked(ctx) {
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	if im.keeper.IsLocked(ctx) {
+		return im.app.OnTimeoutPacket(ctx, appVersion, packet, relayer)
 	}
 
 	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// call underlying callback
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.app.OnTimeoutPacket(ctx, appVersion, packet, relayer)
 	}
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
@@ -327,7 +339,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	im.keeper.DistributePacketFeesOnTimeout(ctx, payeeAddr, feesInEscrow.PacketFees, packetID)
 
 	// call underlying callback
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	return im.app.OnTimeoutPacket(ctx, appVersion, packet, relayer)
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
@@ -481,4 +493,14 @@ func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID, channelID s
 	}
 
 	return unmarshaler.UnmarshalPacketData(ctx, portID, channelID, bz)
+}
+
+func unwrapAppVersion(channelVersion string) string {
+	metadata, err := types.MetadataFromVersion(channelVersion)
+	if err != nil {
+		// This should not happen, as it would mean that the channel is broken. Only a severe bug would cause this.
+		panic(errorsmod.Wrap(err, "failed to unwrap app version from channel version"))
+	}
+
+	return metadata.AppVersion
 }
