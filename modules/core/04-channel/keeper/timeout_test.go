@@ -220,12 +220,14 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				}
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, nextSeqRecv)
+			channelVersion, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, nextSeqRecv)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(path.EndpointA.GetChannel().Version, channelVersion)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal("", channelVersion)
 				// only check if expError is set, since not all error codes can be known
 				if expError != nil {
 					suite.Require().True(errors.Is(err, expError))
@@ -757,7 +759,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				proof, _ = suite.chainB.QueryProof(unorderedPacketKey)
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(
+			channelVersion, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(
 				suite.chainA.GetContext(),
 				chanCap,
 				packet,
@@ -770,8 +772,10 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(path.EndpointA.GetChannel().Version, channelVersion)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal("", channelVersion)
 			}
 		})
 	}
