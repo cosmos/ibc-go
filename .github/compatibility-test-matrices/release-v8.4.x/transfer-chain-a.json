@@ -23,6 +23,7 @@
     "TestMsgTransfer_Fails_InvalidAddress",
     "TestMsgTransfer_Timeout_Nonincentivized",
     "TestMsgTransfer_WithMemo",
+    "TestMsgTransfer_EntireBalance",
     "TestSendEnabledParam",
     "TestReceiveEnabledParam"
   ],
