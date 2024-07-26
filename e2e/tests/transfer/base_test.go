@@ -629,14 +629,14 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 		s.Require().Equal(testvalues.StartingTokenAmount, actualBalance.Int64())
 
 		if channelA.Version == transfertypes.V2 {
-			// test that chainA has the entirety of chainB's token IBC denom.
+			// test that chainA has the entirety of chainB's IBC token denom.
 			actualBalance, err = query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 
 			s.Require().NoError(err)
 			s.Require().Equal(testvalues.StartingTokenAmount, actualBalance.Int64())
 		}
 
-		// test that chainB has a zero balance of chainB's token IBC denom.
+		// test that chainB has a zero balance of chainA's IBC token denom.
 		actualBalance, err = query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
 		s.Require().NoError(err)
