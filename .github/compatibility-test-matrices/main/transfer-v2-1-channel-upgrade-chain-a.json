@@ -6,12 +6,11 @@
     "main"
   ],
   "entrypoint": [
-    "TestTransferChannelUpgradesTestSuite"
+    "TransferChannelUpgradesV1TestSuite"
   ],
   "test": [
     "TestChannelUpgrade_WithICS20v2_Succeeds",
-    "TestChannelUpgrade_WithFeeMiddlewareAndICS20v2_Succeeds",
-    "TestChannelDowngrade_WithICS20v1_Succeeds"
+    "TestChannelUpgrade_WithFeeMiddlewareAndICS20v2_Succeeds"
   ],
   "relayer-type": [
     "hermes"

@@ -16,8 +16,11 @@ on:
           - release/v7.4.x
           - release/v7.5.x
           - release/v7.6.x
+          - release/v7.7.x
           - release/v8.2.x
           - release/v8.3.x
+          - release/v8.4.x
+          - release/v9.0.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -54,8 +57,11 @@ jobs:
           - release/v7.4.x
           - release/v7.5.x
           - release/v7.6.x
+          - release/v7.7.x
           - release/v8.2.x
           - release/v8.3.x
+          - release/v8.4.x
+          - release/v9.0.x
           - main
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +71,7 @@ jobs:
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -117,6 +123,24 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "transfer-authz-chain-b"
+
+  transfer-v2-forwarding-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-v2-forwarding-chain-a"
+
+  transfer-v2-multidenom-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-v2-multidenom-chain-a"
 
   connection-chain-a:
     needs:
@@ -307,6 +331,24 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "transfer-channel-upgrade-chain-b"
 
+  transfer-v2-1-channel-upgrade-chain-1:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-v2-1-channel-upgrade-chain-1"
+
+  transfer-v2-2-channel-upgrade-chain-1:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-v2-2-channel-upgrade-chain-1"
+
   ica-channel-upgrade-chain-a:
     needs:
       - build-release-images
@@ -314,7 +356,7 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-channel-upgrade-chain-a"
+      test-suite: "ica-channel-upgrade-chain-a"
 
   ica-channel-upgrade-chain-b:
     needs:
@@ -323,4 +365,4 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-channel-upgrade-chain-b"
+      test-suite: "ica-channel-upgrade-chain-b"
