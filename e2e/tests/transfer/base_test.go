@@ -636,15 +636,18 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 			s.Require().Equal(testvalues.StartingTokenAmount, actualBalance.Int64())
 		}
 
-		// Tests that chainB has a zero balance for both.
+		// test that chainB has a zero balance of chainB's token IBC denom.
 		actualBalance, err = query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
 		s.Require().NoError(err)
 		s.Require().Zero(actualBalance.Int64())
 
-		actualBalance, err = query.Balance(ctx, chainB, chainBAddress, chainB.Config().Denom)
+		if channelA.Version == transfertypes.V2 {
+			// test that chainB has a zero balance of its native token.
+			actualBalance, err = query.Balance(ctx, chainB, chainBAddress, chainB.Config().Denom)
 
-		s.Require().NoError(err)
-		s.Require().Zero(actualBalance.Int64())
+			s.Require().NoError(err)
+			s.Require().Zero(actualBalance.Int64())
+		}
 	})
 }
