@@ -43,8 +43,8 @@ v0.1.1-0.20231213092633-b306e7a706e1 => v0.1.0+ibc-go-v7.3-wasmvm-v1.5
 
 ### Contract developers
 
-Contract developers are required to update their JSON api message structure for the `SudoMsg` payloads `VerifyMembershipMsg` and `VerifyNonMembershipMsg`.
-The `path` field on both JSON api messages has been renamed to `merkle_path`.
+Contract developers are required to update their JSON API message structure for the `SudoMsg` payloads `VerifyMembershipMsg` and `VerifyNonMembershipMsg`.
+The `path` field on both JSON API messages has been renamed to `merkle_path`.
 
 A migration is required for existing 08-wasm client contracts in order to correctly handle the deserialisation of these fields.
 
@@ -52,8 +52,8 @@ A migration is required for existing 08-wasm client contracts in order to correc
 
 ### Contract developers
 
-Contract developers are required to update their JSON api message structure for the `SudoMsg` payloads `VerifyMembershipMsg` and `VerifyNonMembershipMsg`.
-The `path` field on both JSON api messages has been renamed to `merkle_path`.
+Contract developers are required to update their JSON API message structure for the `SudoMsg` payloads `VerifyMembershipMsg` and `VerifyNonMembershipMsg`.
+The `path` field on both JSON API messages has been renamed to `merkle_path`.
 
 A migration is required for existing 08-wasm client contracts in order to correctly handle the deserialisation of these fields.
 
