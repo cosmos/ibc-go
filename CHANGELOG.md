@@ -45,9 +45,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (apps/27-interchain-accounts) [\#4977](https://github.com/cosmos/ibc-go/pull/4977) The `InitModule` function has been removed.
+* (core/02-client) [\#5110](https://github.com/cosmos/ibc-go/pull/5110) The `header` attribute has been removed from the `update_client` event.
+* (apps/27-interchain-accounts) [\#5396](https://github.com/cosmos/ibc-go/pull/5396) Remove `GetBytes` function of `CosmosTx` type.
+* (core/04-channel) [\#5691](https://github.com/cosmos/ibc-go/pull/5691) Remove functions `IsOpen` and `IsClosed` of `Channel` type.
+* (core/04-channel) [\#5705](https://github.com/cosmos/ibc-go/pull/5705) Remove functions `GetState`, `GetOrdering`, `GetCounterparty`, `GetConnectionHops`, `GetVersion` of the `Channel` type.
+* (core/04-channel) [\#5603](https://github.com/cosmos/ibc-go/pull/5603) Rename attribute names and constants for channel upgrades events.
 * (core/02-client, light-clients) [\#5806](https://github.com/cosmos/ibc-go/pull/5806) Decouple light client routing from their encoding structure.
 * (core/04-channel) [\#5991](https://github.com/cosmos/ibc-go/pull/5991) The client CLI `QueryLatestConsensusState` has been removed.
 * (light-clients/06-solomachine) [\#6037](https://github.com/cosmos/ibc-go/pull/6037) Remove `Initialize` function from `ClientState` and move logic to `Initialize` function of `LightClientModule`.
+- (core/04-channel) [\#6063](https://github.com/cosmos/ibc-go/pull/6063) Remove attributes `version`, `ordering` and `connection_hops` from the `channel_upgrade_init`, `channel_upgrade_try`, `channel_upgrade_ack`, `channel_upgrade_open`, `channel_upgrade_timeout` and `channel_upgrade_cancelled` events.
 * (light-clients/06-solomachine) [\#6230](https://github.com/cosmos/ibc-go/pull/6230) Remove `GetTimestampAtHeight`, `Status` and `UpdateStateOnMisbehaviour` functions from `ClientState` and move logic to functions of `LightClientModule`.
 * (core/02-client) [\#6084](https://github.com/cosmos/ibc-go/pull/6084) Removed `stakingKeeper` as an argument to `NewKeeper` and replaced with a `ConsensusHost` implementation.
 * (testing) [\#6070](https://github.com/cosmos/ibc-go/pull/6070) Remove `AssertEventsLegacy` function.
@@ -87,6 +94,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/27-interchain-accounts) [\#6377](https://github.com/cosmos/ibc-go/pull/6377) Generate ICA simtest proposals only for provided keepers.
+* (core/04-channel) [\#6935](https://github.com/cosmos/ibc-go/pull/6935) Check upgrade compatibility in `ChanUpgradeConfirm`.
 
 ## [v8.3.2](https://github.com/cosmos/ibc-go/releases/tag/v8.3.2) - 2024-06-20
 
