@@ -578,7 +578,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				)
 
 				ctx := suite.chainA.GetContext()
-				ack := cbs.OnRecvPacket(ctx, packet, nil)
+				ack := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
 				suite.Require().Equal(tc.expPass, ack.Success())
 
 				expectedEvents := sdk.Events{
@@ -622,7 +622,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
@@ -638,7 +638,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
@@ -683,7 +683,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
-				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, []byte("ack"), nil)
+				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, []byte("ack"), nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -719,7 +719,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
@@ -735,7 +735,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
@@ -780,7 +780,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
-				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
+				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
