@@ -1,6 +1,7 @@
 package fee_test
 
 import (
+	"encoding/json"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -1592,4 +1593,35 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
 	_, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
 	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	suite.Require().ErrorIs(err, expError)
+}
+
+func (suite *FeeTestSuite) TestAckUnmarshal() {
+	testCases := []struct {
+		name     string
+		ackBytes []byte
+		expPass  bool
+	}{
+		{
+			"success",
+			[]byte(`{"app_acknowledgement": "eyJyZXN1bHQiOiJiVzlqYXlCaFkydHViM2RzWldsblpXMWxiblE9In0=", "forward_relayer_address": "relayer", "underlying_app_success": true}`),
+			true,
+		},
+		{
+			"failure: unknown fields",
+			[]byte(`{"app_acknowledgement": "eyJyZXN1bHQiOiJiVzlqYXlCaFkydHViM2RzWldsblpXMWxiblE9In0=", "forward_relayer_address": "relayer", "underlying_app_success": true, "extra_field": "foo"}`),
+			false,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			ack := &types.IncentivizedAcknowledgement{}
+			err := json.Unmarshal(tc.ackBytes, ack)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
 }
