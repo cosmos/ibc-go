@@ -13,6 +13,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 // mockSdkMsg defines a mock struct, used for testing codec error scenarios
@@ -409,7 +410,7 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 			[]proto.Message{
 				&mockSdkMsg{},
 			},
-			types.ErrUnmarshalFailed,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: multiple unregistered msg types",
@@ -419,13 +420,13 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 				&mockSdkMsg{},
 				&mockSdkMsg{},
 			},
-			types.ErrUnmarshalFailed,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: empty bytes",
 			[]byte{},
 			nil,
-			types.ErrUnmarshalFailed,
+			ibcerrors.ErrInvalidType,
 		},
 	}
 

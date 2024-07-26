@@ -20,6 +20,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -821,7 +822,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		{
 			"ICA OnChanUpgradeInit fails - invalid version", func() {
 				version = invalidVersion
-			}, icatypes.ErrUnmarshalFailed,
+			}, ibcerrors.ErrInvalidType,
 		},
 		{
 			"ICA auth module callback fails", func() {
@@ -949,7 +950,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 		{
 			"ICA OnChanUpgradeAck fails - invalid version", func() {
 				counterpartyVersion = invalidVersion
-			}, icatypes.ErrUnmarshalFailed,
+			}, ibcerrors.ErrInvalidType,
 		},
 		{
 			"ICA auth module callback fails", func() {
