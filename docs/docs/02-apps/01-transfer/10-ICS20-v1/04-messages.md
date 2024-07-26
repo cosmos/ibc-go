@@ -44,7 +44,7 @@ This message will send a fungible token to the counterparty chain represented by
 
 The denomination provided for transfer should correspond to the same denomination represented on this chain. The prefixes will be added as necessary upon by the receiving chain.
 
-If the `Amount` is set to the maximum value for a 256-bit unsigned integer (i.e. 2^256 - 1), then the whole balance of the corrsponding denomination will be transferred. The helper function `UnboundedSpendLimit` in the `types` package of the `transfer` module provides the sentinel value that can be used.
+If the `Amount` is set to the maximum value for a 256-bit unsigned integer (i.e. 2^256 - 1), then the whole balance of the corresponding denomination will be transferred. The helper function `UnboundedSpendLimit` in the `types` package of the `transfer` module provides the sentinel value that can be used.
 
 ### Memo
 
