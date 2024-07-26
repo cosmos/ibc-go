@@ -448,6 +448,21 @@ func (k Keeper) ChanUpgradeConfirm(
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
+	// if we have cancelled our upgrade after performing UpgradeInit,
+	// UpgradeTry or UpgradeAck, the lack of a stored upgrade will prevent
+	// us from continuing the upgrade handshake
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	// in the crossing-hello case it is possible that both chains execute the
+	// INIT, TRY and CONFIRM steps without any of them executing ACK, therefore
+	// we also need to check that the upgrades are compatible on this step
+	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade.Fields); err != nil {
+		return types.NewUpgradeError(channel.UpgradeSequence, err)
+	}
+
 	timeout := counterpartyUpgrade.Timeout
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
 
