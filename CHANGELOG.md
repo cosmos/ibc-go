@@ -34,21 +34,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [[Unreleased]]
+## [v7.7.0](https://github.com/cosmos/ibc-go/releases/tag/v7.7.0) - 2024-07-29
 
 ### Dependencies
 
 * [\#6943](https://github.com/cosmos/ibc-go/pull/6943) Update Cosmos SDK to v0.47.13.
 
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
-
 ### Features
 
-* (apps/transfer) [\#6877](https://github.com/cosmos/ibc-go/pull/6877) Added the possibility to transfer the entire user balance of a particular denomination by using [`UnboundedSpendLimit`](https://github.com/cosmos/ibc-go/blob/715f00eef8727da41db25fdd4763b709bdbba07e/modules/apps/transfer/types/transfer_authorization.go#L253-L255) as the token amount.
+* (apps/transfer) [\#6877](https://github.com/cosmos/ibc-go/pull/6877) Added the possibility to transfer the entire user balance of a particular denomination by using [`UnboundedSpendLimit`](https://github.com/cosmos/ibc-go/blob/b71e6e892f69b33c2bb489d762957de422404edc/modules/apps/transfer/types/coin.go#L59-L61) as the token amount.
 
 ### Bug Fixes
 
