@@ -55,7 +55,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
-* [\#6923](https://github.com/cosmos/ibc-go/pull/6923) The JSON msg api for `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for client contract `SudoMsg` has been updated. The field `path` has been changed to `merkle_path`. This change requires updates to 08-wasm client contracts for integration.
+* [\#6923](https://github.com/cosmos/ibc-go/pull/6923) The JSON message API for `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for client contract `SudoMsg` has been updated. The field `path` has been changed to `merkle_path`. This change requires updates to 08-wasm client contracts for integration.
 
 <!-- markdown-link-check-disable-next-line -->
 ## [v0.3.0+ibc-go-v8.3-wasmvm-v2.0](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.3.0%2Bibc-go-v8.3-wasmvm-v2.0) - 2024-07-17
@@ -85,7 +85,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
-* [\#6923](https://github.com/cosmos/ibc-go/pull/6923) The JSON msg api for `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for client contract `SudoMsg` has been updated. The field `path` has been changed to `merkle_path`. This change requires updates to 08-wasm client contracts for integration.
+* [\#6923](https://github.com/cosmos/ibc-go/pull/6923) The JSON message API for `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for client contract `SudoMsg` has been updated. The field `path` has been changed to `merkle_path`. This change requires updates to 08-wasm client contracts for integration.
 
 <!-- markdown-link-check-disable-next-line -->
 ## [v0.2.0+ibc-go-v7.3-wasmvm-v1.5](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.2.0%2Bibc-go-v7.3-wasmvm-v1.5) - 2024-07-17
