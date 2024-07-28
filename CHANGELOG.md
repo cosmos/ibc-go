@@ -96,9 +96,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [v8.4.0](https://github.com/cosmos/ibc-go/releases/tag/v8.4.0) - 2024-07-29
 
+### Improvements
+
+* (core/04-channel) [\#6871](https://github.com/cosmos/ibc-go/pull/6871) Add channel ordering to write acknowledgement event.
+
 ### Features
 
-* (apps/transfer) [\#6877](https://github.com/cosmos/ibc-go/pull/6877) Added the possibility to transfer the entire user balance of a particular denomination by using [`UnboundedSpendLimit`](https://github.com/cosmos/ibc-go/blob/715f00eef8727da41db25fdd4763b709bdbba07e/modules/apps/transfer/types/transfer_authorization.go#L253-L255) as the token amount.
+* (apps/transfer) [\#6877](https://github.com/cosmos/ibc-go/pull/6877) Added the possibility to transfer the entire user balance of a particular denomination by using [`UnboundedSpendLimit`](https://github.com/cosmos/ibc-go/blob/beb2d93b58835ddb9ed8e7624988f1e66b849251/modules/apps/transfer/types/token.go#L56-L58) as the token amount.
 
 ### Bug Fixes
 
