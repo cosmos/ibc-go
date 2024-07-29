@@ -1145,6 +1145,9 @@ func (suite *ForwardingTestSuite) TestForwardingWithMoreThanOneHop() {
 	suite.Require().NoError(err)
 }
 
+// TestMultihopForwardingErrorAcknowledgement tests the scenario in which a packet goes from
+// A to D, using B and C as forwarding hops. The packet fails on D where we set the ReceiveEnabled
+// param to false. We verify that funds are properly returned to A.
 func (suite *ForwardingTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	// Setup A->B->C->D
 	coinOnA := ibctesting.TestCoin
@@ -1226,13 +1229,17 @@ func (suite *ForwardingTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	err = pathCtoD.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	// force an error acknowledgement by disabling the receive param on chain D.
+	// force an error acknowledgement by disabling the ReceiveEnabled param on chain D.
 	ctx := pathCtoD.EndpointB.Chain.GetContext()
 	pathCtoD.EndpointB.Chain.GetSimApp().TransferKeeper.SetParams(ctx, types.NewParams(true, false))
 
 	result, err = pathCtoD.EndpointB.RecvPacketWithResult(packetFromCtoD)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
+
+	// forward packet exists on C before ack
+	_, found := suite.chainC.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainC.GetContext(), pathCtoD.EndpointA.ChannelConfig.PortID, pathCtoD.EndpointA.ChannelID, packetFromBtoC.GetSequence())
+	suite.Require().True(found)
 
 	// propagate the acknowledgement from chain D to chain A.
 	ack, err := ibctesting.ParseAckFromEvents(result.Events)
@@ -1242,14 +1249,45 @@ func (suite *ForwardingTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	result, err = pathCtoD.EndpointA.AcknowledgePacketWithResult(packetFromCtoD, ack)
 	suite.Require().NoError(err)
 
+	// forward packet is deleted after ack
+	_, found = suite.chainC.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainC.GetContext(), pathCtoD.EndpointA.ChannelConfig.PortID, pathCtoD.EndpointA.ChannelID, packetFromBtoC.GetSequence())
+	suite.Require().False(found)
+
+	// Ensure that chainC has an ack.
+	storedAck, found := suite.chainC.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainC.GetContext(), pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID, packetFromBtoC.GetSequence())
+	suite.Require().True(found, "chainC does not have an ack")
+
+	// And that this ack is of the type we expect (Error due to ReceiveEnabled param being false)
+	initialErrorAck := channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled)
+	forwardErrorAck := internaltypes.NewForwardErrorAcknowledgement(packetFromCtoD, initialErrorAck)
+	ackbytes := channeltypes.CommitAcknowledgement(forwardErrorAck.Acknowledgement())
+	suite.Require().Equal(ackbytes, storedAck)
+
 	ack, err = ibctesting.ParseAckFromEvents(result.Events)
 	suite.Require().NoError(err)
 
 	err = pathBtoC.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
+	// forward packet exists on B before ack
+	_, found = suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, packetFromAtoB.GetSequence())
+	suite.Require().True(found)
+
 	result, err = pathBtoC.EndpointA.AcknowledgePacketWithResult(packetFromBtoC, ack)
 	suite.Require().NoError(err)
+
+	// forward packet is deleted after ack
+	_, found = suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, packetFromAtoB.GetSequence())
+	suite.Require().False(found)
+
+	// Ensure that chainB has an ack.
+	storedAck, found = suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID, packetFromAtoB.GetSequence())
+	suite.Require().True(found, "chainB does not have an ack")
+
+	// And that this ack is of the type we expect (Error due to ReceiveEnabled param being false)
+	forwardErrorAck = internaltypes.NewForwardErrorAcknowledgement(packetFromBtoC, forwardErrorAck)
+	ackbytes = channeltypes.CommitAcknowledgement(forwardErrorAck.Acknowledgement())
+	suite.Require().Equal(ackbytes, storedAck)
 
 	ack, err = ibctesting.ParseAckFromEvents(result.Events)
 	suite.Require().NoError(err)

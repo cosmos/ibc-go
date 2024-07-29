@@ -435,7 +435,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			"ICA OnRecvPacket fails - cannot unmarshal packet data", func() {
 				packetData = []byte("invalid data")
 			}, false,
-			"cannot unmarshal ICS-27 interchain account packet data: unknown data type",
+			"cannot unmarshal ICS-27 interchain account packet data: invalid type",
 		},
 	}
 
