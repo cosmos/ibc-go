@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
+	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -16,6 +17,8 @@ import (
 // CommitPacket returns the packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
+// NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
+// to malleate the packet fields and create a commitment hash that matches the original packet.
 // NOTE: sdk.Uint64ToBigEndian sets the uint64 to a slice of length 8.
 func CommitPacket(cdc codec.BinaryCodec, packet Packet) []byte {
 	timeoutHeight := packet.GetTimeoutHeight()
@@ -28,6 +31,48 @@ func CommitPacket(cdc codec.BinaryCodec, packet Packet) []byte {
 	revisionHeight := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionHeight())
 	buf = append(buf, revisionHeight...)
 
+	dataHash := sha256.Sum256(packet.GetData())
+	buf = append(buf, dataHash[:]...)
+
+	hash := sha256.Sum256(buf)
+	return hash[:]
+}
+
+// CommitEurekaPacket returns the packet commitment bytes. The commitment consists of:
+// sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
+// from a given packet. This results in a fixed length preimage.
+// NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
+// to malleate the packet fields and create a commitment hash that matches the original packet.
+// NOTE: sdk.Uint64ToBigEndian sets the uint64 to a slice of length 8.
+func CommitEurekaPacket(packet Packet) []byte {
+	timeoutHeight := packet.GetTimeoutHeight()
+
+	timeoutBuf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
+
+	// only hash the timeout height if it is non-zero. This will allow us to remove it entirely in the future
+	if !reflect.DeepEqual(timeoutHeight, clienttypes.ZeroHeight()) {
+		revisionNumber := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionNumber())
+		timoeutBuf = append(buf, revisionNumber...)
+
+		revisionHeight := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionHeight())
+		timeoutBuf = append(buf, revisionHeight...)
+	}
+
+	// hash the timeout rather than using a fixed-size preimage directly
+	// this will allow more flexibility in the future with how timeouts are defined
+	buf := sha256.Sum256(timeoutBuf)
+
+	// hash the destination identifiers since we can no longer retrieve them from the channelEnd
+	portHash := sha256.Sum256([]byte(packet.GetDestinationPort()))
+	buf = append(buf, portHash[:]...)
+	destinationHash := sha256.Sum256([]byte(packet.GetDestinationChannel()))
+	buf = append(buf, destinationHash[:]...)
+
+	// hash the version
+	versionHash := sha256.Sum256([]byte(packet.GetVersion()))
+	buf = append(buf, versionHash[:]...)
+
+	// hash the data
 	dataHash := sha256.Sum256(packet.GetData())
 	buf = append(buf, dataHash[:]...)
 
@@ -58,6 +103,26 @@ func NewPacket(
 		DestinationChannel: destinationChannel,
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
+	}
+}
+
+func NewPacketWithVersion(
+	data []byte,
+	sequence uint64, sourcePort, sourceChannel,
+	destinationPort, destinationChannel string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	version string,
+) Packet {
+	return Packet{
+		Data:               data,
+		Sequence:           sequence,
+		SourcePort:         sourcePort,
+		SourceChannel:      sourceChannel,
+		DestinationPort:    destinationPort,
+		DestinationChannel: destinationChannel,
+		TimeoutHeight:      timeoutHeight,
+		TimeoutTimestamp:   timeoutTimestamp,
+		Version:            version,
 	}
 }
 

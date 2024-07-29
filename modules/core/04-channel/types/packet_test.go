@@ -25,6 +25,13 @@ func TestCommitPacket(t *testing.T) {
 	require.NotNil(t, commitment)
 }
 
+func TestCommitEurekaPacket(t *testing.T) {
+	packet := types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, validVersion)
+
+	commitment := types.CommitEurekaPacket(packet)
+	require.NotNil(t, commitment)
+}
+
 func TestPacketValidateBasic(t *testing.T) {
 	testCases := []struct {
 		packet  types.Packet
