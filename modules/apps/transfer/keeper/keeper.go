@@ -358,9 +358,13 @@ func (k Keeper) iterateForwardedPackets(ctx sdk.Context, cb func(packet types.Fo
 		var forwardPacket types.ForwardedPacket
 		k.cdc.MustUnmarshal(iterator.Value(), &forwardPacket.Packet)
 
+		// Iterator key consists of types.ForwardedPacketKey/portID/channelID/sequence
 		parts := strings.Split(string(iterator.Key()), "/")
 		if len(parts) != 4 {
 			panic(fmt.Errorf("key path should always have 4 elements"))
+		}
+		if parts[0] != string(types.ForwardedPacketKey) {
+			panic(fmt.Errorf("key path does not start with expected prefix: %s", types.ForwardedPacketKey))
 		}
 
 		portID, channelID := parts[1], parts[2]
