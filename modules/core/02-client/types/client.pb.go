@@ -9,7 +9,7 @@ import (
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types1 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	types1 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
