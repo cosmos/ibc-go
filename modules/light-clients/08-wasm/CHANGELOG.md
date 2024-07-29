@@ -43,7 +43,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+<<<<<<< HEAD
 * [\#6644](https://github.com/cosmos/ibc-go/pull/6644) api!: add `v2.MerklePath` for contract api `VerifyMembershipMsg` and `VerifyNonMembershipMsg` structs. Note, this requires a migration for existing client contracts to correctly handle deserialization of `MerklePath.KeyPath` which has changed from `repeated string` to `repeated bytes`. In JSON message structures this change is reflected as the `KeyPath` being a marshalled as a list of base64 encoded byte strings. 
+=======
+ * [\#6923](https://github.com/cosmos/ibc-go/pull/6923) The JSON msg API for `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for client contract `SudoMsg` has been updated. The field `path` has been changed to `merkle_path`. This change requires updates to 08-wasm client contracts for integration.
+>>>>>>> 5a6b4ae0 (api!: rename path to merkle path for contract api json msgs  (#6962))
 
 ### State Machine Breaking
 
