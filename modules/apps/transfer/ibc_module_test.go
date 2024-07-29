@@ -403,7 +403,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 
 			tc.malleate() // change fields in packet
 
-			ack := cbs.OnRecvPacket(ctx, packet, suite.chainB.SenderAccount.GetAddress())
+			ack := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, suite.chainB.SenderAccount.GetAddress())
 
 			suite.Require().Equal(tc.expAck, ack)
 
@@ -448,7 +448,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			func() {
 				packet.SourceChannel = "channel-100"
 			},
-			ibcerrors.ErrNotFound,
+			errors.New("unable to unescrow tokens"),
 		},
 		{
 			"invalid packet data",
@@ -468,7 +468,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 				suite.Require().True(ok)
 
-				suite.Require().NoError(cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress()))
+				suite.Require().NoError(cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress()))
 			},
 			errors.New("unable to unescrow tokens"),
 		},
@@ -508,7 +508,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 
 			tc.malleate() // change fields in packet
 
-			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress())
 
 			expPass := tc.expError == nil
 			if expPass {
