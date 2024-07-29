@@ -29,8 +29,8 @@
 
 # CODEOWNERS for ICS 20
 
-/modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton
-/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton
+/modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton @DimitrisJim
+/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton @DimitrisJim
 
 # CODEOWNERS for interchain-accounts module
 
