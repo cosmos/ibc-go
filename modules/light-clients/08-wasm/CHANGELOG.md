@@ -42,6 +42,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+ * [\#6923](https://github.com/cosmos/ibc-go/pull/6923) The JSON msg API for `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for client contract `SudoMsg` has been updated. The field `path` has been changed to `merkle_path`. This change requires updates to 08-wasm client contracts for integration.
+
 ### State Machine Breaking
 
 ### Improvements
