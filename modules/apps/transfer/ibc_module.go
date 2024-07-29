@@ -180,6 +180,7 @@ func (IBCModule) OnChanCloseConfirm(
 // A nil acknowledgement may be returned when using the packet forwarding feature. This signals to core IBC that the acknowledgement will be written asynchronously.
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
@@ -196,7 +197,7 @@ func (im IBCModule) OnRecvPacket(
 		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 	}()
 
-	data, ackErr = im.getICS20PacketData(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
+	data, ackErr = types.UnmarshalPacketData(packet.GetData(), channelVersion)
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
@@ -223,6 +224,7 @@ func (im IBCModule) OnRecvPacket(
 // OnAcknowledgementPacket implements the IBCModule interface
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
@@ -232,7 +234,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	data, err := im.getICS20PacketData(ctx, packet.GetData(), packet.GetSourcePort(), packet.GetSourceChannel())
+	data, err := types.UnmarshalPacketData(packet.GetData(), channelVersion)
 	if err != nil {
 		return err
 	}
@@ -249,10 +251,11 @@ func (im IBCModule) OnAcknowledgementPacket(
 // OnTimeoutPacket implements the IBCModule interface
 func (im IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	data, err := im.getICS20PacketData(ctx, packet.GetData(), packet.GetSourcePort(), packet.GetSourceChannel())
+	data, err := types.UnmarshalPacketData(packet.GetData(), channelVersion)
 	if err != nil {
 		return err
 	}
@@ -310,16 +313,10 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
-	return im.getICS20PacketData(ctx, bz, portID, channelID)
-}
-
-// getICS20PacketData determines the current version of ICS20 and unmarshals the packet data into either a FungibleTokenPacketData
-// or a FungibleTokenPacketDataV2 depending on the application version.
-func (im IBCModule) getICS20PacketData(ctx sdk.Context, packetData []byte, portID, channelID string) (types.FungibleTokenPacketDataV2, error) {
 	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
 	if !found {
 		return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
-	return types.UnmarshalPacketData(packetData, ics20Version)
+	return types.UnmarshalPacketData(bz, ics20Version)
 }

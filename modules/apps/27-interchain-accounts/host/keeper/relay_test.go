@@ -397,14 +397,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{"/" + proto.MessageName(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			icatypes.ErrUnknownDataType,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"cannot unmarshal interchain account packet data",
 			func(encoding string) {
 				packetData = []byte{}
 			},
-			icatypes.ErrUnknownDataType,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"cannot deserialize interchain account packet data messages",
@@ -418,7 +418,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				packetData = icaPacketData.GetBytes()
 			},
-			icatypes.ErrUnknownDataType,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"invalid packet type - UNSPECIFIED",
@@ -782,7 +782,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{"*"})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			icatypes.ErrUnknownDataType,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"message type not allowed banktypes.MsgSend",
@@ -832,7 +832,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*banktypes.MsgSend)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			icatypes.ErrUnknownDataType,
+			ibcerrors.ErrInvalidType,
 		},
 	}
 

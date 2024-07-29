@@ -88,12 +88,14 @@ type IBCModule interface {
 	// and the acknowledgement is written (in synchronous cases).
 	OnRecvPacket(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
@@ -101,6 +103,7 @@ type IBCModule interface {
 
 	OnTimeoutPacket(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error

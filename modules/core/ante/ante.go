@@ -117,7 +117,7 @@ func (rrd RedundantRelayDecorator) recvPacketCheckTx(ctx sdk.Context, msg *chann
 	// If the packet was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = rrd.k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+	_, err = rrd.k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
 	case nil:

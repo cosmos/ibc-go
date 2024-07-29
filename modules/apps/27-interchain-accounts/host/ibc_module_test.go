@@ -424,7 +424,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		{
 			"success with ICA auth module callback failure", func() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.Acknowledgement {
 					return channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
@@ -435,7 +435,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			"ICA OnRecvPacket fails - cannot unmarshal packet data", func() {
 				packetData = []byte("invalid data")
 			}, false,
-			"cannot unmarshal ICS-27 interchain account packet data: unknown data type",
+			"cannot unmarshal ICS-27 interchain account packet data: invalid type",
 		},
 	}
 
@@ -503,7 +503,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				suite.Require().True(ok)
 
 				ctx := suite.chainB.GetContext()
-				ack := cbs.OnRecvPacket(ctx, packet, nil)
+				ack := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, nil)
 
 				expectedAttributes := []sdk.Attribute{
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
@@ -587,7 +587,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 					0,
 				)
 
-				err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, []byte("ackBytes"), nil)
+				err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), path.EndpointB.GetChannel().Version, packet, []byte("ackBytes"), nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -642,7 +642,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 					0,
 				)
 
-				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
+				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
