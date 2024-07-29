@@ -127,7 +127,7 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 | 1.19 | v7.4.0 | v0.47.8  | v0.37.4  |
 | 1.19 | v7.5.0 | v0.47.11 | v0.37.5  |
 | 1.19 | v7.6.0 | v0.47.12 | v0.37.5  |
-| 1.19 | v7.6.0 | v0.47.13 | v0.37.5  |
+| 1.19 | v7.7.0 | v0.47.13 | v0.37.5  |
 | 1.21 | v8.4.0 | v0.50.7  | v0.38.7  |
 
 ### Callbacks middleware
