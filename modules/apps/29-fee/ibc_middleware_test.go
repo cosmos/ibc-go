@@ -1580,8 +1580,9 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
 	suite.Require().True(ok)
 
 	// Context, port identifier, channel identifier are not used in current wiring of fee.
-	packetData, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
+	packetData, version, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, ibcmock.MockPacketData)
 	suite.Require().NoError(err)
+	suite.Require().NotEmpty(version)
 	suite.Require().Equal(ibcmock.MockPacketData, packetData)
 }
 
@@ -1590,7 +1591,7 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
 	mockFeeMiddleware := ibcfee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
 	// Context, port identifier, channel identifier are not used in mockFeeMiddleware.
-	_, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
+	_, _, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
 	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	suite.Require().ErrorIs(err, expError)
 }

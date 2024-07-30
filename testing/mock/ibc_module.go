@@ -219,11 +219,11 @@ func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string,
 
 // UnmarshalPacketData returns the MockPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (IBCModule) UnmarshalPacketData(_ sdk.Context, _, _ string, bz []byte) (interface{}, error) {
+func (IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	if reflect.DeepEqual(bz, MockPacketData) {
-		return MockPacketData, nil
+		return MockPacketData, Version, nil
 	}
-	return nil, MockApplicationCallbackError
+	return nil, "", MockApplicationCallbackError
 }
 
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
