@@ -12,7 +12,6 @@ var KeyClientStorePrefix = []byte("clients")
 const (
 	KeyClientState          = "clientState"
 	KeyConsensusStatePrefix = "consensusStates"
-	KeyCounterparty         = "counterparty"
 )
 
 // FullClientPath returns the full path of a specific client path in the format:
