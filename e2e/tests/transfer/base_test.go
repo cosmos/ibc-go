@@ -612,7 +612,7 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	t.Run("send entire balance from B to A", func(t *testing.T) {
 		transferCoins := sdk.NewCoins(sdk.NewCoin(chainBIBCToken.IBCDenom(), transfertypes.UnboundedSpendLimit()))
 		if channelA.Version == transfertypes.V2 {
-			transferCoins.Add(sdk.NewCoin(chainB.Config().Denom, transfertypes.UnboundedSpendLimit()))
+			transferCoins = transferCoins.Add(sdk.NewCoin(chainB.Config().Denom, transfertypes.UnboundedSpendLimit()))
 		}
 
 		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoins, chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", nil)

@@ -152,10 +152,7 @@ func (k *Keeper) TimeoutExecuted(
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING && channel.Ordering == types.UNORDERED {
-		if aborted := k.handleFlushState(ctx, packet, channel); aborted {
-			k.Logger(ctx).Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
-			return nil
-		}
+		k.handleFlushState(ctx, packet, channel)
 	}
 
 	if channel.Ordering == types.ORDERED {
