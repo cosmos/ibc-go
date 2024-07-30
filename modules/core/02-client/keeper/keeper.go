@@ -351,6 +351,11 @@ func (k *Keeper) SetCreator(ctx sdk.Context, clientID, creator string) {
 	k.ClientStore(ctx, clientID).Set([]byte(types.CreatorKey), []byte(creator))
 }
 
+// DeleteCreator deletes the creator associated with the client.
+func (k *Keeper) DeleteCreator(ctx sdk.Context, clientID string) {
+	k.ClientStore(ctx, clientID).Delete([]byte(types.CreatorKey))
+}
+
 // ValidateSelfClient validates the client parameters for a client of the running chain.
 // This function is only used to validate the client state the counterparty stores for this chain.
 // NOTE: If the client type is not of type Tendermint then delegate to a custom client validator function.

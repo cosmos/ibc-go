@@ -149,6 +149,8 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *clienttypes.Msg
 		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.ClientId)
 	}
 	k.ClientKeeper.SetCounterparty(ctx, msg.ClientId, msg.Counterparty)
+	// Delete client creator from state as it is not needed after this point.
+	k.ClientKeeper.DeleteCreator(ctx, msg.ClientId)
 
 	return &clienttypes.MsgProvideCounterpartyResponse{}, nil
 }
