@@ -27,7 +27,7 @@ func CommitPacket(packet Packet) []byte {
 	case IBC_VERSION_EUREKA:
 		return CommitEurekaPacket(packet)
 	default:
-		panic("not implemented")
+		panic("unsupported version")
 	}
 }
 
@@ -86,7 +86,7 @@ func CommitEurekaPacket(packet Packet) []byte {
 	destinationHash := sha256.Sum256([]byte(packet.GetDestChannel()))
 	buf = append(buf, destinationHash[:]...)
 
-	// hash the version
+	// hash the version only if it is nonempty
 	if packet.AppVersion != "" {
 		versionHash := sha256.Sum256([]byte(packet.AppVersion))
 		buf = append(buf, versionHash[:]...)
