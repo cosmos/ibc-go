@@ -84,7 +84,7 @@ func (k *Keeper) SendPacket(
 		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
-	commitment := types.CommitPacket(k.cdc, packet)
+	commitment := types.CommitPacket(packet)
 
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
@@ -177,7 +177,7 @@ func (k *Keeper) RecvPacket(
 		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
 
-	commitment := types.CommitPacket(k.cdc, packet)
+	commitment := types.CommitPacket(packet)
 
 	// verify that the counterparty did commit to sending this packet
 	if err := k.connectionKeeper.VerifyPacketCommitment(
@@ -431,7 +431,7 @@ func (k *Keeper) AcknowledgePacket(
 		return types.ErrNoOpMsg
 	}
 
-	packetCommitment := types.CommitPacket(k.cdc, packet)
+	packetCommitment := types.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {

@@ -94,6 +94,8 @@ enum Order {
 // This allows asynchronous upgrades over time as unsupported IBC Versions
 // will simply be rejected by the receiver and timed out on sender.
 enum IBCVersion {
+  option (gogoproto.goproto_enum_prefix) = false;
+
   // zero-value for IBC version.
   // This will be treated as a classic packet
   IBC_VERSION_UNSPECIFIED = 0;
@@ -136,7 +138,7 @@ message Packet {
   // block timestamp (in nanoseconds) after which the packet times out
   uint64 timeout_timestamp = 8;
   // which IBC version to use to commit this packet
-  IBCVersion ibc_version = 9;
+  IBCVersion protocol_version = 9;
   // version which application should use to process the packet data
   string app_version = 10;
 }

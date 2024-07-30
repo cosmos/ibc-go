@@ -14,9 +14,8 @@ import (
 )
 
 func CommitPacket(packet Packet) []byte {
-	switch packet.IBCVersion {
-	case IBC_VERSION_UNSPECIFIED:
-	case IBC_VERSION_CLASSIC:
+	switch packet.ProtocolVersion {
+	case IBC_VERSION_UNSPECIFIED, IBC_VERSION_CLASSIC:
 		return CommitClassicPacket(packet)
 	case IBC_VERSION_EUREKA:
 		return CommitEurekaPacket(packet)
@@ -63,25 +62,26 @@ func CommitEurekaPacket(packet Packet) []byte {
 	// only hash the timeout height if it is non-zero. This will allow us to remove it entirely in the future
 	if !reflect.DeepEqual(timeoutHeight, clienttypes.ZeroHeight()) {
 		revisionNumber := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionNumber())
-		timoeutBuf = append(buf, revisionNumber...)
+		timeoutBuf = append(timeoutBuf, revisionNumber...)
 
 		revisionHeight := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionHeight())
-		timeoutBuf = append(buf, revisionHeight...)
+		timeoutBuf = append(timeoutBuf, revisionHeight...)
 	}
 
 	// hash the timeout rather than using a fixed-size preimage directly
 	// this will allow more flexibility in the future with how timeouts are defined
-	buf := sha256.Sum256(timeoutBuf)
+	timeoutHash := sha256.Sum256(timeoutBuf)
+	buf := timeoutHash[:]
 
 	// hash the destination identifiers since we can no longer retrieve them from the channelEnd
-	portHash := sha256.Sum256([]byte(packet.GetDestinationPort()))
+	portHash := sha256.Sum256([]byte(packet.GetDestPort()))
 	buf = append(buf, portHash[:]...)
-	destinationHash := sha256.Sum256([]byte(packet.GetDestinationChannel()))
+	destinationHash := sha256.Sum256([]byte(packet.GetDestChannel()))
 	buf = append(buf, destinationHash[:]...)
 
 	// hash the version
-	if version != "" {
-		versionHash := sha256.Sum256([]byte(packet.GetVersion()))
+	if packet.AppVersion != "" {
+		versionHash := sha256.Sum256([]byte(packet.AppVersion))
 		buf = append(buf, versionHash[:]...)
 	}
 
@@ -116,7 +116,7 @@ func NewPacket(
 		DestinationChannel: destinationChannel,
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
-		IBCVersion:         IBC_VERSION_CLASSIC,
+		ProtocolVersion:    IBC_VERSION_CLASSIC,
 	}
 }
 
@@ -136,7 +136,7 @@ func NewPacketWithVersion(
 		DestinationChannel: destinationChannel,
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
-		IBCVersion:         IBC_VERSION_EUREKA,
+		ProtocolVersion:    IBC_VERSION_EUREKA,
 		AppVersion:         appVersion,
 	}
 }
