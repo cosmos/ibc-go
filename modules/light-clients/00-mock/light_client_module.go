@@ -2,6 +2,7 @@ package mock
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -34,9 +35,9 @@ func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientS
 // Initialize sets clientState and consensusState in the clientStore for the mock client.
 //
 // CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 00-mock.
-func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz_, consensusStateBz []byte) error {
+func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	clientState := ClientState{}
-	if err := l.cdc.Unmarshal(clientStateBz_, &clientState); err != nil {
+	if err := l.cdc.Unmarshal(clientStateBz, &clientState); err != nil {
 		return err
 	}
 
@@ -60,7 +61,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 
 // VerifyClientMessage always returns no error. The 00-mock client type does not support verification.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 00-mock.
 func (LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	return nil
 }
@@ -77,7 +78,7 @@ func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID str
 
 // UpdateState just updates the state with no verification or validation.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 00-mock.
 func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.cdc
@@ -92,7 +93,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 
 // VerifyMembership obtains the localhost client state and calls into the clientState.VerifyMembership method.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 00-mock.
 func (l LightClientModule) VerifyMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -116,7 +117,7 @@ func (l LightClientModule) VerifyMembership(
 
 // VerifyNonMembership obtains the localhost client state and calls into the clientState.VerifyNonMembership method.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 00-mock.
 func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
@@ -137,7 +138,7 @@ func (l LightClientModule) VerifyNonMembership(
 	return nil
 }
 
-// Status always returns Active. The 09-localhost status cannot be changed.
+// Status always returns Active as long as the client exists
 func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
@@ -152,7 +153,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 // LatestHeight returns the latest height for the client state for the given client identifier.
 // If no client is present for the provided client identifier a zero value height is returned.
 //
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
+// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 00-mock.
 func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 

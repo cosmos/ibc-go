@@ -3,18 +3,20 @@ package mock
 import (
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
 
-func (cs *ClientState) ClientType() string {
+func (*ClientState) ClientType() string {
 	return ModuleName
 }
 
-func (cs *ClientState) Validate() error {
+func (*ClientState) Validate() error {
 	return nil
 }
 

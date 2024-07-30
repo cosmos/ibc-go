@@ -1,15 +1,18 @@
 package mock_test
 
 import (
+	"testing"
+	"time"
+
+	testifysuite "github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
 	mocklightclient "github.com/cosmos/ibc-go/v8/modules/light-clients/00-mock"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	testifysuite "github.com/stretchr/testify/suite"
-	"testing"
-	"time"
 )
 
 type MockClientTestSuite struct {

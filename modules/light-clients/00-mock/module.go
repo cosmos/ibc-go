@@ -30,7 +30,7 @@ func (AppModuleBasic) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModuleBasic) IsAppModule() {}
 
-// Name returns the tendermint module name.
+// Name returns the mock module name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
@@ -45,17 +45,17 @@ func (AppModule) IsAppModule() {}
 func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any. This allows core IBC
-// to unmarshal tendermint light client types.
+// to unmarshal mock light client types.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	RegisterInterfaces(registry)
 }
 
-// DefaultGenesis performs a no-op. Genesis is not supported for the tendermint light client.
+// DefaultGenesis performs a no-op. Genesis is not supported for the mock light client.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
-// ValidateGenesis performs a no-op. Genesis is not supported for the tendermint light client.
+// ValidateGenesis performs a no-op. Genesis is not supported for the mock light client.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return nil
 }
