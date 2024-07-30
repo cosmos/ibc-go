@@ -290,7 +290,7 @@ func (msg *MsgProvideCounterparty) ValidateBasic() error {
 	}
 
 	if strings.TrimSpace(msg.CounterpartyId) == "" {
-		return errorsmod.Wrapf(ErrInvalidCounterparty, "counterparty client id cannot be empty")
+		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty client id cannot be empty")
 	}
 
 	return nil
