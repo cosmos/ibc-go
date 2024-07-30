@@ -17,6 +17,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -774,6 +775,79 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 				suite.Require().Error(err)
 			}
 		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestProvideCounterparty() {
+	var (
+		path *ibctesting.Path
+		msg  *clienttypes.MsgProvideCounterparty
+	)
+	cases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: unknown client identifier",
+			func() {
+				msg.ClientId = ibctesting.InvalidID
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: signer does not match creator",
+			func() {
+				msg.Signer = ibctesting.TestAccAddress
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: counterparty already exists",
+			func() {
+				// set it before handler
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ClientId, msg.Counterparty)
+			},
+			clienttypes.ErrInvalidCounterparty,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		path.SetupClients()
+
+		signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
+		merklePrefix := commitmenttypesv2.NewMerklePath([]byte("mock-key"))
+		msg = clienttypes.NewMsgProvideCounterparty(signer, path.EndpointA.ClientID, path.EndpointB.ClientID, &merklePrefix)
+
+		tc.malleate()
+
+		ctx := suite.chainA.GetContext()
+		resp, err := suite.chainA.App.GetIBCKeeper().ProvideCounterparty(ctx, msg)
+
+		expPass := tc.expError == nil
+		if expPass {
+			suite.Require().NotNil(resp)
+			suite.Require().Nil(err)
+
+			// Assert counterparty set and creator deleted
+			counterparty, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().True(found)
+			suite.Require().Equal(counterparty, msg.Counterparty)
+
+			_, found = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().False(found)
+		} else {
+			suite.Require().Nil(resp)
+			suite.Require().Error(err)
+			suite.Require().ErrorIs(err, tc.expError)
+		}
 	}
 }
 
