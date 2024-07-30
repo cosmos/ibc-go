@@ -13,6 +13,13 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
+// CommitPacket returns the packet commitment bytes based on
+// the ProtocolVersion specified in the Packet. The commitment
+// must commit to all fields in the packet apart from the source port
+// source channel and sequence (which will be committed to in the packet commitment key path)
+// and the ProtocolVersion which is defining how to hash the packet fields.
+// NOTE: The commitment MUSTs be a fixed length preimage to prevent relayers from being able
+// to malleate the packet fields and create a commitment hash that matches the original packet.
 func CommitPacket(packet Packet) []byte {
 	switch packet.ProtocolVersion {
 	case IBC_VERSION_UNSPECIFIED, IBC_VERSION_CLASSIC:
