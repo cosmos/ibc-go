@@ -8,7 +8,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -270,11 +270,12 @@ func (msg *MsgRecoverClient) ValidateBasic() error {
 }
 
 // NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(signer, clientID, counterpartyID string) *MsgProvideCounterparty {
+func NewMsgProvideCounterparty(signer, clientID, counterpartyID string, merklePathPrefix *commitmenttypes.MerklePath) *MsgProvideCounterparty {
 	return &MsgProvideCounterparty{
-		Signer:         signer,
-		ClientId:       clientID,
-		CounterpartyId: counterpartyID,
+		Signer:           signer,
+		ClientId:         clientID,
+		CounterpartyId:   counterpartyID,
+		MerklePathPrefix: merklePathPrefix,
 	}
 }
 
