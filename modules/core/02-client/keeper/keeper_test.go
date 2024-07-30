@@ -142,6 +142,34 @@ func (suite *KeeperTestSuite) TestSetCounterparty() {
 	suite.Require().Equal(expectedCounterparty, counterparty, "Counterparty is not equal")
 }
 
+func (suite *KeeperTestSuite) TestSetCreator() {
+	clientID := "test-client"
+	creator := "test-creator"
+
+	// Set the creator for the client
+	suite.keeper.SetCreator(suite.ctx, clientID, creator)
+
+	// Retrieve the creator from the store
+	retrievedCreator := suite.keeper.GetCreator(suite.ctx, clientID)
+
+	// Verify that the retrieved creator matches the expected creator
+	suite.Require().Equal(creator, retrievedCreator, "Creator is not stored correctly")
+}
+
+func (suite *KeeperTestSuite) TestGetCreator() {
+	clientID := "test-client"
+	expectedCreator := "test-creator"
+
+	// Set the creator for the client
+	suite.keeper.SetCreator(suite.ctx, clientID, expectedCreator)
+
+	// Retrieve the creator from the store
+	retrievedCreator := suite.keeper.GetCreator(suite.ctx, clientID)
+
+	// Verify that the retrieved creator matches the expected creator
+	suite.Require().Equal(expectedCreator, retrievedCreator, "Creator is not retrieved correctly")
+}
+
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
 
