@@ -40,8 +40,3 @@ func FullConsensusStateKey(clientID string, height exported.Height) []byte {
 func ConsensusStateKey(height exported.Height) []byte {
 	return []byte(ConsensusStatePath(height))
 }
-
-// CounterpartyKey returns the store key for the counterparty information.
-func CounterpartyKey() []byte {
-	return []byte(KeyCounterparty)
-}

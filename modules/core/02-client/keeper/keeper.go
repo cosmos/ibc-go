@@ -325,13 +325,13 @@ func (k *Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) 
 // SetCounterparty sets the Counterparty for a given client identifier.
 func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID string, counterparty types.Counterparty) {
 	bz := k.cdc.MustMarshal(&counterparty)
-	k.ClientStore(ctx, clientID).Set(host.CounterpartyKey(), bz)
+	k.ClientStore(ctx, clientID).Set([]byte(types.CounterpartyKey), bz)
 }
 
 // GetCounterparty gets the counterparty client's identifier for a given client identifier.
 func (k *Keeper) GetCounterparty(ctx sdk.Context, clientID string) (types.Counterparty, bool) {
 	store := k.ClientStore(ctx, clientID)
-	bz := store.Get(host.CounterpartyKey())
+	bz := store.Get([]byte(types.CounterpartyKey))
 	if len(bz) == 0 {
 		return types.Counterparty{}, false
 	}
