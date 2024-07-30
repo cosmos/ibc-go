@@ -342,8 +342,13 @@ func (k *Keeper) GetCounterparty(ctx sdk.Context, clientID string) (types.Counte
 }
 
 // GetCreator returns the creator of the client.
-func (k *Keeper) GetCreator(ctx sdk.Context, clientID string) string {
-	return string(k.ClientStore(ctx, clientID).Get([]byte(types.CreatorKey)))
+func (k *Keeper) GetCreator(ctx sdk.Context, clientID string) (string, bool) {
+	bz := k.ClientStore(ctx, clientID).Get([]byte(types.CreatorKey))
+	if len(bz) == 0 {
+		return "", false
+	}
+
+	return string(bz), true
 }
 
 // SetCreator sets the creator of the client.

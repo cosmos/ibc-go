@@ -140,6 +140,10 @@ func (suite *KeeperTestSuite) TestSetCounterparty() {
 	retrievedCounterparty, found := suite.keeper.GetCounterparty(suite.ctx, testClientID)
 	suite.Require().True(found, "GetCounterparty does not return counterparty")
 	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparty retrieved not equal")
+
+	retrievedCounterparty, found = suite.keeper.GetCounterparty(suite.ctx, "client-0")
+	suite.Require().False(found, "GetCounterparty unexpectedly returned a counterparty")
+	suite.Require().Equal(types.Counterparty{}, retrievedCounterparty, "Counterparty retrieved not empty")
 }
 
 func (suite *KeeperTestSuite) TestGetCreator() {
@@ -150,10 +154,16 @@ func (suite *KeeperTestSuite) TestGetCreator() {
 	suite.keeper.SetCreator(suite.ctx, clientID, expectedCreator)
 
 	// Retrieve the creator from the store
-	retrievedCreator := suite.keeper.GetCreator(suite.ctx, clientID)
+	retrievedCreator, found := suite.keeper.GetCreator(suite.ctx, clientID)
 
 	// Verify that the retrieved creator matches the expected creator
+	suite.Require().True(found, "GetCreator did not return stored creator")
 	suite.Require().Equal(expectedCreator, retrievedCreator, "Creator is not retrieved correctly")
+
+    // Verify non stored creator is not found
+    retrievedCreator, found = suite.keeper.GetCreator(suite.ctx, "client-0")
+    suite.Require().False(found, "GetCreator unexpectedly returned a creator")
+    suite.Require().Equal(retrievedCreator, "", "Creator is not empty")
 }
 
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {

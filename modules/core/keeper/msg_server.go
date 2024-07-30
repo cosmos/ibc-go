@@ -141,8 +141,13 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *clienttypes.MsgProvideCounterparty) (*clienttypes.MsgProvideCounterpartyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if creator := k.ClientKeeper.GetCreator(ctx, msg.ClientId); creator != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", creator, msg.Signer)
+	creator, found := k.ClientKeeper.GetCreator(ctx, msg.ClientId)
+	if !found {
+		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "expected client creator to have been set")
+	}
+
+	if creator != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected client creator %s to match signer %s", creator, msg.Signer)
 	}
 
 	if _, ok := k.ClientKeeper.GetCounterparty(ctx, msg.ClientId); ok {
