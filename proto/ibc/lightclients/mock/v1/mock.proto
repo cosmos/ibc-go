@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package ibc.lightclients.mock.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v8/modules/light-clients/00-mock;mock";
+
+import "ibc/core/client/v1/client.proto";
+import "gogoproto/gogo.proto";
+
+// ClientState defines the 00-mock client state
+message ClientState {
+  option (gogoproto.goproto_getters) = false;
+
+  // the latest block height
+  ibc.core.client.v1.Height latest_height = 1 [(gogoproto.nullable) = false];
+}
+
+message ConsensusState {
+  option (gogoproto.goproto_getters) = false;
+  uint64 timestamp   = 1;
+}
+
+message MockHeader {
+  option (gogoproto.goproto_getters) = false;
+  uint64 timestamp = 1;
+  ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
+}
