@@ -105,207 +105,6 @@ paths:
           type: string
       tags:
         - Query
-  /ibc/apps/transfer/v1/denom_traces:
-    get:
-      summary: DenomTraces queries all denomination traces.
-      operationId: DenomTraces
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              denom_traces:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    path:
-                      type: string
-                      description: >-
-                        path defines the chain of port/channel identifiers used
-                        for tracing the
-
-                        source of the fungible token.
-                    base_denom:
-                      type: string
-                      description: base denomination of the relayed fungible token.
-                  description: >-
-                    DenomTrace contains the base denomination for ICS20 fungible
-                    tokens and the
-
-                    source tracing information path.
-                description: denom_traces returns all denominations trace information.
-              pagination:
-                description: pagination defines the pagination in the response.
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-            description: >-
-              QueryConnectionsResponse is the response type for the
-              Query/DenomTraces RPC
-
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  /ibc/apps/transfer/v1/denom_traces/{hash}:
-    get:
-      summary: DenomTrace queries a denomination trace information.
-      operationId: DenomTrace
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              denom_trace:
-                type: object
-                properties:
-                  path:
-                    type: string
-                    description: >-
-                      path defines the chain of port/channel identifiers used
-                      for tracing the
-
-                      source of the fungible token.
-                  base_denom:
-                    type: string
-                    description: base denomination of the relayed fungible token.
-                description: >-
-                  DenomTrace contains the base denomination for ICS20 fungible
-                  tokens and the
-
-                  source tracing information path.
-            description: >-
-              QueryDenomTraceResponse is the response type for the
-              Query/DenomTrace RPC
-
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: hash
-          description: >-
-            hash (in hex format) or denom (full denom with ibc prefix) of the
-            denomination trace information.
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
   /ibc/apps/transfer/v1/denoms/{denom}/total_escrow:
     get:
       summary: >-
@@ -929,8 +728,10 @@ paths:
 
                       was set, its value is undefined otherwise
             title: >-
-              QueryIncentivizedPacketsResponse defines the response type for the
-              incentivized packets RPC
+              QueryIncentivizedPacketsForChannelResponse defines the response
+              type for querying for all incentivized packets
+
+              for a specific channel
         default:
           description: An unexpected error response.
           schema:
@@ -1763,7 +1564,7 @@ paths:
                   IdentifiedPacketFees contains a list of type PacketFee and
                   associated PacketId
             title: >-
-              QueryIncentivizedPacketsResponse defines the response type for the
+              QueryIncentivizedPacketResponse defines the response type for the
               IncentivizedPacket rpc
         default:
           description: An unexpected error response.
@@ -7157,21 +6958,6 @@ paths:
                   of updating and
 
                   freezing clients
-              merkle_path:
-                description: the commitment key path.
-                type: object
-                properties:
-                  key_path:
-                    type: array
-                    items:
-                      type: string
-                title: >-
-                  MerklePath is the path used to verify commitment proofs, which
-                  can be an
-
-                  arbitrary structured object (defined by a commitment type).
-
-                  MerklePath is represented from root-to-leaf
               value:
                 type: string
                 format: byte
@@ -7184,6 +6970,22 @@ paths:
                 type: string
                 format: uint64
                 title: optional block delay
+              merkle_path:
+                description: the commitment key path.
+                type: object
+                properties:
+                  key_path:
+                    type: array
+                    items:
+                      type: string
+                      format: byte
+                title: >-
+                  MerklePath is the path used to verify commitment proofs, which
+                  can be an
+
+                  arbitrary structured object (defined by a commitment type).
+
+                  MerklePath is represented from root-to-leaf
             title: >-
               QueryVerifyMembershipRequest is the request type for the
               Query/VerifyMembership RPC method
@@ -15045,83 +14847,6 @@ paths:
       tags:
         - Query
 definitions:
-  cosmos.base.query.v1beta1.PageRequest:
-    type: object
-    properties:
-      key:
-        type: string
-        format: byte
-        description: |-
-          key is a value returned in PageResponse.next_key to begin
-          querying the next page most efficiently. Only one of offset or key
-          should be set.
-      offset:
-        type: string
-        format: uint64
-        description: |-
-          offset is a numeric offset that can be used when key is unavailable.
-          It is less efficient than using key. Only one of offset or key should
-          be set.
-      limit:
-        type: string
-        format: uint64
-        description: >-
-          limit is the total number of results to be returned in the result
-          page.
-
-          If left empty it will default to a value to be set by each app.
-      count_total:
-        type: boolean
-        description: >-
-          count_total is set to true  to indicate that the result set should
-          include
-
-          a count of the total number of items available for pagination in UIs.
-
-          count_total is only respected when offset is used. It is ignored when
-          key
-
-          is set.
-      reverse:
-        type: boolean
-        description: >-
-          reverse is set to true if results are to be returned in the descending
-          order.
-
-
-          Since: cosmos-sdk 0.43
-    description: |-
-      message SomeRequest {
-               Foo some_parameter = 1;
-               PageRequest pagination = 2;
-       }
-    title: |-
-      PageRequest is to be embedded in gRPC request messages for efficient
-      pagination. Ex:
-  cosmos.base.query.v1beta1.PageResponse:
-    type: object
-    properties:
-      next_key:
-        type: string
-        format: byte
-        description: |-
-          next_key is the key to be passed to PageRequest.key to
-          query the next page most efficiently. It will be empty if
-          there are no more results.
-      total:
-        type: string
-        format: uint64
-        title: |-
-          total is total number of results available if PageRequest.count_total
-          was set, its value is undefined otherwise
-    description: |-
-      PageResponse is to be embedded in gRPC response messages where the
-      corresponding request message has used PageRequest.
-
-       message SomeResponse {
-               repeated Bar results = 1;
-               PageResponse page = 2;
-       }
   cosmos.base.v1beta1.Coin:
     type: object
     properties:
@@ -15473,24 +15198,6 @@ definitions:
                   "@type": "type.googleapis.com/google.protobuf.Duration",
                   "value": "1.212s"
                 }
-  ibc.applications.transfer.v1.DenomTrace:
-    type: object
-    properties:
-      path:
-        type: string
-        description: >-
-          path defines the chain of port/channel identifiers used for tracing
-          the
-
-          source of the fungible token.
-      base_denom:
-        type: string
-        description: base denomination of the relayed fungible token.
-    description: >-
-      DenomTrace contains the base denomination for ICS20 fungible tokens and
-      the
-
-      source tracing information path.
   ibc.applications.transfer.v1.Params:
     type: object
     properties:
@@ -15525,78 +15232,6 @@ definitions:
         description: hash (in hex format) of the denomination trace information.
     description: |-
       QueryDenomHashResponse is the response type for the Query/DenomHash RPC
-      method.
-  ibc.applications.transfer.v1.QueryDenomTraceResponse:
-    type: object
-    properties:
-      denom_trace:
-        type: object
-        properties:
-          path:
-            type: string
-            description: >-
-              path defines the chain of port/channel identifiers used for
-              tracing the
-
-              source of the fungible token.
-          base_denom:
-            type: string
-            description: base denomination of the relayed fungible token.
-        description: >-
-          DenomTrace contains the base denomination for ICS20 fungible tokens
-          and the
-
-          source tracing information path.
-    description: |-
-      QueryDenomTraceResponse is the response type for the Query/DenomTrace RPC
-      method.
-  ibc.applications.transfer.v1.QueryDenomTracesResponse:
-    type: object
-    properties:
-      denom_traces:
-        type: array
-        items:
-          type: object
-          properties:
-            path:
-              type: string
-              description: >-
-                path defines the chain of port/channel identifiers used for
-                tracing the
-
-                source of the fungible token.
-            base_denom:
-              type: string
-              description: base denomination of the relayed fungible token.
-          description: >-
-            DenomTrace contains the base denomination for ICS20 fungible tokens
-            and the
-
-            source tracing information path.
-        description: denom_traces returns all denominations trace information.
-      pagination:
-        description: pagination defines the pagination in the response.
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-    description: >-
-      QueryConnectionsResponse is the response type for the Query/DenomTraces
-      RPC
-
       method.
   ibc.applications.transfer.v1.QueryEscrowAddressResponse:
     type: object
@@ -15709,6 +15344,83 @@ definitions:
               allow_messages defines a list of sdk message typeURLs allowed to
               be executed on a host chain.
     description: QueryParamsResponse is the response type for the Query/Params RPC method.
+  cosmos.base.query.v1beta1.PageRequest:
+    type: object
+    properties:
+      key:
+        type: string
+        format: byte
+        description: |-
+          key is a value returned in PageResponse.next_key to begin
+          querying the next page most efficiently. Only one of offset or key
+          should be set.
+      offset:
+        type: string
+        format: uint64
+        description: |-
+          offset is a numeric offset that can be used when key is unavailable.
+          It is less efficient than using key. Only one of offset or key should
+          be set.
+      limit:
+        type: string
+        format: uint64
+        description: >-
+          limit is the total number of results to be returned in the result
+          page.
+
+          If left empty it will default to a value to be set by each app.
+      count_total:
+        type: boolean
+        description: >-
+          count_total is set to true  to indicate that the result set should
+          include
+
+          a count of the total number of items available for pagination in UIs.
+
+          count_total is only respected when offset is used. It is ignored when
+          key
+
+          is set.
+      reverse:
+        type: boolean
+        description: >-
+          reverse is set to true if results are to be returned in the descending
+          order.
+
+
+          Since: cosmos-sdk 0.43
+    description: |-
+      message SomeRequest {
+               Foo some_parameter = 1;
+               PageRequest pagination = 2;
+       }
+    title: |-
+      PageRequest is to be embedded in gRPC request messages for efficient
+      pagination. Ex:
+  cosmos.base.query.v1beta1.PageResponse:
+    type: object
+    properties:
+      next_key:
+        type: string
+        format: byte
+        description: |-
+          next_key is the key to be passed to PageRequest.key to
+          query the next page most efficiently. It will be empty if
+          there are no more results.
+      total:
+        type: string
+        format: uint64
+        title: |-
+          total is total number of results available if PageRequest.count_total
+          was set, its value is undefined otherwise
+    description: |-
+      PageResponse is to be embedded in gRPC response messages where the
+      corresponding request message has used PageRequest.
+
+       message SomeResponse {
+               repeated Bar results = 1;
+               PageResponse page = 2;
+       }
   ibc.applications.fee.v1.Fee:
     type: object
     properties:
@@ -16107,7 +15819,7 @@ definitions:
           IdentifiedPacketFees contains a list of type PacketFee and associated
           PacketId
     title: >-
-      QueryIncentivizedPacketsResponse defines the response type for the
+      QueryIncentivizedPacketResponse defines the response type for the
       IncentivizedPacket rpc
   ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse:
     type: object
@@ -16237,8 +15949,10 @@ definitions:
 
               was set, its value is undefined otherwise
     title: >-
-      QueryIncentivizedPacketsResponse defines the response type for the
-      incentivized packets RPC
+      QueryIncentivizedPacketsForChannelResponse defines the response type for
+      querying for all incentivized packets
+
+      for a specific channel
   ibc.applications.fee.v1.QueryIncentivizedPacketsResponse:
     type: object
     properties:
@@ -18256,21 +17970,6 @@ definitions:
           updating and
 
           freezing clients
-      merkle_path:
-        description: the commitment key path.
-        type: object
-        properties:
-          key_path:
-            type: array
-            items:
-              type: string
-        title: >-
-          MerklePath is the path used to verify commitment proofs, which can be
-          an
-
-          arbitrary structured object (defined by a commitment type).
-
-          MerklePath is represented from root-to-leaf
       value:
         type: string
         format: byte
@@ -18283,6 +17982,22 @@ definitions:
         type: string
         format: uint64
         title: optional block delay
+      merkle_path:
+        description: the commitment key path.
+        type: object
+        properties:
+          key_path:
+            type: array
+            items:
+              type: string
+              format: byte
+        title: >-
+          MerklePath is the path used to verify commitment proofs, which can be
+          an
+
+          arbitrary structured object (defined by a commitment type).
+
+          MerklePath is represented from root-to-leaf
     title: >-
       QueryVerifyMembershipRequest is the request type for the
       Query/VerifyMembership RPC method
@@ -18295,13 +18010,14 @@ definitions:
     title: >-
       QueryVerifyMembershipResponse is the response type for the
       Query/VerifyMembership RPC method
-  ibc.core.commitment.v1.MerklePath:
+  ibc.core.commitment.v2.MerklePath:
     type: object
     properties:
       key_path:
         type: array
         items:
           type: string
+          format: byte
     title: |-
       MerklePath is the path used to verify commitment proofs, which can be an
       arbitrary structured object (defined by a commitment type).
