@@ -160,10 +160,10 @@ func (suite *KeeperTestSuite) TestGetCreator() {
 	suite.Require().True(found, "GetCreator did not return stored creator")
 	suite.Require().Equal(expectedCreator, retrievedCreator, "Creator is not retrieved correctly")
 
-    // Verify non stored creator is not found
-    retrievedCreator, found = suite.keeper.GetCreator(suite.ctx, "client-0")
-    suite.Require().False(found, "GetCreator unexpectedly returned a creator")
-    suite.Require().Equal(retrievedCreator, "", "Creator is not empty")
+	// Verify non stored creator is not found
+	retrievedCreator, found = suite.keeper.GetCreator(suite.ctx, "client-0")
+	suite.Require().False(found, "GetCreator unexpectedly returned a creator")
+	suite.Require().Equal(retrievedCreator, "", "Creator is not empty")
 }
 
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
