@@ -127,6 +127,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	mocklightclient "github.com/cosmos/ibc-go/v8/modules/light-clients/00-mock"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -574,6 +575,9 @@ func NewSimApp(
 	smLightClientModule := solomachine.NewLightClientModule(appCodec)
 	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
+	mockLightClientModule := mocklightclient.NewLightClientModule(appCodec)
+	clientRouter.AddRoute(mocklightclient.ModuleName, &mockLightClientModule)
+
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[evidencetypes.StoreKey]), app.StakingKeeper, app.SlashingKeeper, app.AccountKeeper.AddressCodec(), runtime.ProvideCometInfoService(),
@@ -623,6 +627,7 @@ func NewSimApp(
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
+		mocklightclient.NewAppModule(mockLightClientModule),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
