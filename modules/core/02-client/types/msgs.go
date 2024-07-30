@@ -1,13 +1,12 @@
 package types
 
 import (
-	"strings"
-
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -271,11 +270,12 @@ func (msg *MsgRecoverClient) ValidateBasic() error {
 
 // NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
 func NewMsgProvideCounterparty(signer, clientID, counterpartyID string, merklePathPrefix *commitmenttypes.MerklePath) *MsgProvideCounterparty {
+	counterparty := NewCounterparty(counterpartyID, merklePathPrefix)
+
 	return &MsgProvideCounterparty{
-		Signer:           signer,
-		ClientId:         clientID,
-		CounterpartyId:   counterpartyID,
-		MerklePathPrefix: merklePathPrefix,
+		Signer:       signer,
+		ClientId:     clientID,
+		Counterparty: counterparty,
 	}
 }
 
@@ -289,8 +289,8 @@ func (msg *MsgProvideCounterparty) ValidateBasic() error {
 		return err
 	}
 
-	if strings.TrimSpace(msg.CounterpartyId) == "" {
-		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty client id cannot be empty")
+	if err := msg.Counterparty.Validate(); err != nil {
+		return err
 	}
 
 	return nil

@@ -15,7 +15,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
@@ -324,8 +323,7 @@ func (k *Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) 
 }
 
 // SetCounterparty sets the Counterparty for a given client identifier.
-func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID, counterpartyClientID string, merklePathPrefix *commitmenttypes.MerklePath) {
-	counterparty := types.NewCounterparty(counterpartyClientID, merklePathPrefix)
+func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID string, counterparty types.Counterparty) {
 	bz := k.cdc.MustMarshal(&counterparty)
 	k.ClientStore(ctx, clientID).Set(host.CounterpartyKey(), bz)
 }

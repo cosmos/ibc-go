@@ -80,6 +80,19 @@ func NewCounterparty(clientID string, merklePathPrefix *commitmenttypes.MerklePa
 	}
 }
 
+// Validate validates the Counterparty
+func (c Counterparty) Validate() error {
+	if err := host.ClientIdentifierValidator(c.ClientId); err != nil {
+		return err
+	}
+
+	if c.MerklePathPrefix.Empty() {
+		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty prefix cannot be empty")
+	}
+
+	return nil
+}
+
 // NewConsensusStateWithHeight creates a new ConsensusStateWithHeight instance
 func NewConsensusStateWithHeight(height Height, consensusState exported.ConsensusState) ConsensusStateWithHeight {
 	msg, ok := consensusState.(proto.Message)
