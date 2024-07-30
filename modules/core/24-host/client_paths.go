@@ -43,12 +43,6 @@ func FullConsensusStatePath(clientID string, height exported.Height) string {
 	return FullClientPath(clientID, ConsensusStatePath(height))
 }
 
-// FullCounterpartyPath takes a client identifier and returns a Path under which to
-// store the counterparty of a client.
-func FullCounterpartyPath(clientID string) string {
-	return FullClientPath(clientID, KeyCounterparty)
-}
-
 // ConsensusStatePath returns the suffix store key for the consensus state at a
 // particular height stored in a client prefixed store.
 func ConsensusStatePath(height exported.Height) string {

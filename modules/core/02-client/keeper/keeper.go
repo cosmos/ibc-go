@@ -345,15 +345,11 @@ func (k *Keeper) GetCounterparty(ctx sdk.Context, clientID string) (types.Counte
 
 // GetCreator returns the creator of the client.
 func (k *Keeper) GetCreator(ctx sdk.Context, clientID string) string {
-	// the creator key is imported from types instead of host because
-	// the creator key is not a part of the ics-24 host specification
 	return string(k.ClientStore(ctx, clientID).Get([]byte(types.CreatorKey)))
 }
 
 // SetCreator sets the creator of the client.
 func (k *Keeper) SetCreator(ctx sdk.Context, clientID, creator string) {
-	// the creator key is imported from types instead of host because
-	// the creator key is not a part of the ics-24 host specification
 	k.ClientStore(ctx, clientID).Set([]byte(types.CreatorKey), []byte(creator))
 }
 
