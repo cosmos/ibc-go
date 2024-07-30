@@ -889,7 +889,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			unmarshalerStack, ok := transferStack.(porttypes.PacketDataUnmarshaler)
 			suite.Require().True(ok)
 
-			packetData, _, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
+			packetData, version, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -897,6 +897,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 				v2PacketData, ok := packetData.(types.FungibleTokenPacketDataV2)
 				suite.Require().True(ok)
+				suite.Require().Equal(path.EndpointA.ChannelConfig.Version, version)
 
 				if v1PacketData, ok := initialPacketData.(types.FungibleTokenPacketData); ok {
 					// Note: testing of the denom trace parsing/conversion should be done as part of testing internal conversion functions
