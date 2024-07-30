@@ -35,7 +35,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 # Changelog
 
 <!-- markdown-link-check-disable-next-line -->
-## [v0.4.0+ibc-go-v8.3-wasmvm-v2.0](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.4.0%2Bibc-go-v8.3-wasmvm-v2.0) - 2024-07-29
+## [v0.4.1+ibc-go-v8.4-wasmvm-v2.0](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.4.1%2Bibc-go-v8.4-wasmvm-v2.0) - 2024-07-31
 
 ### API Breaking
 
