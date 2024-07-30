@@ -13,7 +13,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -72,9 +72,9 @@ func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
 	return ics
 }
 
-// NewLiteCounterparty creates a new LiteCounterparty instance
-func NewLiteCounterparty(clientID string, merklePathPrefix *commitmenttypes.MerklePath) LiteCounterparty {
-	return LiteCounterparty{
+// NewCounterparty creates a new Counterparty instance
+func NewCounterparty(clientID string, merklePathPrefix *commitmenttypes.MerklePath) Counterparty {
+	return Counterparty{
 		ClientId:         clientID,
 		MerklePathPrefix: merklePathPrefix,
 	}

@@ -9,7 +9,7 @@ import "cosmos/upgrade/v1beta1/upgrade.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "ibc/core/client/v1/client.proto";
-import "ibc/core/commitment/v1/commitment.proto";
+import "ibc/core/commitment/v2/commitment.proto";
 
 // Msg defines the ibc/client Msg service.
 service Msg {
@@ -53,10 +53,6 @@ message MsgCreateClient {
   google.protobuf.Any consensus_state = 2;
   // signer address
   string signer = 3;
-  // optional counterparty client identifier
-  string counterparty_id = 4;
-  // merklePath prefix is the prefix added to the ICS24 path before it is ready to be proven
-  ibc.core.commitment.v1.MerklePath merkle_path_prefix = 5;
 }
 
 // MsgCreateClientResponse defines the Msg/CreateClient response type.
@@ -163,7 +159,7 @@ message MsgProvideCounterparty {
   // merklePath prefix is the prefix added to the ICS24 path before it is ready to be proven
   // the ICS24 path will be appended to the last element, then the total merkle path will be passed
   // directly to the client for verification
-  ibc.core.commitment.v1.MerklePath merkle_path_prefix = 3;
+  ibc.core.commitment.v2.MerklePath merkle_path_prefix = 3;
   // signer address
   string signer = 4;
 }

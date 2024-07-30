@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"errors"
-	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -46,9 +45,9 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 
 	k.ClientKeeper.SetCreator(ctx, clientID, msg.Signer)
 
-	if strings.TrimSpace(msg.CounterpartyId) != "" {
-		k.ClientKeeper.SetCounterparty(ctx, clientID, msg.CounterpartyId, msg.MerklePathPrefix)
-	}
+	//if strings.TrimSpace(msg.CounterpartyId) != "" {
+	//	k.ClientKeeper.SetCounterparty(ctx, clientID, msg.CounterpartyId, msg.MerklePathPrefix)
+	//}
 
 	return &clienttypes.MsgCreateClientResponse{}, nil
 }

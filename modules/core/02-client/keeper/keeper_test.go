@@ -130,8 +130,8 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 }
 
 func (suite *KeeperTestSuite) TestSetCounterparty() {
-	merklePathPrefix := commitmenttypes.NewMerklePath("ibc", "")
-	expectedCounterparty := types.LiteCounterparty{
+	merklePathPrefix := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
+	expectedCounterparty := types.Counterparty{
 		ClientId:         testClientID,
 		MerklePathPrefix: &merklePathPrefix,
 	}
