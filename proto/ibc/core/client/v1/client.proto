@@ -35,7 +35,7 @@ message ClientConsensusStates {
   repeated ConsensusStateWithHeight consensus_states = 2 [(gogoproto.nullable) = false];
 }
 
-// Counterparty defines the counterparty for a light client to implement IBC Lite protocol
+// Counterparty defines the counterparty for a light client to implement IBC eureka protocol
 message Counterparty {
   // the client identifier of the counterparty chain
   string client_id = 1;
