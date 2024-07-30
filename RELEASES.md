@@ -88,8 +88,8 @@ We reserve the right to drop support for releases if they are deemed unused (for
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.3.0+ibc-go-v7.3.x-wasmvm-v1.5.x`|September 17, 2024|
-|`v0.4.x+ibc-go-v8.3.x-wasmvm-v2.0.x`|May 10, 2025|
+|`v0.3.x+ibc-go-v7.4.x-wasmvm-v1.5.x`|September 17, 2024|
+|`v0.4.x+ibc-go-v8.4.x-wasmvm-v2.0.x`|May 10, 2025|
 
 ### What pull requests will be included in stable patch-releases?
 
@@ -145,8 +145,8 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by `08-wasm` module in 
 
 | Go | callbacks | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|-----------|--------|------------|---------------------|
-| 1.19 | v0.3.0+ibc-go-v7.3-wasmvm-v1.5 | v7.3.0 | v0.47.6 | v0.37.2 |
-| 1.21 | v0.4.0+ibc-go-v8.3-wasmvm-v2.0 | v8.3.0 | v0.50.6 | v0.38.9 |
+| 1.19 | v0.3.1+ibc-go-v7.4-wasmvm-v1.5 | v7.4.0 | v0.47.8 | v0.37.4 |
+| 1.21 | v0.4.1+ibc-go-v8.4-wasmvm-v2.0 | v8.4.0 | v0.50.7 | v0.38.9 |
 
 ## Graphics
 
