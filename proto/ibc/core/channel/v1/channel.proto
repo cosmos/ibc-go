@@ -90,11 +90,17 @@ enum Order {
   ORDER_ORDERED = 2 [(gogoproto.enumvalue_customname) = "ORDERED"];
 }
 
+// IBCVersion defines the version that the IBC packet intends to use.
+// This allows asynchronous upgrades over time as unsupported IBC Versions
+// will simply be rejected by the receiver and timed out on sender.
 enum IBCVersion {
-  // zero-value for IBC version
-  IBC_CLASSIC = 0;
-  // IBC version 1
-  IBC_EUREKA_1 = 1;
+  // zero-value for IBC version.
+  // This will be treated as a classic packet
+  IBC_VERSION_UNSPECIFIED = 0;
+  // IBC version 1 implements the Classic protocol
+  IBC_VERSION_CLASSIC = 1;
+  // IBC version 2 implements the Eureka protocol
+  IBC_VERSION_EUREKA = 2;
 }
 
 // Counterparty defines a channel end counterparty

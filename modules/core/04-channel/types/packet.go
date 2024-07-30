@@ -6,7 +6,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -14,13 +13,25 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
-// CommitPacket returns the packet commitment bytes. The commitment consists of:
+func CommitPacket(packet Packet) []byte {
+	switch packet.IBCVersion {
+	case IBC_VERSION_UNSPECIFIED:
+	case IBC_VERSION_CLASSIC:
+		return CommitClassicPacket(packet)
+	case IBC_VERSION_EUREKA:
+		return CommitEurekaPacket(packet)
+	default:
+		panic("not implemented")
+	}
+}
+
+// CommitClassicPacket returns the classic packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 // NOTE: sdk.Uint64ToBigEndian sets the uint64 to a slice of length 8.
-func CommitPacket(cdc codec.BinaryCodec, packet Packet) []byte {
+func CommitClassicPacket(packet Packet) []byte {
 	timeoutHeight := packet.GetTimeoutHeight()
 
 	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
@@ -38,7 +49,7 @@ func CommitPacket(cdc codec.BinaryCodec, packet Packet) []byte {
 	return hash[:]
 }
 
-// CommitEurekaPacket returns the packet commitment bytes. The commitment consists of:
+// CommitEurekaPacket returns the Eureka packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
@@ -69,8 +80,10 @@ func CommitEurekaPacket(packet Packet) []byte {
 	buf = append(buf, destinationHash[:]...)
 
 	// hash the version
-	versionHash := sha256.Sum256([]byte(packet.GetVersion()))
-	buf = append(buf, versionHash[:]...)
+	if version != "" {
+		versionHash := sha256.Sum256([]byte(packet.GetVersion()))
+		buf = append(buf, versionHash[:]...)
+	}
 
 	// hash the data
 	dataHash := sha256.Sum256(packet.GetData())
@@ -103,6 +116,7 @@ func NewPacket(
 		DestinationChannel: destinationChannel,
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
+		IBCVersion:         IBC_VERSION_CLASSIC,
 	}
 }
 
@@ -111,7 +125,7 @@ func NewPacketWithVersion(
 	sequence uint64, sourcePort, sourceChannel,
 	destinationPort, destinationChannel string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
-	version string,
+	appVersion string,
 ) Packet {
 	return Packet{
 		Data:               data,
@@ -122,7 +136,8 @@ func NewPacketWithVersion(
 		DestinationChannel: destinationChannel,
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
-		Version:            version,
+		IBCVersion:         IBC_VERSION_EUREKA,
+		AppVersion:         appVersion,
 	}
 }
 

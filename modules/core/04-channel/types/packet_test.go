@@ -5,31 +5,30 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 func TestCommitPacket(t *testing.T) {
 	packet := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 
-	registry := codectypes.NewInterfaceRegistry()
-	clienttypes.RegisterInterfaces(registry)
-	types.RegisterInterfaces(registry)
+	commitment1 := types.CommitPacket(packet)
+	require.NotNil(t, commitment1)
 
-	cdc := codec.NewProtoCodec(registry)
+	packet2 := types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, "")
+	commitment2 := types.CommitPacket(packet2)
+	require.NotNil(t, commitment2)
 
-	commitment := types.CommitPacket(cdc, packet)
-	require.NotNil(t, commitment)
-}
+	// even though versions are same empty string,
+	// the commitment is different because we use
+	// Eureka protocol for packet2
+	require.NotEqual(t, commitment1, commitment2)
 
-func TestCommitEurekaPacket(t *testing.T) {
-	packet := types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, validVersion)
+	packet3 := types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, validVersion)
+	commitment3 := types.CommitPacket(packet3)
+	require.NotNil(t, commitment3)
 
-	commitment := types.CommitEurekaPacket(packet)
-	require.NotNil(t, commitment)
+	require.NotEqual(t, commitment1, commitment3)
+	require.NotEqual(t, commitment2, commitment3)
 }
 
 func TestPacketValidateBasic(t *testing.T) {
