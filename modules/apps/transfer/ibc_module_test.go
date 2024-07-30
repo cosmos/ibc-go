@@ -889,7 +889,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			unmarshalerStack, ok := transferStack.(porttypes.PacketDataUnmarshaler)
 			suite.Require().True(ok)
 
-			packetData, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
+			packetData, _, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
 
 			expPass := tc.expError == nil
 			if expPass {

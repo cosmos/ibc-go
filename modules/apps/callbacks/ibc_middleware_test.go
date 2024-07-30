@@ -1027,7 +1027,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 
 	// Unmarshal ICS20 v1 packet data into v2 packet data
 	data := expPacketDataICS20V1.GetBytes()
-	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
+	packetData, _, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 }
@@ -1060,7 +1060,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
 
 	// Unmarshal ICS20 v2 packet data
 	data := expPacketDataICS20V2.GetBytes()
-	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
+	packetData, _, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 }
