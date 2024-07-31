@@ -213,7 +213,7 @@ type ContractKeeper interface {
 		relayer sdk.AccAddress,
 		contractAddress,
 		packetSenderAddress,
-        version string,
+		version string,
 	) error
 	// IBCOnTimeoutPacketCallback is called in the source chain when a packet is not received before
 	// the timeout height. The packetSenderAddress is determined by the underlying module, and may be
@@ -232,7 +232,7 @@ type ContractKeeper interface {
 		relayer sdk.AccAddress,
 		contractAddress,
 		packetSenderAddress,
-        version string,
+		version string,
 	) error
 	// IBCReceivePacketCallback is called in the destination chain when a packet acknowledgement is written.
 	// The contract is expected to handle the callback within the user defined gas limit, and handle any errors,
