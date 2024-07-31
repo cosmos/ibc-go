@@ -91,7 +91,8 @@ type ContractKeeper interface {
 		timeoutTimestamp uint64,
 		packetData []byte,
 		contractAddress,
-		packetSenderAddress string,
+		packetSenderAddress,
+		version string,
 	) error
 	// IBCOnAcknowledgementPacketCallback is called in the source chain when a packet acknowledgement
 	// is received. The packetSenderAddress is determined by the underlying module, and may be empty if
@@ -110,7 +111,8 @@ type ContractKeeper interface {
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
 		contractAddress,
-		packetSenderAddress string,
+		packetSenderAddress,
+		version string,
 	) error
 	// IBCOnTimeoutPacketCallback is called in the source chain when a packet is not received before
 	// the timeout height. The packetSenderAddress is determined by the underlying module, and may be
@@ -128,7 +130,8 @@ type ContractKeeper interface {
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 		contractAddress,
-		packetSenderAddress string,
+		packetSenderAddress,
+		version string,
 	) error
 	// IBCReceivePacketCallback is called in the destination chain when a packet acknowledgement is written.
 	// The contract is expected to handle the callback within the user defined gas limit, and handle any errors,
@@ -139,7 +142,8 @@ type ContractKeeper interface {
 		cachedCtx sdk.Context,
 		packet ibcexported.PacketI,
 		ack ibcexported.Acknowledgement,
-		contractAddress string,
+		contractAddress,
+        version string,
 	) error
 }
 ```
