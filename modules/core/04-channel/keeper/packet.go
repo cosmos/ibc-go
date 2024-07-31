@@ -25,19 +25,19 @@ func (k *Keeper) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-) (uint64, error) {
+) (types.Packet, error) {
 	channel, found := k.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
+		return types.Packet{}, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 	}
 
 	if channel.State != types.OPEN {
-		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
+		return types.Packet{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, errorsmod.Wrapf(
+		return types.Packet{}, errorsmod.Wrapf(
 			types.ErrSequenceSendNotFound,
 			"source port: %s, source channel: %s", sourcePort, sourceChannel,
 		)
@@ -48,33 +48,33 @@ func (k *Keeper) SendPacket(
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId, timeoutHeight, timeoutTimestamp)
 
 	if err := packet.ValidateBasic(); err != nil {
-		return 0, errorsmod.Wrap(err, "constructed packet failed basic validation")
+		return types.Packet{}, errorsmod.Wrap(err, "constructed packet failed basic validation")
 	}
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
-		return 0, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		return types.Packet{}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
 	// prevent accidental sends with clients that cannot be updated
 	if status := k.clientKeeper.GetClientStatus(ctx, connectionEnd.ClientId); status != exported.Active {
-		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.ClientId, status)
+		return types.Packet{}, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.ClientId, status)
 	}
 
 	latestHeight := k.clientKeeper.GetClientLatestHeight(ctx, connectionEnd.ClientId)
 	if latestHeight.IsZero() {
-		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", connectionEnd.ClientId)
+		return types.Packet{}, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", connectionEnd.ClientId)
 	}
 
 	latestTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)
 	if err != nil {
-		return 0, err
+		return types.Packet{}, err
 	}
 
 	// check if packet is timed out on the receiving chain
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(latestHeight, latestTimestamp) {
-		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
+		return types.Packet{}, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
@@ -93,7 +93,7 @@ func (k *Keeper) SendPacket(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	return packet.GetSequence(), nil
+	return packet, nil
 }
 
 // RecvPacket is called by a module in order to receive & process an IBC packet

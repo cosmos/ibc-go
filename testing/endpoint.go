@@ -461,7 +461,7 @@ func (endpoint *Endpoint) SendPacket(
 	data []byte,
 ) (uint64, error) {
 	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
+	packet, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
 	if err != nil {
 		return 0, err
 	}
@@ -474,7 +474,7 @@ func (endpoint *Endpoint) SendPacket(
 		return 0, err
 	}
 
-	return sequence, nil
+	return packet.GetSequence(), nil
 }
 
 // RecvPacket receives a packet on the associated endpoint.
