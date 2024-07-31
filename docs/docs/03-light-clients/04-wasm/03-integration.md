@@ -21,8 +21,8 @@ The following table shows the compatibility matrix between the `08-wasm` module,
 
 |            **Version**           |         **Git commit to import**         |
 |:--------------------------------:|:----------------------------------------:|
-| `v0.4.1+ibc-go-v8.4-wasmvm-v2.0` | |
-| `v0.3.1+ibc-go-v7.4-wasmvm-v1.5` | |
+| `v0.4.1+ibc-go-v8.4-wasmvm-v2.0` | ccd4dc278e720be87418028026ebd93a80fa5ac0 |
+| `v0.3.1+ibc-go-v7.4-wasmvm-v1.5` | 13c071f0b34d67342f0b7a8874d84d2e68b887e1 |
 
 ## `app.go` setup
 
