@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	_ porttypes.IBCModule             = (*IBCModule)(nil)
+	_ porttypes.ClassicIBCModule      = (*IBCModule)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
 	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
 )

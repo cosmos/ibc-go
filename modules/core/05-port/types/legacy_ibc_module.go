@@ -14,18 +14,18 @@ import (
 // TODO: move this into some internal directory and fix the import cycle between port -> internal -> port
 
 var (
-	_ IBCModule             = (*LegacyIBCModule)(nil)
+	_ ClassicIBCModule      = (*LegacyIBCModule)(nil)
 	_ PacketDataUnmarshaler = (*LegacyIBCModule)(nil)
 	_ UpgradableModule      = (*LegacyIBCModule)(nil)
 )
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type LegacyIBCModule struct {
-	cbs []IBCModule
+	cbs []ClassicIBCModule
 }
 
 // NewLegacyIBCModule creates a new IBCModule given the keeper
-func NewLegacyIBCModule(cbs ...IBCModule) IBCModule {
+func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
 	return LegacyIBCModule{
 		cbs: cbs,
 	}
@@ -42,7 +42,8 @@ func (im LegacyIBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return "", nil
+	// TODO: implement
+	return version, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface.
@@ -56,44 +57,65 @@ func (im LegacyIBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return "", nil
+	// TODO: implement
+	return counterpartyVersion, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
-func (LegacyIBCModule) OnChanOpenAck(
+func (im LegacyIBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
-	_ string,
+	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
+	for _, cb := range im.cbs {
+		if err := cb.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion); err != nil {
+			return errorsmod.Wrapf(err, "channel open ack callback failed for portID %s channelID %s", portID, channelID)
+		}
+	}
 	return nil
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
-func (LegacyIBCModule) OnChanOpenConfirm(
+func (im LegacyIBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
+	for _, cb := range im.cbs {
+		if err := cb.OnChanOpenConfirm(ctx, portID, channelID); err != nil {
+			return errorsmod.Wrapf(err, "channel open confirm callback failed for portID %s channelID %s", portID, channelID)
+		}
+	}
 	return nil
 }
 
 // OnChanCloseInit implements the IBCModule interface
-func (LegacyIBCModule) OnChanCloseInit(
+func (im LegacyIBCModule) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
+	for _, cb := range im.cbs {
+		if err := cb.OnChanCloseInit(ctx, portID, channelID); err != nil {
+			return errorsmod.Wrapf(err, "channel close init callback failed for portID %s channelID %s", portID, channelID)
+		}
+	}
 	return nil
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
-func (LegacyIBCModule) OnChanCloseConfirm(
+func (im LegacyIBCModule) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
+	for _, cb := range im.cbs {
+		if err := cb.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
+			return errorsmod.Wrapf(err, "channel close confirm callback failed for portID %s channelID %s", portID, channelID)
+		}
+	}
 	return nil
 }
 
@@ -114,7 +136,6 @@ func (im LegacyIBCModule) OnSendPacket(
 			return errorsmod.Wrapf(err, "send packet callback failed for portID %s channelID %s", portID, channelID)
 		}
 	}
-
 	return nil
 }
 
@@ -137,6 +158,11 @@ func (im LegacyIBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	for _, cb := range im.cbs {
+		if err := cb.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer); err != nil {
+			return errorsmod.Wrapf(err, "acknowledgement packet callback failed for portID %s channelID %s", packet.SourcePort, packet.SourceChannel)
+		}
+	}
 	return nil
 }
 
@@ -146,6 +172,11 @@ func (im LegacyIBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	for _, cb := range im.cbs {
+		if err := cb.OnTimeoutPacket(ctx, packet, relayer); err != nil {
+			return errorsmod.Wrapf(err, "timeout packet callback failed for portID %s channelID %s", packet.SourcePort, packet.SourceChannel)
+		}
+	}
 	return nil
 }
 

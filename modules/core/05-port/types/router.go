@@ -14,13 +14,14 @@ import (
 // which contains all the module-defined callbacks required by ICS-26
 type Router struct {
 	routes       map[string]IBCModule
-	legacyRoutes map[string]IBCModule
+	legacyRoutes map[string]ClassicIBCModule
 	sealed       bool
 }
 
 func NewRouter() *Router {
 	return &Router{
-		routes: make(map[string]IBCModule),
+		routes:       make(map[string]IBCModule),
+		legacyRoutes: make(map[string]ClassicIBCModule),
 	}
 }
 
@@ -38,9 +39,32 @@ func (rtr Router) Sealed() bool {
 	return rtr.sealed
 }
 
+// AddClassicRoute adds IBCModule for a given module name. It returns the Router
+// so AddRoute calls can be linked. It will panic if the Router is sealed.
+func (rtr *Router) AddClassicRoute(module string, cbs ...ClassicIBCModule) *Router {
+	if rtr.sealed {
+		panic(fmt.Errorf("router sealed; cannot register %s route callbacks", module))
+	}
+	if !sdk.IsAlphaNumeric(module) {
+		panic(errors.New("route expressions can only contain alphanumeric characters"))
+	}
+
+	if _, ok := rtr.legacyRoutes[module]; ok {
+		panic(fmt.Errorf("route %s has already been registered", module))
+	}
+
+	switch len(cbs) {
+	case 0:
+		panic(fmt.Errorf("no callbacks provided!"))
+	default:
+		rtr.legacyRoutes[module] = NewLegacyIBCModule(cbs...)
+	}
+	return rtr
+}
+
 // AddRoute adds IBCModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
-func (rtr *Router) AddRoute(module string, cbs ...IBCModule) *Router {
+func (rtr *Router) AddRoute(module string, cb IBCModule) *Router {
 	if rtr.sealed {
 		panic(fmt.Errorf("router sealed; cannot register %s route callbacks", module))
 	}
@@ -51,28 +75,21 @@ func (rtr *Router) AddRoute(module string, cbs ...IBCModule) *Router {
 		panic(fmt.Errorf("route %s has already been registered", module))
 	}
 
-	switch len(cbs) {
-	case 0:
-		panic(fmt.Errorf("no callbacks provided!"))
-	case 1:
-		rtr.routes[module] = cbs[0]
-	default:
-		rtr.routes[module] = NewLegacyIBCModule(cbs...)
-	}
+	rtr.routes[module] = cb
 
 	return rtr
 }
 
-// HasRoute returns true if the Router has a module registered or false otherwise.
-func (rtr *Router) HasRoute(module string) bool {
-	_, ok := rtr.routes[module]
-	return ok
+func (rtr *Router) HandshakeRoute(portID string) (ClassicIBCModule, bool) {
+	legacyRoute, ok := rtr.legacyRoutes[portID]
+	return legacyRoute, ok
 }
 
-// Routes returns a IBCModule for a given module.
-// TODO: return error instead of bool
-func (rtr *Router) Routes(packet channeltypes.Packet) ([]IBCModule, bool) {
-	if packet.SourcePort == "MultiPacketData" {
+const sentinelMultiPacketData = "MultiPacketData"
+
+func (rtr *Router) PacketRoute(packet channeltypes.Packet) ([]IBCModule, bool) {
+	if packet.SourcePort == sentinelMultiPacketData {
+		panic("unimplemented")
 		// TODO: unimplemented
 		//	for _, pd := range packet.Data {
 		//      cbs = append(cbs, rtr.routes[pd.PortId])
@@ -86,7 +103,7 @@ func (rtr *Router) Routes(packet channeltypes.Packet) ([]IBCModule, bool) {
 		return []IBCModule{route}, true
 	}
 
-	for prefix := range rtr.routes {
+	for prefix := range rtr.legacyRoutes {
 		if strings.Contains(module, prefix) {
 			return []IBCModule{rtr.legacyRoutes[prefix]}, true
 		}
@@ -94,3 +111,29 @@ func (rtr *Router) Routes(packet channeltypes.Packet) ([]IBCModule, bool) {
 
 	return nil, false
 }
+
+// Routes returns a IBCModule for a given module.
+// TODO: return error instead of bool
+//func (rtr *Router) Routes(packet channeltypes.Packet) ([]ClassicIBCModule, bool) {
+//	if packet.SourcePort == "MultiPacketData" {
+//		// TODO: unimplemented
+//		//	for _, pd := range packet.Data {
+//		//      cbs = append(cbs, rtr.routes[pd.PortId])
+//		//  }
+//	}
+//
+//	module := packet.SourcePort
+//
+//	route, ok := rtr.legacyRoutes[module]
+//	if ok {
+//		return []ClassicIBCModule{route}, true
+//	}
+//
+//	for prefix := range rtr.routes {
+//		if strings.Contains(module, prefix) {
+//			return []ClassicIBCModule{rtr.legacyRoutes[prefix]}, true
+//		}
+//	}
+//
+//	return nil, false
+//}

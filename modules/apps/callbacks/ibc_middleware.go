@@ -41,7 +41,7 @@ type IBCMiddleware struct {
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application.
 // The underlying application must implement the required callback interfaces.
 func NewIBCMiddleware(
-	app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper,
+	app porttypes.ClassicIBCModule, ics4Wrapper porttypes.ICS4Wrapper,
 	contractKeeper types.ContractKeeper, maxCallbackGas uint64,
 ) IBCMiddleware {
 	packetDataUnmarshalerApp, ok := app.(types.CallbacksCompatibleModule)

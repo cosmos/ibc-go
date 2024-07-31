@@ -14,14 +14,14 @@ import (
 // AppRouter contains a map from module name to an ordered list of IBCModules
 // which contains all the module-defined callbacks required by ICS-26.
 type AppRouter struct {
-	routes map[string][]IBCModule
+	routes map[string][]ClassicIBCModule
 	sealed bool
 }
 
 // NewAppRouter creates and returns a new IBCModule application router.
 func NewAppRouter() *AppRouter {
 	return &AppRouter{
-		routes: make(map[string][]IBCModule),
+		routes: make(map[string][]ClassicIBCModule),
 	}
 }
 
@@ -41,7 +41,7 @@ func (rtr AppRouter) Sealed() bool {
 
 // AddRoute adds IBCModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
-func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
+func (rtr *AppRouter) AddRoute(module string, cbs ClassicIBCModule) *AppRouter {
 	if rtr.sealed {
 		panic(fmt.Errorf("router sealed; cannot register %s route callbacks", module))
 	}
@@ -59,7 +59,7 @@ func (rtr *AppRouter) HasRoute(module string) bool {
 }
 
 // GetRoute returns a IBCModule for a given module.
-func (rtr *AppRouter) GetRoute(module string) ([]IBCModule, bool) {
+func (rtr *AppRouter) GetRoute(module string) ([]ClassicIBCModule, bool) {
 	if !rtr.HasRoute(module) {
 		return nil, false
 	}

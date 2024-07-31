@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -86,15 +87,22 @@ func (k *Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *ca
 
 // Route returns a IBCModule for a given module, and a boolean indicating
 // whether or not the route is present.
-func (k *Keeper) Route(module string) (types.IBCModule, bool) {
-	// TODO: implement
-	// return k.Router.Routes(module)
-	return nil, false
+func (k *Keeper) Route(module string) (types.ClassicIBCModule, bool) {
+	return k.Router.HandshakeRoute(module)
 }
+
+func (k *Keeper) HandshakeRoute(module string) (types.ClassicIBCModule, bool) {
+	return k.Router.HandshakeRoute(module)
+}
+
+func (k *Keeper) PacketRoute(packet channeltypes.Packet) ([]types.IBCModule, bool) {
+	return k.Router.PacketRoute(packet)
+}
+
 
 // AppRoute returns an ordered list of IBCModule callbacks for a given module name, and a boolean indicating
 // whether or not the callbacks are present.
-func (k *Keeper) AppRoute(module string) ([]types.IBCModule, bool) {
+func (k *Keeper) AppRoute(module string) ([]types.ClassicIBCModule, bool) {
 	routes, ok := k.AppRouter.GetRoute(module)
 	if ok {
 		return routes, true
