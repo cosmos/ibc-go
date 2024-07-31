@@ -146,7 +146,7 @@ func (suite *KeeperTestSuite) TestSetCounterparty() {
 	suite.Require().Equal(types.Counterparty{}, retrievedCounterparty, "Counterparty retrieved not empty")
 }
 
-func (suite *KeeperTestSuite) TestGetCreator() {
+func (suite *KeeperTestSuite) TestSetCreator() {
 	clientID := "test-client"
 	expectedCreator := "test-creator"
 
