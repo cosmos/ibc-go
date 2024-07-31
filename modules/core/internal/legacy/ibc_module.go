@@ -1,4 +1,4 @@
-package main
+package legacy
 
 import (
 	errorsmod "cosmossdk.io/errors"
@@ -20,11 +20,11 @@ var (
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
-	cbs []IBCModule
+	cbs []porttypes.IBCModule
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(cbs ...IBCModule) IBCModule {
+func NewIBCModule(cbs ...porttypes.IBCModule) IBCModule {
 	return IBCModule{
 		cbs: cbs,
 	}
@@ -110,7 +110,7 @@ func (im IBCModule) OnSendPacket(
 	// to maintain backwards compatibility, OnSendPacket iterates over the callbacks in order, as they are wired from the bottom, to the top of the stack.
 	for _, cb := range im.cbs {
 		if err := cb.OnSendPacket(ctx, portID, channelID, sequence, timeoutHeight, timeoutTimestamp, dataBz, signer); err != nil {
-			return nil, errorsmod.Wrapf(err, "send packet callback failed for portID %s channelID %s", portID, channelID)
+			return errorsmod.Wrapf(err, "send packet callback failed for portID %s channelID %s", portID, channelID)
 		}
 	}
 
@@ -126,7 +126,7 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	return
+	return nil
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

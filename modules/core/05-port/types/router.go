@@ -15,7 +15,7 @@ import (
 // which contains all the module-defined callbacks required by ICS-26
 type Router struct {
 	routes       map[string]IBCModule
-	legacyRoutes map[string]internallegacy.IBCModule
+	legacyRoutes map[string]IBCModule
 	sealed       bool
 }
 
@@ -48,7 +48,7 @@ func (rtr *Router) AddRoute(module string, cbs ...IBCModule) *Router {
 	if !sdk.IsAlphaNumeric(module) {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
-	if _, ok := rtr.routes[module] { 
+	if _, ok := rtr.routes[module]; ok {
 		panic(fmt.Errorf("route %s has already been registered", module))
 	}
 
@@ -73,14 +73,14 @@ func (rtr *Router) HasRoute(module string) bool {
 // Routes returns a IBCModule for a given module.
 // TODO: return error instead of bool
 func (rtr *Router) Routes(packet channeltypes.Packet) ([]IBCModule, bool) {
-	if packet.PortId == "MultiPacketData" {
+	if packet.SourcePort == "MultiPacketData" {
 		// TODO: unimplemented
 		//	for _, pd := range packet.Data {
 		//      cbs = append(cbs, rtr.routes[pd.PortId])
 		//  }
 	}
 
-	module := packet.PortId
+	module := packet.SourcePort
 
 	route, ok := rtr.legacyRoutes[module]
 	if ok {
@@ -89,7 +89,7 @@ func (rtr *Router) Routes(packet channeltypes.Packet) ([]IBCModule, bool) {
 
 	for prefix := range rtr.routes {
 		if strings.Contains(module, prefix) {
-			return rtr.legacyRoutes[prefix]
+			return []IBCModule{rtr.legacyRoutes[prefix]}, true
 		}
 	}
 
