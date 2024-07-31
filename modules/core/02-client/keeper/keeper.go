@@ -322,6 +322,45 @@ func (k *Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) 
 	return k.consensusHost.GetSelfConsensusState(ctx, height)
 }
 
+// SetCounterparty sets the Counterparty for a given client identifier.
+func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID string, counterparty types.Counterparty) {
+	bz := k.cdc.MustMarshal(&counterparty)
+	k.ClientStore(ctx, clientID).Set([]byte(types.CounterpartyKey), bz)
+}
+
+// GetCounterparty gets the counterparty client's identifier for a given client identifier.
+func (k *Keeper) GetCounterparty(ctx sdk.Context, clientID string) (types.Counterparty, bool) {
+	store := k.ClientStore(ctx, clientID)
+	bz := store.Get([]byte(types.CounterpartyKey))
+	if len(bz) == 0 {
+		return types.Counterparty{}, false
+	}
+
+	var counterparty types.Counterparty
+	k.cdc.MustUnmarshal(bz, &counterparty)
+	return counterparty, true
+}
+
+// GetCreator returns the creator of the client.
+func (k *Keeper) GetCreator(ctx sdk.Context, clientID string) (string, bool) {
+	bz := k.ClientStore(ctx, clientID).Get([]byte(types.CreatorKey))
+	if len(bz) == 0 {
+		return "", false
+	}
+
+	return string(bz), true
+}
+
+// SetCreator sets the creator of the client.
+func (k *Keeper) SetCreator(ctx sdk.Context, clientID, creator string) {
+	k.ClientStore(ctx, clientID).Set([]byte(types.CreatorKey), []byte(creator))
+}
+
+// DeleteCreator deletes the creator associated with the client.
+func (k *Keeper) DeleteCreator(ctx sdk.Context, clientID string) {
+	k.ClientStore(ctx, clientID).Delete([]byte(types.CreatorKey))
+}
+
 // ValidateSelfClient validates the client parameters for a client of the running chain.
 // This function is only used to validate the client state the counterparty stores for this chain.
 // NOTE: If the client type is not of type Tendermint then delegate to a custom client validator function.

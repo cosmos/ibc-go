@@ -129,6 +129,43 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 	suite.Require().Equal(clientState, retrievedState, "Client states are not equal")
 }
 
+func (suite *KeeperTestSuite) TestSetCounterparty() {
+	merklePathPrefix := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
+	counterparty := types.Counterparty{
+		ClientId:         testClientID,
+		MerklePathPrefix: &merklePathPrefix,
+	}
+	suite.keeper.SetCounterparty(suite.ctx, testClientID, counterparty)
+
+	retrievedCounterparty, found := suite.keeper.GetCounterparty(suite.ctx, testClientID)
+	suite.Require().True(found, "GetCounterparty does not return counterparty")
+	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparty retrieved not equal")
+
+	retrievedCounterparty, found = suite.keeper.GetCounterparty(suite.ctx, "client-0")
+	suite.Require().False(found, "GetCounterparty unexpectedly returned a counterparty")
+	suite.Require().Equal(types.Counterparty{}, retrievedCounterparty, "Counterparty retrieved not empty")
+}
+
+func (suite *KeeperTestSuite) TestSetCreator() {
+	clientID := "test-client"
+	expectedCreator := "test-creator"
+
+	// Set the creator for the client
+	suite.keeper.SetCreator(suite.ctx, clientID, expectedCreator)
+
+	// Retrieve the creator from the store
+	retrievedCreator, found := suite.keeper.GetCreator(suite.ctx, clientID)
+
+	// Verify that the retrieved creator matches the expected creator
+	suite.Require().True(found, "GetCreator did not return stored creator")
+	suite.Require().Equal(expectedCreator, retrievedCreator, "Creator is not retrieved correctly")
+
+	// Verify non stored creator is not found
+	retrievedCreator, found = suite.keeper.GetCreator(suite.ctx, "client-0")
+	suite.Require().False(found, "GetCreator unexpectedly returned a creator")
+	suite.Require().Equal(retrievedCreator, "", "Creator is not empty")
+}
+
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
 

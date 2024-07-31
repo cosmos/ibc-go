@@ -29,6 +29,9 @@ service Msg {
   // RecoverClient defines a rpc handler method for MsgRecoverClient.
   rpc RecoverClient(MsgRecoverClient) returns (MsgRecoverClientResponse);
 
+  // ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
+  rpc ProvideCounterparty(MsgProvideCounterparty) returns (MsgProvideCounterpartyResponse);
+
   // IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
   rpc IBCSoftwareUpgrade(MsgIBCSoftwareUpgrade) returns (MsgIBCSoftwareUpgradeResponse);
 
@@ -139,6 +142,25 @@ message MsgRecoverClient {
 
 // MsgRecoverClientResponse defines the Msg/RecoverClient response type.
 message MsgRecoverClientResponse {}
+
+// MsgProvideCounterparty defines the message used to provide the counterparty client
+// identifier. Can only be invoked one time by the signer of MsgCreateClient if the counterparty
+// client identifier was not provided in the initial MsgCreateClient message.
+message MsgProvideCounterparty {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  // client unique identifier
+  string client_id = 1;
+  // counterparty client
+  Counterparty counterparty = 2 [(gogoproto.nullable) = false];
+  // signer address
+  string signer = 3;
+}
+
+// MsgProvideCounterpartyResponse defines the Msg/ProvideCounterparty response type.
+message MsgProvideCounterpartyResponse {}
 
 // MsgIBCSoftwareUpgrade defines the message used to schedule an upgrade of an IBC client using a v1 governance proposal
 message MsgIBCSoftwareUpgrade {
