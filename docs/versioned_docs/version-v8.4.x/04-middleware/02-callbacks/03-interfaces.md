@@ -143,7 +143,7 @@ type ContractKeeper interface {
 		packet ibcexported.PacketI,
 		ack ibcexported.Acknowledgement,
 		contractAddress,
-        version string,
+		version string,
 	) error
 }
 ```
