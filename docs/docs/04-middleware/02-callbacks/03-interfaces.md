@@ -95,7 +95,7 @@ type ContractKeeper interface {
 		packetData []byte,
 		contractAddress,
 		packetSenderAddress,
-        version string,
+		version string,
 	) error
 	// IBCOnAcknowledgementPacketCallback is called in the source chain when a packet acknowledgement
 	// is received. The packetSenderAddress is determined by the underlying module, and may be empty if
@@ -146,7 +146,7 @@ type ContractKeeper interface {
 		packet ibcexported.PacketI,
 		ack ibcexported.Acknowledgement,
 		contractAddress,
-        version string,
+		version string,
 	) error
 }
 ```
