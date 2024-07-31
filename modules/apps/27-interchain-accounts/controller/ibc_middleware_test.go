@@ -11,7 +11,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
 	controllerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
@@ -129,13 +128,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 		{
 			"ICA auth module does not claim channel capability", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
-					if chanCap != nil {
-						return "", fmt.Errorf("channel capability should be nil")
-					}
-
 					return version, nil
 				}
 			}, true,
@@ -145,7 +140,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				// NOTE: explicitly modify the channel version via the auth module callback,
 				// ensuring the expected JSON encoded metadata is not modified upon return
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
 					return "invalid-version", nil
@@ -160,7 +155,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
 					return "", fmt.Errorf("mock ica auth fails")
@@ -177,7 +172,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
 					return "", fmt.Errorf("error should be unreachable")
@@ -227,9 +222,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
 				suite.Require().NoError(err)
 
-				chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-
 				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 				suite.Require().True(ok)
 
@@ -238,7 +230,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				}
 
 				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
+					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, channel.Version,
 				)
 
 				if tc.expPass {
@@ -292,12 +284,10 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 		suite.Require().True(ok)
 
 		counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-		chanCap, found := suite.chainA.App.GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-		suite.Require().True(found)
 
 		version, err := cbs.OnChanOpenTry(
 			suite.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
-			path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap,
+			path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 			counterparty, path.EndpointB.ChannelConfig.Version,
 		)
 		suite.Require().Error(err)
