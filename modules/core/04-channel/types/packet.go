@@ -2,7 +2,6 @@ package types
 
 import (
 	"crypto/sha256"
-	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -23,21 +22,21 @@ import (
 func CommitPacket(packet Packet) []byte {
 	switch packet.ProtocolVersion {
 	case IBC_VERSION_UNSPECIFIED, IBC_VERSION_CLASSIC:
-		return CommitClassicPacket(packet)
+		return commitClassicPacket(packet)
 	case IBC_VERSION_EUREKA:
-		return CommitEurekaPacket(packet)
+		return commitEurekaPacket(packet)
 	default:
 		panic("unsupported version")
 	}
 }
 
-// CommitClassicPacket returns the classic packet commitment bytes. The commitment consists of:
+// commitClassicPacket returns the classic packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 // NOTE: sdk.Uint64ToBigEndian sets the uint64 to a slice of length 8.
-func CommitClassicPacket(packet Packet) []byte {
+func commitClassicPacket(packet Packet) []byte {
 	timeoutHeight := packet.GetTimeoutHeight()
 
 	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
@@ -55,19 +54,20 @@ func CommitClassicPacket(packet Packet) []byte {
 	return hash[:]
 }
 
-// CommitEurekaPacket returns the Eureka packet commitment bytes. The commitment consists of:
-// sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
+// commitEurekaPacket returns the Eureka packet commitment bytes. The commitment consists of:
+// sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight)
+// + sha256_hash(destPort) + sha256_hash(destChannel) + sha256_hash(version) + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 // NOTE: sdk.Uint64ToBigEndian sets the uint64 to a slice of length 8.
-func CommitEurekaPacket(packet Packet) []byte {
+func commitEurekaPacket(packet Packet) []byte {
 	timeoutHeight := packet.GetTimeoutHeight()
 
 	timeoutBuf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
 
 	// only hash the timeout height if it is non-zero. This will allow us to remove it entirely in the future
-	if !reflect.DeepEqual(timeoutHeight, clienttypes.ZeroHeight()) {
+	if timeoutHeight.EQ(clienttypes.ZeroHeight()) {
 		revisionNumber := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionNumber())
 		timeoutBuf = append(timeoutBuf, revisionNumber...)
 
