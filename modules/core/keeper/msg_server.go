@@ -452,14 +452,15 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 		ctx.Logger().Error("send packet failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
-
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.AppRoute(msg.PortId)
+	// TODO: decide how to provide packet args to router
+	cbs, ok := k.PortKeeper.Router.Routes(msg.Packet)
 	if !ok {
-		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
+	// Retrieve callbacks from router
 	sequence, err := k.ChannelKeeper.SendPacket(ctx, msg.PortId, msg.ChannelId, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Data)
 	if err != nil {
 		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))

@@ -3,15 +3,20 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	internallegacy "github.com/cosmos/ibc-go/v8/modules/core/internal/legacy"
 )
 
 // The router is a map from module name to the IBCModule
 // which contains all the module-defined callbacks required by ICS-26
 type Router struct {
-	routes map[string]IBCModule
-	sealed bool
+	routes       map[string]IBCModule
+	legacyRoutes map[string]internallegacy.IBCModule
+	sealed       bool
 }
 
 func NewRouter() *Router {
@@ -36,18 +41,26 @@ func (rtr Router) Sealed() bool {
 
 // AddRoute adds IBCModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
-func (rtr *Router) AddRoute(module string, cbs IBCModule) *Router {
+func (rtr *Router) AddRoute(module string, cbs ...IBCModule) *Router {
 	if rtr.sealed {
 		panic(fmt.Errorf("router sealed; cannot register %s route callbacks", module))
 	}
 	if !sdk.IsAlphaNumeric(module) {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
-	if rtr.HasRoute(module) {
+	if _, ok := rtr.routes[module] { 
 		panic(fmt.Errorf("route %s has already been registered", module))
 	}
 
-	rtr.routes[module] = cbs
+	switch len(cbs) {
+	case 0:
+		panic(fmt.Errorf("no callbacks provided!"))
+	case 1:
+		rtr.routes[module] = cbs[0]
+	default:
+		rtr.routes[module] = internallegacy.NewIBCModule(cbs...)
+	}
+
 	return rtr
 }
 
@@ -57,10 +70,28 @@ func (rtr *Router) HasRoute(module string) bool {
 	return ok
 }
 
-// GetRoute returns a IBCModule for a given module.
-func (rtr *Router) GetRoute(module string) (IBCModule, bool) {
-	if !rtr.HasRoute(module) {
-		return nil, false
+// Routes returns a IBCModule for a given module.
+// TODO: return error instead of bool
+func (rtr *Router) Routes(packet channeltypes.Packet) ([]IBCModule, bool) {
+	if packet.PortId == "MultiPacketData" {
+		// TODO: unimplemented
+		//	for _, pd := range packet.Data {
+		//      cbs = append(cbs, rtr.routes[pd.PortId])
+		//  }
 	}
-	return rtr.routes[module], true
+
+	module := packet.PortId
+
+	route, ok := rtr.legacyRoutes[module]
+	if ok {
+		return []IBCModule{route}, true
+	}
+
+	for prefix := range rtr.routes {
+		if strings.Contains(module, prefix) {
+			return rtr.legacyRoutes[prefix]
+		}
+	}
+
+	return nil, false
 }
