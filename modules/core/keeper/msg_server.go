@@ -454,7 +454,8 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 	}
 	// Retrieve callbacks from router
 	// TODO: decide how to provide packet args to router
-	cbs, ok := k.PortKeeper.Router.Routes(msg.Packet)
+	module := "fixme"
+	cbs, ok := k.PortKeeper.Router.Routes(channeltypes.Packet{})
 	if !ok {
 		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)

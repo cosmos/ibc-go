@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	internallegacy "github.com/cosmos/ibc-go/v8/modules/core/internal/legacy"
 )
 
 // The router is a map from module name to the IBCModule
@@ -58,7 +57,7 @@ func (rtr *Router) AddRoute(module string, cbs ...IBCModule) *Router {
 	case 1:
 		rtr.routes[module] = cbs[0]
 	default:
-		rtr.routes[module] = internallegacy.NewIBCModule(cbs...)
+		rtr.routes[module] = NewLegacyIBCModule(cbs...)
 	}
 
 	return rtr

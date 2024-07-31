@@ -1,4 +1,4 @@
-package legacy
+package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
@@ -8,30 +8,31 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
+// TODO: move this into some internal directory and fix the import cycle between port -> internal -> port
+
 var (
-	_ porttypes.IBCModule             = (*IBCModule)(nil)
-	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
-	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
+	_ IBCModule             = (*LegacyIBCModule)(nil)
+	_ PacketDataUnmarshaler = (*LegacyIBCModule)(nil)
+	_ UpgradableModule      = (*LegacyIBCModule)(nil)
 )
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
-type IBCModule struct {
-	cbs []porttypes.IBCModule
+type LegacyIBCModule struct {
+	cbs []IBCModule
 }
 
-// NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(cbs ...porttypes.IBCModule) IBCModule {
-	return IBCModule{
+// NewLegacyIBCModule creates a new IBCModule given the keeper
+func NewLegacyIBCModule(cbs ...IBCModule) IBCModule {
+	return LegacyIBCModule{
 		cbs: cbs,
 	}
 }
 
 // OnChanOpenInit implements the IBCModule interface
-func (im IBCModule) OnChanOpenInit(
+func (im LegacyIBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -45,7 +46,7 @@ func (im IBCModule) OnChanOpenInit(
 }
 
 // OnChanOpenTry implements the IBCModule interface.
-func (im IBCModule) OnChanOpenTry(
+func (im LegacyIBCModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -59,7 +60,7 @@ func (im IBCModule) OnChanOpenTry(
 }
 
 // OnChanOpenAck implements the IBCModule interface
-func (IBCModule) OnChanOpenAck(
+func (LegacyIBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -70,7 +71,7 @@ func (IBCModule) OnChanOpenAck(
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
-func (IBCModule) OnChanOpenConfirm(
+func (LegacyIBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -79,7 +80,7 @@ func (IBCModule) OnChanOpenConfirm(
 }
 
 // OnChanCloseInit implements the IBCModule interface
-func (IBCModule) OnChanCloseInit(
+func (LegacyIBCModule) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -88,7 +89,7 @@ func (IBCModule) OnChanCloseInit(
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
-func (IBCModule) OnChanCloseConfirm(
+func (LegacyIBCModule) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -97,7 +98,7 @@ func (IBCModule) OnChanCloseConfirm(
 }
 
 // OnSendPacket implements the IBCModule interface.
-func (im IBCModule) OnSendPacket(
+func (im LegacyIBCModule) OnSendPacket(
 	ctx sdk.Context,
 	portID string,
 	channelID string,
@@ -121,7 +122,7 @@ func (im IBCModule) OnSendPacket(
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
 // A nil acknowledgement may be returned when using the packet forwarding feature. This signals to core IBC that the acknowledgement will be written asynchronously.
-func (im IBCModule) OnRecvPacket(
+func (im LegacyIBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -130,7 +131,7 @@ func (im IBCModule) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
-func (im IBCModule) OnAcknowledgementPacket(
+func (im LegacyIBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -140,7 +141,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-func (im IBCModule) OnTimeoutPacket(
+func (im LegacyIBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -149,27 +150,27 @@ func (im IBCModule) OnTimeoutPacket(
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
+func (im LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
 	return "", nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
+func (im LegacyIBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	return "", nil
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+func (LegacyIBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 	return nil
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
+func (LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
+func (im LegacyIBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
 	return nil, nil
 }
