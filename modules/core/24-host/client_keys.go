@@ -42,7 +42,7 @@ func ClientStateKey() []byte {
 // FullConsensusStateKey returns the store key for the consensus state of a particular
 // client.
 func FullConsensusStateKey(clientID string, height exported.Height) []byte {
-	return []byte(FullClientKey(clientID, ConsensusStateKey(height)))
+	return FullClientKey(clientID, ConsensusStateKey(height))
 }
 
 // ConsensusStateKey returns the store key for a the consensus state of a particular
