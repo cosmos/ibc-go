@@ -35,9 +35,11 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 			features = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
 			suite.chainA.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 		}, true},
-		{"channel already exists", func() {
-			path.Setup()
-		}, false},
+		// This test doesn't check the correct error path. This is the actual error we get:
+		// caller does not own port capability for port ID mock: invalid port
+		// {"channel already exists", func() {
+		// 	path.Setup()
+		// }, false},
 		{"connection doesn't exist", func() {
 			// any non-empty values
 			path.EndpointA.ConnectionID = "connection-0"
@@ -187,19 +189,22 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 
 			suite.chainB.CreatePortCapability(suite.chainB.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 		}, false},
-		{"connection does not support ORDERED channels", func() {
-			path.SetupConnections()
-			path.SetChannelOrdered()
-			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
 
-			// modify connA versions to only support UNORDERED channels
-			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
-				c.Versions = []*connectiontypes.Version{connectiontypes.NewVersion("1", []string{"ORDER_UNORDERED"})}
-			})
+		// This test doesn't check the correct error path. This is the actual error we get:
+		// caller does not own port capability for port ID mock: invalid port
+		// {"connection does not support ORDERED channels", func() {
+		// 	path.SetupConnections()
+		// 	path.SetChannelOrdered()
+		// 	err := path.EndpointA.ChanOpenInit()
+		// 	suite.Require().NoError(err)
 
-			suite.chainA.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
-		}, false},
+		// 	// modify connA versions to only support UNORDERED channels
+		// 	path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
+		// 		c.Versions = []*connectiontypes.Version{connectiontypes.NewVersion("1", []string{"ORDER_UNORDERED"})}
+		// 	})
+
+		// 	suite.chainA.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
+		// }, false},
 	}
 
 	for _, tc := range testCases {
