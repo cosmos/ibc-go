@@ -332,7 +332,7 @@ func (k *Keeper) GetAllPacketCommitments(ctx sdk.Context) (commitments []types.P
 // true, the iterator will close and stop.
 func (k *Keeper) IteratePacketCommitmentAtChannel(ctx sdk.Context, portID, channelID string, cb func(_, _ string, sequence uint64, hash []byte) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.PacketCommitmentPrefixPath(portID, channelID)))
+	iterator := storetypes.KVStorePrefixIterator(store, host.PacketCommitmentPrefixKey(portID, channelID))
 	k.iterateHashes(ctx, iterator, cb)
 }
 
@@ -629,7 +629,7 @@ func (Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portI
 // HasInflightPackets returns true if there are packet commitments stored at the specified
 // port and channel, and false otherwise.
 func (k *Keeper) HasInflightPackets(ctx sdk.Context, portID, channelID string) bool {
-	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), []byte(host.PacketCommitmentPrefixPath(portID, channelID)))
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), host.PacketCommitmentPrefixKey(portID, channelID))
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	return iterator.Valid()
