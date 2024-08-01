@@ -60,8 +60,8 @@ pushed [here](https://github.com/orgs/cosmos/packages?repo_name=ibc-go).
 
 ### Example of running a single test
 
-> NOTE: environment variables can be set to override a config file, but the config file can still be used to set
-> defaults.
+> NOTE: environment variables can be set to override one or more config file variables, but the config file can still
+> be used to set defaults.
 
 ```sh 
 
@@ -77,7 +77,7 @@ selection.
 make e2e-test test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
-> Note: sometimes it can be useful to make changes to [ibctest](https://github.com/strangelove-ventures/interchaintest)
+> Note: sometimes it can be useful to make changes to [interchaintest](https://github.com/strangelove-ventures/interchaintest)
 > when running tests locally. In order to do this, add the following line to
 > e2e/go.mod
 
@@ -88,7 +88,7 @@ Or point it to any local checkout you have.
 ### Example of running a full testsuite
 
 > NOTE: not all tests may support full parallel runs due to possible chain wide modifications such as params / gov
-> proposals / chain restarts.
+> proposals / chain restarts. See [When to Use t.Parallel()](#when-to-use-tparallel) for more information.
 
 ```sh 
 make e2e-suite entrypoint=TestTransferTestSuite
@@ -101,8 +101,10 @@ to interactively select a test suite to run.
 
 In order to run tests outside the context of the Makefile (e.g. from an IDE)
 
-The main thing that needs to be set is the `E2E_CONFIG_PATH` environment variable. This should point to a valid config
-file, setting this will depend on the IDE being used.
+The default location for a config file will be `~/.ibc-go-e2e-config.yaml` but this can be overridden by setting the
+`E2E_CONFIG_PATH` environment variable.
+
+This should be set to the path of a valid config file you want to use, setting this env will depend on the IDE being used.
 
 ## Test design
 
@@ -123,7 +125,7 @@ params.
 
 tests should **not** be run in parallel when:
 
-- the test is not modifying chain wide state such as modifying params via a gov proposal.
+- the test is modifying chain wide state such as modifying params via a gov proposal.
 - the test needs to perform a chain restart.
 - the test must make assertions which may not be deterministic due to other tests. (e.g. the TotalEscrowForDenom may be modified between tests)
 
