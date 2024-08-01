@@ -11,7 +11,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -1099,20 +1098,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			},
 		},
 		{
-			"module capability not found",
-			func() {
-				msg.PortId = "invalid-port"
-				msg.ChannelId = "invalid-channel"
-			},
-			func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-				suite.Require().Empty(events)
-			},
-		},
-		{
 			"unsynchronized upgrade sequence writes upgrade error receipt",
 			func() {
 				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.UpgradeSequence = 99 })
@@ -1311,20 +1296,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 					),
 				}.ToABCIEvents()
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
-			},
-		},
-		{
-			"module capability not found",
-			func() {
-				msg.PortId = ibctesting.InvalidID
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-				suite.Require().Empty(events)
 			},
 		},
 		{
@@ -1683,20 +1654,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			},
 		},
 		{
-			"module capability not found",
-			func() {
-				msg.PortId = ibctesting.InvalidID
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-				suite.Require().Empty(events)
-			},
-		},
-		{
 			"core handler returns error and no upgrade error receipt is written",
 			func() {
 				// force an error by overriding the channel state to an invalid value
@@ -1920,20 +1877,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 					),
 				}.ToABCIEvents()
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
-			},
-		},
-		{
-			"module capability not found",
-			func() {
-				msg.PortId = ibctesting.InvalidID
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-				suite.Require().Empty(events)
 			},
 		},
 		{

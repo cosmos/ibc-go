@@ -447,10 +447,10 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(msg.Packet.SourcePort)
+	cbs, ok := k.PortKeeper.Route(msg.Packet.DestinationPort)
 	if !ok {
-		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort)
+		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort)
 	}
 
 	// Perform TAO verification

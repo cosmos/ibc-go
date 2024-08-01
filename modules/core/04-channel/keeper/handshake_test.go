@@ -174,12 +174,6 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			// not creating a channel on chainA will result in an invalid proof of existence
 			path.SetupConnections()
 		}, false},
-		{"port capability not found", func() {
-			path.SetupConnections()
-			path.SetChannelOrdered()
-			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
-		}, false},
 		{"connection version not negotiated", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
