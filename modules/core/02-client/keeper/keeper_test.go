@@ -502,6 +502,134 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestVerifyMembership() {
+	var path *ibctesting.Path
+
+	cases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"invalid client id",
+			func() {
+				path.EndpointA.ClientID = ""
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"failure: client is frozen",
+			func() {
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
+				clientState.FrozenHeight = types.NewHeight(0, 1)
+				path.EndpointA.SetClientState(clientState)
+			},
+			types.ErrClientNotActive,
+		},
+	}
+
+	for _, tc := range cases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			// create default proof, merklePath, and value which passes
+			key := host.FullClientStateKey(path.EndpointB.ClientID)
+			merklePath := commitmenttypes.NewMerklePath(key)
+			merklePrefixPath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+			suite.Require().NoError(err)
+
+			proof, proofHeight := suite.chainB.QueryProof(key)
+
+			clientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
+			value, err := suite.chainB.Codec.MarshalInterface(clientState)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.VerifyMembership(suite.chainA.GetContext(), path.EndpointA.ClientID, proofHeight, 0, 0, proof, merklePrefixPath, value)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestVerifyNonMembership() {
+	var path *ibctesting.Path
+
+	cases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"invalid client id",
+			func() {
+				path.EndpointA.ClientID = ""
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"failure: client is frozen",
+			func() {
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
+				clientState.FrozenHeight = types.NewHeight(0, 1)
+				path.EndpointA.SetClientState(clientState)
+			},
+			types.ErrClientNotActive,
+		},
+	}
+
+	for _, tc := range cases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			// create default proof, merklePath, and value which passes
+			key := host.FullClientStateKey("invalid-client-id")
+
+			merklePath := commitmenttypes.NewMerklePath(key)
+			merklePrefixPath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+			suite.Require().NoError(err)
+
+			proof, proofHeight := suite.chainB.QueryProof(key)
+
+			tc.malleate()
+
+			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.VerifyNonMembership(suite.chainA.GetContext(), path.EndpointA.ClientID, proofHeight, 0, 0, proof, merklePrefixPath)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
 // TestDefaultSetParams tests the default params set are what is expected
 func (suite *KeeperTestSuite) TestDefaultSetParams() {
 	expParams := types.DefaultParams()

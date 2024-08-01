@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -25,10 +24,6 @@ func (k *Keeper) VerifyClientState(
 	clientState exported.ClientState,
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	merklePath := commitmenttypes.NewMerklePath(host.FullClientStateKey(connection.Counterparty.ClientId))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
@@ -62,10 +57,6 @@ func (k *Keeper) VerifyClientConsensusState(
 	consensusState exported.ConsensusState,
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStateKey(connection.Counterparty.ClientId, consensusHeight))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
@@ -99,10 +90,6 @@ func (k *Keeper) VerifyConnectionState(
 	counterpartyConnection types.ConnectionEnd, // opposite connection
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	merklePath := commitmenttypes.NewMerklePath(host.ConnectionKey(connectionID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
@@ -137,10 +124,6 @@ func (k *Keeper) VerifyChannelState(
 	channel channeltypes.Channel,
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
@@ -176,10 +159,6 @@ func (k *Keeper) VerifyPacketCommitment(
 	commitmentBytes []byte,
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	// get time and block delays
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
@@ -212,10 +191,6 @@ func (k *Keeper) VerifyPacketAcknowledgement(
 	acknowledgement []byte,
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	// get time and block delays
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
@@ -249,10 +224,6 @@ func (k *Keeper) VerifyPacketReceiptAbsence(
 	sequence uint64,
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	// get time and block delays
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
@@ -284,10 +255,6 @@ func (k *Keeper) VerifyNextSequenceRecv(
 	nextSequenceRecv uint64,
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	// get time and block delays
 	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
@@ -320,10 +287,6 @@ func (k *Keeper) VerifyChannelUpgradeError(
 	errorReceipt channeltypes.ErrorReceipt,
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
@@ -357,10 +320,6 @@ func (k *Keeper) VerifyChannelUpgrade(
 	upgrade channeltypes.Upgrade,
 ) error {
 	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeKey(portID, channelID))
 	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
 	if err != nil {
