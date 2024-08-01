@@ -89,7 +89,7 @@ func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 // - An error if a relay step fails or the packet commitment does not exist on either endpoint.
 func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.ExecTxResult, []byte, error) {
 	pc := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointA.Chain.App.AppCodec(), packet)) {
+	if bytes.Equal(pc, channeltypes.CommitPacket(packet)) {
 		// packet found, relay from A to B
 		if err := path.EndpointB.UpdateClient(); err != nil {
 			return nil, nil, err
@@ -113,8 +113,7 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 	}
 
 	pc = path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointB.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointB.Chain.App.AppCodec(), packet)) {
-
+	if bytes.Equal(pc, channeltypes.CommitPacket(packet)) {
 		// packet found, relay B to A
 		if err := path.EndpointA.UpdateClient(); err != nil {
 			return nil, nil, err

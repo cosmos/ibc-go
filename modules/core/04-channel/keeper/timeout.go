@@ -84,7 +84,7 @@ func (k *Keeper) TimeoutPacket(
 		return types.ErrNoOpMsg
 	}
 
-	packetCommitment := types.CommitPacket(k.cdc, packet)
+	packetCommitment := types.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
@@ -247,7 +247,7 @@ func (k *Keeper) TimeoutOnClose(
 		return types.ErrNoOpMsg
 	}
 
-	packetCommitment := types.CommitPacket(k.cdc, packet)
+	packetCommitment := types.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
