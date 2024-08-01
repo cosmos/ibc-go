@@ -2,6 +2,7 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -172,4 +173,3 @@ func (LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID stri
 func (LegacyIBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
 	return nil, nil
 }
-
