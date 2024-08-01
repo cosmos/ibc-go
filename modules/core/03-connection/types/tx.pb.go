@@ -117,8 +117,9 @@ var xxx_messageInfo_MsgConnectionOpenInitResponse proto.InternalMessageInfo
 type MsgConnectionOpenTry struct {
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// Deprecated: this field is unused. Crossing hellos are no longer supported in core IBC.
-	PreviousConnectionId string        `protobuf:"bytes,2,opt,name=previous_connection_id,json=previousConnectionId,proto3" json:"previous_connection_id,omitempty"` // Deprecated: Do not use.
-	ClientState          *types.Any    `protobuf:"bytes,3,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`                              // Deprecated: Do not use.
+	PreviousConnectionId string `protobuf:"bytes,2,opt,name=previous_connection_id,json=previousConnectionId,proto3" json:"previous_connection_id,omitempty"` // Deprecated: Do not use.
+	// Deprecated: this field is unused.
+	ClientState          *types.Any    `protobuf:"bytes,3,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"` // Deprecated: Do not use.
 	Counterparty         Counterparty  `protobuf:"bytes,4,opt,name=counterparty,proto3" json:"counterparty"`
 	DelayPeriod          uint64        `protobuf:"varint,5,opt,name=delay_period,json=delayPeriod,proto3" json:"delay_period,omitempty"`
 	CounterpartyVersions []*Version    `protobuf:"bytes,6,rep,name=counterparty_versions,json=counterpartyVersions,proto3" json:"counterparty_versions,omitempty"`
