@@ -100,9 +100,9 @@ enum IBCVersion {
   // This will be treated as a classic packet
   IBC_VERSION_UNSPECIFIED = 0;
   // IBC version 1 implements the Classic protocol
-  IBC_VERSION_CLASSIC = 1;
+  IBC_VERSION_1 = 1;
   // IBC version 2 implements the Eureka protocol
-  IBC_VERSION_EUREKA = 2;
+  IBC_VERSION_2 = 2;
 }
 
 // Counterparty defines a channel end counterparty

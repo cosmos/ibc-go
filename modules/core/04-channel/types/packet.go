@@ -21,22 +21,22 @@ import (
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 func CommitPacket(packet Packet) []byte {
 	switch packet.ProtocolVersion {
-	case IBC_VERSION_UNSPECIFIED, IBC_VERSION_CLASSIC:
-		return commitClassicPacket(packet)
-	case IBC_VERSION_EUREKA:
-		return commitEurekaPacket(packet)
+	case IBC_VERSION_UNSPECIFIED, IBC_VERSION_1:
+		return commitV1Packet(packet)
+	case IBC_VERSION_2:
+		return commitV2Packet(packet)
 	default:
 		panic("unsupported version")
 	}
 }
 
-// commitClassicPacket returns the classic packet commitment bytes. The commitment consists of:
+// commitV1Packet returns the V1 packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 // NOTE: sdk.Uint64ToBigEndian sets the uint64 to a slice of length 8.
-func commitClassicPacket(packet Packet) []byte {
+func commitV1Packet(packet Packet) []byte {
 	timeoutHeight := packet.GetTimeoutHeight()
 
 	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
@@ -54,14 +54,14 @@ func commitClassicPacket(packet Packet) []byte {
 	return hash[:]
 }
 
-// commitEurekaPacket returns the Eureka packet commitment bytes. The commitment consists of:
+// commitV2Packet returns the V2 packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight)
 // + sha256_hash(destPort) + sha256_hash(destChannel) + sha256_hash(version) + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 // NOTE: sdk.Uint64ToBigEndian sets the uint64 to a slice of length 8.
-func commitEurekaPacket(packet Packet) []byte {
+func commitV2Packet(packet Packet) []byte {
 	timeoutHeight := packet.GetTimeoutHeight()
 
 	timeoutBuf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
@@ -123,7 +123,7 @@ func NewPacket(
 		DestinationChannel: destinationChannel,
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
-		ProtocolVersion:    IBC_VERSION_CLASSIC,
+		ProtocolVersion:    IBC_VERSION_1,
 	}
 }
 
@@ -143,7 +143,7 @@ func NewPacketWithVersion(
 		DestinationChannel: destinationChannel,
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
-		ProtocolVersion:    IBC_VERSION_EUREKA,
+		ProtocolVersion:    IBC_VERSION_2,
 		AppVersion:         appVersion,
 	}
 }
