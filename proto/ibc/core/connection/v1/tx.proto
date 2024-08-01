@@ -60,6 +60,7 @@ message MsgConnectionOpenTry {
   string client_id = 1;
   // Deprecated: this field is unused. Crossing hellos are no longer supported in core IBC.
   string                    previous_connection_id = 2 [deprecated = true];
+  // Deprecated: this field is unused.
   google.protobuf.Any       client_state           = 3 [deprecated = true];
   Counterparty              counterparty           = 4 [(gogoproto.nullable) = false];
   uint64                    delay_period           = 5;
