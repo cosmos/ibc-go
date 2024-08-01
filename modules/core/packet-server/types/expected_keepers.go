@@ -4,7 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
+
 type ChannelKeeper interface {
 	// SetPacketCommitment writes the commitment hash under the commitment path
 	// This is a public path that is standardized by the IBC specification
@@ -33,6 +35,10 @@ type ChannelKeeper interface {
 }
 
 type ClientKeeper interface {
+	// VerifyMembership retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
+	VerifyMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error
+	// VerifyNonMembership retrieves the light client module for the clientID and verifies the absence of a given key at a specified height.
+	VerifyNonMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path) error
 	// GetCounterparty returns the counterparty client given the client ID on
 	// the executing chain
 	// This is a private path that is only used by the IBC lite module
