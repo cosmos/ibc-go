@@ -17,18 +17,15 @@ type AppRouter struct {
 	routes       map[string]IBCModule
 	legacyRoutes map[string]ClassicIBCModule
 
-	// NOTE: this classRoutes map will be removed in favour of legacyRoutes
-	// once it is possible to replace instances of AddRoute to AddClassicRoute in app.gos
-	classicRoutes map[string][]IBCModule
+	// classicRoutes facilitates the consecutive calls to AddRoute for existing modules.
+	classicRoutes map[string][]ClassicIBCModule
 }
 
 func NewAppRouter() *AppRouter {
 	return &AppRouter{
-		routes:       make(map[string]IBCModule),
-		legacyRoutes: make(map[string]ClassicIBCModule),
-
-		// NOTE: this is a temporary map which will be removed once all modules are using the new router.
-		classicRoutes: make(map[string][]IBCModule),
+		routes:        make(map[string]IBCModule),
+		legacyRoutes:  make(map[string]ClassicIBCModule),
+		classicRoutes: make(map[string][]ClassicIBCModule),
 	}
 }
 
@@ -58,9 +55,20 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 	if !sdk.IsAlphaNumeric(module) {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
-	rtr.routes[module] = cbs
-	// TODO: temporary duplication within maps
-	rtr.classicRoutes[module] = append(rtr.classicRoutes[module], cbs)
+
+	if _, ok := cbs.(ClassicIBCModule); ok {
+		rtr.classicRoutes[module] = append(rtr.classicRoutes[module], cbs)
+
+		// in order to facilitate having a single LegacyIBCModule, but also allowing for
+		// consecutive calls to AddRoute to support existing functionality, we can re-create
+		// the legacy module with the routes as they get added.
+		if classicRoutes, ok := rtr.classicRoutes[module]; ok && len(classicRoutes) > 1 {
+			rtr.legacyRoutes[module] = NewLegacyIBCModule(classicRoutes...)
+		}
+	} else {
+		rtr.routes[module] = cbs
+	}
+
 	return rtr
 }
 
@@ -68,9 +76,7 @@ func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
 	if module == sentinelMultiPacketData {
 		return rtr.routeMultiPacketData(module)
 	}
-
-	return rtr.temporaryClassicRoute(module)
-	// return rtr.routeToLegacyModule(module)
+	return rtr.routeToLegacyModule(module)
 }
 
 // TODO: docstring once implementation is complete
@@ -80,21 +86,6 @@ func (rtr *AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
 	//      cbs = append(cbs, rtr.routes[pd.PortId])
 	//  }
 	// return cbs, true
-}
-
-// temporaryClassicRoute is only required until we can transition to AddClassicRoute instead of AddRoute in app.go.
-func (rtr *AppRouter) temporaryClassicRoute(module string) ([]IBCModule, bool) {
-	routes, ok := rtr.classicRoutes[module]
-	if ok {
-		return routes, true
-	}
-
-	for prefix := range rtr.classicRoutes {
-		if strings.Contains(module, prefix) {
-			return rtr.classicRoutes[prefix], true
-		}
-	}
-	return nil, false
 }
 
 // routeToLegacyModule routes to any legacy modules which have been registered with AddClassicRoute.

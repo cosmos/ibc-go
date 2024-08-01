@@ -18,6 +18,11 @@ type LegacyIBCModule struct {
 	cbs []ClassicIBCModule
 }
 
+// TODO: added this for testing purposes, we can remove later if tests are refactored.
+func (im *LegacyIBCModule) GetCallbacks() []ClassicIBCModule {
+	return im.cbs
+}
+
 // NewLegacyIBCModule creates a new IBCModule given the keeper
 func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
 	return LegacyIBCModule{
