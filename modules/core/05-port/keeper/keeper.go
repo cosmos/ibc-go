@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 
 	"cosmossdk.io/log"
 
@@ -93,20 +92,5 @@ func (k *Keeper) Route(module string) (types.IBCModule, bool) {
 // AppRoute returns an ordered list of IBCModule callbacks for a given module name, and a boolean indicating
 // whether or not the callbacks are present.
 func (k *Keeper) AppRoute(module string) ([]types.IBCModule, bool) {
-	routes, ok := k.AppRouter.GetRoute(module)
-	if ok {
-		return routes, true
-	}
-
-	for _, prefix := range k.Keys() {
-		if strings.Contains(module, prefix) {
-			return k.AppRouter.GetRoute(prefix)
-		}
-	}
-
-	return nil, false
-}
-
-func (k *Keeper) Keys() []string {
-	return k.AppRouter.Keys()
+	return k.AppRouter.PacketRoute(module)
 }
