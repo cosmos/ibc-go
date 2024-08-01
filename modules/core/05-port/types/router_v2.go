@@ -80,7 +80,7 @@ func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
 }
 
 // TODO: docstring once implementation is complete
-func (rtr *AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
+func (*AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
 	panic("unimplemented")
 	//  for _, pd := range packet.Data {
 	//      cbs = append(cbs, rtr.routes[pd.PortId])
