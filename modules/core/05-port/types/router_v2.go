@@ -78,7 +78,11 @@ func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
 	if module == sentinelMultiPacketData {
 		return rtr.routeMultiPacketData(module)
 	}
-	return rtr.routeToLegacyModule(module)
+	legacyModule, ok := rtr.routeToLegacyModule(module)
+	if !ok {
+		return nil, false
+	}
+	return []IBCModule{legacyModule}, true
 }
 
 // TODO: docstring once implementation is complete
@@ -91,17 +95,17 @@ func (*AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
 }
 
 // routeToLegacyModule routes to any legacy modules which have been registered with AddClassicRoute.
-func (rtr *AppRouter) routeToLegacyModule(module string) ([]IBCModule, bool) {
+func (rtr *AppRouter) routeToLegacyModule(module string) (IBCModule, bool) {
 	route, ok := rtr.legacyRoutes[module]
 	if ok {
-		return []IBCModule{route}, true
+		return route, true
 	}
 
 	// it's possible that some routes have been dynamically added e.g. with interchain accounts.
 	// in this case, we need to check if the module has the specified prefix.
 	for prefix := range rtr.legacyRoutes {
 		if strings.Contains(module, prefix) {
-			return []IBCModule{rtr.legacyRoutes[prefix]}, true
+			return rtr.legacyRoutes[prefix], true
 		}
 	}
 	return nil, false
@@ -110,6 +114,6 @@ func (rtr *AppRouter) routeToLegacyModule(module string) ([]IBCModule, bool) {
 // HandshakeRoute returns the ClassicIBCModule which will implement all handshake functions
 // and is required only for those callbacks.
 func (rtr *AppRouter) HandshakeRoute(portID string) (ClassicIBCModule, bool) {
-	legacyRoute, ok := rtr.legacyRoutes[portID]
-	return legacyRoute, ok
+	route, ok := rtr.routeToLegacyModule(portID)
+	return route, ok
 }
