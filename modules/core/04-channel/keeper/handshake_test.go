@@ -669,7 +669,8 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.Setup()
 		}, false},
 		// TODO: this does not actually test the correct error path.
-		// TODO(bznein): add error message here
+		// This is the actual error message we get:
+		// caller does not own capability for channel, port ID (mock) channel ID (channel-17): channel capability not found [/home/bznein/Work/ibc-go/modules/core/04-channel/keeper/handshake.go:417]
 		// {
 		// 	"failure: invalid counterparty upgrade sequence",
 		// 	func() {
