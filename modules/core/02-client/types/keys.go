@@ -8,8 +8,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 const (
@@ -79,4 +79,15 @@ func ParseClientIdentifier(clientID string) (string, uint64, error) {
 	}
 
 	return clientType, sequence, nil
+}
+
+// MustParseClientIdentifier parses the client type from the provided client identifier.
+// If an invalid client identifier is provided this function will panic.
+func MustParseClientIdentifier(clientID string) string {
+	clientType, _, err := ParseClientIdentifier(clientID)
+	if err != nil {
+		panic(err)
+	}
+
+	return clientType
 }

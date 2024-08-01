@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 // NewForwardErrorAcknowledgement returns a new error acknowledgement with path forwarding information.

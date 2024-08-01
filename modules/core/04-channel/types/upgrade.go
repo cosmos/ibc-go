@@ -8,7 +8,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 )
 
 // NewUpgrade creates a new Upgrade instance.

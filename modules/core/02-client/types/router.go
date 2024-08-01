@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // Router is a map from a clientType to a LightClientModule instance.
@@ -42,14 +42,8 @@ func (rtr *Router) HasRoute(clientType string) bool {
 	return ok
 }
 
-// GetRoute returns the LightClientModule registered for the client type
-// associated with the clientID.
-func (rtr *Router) GetRoute(clientID string) (exported.LightClientModule, bool) {
-	clientType, _, err := ParseClientIdentifier(clientID)
-	if err != nil {
-		return nil, false
-	}
-
+// GetRoute returns the LightClientModule registered for the provided client type or false otherwise.
+func (rtr *Router) GetRoute(clientType string) (exported.LightClientModule, bool) {
 	if !rtr.HasRoute(clientType) {
 		return nil, false
 	}

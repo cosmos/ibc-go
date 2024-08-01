@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -12,13 +13,13 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 // Endpoint is a which represents a channel endpoint and its associated
@@ -171,7 +172,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 // see reference https://github.com/cosmos/ibc-go/pull/1169
 func (endpoint *Endpoint) UpgradeChain() error {
 	if strings.TrimSpace(endpoint.Counterparty.ClientID) == "" {
-		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
+		return errors.New("cannot upgrade chain if there is no counterparty client")
 	}
 
 	clientState := endpoint.Counterparty.GetClientState()

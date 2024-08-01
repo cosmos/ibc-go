@@ -6,16 +6,16 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 const (
@@ -63,8 +63,8 @@ func (suite *SoloMachineTestSuite) TestStatus() {
 		suite.Run(tc.name, func() {
 			clientID = suite.solomachine.ClientID
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, suite.solomachine.ClientState())
 
@@ -121,8 +121,8 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 			clientState := suite.solomachine.ClientState()
 			height = clienttypes.NewHeight(0, suite.solomachine.ClientState().Sequence)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 
@@ -196,10 +196,10 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 				clientStateBz := suite.chainA.Codec.MustMarshal(tc.clientState)
 				consStateBz := suite.chainA.Codec.MustMarshal(tc.consState)
 
-				lcm, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.Route(clientID)
-				suite.Require().True(found)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+				suite.Require().NoError(err)
 
-				err := lcm.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consStateBz)
+				err = lightClientModule.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consStateBz)
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
 				expPass := tc.expErr == nil
@@ -659,8 +659,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 				suite.Require().NoError(err)
 
-				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-				suite.Require().True(found)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+				suite.Require().NoError(err)
 
 				// Set the client state in the store for light client call to find.
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
@@ -884,8 +884,8 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 				suite.Require().NoError(err)
 
-				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-				suite.Require().True(found)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+				suite.Require().NoError(err)
 
 				// Set the client state in the store for light client call to find.
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
@@ -993,12 +993,12 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 			subjectClientState.IsFrozen = true
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectClientID, subjectClientState)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			err := lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
+			err = lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
 
 			expPass := tc.expErr == nil
 			if expPass {
@@ -1069,8 +1069,8 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				clientState = sm.ClientState()
 				clientMsg = sm.CreateHeader(sm.Diversifier)
 
-				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-				suite.Require().True(found)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+				suite.Require().NoError(err)
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 
@@ -1161,8 +1161,8 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 
 				clientID = sm.ClientID
 
-				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-				suite.Require().True(found)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+				suite.Require().NoError(err)
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
 
@@ -1218,8 +1218,8 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 				suite.SetupTest()
 				clientID = sm.ClientID
 
-				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-				suite.Require().True(found)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+				suite.Require().NoError(err)
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
 
@@ -1396,14 +1396,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				suite.SetupTest()
 				clientID = sm.ClientID
 
-				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-				suite.Require().True(found)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+				suite.Require().NoError(err)
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
 
 				tc.malleate()
 
-				err := lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
+				err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
 
 				expPass := tc.expErr == nil
 				if expPass {
@@ -1642,14 +1642,14 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				suite.SetupTest()
 				clientID = sm.ClientID
 
-				lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-				suite.Require().True(found)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+				suite.Require().NoError(err)
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, sm.ClientState())
 
 				tc.malleate()
 
-				err := lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
+				err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
 
 				expPass := tc.expErr == nil
 				if expPass {
@@ -1665,10 +1665,10 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 func (suite *SoloMachineTestSuite) TestVerifyUpgradeAndUpdateState() {
 	clientID := suite.solomachine.ClientID
 
-	lightClientModule, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.Route(clientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+	suite.Require().NoError(err)
 
-	err := lightClientModule.VerifyUpgradeAndUpdateState(suite.chainA.GetContext(), clientID, nil, nil, nil, nil)
+	err = lightClientModule.VerifyUpgradeAndUpdateState(suite.chainA.GetContext(), clientID, nil, nil, nil, nil)
 	suite.Require().Error(err)
 }
 
@@ -1702,8 +1702,8 @@ func (suite *SoloMachineTestSuite) TestLatestHeight() {
 			clientID = suite.solomachine.ClientID
 			clientState := suite.solomachine.ClientState()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 

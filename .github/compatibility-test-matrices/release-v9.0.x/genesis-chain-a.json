@@ -1,0 +1,17 @@
+{
+  "chain-a": [
+    "release-v9.0.x"
+  ],
+  "chain-b": [
+    "release-v9.0.x"
+  ],
+  "entrypoint": [
+    "TestGenesisTestSuite"
+  ],
+  "test": [
+    "TestIBCGenesis"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}
