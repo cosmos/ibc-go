@@ -22,14 +22,6 @@ message MerklePrefix {
   bytes key_prefix = 1;
 }
 
-// MerklePath is the path used to verify commitment proofs, which can be an
-// arbitrary structured object (defined by a commitment type).
-// MerklePath is represented from root-to-leaf
-// Deprecated: Please use commitment/v2 MerklePath instead which supports non UTF-8 key paths.
-message MerklePath {
-  repeated string key_path = 1;
-}
-
 // MerkleProof is a wrapper type over a chain of CommitmentProofs.
 // It demonstrates membership or non-membership for an element or set of
 // elements, verifiable in conjunction with a known commitment root. Proofs

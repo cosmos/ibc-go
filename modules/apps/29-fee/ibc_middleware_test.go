@@ -514,6 +514,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				// setup mock callback
 				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context,
+					channelVersion string,
 					packet channeltypes.Packet,
 					relayer sdk.AccAddress,
 				) exported.Acknowledgement {
@@ -566,7 +567,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			// malleate test case
 			tc.malleate()
 
-			result := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+			result := cbs.OnRecvPacket(suite.chainB.GetContext(), suite.path.EndpointB.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress())
 
 			switch {
 			case tc.name == "success":
@@ -799,7 +800,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
@@ -840,7 +841,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ack, relayerAddr)
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, ack, relayerAddr)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -1013,7 +1014,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ channeltypes.Packet, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
@@ -1051,7 +1052,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayerAddr)
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, relayerAddr)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -1579,8 +1580,9 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
 	suite.Require().True(ok)
 
 	// Context, port identifier, channel identifier are not used in current wiring of fee.
-	packetData, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
+	packetData, version, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, ibcmock.MockPacketData)
 	suite.Require().NoError(err)
+	suite.Require().NotEmpty(version)
 	suite.Require().Equal(ibcmock.MockPacketData, packetData)
 }
 
@@ -1589,7 +1591,7 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
 	mockFeeMiddleware := ibcfee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
 	// Context, port identifier, channel identifier are not used in mockFeeMiddleware.
-	_, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
+	_, _, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
 	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	suite.Require().ErrorIs(err, expError)
 }
