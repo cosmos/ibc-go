@@ -71,7 +71,7 @@ const (
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
-	// e2e tests. See sample.config.yaml as an example for what this should look like.
+	// e2e tests. See sample.config.yaml or sample.config.extended.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
 )
 
@@ -233,7 +233,7 @@ func (tc TestConfig) GetChainAID() string {
 	if tc.ChainConfigs[0].ChainID != "" {
 		return tc.ChainConfigs[0].ChainID
 	}
-	return "chainA-1"
+	return "chain-1"
 }
 
 // GetChainBID returns the chain-id for chain B.
@@ -241,7 +241,7 @@ func (tc TestConfig) GetChainBID() string {
 	if tc.ChainConfigs[1].ChainID != "" {
 		return tc.ChainConfigs[1].ChainID
 	}
-	return "chainB-1"
+	return "chain-2"
 }
 
 // GetChainName returns the name of the chain given an index.
@@ -342,7 +342,44 @@ func fromFile() (TestConfig, bool) {
 		panic(err)
 	}
 
-	return tc, true
+	return populateDefaults(tc), true
+}
+
+// populateDefaults populates default values for the test config if
+// certain required fields are not specified.
+func populateDefaults(tc TestConfig) TestConfig {
+	for i := range tc.ChainConfigs {
+		if tc.ChainConfigs[i].ChainID == "" {
+			tc.ChainConfigs[i].ChainID = fmt.Sprintf("chain-%d", i+1)
+		}
+		if tc.ChainConfigs[i].Binary == "" {
+			tc.ChainConfigs[i].Binary = defaultBinary
+		}
+		if tc.ChainConfigs[i].Image == "" {
+			tc.ChainConfigs[i].Image = getChainImage(tc.ChainConfigs[i].Binary)
+		}
+		if tc.ChainConfigs[i].NumValidators == 0 {
+			tc.ChainConfigs[i].NumValidators = 1
+		}
+	}
+
+	if tc.ActiveRelayer == "" {
+		tc.ActiveRelayer = relayer.Hermes
+	}
+
+	if tc.RelayerConfigs == nil {
+		tc.RelayerConfigs = []relayer.Config{
+			getDefaultRlyRelayerConfig(),
+			getDefaultHermesRelayerConfig(),
+			getDefaultHyperspaceRelayerConfig(),
+		}
+	}
+
+	if tc.CometBFTConfig.LogLevel == "" {
+		tc.CometBFTConfig.LogLevel = "info"
+	}
+
+	return tc
 }
 
 // applyEnvironmentVariableOverrides applies all environment variable changes to the config
