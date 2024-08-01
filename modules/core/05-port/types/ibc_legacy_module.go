@@ -108,7 +108,7 @@ func (im LegacyIBCModule) OnSendPacket(
 	dataBz []byte,
 	signer sdk.AccAddress,
 ) error {
-	// to maintain backwards compatibility, OnSendPacket iterates over the callbacks in order, as they are wired from the bottom, to the top of the stack.
+	// to maintain backwards compatibility, OnSendPacket iterates over the callbacks in order, as they are wired from bottom to top of the stack.
 	for _, cb := range im.cbs {
 		if err := cb.OnSendPacket(ctx, portID, channelID, sequence, timeoutHeight, timeoutTimestamp, dataBz, signer); err != nil {
 			return errorsmod.Wrapf(err, "send packet callback failed for portID %s channelID %s", portID, channelID)

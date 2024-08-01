@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// TODO: this is a temporary constant that is subject to change based on the final spec.
 const sentinelMultiPacketData = "MultiPacketData"
 
 // AppRouter contains all the module-defined callbacks required by ICS-26
@@ -18,6 +19,7 @@ type AppRouter struct {
 	legacyRoutes map[string]ClassicIBCModule
 
 	// classicRoutes facilitates the consecutive calls to AddRoute for existing modules.
+	// TODO: this should be removed once app.gos have been refactored to use AddClassicRoute.
 	classicRoutes map[string][]ClassicIBCModule
 }
 
@@ -29,8 +31,8 @@ func NewAppRouter() *AppRouter {
 	}
 }
 
-// AddClassicRoute adds IBCModule for a given module name. It returns the Router
-// so AddRoute calls can be linked. It will panic if the Router is sealed.
+// AddClassicRoute takes a ordered list of ClassicIBCModules and creates a LegacyIBCModule. This is then added
+// to the legacy mapping.
 func (rtr *AppRouter) AddClassicRoute(module string, cbs ...ClassicIBCModule) *AppRouter {
 	if !sdk.IsAlphaNumeric(module) {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
