@@ -3943,6 +3943,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             description: >-
               QueryClientStateResponse is the response type for the
               Query/ClientState RPC
@@ -4418,6 +4425,13 @@ paths:
                         the RevisionHeight
 
                         gets reset
+
+
+                        Please note that json tags for generated Go code are
+                        overridden to explicitly exclude the omitempty jsontag.
+
+                        This enforces the Go json marshaller to always emit zero
+                        values for both revision_number and revision_height.
                     consensus_state:
                       type: object
                       properties:
@@ -4939,6 +4953,13 @@ paths:
                     RevisionHeight
 
                     gets reset
+
+
+                    Please note that json tags for generated Go code are
+                    overridden to explicitly exclude the omitempty jsontag.
+
+                    This enforces the Go json marshaller to always emit zero
+                    values for both revision_number and revision_height.
                   title: >-
                     Height is a monotonically increasing data type
 
@@ -5462,6 +5483,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
                 title: >-
                   Height is a monotonically increasing data type
 
@@ -6951,6 +6979,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
                 title: >-
                   Height is a monotonically increasing data type
 
@@ -7041,6 +7076,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryClientConnectionsResponse is the response type for the
               Query/ClientConnections RPC method
@@ -7401,6 +7443,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             description: >-
               QueryConnectionsResponse is the response type for the
               Query/Connections RPC
@@ -7795,6 +7844,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             description: >-
               QueryConnectionResponse is the response type for the
               Query/Connection RPC
@@ -8243,6 +8299,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryConnectionClientStateResponse is the response type for the
               Query/ConnectionClientState RPC method
@@ -8673,6 +8736,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryConnectionConsensusStateResponse is the response type for the
               Query/ConnectionConsensusState RPC method
@@ -9275,6 +9345,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             description: >-
               QueryChannelsResponse is the response type for the Query/Channels
               RPC method.
@@ -9662,6 +9739,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             description: >-
               QueryChannelResponse is the response type for the Query/Channel
               RPC method.
@@ -10117,6 +10201,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryChannelClientStateResponse is the Response type for the
               Query/QueryChannelClientState RPC method
@@ -10552,6 +10643,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryChannelClientStateResponse is the Response type for the
               Query/QueryChannelClientState RPC method
@@ -10823,6 +10921,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QuerySequenceResponse is the response type for the
               Query/QueryNextSequenceReceiveResponse RPC method
@@ -11080,6 +11185,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryNextSequenceSendResponse is the request type for the
               Query/QueryNextSequenceSend RPC method
@@ -11391,6 +11503,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryPacketAcknowledgemetsResponse is the request type for the
               Query/QueryPacketAcknowledgements RPC method
@@ -11713,6 +11832,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: >-
               QueryPacketAcknowledgementResponse defines the client query
               response for a
@@ -12032,6 +12158,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryPacketCommitmentsResponse is the request type for the
               Query/QueryPacketCommitments RPC method
@@ -12347,6 +12480,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryUnreceivedAcksResponse is the response type for the
               Query/UnreceivedAcks RPC method
@@ -12616,6 +12756,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryUnreceivedPacketsResponse is the response type for the
               Query/UnreceivedPacketCommitments RPC method
@@ -12883,6 +13030,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: >-
               QueryPacketCommitmentResponse defines the client query response
               for a packet
@@ -13154,6 +13308,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: >-
               QueryPacketReceiptResponse defines the client query response for a
               packet
@@ -13450,6 +13611,15 @@ paths:
                           as the RevisionHeight
 
                           gets reset
+
+
+                          Please note that json tags for generated Go code are
+                          overridden to explicitly exclude the omitempty
+                          jsontag.
+
+                          This enforces the Go json marshaller to always emit
+                          zero values for both revision_number and
+                          revision_height.
                       timestamp:
                         type: string
                         format: uint64
@@ -13516,6 +13686,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: >-
               QueryUpgradeResponse is the response type for the
               QueryUpgradeResponse RPC method
@@ -13785,6 +13962,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: >-
               QueryUpgradeErrorResponse is the response type for the
               Query/QueryUpgradeError RPC method
@@ -14157,6 +14341,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
             title: |-
               QueryConnectionChannelsResponse is the Response type for the
               Query/QueryConnectionChannels RPC method
@@ -14466,6 +14657,15 @@ paths:
                           as the RevisionHeight
 
                           gets reset
+
+
+                          Please note that json tags for generated Go code are
+                          overridden to explicitly exclude the omitempty
+                          jsontag.
+
+                          This enforces the Go json marshaller to always emit
+                          zero values for both revision_number and
+                          revision_height.
                       timestamp:
                         type: string
                         format: uint64
@@ -16201,6 +16401,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
       consensus_state:
         type: object
         properties:
@@ -16382,13 +16589,25 @@ definitions:
         type: string
         format: uint64
         title: the height within the given revision
-    description: |-
+    description: >-
       Normally the RevisionHeight is incremented at each height while keeping
+
       RevisionNumber the same. However some consensus algorithms may choose to
+
       reset the height in certain conditions e.g. hard forks, state-machine
+
       breaking changes In these cases, the RevisionNumber is incremented so that
+
       height continues to be monitonically increasing even as the RevisionHeight
+
       gets reset
+
+
+      Please note that json tags for generated Go code are overridden to
+      explicitly exclude the omitempty jsontag.
+
+      This enforces the Go json marshaller to always emit zero values for both
+      revision_number and revision_height.
     title: >-
       Height is a monotonically increasing data type
 
@@ -16811,6 +17030,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     description: >-
       QueryClientStateResponse is the response type for the Query/ClientState
       RPC
@@ -17085,6 +17311,13 @@ definitions:
             RevisionHeight
 
             gets reset
+
+
+            Please note that json tags for generated Go code are overridden to
+            explicitly exclude the omitempty jsontag.
+
+            This enforces the Go json marshaller to always emit zero values for
+            both revision_number and revision_height.
           title: >-
             Height is a monotonically increasing data type
 
@@ -17324,6 +17557,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
         title: >-
           Height is a monotonically increasing data type
 
@@ -17373,6 +17613,13 @@ definitions:
                 RevisionHeight
 
                 gets reset
+
+
+                Please note that json tags for generated Go code are overridden
+                to explicitly exclude the omitempty jsontag.
+
+                This enforces the Go json marshaller to always emit zero values
+                for both revision_number and revision_height.
             consensus_state:
               type: object
               properties:
@@ -17963,6 +18210,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
         title: >-
           Height is a monotonically increasing data type
 
@@ -18286,6 +18540,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryClientConnectionsResponse is the response type for the
       Query/ClientConnections RPC method
@@ -18505,6 +18766,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryConnectionClientStateResponse is the response type for the
       Query/ConnectionClientState RPC method
@@ -18711,6 +18979,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryConnectionConsensusStateResponse is the response type for the
       Query/ConnectionConsensusState RPC method
@@ -18861,6 +19136,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     description: >-
       QueryConnectionResponse is the response type for the Query/Connection RPC
 
@@ -19009,6 +19291,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     description: >-
       QueryConnectionsResponse is the response type for the Query/Connections
       RPC
@@ -19300,6 +19589,13 @@ definitions:
               RevisionHeight
 
               gets reset
+
+
+              Please note that json tags for generated Go code are overridden to
+              explicitly exclude the omitempty jsontag.
+
+              This enforces the Go json marshaller to always emit zero values
+              for both revision_number and revision_height.
           timestamp:
             type: string
             format: uint64
@@ -19532,6 +19828,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryChannelClientStateResponse is the Response type for the
       Query/QueryChannelClientState RPC method
@@ -19738,6 +20041,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryChannelClientStateResponse is the Response type for the
       Query/QueryChannelClientState RPC method
@@ -19780,6 +20090,13 @@ definitions:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
               timestamp:
                 type: string
                 format: uint64
@@ -19916,6 +20233,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     description: >-
       QueryChannelResponse is the response type for the Query/Channel RPC
       method.
@@ -20070,6 +20394,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     description: >-
       QueryChannelsResponse is the response type for the Query/Channels RPC
       method.
@@ -20220,6 +20551,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryConnectionChannelsResponse is the Response type for the
       Query/QueryConnectionChannels RPC method
@@ -20262,6 +20600,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QuerySequenceResponse is the response type for the
       Query/QueryNextSequenceReceiveResponse RPC method
@@ -20304,6 +20649,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryNextSequenceSendResponse is the request type for the
       Query/QueryNextSequenceSend RPC method
@@ -20346,6 +20698,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryPacketAcknowledgementResponse defines the client query response for a
       packet which also includes a proof and the height from which the
@@ -20436,6 +20795,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryPacketAcknowledgemetsResponse is the request type for the
       Query/QueryPacketAcknowledgements RPC method
@@ -20478,6 +20844,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: >-
       QueryPacketCommitmentResponse defines the client query response for a
       packet
@@ -20571,6 +20944,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryPacketCommitmentsResponse is the request type for the
       Query/QueryPacketCommitments RPC method
@@ -20612,6 +20992,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: >-
       QueryPacketReceiptResponse defines the client query response for a packet
 
@@ -20656,6 +21043,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryUnreceivedAcksResponse is the response type for the
       Query/UnreceivedAcks RPC method
@@ -20696,6 +21090,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: |-
       QueryUnreceivedPacketsResponse is the response type for the
       Query/UnreceivedPacketCommitments RPC method
@@ -20752,6 +21153,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: >-
       QueryUpgradeErrorResponse is the response type for the
       Query/QueryUpgradeError RPC method
@@ -20818,6 +21226,13 @@ definitions:
                   RevisionHeight
 
                   gets reset
+
+
+                  Please note that json tags for generated Go code are
+                  overridden to explicitly exclude the omitempty jsontag.
+
+                  This enforces the Go json marshaller to always emit zero
+                  values for both revision_number and revision_height.
               timestamp:
                 type: string
                 format: uint64
@@ -20881,6 +21296,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
     title: >-
       QueryUpgradeResponse is the response type for the QueryUpgradeResponse RPC
       method
@@ -20939,6 +21361,13 @@ definitions:
           RevisionHeight
 
           gets reset
+
+
+          Please note that json tags for generated Go code are overridden to
+          explicitly exclude the omitempty jsontag.
+
+          This enforces the Go json marshaller to always emit zero values for
+          both revision_number and revision_height.
       timestamp:
         type: string
         format: uint64
@@ -21013,6 +21442,13 @@ definitions:
               RevisionHeight
 
               gets reset
+
+
+              Please note that json tags for generated Go code are overridden to
+              explicitly exclude the omitempty jsontag.
+
+              This enforces the Go json marshaller to always emit zero values
+              for both revision_number and revision_height.
           timestamp:
             type: string
             format: uint64
