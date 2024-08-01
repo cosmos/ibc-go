@@ -20,7 +20,7 @@ v0.1.1-0.20231213092650-57fcdb9a9a9d => v0.1.0+ibc-go-v8.0-wasmvm-v1.5
 v0.1.1-0.20231213092633-b306e7a706e1 => v0.1.0+ibc-go-v7.3-wasmvm-v1.5
 ```
 
-## From ibc-go v8.3.x to ibc-go v9.0.x
+## From ibc-go v8.4.x to ibc-go v9.0.x
 
 ### Chains
 
@@ -39,7 +39,7 @@ v0.1.1-0.20231213092633-b306e7a706e1 => v0.1.0+ibc-go-v7.3-wasmvm-v1.5
 - The `WithQueryPlugins` function signature has changed to take in the `QueryPlugins` type from the `keeper` package (previously from the `types` package).
 - The `VMGasRegister` variable has been moved from the `types` package to the `keeper` package.
 
-## From v0.3.0+ibc-go-v8.3-wasmvm-v2.0 to v0.4.0-ibc-go-v8.3-wasmvm-v2.0
+## From v0.3.0+ibc-go-v8.3-wasmvm-v2.0 to v0.4.1-ibc-go-v8.4-wasmvm-v2.0
 
 ### Contract developers
 
@@ -48,7 +48,7 @@ The `path` field on both JSON API messages has been renamed to `merkle_path`.
 
 A migration is required for existing 08-wasm client contracts in order to correctly handle the deserialisation of these fields.
 
-## From v0.2.0+ibc-go-v7.3-wasmvm-v1.5 to v0.3.0-ibc-go-v7.3-wasmvm-v1.5
+## From v0.2.0+ibc-go-v7.3-wasmvm-v1.5 to v0.3.1-ibc-go-v7.4-wasmvm-v1.5
 
 ### Contract developers
 

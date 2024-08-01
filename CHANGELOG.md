@@ -62,6 +62,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#6023](https://github.com/cosmos/ibc-go/pull/6023) Remove emission of non-hexlified event attributes `packet_data` and `packet_ack`.
 * (core) [\#6320](https://github.com/cosmos/ibc-go/pull/6320) Remove unnecessary `Proof` interface from `exported` package.
 * (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6341) Modify `UnmarshalPacketData` interface to take in the context, portID, and channelID. This allows for packet data's to be unmarshaled based on the channel version.
+* (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6988) Modify `UnmarshalPacketData` interface to return the underlying application version.
 * (apps/27-interchain-accounts) [\#6433](https://github.com/cosmos/ibc-go/pull/6433) Use UNORDERED as the default ordering for new ICA channels.
 * (apps/transfer) [\#6440](https://github.com/cosmos/ibc-go/pull/6440) Remove `GetPrefixedDenom`.
 * (apps/transfer) [\#6508](https://github.com/cosmos/ibc-go/pull/6508) Remove the `DenomTrace` type.
