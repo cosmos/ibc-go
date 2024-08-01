@@ -58,8 +58,8 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
 
-	if _, ok := cbs.(ClassicIBCModule); ok {
-		rtr.classicRoutes[module] = append(rtr.classicRoutes[module], cbs)
+	if classicModule, ok := cbs.(ClassicIBCModule); ok {
+		rtr.classicRoutes[module] = append(rtr.classicRoutes[module], classicModule)
 
 		// in order to facilitate having a single LegacyIBCModule, but also allowing for
 		// consecutive calls to AddRoute to support existing functionality, we can re-create
@@ -74,7 +74,7 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 	return rtr
 }
 
-func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
+func (rtr *AppRouter) PacketRoute(module string) ([]ClassicIBCModule, bool) {
 	if module == sentinelMultiPacketData {
 		return rtr.routeMultiPacketData(module)
 	}
@@ -82,7 +82,7 @@ func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
 }
 
 // TODO: docstring once implementation is complete
-func (*AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
+func (*AppRouter) routeMultiPacketData(module string) ([]ClassicIBCModule, bool) {
 	panic("unimplemented")
 	//  for _, pd := range packet.Data {
 	//      cbs = append(cbs, rtr.routes[pd.PortId])
@@ -91,17 +91,17 @@ func (*AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
 }
 
 // routeToLegacyModule routes to any legacy modules which have been registered with AddClassicRoute.
-func (rtr *AppRouter) routeToLegacyModule(module string) ([]IBCModule, bool) {
+func (rtr *AppRouter) routeToLegacyModule(module string) ([]ClassicIBCModule, bool) {
 	route, ok := rtr.legacyRoutes[module]
 	if ok {
-		return []IBCModule{route}, true
+		return []ClassicIBCModule{route}, true
 	}
 
 	// it's possible that some routes have been dynamically added e.g. with interchain accounts.
 	// in this case, we need to check if the module has the specified prefix.
 	for prefix := range rtr.legacyRoutes {
 		if strings.Contains(module, prefix) {
-			return []IBCModule{rtr.legacyRoutes[prefix]}, true
+			return []ClassicIBCModule{rtr.legacyRoutes[prefix]}, true
 		}
 	}
 	return nil, false

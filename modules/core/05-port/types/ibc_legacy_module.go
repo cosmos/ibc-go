@@ -11,9 +11,6 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// TODO: IBCModule will be renamed to ClassicIBCModule in a follow up.
-type ClassicIBCModule IBCModule
-
 // LegacyIBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type LegacyIBCModule struct {
 	cbs []ClassicIBCModule
