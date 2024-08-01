@@ -66,11 +66,6 @@ func (im LegacyIBCModule) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	for _, cb := range im.cbs {
-		if err := cb.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion); err != nil {
-			return errorsmod.Wrapf(err, "channel open ack callback failed for portID %s channelID %s", portID, channelID)
-		}
-	}
 	return nil
 }
 
