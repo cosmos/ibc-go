@@ -35,14 +35,21 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, denomEscrow := range state.TotalEscrowed {
 		k.SetTotalEscrowForDenom(ctx, denomEscrow)
 	}
+
+	// Set any forwarded packets imported.
+	for _, forwardPacketState := range state.ForwardedPackets {
+		forwardKey := forwardPacketState.ForwardKey
+		k.setForwardedPacket(ctx, forwardKey.PortId, forwardKey.ChannelId, forwardKey.Sequence, forwardPacketState.Packet)
+	}
 }
 
 // ExportGenesis exports ibc-transfer module's portID and denom trace info into its genesis state.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
-		PortId:        k.GetPort(ctx),
-		Denoms:        k.GetAllDenoms(ctx),
-		Params:        k.GetParams(ctx),
-		TotalEscrowed: k.GetAllTotalEscrowed(ctx),
+		PortId:           k.GetPort(ctx),
+		Denoms:           k.GetAllDenoms(ctx),
+		Params:           k.GetParams(ctx),
+		TotalEscrowed:    k.GetAllTotalEscrowed(ctx),
+		ForwardedPackets: k.getAllForwardedPackets(ctx),
 	}
 }
