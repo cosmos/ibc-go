@@ -37,8 +37,8 @@ import (
   // other imports
   // ...
   capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-  ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
-  ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+  ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
+  ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 )
 
 type App struct {
@@ -70,11 +70,11 @@ import (
 
   capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
   capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-  ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-  ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
-  "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-  ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-  ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+  ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+  ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
+  "github.com/cosmos/ibc-go/v9/modules/apps/transfer"
+  ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+  ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 func NewApp(...args) *App {
@@ -142,8 +142,8 @@ Once the `Router` has been set, no new routes can be added.
 import (
   // other imports
   // ...
-  porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types" 
-  ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+  porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types" 
+  ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 )
 
 func NewApp(...args) *App {
@@ -169,9 +169,9 @@ import (
   // ...
   "github.com/cosmos/cosmos-sdk/types/module"
 
-  ibc "github.com/cosmos/ibc-go/v8/modules/core"
+  ibc "github.com/cosmos/ibc-go/v9/modules/core"
   "github.com/cosmos/ibc-go/modules/capability"
-  "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+  "github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 )
 
 func NewApp(...args) *App {
@@ -212,7 +212,7 @@ import (
   authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
   // highlight-next-line
-+ ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
++ ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 )
 
 // app.go
@@ -240,20 +240,16 @@ import (
   // ...
   "github.com/cosmos/cosmos-sdk/types/module"
   // highlight-next-line
-+ ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
++ ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 // app.go
 // after sealing the IBC router
 
-clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
 
-tmLightClientModule := ibctm.NewLightClientModule(
-  appCodec, 
-  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-)
-clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
-
+tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
+app.IBCKeeper.ClientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 app.ModuleManager = module.NewManager(
   // ...
   capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
@@ -279,9 +275,9 @@ import (
   // ...
   stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
   capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-  ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-  ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
-  ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+  ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+  ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
+  ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 )
 
 func NewApp(...args) *App {

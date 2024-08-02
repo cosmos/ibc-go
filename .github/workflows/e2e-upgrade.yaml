@@ -165,8 +165,8 @@ jobs:
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
-      chain-a-tag: v8.3.2
-      chain-b-tag: v8.3.2
+      chain-a-tag: v8.4.0
+      chain-b-tag: v8.4.0
       chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
@@ -179,8 +179,8 @@ jobs:
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
-      chain-a-tag: v8.3.2
-      chain-b-tag: v8.3.2
+      chain-a-tag: v8.4.0
+      chain-b-tag: v8.4.0
       chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
@@ -195,8 +195,8 @@ jobs:
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
-      chain-a-tag: v8.3.2
-      chain-b-tag: v8.3.2
+      chain-a-tag: v8.4.0
+      chain-b-tag: v8.4.0
       chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
@@ -209,7 +209,7 @@ jobs:
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
-      chain-a-tag: v8.3.2
+      chain-a-tag: v8.4.0
       chain-b-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
       chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
       upgrade-plan-name: "v9"

@@ -10,8 +10,8 @@ import (
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	cmtstate "github.com/cometbft/cometbft/state"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 const (
