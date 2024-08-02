@@ -35,11 +35,6 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 			features = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
 			suite.chainA.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 		}, true},
-		// This test doesn't check the correct error path. This is the actual error we get:
-		// caller does not own port capability for port ID mock: invalid port
-		// {"channel already exists", func() {
-		// 	path.Setup()
-		// }, false},
 		{"connection doesn't exist", func() {
 			// any non-empty values
 			path.EndpointA.ConnectionID = "connection-0"
@@ -673,23 +668,6 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			// channel not closed
 			path.Setup()
 		}, false},
-		// TODO: this does not actually test the correct error path.
-		// This is the actual error message we get:
-		// caller does not own capability for channel, port ID (mock) channel ID (channel-17): channel capability not found [/home/bznein/Work/ibc-go/modules/core/04-channel/keeper/handshake.go:417]
-		// {
-		// 	"failure: invalid counterparty upgrade sequence",
-		// 	func() {
-		// 		path.Setup()
-
-		// 		// trigger upgradeInit on B which will bump the counterparty upgrade sequence.
-		// 		path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-		// 		err := path.EndpointB.ChanUpgradeInit()
-		// 		suite.Require().NoError(err)
-
-		// 		path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-		// 	},
-		// 	false,
-		// },
 	}
 
 	for _, tc := range testCases {
