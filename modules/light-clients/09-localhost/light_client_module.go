@@ -91,7 +91,7 @@ func (l LightClientModule) VerifyMembership(
 
 	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
@@ -132,7 +132,7 @@ func (l LightClientModule) VerifyNonMembership(
 
 	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {

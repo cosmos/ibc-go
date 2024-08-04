@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -41,7 +41,7 @@ func (cs ClientState) verifyMisbehaviour(cdc codec.BinaryCodec, misbehaviour *Mi
 // unmarshaled into the specified data type.
 func (cs ClientState) verifySignatureAndData(cdc codec.BinaryCodec, misbehaviour *Misbehaviour, sigAndData *SignatureAndData) error {
 	// do not check misbehaviour timestamp since we want to allow processing of past misbehaviour
-	if err := cdc.Unmarshal(sigAndData.Path, new(commitmenttypes.MerklePath)); err != nil {
+	if err := cdc.Unmarshal(sigAndData.Path, new(commitmenttypesv2.MerklePath)); err != nil {
 		return err
 	}
 

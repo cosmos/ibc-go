@@ -1,17 +1,8 @@
 # Table of Contents
 
 1. [How to write tests](#how-to-write-tests)
-   - a. [Adding a new test](#adding-a-new-test)
-   - b. [Running the tests with custom images](#running-tests-with-custom-images)
-   - b. [Code samples](#code-samples)
-     - [Setup](#setup)
-     - [Creating test users](#creating-test-users)
-     - [Waiting](#waiting)
-     - [Query wallet balances](#query-wallet-balances)
-     - [Broadcasting messages](#broadcasting-messages)
-     - [Starting the relayer](#starting-the-relayer)
-     - [Arbitrary commands](#arbitrary-commands)
-     - [IBC transfer](#ibc-transfer)
+    - a. [Adding a new test](#adding-a-new-test)
+    - b. [Running the tests with custom images](#running-tests-with-custom-images)
 2. [Test design](#test-design)
    - a. [interchaintest](#interchaintest)
    - b. [CI configuration](#ci-configuration)
@@ -42,180 +33,78 @@ Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
 
 The tests can be configured using a configuration file or environment variables.
 
-See [the example](./sample.config.yaml) to get started. The default location the tests look is `~/.ibc-go-e2e-config.yaml`
+See the [minimal example](./sample.config.yaml) or [extended example](./sample.config.extended.yaml) to get started. The default location the tests look is `~/.ibc-go-e2e-config.yaml`
 But this can be specified directly using the `E2E_CONFIG_PATH` environment variable.
 
-There are several environment variables that alter the behaviour of the make target which will override any
-options specified in your config file.
+The sample config contains comments outlining the available fields and their purpose.
 
-| Environment Variable | Description                               | Default Value |
-|----------------------|-------------------------------------------|---------------|
-| CHAIN_IMAGE          | The image that will be used for the chain | ibc-go-simd   |
-| CHAIN_A_TAG          | The tag used for chain A                  | latest        |
-| CHAIN_B_TAG          | The tag used for chain B                  | latest        |
-| CHAIN_BINARY         | The binary used in the container          | simd          |
-| RELAYER_TAG          | The tag used for the relayer              | main          |
-| RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes        |
+There are several environment variables that alter the behaviour of the make target which will override any
+options specified in your config file. These are primarily used for CI and are not required for local development.
+
+| Environment Variable | Description                               | Default Value               |
+|----------------------|-------------------------------------------|-----------------------------|
+| CHAIN_IMAGE          | The image that will be used for the chain | ghcr.io/cosmos/ibc-go-simd  |
+| CHAIN_A_TAG          | The tag used for chain A                  | N/A                         |
+| CHAIN_B_TAG          | The tag used for chain B                  | N/A                         |
+| CHAIN_BINARY         | The binary used in the container          | simd                        |
+| RELAYER_TAG          | The tag used for the relayer              | 1.10.0                      |
+| RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes                      |
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
-The images which are used only exist on your machine.
+> The images which are used only exist locally only.
 
-These environment variables allow us to run tests with arbitrary versions (from branches or released) of simd
-and the go relayer.
+These environment variables allow us to run tests with arbitrary versions (from branches or releases) of simd and the go / hermes relayer.
 
-Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/orgs/cosmos/packages?repo_name=ibc-go).
+Every time changes are pushed to a branch or to `main`, a new `simd` image is built and
+pushed [here](https://github.com/orgs/cosmos/packages?repo_name=ibc-go).
 
-### Example Command
+### Example of running a single test
 
-```sh
-export CHAIN_IMAGE="ghcr.io/cosmos/ibc-go-simd"
-export CHAIN_A_TAG="main"
-export CHAIN_BINARY="simd"
+> NOTE: environment variables can be set to override one or more config file variables, but the config file can still
+> be used to set defaults.
 
-# We can also specify different values for the chains if needed.
-# they will default to the same as chain a.
-# export CHAIN_B_TAG="main"
+```sh 
 
-export RELAYER_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
 If `jq` is installed, you only need to specify the `test`.
 
-If `fzf` is also installed, you only need to run `make e2e-test` and you will be prompted with interactive test selection.
+If `fzf` is also installed, you only need to run `make e2e-test` and you will be prompted with interactive test
+selection.
 
 ```sh
 make e2e-test test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
-> Note: sometimes it can be useful to make changes to [ibctest](https://github.com/strangelove-ventures/interchaintest) when running tests locally. In order to do this, add the following line to
-e2e/go.mod
+> Note: sometimes it can be useful to make changes to [interchaintest](https://github.com/strangelove-ventures/interchaintest)
+> when running tests locally. In order to do this, add the following line to
+> e2e/go.mod
 
-`replace github.com/strangelove-ventures/interchaintest => ../ibctest`
+`replace github.com/strangelove-ventures/interchaintest => ../../interchaintest`
 
 Or point it to any local checkout you have.
 
-### Running tests in CI
+### Example of running a full testsuite
 
-To run tests in CI, you can checkout the ibc-go repo and provide these environment variables
-to the CI task.
+> NOTE: not all tests may support full parallel runs due to possible chain wide modifications such as params / gov
+> proposals / chain restarts. See [When to Use t.Parallel()](#when-to-use-tparallel) for more information.
 
-[This repo](https://github.com/chatton/ibc-go-e2e-demo) contains an example of how to do this with Github Actions.
-
-## Code samples
-
-### Setup
-
-Every standard test will start with this. This creates two chains and a relayer,
-initializes relayer accounts on both chains, establishes a connection and a channel
-between the chains.
-
-Both chains have started, but the relayer is not yet started.
-
-The relayer should be started as part of the test if required. See [Starting the Relayer](#starting-the-relayer)
-
-```go
-relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
-chainA, chainB := s.GetChains()
+```sh 
+make e2e-suite entrypoint=TestTransferTestSuite
 ```
 
-### Creating test users
+Similar to running a single test, if `jq` and `fzf` are installed you can run `make e2e-suite` and be prompted
+to interactively select a test suite to run.
 
-There are helper functions to easily create users on both chains.
+### Running tests outside the context of the Makefile
 
-```go
-chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-```
+In order to run tests outside the context of the Makefile (e.g. from an IDE)
 
-### Waiting
+The default location for a config file will be `~/.ibc-go-e2e-config.yaml` but this can be overridden by setting the
+`E2E_CONFIG_PATH` environment variable.
 
-We can wait for some number of blocks on the specified chains if required.
-
-```go
-chainA, chainB := s.GetChains()
-err := test.WaitForBlocks(ctx, 1, chainA, chainB)
-s.Require().NoError(err)
-```
-
-### Query wallet balances
-
-We can fetch balances of wallets on specific chains.
-
-```go
-chainABalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-s.Require().NoError(err)
-```
-
-### Broadcasting messages
-
-We can broadcast arbitrary messages which are signed on behalf of users created in the test.
-
-This example shows a multi message transaction being broadcast on chainA and signed on behalf of chainAWallet.
-
-```go
-relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
-chainA, chainB := s.GetChains()
-
-chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-
-t.Run("broadcast multi message transaction", func(t *testing.T){
-  msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
-  msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
-  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
-
-  s.AssertValidTxResponse(resp)
-  s.Require().NoError(err)
-})
-```
-
-### Starting the relayer
-
-The relayer can be started with the following.
-
-```go
-t.Run("start relayer", func(t *testing.T) {
-  s.StartRelayer(relayer)
-})
-```
-
-### Arbitrary commands
-
-Arbitrary commands can be executed on a given chain.
-
-> Note: these commands will be fully configured to run on the chain executed on (home directory, ports configured etc.)
-
-However, it is preferable to [broadcast messages](#broadcasting-messages) or use a gRPC query if possible.
-
-```go
-stdout, stderr, err := chainA.Exec(ctx, []string{"tx", "..."}, nil)
-```
-
-### IBC transfer
-
-It is possible to send an IBC transfer in two ways.
-
-Use the ibctest `Chain` interface (this ultimately does a docker exec)
-
-```go
-t.Run("send IBC transfer", func(t *testing.T) {
-  chainATx, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName, walletAmount, nil)
-  s.Require().NoError(err)
-  s.Require().NoError(chainATx.Validate(), "chain-a ibc transfer tx is invalid")
-})
-```
-
-Broadcast a `MsgTransfer`.
-
-```go
-t.Run("send IBC transfer", func(t *testing.T){
-  transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
-  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
-  s.AssertValidTxResponse(resp)
-  s.Require().NoError(err)
-})
-```
+This should be set to the path of a valid config file you want to use, setting this env will depend on the IDE being used.
 
 ## Test design
 
@@ -223,6 +112,22 @@ t.Run("send IBC transfer", func(t *testing.T){
 
 These E2E tests use the [interchaintest framework](https://github.com/strangelove-ventures/interchaintest). This framework creates chains and relayers in containers and allows for arbitrary commands to be executed in the chain containers,
 as well as allowing us to broadcast arbitrary messages which are signed on behalf of a user created in the test.
+
+### Test Suites
+
+In order for tests to be run in parallel, we create the chains in `SetupSuite`, and each test is in charge of 
+creating clients/connections/channels for itself.
+
+This is explicitly not being done in `SetupTest` to enable maximum control and flexibility over the channel creation
+params.
+
+### When to use t.Parallel
+
+tests should **not** be run in parallel when:
+
+- the test is modifying chain wide state such as modifying params via a gov proposal.
+- the test needs to perform a chain restart.
+- the test must make assertions which may not be deterministic due to other tests. (e.g. the TotalEscrowForDenom may be modified between tests)
 
 ### CI configuration
 
@@ -240,91 +145,28 @@ In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain l
 ## How tests are run
 
 The tests use the `matrix` feature of Github Actions. The matrix is
-dynamically generated using [this command](https://github.com/cosmos/ibc-go/blob/main/cmd/build_test_matrix/main.go).
+dynamically generated using [this tool](https://github.com/cosmos/ibc-go/blob/main/cmd/build_test_matrix/main.go).
 
 > Note: there is currently a limitation that all tests belonging to a test suite must be in the same file.
-In order to support test functions spread in different files, we would either need to manually maintain a matrix
-or update the script to account for this. The script assumes there is a single test suite per test file to avoid an overly complex
-generation process.
+> In order to support test functions spread in different files, we would either need to manually maintain a matrix
+> or update the script to account for this. The script assumes there is a single test suite per test file to avoid an
+> overly complex
+> generation process.
 
 Which looks under the `e2e` directory, and creates a task for each test suite function.
 
-### Example
+This tool can be run locally to see which tests will be run in CI.
 
-```go
-// e2e/file_one_test.go
-package e2e
-
-func TestFeeMiddlewareTestSuite(t *testing.T) {
-  suite.Run(t, new(FeeMiddlewareTestSuite))
-}
-
-type FeeMiddlewareTestSuite struct {
-  testsuite.E2ETestSuite
-}
-
-func (s *FeeMiddlewareTestSuite) TestA() {}
-func (s *FeeMiddlewareTestSuite) TestB() {}
-func (s *FeeMiddlewareTestSuite) TestC() {}
-
-```
-
-```go
-// e2e/file_two_test.go
-package e2e
-
-func TestTransferTestSuite(t *testing.T) {
-  suite.Run(t, new(TransferTestSuite))
-}
-
-type TransferTestSuite struct {
-  testsuite.E2ETestSuite
-}
-
-func (s *TransferTestSuite) TestD() {}
-func (s *TransferTestSuite) TestE() {}
-func (s *TransferTestSuite) TestF() {}
-
-```
-
-In the above example, the following would be generated.
-
-```json
-{
-  "include": [
-    {
-      "entrypoint": "TestFeeMiddlewareTestSuite",
-      "test": "TestA"
-    },
-    {
-      "entrypoint": "TestFeeMiddlewareTestSuite",
-      "test": "TestB"
-    },
-    {
-      "entrypoint": "TestFeeMiddlewareTestSuite",
-      "test": "TestC"
-    },
-    {
-      "entrypoint": "TestTransferTestSuite",
-      "test": "TestD"
-    },
-    {
-      "entrypoint": "TestTransferTestSuite",
-      "test": "TestE"
-    },
-    {
-      "entrypoint": "TestTransferTestSuite",
-      "test": "TestF"
-    }
-  ]
-}
+```sh
+go run cmd/build_test_matrix/main.go | jq
 ```
 
 This string is used to generate a test matrix in the Github Action that runs the E2E tests.
 
-All tests will be run on different hosts.
+All tests will be run on different hosts when running `make e2e-test` but `make e2e-suite` will run multiple tests
+in parallel on a shared host.
 
-### Misceleneous
+### Miscellaneous
 
 ## GitHub Workflows
 

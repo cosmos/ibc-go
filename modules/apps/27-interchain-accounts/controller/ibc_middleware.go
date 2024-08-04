@@ -183,6 +183,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 // OnRecvPacket implements the IBCMiddleware interface
 func (IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
+	_ string,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
@@ -195,6 +196,7 @@ func (IBCMiddleware) OnRecvPacket(
 // OnAcknowledgementPacket implements the IBCMiddleware interface
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
@@ -210,7 +212,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	// call underlying app's OnAcknowledgementPacket callback.
 	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), connectionID) {
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
 	return nil
@@ -219,6 +221,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 // OnTimeoutPacket implements the IBCMiddleware interface
 func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
@@ -236,7 +239,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 
 	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), connectionID) {
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	return nil
@@ -350,11 +353,17 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into an InterchainAccountPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (IBCMiddleware) UnmarshalPacketData(_ sdk.Context, _, _ string, bz []byte) (interface{}, error) {
+func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	var data icatypes.InterchainAccountPacketData
 	err := data.UnmarshalJSON(bz)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return data, nil
+
+	version, ok := im.GetAppVersion(ctx, portID, channelID)
+	if !ok {
+		return nil, "", errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
+	}
+
+	return data, version, nil
 }
