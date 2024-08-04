@@ -8,7 +8,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
-// SetDenomTrace is a wrapper around iterateDenomTraces for testing purposes.
+// SetDenomTrace is a wrapper around setDenomTrace for testing purposes.
 func (k Keeper) SetDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
 	k.setDenomTrace(ctx, denomTrace)
 }
