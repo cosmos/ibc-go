@@ -42,7 +42,8 @@ const (
 	AttributeKeyCallbackDestChannelID = "packet_dest_channel"
 	// AttributeKeyCallbackSequence denotes the sequence of the packet
 	AttributeKeyCallbackSequence = "packet_sequence"
-
+	// AttributeKeyCallbackBaseApplicationVersion denotes the callback base application version
+	AttributeKeyCallbackBaseApplicationVersion = "callback_base_application_version"
 	// AttributeValueCallbackSuccess denotes that the callback is successfully executed
 	AttributeValueCallbackSuccess = "success"
 	// AttributeValueCallbackFailure denotes that the callback has failed to execute
@@ -66,6 +67,7 @@ func EmitCallbackEvent(
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.ExecutionGasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackCommitGasLimit, fmt.Sprintf("%d", callbackData.CommitGasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", sequence)),
+		sdk.NewAttribute(AttributeKeyCallbackBaseApplicationVersion, callbackData.ApplicationVersion),
 	}
 	if err == nil {
 		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, AttributeValueCallbackSuccess))
