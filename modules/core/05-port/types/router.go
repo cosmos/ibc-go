@@ -11,13 +11,13 @@ import (
 // The router is a map from module name to the IBCModule
 // which contains all the module-defined callbacks required by ICS-26
 type Router struct {
-	routes map[string]IBCModule
+	routes map[string]ClassicIBCModule
 	sealed bool
 }
 
 func NewRouter() *Router {
 	return &Router{
-		routes: make(map[string]IBCModule),
+		routes: make(map[string]ClassicIBCModule),
 	}
 }
 
@@ -37,7 +37,7 @@ func (rtr Router) Sealed() bool {
 
 // AddRoute adds IBCModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
-func (rtr *Router) AddRoute(module string, cbs IBCModule) *Router {
+func (rtr *Router) AddRoute(module string, cbs ClassicIBCModule) *Router {
 	if rtr.sealed {
 		panic(fmt.Errorf("router sealed; cannot register %s route callbacks", module))
 	}
@@ -59,7 +59,7 @@ func (rtr *Router) HasRoute(module string) bool {
 }
 
 // GetRoute returns a IBCModule for a given module.
-func (rtr *Router) GetRoute(module string) (IBCModule, bool) {
+func (rtr *Router) GetRoute(module string) (ClassicIBCModule, bool) {
 	route, ok := rtr.routes[module]
 	if ok {
 		return route, true

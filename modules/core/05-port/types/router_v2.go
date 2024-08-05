@@ -60,8 +60,8 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
 
-	if _, ok := cbs.(ClassicIBCModule); ok {
-		rtr.classicRoutes[module] = append(rtr.classicRoutes[module], cbs)
+	if classicModule, ok := cbs.(ClassicIBCModule); ok {
+		rtr.classicRoutes[module] = append(rtr.classicRoutes[module], classicModule)
 
 		// in order to facilitate having a single LegacyIBCModule, but also allowing for
 		// consecutive calls to AddRoute to support existing functionality, we can re-create
@@ -98,7 +98,7 @@ func (*AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
 }
 
 // routeToLegacyModule routes to any legacy modules which have been registered with AddClassicRoute.
-func (rtr *AppRouter) routeToLegacyModule(module string) (IBCModule, bool) {
+func (rtr *AppRouter) routeToLegacyModule(module string) (ClassicIBCModule, bool) {
 	route, ok := rtr.legacyRoutes[module]
 	if ok {
 		return route, true

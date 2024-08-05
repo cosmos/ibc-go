@@ -8,9 +8,10 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// IBCModule defines an interface that implements all the callbacks
+// ClassicIBCModule defines an interface that implements all the callbacks
 // that modules must define as specified in ICS-26
-type IBCModule interface {
+type ClassicIBCModule interface {
+	IBCModule
 	// OnChanOpenInit will verify that the relayer-chosen parameters
 	// are valid and perform any custom INIT logic.
 	// It may return an error if the chosen parameters are invalid
@@ -77,7 +78,9 @@ type IBCModule interface {
 		portID,
 		channelID string,
 	) error
+}
 
+type IBCModule interface {
 	// TODO: consider removing timeout height and timeout timestamp added back for callbacks
 	OnSendPacket(
 		ctx sdk.Context,
@@ -185,7 +188,7 @@ type ICS4Wrapper interface {
 // Middleware must implement IBCModule to wrap communication from core IBC to underlying application
 // and ICS4Wrapper to wrap communication from underlying application to core IBC.
 type Middleware interface {
-	IBCModule
+	ClassicIBCModule
 	ICS4Wrapper
 }
 

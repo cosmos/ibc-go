@@ -47,7 +47,7 @@ keeper to verify that the packet sender is the same as the callback address if d
 // CallbacksCompatibleModule is an interface that combines the IBCModule and PacketDataUnmarshaler
 // interfaces to assert that the underlying application supports both.
 type CallbacksCompatibleModule interface {
-	porttypes.IBCModule
+	porttypes.ClassicIBCModule
 	porttypes.PacketDataUnmarshaler
 }
 
