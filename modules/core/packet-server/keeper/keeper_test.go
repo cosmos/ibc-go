@@ -38,13 +38,13 @@ func (suite *KeeperTestSuite) SetupTest() {
 // TODO: Remove, just testing the testing setup.
 func (suite *KeeperTestSuite) TestCreateEurekaClients() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	path.SetupEurekaClients()
+	path.SetupV2()
 
 	// Assert counterparty set and creator deleted
-	_, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	_, found := suite.chainA.App.GetPacketServer().ClientKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	suite.Require().True(found)
 
 	// Assert counterparty set and creator deleted
-	_, found = suite.chainB.App.GetIBCKeeper().ClientKeeper.GetCounterparty(suite.chainB.GetContext(), path.EndpointB.ClientID)
+	_, found = suite.chainB.App.GetPacketServer().ClientKeeper.GetCounterparty(suite.chainB.GetContext(), path.EndpointB.ClientID)
 	suite.Require().True(found)
 }

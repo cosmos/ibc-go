@@ -8,14 +8,14 @@ import (
 
 type Keeper struct {
 	cdc           codec.BinaryCodec
-	channelKeeper types.ChannelKeeper
-	clientKeeper  types.ClientKeeper
+	ChannelKeeper types.ChannelKeeper
+	ClientKeeper  types.ClientKeeper
 }
 
 func NewKeeper(cdc codec.BinaryCodec, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper) *Keeper {
 	return &Keeper{
 		cdc:           cdc,
-		channelKeeper: channelKeeper,
-		clientKeeper:  clientKeeper,
+		ChannelKeeper: channelKeeper,
+		ClientKeeper:  clientKeeper,
 	}
 }

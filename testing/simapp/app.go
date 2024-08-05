@@ -110,6 +110,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
@@ -177,6 +178,7 @@ type SimApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
+	PacketServer          *packetserverkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -369,6 +371,9 @@ func NewSimApp(
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), ibctm.NewConsensusHost(app.StakingKeeper), app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
+	// Setup packet server to call on Eureka tests
+	app.PacketServer = packetserverkeeper.NewKeeper(appCodec, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	govConfig := govtypes.DefaultConfig()
 	/*
@@ -977,6 +982,11 @@ func (app *SimApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 // GetIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 	return app.IBCKeeper
+}
+
+// GetPacketServer implements the TestingApp interface
+func (app *SimApp) GetPacketServer() *packetserverkeeper.Keeper {
+	return app.PacketServer
 }
 
 // GetScopedIBCKeeper implements the TestingApp interface.
