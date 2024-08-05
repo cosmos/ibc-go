@@ -87,6 +87,7 @@ func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
 }
 
 // TODO: docstring once implementation is complete
+// https://github.com/cosmos/ibc-go/issues/7056
 func (*AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
 	panic("unimplemented")
 	//  for _, pd := range packet.Data {
