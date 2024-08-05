@@ -110,7 +110,7 @@ func (k ContractKeeper) IncrementStateEntryCounter(ctx sdk.Context) {
 	k.SetStateEntryCounter(ctx, count+1)
 }
 
-// NewKeeper creates a new mock ContractKeeper.
+// NewContractKeeper creates a new mock ContractKeeper.
 func NewContractKeeper(key storetypes.StoreKey) *ContractKeeper {
 	k := &ContractKeeper{
 		key:      key,
