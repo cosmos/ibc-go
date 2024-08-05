@@ -162,6 +162,20 @@ func (path *Path) SetupClients() {
 	}
 }
 
+// SetupEurekaClients is a helper function to create clients supporting ibc-eureka on both
+// chains. It assumes the caller does not anticipate any errors.
+func (path *Path) SetupEurekaClients() {
+	path.SetupClients()
+
+	if err := path.EndpointB.ProvideCounterparty(); err != nil {
+		panic(err)
+	}
+
+	if err := path.EndpointA.ProvideCounterparty(); err != nil {
+		panic(err)
+	}
+}
+
 // SetupConnections is a helper function to create clients and the appropriate
 // connections on both the source and counterparty chain. It assumes the caller does not
 // anticipate any errors.
