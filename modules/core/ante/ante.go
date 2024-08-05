@@ -108,16 +108,10 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 // recvPacketCheckTx runs a subset of ibc recv packet logic to be used specifically within the RedundantRelayDecorator AnteHandler.
 // It only performs core IBC receiving logic and skips any application logic.
 func (rrd RedundantRelayDecorator) recvPacketCheckTx(ctx sdk.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
-	// grab channel capability
-	_, _, err := rrd.k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
-
 	// If the packet was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = rrd.k.ChannelKeeper.RecvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+	err := rrd.k.ChannelKeeper.RecvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
 	case nil:
