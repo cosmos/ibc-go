@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* (apps/callbacks)  [\#7000](https://github.com/cosmos/ibc-go/pull/7000) Add base application version to contract keeper callbacks.
+
 ### State Machine Breaking
 
 ### Improvements

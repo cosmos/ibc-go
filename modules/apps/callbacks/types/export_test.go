@@ -6,10 +6,10 @@ package types
 
 // GetCallbackData is a wrapper around getCallbackData to allow the function to be directly called in tests.
 func GetCallbackData(
-	packetData interface{}, srcPortID string, remainingGas,
+	packetData interface{}, version, srcPortID string, remainingGas,
 	maxGas uint64, callbackKey string,
 ) (CallbackData, error) {
-	return getCallbackData(packetData, srcPortID, remainingGas, maxGas, callbackKey)
+	return getCallbackData(packetData, version, srcPortID, remainingGas, maxGas, callbackKey)
 }
 
 // GetCallbackAddress is a wrapper around getCallbackAddress to allow the function to be directly called in tests.
