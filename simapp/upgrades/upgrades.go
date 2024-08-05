@@ -19,8 +19,6 @@ import (
 )
 
 const (
-	// V5 defines the upgrade name for the ibc-go/v5 upgrade handler.
-	V5 = "normal upgrade" // NOTE: keeping as "normal upgrade" as existing tags depend on this name
 	// V7 defines the upgrade name for the ibc-go/v7 upgrade handler.
 	V7 = "v7"
 	// V7_1 defines the upgrade name for the ibc-go/v7.1 upgrade handler.
