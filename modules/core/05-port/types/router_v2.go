@@ -11,6 +11,7 @@ import (
 )
 
 // TODO: this is a temporary constant that is subject to change based on the final spec.
+// https://github.com/cosmos/ibc/issues/1129
 const sentinelMultiPacketData = "MultiPacketData"
 
 // AppRouter contains all the module-defined callbacks required by ICS-26
@@ -20,6 +21,7 @@ type AppRouter struct {
 
 	// classicRoutes facilitates the consecutive calls to AddRoute for existing modules.
 	// TODO: this should be removed once app.gos have been refactored to use AddClassicRoute.
+	// https://github.com/cosmos/ibc-go/issues/7025
 	classicRoutes map[string][]ClassicIBCModule
 }
 
@@ -86,6 +88,7 @@ func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
 }
 
 // TODO: docstring once implementation is complete
+// https://github.com/cosmos/ibc-go/issues/7056
 func (*AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
 	panic("unimplemented")
 	//  for _, pd := range packet.Data {
