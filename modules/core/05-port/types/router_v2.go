@@ -11,6 +11,7 @@ import (
 )
 
 // TODO: this is a temporary constant that is subject to change based on the final spec.
+// https://github.com/cosmos/ibc/issues/1129
 const sentinelMultiPacketData = "MultiPacketData"
 
 // AppRouter contains all the module-defined callbacks required by ICS-26
