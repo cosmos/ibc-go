@@ -169,7 +169,14 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			cbs, ok := GetSimApp(s.chainA).IBCKeeper.PortKeeper.AppRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			callbacksModule, ok := cbs[1].(ibccallbacks.IBCMiddleware) // callbacks module is routed second
+			s.Require().Len(cbs, 1, "expected 1 legacy module")
+
+			legacyModule, ok := cbs[0].(porttypes.LegacyIBCModule)
+			s.Require().True(ok, "expected there to be a single legacy ibc module")
+
+			legacyModuleCbs := legacyModule.GetCallbacks()
+
+			callbacksModule, ok := legacyModuleCbs[1].(ibccallbacks.IBCMiddleware) // callbacks module is routed second
 			s.Require().True(ok)
 
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 
 	"cosmossdk.io/log"
 
@@ -87,38 +86,11 @@ func (k *Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *ca
 // Route returns a IBCModule for a given module, and a boolean indicating
 // whether or not the route is present.
 func (k *Keeper) Route(module string) (types.IBCModule, bool) {
-	routes, ok := k.Router.GetRoute(module)
-
-	if ok {
-		return routes, true
-	}
-
-	for _, prefix := range k.Keys() {
-		if strings.Contains(module, prefix) {
-			return k.Router.GetRoute(prefix)
-		}
-	}
-
-	return nil, false
+	return k.Router.GetRoute(module)
 }
 
 // AppRoute returns an ordered list of IBCModule callbacks for a given module name, and a boolean indicating
 // whether or not the callbacks are present.
 func (k *Keeper) AppRoute(module string) ([]types.IBCModule, bool) {
-	routes, ok := k.AppRouter.GetRoute(module)
-	if ok {
-		return routes, true
-	}
-
-	for _, prefix := range k.Keys() {
-		if strings.Contains(module, prefix) {
-			return k.AppRouter.GetRoute(prefix)
-		}
-	}
-
-	return nil, false
-}
-
-func (k *Keeper) Keys() []string {
-	return k.AppRouter.Keys()
+	return k.AppRouter.PacketRoute(module)
 }
