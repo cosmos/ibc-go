@@ -184,22 +184,19 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 
 			suite.chainB.CreatePortCapability(suite.chainB.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
 		}, false},
+		{"connection does not support ORDERED channels", func() {
+			path.SetupConnections()
+			path.SetChannelOrdered()
+			err := path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
 
-		// This test doesn't check the correct error path. This is the actual error we get:
-		// caller does not own port capability for port ID mock: invalid port
-		// {"connection does not support ORDERED channels", func() {
-		// 	path.SetupConnections()
-		// 	path.SetChannelOrdered()
-		// 	err := path.EndpointA.ChanOpenInit()
-		// 	suite.Require().NoError(err)
+			// modify connA versions to only support UNORDERED channels
+			path.EndpointB.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
+				c.Versions = []*connectiontypes.Version{connectiontypes.NewVersion("1", []string{"ORDER_UNORDERED"})}
+			})
 
-		// 	// modify connA versions to only support UNORDERED channels
-		// 	path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
-		// 		c.Versions = []*connectiontypes.Version{connectiontypes.NewVersion("1", []string{"ORDER_UNORDERED"})}
-		// 	})
-
-		// 	suite.chainA.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
-		// }, false},
+			suite.chainB.CreatePortCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, ibctesting.MockPort)
+		}, false},
 	}
 
 	for _, tc := range testCases {
@@ -668,6 +665,19 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			// channel not closed
 			path.Setup()
 		}, false},
+		{
+			"failure: invalid counterparty upgrade sequence",
+			func() {
+				path.Setup()
+				// trigger upgradeInit on A which will bump the counterparty upgrade sequence.
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
