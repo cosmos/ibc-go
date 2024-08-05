@@ -86,6 +86,9 @@ type ContractKeeper interface {
 	// validation on the origin of a given packet. It is recommended to perform the same validation
 	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
 	// defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
+	//
+	// The version provided is the base application version for the given packet send. This allows
+	// contracts to determine how to unmarshal the packetData.
 	IBCSendPacketCallback(
 		cachedCtx sdk.Context,
 		sourcePort string,
@@ -94,7 +97,7 @@ type ContractKeeper interface {
 		timeoutTimestamp uint64,
 		packetData []byte,
 		contractAddress,
-		packetSenderAddress,
+		packetSenderAddress string,
 		version string,
 	) error
 	// IBCOnAcknowledgementPacketCallback is called in the source chain when a packet acknowledgement
@@ -108,13 +111,16 @@ type ContractKeeper interface {
 	// validation on the origin of a given packet. It is recommended to perform the same validation
 	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
 	// defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
+	//
+	// The version provided is the base application version for the given packet send. This allows
+	// contracts to determine how to unmarshal the packetData.
 	IBCOnAcknowledgementPacketCallback(
 		cachedCtx sdk.Context,
 		packet channeltypes.Packet,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
 		contractAddress,
-		packetSenderAddress,
+		packetSenderAddress string,
 		version string,
 	) error
 	// IBCOnTimeoutPacketCallback is called in the source chain when a packet is not received before
@@ -128,12 +134,15 @@ type ContractKeeper interface {
 	// validation on the origin of a given packet. It is recommended to perform the same validation
 	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
 	// defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
+	//
+	// The version provided is the base application version for the given packet send. This allows
+	// contracts to determine how to unmarshal the packetData.
 	IBCOnTimeoutPacketCallback(
 		cachedCtx sdk.Context,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 		contractAddress,
-		packetSenderAddress,
+		packetSenderAddress string,
 		version string,
 	) error
 	// IBCReceivePacketCallback is called in the destination chain when a packet acknowledgement is written.
@@ -141,11 +150,14 @@ type ContractKeeper interface {
 	// out of gas, or panics gracefully.
 	// This entry point is called with a cached context. If an error is returned, then the changes in
 	// this context will not be persisted, but the packet lifecycle will not be blocked.
+	//
+	// The version provided is the base application version for the given packet send. This allows
+	// contracts to determine how to unmarshal the packetData.
 	IBCReceivePacketCallback(
 		cachedCtx sdk.Context,
 		packet ibcexported.PacketI,
 		ack ibcexported.Acknowledgement,
-		contractAddress,
+		contractAddress string,
 		version string,
 	) error
 }
