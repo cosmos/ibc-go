@@ -21,6 +21,7 @@ type AppRouter struct {
 
 	// classicRoutes facilitates the consecutive calls to AddRoute for existing modules.
 	// TODO: this should be removed once app.gos have been refactored to use AddClassicRoute.
+	// https://github.com/cosmos/ibc-go/issues/7025
 	classicRoutes map[string][]ClassicIBCModule
 }
 
