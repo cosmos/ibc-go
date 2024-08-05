@@ -177,6 +177,7 @@ type SimApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
+	PacketServer          *packetserver.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -522,6 +523,9 @@ func NewSimApp(
 
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
+
+	// Set Packet Keeper for Eureka tests
+	app.PacketServer = packetserver.NewKeeper(appCodec, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	// ****  Module Options ****
 
