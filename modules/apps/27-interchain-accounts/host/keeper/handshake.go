@@ -8,12 +8,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // OnChanOpenTry performs basic validation of the ICA channel
@@ -26,7 +24,6 @@ func (k Keeper) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
@@ -67,12 +64,6 @@ func (k Keeper) OnChanOpenTry(
 		// if a channel is being reopened, we allow the controller to propose new fields
 		// which are not exactly the same as the previous. The provided address will
 		// be overwritten with the correct one before the metadata is returned.
-	}
-
-	// On the host chain the capability may only be claimed during the OnChanOpenTry
-	// The capability being claimed in OpenInit is for a controller chain (the port is different)
-	if err = k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", errorsmod.Wrapf(err, "failed to claim capability for channel %s on port %s", channelID, portID)
 	}
 
 	var accAddress sdk.AccAddress

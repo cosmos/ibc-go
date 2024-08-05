@@ -11,6 +11,7 @@ import (
 )
 
 // TODO: this is a temporary constant that is subject to change based on the final spec.
+// https://github.com/cosmos/ibc/issues/1129
 const sentinelMultiPacketData = "MultiPacketData"
 
 // AppRouter contains all the module-defined callbacks required by ICS-26
@@ -20,6 +21,7 @@ type AppRouter struct {
 
 	// classicRoutes facilitates the consecutive calls to AddRoute for existing modules.
 	// TODO: this should be removed once app.gos have been refactored to use AddClassicRoute.
+	// https://github.com/cosmos/ibc-go/issues/7025
 	classicRoutes map[string][]ClassicIBCModule
 }
 
@@ -74,15 +76,20 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 	return rtr
 }
 
-func (rtr *AppRouter) PacketRoute(module string) ([]ClassicIBCModule, bool) {
+func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
 	if module == sentinelMultiPacketData {
 		return rtr.routeMultiPacketData(module)
 	}
-	return rtr.routeToLegacyModule(module)
+	legacyModule, ok := rtr.routeToLegacyModule(module)
+	if !ok {
+		return nil, false
+	}
+	return []IBCModule{legacyModule}, true
 }
 
 // TODO: docstring once implementation is complete
-func (*AppRouter) routeMultiPacketData(module string) ([]ClassicIBCModule, bool) {
+// https://github.com/cosmos/ibc-go/issues/7056
+func (*AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
 	panic("unimplemented")
 	//  for _, pd := range packet.Data {
 	//      cbs = append(cbs, rtr.routes[pd.PortId])
@@ -91,17 +98,17 @@ func (*AppRouter) routeMultiPacketData(module string) ([]ClassicIBCModule, bool)
 }
 
 // routeToLegacyModule routes to any legacy modules which have been registered with AddClassicRoute.
-func (rtr *AppRouter) routeToLegacyModule(module string) ([]ClassicIBCModule, bool) {
+func (rtr *AppRouter) routeToLegacyModule(module string) (ClassicIBCModule, bool) {
 	route, ok := rtr.legacyRoutes[module]
 	if ok {
-		return []ClassicIBCModule{route}, true
+		return route, true
 	}
 
 	// it's possible that some routes have been dynamically added e.g. with interchain accounts.
 	// in this case, we need to check if the module has the specified prefix.
 	for prefix := range rtr.legacyRoutes {
 		if strings.Contains(module, prefix) {
-			return []ClassicIBCModule{rtr.legacyRoutes[prefix]}, true
+			return rtr.legacyRoutes[prefix], true
 		}
 	}
 	return nil, false
@@ -110,6 +117,6 @@ func (rtr *AppRouter) routeToLegacyModule(module string) ([]ClassicIBCModule, bo
 // HandshakeRoute returns the ClassicIBCModule which will implement all handshake functions
 // and is required only for those callbacks.
 func (rtr *AppRouter) HandshakeRoute(portID string) (ClassicIBCModule, bool) {
-	legacyRoute, ok := rtr.legacyRoutes[portID]
-	return legacyRoute, ok
+	route, ok := rtr.routeToLegacyModule(portID)
+	return route, ok
 }

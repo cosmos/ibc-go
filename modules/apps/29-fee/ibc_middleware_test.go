@@ -8,14 +8,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
 	feekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -84,7 +82,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 				// setup mock callback
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
 					if version != ibcmock.Version {
@@ -107,14 +105,11 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 				suite.Require().NoError(err)
 
-				chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-
 				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 				suite.Require().True(ok)
 
 				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, counterparty, channel.Version)
 
 				if tc.expPass {
 					// check if the channel is fee enabled. If so version string should include metaData
@@ -184,7 +179,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 
 				// setup mock callback
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, counterpartyVersion string,
 				) (string, error) {
 					if counterpartyVersion != ibcmock.Version {
@@ -193,13 +188,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 					return ibcmock.Version, nil
 				}
 
-				var (
-					chanCap *capabilitytypes.Capability
-					ok      bool
-				)
-
-				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
+				var ok bool
 
 				suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -219,7 +208,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				suite.Require().True(ok)
 
 				_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.cpVersion)
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, counterparty, tc.cpVersion)
 
 				if tc.expPass {
 					suite.Require().NoError(err)

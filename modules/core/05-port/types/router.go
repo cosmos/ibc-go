@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -59,8 +60,17 @@ func (rtr *Router) HasRoute(module string) bool {
 
 // GetRoute returns a IBCModule for a given module.
 func (rtr *Router) GetRoute(module string) (ClassicIBCModule, bool) {
-	if !rtr.HasRoute(module) {
-		return nil, false
+	route, ok := rtr.routes[module]
+	if ok {
+		return route, true
 	}
-	return rtr.routes[module], true
+
+	// it's possible that some routes have been dynamically added e.g. with interchain accounts.
+	// in this case, we need to check if the module has the specified prefix.
+	for prefix := range rtr.routes {
+		if strings.Contains(module, prefix) {
+			return rtr.routes[prefix], true
+		}
+	}
+	return nil, false
 }

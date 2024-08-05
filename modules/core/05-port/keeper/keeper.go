@@ -91,6 +91,6 @@ func (k *Keeper) Route(module string) (types.ClassicIBCModule, bool) {
 
 // AppRoute returns an ordered list of IBCModule callbacks for a given module name, and a boolean indicating
 // whether or not the callbacks are present.
-func (k *Keeper) AppRoute(module string) ([]types.ClassicIBCModule, bool) {
+func (k *Keeper) AppRoute(module string) ([]types.IBCModule, bool) {
 	return k.AppRouter.PacketRoute(module)
 }
