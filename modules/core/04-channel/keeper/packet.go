@@ -203,7 +203,7 @@ func (k *Keeper) RecvPacket(
 	)
 
 	// emit an event that the relayer can query for
-	emitRecvPacketEvent(ctx, packet, channel)
+	EmitRecvPacketEvent(ctx, packet, &channel)
 
 	return channel.Version, nil
 }
@@ -227,7 +227,7 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		// by the increase of the recvStartSequence.
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
-			emitRecvPacketEvent(ctx, packet, channel)
+			EmitRecvPacketEvent(ctx, packet, &channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -251,7 +251,7 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		}
 
 		if packet.GetSequence() < nextSequenceRecv {
-			emitRecvPacketEvent(ctx, packet, channel)
+			EmitRecvPacketEvent(ctx, packet, &channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
