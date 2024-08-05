@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -28,7 +27,6 @@ type IBCModule interface {
 		connectionHops []string,
 		portID string,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
 	) (string, error)
@@ -47,7 +45,6 @@ type IBCModule interface {
 		connectionHops []string,
 		portID,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		counterpartyVersion string,
 	) (version string, err error)

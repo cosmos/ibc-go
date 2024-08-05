@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
@@ -43,7 +42,6 @@ func (IBCModule) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
@@ -57,7 +55,6 @@ func (im IBCModule) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
@@ -65,7 +62,7 @@ func (im IBCModule) OnChanOpenTry(
 		return "", types.ErrHostSubModuleDisabled
 	}
 
-	return im.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+	return im.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 }
 
 // OnChanOpenAck implements the IBCModule interface
