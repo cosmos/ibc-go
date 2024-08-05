@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -32,6 +33,9 @@ type ChannelKeeper interface {
 	// SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 	// This is a public path that is standardized by the IBC specification
 	SetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte)
+
+	// event emission functions
+	EmitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel, timeoutHeight exported.Height)
 }
 
 type ClientKeeper interface {
@@ -43,4 +47,11 @@ type ClientKeeper interface {
 	// the executing chain
 	// This is a private path that is only used by the IBC lite module
 	GetCounterparty(ctx sdk.Context, clientID string) (clienttypes.Counterparty, bool)
+	// GetClientStatus returns the status of a client given the client ID
+	GetClientStatus(ctx sdk.Context, clientID string) exported.Status
+	// GetClientLatestHeight returns the latest height of a client given the client ID
+	GetClientLatestHeight(ctx sdk.Context, clientID string) clienttypes.Height
+	// GetClientTimestampAtHeight returns the timestamp for a given height on the client
+	// given its client ID and height
+	GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error)
 }
