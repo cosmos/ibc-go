@@ -215,6 +215,10 @@ func (k Keeper) WriteAcknowledgement(
 		return channeltypes.ErrAcknowledgementExists
 	}
 
+	if _, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence); !found {
+		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
+	}
+
 	if ack == nil {
 		return errorsmod.Wrap(channeltypes.ErrInvalidAcknowledgement, "acknowledgement cannot be nil")
 	}

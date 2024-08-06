@@ -289,6 +289,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			},
 			channeltypes.ErrInvalidAcknowledgement,
 		},
+		{
+			"failure: receipt not found for packet",
+			func() {
+				packet.Sequence = 2
+			},
+			channeltypes.ErrInvalidPacket,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -301,6 +308,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
 			ack = mock.MockAcknowledgement
+
+			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 
 			tc.malleate()
 
