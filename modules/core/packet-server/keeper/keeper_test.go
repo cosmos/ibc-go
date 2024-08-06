@@ -8,6 +8,8 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	tmtypes "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
@@ -111,7 +113,10 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 }
 
 func (suite *KeeperTestSuite) TestTimeoutPacket() {
-	var packet channeltypes.Packet
+	var (
+		path   *ibctesting.Path
+		packet channeltypes.Packet
+	)
 
 	testCases := []struct {
 		name     string
@@ -119,43 +124,58 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		expError error
 	}{
 		{
-			"success",
-			func() {},
+			"success with timeout height",
+			func() {
+				packet.TimeoutHeight = clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			},
+			nil,
+		},
+		{
+			"success with timeout timestamp",
+			func() {
+				packet.TimeoutTimestamp = uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			},
 			nil,
 		},
 		{
 			"failure: counterparty not found",
 			func() {
-				packet.DestinationChannel = ibctesting.FirstChannelID
+				packet.SourceChannel = ibctesting.FirstChannelID
 			},
 			channeltypes.ErrChannelNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
 			func() {
-				packet.SourceChannel = ibctesting.FirstChannelID
+				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
 			channeltypes.ErrInvalidChannelIdentifier,
 		},
 		{
-			"failure: packet has timed out",
+			"failure: packet has not timed out yet",
 			func() {
-				packet.TimeoutHeight = clienttypes.ZeroHeight()
-				packet.TimeoutTimestamp = uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+				packet.TimeoutHeight = clienttypes.NewHeight(2, 0)
 			},
-			channeltypes.ErrTimeoutElapsed,
+			channeltypes.ErrTimeoutNotReached,
 		},
 		{
-			"failure: packet already received",
+			"failure: packet already timed out",
 			func() {
-				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence)
 			},
 			channeltypes.ErrNoOpMsg,
 		},
 		{
-			"failure: verify membership failed",
+			"failure: packet does not match commitment",
 			func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, []byte(""))
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, []byte("invalid commitment"))
+			},
+			channeltypes.ErrInvalidPacket,
+		},
+		{
+			"failure: verify non-membership failed",
+			func() {
+				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -167,18 +187,44 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+			// create default packet
+			// test cases must set timeout values
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.Height{}, 0, "")
 
-			// For now, set packet commitment on A for each case and update clients. Use SendPacket after 7048.
-			suite.chainA.App.GetPacketServer().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, channeltypes.CommitPacket(packet))
+			// commit the changes and update the clients
+			suite.coordinator.CommitBlock(path.EndpointA.Chain)
+			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			tc.malleate()
 
+			// send packet
+			_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+			suite.Require().NoError(err, "send packet failed")
+
+			// need to update chainA's client representing chainB to prove missing ack
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 			suite.Require().NoError(path.EndpointB.UpdateClient())
+
+			// get proof of packet receipt absence from chainB
+			receiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			proof, proofHeight := path.EndpointA.QueryProof(receiptKey)
+
+			err = suite.chainB.App.GetPacketServer().TimeoutPacket(suite.chainB.GetContext(), packet, proof, proofHeight, 0)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence)
+				suite.Require().Nil(commitment, "packet commitment not deleted")
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
 		})
 	}
 }
