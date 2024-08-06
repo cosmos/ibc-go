@@ -89,7 +89,7 @@ func (k *Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	emitSendPacketEvent(ctx, packet, channel, timeoutHeight)
+	EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
 
 	k.Logger(ctx).Info(
 		"packet sent",
