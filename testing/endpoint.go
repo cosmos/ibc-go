@@ -165,6 +165,18 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// ProvideCounterparty will construct and execute a MsgProvideCounterparty on the associated endpoint.
+func (endpoint *Endpoint) ProvideCounterparty() (err error) {
+	merklePath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
+
+	msg := clienttypes.NewMsgProvideCounterparty(endpoint.Chain.SenderAccount.GetAddress().String(), endpoint.ClientID, endpoint.Counterparty.ClientID, &merklePath)
+
+	// setup counterparty
+	_, err = endpoint.Chain.SendMsgs(msg)
+
+	return err
+}
+
 // UpgradeChain will upgrade a chain's chainID to the next revision number.
 // It will also update the counterparty client.
 // TODO: implement actual upgrade chain functionality via scheduling an upgrade

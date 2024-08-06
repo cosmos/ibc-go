@@ -15,15 +15,15 @@ import (
 
 type Keeper struct {
 	cdc           codec.BinaryCodec
-	channelKeeper types.ChannelKeeper
-	clientKeeper  types.ClientKeeper
+	ChannelKeeper types.ChannelKeeper
+	ClientKeeper  types.ClientKeeper
 }
 
 func NewKeeper(cdc codec.BinaryCodec, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper) *Keeper {
 	return &Keeper{
 		cdc:           cdc,
-		channelKeeper: channelKeeper,
-		clientKeeper:  clientKeeper,
+		ChannelKeeper: channelKeeper,
+		ClientKeeper:  clientKeeper,
 	}
 }
 
@@ -39,7 +39,7 @@ func (k Keeper) SendPacket(
 	data []byte,
 ) (uint64, error) {
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
-	counterparty, ok := k.clientKeeper.GetCounterparty(ctx, sourceChannel)
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, sourceChannel)
 	if !ok {
 		return 0, channeltypes.ErrChannelNotFound
 	}
@@ -47,7 +47,7 @@ func (k Keeper) SendPacket(
 
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
-	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
+	sequence, found := k.ChannelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
 		sequence = 1
 	}
@@ -61,18 +61,18 @@ func (k Keeper) SendPacket(
 	}
 
 	// check that the client of receiver chain is still active
-	status := k.clientKeeper.GetClientStatus(ctx, sourceChannel)
+	status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel)
 	if status != exported.Active {
 		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client state is not active: %s", status)
 	}
 
 	// retrieve latest height and timestamp of the client of receiver chain
-	latestHeight := k.clientKeeper.GetClientLatestHeight(ctx, sourceChannel)
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceChannel)
 	if latestHeight.IsZero() {
 		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceChannel)
 	}
 
-	latestTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, sourceChannel, latestHeight)
+	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceChannel, latestHeight)
 	if err != nil {
 		return 0, err
 	}
@@ -86,15 +86,15 @@ func (k Keeper) SendPacket(
 	commitment := channeltypes.CommitPacket(packet)
 
 	// bump the sequence and set the packet commitment so it is provable by the counterparty
-	k.channelKeeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
-	k.channelKeeper.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
+	k.ChannelKeeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
+	k.ChannelKeeper.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
 	// create sentinel channel for events
 	channel := channeltypes.Channel{
 		Ordering:       channeltypes.ORDERED,
 		ConnectionHops: []string{sourceChannel},
 	}
-	k.channelKeeper.EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
+	k.ChannelKeeper.EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
 
 	// return the sequence
 	return sequence, nil

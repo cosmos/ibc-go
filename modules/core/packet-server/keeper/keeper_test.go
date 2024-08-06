@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"testing"
+
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
+
+	testifysuite "github.com/stretchr/testify/suite"
+
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -19,19 +25,20 @@ type KeeperTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
+// TestKeeperTestSuite runs all the tests within this package.
+func TestKeeperTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(KeeperTestSuite))
+}
+
+// SetupTest creates a coordinator with 2 test chains.
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-}
-
-func TestKeeperTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 func (suite *KeeperTestSuite) TestSendPacket() {
@@ -46,37 +53,25 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		expErr   err
 	}{
 		{"success", func() {
-			// set the counterparty for chain A
-			suite.chainA.App.IBCKeeper.ClientKeeper.SetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID, clienttypes.Counterparty{
-				ClientId:         path.EndpointB.ClientID,
-				MerklePathPrefix: commitmenttypes.NewMerklePath([]byte("ibc"), []byte("")),
-			})
+			// set the counterparties
+			path.SetupCounterparties()
 		}, nil},
 		{"counterparty not found", func() {}, channeltypes.ErrChannelNotFound},
 		{"packet failed basic validation", func() {
-			// set the counterparty for chain A
-			suite.chainA.App.IBCKeeper.ClientKeeper.SetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID, clienttypes.Counterparty{
-				ClientId:         path.EndpointB.ClientID,
-				MerklePathPrefix: commitmenttypes.NewMerklePath([]byte("ibc"), []byte("")),
-			})
+			// set the counterparties
+			path.SetupCounterparties()
 			// invalid port ID
 			packet.DestPort = ""
 		}, channeltypes.ErrInvalidPacket},
 		{"client status invalid", func() {
-			// set the counterparty for chain A
-			suite.chainA.App.IBCKeeper.ClientKeeper.SetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID, clienttypes.Counterparty{
-				ClientId:         path.EndpointB.ClientID,
-				MerklePathPrefix: commitmenttypes.NewMerklePath([]byte("ibc"), []byte("")),
-			})
+			// set the counterparties
+			path.SetupCounterparties()
 			// change source channel id to get invalid status
 			packet.SourceChannel = "invalidClientID"
 		}, clienttypes.ErrClientNotActive},
 		{"timeout elapsed", func() {
-			// set the counterparty for chain A
-			suite.chainA.App.IBCKeeper.ClientKeeper.SetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID, clienttypes.Counterparty{
-				ClientId:         path.EndpointB.ClientID,
-				MerklePathPrefix: commitmenttypes.NewMerklePath([]byte("ibc"), []byte("")),
-			})
+			// set the counterparties
+			path.SetupCounterparties()
 			packet.TimeoutTimestamp = 1
 		}, channeltypes.ErrTimeoutElapsed},
 	}
@@ -117,5 +112,4 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 		})
 	}
-
 }
