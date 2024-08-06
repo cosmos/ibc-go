@@ -62,8 +62,7 @@ func (k Keeper) SendPacket(
 	}
 
 	// check that the client of receiver chain is still active
-	status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel)
-	if status != exported.Active {
+	if status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel); status != exported.Active {
 		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client state is not active: %s", status)
 	}
 
