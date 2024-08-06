@@ -323,6 +323,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 
+				// set packet receipt to mock a valid past receive
 				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 			},
 			commitmenttypes.ErrInvalidProof,
