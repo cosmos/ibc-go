@@ -10,6 +10,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	tmtypes "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
@@ -220,6 +221,89 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				suite.Require().NoError(err)
 
 				_, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+				suite.Require().True(found)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
+	var (
+		packet channeltypes.Packet
+		ack    exported.Acknowledgement
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: counterparty not found",
+			func() {
+				packet.DestinationChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrChannelNotFound,
+		},
+		{
+			"failure: counterparty client identifier different than source channel",
+			func() {
+				packet.SourceChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrInvalidChannelIdentifier,
+		},
+		{
+			"failure: ack already exists",
+			func() {
+				ackBz := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
+				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence, ackBz)
+			},
+			channeltypes.ErrAcknowledgementExists,
+		},
+		{
+			"failure: ack is nil",
+			func() {
+				ack = nil
+			},
+			channeltypes.ErrInvalidAcknowledgement,
+		},
+		{
+			"failure: empty ack",
+			func() {
+				ack = mock.NewEmptyAcknowledgement()
+			},
+			channeltypes.ErrInvalidAcknowledgement,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+			ack = mock.MockAcknowledgement
+
+			tc.malleate()
+
+			err := suite.chainB.App.GetPacketServer().WriteAcknowledgement(suite.chainB.GetContext(), nil, packet, ack)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.HasPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 				suite.Require().True(found)
 			} else {
 				suite.Require().Error(err)

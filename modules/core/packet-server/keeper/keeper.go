@@ -1,7 +1,7 @@
 package keeper
 
 import (
-    "bytes"
+	"bytes"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
@@ -214,6 +214,7 @@ func (k Keeper) WriteAcknowledgement(
 	if len(bz) == 0 {
 		return errorsmod.Wrap(channeltypes.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
 	}
+
 	k.ChannelKeeper.SetPacketAcknowledgement(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), channeltypes.CommitAcknowledgement(bz))
 
 	// log that a packet acknowledgement has been written
