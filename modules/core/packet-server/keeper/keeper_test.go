@@ -48,3 +48,76 @@ func (suite *KeeperTestSuite) TestCreateEurekaClients() {
 	_, found = suite.chainB.App.GetPacketServer().ClientKeeper.GetCounterparty(suite.chainB.GetContext(), path.EndpointB.ClientID)
 	suite.Require().True(found)
 }
+
+func (suite *KeeperTestSuite) TestTimeoutPacket() {
+	var packet channeltypes.Packet
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: counterparty not found",
+			func() {
+				packet.DestinationChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrChannelNotFound,
+		},
+		{
+			"failure: counterparty client identifier different than source channel",
+			func() {
+				packet.SourceChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrInvalidChannelIdentifier,
+		},
+		{
+			"failure: packet has timed out",
+			func() {
+				packet.TimeoutHeight = clienttypes.ZeroHeight()
+				packet.TimeoutTimestamp = uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			},
+			channeltypes.ErrTimeoutElapsed,
+		},
+		{
+			"failure: packet already received",
+			func() {
+				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+			},
+			channeltypes.ErrNoOpMsg,
+		},
+		{
+			"failure: verify membership failed",
+			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, []byte(""))
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+
+			// For now, set packet commitment on A for each case and update clients. Use SendPacket after 7048.
+			suite.chainA.App.GetPacketServer().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, channeltypes.CommitPacket(packet))
+
+			tc.malleate()
+
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+		})
+	}
+}
