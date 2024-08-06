@@ -100,12 +100,7 @@ func (k Keeper) SendPacket(
 	k.ChannelKeeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.ChannelKeeper.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	// create sentinel channel for events
-	channel := channeltypes.Channel{
-		Ordering:       channeltypes.ORDERED,
-		ConnectionHops: []string{sourceChannel},
-	}
-	channelkeeper.EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
+	channelkeeper.EmitSendPacketEvent(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
 
 	// return the sequence
 	return sequence, nil
