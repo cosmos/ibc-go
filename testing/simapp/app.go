@@ -528,9 +528,6 @@ func NewSimApp(
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
-	// Set Packet Keeper for Eureka tests
-	app.PacketServer = packetserver.NewKeeper(appCodec, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
-
 	// ****  Module Options ****
 
 	// NOTE: Any module instantiated in the module manager that is later modified

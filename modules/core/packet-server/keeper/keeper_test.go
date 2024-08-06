@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"testing"
-
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	tmtypes "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -47,10 +47,10 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		packet channeltypes.Packet
 	)
 
-	tests := []struct {
+	testCases := []struct {
 		name     string
 		malleate func()
-		expErr   err
+		expError error
 	}{
 		{"success", func() {
 			// set the counterparties
@@ -60,14 +60,18 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{"packet failed basic validation", func() {
 			// set the counterparties
 			path.SetupCounterparties()
-			// invalid port ID
-			packet.DestPort = ""
+			// invalid data
+			packet.Data = nil
 		}, channeltypes.ErrInvalidPacket},
 		{"client status invalid", func() {
 			// set the counterparties
 			path.SetupCounterparties()
-			// change source channel id to get invalid status
-			packet.SourceChannel = "invalidClientID"
+			// make underlying client Frozen to get invalid client status
+			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().True(ok, "could not retreive client state")
+			tmClientState := clientState.(*tmtypes.ClientState)
+			tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClientState)
 		}, clienttypes.ErrClientNotActive},
 		{"timeout elapsed", func() {
 			// set the counterparties
@@ -76,9 +80,9 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		}, channeltypes.ErrTimeoutElapsed},
 	}
 
-	for i, tc := range tests {
+	for i, tc := range testCases {
 		tc := tc
-		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.name, i, len(testCases)), func() {
 			suite.SetupTest() // reset
 
 			// create clients on both chains
@@ -86,15 +90,15 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.SetupClients()
 
 			// create standard packet that can be malleated
-			packet := channeltypes.NewPacketWithVersion(mock.MockPacketData, 1, mock.PortID,
-				path.EndpointA.ClientID, mock.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(0, 1), 0, mock.Version)
+			packet = channeltypes.NewPacketWithVersion(mock.MockPacketData, 1, mock.PortID,
+				path.EndpointA.ClientID, mock.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(1, 100), 0, mock.Version)
 
 			// malleate the test case
 			tc.malleate()
 
 			// send packet
-			seq, err := suite.chainA.App.PacketServer.SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort,
-				packet.DestPort, packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Version, packet.Data)
+			seq, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort,
+				packet.DestinationPort, packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 
 			expPass := tc.expError == nil
 			if expPass {
