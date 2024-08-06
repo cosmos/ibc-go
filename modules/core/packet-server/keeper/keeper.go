@@ -190,8 +190,8 @@ func (k Keeper) TimeoutPacket(
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
 ) error {
-	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
-	// sent by our counterparty.
+	// Lookup counterparty associated with our channel and ensure that destination channel
+	// is the expected counterparty
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
 		return channeltypes.ErrChannelNotFound
@@ -212,13 +212,11 @@ func (k Keeper) TimeoutPacket(
 		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
 	}
 
+	// check that the commitment has not been cleared and that it matches the packet sent by relayer
 	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	// create sentinel channel
-	channel := channeltypes.Channel{Ordering: channeltypes.UNORDERED, ConnectionHops: []string{packet.SourceChannel}}
-
 	if len(commitment) == 0 {
-		channelkeeper.EmitTimeoutPacketEvent(ctx, packet, channel)
+		channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -251,7 +249,7 @@ func (k Keeper) TimeoutPacket(
 	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
 	// emit timeout events
-	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, channel)
+	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
 
 	return nil
 }
