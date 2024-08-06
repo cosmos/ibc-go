@@ -100,6 +100,9 @@ func (k Keeper) SendPacket(
 	k.ChannelKeeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.ChannelKeeper.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
+	// log that a packet has been sent
+	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
 	channelkeeper.EmitSendPacketEvent(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
 
 	// return the sequence
@@ -183,8 +186,11 @@ func (k Keeper) TimeoutPacket(
 	packet channeltypes.Packet,
 	proof []byte,
 	proofHeight exported.Height,
-	nextSequenceRecv uint64,
+	_ uint64,
 ) error {
+	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
+		return channeltypes.ErrInvalidPacket
+	}
 	// Lookup counterparty associated with our channel and ensure that destination channel
 	// is the expected counterparty
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
@@ -237,11 +243,14 @@ func (k Keeper) TimeoutPacket(
 		proof,
 		merklePath,
 	); err != nil {
-		return err
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceChannel)
 	}
 
 	// delete packet commitment to prevent replay
 	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+
+	// log that a packet has been timed out
+	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	// emit timeout events
 	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
