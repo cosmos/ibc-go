@@ -247,6 +247,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			nil,
 		},
 		{
+			"failure: protocol version is not IBC_VERSION_2",
+			func() {
+				packet.ProtocolVersion = channeltypes.IBC_VERSION_1
+			},
+			channeltypes.ErrInvalidPacket,
+		},
+		{
 			"failure: counterparty not found",
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID

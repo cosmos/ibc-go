@@ -186,23 +186,32 @@ func (k Keeper) RecvPacket(
 func (k Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packetI exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
+	packet, ok := packetI.(channeltypes.Packet)
+	if !ok {
+		return channeltypes.ErrInvalidPacket
+		// return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "expected type %T, got %T",  &channeltypes.Packet, packet)
+	}
+	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
+		return channeltypes.ErrInvalidPacket
+	}
+
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
-	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.GetDestChannel())
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
 		return channeltypes.ErrChannelNotFound
 	}
-	if counterparty.ClientId != packet.GetSourceChannel() {
+	if counterparty.ClientId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
-	if k.ChannelKeeper.HasPacketAcknowledgement(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()) {
+	if k.ChannelKeeper.HasPacketAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence) {
 		return channeltypes.ErrAcknowledgementExists
 	}
 
@@ -215,13 +224,13 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(channeltypes.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
 	}
 
-	k.ChannelKeeper.SetPacketAcknowledgement(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), channeltypes.CommitAcknowledgement(bz))
+	k.ChannelKeeper.SetPacketAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence, channeltypes.CommitAcknowledgement(bz))
 
 	// log that a packet acknowledgement has been written
-	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_port", packet.GetSourcePort(), "src_channel", packet.GetSourceChannel(), "dst_port", packet.GetDestPort(), "dst_channel", packet.GetDestChannel())
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	// emit the same events as write acknowledgement without channel fields
-	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet.(channeltypes.Packet), sentinelChannel(packet.GetDestChannel()), bz)
+	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet, sentinelChannel(packet.DestinationChannel), bz)
 
 	return nil
 }
@@ -234,6 +243,10 @@ func (k Keeper) AcknowledgePacket(
 	proofAcked []byte,
 	proofHeight exported.Height,
 ) error {
+	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
+		return channeltypes.ErrInvalidPacket
+	}
+
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
