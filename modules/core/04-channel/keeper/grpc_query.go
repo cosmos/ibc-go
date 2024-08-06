@@ -68,7 +68,7 @@ func (q *queryServer) Channels(c context.Context, req *types.QueryChannelsReques
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var channels []*types.IdentifiedChannel
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyChannelEndPrefix))
+	store := prefix.NewStore(ctx.KVStore(q.storeService), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var result types.Channel
@@ -110,7 +110,7 @@ func (q *queryServer) ConnectionChannels(c context.Context, req *types.QueryConn
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var channels []*types.IdentifiedChannel
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyChannelEndPrefix))
+	store := prefix.NewStore(ctx.KVStore(q.storeService), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under channel key
@@ -266,7 +266,7 @@ func (q *queryServer) PacketCommitments(c context.Context, req *types.QueryPacke
 		)
 	}
 	var commitments []*types.PacketState
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.PacketCommitmentPrefixKey(req.PortId, req.ChannelId))
+	store := prefix.NewStore(ctx.KVStore(q.storeService), host.PacketCommitmentPrefixKey(req.PortId, req.ChannelId))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		keySplit := strings.Split(string(key), "/")
@@ -370,7 +370,7 @@ func (q *queryServer) PacketAcknowledgements(c context.Context, req *types.Query
 		)
 	}
 	var acks []*types.PacketState
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.PacketAcknowledgementPrefixKey(req.PortId, req.ChannelId))
+	store := prefix.NewStore(ctx.KVStore(q.storeService), host.PacketAcknowledgementPrefixKey(req.PortId, req.ChannelId))
 
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
 	// otherwise, maintain previous behaviour and perform paginated query

@@ -1,6 +1,8 @@
 package types
 
 import (
+	context "context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -11,11 +13,11 @@ import (
 
 // ClientKeeper expected account IBC client keeper
 type ClientKeeper interface {
-	GetClientStatus(ctx sdk.Context, clientID string) exported.Status
-	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
-	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
-	GetClientLatestHeight(ctx sdk.Context, clientID string) clienttypes.Height
-	GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error)
+	GetClientStatus(ctx context.Context, clientID string) exported.Status
+	GetClientState(ctx context.Context, clientID string) (exported.ClientState, bool)
+	GetClientConsensusState(ctx context.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
+	GetClientLatestHeight(ctx context.Context, clientID string) clienttypes.Height
+	GetClientTimestampAtHeight(ctx context.Context, clientID string, height exported.Height) (uint64, error)
 }
 
 // ConnectionKeeper expected account IBC connection keeper

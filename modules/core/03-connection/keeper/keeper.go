@@ -10,6 +10,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -49,11 +50,11 @@ func (Keeper) Logger(ctx context.Context) log.Logger {
 // GetCommitmentPrefix returns the IBC connection store prefix as a commitment
 // Prefix
 func (k *Keeper) GetCommitmentPrefix() exported.Prefix {
-	return commitmenttypes.NewMerklePrefix([]byte(k.storeService.Name()))
+	return commitmenttypes.NewMerklePrefix([]byte("ibc")) // TODO: import store key directly
 }
 
 // GenerateConnectionIdentifier returns the next connection identifier.
-func (k *Keeper) GenerateConnectionIdentifier(ctx sdk.Context) string {
+func (k *Keeper) GenerateConnectionIdentifier(ctx context.Context) string {
 	nextConnSeq := k.GetNextConnectionSequence(ctx)
 	connectionID := types.FormatConnectionIdentifier(nextConnSeq)
 
@@ -167,7 +168,8 @@ func (k *Keeper) GetAllClientConnectionPaths(ctx context.Context) []types.Connec
 // For each ConnectionEnd, cb will be called. If the cb returns true, the
 // iterator will close and stop.
 func (k *Keeper) IterateConnections(ctx context.Context, cb func(types.IdentifiedConnection) bool) {
-	store := k.storeService.OpenKVStore(ctx)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyConnectionPrefix))
 
 	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })

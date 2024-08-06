@@ -14,6 +14,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -36,7 +37,7 @@ type Keeper struct {
 // NewKeeper creates a new NewKeeper instance
 func NewKeeper(cdc codec.BinaryCodec, storeService corestoretypes.KVStoreService, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
 	router := types.NewRouter()
-	localhostModule := localhost.NewLightClientModule(cdc, key)
+	localhostModule := localhost.NewLightClientModule(cdc, storeService)
 	router.AddRoute(exported.Localhost, localhostModule)
 
 	return &Keeper{
@@ -66,7 +67,7 @@ func (k *Keeper) AddRoute(clientType string, module exported.LightClientModule) 
 
 // GetStoreProvider returns the light client store provider.
 func (k *Keeper) GetStoreProvider() types.StoreProvider {
-	return types.NewStoreProvider(k.storeKey)
+	return types.NewStoreProvider(k.storeService)
 }
 
 // Route returns the light client module for the given client identifier.
@@ -163,7 +164,7 @@ func (k *Keeper) SetNextClientSequence(ctx context.Context, sequence uint64) {
 // objects. For each State object, cb will be called. If the cb returns true,
 // the iterator will close and stop.
 func (k *Keeper) IterateConsensusStates(ctx context.Context, cb func(clientID string, cs types.ConsensusStateWithHeight) bool) {
-	store := k.storeService.OpenKVStore(ctx)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
 	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
@@ -188,7 +189,7 @@ func (k *Keeper) IterateConsensusStates(ctx context.Context, cb func(clientID st
 // iterateMetadata provides an iterator over all stored metadata keys in the client store.
 // For each metadata object, it will perform a callback.
 func (k *Keeper) iterateMetadata(ctx context.Context, cb func(clientID string, key, value []byte) bool) {
-	store := k.storeService.OpenKVStore(ctx)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
 	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
@@ -222,7 +223,7 @@ func (k *Keeper) iterateMetadata(ctx context.Context, cb func(clientID string, k
 }
 
 // GetAllGenesisClients returns all the clients in state with their client ids returned as IdentifiedClientState
-func (k *Keeper) GetAllGenesisClients(ctx sdk.Context) types.IdentifiedClientStates {
+func (k *Keeper) GetAllGenesisClients(ctx context.Context) types.IdentifiedClientStates {
 	var genClients types.IdentifiedClientStates
 	k.IterateClientStates(ctx, nil, func(clientID string, cs exported.ClientState) bool {
 		genClients = append(genClients, types.NewIdentifiedClientState(clientID, cs))
@@ -235,7 +236,7 @@ func (k *Keeper) GetAllGenesisClients(ctx sdk.Context) types.IdentifiedClientSta
 // GetAllClientMetadata will take a list of IdentifiedClientState and return a list
 // of IdentifiedGenesisMetadata necessary for exporting and importing client metadata
 // into the client store.
-func (k *Keeper) GetAllClientMetadata(ctx sdk.Context, genClients []types.IdentifiedClientState) ([]types.IdentifiedGenesisMetadata, error) {
+func (k *Keeper) GetAllClientMetadata(ctx context.Context, genClients []types.IdentifiedClientState) ([]types.IdentifiedGenesisMetadata, error) {
 	metadataMap := make(map[string][]types.GenesisMetadata)
 	k.iterateMetadata(ctx, func(clientID string, key, value []byte) bool {
 		metadataMap[clientID] = append(metadataMap[clientID], types.NewGenesisMetadata(key, value))
@@ -257,7 +258,7 @@ func (k *Keeper) GetAllClientMetadata(ctx sdk.Context, genClients []types.Identi
 }
 
 // SetAllClientMetadata takes a list of IdentifiedGenesisMetadata and stores all of the metadata in the client store at the appropriate paths.
-func (k *Keeper) SetAllClientMetadata(ctx sdk.Context, genMetadata []types.IdentifiedGenesisMetadata) {
+func (k *Keeper) SetAllClientMetadata(ctx context.Context, genMetadata []types.IdentifiedGenesisMetadata) {
 	for _, igm := range genMetadata {
 		// create client store
 		store := k.ClientStore(ctx, igm.ClientId)
@@ -269,7 +270,7 @@ func (k *Keeper) SetAllClientMetadata(ctx sdk.Context, genMetadata []types.Ident
 }
 
 // GetAllConsensusStates returns all stored client consensus states.
-func (k *Keeper) GetAllConsensusStates(ctx sdk.Context) types.ClientsConsensusStates {
+func (k *Keeper) GetAllConsensusStates(ctx context.Context) types.ClientsConsensusStates {
 	clientConsStates := make(types.ClientsConsensusStates, 0)
 	mapClientIDToConsStateIdx := make(map[string]int)
 
@@ -295,13 +296,13 @@ func (k *Keeper) GetAllConsensusStates(ctx sdk.Context) types.ClientsConsensusSt
 
 // HasClientConsensusState returns if keeper has a ConsensusState for a particular
 // client at the given height
-func (k *Keeper) HasClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) bool {
+func (k *Keeper) HasClientConsensusState(ctx context.Context, clientID string, height exported.Height) bool {
 	store := k.ClientStore(ctx, clientID)
 	return store.Has(host.ConsensusStateKey(height))
 }
 
 // GetLatestClientConsensusState gets the latest ConsensusState stored for a given client
-func (k *Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) (exported.ConsensusState, bool) {
+func (k *Keeper) GetLatestClientConsensusState(ctx context.Context, clientID string) (exported.ConsensusState, bool) {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return nil, false
@@ -311,7 +312,7 @@ func (k *Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string)
 }
 
 // VerifyMembership retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
-func (k *Keeper) VerifyMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
+func (k *Keeper) VerifyMembership(ctx context.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return err
@@ -321,7 +322,7 @@ func (k *Keeper) VerifyMembership(ctx sdk.Context, clientID string, height expor
 }
 
 // VerifyNonMembership retrieves the light client module for the clientID and verifies the absence of a given key at a specified height.
-func (k *Keeper) VerifyNonMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path) error {
+func (k *Keeper) VerifyNonMembership(ctx context.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path) error {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return err
@@ -331,22 +332,22 @@ func (k *Keeper) VerifyNonMembership(ctx sdk.Context, clientID string, height ex
 }
 
 // GetUpgradePlan executes the upgrade keeper GetUpgradePlan function.
-func (k *Keeper) GetUpgradePlan(ctx sdk.Context) (upgradetypes.Plan, error) {
+func (k *Keeper) GetUpgradePlan(ctx context.Context) (upgradetypes.Plan, error) {
 	return k.upgradeKeeper.GetUpgradePlan(ctx)
 }
 
 // GetUpgradedClient executes the upgrade keeper GetUpgradeClient function.
-func (k *Keeper) GetUpgradedClient(ctx sdk.Context, planHeight int64) ([]byte, error) {
+func (k *Keeper) GetUpgradedClient(ctx context.Context, planHeight int64) ([]byte, error) {
 	return k.upgradeKeeper.GetUpgradedClient(ctx, planHeight)
 }
 
 // GetUpgradedConsensusState returns the upgraded consensus state
-func (k *Keeper) GetUpgradedConsensusState(ctx sdk.Context, planHeight int64) ([]byte, error) {
+func (k *Keeper) GetUpgradedConsensusState(ctx context.Context, planHeight int64) ([]byte, error) {
 	return k.upgradeKeeper.GetUpgradedConsensusState(ctx, planHeight)
 }
 
 // SetUpgradedConsensusState executes the upgrade keeper SetUpgradedConsensusState function.
-func (k *Keeper) SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz []byte) error {
+func (k *Keeper) SetUpgradedConsensusState(ctx context.Context, planHeight int64, bz []byte) error {
 	return k.upgradeKeeper.SetUpgradedConsensusState(ctx, planHeight, bz)
 }
 
@@ -354,7 +355,7 @@ func (k *Keeper) SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz
 // objects using the provided store prefix. For each ClientState object, cb will be called. If the cb returns true,
 // the iterator will close and stop.
 func (k *Keeper) IterateClientStates(ctx context.Context, storePrefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
-	store := k.storeService.OpenKVStore(ctx)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(storePrefix))
 
 	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
@@ -375,7 +376,7 @@ func (k *Keeper) IterateClientStates(ctx context.Context, storePrefix []byte, cb
 }
 
 // GetAllClients returns all stored light client State objects.
-func (k *Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
+func (k *Keeper) GetAllClients(ctx context.Context) []exported.ClientState {
 	var states []exported.ClientState
 	k.IterateClientStates(ctx, nil, func(_ string, state exported.ClientState) bool {
 		states = append(states, state)
@@ -389,7 +390,7 @@ func (k *Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 // namespace without being able to read/write other client's data
 func (k *Keeper) ClientStore(ctx context.Context, clientID string) storetypes.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-	store := k.storeService.OpenKVStore(ctx)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	return prefix.NewStore(store, clientPrefix)
 }
 
@@ -451,7 +452,7 @@ func (k *Keeper) SetParams(ctx context.Context, params types.Params) {
 }
 
 // ScheduleIBCSoftwareUpgrade schedules an upgrade for the IBC client.
-func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Plan, upgradedClientState exported.ClientState) error {
+func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx context.Context, plan upgradetypes.Plan, upgradedClientState exported.ClientState) error {
 	// zero out any custom fields before setting
 	cs, ok := upgradedClientState.(*ibctm.ClientState)
 	if !ok {
@@ -475,7 +476,8 @@ func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.P
 	}
 
 	// emitting an event for scheduling an upgrade plan
-	emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
+	sdkContext := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
+	emitScheduleIBCSoftwareUpgradeEvent(sdkContext, plan.Name, plan.Height)
 
 	return nil
 }
