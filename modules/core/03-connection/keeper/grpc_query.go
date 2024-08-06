@@ -66,7 +66,7 @@ func (q *queryServer) Connections(c context.Context, req *types.QueryConnections
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var connections []*types.IdentifiedConnection
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyConnectionPrefix))
+	store := prefix.NewStore(ctx.KVStore(q.storeService), []byte(host.KeyConnectionPrefix))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var result types.ConnectionEnd
