@@ -2,6 +2,7 @@ package fee
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -49,45 +50,12 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	var versionMetadata types.Metadata
-
-	if strings.TrimSpace(version) == "" {
-		// default version
-		versionMetadata = types.Metadata{
-			FeeVersion: types.Version,
-			AppVersion: "",
-		}
-	} else {
-		metadata, err := types.MetadataFromVersion(version)
-		if err != nil {
-			// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-			// application.
-			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-				counterparty, version)
-		}
-		versionMetadata = metadata
-	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
-	}
-
-	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, versionMetadata.AppVersion)
-	if err != nil {
-		return "", err
-	}
-
-	versionMetadata.AppVersion = appVersion
-	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-	if err != nil {
-		return "", err
+	if strings.TrimSpace(version) != "" && version != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, version)
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-
-	// call underlying app's OnChanOpenInit callback with the appVersion
-	return string(versionBytes), nil
+	return types.Version, nil
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -504,14 +472,14 @@ func unwrapAppVersion(channelVersion string) string {
 }
 
 // WrapVersion returns the wrapped version based on the provided version string and underlying application version.
-func (IBCMiddleware) WrapVersion(version, appVersion string) string {
-	if appVersion != types.Version {
-		return version
+func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string {
+	if cbVersion != types.Version {
+		panic(fmt.Errorf("invalid appVersion provided. expected: %s got: %s", types.Version, cbVersion))
 	}
 
 	metadata := types.Metadata{
-		FeeVersion: types.Version,
-		AppVersion: appVersion,
+		FeeVersion: cbVersion,
+		AppVersion: underlyingAppVersion,
 	}
 
 	versionBytes := types.ModuleCdc.MustMarshal(&metadata)
@@ -519,13 +487,13 @@ func (IBCMiddleware) WrapVersion(version, appVersion string) string {
 	return string(versionBytes)
 }
 
-// UnwrapVersion returns the version. Interchain accounts does not wrap versions.
-func (IBCMiddleware) UnwrapVersion(version string) (string, string) {
+// UnwrapVersionUnsafe returns the version. Interchain accounts does not wrap versions.
+func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
 	metadata, err := types.MetadataFromVersion(version)
 	if err != nil {
 		// nothing to unwrap
-		return "", version
+		return "", version, err
 	}
 
-	return metadata.FeeVersion, metadata.AppVersion
+	return metadata.FeeVersion, metadata.AppVersion, nil
 }
