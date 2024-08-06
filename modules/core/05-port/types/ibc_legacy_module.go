@@ -28,7 +28,7 @@ func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
 }
 
 // OnChanOpenInit implements the IBCModule interface
-func (im *LegacyIBCModule) OnChanOpenInit(
+func (*LegacyIBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
