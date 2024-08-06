@@ -191,8 +191,7 @@ func (k Keeper) WriteAcknowledgement(
 ) error {
 	packet, ok := packetI.(channeltypes.Packet)
 	if !ok {
-		return channeltypes.ErrInvalidPacket
-		// return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "expected type %T, got %T",  &channeltypes.Packet, packet)
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "expected type %T, got %T", &channeltypes.Packet{}, packetI)
 	}
 	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
 		return channeltypes.ErrInvalidPacket

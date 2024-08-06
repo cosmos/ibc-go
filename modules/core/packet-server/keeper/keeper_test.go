@@ -328,3 +328,121 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestAcknowledgePacket() {
+	var (
+		packet channeltypes.Packet
+		ack    exported.Acknowledgement
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: protocol version is not IBC_VERSION_2",
+			func() {
+				packet.ProtocolVersion = channeltypes.IBC_VERSION_1
+			},
+			channeltypes.ErrInvalidPacket,
+		},
+		{
+			"failure: counterparty not found",
+			func() {
+				packet.SourceChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrChannelNotFound,
+		},
+		{
+			"failure: counterparty client identifier different than source channel",
+			func() {
+				packet.DestinationChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrInvalidChannelIdentifier,
+		},
+		{
+			"failure: packet commitment doesn't exist.",
+			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence)
+			},
+			channeltypes.ErrNoOpMsg,
+		},
+		{
+			"failure: packet commitment bytes differ",
+			func() {
+				packet.Data = []byte("")
+			},
+			channeltypes.ErrInvalidPacket,
+		},
+		{
+			"failure: verify membership fails",
+			func() {
+				ack = channeltypes.NewResultAcknowledgement([]byte("swapped acknowledgement"))
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			// create packet receipt and acknowledgement
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+			// send packet
+			_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort, packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+			suite.Require().NoError(err)
+
+			// TODO: Clean up code when msg server handler routes correctly.
+
+			// need to update chainA's client representing chainB to prove missing ack
+			// commit the changes and update the clients
+			suite.coordinator.CommitBlock(path.EndpointA.Chain)
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+
+			// get proof of packet commitment from chainA
+			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
+
+			err = suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
+			suite.Require().NoError(err)
+
+			ack = mock.MockAcknowledgement
+			err = suite.chainB.App.GetPacketServer().WriteAcknowledgement(suite.chainB.GetContext(), nil, packet, ack)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			// need to update chainA's client representing chainB to prove missing ack
+			// commit the changes and update the clients
+			suite.coordinator.CommitBlock(path.EndpointB.Chain)
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
+
+			err = suite.chainA.App.GetPacketServer().AcknowledgePacket(suite.chainA.GetContext(), nil, packet, ack.Acknowledgement(), proof, proofHeight)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence)
+				suite.Require().Empty(commitment)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
