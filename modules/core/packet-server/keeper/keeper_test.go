@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	"github.com/cosmos/ibc-go/v9/testing/mock"
-
 	testifysuite "github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	tmtypes "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -114,7 +113,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				suite.Require().Nil(suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, seq))
 
 			}
-
 		})
 	}
 }
