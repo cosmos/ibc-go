@@ -521,6 +521,8 @@ func NewSimApp(
 	// create fee wrapped mock module
 	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
+	ibcAppRouter.AddRoute(MockFeePort, feeMockModule)
+
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 

@@ -482,7 +482,7 @@ func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string 
 		AppVersion: underlyingAppVersion,
 	}
 
-	versionBytes := types.ModuleCdc.MustMarshal(&metadata)
+	versionBytes := types.ModuleCdc.MustMarshalJSON(&metadata)
 
 	return string(versionBytes)
 }
