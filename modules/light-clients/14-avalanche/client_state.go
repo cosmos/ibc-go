@@ -424,7 +424,7 @@ func (cs ClientState) VerifyMembership(
 		return err
 	}
 
-	chainID, err := ids.ToID([]byte(cs.ChainId))
+	chainID, err := ids.FromString(cs.ChainId)
 	if err != nil {
 		return err
 	}
@@ -455,10 +455,7 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrap(err, "failed to verify StorageRoot signature")
 	}
 
-	// TODO: fix variable casting
-	//key := path.(*MerkleKey)
-
-	// check merkleProof verifycation, by go-ethereum lib
+	// TODO check merkleProof verifycation, by go-ethereum lib
 	return VerifyMembership(cs.Proof, consensusState.StorageRoot, value, &MerkleKey{Key: path.String()})
 }
 
@@ -496,7 +493,7 @@ func (cs ClientState) VerifyNonMembership(
 		return err
 	}
 
-	chainID, err := ids.ToID([]byte(cs.ChainId))
+	chainID, err := ids.FromString(cs.ChainId)
 	if err != nil {
 		return err
 	}
