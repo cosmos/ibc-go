@@ -5,10 +5,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
@@ -43,13 +43,13 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 	return nil
 }
 
-// acknowledgeForwardedPacket writes the async acknowledgement for packet
-func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, packet, forwardedPacket channeltypes.Packet, ack channeltypes.Acknowledgement) error {
-	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack); err != nil {
+// acknowledgeForwardedPacket writes the async acknowledgement for forwardedPacket
+func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, forwardedPacket, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
+	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, forwardedPacket, ack); err != nil {
 		return err
 	}
 
-	k.deleteForwardedPacket(ctx, forwardedPacket.SourcePort, forwardedPacket.SourceChannel, forwardedPacket.Sequence)
+	k.deleteForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	return nil
 }
 

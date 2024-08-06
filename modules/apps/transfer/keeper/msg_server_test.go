@@ -11,11 +11,11 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // TestMsgTransfer tests Transfer rpc handler
@@ -307,6 +307,27 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 			},
 		},
 		{
+			"success: multiple denoms with equal traces",
+			func() {
+				coins = []sdk.Coin{}
+				for _, base := range []string{sdk.DefaultBondDenom, ibctesting.SecondaryDenom} {
+					denom := types.NewDenom(base, types.NewHop(ibctesting.MockPort, "channel-1"))
+					suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+
+					coins = append(coins, sdk.NewCoin(denom.IBCDenom(), defaultAmount))
+				}
+				msg.Tokens = coins
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().NoError(err)
+
+				msg.SourceChannel = denom.Trace[0].PortId
+				msg.SourcePort = denom.Trace[0].ChannelId
+				msg.Forwarding = types.NewForwarding(false)
+				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
+			},
+		},
+		{
 			"failure: no denom set on keeper",
 			func() {},
 			func(modified *types.MsgTransfer, err error) {
@@ -335,6 +356,24 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 			},
 			func(modified *types.MsgTransfer, err error) {
 				suite.Require().ErrorIs(err, types.ErrInvalidForwarding)
+			},
+		},
+		{
+			"failure: multiple coins with unwind, trace path does not match",
+			func() {
+				denom.Trace = append(denom.Trace, types.NewHop(ibctesting.MockPort, "channel-1"))
+				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+
+				denom.Trace = append(denom.Trace, types.NewHop(ibctesting.MockPort, "channel-2"), types.NewHop(ibctesting.MockPort, "channel-3"))
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+				coins = append(coins, sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+
+				msg.Tokens = coins
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().ErrorIs(err, types.ErrInvalidForwarding)
+				suite.Require().ErrorContains(err, "cannot unwind tokens with different traces")
 			},
 		},
 	}

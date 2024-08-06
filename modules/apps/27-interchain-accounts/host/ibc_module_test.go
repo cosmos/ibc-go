@@ -14,16 +14,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	icahost "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	icahost "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 var (
@@ -420,7 +420,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		{
 			"success with ICA auth module callback failure", func() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.Acknowledgement {
 					return channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
@@ -431,7 +431,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			"ICA OnRecvPacket fails - cannot unmarshal packet data", func() {
 				packetData = []byte("invalid data")
 			}, false,
-			"cannot unmarshal ICS-27 interchain account packet data: unknown data type",
+			"cannot unmarshal ICS-27 interchain account packet data: invalid type",
 		},
 	}
 
@@ -499,7 +499,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				suite.Require().True(ok)
 
 				ctx := suite.chainB.GetContext()
-				ack := cbs.OnRecvPacket(ctx, packet, nil)
+				ack := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, nil)
 
 				expectedAttributes := []sdk.Attribute{
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
@@ -583,7 +583,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 					0,
 				)
 
-				err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), packet, []byte("ackBytes"), nil)
+				err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), path.EndpointB.GetChannel().Version, packet, []byte("ackBytes"), nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -638,7 +638,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 					0,
 				)
 
-				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
+				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -913,15 +913,18 @@ func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 		}
 
 		// Context, port identifier and channel identifier are unused for host.
-		packetData, err := icahost.IBCModule{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", expPacketData.GetBytes())
+		icaHostModule := icahost.NewIBCModule(suite.chainA.GetSimApp().ICAHostKeeper)
+		packetData, version, err := icaHostModule.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expPacketData.GetBytes())
 		suite.Require().NoError(err)
+		suite.Require().Equal(version, path.EndpointA.ChannelConfig.Version)
 		suite.Require().Equal(expPacketData, packetData)
 
 		// test invalid packet data
 		invalidPacketData := []byte("invalid packet data")
 		// Context, port identifier and channel identifier are unused for host.
-		packetData, err = icahost.IBCModule{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", invalidPacketData)
+		packetData, version, err = icaHostModule.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, invalidPacketData)
 		suite.Require().Error(err)
+		suite.Require().Empty(version)
 		suite.Require().Nil(packetData)
 	}
 }

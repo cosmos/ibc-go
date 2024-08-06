@@ -15,16 +15,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 )
 
 var (
@@ -287,18 +286,9 @@ func (solo *Solomachine) ConnOpenInit(chain *TestChain, clientID string) string 
 func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID string) {
 	tryProof := solo.GenerateConnOpenTryProof(clientID, connectionID)
 
-	clientState := ibctm.NewClientState(chain.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift, chain.LatestCommittedHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), UpgradePath)
-	clientProof := solo.GenerateClientStateProof(clientState)
-
-	consensusState := chain.LatestCommittedHeader.ConsensusState()
-	consensusHeight := chain.LatestCommittedHeader.GetHeight()
-	consensusProof := solo.GenerateConsensusStateProof(consensusState, consensusHeight)
-
 	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
-		connectionID, connectionIDSolomachine, clientState,
-		tryProof, clientProof, consensusProof,
-		clienttypes.ZeroHeight(), clientState.LatestHeight,
-		ConnectionVersion,
+		connectionID, connectionIDSolomachine, tryProof,
+		clienttypes.ZeroHeight(), ConnectionVersion,
 		chain.SenderAccount.GetAddress().String(),
 	)
 
@@ -511,42 +501,6 @@ func (solo *Solomachine) GenerateProof(signBytes *solomachine.SignBytes) []byte 
 	solo.Sequence++
 
 	return proof
-}
-
-// GenerateClientStateProof generates the proof of the client state required for the connection open try and ack handshake steps.
-// The client state should be the self client states of the tendermint chain.
-func (solo *Solomachine) GenerateClientStateProof(clientState exported.ClientState) []byte {
-	data, err := clienttypes.MarshalClientState(solo.cdc, clientState)
-	require.NoError(solo.t, err)
-
-	path := host.FullClientStateKey(clientIDSolomachine)
-	signBytes := &solomachine.SignBytes{
-		Sequence:    solo.Sequence,
-		Timestamp:   solo.Time,
-		Diversifier: solo.Diversifier,
-		Path:        path,
-		Data:        data,
-	}
-
-	return solo.GenerateProof(signBytes)
-}
-
-// GenerateConsensusStateProof generates the proof of the consensus state required for the connection open try and ack handshake steps.
-// The consensus state should be the self consensus states of the tendermint chain.
-func (solo *Solomachine) GenerateConsensusStateProof(consensusState exported.ConsensusState, consensusHeight exported.Height) []byte {
-	data, err := clienttypes.MarshalConsensusState(solo.cdc, consensusState)
-	require.NoError(solo.t, err)
-
-	path := host.FullConsensusStateKey(clientIDSolomachine, consensusHeight)
-	signBytes := &solomachine.SignBytes{
-		Sequence:    solo.Sequence,
-		Timestamp:   solo.Time,
-		Diversifier: solo.Diversifier,
-		Path:        path,
-		Data:        data,
-	}
-
-	return solo.GenerateProof(signBytes)
 }
 
 // GenerateConnOpenTryProof generates the proofTry required for the connection open ack handshake step.

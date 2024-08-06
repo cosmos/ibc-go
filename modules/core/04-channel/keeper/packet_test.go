@@ -9,15 +9,15 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var (
@@ -596,11 +596,12 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
 
-			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.RecvPacket(suite.chainB.GetContext(), packet, proof, proofHeight)
+			channelVersion, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.RecvPacket(suite.chainB.GetContext(), packet, proof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(path.EndpointA.GetChannel().Version, channelVersion, "channel version is incorrect")
 
 				channelB, _ := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel())
 				nextSeqRecv, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel())
@@ -618,6 +619,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Equal("", channelVersion)
 			}
 		})
 	}
@@ -746,24 +748,27 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		ack    = ibcmock.MockAcknowledgement
 	)
 
-	assertErr := func(errType *errors.Error) func(commitment []byte, err error) {
-		return func(commitment []byte, err error) {
+	assertErr := func(errType *errors.Error) func(commitment []byte, channelVersion string, err error) {
+		return func(commitment []byte, channelVersion string, err error) {
 			suite.Require().Error(err)
 			suite.Require().ErrorIs(err, errType)
 			suite.Require().NotNil(commitment)
+			suite.Require().Equal("", channelVersion)
 		}
 	}
 
-	assertNoOp := func(commitment []byte, err error) {
+	assertNoOp := func(commitment []byte, channelVersion string, err error) {
 		suite.Require().Error(err)
 		suite.Require().ErrorIs(err, types.ErrNoOpMsg)
 		suite.Require().Nil(commitment)
+		suite.Require().Equal("", channelVersion)
 	}
 
-	assertSuccess := func(seq func() uint64, msg string) func(commitment []byte, err error) {
-		return func(commitment []byte, err error) {
+	assertSuccess := func(seq func() uint64, msg string) func(commitment []byte, channelVersion string, err error) {
+		return func(commitment []byte, channelVersion string, err error) {
 			suite.Require().NoError(err)
 			suite.Require().Nil(commitment)
+			suite.Require().Equal(path.EndpointA.GetChannel().Version, channelVersion)
 
 			nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
 
@@ -775,7 +780,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expResult func(commitment []byte, err error)
+		expResult func(commitment []byte, channelVersion string, err error)
 		expEvents func(path *ibctesting.Path) []abci.Event
 	}{
 		{
@@ -829,12 +834,13 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
 			},
-			expResult: func(commitment []byte, err error) {
+			expResult: func(commitment []byte, channelVersion string, err error) {
 				suite.Require().NoError(err)
 				suite.Require().Nil(commitment)
 
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(types.FLUSHING, channel.State)
+				suite.Require().Equal(channel.Version, channelVersion)
 
 				nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
 				suite.Require().True(found)
@@ -864,12 +870,13 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				path.EndpointA.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 			},
-			expResult: func(commitment []byte, err error) {
+			expResult: func(commitment []byte, channelVersion string, err error) {
 				suite.Require().NoError(err)
 				suite.Require().Nil(commitment)
 
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
+				suite.Require().Equal(channel.Version, channelVersion)
 
 				nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
 				suite.Require().True(found)
@@ -922,12 +929,13 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				path.EndpointA.SetChannelUpgrade(upgrade)
 				path.EndpointA.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 			},
-			expResult: func(commitment []byte, err error) {
+			expResult: func(commitment []byte, channelVersion string, err error) {
 				suite.Require().NoError(err)
 				suite.Require().Nil(commitment)
 
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(types.OPEN, channel.State)
+				suite.Require().Equal(channel.Version, channelVersion)
 
 				nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
 				suite.Require().True(found)
@@ -1015,10 +1023,11 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
 			},
-			expResult: func(commitment []byte, err error) {
+			expResult: func(commitment []byte, channelVersion string, err error) {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, types.ErrInvalidChannelState)
 				suite.Require().Nil(commitment)
+				suite.Require().Equal("", channelVersion)
 			},
 		},
 		{
@@ -1064,7 +1073,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-					types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{"connection-1000"}, path.EndpointA.ChannelConfig.Version),
+					types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{"connection-1000"}, path.EndpointA.GetChannel().Version),
 				)
 
 				suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -1090,7 +1099,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-					types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, path.EndpointA.ChannelConfig.Version),
+					types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, path.EndpointA.GetChannel().Version),
 				)
 				suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
@@ -1196,10 +1205,10 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(ctx, packet, ack.Acknowledgement(), proof, proofHeight)
+			channelVersion, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(ctx, packet, ack.Acknowledgement(), proof, proofHeight)
 
 			commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, packet.GetSequence())
-			tc.expResult(commitment, err)
+			tc.expResult(commitment, channelVersion, err)
 			if tc.expEvents != nil {
 				events := ctx.EventManager().ABCIEvents()
 

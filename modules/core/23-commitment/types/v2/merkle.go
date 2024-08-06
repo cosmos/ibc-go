@@ -3,7 +3,7 @@ package v2
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ exported.Path = (*MerklePath)(nil)

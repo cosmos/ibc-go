@@ -2,14 +2,15 @@ package keeper
 
 import (
 	"context"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 var _ types.MsgServer = (*Keeper)(nil)
@@ -138,7 +139,32 @@ func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) 
 // the unwound path to take. It assumes that only a single token is present (as this is verified in ValidateBasic)
 // in the tokens list and ensures that the token is not native to the chain.
 func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
-	coins := msg.GetCoins()
+	unwindHops, err := k.getUnwindHops(ctx, msg.GetCoins())
+	if err != nil {
+		return nil, err
+	}
+
+	// Update message fields.
+	msg.SourcePort, msg.SourceChannel = unwindHops[0].PortId, unwindHops[0].ChannelId
+	msg.Forwarding.Hops = append(unwindHops[1:], msg.Forwarding.Hops...)
+	msg.Forwarding.Unwind = false
+
+	// Message is validate again, this would only fail if hops now exceeds maximum allowed.
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+	return msg, nil
+}
+
+// getUnwindHops returns the hops to be used during unwinding. If coins consists of more than
+// one coin, all coins must have the exact same trace, else an error is returned. getUnwindHops
+// also validates that the coins are not native to the chain.
+func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, error) {
+	// Sanity: validation for MsgTransfer ensures coins are not empty.
+	if len(coins) == 0 {
+		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "coins cannot be empty")
+	}
+
 	token, err := k.tokenFromCoin(ctx, coins[0])
 	if err != nil {
 		return nil, err
@@ -148,17 +174,18 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind a native token")
 	}
 
-	// remove the first hop in denom as it is the current port/channel on this chain
-	unwindHops := token.Denom.Trace[1:]
+	unwindTrace := token.Denom.Trace
+	for _, coin := range coins[1:] {
+		token, err := k.tokenFromCoin(ctx, coin)
+		if err != nil {
+			return nil, err
+		}
 
-	// Update message fields.
-	msg.SourcePort, msg.SourceChannel = token.Denom.Trace[0].PortId, token.Denom.Trace[0].ChannelId
-	msg.Forwarding.Hops = append(unwindHops, msg.Forwarding.Hops...)
-	msg.Forwarding.Unwind = false
-
-	// Message is validate again, this would only fail if hops now exceeds maximum allowed.
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, err
+		// Implicitly ensures coin we're iterating over is not native.
+		if !slices.Equal(token.Denom.Trace, unwindTrace) {
+			return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind tokens with different traces.")
+		}
 	}
-	return msg, nil
+
+	return unwindTrace, nil
 }

@@ -1,8 +1,8 @@
 package types
 
 import (
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 )
 
 // InstantiateMessage is the message that is sent to the contract's instantiate entry point.
@@ -70,7 +70,7 @@ type VerifyMembershipMsg struct {
 	DelayTimePeriod  uint64                       `json:"delay_time_period"`
 	DelayBlockPeriod uint64                       `json:"delay_block_period"`
 	Proof            []byte                       `json:"proof"`
-	Path             commitmenttypesv2.MerklePath `json:"path"`
+	Path             commitmenttypesv2.MerklePath `json:"merkle_path"`
 	Value            []byte                       `json:"value"`
 }
 
@@ -80,7 +80,7 @@ type VerifyNonMembershipMsg struct {
 	DelayTimePeriod  uint64                       `json:"delay_time_period"`
 	DelayBlockPeriod uint64                       `json:"delay_block_period"`
 	Proof            []byte                       `json:"proof"`
-	Path             commitmenttypesv2.MerklePath `json:"path"`
+	Path             commitmenttypesv2.MerklePath `json:"merkle_path"`
 }
 
 // VerifyUpgradeAndUpdateStateMsg is a sudoMsg sent to the contract to verify an upgrade and update its state.

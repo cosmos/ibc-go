@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/cosmos/gogoproto/proto"
 	ics23 "github.com/cosmos/ics23/go"
@@ -11,8 +10,8 @@ import (
 
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // var representing the proofspecs for a SDK chain
@@ -67,27 +66,10 @@ func (mp MerklePrefix) Empty() bool {
 	return len(mp.Bytes()) == 0
 }
 
-var _ exported.Path = (*MerklePath)(nil)
-
 // NewMerklePath creates a new MerklePath instance
 // The keys must be passed in from root-to-leaf order.
 // NOTE: NewMerklePath returns a commitment/v2 MerklePath.
 var NewMerklePath = v2.NewMerklePath
-
-// GetKey will return a byte representation of the key
-// Deprecated: Please use commitment/v2 MerklePath instead.
-func (mp MerklePath) GetKey(i uint64) (string, error) {
-	if i >= uint64(len(mp.KeyPath)) {
-		return "", fmt.Errorf("index out of range. %d (index) >= %d (len)", i, len(mp.KeyPath))
-	}
-	return mp.KeyPath[i], nil
-}
-
-// Empty returns true if the path is empty
-// Deprecated: Please use commitment/v2 MerklePath instead.
-func (mp MerklePath) Empty() bool {
-	return len(mp.KeyPath) == 0
-}
 
 // ApplyPrefix constructs a new commitment path from the arguments. It prepends the prefix key
 // with the given path.

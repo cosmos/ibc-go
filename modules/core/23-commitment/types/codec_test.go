@@ -4,8 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	ibc "github.com/cosmos/ibc-go/v9/modules/core"
+	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 )
 
 func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
@@ -26,7 +27,7 @@ func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
 		},
 		{
 			"success: MerklePath",
-			sdk.MsgTypeURL(&types.MerklePath{}),
+			sdk.MsgTypeURL(&v2.MerklePath{}),
 			true,
 		},
 		{

@@ -3,8 +3,6 @@ package exported
 import (
 	"github.com/cosmos/gogoproto/proto"
 
-	storetypes "cosmossdk.io/store/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -12,9 +10,6 @@ import (
 type Status string
 
 const (
-	// TypeClientMisbehaviour is the shared evidence misbehaviour type
-	TypeClientMisbehaviour string = "client_misbehaviour"
-
 	// Solomachine is used to indicate that the light client is a solo machine.
 	Solomachine string = "06-solomachine"
 
@@ -43,22 +38,9 @@ const (
 	Unauthorized Status = "Unauthorized"
 )
 
-// ClientStoreProvider is an interface which gives access to the client prefixed stores.
-// It is implemented by the 02-client keeper and may be called by a light client module
-// to obtain a client prefixed store for the given client identifier.
-type ClientStoreProvider interface {
-	// ClientStore will return a client prefixed store using the given client identifier
-	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
-}
-
 // LightClientModule is an interface which core IBC uses to interact with light client modules.
 // Light client modules must implement this interface to integrate with core IBC.
 type LightClientModule interface {
-	// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-	// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-	// to IBC light client instances.
-	RegisterStoreProvider(storeProvider ClientStoreProvider)
-
 	// Initialize is called upon client creation, it allows the client to perform validation on the client state and initial consensus state.
 	// The light client module is responsible for setting any client-specific data in the store. This includes the client state,
 	// initial consensus state and any associated metadata.

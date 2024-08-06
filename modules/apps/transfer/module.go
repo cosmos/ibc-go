@@ -17,11 +17,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/client/cli"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/client/cli"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 )
 
 var (
