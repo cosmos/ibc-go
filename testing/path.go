@@ -148,6 +148,13 @@ func (path *Path) Setup() {
 	path.CreateChannels()
 }
 
+// SetupV2 constructs clients on both sides and then provides the counterparties for both sides
+// This is all that is necessary for path setup with the Eureka (V2) protocol
+func (path *Path) SetupV2() {
+	path.SetupClients()
+	path.SetupCounterparties()
+}
+
 // SetupClients is a helper function to create clients on both chains. It assumes the
 // caller does not anticipate any errors.
 func (path *Path) SetupClients() {
@@ -158,6 +165,18 @@ func (path *Path) SetupClients() {
 
 	err = path.EndpointB.CreateClient()
 	if err != nil {
+		panic(err)
+	}
+}
+
+// SetupCounterparties is a helper function to set the counterparties supporting ibc-eureka on both
+// chains. It assumes the caller does not anticipate any errors.
+func (path *Path) SetupCounterparties() {
+	if err := path.EndpointB.ProvideCounterparty(); err != nil {
+		panic(err)
+	}
+
+	if err := path.EndpointA.ProvideCounterparty(); err != nil {
 		panic(err)
 	}
 }
