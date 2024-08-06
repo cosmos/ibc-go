@@ -5,7 +5,16 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+    commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+)
+
+var (
+	defaultTimeoutHeight     = clienttypes.NewHeight(1, 100)
+	disabledTimeoutTimestamp = uint64(0)
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -35,16 +44,89 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
 
-// TODO: Remove, just testing the testing setup.
-func (suite *KeeperTestSuite) TestCreateEurekaClients() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	path.SetupV2()
+func (suite *KeeperTestSuite) TestRecvPacket() {
+	var packet channeltypes.Packet
 
-	// Assert counterparty set and creator deleted
-	_, found := suite.chainA.App.GetPacketServer().ClientKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
-	suite.Require().True(found)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: counterparty not found",
+			func() {
+				packet.DestinationChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrChannelNotFound,
+		},
+		{
+			"failure: counterparty client identifier different than source channel",
+			func() {
+				packet.SourceChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrInvalidChannelIdentifier,
+		},
+		{
+			"failure: packet has timed out",
+			func() {
+				packet.TimeoutHeight = clienttypes.ZeroHeight()
+				packet.TimeoutTimestamp = uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			},
+			channeltypes.ErrTimeoutElapsed,
+		},
+		{
+			"failure: packet already received",
+			func() {
+				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+			},
+			channeltypes.ErrNoOpMsg,
+		},
+        {
+            "failure: verify membership failed",
+            func() {
+                suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, []byte(""))            
+            },
+            commitmenttypes.ErrInvalidProof,
+        },
+	}
 
-	// Assert counterparty set and creator deleted
-	_, found = suite.chainB.App.GetPacketServer().ClientKeeper.GetCounterparty(suite.chainB.GetContext(), path.EndpointB.ClientID)
-	suite.Require().True(found)
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+
+			// For now, set packet commitment on A for each case and update clients. Use SendPacket after 7048.
+			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, channeltypes.CommitPacket(packet))
+
+            tc.malleate()
+
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+
+			// get proof of packet commitment from chainA
+			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
+
+			err := suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
 }
