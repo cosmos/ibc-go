@@ -316,7 +316,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return im.app.OnChanOpenInit(ctx, channelOrdering, connectionHops, portID, channelID, counterparty, version)
+	return "", nil
 }
 
 // OnChanOpenTry defers to the underlying application
