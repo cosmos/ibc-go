@@ -45,6 +45,10 @@ func (k Keeper) RecvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
+	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
+		return channeltypes.ErrInvalidPacket
+	}
+
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
 	// Note: This can be implemented by the current keeper

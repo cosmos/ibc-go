@@ -9,6 +9,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	tmtypes "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -45,7 +46,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) TestRecvPacket() {
-	var packet channeltypes.Packet
+	var (
+		path   *ibctesting.Path
+		packet channeltypes.Packet
+	)
 
 	testCases := []struct {
 		name     string
@@ -58,11 +62,28 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			nil,
 		},
 		{
+			"failure: protocol version is not V2",
+			func() {
+				packet.ProtocolVersion = channeltypes.IBC_VERSION_1
+			},
+			channeltypes.ErrInvalidPacket,
+		},
+		{
 			"failure: counterparty not found",
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
 			channeltypes.ErrChannelNotFound,
+		},
+		{
+			"failure: client is not active",
+			func() {
+				clientState, ok := suite.chainB.GetClientState(packet.DestinationChannel).(*tmtypes.ClientState)
+				suite.Require().True(ok)
+				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainB.GetContext(), packet.DestinationChannel, clientState)
+			},
+			clienttypes.ErrClientNotActive,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -90,6 +111,8 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			"failure: verify membership failed",
 			func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, []byte(""))
+				suite.coordinator.CommitBlock(path.EndpointA.Chain)
+				suite.Require().NoError(path.EndpointB.UpdateClient())
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -101,7 +124,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
 			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
@@ -109,10 +132,10 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			// For now, set packet commitment on A for each case and update clients. Use SendPacket after 7048.
 			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, channeltypes.CommitPacket(packet))
 
-			tc.malleate()
-
-			suite.Require().NoError(path.EndpointA.UpdateClient())
+			suite.coordinator.CommitBlock(path.EndpointA.Chain)
 			suite.Require().NoError(path.EndpointB.UpdateClient())
+
+			tc.malleate()
 
 			// get proof of packet commitment from chainA
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -123,6 +146,9 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
+
+				_, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+				suite.Require().True(found)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
