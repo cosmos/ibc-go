@@ -121,7 +121,8 @@ type IBCModule interface {
 	) error
 }
 
-// TODO: docstring
+// VersionWrapper is an optional interface which should be implemented by middleware which wrap the channel version
+// to ensure backwards compatibility.
 type VersionWrapper interface {
 	// WrapVersion is required in order to remove middleware wiring and the ICS4Wrapper
 	// while maintaining backwards compatibility. It will be removed in the future.
