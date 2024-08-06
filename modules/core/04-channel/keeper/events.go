@@ -148,13 +148,7 @@ func emitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Cha
 
 // EmitRecvPacketEvent emits a receive packet event. It will be emitted both the first time a packet
 // is received for a certain sequence and for all duplicate receives.
-func EmitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel) {
-	// An event emitted from eureka handler will not have a channel. Default initialize one
-	// with ordering set to UNORDERED.
-	if channel == nil {
-		channel = &types.Channel{Ordering: types.UNORDERED}
-	}
-
+func EmitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,

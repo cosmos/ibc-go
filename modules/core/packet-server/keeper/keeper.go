@@ -63,8 +63,19 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
 
-	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
+	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
+	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
+	// by the increase of the recvStartSequence.
+	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	if found {
+		channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
+		// This error indicates that the packet has already been relayed. Core IBC will
+		// treat this error as a no-op in order to prevent an entire relay transaction
+		// from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
 
+	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
 	// TODO: allow for custom prefix
 	path := host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
@@ -83,26 +94,19 @@ func (k Keeper) RecvPacket(
 		return err
 	}
 
-	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
-	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
-	// by the increase of the recvStartSequence.
-	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	if found {
-		channelkeeper.EmitRecvPacketEvent(ctx, packet, nil)
-		// This error indicates that the packet has already been relayed. Core IBC will
-		// treat this error as a no-op in order to prevent an entire relay transaction
-		// from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
-	}
-
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
 	k.ChannelKeeper.SetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 
 	// log that a packet has been received & executed
-	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_port", packet.GetSourcePort(), "src_channel", packet.GetSourceChannel(), "dst_port", packet.GetDestPort(), "dst_channel", packet.GetDestChannel())
+	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	// emit the same events as receive packet without channel fields
-	channelkeeper.EmitRecvPacketEvent(ctx, packet, nil)
+	channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
 
 	return nil
+}
+
+// sentinelChannel creates a sentinel channel for use in events for Eureka protocol handlers.
+func sentinelChannel(clientID string) channeltypes.Channel {
+	return channeltypes.Channel{Ordering: channeltypes.UNORDERED, ConnectionHops: []string{clientID}}
 }
