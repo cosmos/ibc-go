@@ -173,8 +173,8 @@ func EmitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Cha
 	})
 }
 
-// emitWriteAcknowledgementEvent emits an event that the relayer can query for
-func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel types.Channel, acknowledgement []byte) {
+// EmitWriteAcknowledgementEvent emits an event that the relayer can query for
+func EmitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel types.Channel, acknowledgement []byte) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWriteAck,
@@ -200,9 +200,9 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 	})
 }
 
-// emitAcknowledgePacketEvent emits an acknowledge packet event. It will be emitted both the first time
+// EmitAcknowledgePacketEvent emits an acknowledge packet event. It will be emitted both the first time
 // a packet is acknowledged for a certain sequence and for all duplicate acknowledgements.
-func emitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
+func EmitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,
