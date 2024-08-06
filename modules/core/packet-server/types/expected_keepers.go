@@ -16,7 +16,7 @@ type ChannelKeeper interface {
 	GetPacketCommitment(ctx sdk.Context, portID string, channelID string, sequence uint64) []byte
 
 	// DeletePacketCommitment deletes the packet commitment hash under the commitment path
-	// DeletePacketCommitment(ctx sdk.Context, portID string, channelID string, sequence uint64)
+	DeletePacketCommitment(ctx sdk.Context, portID string, channelID string, sequence uint64)
 
 	// SetNextSequenceSend writes the next send sequence under the sequence path
 	// This is a public path that is standardized by the IBC specification
@@ -43,4 +43,6 @@ type ClientKeeper interface {
 	// the executing chain
 	// This is a private path that is only used by the IBC lite module
 	GetCounterparty(ctx sdk.Context, clientID string) (clienttypes.Counterparty, bool)
+	// GetClientTimestampAtHeight returns the timestamp in nanoseconds of the client at the given height given the clientID.
+	GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error)
 }

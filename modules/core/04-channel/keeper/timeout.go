@@ -76,7 +76,7 @@ func (k *Keeper) TimeoutPacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		emitTimeoutPacketEvent(ctx, packet, channel)
+		EmitTimeoutPacketEvent(ctx, packet, channel)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -148,7 +148,7 @@ func (k *Keeper) TimeoutExecuted(
 		)
 	}
 
-	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	k.DeletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING && channel.Ordering == types.UNORDERED {
@@ -183,7 +183,7 @@ func (k *Keeper) TimeoutExecuted(
 	)
 
 	// emit an event marking that we have processed the timeout
-	emitTimeoutPacketEvent(ctx, packet, channel)
+	EmitTimeoutPacketEvent(ctx, packet, channel)
 
 	return nil
 }
@@ -236,7 +236,7 @@ func (k *Keeper) TimeoutOnClose(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		emitTimeoutPacketEvent(ctx, packet, channel)
+		EmitTimeoutPacketEvent(ctx, packet, channel)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
