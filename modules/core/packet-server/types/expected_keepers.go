@@ -16,7 +16,7 @@ type ChannelKeeper interface {
 	GetPacketCommitment(ctx sdk.Context, portID string, channelID string, sequence uint64) []byte
 
 	// DeletePacketCommitment deletes the packet commitment hash under the commitment path
-	// DeletePacketCommitment(ctx sdk.Context, portID string, channelID string, sequence uint64)
+	DeletePacketCommitment(ctx sdk.Context, portID string, channelID string, sequence uint64)
 
 	// SetNextSequenceSend writes the next send sequence under the sequence path
 	// This is a public path that is standardized by the IBC specification
