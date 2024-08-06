@@ -68,8 +68,9 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.SetupCounterparties()
 			// make underlying client Frozen to get invalid client status
 			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			suite.Require().True(ok, "could not retreive client state")
-			tmClientState := clientState.(*tmtypes.ClientState)
+			suite.Require().True(ok, "could not retrieve client state")
+			tmClientState, ok := clientState.(*tmtypes.ClientState)
+			suite.Require().True(ok, "client is not tendermint client")
 			tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClientState)
 		}, clienttypes.ErrClientNotActive},
