@@ -43,4 +43,11 @@ type ClientKeeper interface {
 	// the executing chain
 	// This is a private path that is only used by the IBC lite module
 	GetCounterparty(ctx sdk.Context, clientID string) (clienttypes.Counterparty, bool)
+	// GetClientStatus returns the status of a client given the client ID
+	GetClientStatus(ctx sdk.Context, clientID string) exported.Status
+	// GetClientLatestHeight returns the latest height of a client given the client ID
+	GetClientLatestHeight(ctx sdk.Context, clientID string) clienttypes.Height
+	// GetClientTimestampAtHeight returns the timestamp for a given height on the client
+	// given its client ID and height
+	GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error)
 }
