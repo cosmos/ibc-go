@@ -22,13 +22,13 @@ func (im *LegacyIBCModule) GetCallbacks() []ClassicIBCModule {
 
 // NewLegacyIBCModule creates a new IBCModule given the keeper
 func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
-	return LegacyIBCModule{
+	return &LegacyIBCModule{
 		cbs: cbs,
 	}
 }
 
 // OnChanOpenInit implements the IBCModule interface
-func (LegacyIBCModule) OnChanOpenInit(
+func (im *LegacyIBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,

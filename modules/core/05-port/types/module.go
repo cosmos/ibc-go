@@ -121,6 +121,20 @@ type IBCModule interface {
 	) error
 }
 
+// TODO: docstring
+type VersionWrapper interface {
+	// WrapVersion is required in order to remove middleware wiring and the ICS4Wrapper
+	// while maintaining backwards compatibility. It will be removed in the future.
+	// Applications should wrap the provided version with their application version.
+	// If they do not need to wrap, they may simply return the version provided.
+	WrapVersion(version, appVersion string) string
+	// UnwrapVersion is required in order to remove middleware wiring and the ICS4Wrapper
+	// while maintaining backwards compatibility. It will be removed in the future.
+	// Applications should unwrap the provided version with their application version.
+	// If they do not need to wrap, they may simply return the version provided.
+	UnwrapVersion(string) (appVersion, version string)
+}
+
 // UpgradableModule defines the callbacks required to perform a channel upgrade.
 // Note: applications must ensure that state related to packet processing remains unmodified until the OnChanUpgradeOpen callback is executed.
 // This guarantees that in-flight packets are correctly flushed using the existing channel parameters.

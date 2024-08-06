@@ -21,6 +21,7 @@ var (
 	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 	_ porttypes.UpgradableModule      = (*IBCMiddleware)(nil)
+	_ porttypes.VersionWrapper        = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
@@ -500,4 +501,31 @@ func unwrapAppVersion(channelVersion string) string {
 	}
 
 	return metadata.AppVersion
+}
+
+// WrapVersion returns the wrapped version based on the provided version string and underlying application version.
+func (IBCMiddleware) WrapVersion(version, appVersion string) string {
+	if appVersion != types.Version {
+		return version
+	}
+
+	metadata := types.Metadata{
+		FeeVersion: types.Version,
+		AppVersion: appVersion,
+	}
+
+	versionBytes := types.ModuleCdc.MustMarshal(&metadata)
+
+	return string(versionBytes)
+}
+
+// UnwrapVersion returns the version. Interchain accounts does not wrap versions.
+func (IBCMiddleware) UnwrapVersion(version string) (string, string) {
+	metadata, err := types.MetadataFromVersion(version)
+	if err != nil {
+		// nothing to unwrap
+		return "", version
+	}
+
+	return metadata.FeeVersion, metadata.AppVersion
 }

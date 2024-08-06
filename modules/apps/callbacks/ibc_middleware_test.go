@@ -171,7 +171,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 
 			s.Require().Len(cbs, 1, "expected 1 legacy module")
 
-			legacyModule, ok := cbs[0].(porttypes.LegacyIBCModule)
+			legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule)
 			s.Require().True(ok, "expected there to be a single legacy ibc module")
 
 			legacyModuleCbs := legacyModule.GetCallbacks()
