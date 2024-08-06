@@ -361,7 +361,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			// intialize freezeClient to false
+			// initialize freezeClient to false
 			freezeClient = false
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
