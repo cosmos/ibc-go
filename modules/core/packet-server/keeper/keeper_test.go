@@ -5,9 +5,9 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-    commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
@@ -86,13 +86,13 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			},
 			channeltypes.ErrNoOpMsg,
 		},
-        {
-            "failure: verify membership failed",
-            func() {
-                suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, []byte(""))            
-            },
-            commitmenttypes.ErrInvalidProof,
-        },
+		{
+			"failure: verify membership failed",
+			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, []byte(""))
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			// For now, set packet commitment on A for each case and update clients. Use SendPacket after 7048.
 			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, channeltypes.CommitPacket(packet))
 
-            tc.malleate()
+			tc.malleate()
 
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 			suite.Require().NoError(path.EndpointB.UpdateClient())
