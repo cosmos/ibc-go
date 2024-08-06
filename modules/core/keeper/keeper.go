@@ -35,14 +35,10 @@ type Keeper struct {
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace,
-	consensusHost clienttypes.ConsensusHost, upgradeKeeper clienttypes.UpgradeKeeper,
+	upgradeKeeper clienttypes.UpgradeKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
 ) *Keeper {
 	// panic if any of the keepers passed in is empty
-	if isEmpty(consensusHost) {
-		panic(errors.New("cannot initialize IBC keeper: empty consensus host"))
-	}
-
 	if isEmpty(upgradeKeeper) {
 		panic(errors.New("cannot initialize IBC keeper: empty upgrade keeper"))
 	}
@@ -55,7 +51,7 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, consensusHost, upgradeKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, upgradeKeeper)
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
@@ -75,6 +71,7 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
 
+<<<<<<< HEAD
 // SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
 func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
 	if consensusHost == nil {
@@ -84,6 +81,8 @@ func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
 	k.ClientKeeper.SetConsensusHost(consensusHost)
 }
 
+=======
+>>>>>>> 2028e9a3 (imp!: removed 'ConsensusHost' interface (#6937))
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *porttypes.Router) {
