@@ -172,7 +172,12 @@ func (im IBCModule) OnSendPacket(
 	dataBz []byte,
 	signer sdk.AccAddress,
 ) error {
-	data, err := im.getICS20PacketData(ctx, dataBz, portID, channelID)
+	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
+	}
+
+	data, err := types.UnmarshalPacketData(dataBz, ics20Version)
 	if err != nil {
 		return err
 	}

@@ -142,7 +142,7 @@ func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltyp
 		}
 	}
 	if len(packets) == 0 {
-		return ferr(errors.New("acknowledgement event attribute not found"))
+		return ferr(fmt.Errorf("%s event attribute not found", eventType))
 	}
 	return packets, nil
 }

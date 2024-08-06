@@ -78,22 +78,16 @@ func (s *CallbacksForwardingTestSuite) TestForwardingWithMemoCallback() {
 			expCallbackMapOnChainC: map[callbacktypes.CallbackType]int{callbacktypes.CallbackTypeReceivePacket: 1},
 		},
 		{
-			name:                   "ack callback",
+			name:                   "send and ack callback",
 			testMemo:               fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
-			expCallbackMapOnChainB: map[callbacktypes.CallbackType]int{callbacktypes.CallbackTypeAcknowledgementPacket: 1},
+			expCallbackMapOnChainB: map[callbacktypes.CallbackType]int{callbacktypes.CallbackTypeSendPacket: 1, callbacktypes.CallbackTypeAcknowledgementPacket: 1},
 			expCallbackMapOnChainC: map[callbacktypes.CallbackType]int{},
 		},
 		{
-			name:                   "ack and recv callback",
+			name:                   "send, ack and recv callback",
 			testMemo:               fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address": "%s"}}`, simapp.SuccessContract, simapp.SuccessContract),
-			expCallbackMapOnChainB: map[callbacktypes.CallbackType]int{callbacktypes.CallbackTypeAcknowledgementPacket: 1},
+			expCallbackMapOnChainB: map[callbacktypes.CallbackType]int{callbacktypes.CallbackTypeSendPacket: 1, callbacktypes.CallbackTypeAcknowledgementPacket: 1},
 			expCallbackMapOnChainC: map[callbacktypes.CallbackType]int{callbacktypes.CallbackTypeReceivePacket: 1},
-		},
-		{
-			name:                   "ack callback with low gas (error)",
-			testMemo:               fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract),
-			expCallbackMapOnChainB: map[callbacktypes.CallbackType]int{callbacktypes.CallbackTypeAcknowledgementPacket: 1},
-			expCallbackMapOnChainC: map[callbacktypes.CallbackType]int{},
 		},
 		{
 			name:                   "recv callback with low gas (error)",

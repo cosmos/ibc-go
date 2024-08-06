@@ -137,7 +137,7 @@ func TestParsePacketsFromEvents(t *testing.T) {
 		{
 			name:          "fail: no events",
 			events:        []abci.Event{},
-			expectedError: "acknowledgement event attribute not found",
+			expectedError: "send_packet event attribute not found",
 		},
 		{
 			name: "fail: events without packet",
@@ -149,7 +149,7 @@ func TestParsePacketsFromEvents(t *testing.T) {
 					Type: "yyy",
 				},
 			},
-			expectedError: "acknowledgement event attribute not found",
+			expectedError: "send_packet event attribute not found",
 		},
 		{
 			name: "fail: event packet with invalid AttributeKeySequence",
