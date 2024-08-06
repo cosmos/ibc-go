@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -71,18 +70,6 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
 
-<<<<<<< HEAD
-// SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
-func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
-	if consensusHost == nil {
-		panic(fmt.Errorf("cannot set a nil self consensus host"))
-	}
-
-	k.ClientKeeper.SetConsensusHost(consensusHost)
-}
-
-=======
->>>>>>> 2028e9a3 (imp!: removed 'ConsensusHost' interface (#6937))
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *porttypes.Router) {

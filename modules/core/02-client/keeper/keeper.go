@@ -88,18 +88,6 @@ func (k *Keeper) Route(ctx sdk.Context, clientID string) (exported.LightClientMo
 	return clientModule, nil
 }
 
-<<<<<<< HEAD
-// SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
-func (k *Keeper) SetConsensusHost(consensusHost types.ConsensusHost) {
-	if consensusHost == nil {
-		panic(fmt.Errorf("cannot set a nil self consensus host"))
-	}
-
-	k.consensusHost = consensusHost
-}
-
-=======
->>>>>>> 2028e9a3 (imp!: removed 'ConsensusHost' interface (#6937))
 // GenerateClientIdentifier returns the next client identifier.
 func (k *Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
 	nextClientSeq := k.GetNextClientSequence(ctx)
