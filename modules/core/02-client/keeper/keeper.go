@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 
+	corestoretypes "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/prefix"
@@ -24,7 +26,7 @@ import (
 // Keeper represents a type that grants read and write permissions to any client
 // state information
 type Keeper struct {
-	storeKey       storetypes.StoreKey
+	storeService   corestoretypes.KVStoreService
 	cdc            codec.BinaryCodec
 	router         *types.Router
 	legacySubspace types.ParamSubspace
@@ -32,13 +34,13 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestoretypes.KVStoreService, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
 	router := types.NewRouter()
 	localhostModule := localhost.NewLightClientModule(cdc, key)
 	router.AddRoute(exported.Localhost, localhostModule)
 
 	return &Keeper{
-		storeKey:       key,
+		storeService:   storeService,
 		cdc:            cdc,
 		router:         router,
 		legacySubspace: legacySubspace,
@@ -136,9 +138,12 @@ func (k *Keeper) SetClientConsensusState(ctx sdk.Context, clientID string, heigh
 }
 
 // GetNextClientSequence gets the next client sequence from the store.
-func (k *Keeper) GetNextClientSequence(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get([]byte(types.KeyNextClientSequence))
+func (k *Keeper) GetNextClientSequence(ctx context.Context) uint64 {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get([]byte(types.KeyNextClientSequence))
+	if err != nil {
+		panic(err)
+	}
 	if len(bz) == 0 {
 		panic(errors.New("next client sequence is nil"))
 	}
@@ -147,8 +152,8 @@ func (k *Keeper) GetNextClientSequence(ctx sdk.Context) uint64 {
 }
 
 // SetNextClientSequence sets the next client sequence to the store.
-func (k *Keeper) SetNextClientSequence(ctx sdk.Context, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
+func (k *Keeper) SetNextClientSequence(ctx context.Context, sequence uint64) {
+	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
 	store.Set([]byte(types.KeyNextClientSequence), bz)
 }
@@ -156,8 +161,8 @@ func (k *Keeper) SetNextClientSequence(ctx sdk.Context, sequence uint64) {
 // IterateConsensusStates provides an iterator over all stored consensus states.
 // objects. For each State object, cb will be called. If the cb returns true,
 // the iterator will close and stop.
-func (k *Keeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string, cs types.ConsensusStateWithHeight) bool) {
-	store := ctx.KVStore(k.storeKey)
+func (k *Keeper) IterateConsensusStates(ctx context.Context, cb func(clientID string, cs types.ConsensusStateWithHeight) bool) {
+	store := k.storeService.OpenKVStore(ctx)
 	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
@@ -181,11 +186,11 @@ func (k *Keeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string
 
 // iterateMetadata provides an iterator over all stored metadata keys in the client store.
 // For each metadata object, it will perform a callback.
-func (k *Keeper) iterateMetadata(ctx sdk.Context, cb func(clientID string, key, value []byte) bool) {
-	store := ctx.KVStore(k.storeKey)
+func (k *Keeper) iterateMetadata(ctx context.Context, cb func(clientID string, key, value []byte) bool) {
+	store := k.storeService.OpenKVStore(ctx)
 	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
-	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		split := strings.Split(string(iterator.Key()), "/")
 		if len(split) == 3 && split[2] == string(host.KeyClientState) {
@@ -347,11 +352,11 @@ func (k *Keeper) SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz
 // IterateClientStates provides an iterator over all stored ibc ClientState
 // objects using the provided store prefix. For each ClientState object, cb will be called. If the cb returns true,
 // the iterator will close and stop.
-func (k *Keeper) IterateClientStates(ctx sdk.Context, storePrefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
-	store := ctx.KVStore(k.storeKey)
+func (k *Keeper) IterateClientStates(ctx context.Context, storePrefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
+	store := k.storeService.OpenKVStore(ctx)
 	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(storePrefix))
 
-	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		path := string(iterator.Key())
 		if !strings.Contains(path, host.KeyClientState) {
@@ -424,10 +429,10 @@ func (k *Keeper) GetClientTimestampAtHeight(ctx sdk.Context, clientID string, he
 }
 
 // GetParams returns the total set of ibc-client parameters.
-func (k *Keeper) GetParams(ctx sdk.Context) types.Params {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get([]byte(types.ParamsKey))
-	if bz == nil { // only panic on unset params and not on empty params
+func (k *Keeper) GetParams(ctx context.Context) types.Params {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, _ := store.Get([]byte(types.ParamsKey)) // TODO: handle error
+	if bz == nil {                              // only panic on unset params and not on empty params
 		panic(errors.New("client params are not set in store"))
 	}
 
@@ -437,8 +442,8 @@ func (k *Keeper) GetParams(ctx sdk.Context) types.Params {
 }
 
 // SetParams sets the total set of ibc-client parameters.
-func (k *Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	store := ctx.KVStore(k.storeKey)
+func (k *Keeper) SetParams(ctx context.Context, params types.Params) {
+	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
 	store.Set([]byte(types.ParamsKey), bz)
 }

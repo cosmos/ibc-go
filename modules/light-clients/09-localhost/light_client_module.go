@@ -2,9 +2,10 @@ package localhost
 
 import (
 	"bytes"
+	"context"
 
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -32,15 +33,15 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
-	cdc codec.BinaryCodec
-	key storetypes.StoreKey
+	cdc            codec.BinaryCodec
+	kvstoreService corestore.KVStoreService
 }
 
 // NewLightClientModule creates and returns a new 09-localhost LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, key corestore.KVStoreService) *LightClientModule {
 	return &LightClientModule{
-		cdc: cdc,
-		key: key,
+		cdc:            cdc,
+		kvstoreService: key,
 	}
 }
 
@@ -73,7 +74,7 @@ func (LightClientModule) UpdateState(ctx sdk.Context, _ string, _ exported.Clien
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // The caller must provide the full IBC store.
 func (l LightClientModule) VerifyMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -82,7 +83,7 @@ func (l LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	ibcStore := ctx.KVStore(l.key)
+	ibcStore := l.kvstoreService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -99,7 +100,10 @@ func (l LightClientModule) VerifyMembership(
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
-	bz := ibcStore.Get(merklePath.KeyPath[1])
+	bz, err := ibcStore.Get(merklePath.KeyPath[1])
+	if err != nil {
+		return errorsmod.Wrapf(err, "error getting value for path %s", path)
+	}
 	if bz == nil {
 		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
 	}
@@ -115,7 +119,7 @@ func (l LightClientModule) VerifyMembership(
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // The caller must provide the full IBC store.
 func (l LightClientModule) VerifyNonMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -123,7 +127,7 @@ func (l LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	ibcStore := ctx.KVStore(l.key)
+	ibcStore := l.kvstoreService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -140,7 +144,11 @@ func (l LightClientModule) VerifyNonMembership(
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
-	if ibcStore.Has(merklePath.KeyPath[1]) {
+	has, err := ibcStore.Has(merklePath.KeyPath[1])
+	if err != nil {
+		return errorsmod.Wrapf(err, "error checking for value for path %s", path)
+	}
+	if has {
 		return errorsmod.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
 	}
 
