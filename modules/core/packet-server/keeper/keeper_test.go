@@ -51,20 +51,15 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		malleate func()
 		expError error
 	}{
-		{"success", func() {
-			// set the counterparties
-			path.SetupCounterparties()
-		}, nil},
-		{"counterparty not found", func() {}, channeltypes.ErrChannelNotFound},
+		{"success", func() {}, nil},
+		{"counterparty not found", func() {
+			packet.SourceChannel = ibctesting.FirstChannelID
+		}, channeltypes.ErrChannelNotFound},
 		{"packet failed basic validation", func() {
-			// set the counterparties
-			path.SetupCounterparties()
 			// invalid data
 			packet.Data = nil
 		}, channeltypes.ErrInvalidPacket},
 		{"client status invalid", func() {
-			// set the counterparties
-			path.SetupCounterparties()
 			// make underlying client Frozen to get invalid client status
 			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().True(ok, "could not retrieve client state")
@@ -74,8 +69,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClientState)
 		}, clienttypes.ErrClientNotActive},
 		{"timeout elapsed", func() {
-			// set the counterparties
-			path.SetupCounterparties()
 			packet.TimeoutTimestamp = 1
 		}, channeltypes.ErrTimeoutElapsed},
 	}
@@ -85,9 +78,9 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.name, i, len(testCases)), func() {
 			suite.SetupTest() // reset
 
-			// create clients on both chains
+			// create clients and set counterparties on both chains
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupClients()
+			path.SetupV2()
 
 			// create standard packet that can be malleated
 			packet = channeltypes.NewPacketWithVersion(mock.MockPacketData, 1, mock.PortID,
