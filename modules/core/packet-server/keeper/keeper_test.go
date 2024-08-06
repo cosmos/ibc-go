@@ -231,8 +231,9 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 func (suite *KeeperTestSuite) TestTimeoutPacket() {
 	var (
-		path   *ibctesting.Path
-		packet channeltypes.Packet
+		path         *ibctesting.Path
+		packet       channeltypes.Packet
+		freezeClient bool
 	)
 
 	testCases := []struct {
@@ -263,6 +264,19 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				suite.Require().NoError(err, "send packet failed")
 			},
 			nil,
+		},
+		{
+			"failure: invalid protocol version",
+			func() {
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+
+				packet.ProtocolVersion = channeltypes.IBC_VERSION_1
+				packet.AppVersion = ""
+			},
+			channeltypes.ErrInvalidPacket,
 		},
 		{
 			"failure: counterparty not found",
@@ -316,6 +330,18 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			channeltypes.ErrInvalidPacket,
 		},
 		{
+			"failure: client status invalid",
+			func() {
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+
+				freezeClient = true
+			},
+			clienttypes.ErrClientNotActive,
+		},
+		{
 			"failure: verify non-membership failed",
 			func() {
 				// send packet
@@ -335,6 +361,8 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			// intialize freezeClient to false
+			freezeClient = false
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
@@ -355,6 +383,16 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// get proof of packet receipt absence from chainB
 			receiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointB.QueryProof(receiptKey)
+
+			if freezeClient {
+				// make underlying client Frozen to get invalid client status
+				clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().True(ok, "could not retrieve client state")
+				tmClientState, ok := clientState.(*tmtypes.ClientState)
+				suite.Require().True(ok, "client is not tendermint client")
+				tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClientState)
+			}
 
 			err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, 0)
 
