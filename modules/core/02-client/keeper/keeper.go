@@ -54,8 +54,9 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
+func (Keeper) Logger(ctx context.Context) log.Logger {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
+	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // AddRoute adds a new route to the underlying router.
@@ -69,7 +70,7 @@ func (k *Keeper) GetStoreProvider() types.StoreProvider {
 }
 
 // Route returns the light client module for the given client identifier.
-func (k *Keeper) Route(ctx sdk.Context, clientID string) (exported.LightClientModule, error) {
+func (k *Keeper) Route(ctx context.Context, clientID string) (exported.LightClientModule, error) {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
@@ -91,7 +92,7 @@ func (k *Keeper) Route(ctx sdk.Context, clientID string) (exported.LightClientMo
 }
 
 // GenerateClientIdentifier returns the next client identifier.
-func (k *Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
+func (k *Keeper) GenerateClientIdentifier(ctx context.Context, clientType string) string {
 	nextClientSeq := k.GetNextClientSequence(ctx)
 	clientID := types.FormatClientIdentifier(clientType, nextClientSeq)
 
@@ -101,7 +102,7 @@ func (k *Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) st
 }
 
 // GetClientState gets a particular client from the store
-func (k *Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
+func (k *Keeper) GetClientState(ctx context.Context, clientID string) (exported.ClientState, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ClientStateKey())
 	if len(bz) == 0 {
@@ -113,13 +114,13 @@ func (k *Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.Clie
 }
 
 // SetClientState sets a particular Client to the store
-func (k *Keeper) SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+func (k *Keeper) SetClientState(ctx context.Context, clientID string, clientState exported.ClientState) {
 	store := k.ClientStore(ctx, clientID)
 	store.Set(host.ClientStateKey(), types.MustMarshalClientState(k.cdc, clientState))
 }
 
 // GetClientConsensusState gets the stored consensus state from a client at a given height.
-func (k *Keeper) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
+func (k *Keeper) GetClientConsensusState(ctx context.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ConsensusStateKey(height))
 	if len(bz) == 0 {
@@ -132,7 +133,7 @@ func (k *Keeper) GetClientConsensusState(ctx sdk.Context, clientID string, heigh
 
 // SetClientConsensusState sets a ConsensusState to a particular client at the given
 // height
-func (k *Keeper) SetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height, consensusState exported.ConsensusState) {
+func (k *Keeper) SetClientConsensusState(ctx context.Context, clientID string, height exported.Height, consensusState exported.ConsensusState) {
 	store := k.ClientStore(ctx, clientID)
 	store.Set(host.ConsensusStateKey(height), types.MustMarshalConsensusState(k.cdc, consensusState))
 }
@@ -165,7 +166,7 @@ func (k *Keeper) IterateConsensusStates(ctx context.Context, cb func(clientID st
 	store := k.storeService.OpenKVStore(ctx)
 	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
-	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 		// consensus key is in the format "clients/<clientID>/consensusStates/<height>"
@@ -386,14 +387,15 @@ func (k *Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 
 // ClientStore returns isolated prefix store for each client so they can read/write in separate
 // namespace without being able to read/write other client's data
-func (k *Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
+func (k *Keeper) ClientStore(ctx context.Context, clientID string) storetypes.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
+	store := k.storeService.OpenKVStore(ctx)
+	return prefix.NewStore(store, clientPrefix)
 }
 
 // GetClientStatus returns the status for a client state  given a client identifier. If the client type is not in the allowed
 // clients param field, Unauthorized is returned, otherwise the client state status is returned.
-func (k *Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Status {
+func (k *Keeper) GetClientStatus(ctx context.Context, clientID string) exported.Status {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return exported.Unauthorized
@@ -404,7 +406,7 @@ func (k *Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Stat
 
 // GetClientLatestHeight returns the latest height of a client state for a given client identifier. If the client type is not in the allowed
 // clients param field, a zero value height is returned, otherwise the client state latest height is returned.
-func (k *Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.Height {
+func (k *Keeper) GetClientLatestHeight(ctx context.Context, clientID string) types.Height {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return types.ZeroHeight()
@@ -419,7 +421,7 @@ func (k *Keeper) GetClientLatestHeight(ctx sdk.Context, clientID string) types.H
 }
 
 // GetClientTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
-func (k *Keeper) GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
+func (k *Keeper) GetClientTimestampAtHeight(ctx context.Context, clientID string, height exported.Height) (uint64, error) {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return 0, err
