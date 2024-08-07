@@ -30,7 +30,7 @@ func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
 	}
 }
 
-// OnChanOpenInit implements the IBCModule interface
+// OnChanOpenInit implements the IBCModule interface.
 func (im *LegacyIBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -45,8 +45,15 @@ func (im *LegacyIBCModule) OnChanOpenInit(
 	for i := len(im.cbs) - 1; i >= 0; i-- {
 		cbVersion := version
 
-		// TODO: document behaviour
-		// handles default empty string + not using middleware when desired
+		// To maintain backwards compatibility, we must handle two cases:
+		// - relayer provides empty version (use default versions)
+		// - relayer provides version which chooses to not enable a middleware
+		//
+		// If an application is a VersionWrapper which means it modifies the version string
+		// and the version string is non-empty (don't use default), then the application must
+		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
+		// If it is unsuccessful, no callback will occur to this application as the version
+		// indicates it should be disabled.
 		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(version) != "" {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(version)
 			if err != nil {
@@ -67,10 +74,11 @@ func (im *LegacyIBCModule) OnChanOpenInit(
 	return reconstructVersion(im.cbs, negotiatedVersions)
 }
 
-// glue back proposed version for channel storage
+// reconstructVersion will generate the channel version by applying any version wrapping as necessary.
+// Version wrapping will only occur if the negotiated version is non=empty and the application is a VersionWrapper.
 func reconstructVersion(cbs []ClassicIBCModule, negotiatedVersions []string) (string, error) {
-	version := negotiatedVersions[0]
-	for i := 1; i < len(cbs); i++ {
+	version := negotiatedVersions[0] // base version
+	for i := 1; i < len(cbs); i++ {  // iterate over the remaining callbacks
 		if strings.TrimSpace(negotiatedVersions[i]) != "" {
 			wrapper, ok := cbs[i].(VersionWrapper)
 			if !ok {
