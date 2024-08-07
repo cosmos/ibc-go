@@ -266,25 +266,15 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"host submodule disabled", func() {
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-			}, false,
-		},
-		{
-			"success: ICA auth module callback returns error", func() {
-				// mock module callback should not be called on host side
-				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenConfirm = func(
-					ctx sdk.Context, portID, channelID string,
-				) error {
-					return fmt.Errorf("mock ica auth fails")
-				}
-			}, true,
+			}, types.ErrHostSubModuleDisabled,
 		},
 	}
 
@@ -308,18 +298,22 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 
 				tc.malleate()
 
-				module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointB.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
-				err = cbs.OnChanOpenConfirm(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
+				suite.Require().True(ok, "expected there to be a single legacy ibc module")
 
-				if tc.expPass {
+				legacyModuleCbs := legacyModule.GetCallbacks()
+				hostModule, ok := legacyModuleCbs[0].(icahost.IBCModule) // fee module is routed second
+				suite.Require().True(ok)
+
+				err = hostModule.OnChanOpenConfirm(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				if tc.expError == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expError)
 				}
 			})
 		}
