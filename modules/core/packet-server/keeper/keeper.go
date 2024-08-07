@@ -100,12 +100,10 @@ func (k Keeper) SendPacket(
 	k.ChannelKeeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.ChannelKeeper.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	// create sentinel channel for events
-	channel := channeltypes.Channel{
-		Ordering:       channeltypes.ORDERED,
-		ConnectionHops: []string{sourceChannel},
-	}
-	channelkeeper.EmitSendPacketEvent(ctx, packet, channel, timeoutHeight)
+	// log that a packet has been sent
+	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
+	channelkeeper.EmitSendPacketEvent(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
 
 	// return the sequence
 	return sequence, nil
@@ -301,6 +299,83 @@ func (k Keeper) AcknowledgePacket(
 
 	// emit the same events as acknowledge packet without channel fields
 	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+
+	return nil
+}
+
+func (k Keeper) TimeoutPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	proof []byte,
+	proofHeight exported.Height,
+	_ uint64,
+) error {
+	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
+		return channeltypes.ErrInvalidPacket
+	}
+	// Lookup counterparty associated with our channel and ensure that destination channel
+	// is the expected counterparty
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
+	if !ok {
+		return channeltypes.ErrChannelNotFound
+	}
+
+	if counterparty.ClientId != packet.DestinationChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	// check that timeout height or timeout timestamp has passed on the other end
+	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceChannel, proofHeight)
+	if err != nil {
+		return err
+	}
+
+	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	if !timeout.Elapsed(proofHeight.(clienttypes.Height), proofTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+	}
+
+	// check that the commitment has not been cleared and that it matches the packet sent by relayer
+	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+
+	if len(commitment) == 0 {
+		channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+		// This error indicates that the timeout has already been relayed
+		// or there is a misconfigured relayer attempting to prove a timeout
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	packetCommitment := channeltypes.CommitPacket(packet)
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal(commitment, packetCommitment) {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+	}
+
+	// verify packet receipt absence
+	path := host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	if err := k.ClientKeeper.VerifyNonMembership(
+		ctx,
+		packet.SourceChannel,
+		proofHeight,
+		0, 0,
+		proof,
+		merklePath,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceChannel)
+	}
+
+	// delete packet commitment to prevent replay
+	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+
+	// log that a packet has been timed out
+	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
+	// emit timeout events
+	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
 
 	return nil
 }

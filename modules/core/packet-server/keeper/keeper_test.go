@@ -446,3 +446,184 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestTimeoutPacket() {
+	var (
+		path         *ibctesting.Path
+		packet       channeltypes.Packet
+		freezeClient bool
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success with timeout height",
+			func() {
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+			},
+			nil,
+		},
+		{
+			"success with timeout timestamp",
+			func() {
+				// disable timeout height and set timeout timestamp to a past timestamp
+				packet.TimeoutHeight = clienttypes.Height{}
+				packet.TimeoutTimestamp = uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+			},
+			nil,
+		},
+		{
+			"failure: invalid protocol version",
+			func() {
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+
+				packet.ProtocolVersion = channeltypes.IBC_VERSION_1
+				packet.AppVersion = ""
+			},
+			channeltypes.ErrInvalidPacket,
+		},
+		{
+			"failure: counterparty not found",
+			func() {
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+
+				packet.SourceChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrChannelNotFound,
+		},
+		{
+			"failure: counterparty client identifier different than source channel",
+			func() {
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+
+				packet.DestinationChannel = ibctesting.FirstChannelID
+			},
+			channeltypes.ErrInvalidChannelIdentifier,
+		},
+		{
+			"failure: packet has not timed out yet",
+			func() {
+				packet.TimeoutHeight = defaultTimeoutHeight
+
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+			},
+			channeltypes.ErrTimeoutNotReached,
+		},
+		{
+			"failure: packet already timed out",
+			func() {}, // equivalent to not sending packet at all
+			channeltypes.ErrNoOpMsg,
+		},
+		{
+			"failure: packet does not match commitment",
+			func() {
+				// send a different packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, []byte("different data"))
+				suite.Require().NoError(err, "send packet failed")
+			},
+			channeltypes.ErrInvalidPacket,
+		},
+		{
+			"failure: client status invalid",
+			func() {
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+
+				freezeClient = true
+			},
+			clienttypes.ErrClientNotActive,
+		},
+		{
+			"failure: verify non-membership failed",
+			func() {
+				// send packet
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+				suite.Require().NoError(err, "send packet failed")
+
+				// set packet receipt to mock a valid past receive
+				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			// initialize freezeClient to false
+			freezeClient = false
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			// create default packet with a timed out height
+			// test cases may mutate timeout values
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, disabledTimeoutTimestamp, "")
+
+			tc.malleate()
+
+			// need to update chainA's client representing chainB to prove missing ack
+			// commit the changes and update the clients
+			suite.coordinator.CommitBlock(path.EndpointA.Chain)
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			// get proof of packet receipt absence from chainB
+			receiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			proof, proofHeight := path.EndpointB.QueryProof(receiptKey)
+
+			if freezeClient {
+				// make underlying client Frozen to get invalid client status
+				clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().True(ok, "could not retrieve client state")
+				tmClientState, ok := clientState.(*tmtypes.ClientState)
+				suite.Require().True(ok, "client is not tendermint client")
+				tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClientState)
+			}
+
+			err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, 0)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+				suite.Require().Nil(commitment, "packet commitment not deleted")
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
