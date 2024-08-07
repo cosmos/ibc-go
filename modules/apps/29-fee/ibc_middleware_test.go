@@ -159,8 +159,6 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 					Version:        tc.cpVersion,
 				}
 
-				// suite.Require().NoError(err)
-
 				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 				suite.Require().True(ok)
 
