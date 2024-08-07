@@ -187,11 +187,35 @@ func (im IBCModule) OnSendPacket(
 	dataBz []byte,
 	signer sdk.AccAddress,
 ) error {
+	if !im.keeper.GetParams(ctx).SendEnabled {
+		return types.ErrSendDisabled
+	}
+
+	appVersion, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", portID, channelID)
+	}
+
+	if im.keeper.IsBlockedAddr(signer) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", signer)
+	}
+
 	data, err := im.getICS20PacketData(ctx, dataBz, portID, channelID)
 	if err != nil {
 		return err
 	}
 
+	if appVersion == types.V1 {
+		// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
+		if len(data.Tokens) > 1 {
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
+		}
+
+		if len(data.Forwarding.Hops) > 1 {
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
+		}
+
+	}
 	if data.Sender != signer.String() {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "invalid signer address: expected %s, got %s", data.Sender, signer)
 	}

@@ -18,10 +18,6 @@ var _ types.MsgServer = (*Keeper)(nil)
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.GetParams(ctx).SendEnabled {
-		return nil, types.ErrSendDisabled
-	}
-
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
@@ -30,27 +26,6 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	coins := msg.GetCoins()
 	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
-	}
-
-	if k.isBlockedAddr(sender) {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
-	}
-
-	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
-	if !found {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", msg.SourcePort, msg.SourceChannel)
-	}
-
-	if appVersion == types.V1 {
-		// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
-		if len(msg.Tokens) > 1 {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
-		}
-
-		// ics20-1 does not support forwarding, so if that is the current version, we must reject the transfer.
-		if msg.HasForwarding() {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
-		}
 	}
 
 	if msg.Forwarding.GetUnwind() {
@@ -70,6 +45,10 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		tokens = append(tokens, token)
 	}
 
+	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
+	if !found {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", msg.SourcePort, msg.SourceChannel)
+	}
 	packetDataBz, err := createPacketDataBytesFromVersion(appVersion, sender.String(), msg.Receiver, msg.Memo, tokens, msg.Forwarding.GetHops())
 	if err != nil {
 		return nil, err
@@ -156,7 +135,7 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	msg.Forwarding.Hops = append(unwindHops, msg.Forwarding.Hops...)
 	msg.Forwarding.Unwind = false
 
-	// Message is validate again, this would only fail if hops now exceeds maximum allowed.
+	// Message is validated again, this would only fail if hops now exceeds maximum allowed.
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}

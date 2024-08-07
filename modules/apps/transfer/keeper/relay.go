@@ -151,7 +151,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
-	if k.isBlockedAddr(receiver) {
+	if k.IsBlockedAddr(receiver) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 	}
 
@@ -342,7 +342,7 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 				return err
 			}
 
-			if k.isBlockedAddr(sender) {
+			if k.IsBlockedAddr(sender) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 			}
 			if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
@@ -430,7 +430,7 @@ func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string,
 	case types.V1:
 		// Sanity check, tokens must always be of length 1 if using app version V1.
 		if len(tokens) != 1 {
-			panic(fmt.Errorf("length of tokens must be equal to 1 if using %s version", types.V1))
+			return nil, errorsmod.Wrapf(types.ErrInvalidVersion, "length of tokens must be equal to 1 if using %s version", types.V1)
 		}
 
 		token := tokens[0]
