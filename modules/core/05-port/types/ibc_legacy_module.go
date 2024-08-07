@@ -31,6 +31,10 @@ func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
 }
 
 // OnChanOpenInit implements the IBCModule interface.
+// NOTE: The application callback is skipped if all the following are true:
+// - the relayer provided channel version is not empty
+// - the callback application is a VersionWrapper
+// - the application cannot unwrap the version
 func (im *LegacyIBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -103,14 +107,34 @@ func (LegacyIBCModule) OnChanOpenTry(
 	return "", nil
 }
 
-// OnChanOpenAck implements the IBCModule interface
-func (LegacyIBCModule) OnChanOpenAck(
+// OnChanOpenAck implements the IBCModule interface.
+// NOTE: The callback will occur for all applications in the callback list.
+func (im *LegacyIBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		cbVersion := counterpartyVersion
+
+		// To maintain backwards compatibility, we must handle counterparty version negotiation.
+		// This means the version may have changed, and applications must be allowed to be disabled.
+		// Thus, we must perform a callback for all applications.
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(counterpartyVersion)
+			if err == nil {
+				cbVersion, counterpartyVersion = appVersion, underlyingAppVersion
+			}
+		}
+
+		err := im.cbs[i].OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, cbVersion)
+		if err != nil {
+			return errorsmod.Wrapf(err, "channel open ack callback failed for port ID: %s, channel ID: %s", portID, channelID)
+		}
+	}
+
 	return nil
 }
 

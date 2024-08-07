@@ -275,7 +275,7 @@ func (k *Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChan
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve application callbacks from router
-	cbs, ok := k.PortKeeper.Route(msg.PortId)
+	cbs, ok := k.PortKeeper.AppRouter.HandshakeRoute(msg.PortId)
 	if !ok {
 		ctx.Logger().Error("channel open ack failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)

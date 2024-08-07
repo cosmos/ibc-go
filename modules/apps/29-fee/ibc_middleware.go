@@ -107,25 +107,19 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-		if err != nil {
-			// we pass the entire version string onto the underlying application.
-			// and disable fees for this channel
-			im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-			return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-		}
-
-		if versionMetadata.FeeVersion != types.Version {
-			return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
-		}
-
-		// call underlying app's OnChanOpenAck callback with the counterparty app version.
-		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, versionMetadata.AppVersion)
+	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		// disable fees for this channel
+		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+		return nil
 	}
 
-	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	if versionMetadata.FeeVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
+	}
+
+	im.keeper.SetFeeEnabled(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
@@ -487,7 +481,7 @@ func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string 
 	return string(versionBytes)
 }
 
-// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful. 
+// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful.
 func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
 	metadata, err := types.MetadataFromVersion(version)
 	if err != nil {
