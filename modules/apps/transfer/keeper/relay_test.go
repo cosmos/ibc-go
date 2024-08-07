@@ -169,6 +169,21 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		// 	},
 		// 	channeltypes.ErrInvalidPacket,
 		// },
+		{
+			"failure: forwarding hops is not empty with ics20-1",
+			func() {
+				// Set version to isc20-1.
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.V1
+				})
+
+				forwarding = types.NewForwarding(false, types.NewHop(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+				))
+			},
+			ibcerrors.ErrInvalidRequest,
+		},
 	}
 
 	for _, tc := range testCases {
