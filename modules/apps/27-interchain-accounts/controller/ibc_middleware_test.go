@@ -252,9 +252,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string

@@ -85,15 +85,14 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-	if err != nil {
+	if strings.TrimSpace(counterpartyVersion) == "" {
 		// disable fees for this channel
 		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 		return nil
 	}
 
-	if versionMetadata.FeeVersion != types.Version {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
+	if counterpartyVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, counterpartyVersion)
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)

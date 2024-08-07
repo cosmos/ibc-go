@@ -332,7 +332,7 @@ func (IBCMiddleware) OnChanOpenTry(
 }
 
 // OnChanOpenAck is a no-op for the callbacks middleware.
-func (im IBCMiddleware) OnChanOpenAck(
+func (IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID,
