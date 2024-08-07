@@ -1,6 +1,7 @@
 package host_test
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
@@ -165,7 +166,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		{
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
-				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenTry = func(ctx context.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
 					counterparty channeltypes.Counterparty, counterpartyVersion string,
 				) (string, error) {
@@ -287,7 +288,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenConfirm = func(
-					ctx sdk.Context, portID, channelID string,
+					ctx context.Context, portID, channelID string,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
@@ -424,7 +425,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		{
 			"success with ICA auth module callback failure", func() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.Acknowledgement {
 					return channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
