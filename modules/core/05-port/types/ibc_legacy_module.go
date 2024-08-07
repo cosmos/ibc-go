@@ -40,9 +40,7 @@ func (im *LegacyIBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	var (
-		negotiatedVersions = make([]string, len(im.cbs))
-	)
+	negotiatedVersions := make([]string, len(im.cbs))
 
 	for i := len(im.cbs) - 1; i >= 0; i-- {
 		cbVersion := version

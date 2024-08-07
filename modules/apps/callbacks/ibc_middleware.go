@@ -307,7 +307,7 @@ func (IBCMiddleware) processCallback(
 }
 
 // OnChanOpenInit defers to the underlying application
-func (im IBCMiddleware) OnChanOpenInit(
+func (IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,
 	channelOrdering channeltypes.Order,
 	connectionHops []string,
