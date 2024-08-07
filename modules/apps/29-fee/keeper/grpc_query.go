@@ -9,6 +9,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -20,15 +21,14 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // IncentivizedPackets implements the Query/IncentivizedPackets gRPC method
-func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncentivizedPacketsRequest) (*types.QueryIncentivizedPacketsResponse, error) {
+func (k Keeper) IncentivizedPackets(ctx context.Context, req *types.QueryIncentivizedPacketsRequest) (*types.QueryIncentivizedPacketsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
-
 	var identifiedPackets []types.IdentifiedPacketFees
-	store := prefix.NewStore(ctx.KVStore(k.storeService), []byte(types.FeesInEscrowPrefix))
+
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), []byte(types.FeesInEscrowPrefix))
 	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		packetID, err := types.ParseKeyFeesInEscrow(types.FeesInEscrowPrefix + string(key))
 		if err != nil {
@@ -90,7 +90,7 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 
 	var packets []*types.IdentifiedPacketFees
 	keyPrefix := types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId)
-	store := prefix.NewStore(ctx.KVStore(k.storeService), keyPrefix)
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), keyPrefix)
 	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		packetID, err := types.ParseKeyFeesInEscrow(string(keyPrefix) + string(key))
 		if err != nil {
@@ -229,15 +229,13 @@ func (k Keeper) CounterpartyPayee(goCtx context.Context, req *types.QueryCounter
 }
 
 // FeeEnabledChannels implements the Query/FeeEnabledChannels gRPC method and returns a list of fee enabled channels
-func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEnabledChannelsRequest) (*types.QueryFeeEnabledChannelsResponse, error) {
+func (k Keeper) FeeEnabledChannels(ctx context.Context, req *types.QueryFeeEnabledChannelsRequest) (*types.QueryFeeEnabledChannelsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
-
 	var feeEnabledChannels []types.FeeEnabledChannel
-	store := prefix.NewStore(ctx.KVStore(k.storeService), []byte(types.FeeEnabledKeyPrefix))
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), []byte(types.FeeEnabledKeyPrefix))
 	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		portID, channelID, err := types.ParseKeyFeeEnabled(types.FeeEnabledKeyPrefix + string(key))
 		if err != nil {
