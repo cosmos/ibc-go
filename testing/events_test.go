@@ -8,9 +8,9 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestParsePacketsFromEvents(t *testing.T) {
@@ -137,7 +137,7 @@ func TestParsePacketsFromEvents(t *testing.T) {
 		{
 			name:          "fail: no events",
 			events:        []abci.Event{},
-			expectedError: "acknowledgement event attribute not found",
+			expectedError: "send_packet event attribute not found",
 		},
 		{
 			name: "fail: events without packet",
@@ -149,7 +149,7 @@ func TestParsePacketsFromEvents(t *testing.T) {
 					Type: "yyy",
 				},
 			},
-			expectedError: "acknowledgement event attribute not found",
+			expectedError: "send_packet event attribute not found",
 		},
 		{
 			name: "fail: event packet with invalid AttributeKeySequence",

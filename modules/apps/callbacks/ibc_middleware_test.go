@@ -13,16 +13,16 @@ import (
 	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
@@ -169,7 +169,14 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			cbs, ok := GetSimApp(s.chainA).IBCKeeper.PortKeeper.AppRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			callbacksModule, ok := cbs[1].(ibccallbacks.IBCMiddleware) // callbacks module is routed second
+			s.Require().Len(cbs, 1, "expected 1 legacy module")
+
+			legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule)
+			s.Require().True(ok, "expected there to be a single legacy ibc module")
+
+			legacyModuleCbs := legacyModule.GetCallbacks()
+
+			callbacksModule, ok := legacyModuleCbs[1].(ibccallbacks.IBCMiddleware) // callbacks module is routed second
 			s.Require().True(ok)
 
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
@@ -344,7 +351,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			s.Require().True(ok)
 
 			onAcknowledgementPacket := func() error {
-				return transferStack.OnAcknowledgementPacket(ctx, packet, ack, s.chainA.SenderAccount.GetAddress())
+				return transferStack.OnAcknowledgementPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress())
 			}
 
 			switch tc.expError {
@@ -508,7 +515,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().True(ok)
 
 			onTimeoutPacket := func() error {
-				return transferStack.OnTimeoutPacket(ctx, packet, s.chainA.SenderAccount.GetAddress())
+				return transferStack.OnTimeoutPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainA.SenderAccount.GetAddress())
 			}
 
 			switch expValue := tc.expValue.(type) {
@@ -676,7 +683,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			s.Require().True(ok)
 
 			onRecvPacket := func() ibcexported.Acknowledgement {
-				return transferStack.OnRecvPacket(ctx, packet, s.chainB.SenderAccount.GetAddress())
+				return transferStack.OnRecvPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
 			}
 
 			switch tc.expAck {
@@ -1014,8 +1021,9 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 
 	// Unmarshal ICS20 v1 packet data into v2 packet data
 	data := expPacketDataICS20V1.GetBytes()
-	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
+	packetData, version, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
+	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, version)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 }
 
@@ -1047,9 +1055,10 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
 
 	// Unmarshal ICS20 v2 packet data
 	data := expPacketDataICS20V2.GetBytes()
-	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
+	packetData, version, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
+	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, version)
 }
 
 func (s *CallbacksTestSuite) TestGetAppVersion() {
@@ -1119,7 +1128,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 		0,
 	)
 
-	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), packet, s.chainA.SenderAccount.GetAddress())
+	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
 	s.Require().Nil(ack)
 	s.AssertHasExecutedExpectedCallback("none", true)
 }

@@ -11,12 +11,12 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestCreateClient() {
@@ -571,7 +571,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			func() {
 				subject = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrRouteNotFound,
 		},
 		{
 			"subject is Active",
@@ -682,10 +682,9 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 
 				// Assert that client status is now Active
-				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
-				tmClientState, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
-				suite.Require().True(ok)
-				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
+				suite.Require().NoError(err)
+				suite.Require().Equal(lightClientModule.Status(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID), exported.Active)
 
 			} else {
 				suite.Require().Error(err)

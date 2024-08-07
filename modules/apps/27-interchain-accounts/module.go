@@ -17,16 +17,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/client/cli"
-	controllerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
-	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host"
-	hostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
-	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/simulation"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/client/cli"
+	controllerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
+	controllertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host"
+	hostkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/keeper"
+	hosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/simulation"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 )
 
 var (
@@ -40,7 +40,7 @@ var (
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 
-	_ porttypes.IBCModule = (*host.IBCModule)(nil)
+	_ porttypes.ClassicIBCModule = (*host.IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC interchain accounts AppModuleBasic

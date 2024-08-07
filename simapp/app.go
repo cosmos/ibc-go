@@ -82,7 +82,6 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	groupmodule "github.com/cosmos/cosmos-sdk/x/group/module"
@@ -93,7 +92,6 @@ import (
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -106,29 +104,29 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
-	icacontroller "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
-	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icahost "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host"
-	icahostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
-	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
-	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
-	ibcfeetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	ica "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts"
+	icacontroller "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
+	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	icahost "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host"
+	icahostkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/keeper"
+	icahosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	ibcfee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
+	ibcfeetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v9/modules/core"
+	ibcclienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 const appName = "SimApp"
@@ -406,15 +404,9 @@ func NewSimApp(
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, runtime.NewKVStoreService(keys[upgradetypes.StoreKey]), appCodec, homePath, app.BaseApp, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), ibctm.NewConsensusHost(app.StakingKeeper), app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	// Register the proposal types
-	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
-	// by granting the governance module the right to execute the message.
-	// See: https://docs.cosmos.network/main/modules/gov#proposal-messages
-	govRouter := govv1beta1.NewRouter()
-	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper))
+
 	govConfig := govtypes.DefaultConfig()
 	/*
 		Example of setting gov params:
@@ -424,9 +416,6 @@ func NewSimApp(
 		appCodec, runtime.NewKVStoreService(keys[govtypes.StoreKey]), app.AccountKeeper, app.BankKeeper,
 		app.StakingKeeper, app.DistrKeeper, app.MsgServiceRouter(), govConfig, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-
-	// Set legacy router for backwards compatibility with gov v1beta1
-	govKeeper.SetLegacyRouter(govRouter)
 
 	app.GovKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
@@ -461,6 +450,7 @@ func NewSimApp(
 	)
 
 	// Create IBC Router
+	ibcAppRouter := porttypes.NewAppRouter()
 	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks
@@ -487,6 +477,7 @@ func NewSimApp(
 	mockIBCModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(mock.ModuleName, scopedIBCMockKeeper))
 	app.IBCMockModule = mockIBCModule
 	ibcRouter.AddRoute(mock.ModuleName, mockIBCModule)
+	ibcAppRouter.AddRoute(mock.ModuleName, mockIBCModule)
 
 	// Mock IBC app wrapped with a middleware which does not implement the UpgradeableModule interface.
 	// NOTE: this is used to test integration with apps which do not yet fulfill the UpgradeableModule interface and error when
@@ -507,9 +498,11 @@ func NewSimApp(
 	// - Transfer
 
 	// create IBC module from bottom to top of stack
-	var transferStack porttypes.IBCModule
+	var transferStack porttypes.ClassicIBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	ibcAppRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+	ibcAppRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -519,22 +512,31 @@ func NewSimApp(
 	// icaControllerKeeper.SendTx -> fee.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
-	var icaControllerStack porttypes.IBCModule
+	var icaControllerStack porttypes.ClassicIBCModule
 	icaControllerStack = mock.NewIBCModule(&mockModule, mock.NewIBCApp("", scopedICAMockKeeper))
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(mock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 	var ok bool
 	app.ICAAuthModule, ok = icaControllerStack.(mock.IBCModule)
 	if !ok {
 		panic(fmt.Errorf("cannot convert %T into %T", icaControllerStack, app.ICAAuthModule))
 	}
 	icaControllerStack = icacontroller.NewIBCMiddleware(app.ICAControllerKeeper)
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(mock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
+
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(mock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
 
-	var icaHostStack porttypes.IBCModule
+	var icaHostStack porttypes.ClassicIBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
+	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
+	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.
@@ -557,19 +559,24 @@ func NewSimApp(
 	// create fee wrapped mock module
 	feeMockModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
+	ibcAppRouter.AddRoute(MockFeePort, feeMockModule)
+
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
+	ibcAppRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
+	app.IBCKeeper.SetAppRouter(ibcAppRouter)
 
-	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+	clientKeeper := app.IBCKeeper.ClientKeeper
+	storeProvider := clientKeeper.GetStoreProvider()
 
-	tmLightClientModule := ibctm.NewLightClientModule(appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
+	clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
-	smLightClientModule := solomachine.NewLightClientModule(appCodec)
-	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
+	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
+	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(

@@ -7,9 +7,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function

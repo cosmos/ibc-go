@@ -2,16 +2,15 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 
 	"cosmossdk.io/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
@@ -86,27 +85,12 @@ func (k *Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *ca
 
 // Route returns a IBCModule for a given module, and a boolean indicating
 // whether or not the route is present.
-func (k *Keeper) Route(module string) (types.IBCModule, bool) {
+func (k *Keeper) Route(module string) (types.ClassicIBCModule, bool) {
 	return k.Router.GetRoute(module)
 }
 
 // AppRoute returns an ordered list of IBCModule callbacks for a given module name, and a boolean indicating
 // whether or not the callbacks are present.
 func (k *Keeper) AppRoute(module string) ([]types.IBCModule, bool) {
-	routes, ok := k.AppRouter.GetRoute(module)
-	if ok {
-		return routes, true
-	}
-
-	for _, prefix := range k.Keys() {
-		if strings.Contains(module, prefix) {
-			return k.AppRouter.GetRoute(prefix)
-		}
-	}
-
-	return nil, false
-}
-
-func (k *Keeper) Keys() []string {
-	return k.AppRouter.Keys()
+	return k.AppRouter.PacketRoute(module)
 }

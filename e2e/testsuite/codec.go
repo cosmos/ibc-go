@@ -24,17 +24,17 @@ import (
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v7migrations "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	icahosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	v7migrations "github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctmtypes "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // Codec returns the global E2E protobuf codec.

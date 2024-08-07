@@ -3,15 +3,15 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
-// IBCModule defines an interface that implements all the callbacks
+// ClassicIBCModule defines an interface that implements all the callbacks
 // that modules must define as specified in ICS-26
-type IBCModule interface {
+type ClassicIBCModule interface {
+	IBCModule
 	// OnChanOpenInit will verify that the relayer-chosen parameters
 	// are valid and perform any custom INIT logic.
 	// It may return an error if the chosen parameters are invalid
@@ -28,7 +28,6 @@ type IBCModule interface {
 		connectionHops []string,
 		portID string,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
 	) (string, error)
@@ -47,7 +46,6 @@ type IBCModule interface {
 		connectionHops []string,
 		portID,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		counterpartyVersion string,
 	) (version string, err error)
@@ -80,7 +78,9 @@ type IBCModule interface {
 		portID,
 		channelID string,
 	) error
+}
 
+type IBCModule interface {
 	// TODO: consider removing timeout height and timeout timestamp added back for callbacks
 	OnSendPacket(
 		ctx sdk.Context,
@@ -100,12 +100,14 @@ type IBCModule interface {
 	// and the acknowledgement is written (in synchronous cases).
 	OnRecvPacket(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
@@ -113,9 +115,28 @@ type IBCModule interface {
 
 	OnTimeoutPacket(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error
+}
+
+// VersionWrapper is an optional interface which should be implemented by middleware which wrap the channel version
+// to ensure backwards compatibility.
+type VersionWrapper interface {
+	// WrapVersion is required in order to remove middleware wiring and the ICS4Wrapper
+	// while maintaining backwards compatibility. It will be removed in the future.
+	// Applications should wrap the provided version with their application version.
+	// If they do not need to wrap, they may simply return the version provided.
+	WrapVersion(cbVersion, underlyingAppVersion string) string
+	// UnwrapVersionUnsafe is required in order to remove middleware wiring and the ICS4Wrapper
+	// while maintaining backwards compatibility. It will be removed in the future.
+	// Applications should unwrap the provided version with into their  application version.
+	// and the underlying application version. If they are unsuccessful they should return an error.
+	// UnwrapVersionUnsafe will be used during opening handshakes and channel upgrades when the version
+	// is still being negotiated.
+	UnwrapVersionUnsafe(string) (cbVersion, underlyingAppVersion string, err error)
+	// UnwrapVersionSafe(ctx sdk.Context, portID, channelID, version string) (appVersion, version string)
 }
 
 // UpgradableModule defines the callbacks required to perform a channel upgrade.
@@ -188,7 +209,7 @@ type ICS4Wrapper interface {
 // Middleware must implement IBCModule to wrap communication from core IBC to underlying application
 // and ICS4Wrapper to wrap communication from underlying application to core IBC.
 type Middleware interface {
-	IBCModule
+	ClassicIBCModule
 	ICS4Wrapper
 }
 
@@ -198,5 +219,5 @@ type PacketDataUnmarshaler interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	// ctx, portID, channelID are provided as arguments, so that (if needed)
 	// the packet data can be unmarshaled based on the channel version.
-	UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error)
+	UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error)
 }

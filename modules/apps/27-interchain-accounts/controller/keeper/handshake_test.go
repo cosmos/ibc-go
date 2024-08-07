@@ -1,13 +1,12 @@
 package keeper_test
 
 import (
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const (
@@ -19,7 +18,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		var (
 			channel         *channeltypes.Channel
 			path            *ibctesting.Path
-			chanCap         *capabilitytypes.Capability
 			metadata        icatypes.Metadata
 			expectedVersion string
 		)
@@ -142,7 +140,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 					path.EndpointA.SetChannel(*channel)
 					channel.Version = "invalid-metadata-bytestring"
 				},
-				icatypes.ErrUnknownDataType,
+				ibcerrors.ErrInvalidType,
 			},
 			{
 				"unsupported encoding format",
@@ -294,13 +292,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 					Version:        string(versionBytes),
 				}
 
-				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-
 				tc.malleate() // malleate mutates test data
 
 				version, err := suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
+					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, channel.Version,
 				)
 
 				expPass := tc.expError == nil
@@ -586,14 +581,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			malleate: func() {
 				version = invalidVersion
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: failed controller metadata validation, invalid encoding",
@@ -746,14 +741,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			malleate: func() {
 				counterpartyVersion = invalidVersion
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: channel not found",

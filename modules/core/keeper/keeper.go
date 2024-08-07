@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -11,28 +10,23 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectionkeeper "github.com/cosmos/ibc-go/v8/modules/core/03-connection/keeper"
-	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
-	portkeeper "github.com/cosmos/ibc-go/v8/modules/core/05-port/keeper"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/types"
+	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/types"
 )
-
-var _ types.QueryServer = (*Keeper)(nil)
 
 // Keeper defines each ICS keeper for IBC
 type Keeper struct {
-	// implements gRPC QueryServer interface
-	types.QueryServer
-
-	cdc codec.BinaryCodec
-
 	ClientKeeper     *clientkeeper.Keeper
 	ConnectionKeeper *connectionkeeper.Keeper
 	ChannelKeeper    *channelkeeper.Keeper
 	PortKeeper       *portkeeper.Keeper
+
+	cdc codec.BinaryCodec
 
 	authority string
 }
@@ -40,14 +34,10 @@ type Keeper struct {
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace,
-	consensusHost clienttypes.ConsensusHost, upgradeKeeper clienttypes.UpgradeKeeper,
+	upgradeKeeper clienttypes.UpgradeKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
 ) *Keeper {
 	// panic if any of the keepers passed in is empty
-	if isEmpty(consensusHost) {
-		panic(errors.New("cannot initialize IBC keeper: empty consensus host"))
-	}
-
 	if isEmpty(upgradeKeeper) {
 		panic(errors.New("cannot initialize IBC keeper: empty upgrade keeper"))
 	}
@@ -60,7 +50,7 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, consensusHost, upgradeKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, upgradeKeeper)
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
@@ -80,24 +70,10 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
 
-// SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
-func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
-	if consensusHost == nil {
-		panic(fmt.Errorf("cannot set a nil self consensus host"))
-	}
-
-	k.ClientKeeper.SetConsensusHost(consensusHost)
-}
-
 // SetAppRouter sets the Router in IBC Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
 func (k *Keeper) SetAppRouter(rtr *porttypes.AppRouter) {
-	if k.PortKeeper.AppRouter != nil && k.PortKeeper.AppRouter.Sealed() {
-		panic(errors.New("cannot reset a sealed router"))
-	}
-
 	k.PortKeeper.AppRouter = rtr
-	k.PortKeeper.AppRouter.Seal()
 }
 
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if

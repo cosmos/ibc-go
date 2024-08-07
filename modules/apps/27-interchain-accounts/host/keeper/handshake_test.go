@@ -5,14 +5,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	hosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const (
@@ -47,7 +46,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		var (
 			channel  *channeltypes.Channel
 			path     *ibctesting.Path
-			chanCap  *capabilitytypes.Capability
 			metadata icatypes.Metadata
 		)
 
@@ -67,8 +65,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					// create interchain account
 					// undo setup
 					path.EndpointB.ChannelID = ""
-					err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
-					suite.Require().NoError(err)
 
 					suite.openAndCloseChannel(path)
 				},
@@ -80,8 +76,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					// create interchain account
 					// undo setup
 					path.EndpointB.ChannelID = ""
-					err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
-					suite.Require().NoError(err)
 
 					suite.openAndCloseChannel(path)
 
@@ -132,8 +126,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					// create interchain account
 					// undo setup
 					path.EndpointB.ChannelID = ""
-					err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
-					suite.Require().NoError(err)
 
 					suite.openAndCloseChannel(path)
 
@@ -152,8 +144,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					// create interchain account
 					// undo setup
 					path.EndpointB.ChannelID = ""
-					err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
-					suite.Require().NoError(err)
 
 					suite.openAndCloseChannel(path)
 
@@ -253,15 +243,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				false,
 			},
 			{
-				"capability already claimed",
-				func() {
-					path.EndpointB.SetChannel(*channel)
-					err := suite.chainB.GetSimApp().ScopedICAHostKeeper.ClaimCapability(suite.chainB.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-					suite.Require().NoError(err)
-				},
-				false,
-			},
-			{
 				"active channel already set (OPEN state)",
 				func() {
 					// create a new channel and set it in state
@@ -324,13 +305,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					Version:        string(versionBytes),
 				}
 
-				chanCap, err = suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-				suite.Require().NoError(err)
-
 				tc.malleate() // malleate mutates test data
 
 				version, err := suite.chainB.GetSimApp().ICAHostKeeper.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.ConnectionHops,
-					path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
+					path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
 				)
 
 				if tc.expPass {
@@ -515,14 +493,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			malleate: func() {
 				counterpartyVersion = "invalid-version"
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: cannot decode version string from channel",
 			malleate: func() {
 				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = "invalid-metadata-string" })
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: metadata encoding not supported",

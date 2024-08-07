@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestParseIdentifier(t *testing.T) {
@@ -56,13 +56,13 @@ func TestMustParseClientStatePath(t *testing.T) {
 		path    string
 		expPass bool
 	}{
-		{"valid", host.FullClientStatePath(ibctesting.FirstClientID), true},
+		{"valid", string(host.FullClientStateKey(ibctesting.FirstClientID)), true},
 		{"path too large", fmt.Sprintf("clients/clients/%s/clientState", ibctesting.FirstClientID), false},
 		{"path too small", fmt.Sprintf("clients/%s", ibctesting.FirstClientID), false},
 		{"path does not begin with client store", fmt.Sprintf("cli/%s/%s", ibctesting.FirstClientID, host.KeyClientState), false},
 		{"path does not end with client state key", fmt.Sprintf("%s/%s/consensus", string(host.KeyClientStorePrefix), ibctesting.FirstClientID), false},
-		{"client ID is empty", host.FullClientStatePath(""), false},
-		{"client ID is only spaces", host.FullClientStatePath("   "), false},
+		{"client ID is empty", string(host.FullClientStateKey("")), false},
+		{"client ID is only spaces", string(host.FullClientStateKey("   ")), false},
 	}
 
 	for _, tc := range testCases {

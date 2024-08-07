@@ -7,9 +7,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 const (
@@ -124,14 +124,7 @@ func (msg MsgTransfer) validateForwarding() error {
 
 	if !msg.TimeoutHeight.IsZero() {
 		// when forwarding, the timeout height must not be set
-		return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must be zero if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.Hops)
-	}
-
-	if msg.Forwarding.Unwind {
-		if len(msg.GetCoins()) > 1 {
-			// When unwinding, we must have at most one token.
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot unwind more than one token")
-		}
+		return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must be zero if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.GetHops())
 	}
 
 	return nil
@@ -154,7 +147,7 @@ func (msg MsgTransfer) HasForwarding() bool {
 		return false
 	}
 
-	return len(msg.Forwarding.Hops) > 0 || msg.Forwarding.Unwind
+	return len(msg.Forwarding.GetHops()) > 0 || msg.Forwarding.GetUnwind()
 }
 
 // validateIdentifiers validates the source port and channel identifiers based on the
@@ -162,7 +155,7 @@ func (msg MsgTransfer) HasForwarding() bool {
 // or unwinding isn't performed, we do normal validation, else, we assert that both
 // fields must be empty.
 func (msg MsgTransfer) validateIdentifiers() error {
-	if msg.Forwarding != nil && msg.Forwarding.Unwind {
+	if msg.Forwarding.GetUnwind() {
 		if msg.SourcePort != "" {
 			return errorsmod.Wrapf(ErrInvalidForwarding, "source port must be empty when unwind is set, got %s instead", msg.SourcePort)
 		}

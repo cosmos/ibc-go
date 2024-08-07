@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -12,13 +13,13 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 // Endpoint is a which represents a channel endpoint and its associated
@@ -171,7 +172,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 // see reference https://github.com/cosmos/ibc-go/pull/1169
 func (endpoint *Endpoint) UpgradeChain() error {
 	if strings.TrimSpace(endpoint.Counterparty.ClientID) == "" {
-		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
+		return errors.New("cannot upgrade chain if there is no counterparty client")
 	}
 
 	clientState := endpoint.Counterparty.GetClientState()
@@ -243,13 +244,12 @@ func (endpoint *Endpoint) ConnOpenTry() error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
-	counterpartyClient, clientProof, consensusProof, consensusHeight, initProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
+	initProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenTry(
 		endpoint.ClientID, endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID,
-		counterpartyClient, endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion}, endpoint.ConnectionConfig.DelayPeriod,
-		initProof, clientProof, consensusProof,
-		proofHeight, consensusHeight,
+		endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion},
+		endpoint.ConnectionConfig.DelayPeriod, initProof, proofHeight,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	res, err := endpoint.Chain.SendMsgs(msg)
@@ -270,13 +270,11 @@ func (endpoint *Endpoint) ConnOpenAck() error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
-	counterpartyClient, clientProof, consensusProof, consensusHeight, tryProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
+	tryProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenAck(
-		endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, counterpartyClient, // testing doesn't use flexible selection
-		tryProof, clientProof, consensusProof,
-		proofHeight, consensusHeight,
-		ConnectionVersion,
+		endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, // testing doesn't use flexible selection
+		tryProof, proofHeight, ConnectionVersion,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	return endpoint.Chain.sendMsgs(msg)
@@ -299,33 +297,15 @@ func (endpoint *Endpoint) ConnOpenConfirm() error {
 }
 
 // QueryConnectionHandshakeProof returns all the proofs necessary to execute OpenTry or Open Ack of
-// the connection handshakes. It returns the counterparty client state, proof of the counterparty
-// client state, proof of the counterparty consensus state, the consensus state height, proof of
-// the counterparty connection, and the proof height for all the proofs returned.
+// the connection handshakes. It returns the proof of the counterparty connection and the proof height.
 func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
-	clientState exported.ClientState, clientProof,
-	consensusProof []byte, consensusHeight clienttypes.Height,
 	connectionProof []byte, proofHeight clienttypes.Height,
 ) {
-	// obtain the client state on the counterparty chain
-	clientState = endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
-
-	// query proof for the client state on the counterparty
-	clientKey := host.FullClientStateKey(endpoint.Counterparty.ClientID)
-	clientProof, proofHeight = endpoint.Counterparty.QueryProof(clientKey)
-
-	var ok bool
-	consensusHeight, ok = endpoint.Counterparty.GetClientLatestHeight().(clienttypes.Height)
-	require.True(endpoint.Chain.TB, ok)
-	// query proof for the consensus state on the counterparty
-	consensusKey := host.FullConsensusStateKey(endpoint.Counterparty.ClientID, consensusHeight)
-	consensusProof, _ = endpoint.Counterparty.QueryProofAtHeight(consensusKey, proofHeight.GetRevisionHeight())
-
 	// query proof for the connection on the counterparty
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
-	connectionProof, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
+	connectionProof, proofHeight = endpoint.Counterparty.QueryProof(connectionKey)
 
-	return clientState, clientProof, consensusProof, consensusHeight, connectionProof, proofHeight
+	return connectionProof, proofHeight
 }
 
 var sequenceNumber int

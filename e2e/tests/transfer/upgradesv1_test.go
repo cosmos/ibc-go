@@ -17,9 +17,9 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 func TestTransferChannelUpgradesV1TestSuite(t *testing.T) {
@@ -139,7 +139,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithICS20v2_Succ
 	}
 
 	t.Run("native token from chain B and non-native IBC token from chainA, both to chainA", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoins, chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoins, chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "", nil)
 		s.AssertTxSuccess(transferTxResp)
 	})
 

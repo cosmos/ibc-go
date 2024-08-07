@@ -8,13 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/migrations/v6"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type MigrationsTestSuite struct {
@@ -84,74 +80,6 @@ func (*MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpo
 
 func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(MigrationsTestSuite))
-}
-
-func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
-	suite.SetupTest()
-	suite.path.SetupConnections()
-
-	err := suite.SetupPath()
-	suite.Require().NoError(err)
-
-	// create additional capabilities to cover edge cases
-	suite.CreateMockCapabilities()
-
-	// create and claim a new capability with ibc/mock for "channel-1"
-	// note: suite.SetupPath() now claims the channel capability using icacontroller for "channel-0"
-	capName := host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, channeltypes.FormatChannelIdentifier(1))
-
-	capability, err := suite.chainA.GetSimApp().ScopedIBCKeeper.NewCapability(suite.chainA.GetContext(), capName)
-	suite.Require().NoError(err)
-
-	err = suite.chainA.GetSimApp().ScopedICAMockKeeper.ClaimCapability(suite.chainA.GetContext(), capability, capName)
-	suite.Require().NoError(err)
-
-	// assert the capability is owned by the mock module
-	capability, found := suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().NotNil(capability)
-	suite.Require().True(found)
-
-	isAuthenticated := suite.chainA.GetSimApp().ScopedICAMockKeeper.AuthenticateCapability(suite.chainA.GetContext(), capability, capName)
-	suite.Require().True(isAuthenticated)
-
-	capability, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().Nil(capability)
-	suite.Require().False(found)
-
-	suite.ResetMemStore() // empty the x/capability in-memory store
-
-	err = v6.MigrateICS27ChannelCapability(
-		suite.chainA.GetContext(),
-		suite.chainA.Codec,
-		suite.chainA.GetSimApp().GetKey(capabilitytypes.StoreKey),
-		suite.chainA.GetSimApp().CapabilityKeeper,
-		ibcmock.ModuleName+types.SubModuleName,
-	)
-
-	suite.Require().NoError(err)
-
-	// assert the capability is now owned by the ICS27 controller submodule
-	capability, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().NotNil(capability)
-	suite.Require().True(found)
-
-	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), capability, capName)
-	suite.Require().True(isAuthenticated)
-
-	capability, found = suite.chainA.GetSimApp().ScopedICAMockKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().Nil(capability)
-	suite.Require().False(found)
-
-	// ensure channel capability for "channel-0" is still owned by the controller
-	capName = host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-	capability, found = suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), capName)
-	suite.Require().NotNil(capability)
-	suite.Require().True(found)
-
-	isAuthenticated = suite.chainA.GetSimApp().ScopedICAControllerKeeper.AuthenticateCapability(suite.chainA.GetContext(), capability, capName)
-	suite.Require().True(isAuthenticated)
-
-	suite.AssertMockCapabiltiesUnchanged()
 }
 
 // CreateMockCapabilities creates an additional two capabilities used for testing purposes:

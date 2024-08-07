@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.client.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/core/02-client/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/02-client/types";
 
 import "cosmos/msg/v1/msg.proto";
 import "cosmos/upgrade/v1beta1/upgrade.proto";
@@ -52,7 +52,11 @@ message MsgCreateClient {
 }
 
 // MsgCreateClientResponse defines the Msg/CreateClient response type.
-message MsgCreateClientResponse {}
+message MsgCreateClientResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  string client_id = 1;
+}
 
 // MsgUpdateClient defines an sdk.Msg to update a IBC client state using
 // the given client message.

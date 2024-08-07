@@ -1,6 +1,7 @@
 package fee_test
 
 import (
+	"encoding/json"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -8,17 +9,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
-	feekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	ibcfee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
+	feekeeper "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var (
@@ -30,46 +29,24 @@ var (
 // Tests OnChanOpenInit on ChainA
 func (suite *FeeTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
-		name         string
-		version      string
-		expPass      bool
-		isFeeEnabled bool
+		name     string
+		version  string
+		expError error
 	}{
 		{
-			"success - valid fee middleware and mock version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
-			true,
-			true,
+			"success - valid fee version",
+			types.Version,
+			nil,
 		},
 		{
-			"success - fee version not included, only perform mock logic",
-			ibcmock.Version,
-			true,
-			false,
+			"success - empty version",
+			"",
+			nil,
 		},
 		{
 			"invalid fee middleware version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
-			false,
-			false,
-		},
-		{
-			"invalid mock version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
-			false,
-			false,
-		},
-		{
-			"mock version not wrapped",
-			types.Version,
-			false,
-			false,
-		},
-		{
-			"passing an empty string returns default version",
-			"",
-			true,
-			true,
+			"invalid-ics29-1",
+			types.ErrInvalidVersion,
 		},
 	}
 
@@ -82,17 +59,6 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				suite.SetupTest()
 				suite.path.SetupConnections()
 
-				// setup mock callback
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
-					counterparty channeltypes.Counterparty, version string,
-				) (string, error) {
-					if version != ibcmock.Version {
-						return "", fmt.Errorf("incorrect mock version")
-					}
-					return ibcmock.Version, nil
-				}
-
 				suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 				counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
@@ -104,37 +70,24 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 					Version:        tc.version,
 				}
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-				suite.Require().NoError(err)
-
-				chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 				suite.Require().True(ok)
 
-				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
+				legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
+				suite.Require().True(ok, "expected there to be a single legacy ibc module")
 
-				if tc.expPass {
-					// check if the channel is fee enabled. If so version string should include metaData
-					if tc.isFeeEnabled {
-						versionMetadata := types.Metadata{
-							FeeVersion: types.Version,
-							AppVersion: ibcmock.Version,
-						}
+				legacyModuleCbs := legacyModule.GetCallbacks()
+				feeModule, ok := legacyModuleCbs[1].(ibcfee.IBCMiddleware) // fee module is routed second
+				suite.Require().True(ok)
 
-						versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-						suite.Require().NoError(err)
+				version, err := feeModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, counterparty, channel.Version)
 
-						suite.Require().Equal(version, string(versionBytes))
-					} else {
-						suite.Require().Equal(ibcmock.Version, version)
-					}
-
+				if tc.expError == nil {
+					suite.Require().Equal(types.Version, version)
 					suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 				} else {
-					suite.Require().Error(err, "error not returned for version: %s", tc.version)
+					suite.Require().ErrorIs(err, tc.expError, "error not returned for version: %s", tc.version)
 					suite.Require().Equal("", version)
 				}
 			})
@@ -184,7 +137,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 
 				// setup mock callback
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, counterpartyVersion string,
 				) (string, error) {
 					if counterpartyVersion != ibcmock.Version {
@@ -193,13 +146,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 					return ibcmock.Version, nil
 				}
 
-				var (
-					chanCap *capabilitytypes.Capability
-					ok      bool
-				)
-
-				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
+				var ok bool
 
 				suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -219,7 +166,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				suite.Require().True(ok)
 
 				_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.cpVersion)
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, counterparty, tc.cpVersion)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -513,6 +460,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				// setup mock callback
 				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context,
+					channelVersion string,
 					packet channeltypes.Packet,
 					relayer sdk.AccAddress,
 				) exported.Acknowledgement {
@@ -565,7 +513,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			// malleate test case
 			tc.malleate()
 
-			result := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+			result := cbs.OnRecvPacket(suite.chainB.GetContext(), suite.path.EndpointB.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress())
 
 			switch {
 			case tc.name == "success":
@@ -798,7 +746,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
@@ -839,7 +787,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ack, relayerAddr)
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, ack, relayerAddr)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -1012,7 +960,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ channeltypes.Packet, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
@@ -1050,7 +998,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayerAddr)
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, relayerAddr)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -1578,8 +1526,9 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
 	suite.Require().True(ok)
 
 	// Context, port identifier, channel identifier are not used in current wiring of fee.
-	packetData, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
+	packetData, version, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, ibcmock.MockPacketData)
 	suite.Require().NoError(err)
+	suite.Require().NotEmpty(version)
 	suite.Require().Equal(ibcmock.MockPacketData, packetData)
 }
 
@@ -1588,7 +1537,38 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
 	mockFeeMiddleware := ibcfee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
 	// Context, port identifier, channel identifier are not used in mockFeeMiddleware.
-	_, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
+	_, _, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
 	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	suite.Require().ErrorIs(err, expError)
+}
+
+func (suite *FeeTestSuite) TestAckUnmarshal() {
+	testCases := []struct {
+		name     string
+		ackBytes []byte
+		expPass  bool
+	}{
+		{
+			"success",
+			[]byte(`{"app_acknowledgement": "eyJyZXN1bHQiOiJiVzlqYXlCaFkydHViM2RzWldsblpXMWxiblE9In0=", "forward_relayer_address": "relayer", "underlying_app_success": true}`),
+			true,
+		},
+		{
+			"failure: unknown fields",
+			[]byte(`{"app_acknowledgement": "eyJyZXN1bHQiOiJiVzlqYXlCaFkydHViM2RzWldsblpXMWxiblE9In0=", "forward_relayer_address": "relayer", "underlying_app_success": true, "extra_field": "foo"}`),
+			false,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			ack := &types.IncentivizedAcknowledgement{}
+			err := json.Unmarshal(tc.ackBytes, ack)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
 }

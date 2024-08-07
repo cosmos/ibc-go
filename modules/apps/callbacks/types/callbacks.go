@@ -8,9 +8,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 /*
@@ -47,7 +47,7 @@ keeper to verify that the packet sender is the same as the callback address if d
 // CallbacksCompatibleModule is an interface that combines the IBCModule and PacketDataUnmarshaler
 // interfaces to assert that the underlying application supports both.
 type CallbacksCompatibleModule interface {
-	porttypes.IBCModule
+	porttypes.ClassicIBCModule
 	porttypes.PacketDataUnmarshaler
 }
 
@@ -66,6 +66,8 @@ type CallbackData struct {
 	// execution fails due to out of gas.
 	// This parameter is only used in event emissions, or logging.
 	CommitGasLimit uint64
+	// ApplicationVersion is the base application version.
+	ApplicationVersion string
 }
 
 // GetSourceCallbackData parses the packet data and returns the source callback data.
@@ -76,12 +78,12 @@ func GetSourceCallbackData(
 	data []byte,
 	maxGas uint64,
 ) (CallbackData, error) {
-	packetData, err := packetDataUnmarshaler.UnmarshalPacketData(ctx, srcPortID, srcChannelID, data)
+	packetData, version, err := packetDataUnmarshaler.UnmarshalPacketData(ctx, srcPortID, srcChannelID, data)
 	if err != nil {
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
-	return getCallbackData(packetData, srcPortID, ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
+	return getCallbackData(packetData, version, srcPortID, ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
 }
 
 // GetDestCallbackData parses the packet data and returns the destination callback data.
@@ -90,12 +92,12 @@ func GetDestCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packet channeltypes.Packet, maxGas uint64,
 ) (CallbackData, error) {
-	packetData, err := packetDataUnmarshaler.UnmarshalPacketData(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetData())
+	packetData, version, err := packetDataUnmarshaler.UnmarshalPacketData(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetData())
 	if err != nil {
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
-	return getCallbackData(packetData, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, DestinationCallbackKey)
+	return getCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, DestinationCallbackKey)
 }
 
 // getCallbackData parses the packet data and returns the callback data.
@@ -104,9 +106,9 @@ func GetDestCallbackData(
 // address and gas limit from the callback data.
 func getCallbackData(
 	packetData interface{},
-	srcPortID string,
-	remainingGas,
-	maxGas uint64, callbackKey string,
+	version, srcPortID string,
+	remainingGas, maxGas uint64,
+	callbackKey string,
 ) (CallbackData, error) {
 	packetDataProvider, ok := packetData.(ibcexported.PacketDataProvider)
 	if !ok {
@@ -137,10 +139,11 @@ func getCallbackData(
 	executionGasLimit, commitGasLimit := computeExecAndCommitGasLimit(callbackData, remainingGas, maxGas)
 
 	return CallbackData{
-		CallbackAddress:   callbackAddress,
-		ExecutionGasLimit: executionGasLimit,
-		SenderAddress:     packetSender,
-		CommitGasLimit:    commitGasLimit,
+		CallbackAddress:    callbackAddress,
+		ExecutionGasLimit:  executionGasLimit,
+		SenderAddress:      packetSender,
+		CommitGasLimit:     commitGasLimit,
+		ApplicationVersion: version,
 	}, nil
 }
 

@@ -1,36 +1,39 @@
 package fee
 
 import (
+	"encoding/json"
+	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
 	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 	_ porttypes.UpgradableModule      = (*IBCMiddleware)(nil)
+	_ porttypes.VersionWrapper        = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // fee keeper and the underlying application.
 type IBCMiddleware struct {
-	app    porttypes.IBCModule
+	app    porttypes.ClassicIBCModule
 	keeper keeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.ClassicIBCModule, k keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    app,
 		keeper: k,
@@ -44,49 +47,15 @@ func (im IBCMiddleware) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	var versionMetadata types.Metadata
-
-	if strings.TrimSpace(version) == "" {
-		// default version
-		versionMetadata = types.Metadata{
-			FeeVersion: types.Version,
-			AppVersion: "",
-		}
-	} else {
-		metadata, err := types.MetadataFromVersion(version)
-		if err != nil {
-			// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-			// application.
-			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-				chanCap, counterparty, version)
-		}
-		versionMetadata = metadata
-	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
-	}
-
-	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
-	if err != nil {
-		return "", err
-	}
-
-	versionMetadata.AppVersion = appVersion
-	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-	if err != nil {
-		return "", err
+	if strings.TrimSpace(version) != "" && version != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, version)
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-
-	// call underlying app's OnChanOpenInit callback with the appVersion
-	return string(versionBytes), nil
+	return types.Version, nil
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -98,7 +67,6 @@ func (im IBCMiddleware) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
@@ -107,7 +75,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
 		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
 		// application.
-		return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+		return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
@@ -117,7 +85,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
 
 	// call underlying app's OnChanOpenTry callback with the app versions
-	appVersion, err := im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
+	appVersion, err := im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, versionMetadata.AppVersion)
 	if err != nil {
 		return "", err
 	}
@@ -230,14 +198,16 @@ func (IBCMiddleware) OnSendPacket(
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
 	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
-		return im.app.OnRecvPacket(ctx, packet, relayer)
+		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	ack := im.app.OnRecvPacket(ctx, packet, relayer)
+	appVersion := unwrapAppVersion(channelVersion)
+	ack := im.app.OnRecvPacket(ctx, appVersion, packet, relayer)
 
 	// in case of async acknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
 	if ack == nil {
@@ -255,17 +225,20 @@ func (im IBCMiddleware) OnRecvPacket(
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
+	appVersion := unwrapAppVersion(channelVersion)
+
 	var ack types.IncentivizedAcknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrapf(err, "cannot unmarshal ICS-29 incentivized packet acknowledgement: %v", ack)
+	if err := json.Unmarshal(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-29 incentivized packet acknowledgement %v: %s", ack, err)
 	}
 
 	if im.keeper.IsLocked(ctx) {
@@ -277,14 +250,14 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		// for fee enabled channels
 		//
 		// Please see ADR 004 for more information.
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, appVersion, packet, ack.AppAcknowledgement, relayer)
 	}
 
 	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// call underlying callback
-		return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+		return im.app.OnAcknowledgementPacket(ctx, appVersion, packet, ack.AppAcknowledgement, relayer)
 	}
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
@@ -300,30 +273,37 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, payeeAddr, feesInEscrow.PacketFees, packetID)
 
 	// call underlying callback
-	return im.app.OnAcknowledgementPacket(ctx, packet, ack.AppAcknowledgement, relayer)
+	return im.app.OnAcknowledgementPacket(ctx, appVersion, packet, ack.AppAcknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
 // If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
+		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
+	}
+
+	appVersion := unwrapAppVersion(channelVersion)
+
 	// if the fee keeper is locked then fee logic should be skipped
 	// this may occur in the presence of a severe bug which leads to invalid state
 	// the fee keeper will be unlocked after manual intervention
 	//
 	// Please see ADR 004 for more information.
-	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) || im.keeper.IsLocked(ctx) {
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	if im.keeper.IsLocked(ctx) {
+		return im.app.OnTimeoutPacket(ctx, appVersion, packet, relayer)
 	}
 
 	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
 		// call underlying callback
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.app.OnTimeoutPacket(ctx, appVersion, packet, relayer)
 	}
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
@@ -339,7 +319,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	im.keeper.DistributePacketFeesOnTimeout(ctx, payeeAddr, feesInEscrow.PacketFees, packetID)
 
 	// call underlying callback
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	return im.app.OnTimeoutPacket(ctx, appVersion, packet, relayer)
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
@@ -472,11 +452,48 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 // UnmarshalPacketData attempts to use the underlying app to unmarshal the packet data.
 // If the underlying app does not support the PacketDataUnmarshaler interface, an error is returned.
 // This function implements the optional PacketDataUnmarshaler interface required for ADR 008 support.
-func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
+func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	unmarshaler, ok := im.app.(porttypes.PacketDataUnmarshaler)
 	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
+		return nil, "", errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	}
 
 	return unmarshaler.UnmarshalPacketData(ctx, portID, channelID, bz)
+}
+
+func unwrapAppVersion(channelVersion string) string {
+	metadata, err := types.MetadataFromVersion(channelVersion)
+	if err != nil {
+		// This should not happen, as it would mean that the channel is broken. Only a severe bug would cause this.
+		panic(errorsmod.Wrap(err, "failed to unwrap app version from channel version"))
+	}
+
+	return metadata.AppVersion
+}
+
+// WrapVersion returns the wrapped ics29 version based on the provided ics29 version and the underlying application version.
+func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string {
+	if cbVersion != types.Version {
+		panic(fmt.Errorf("invalid ics29 version provided. expected: %s, got: %s", types.Version, cbVersion))
+	}
+
+	metadata := types.Metadata{
+		FeeVersion: cbVersion,
+		AppVersion: underlyingAppVersion,
+	}
+
+	versionBytes := types.ModuleCdc.MustMarshalJSON(&metadata)
+
+	return string(versionBytes)
+}
+
+// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful. 
+func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
+	metadata, err := types.MetadataFromVersion(version)
+	if err != nil {
+		// not an ics29 version
+		return "", version, err
+	}
+
+	return metadata.FeeVersion, metadata.AppVersion, nil
 }

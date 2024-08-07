@@ -3,6 +3,7 @@ package testsuite
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -28,9 +29,9 @@ import (
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 const (
@@ -70,7 +71,7 @@ const (
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
-	// e2e tests. See sample.config.yaml as an example for what this should look like.
+	// e2e tests. See sample.config.yaml or sample.config.extended.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
 )
 
@@ -152,7 +153,7 @@ func (tc TestConfig) validateChains() error {
 // validateRelayers validates relayer configuration.
 func (tc TestConfig) validateRelayers() error {
 	if len(tc.RelayerConfigs) < 1 {
-		return fmt.Errorf("no relayer configurations specified")
+		return errors.New("no relayer configurations specified")
 	}
 
 	for _, r := range tc.RelayerConfigs {
@@ -232,7 +233,7 @@ func (tc TestConfig) GetChainAID() string {
 	if tc.ChainConfigs[0].ChainID != "" {
 		return tc.ChainConfigs[0].ChainID
 	}
-	return "chainA-1"
+	return "chain-1"
 }
 
 // GetChainBID returns the chain-id for chain B.
@@ -240,7 +241,7 @@ func (tc TestConfig) GetChainBID() string {
 	if tc.ChainConfigs[1].ChainID != "" {
 		return tc.ChainConfigs[1].ChainID
 	}
-	return "chainB-1"
+	return "chain-2"
 }
 
 // GetChainName returns the name of the chain given an index.
@@ -341,7 +342,44 @@ func fromFile() (TestConfig, bool) {
 		panic(err)
 	}
 
-	return tc, true
+	return populateDefaults(tc), true
+}
+
+// populateDefaults populates default values for the test config if
+// certain required fields are not specified.
+func populateDefaults(tc TestConfig) TestConfig {
+	for i := range tc.ChainConfigs {
+		if tc.ChainConfigs[i].ChainID == "" {
+			tc.ChainConfigs[i].ChainID = fmt.Sprintf("chain-%d", i+1)
+		}
+		if tc.ChainConfigs[i].Binary == "" {
+			tc.ChainConfigs[i].Binary = defaultBinary
+		}
+		if tc.ChainConfigs[i].Image == "" {
+			tc.ChainConfigs[i].Image = getChainImage(tc.ChainConfigs[i].Binary)
+		}
+		if tc.ChainConfigs[i].NumValidators == 0 {
+			tc.ChainConfigs[i].NumValidators = 1
+		}
+	}
+
+	if tc.ActiveRelayer == "" {
+		tc.ActiveRelayer = relayer.Hermes
+	}
+
+	if tc.RelayerConfigs == nil {
+		tc.RelayerConfigs = []relayer.Config{
+			getDefaultRlyRelayerConfig(),
+			getDefaultHermesRelayerConfig(),
+			getDefaultHyperspaceRelayerConfig(),
+		}
+	}
+
+	if tc.CometBFTConfig.LogLevel == "" {
+		tc.CometBFTConfig.LogLevel = "info"
+	}
+
+	return tc
 }
 
 // applyEnvironmentVariableOverrides applies all environment variable changes to the config
@@ -701,7 +739,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 
 		appStateMap, ok := genesisDocMap[appStateKey].(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("failed to extract to app_state")
+			return nil, errors.New("failed to extract to app_state")
 		}
 
 		govModuleBytes, err := json.Marshal(appStateMap[govtypes.ModuleName])
