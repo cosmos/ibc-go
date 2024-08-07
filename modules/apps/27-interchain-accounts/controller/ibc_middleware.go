@@ -388,6 +388,7 @@ func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, chan
 
 // WrapVersion returns the wrapped version based on the provided version string and underlying application version.
 // TODO: decide how we want to handle the underlying app. For now I made it backwards compatible.
+// https://github.com/cosmos/ibc-go/issues/7063
 func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string {
 	// ignore underlying app version
 	return cbVersion
