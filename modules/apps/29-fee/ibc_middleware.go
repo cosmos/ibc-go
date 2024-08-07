@@ -487,7 +487,7 @@ func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string 
 	return string(versionBytes)
 }
 
-// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful. 
+// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful.
 func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
 	metadata, err := types.MetadataFromVersion(version)
 	if err != nil {
