@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	chainID             = "gaiamainnet"
 	connectionID        = "connection-0"
 	clientID            = "clientidone"
 	connectionID2       = "connectionidtwo"
