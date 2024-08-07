@@ -32,6 +32,9 @@ type ChannelKeeper interface {
 	// GetPacketReceipt returns the packet receipt from the packet receipt path
 	GetPacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) (string, bool)
 
+	// HasPacketAcknowledgement check if the packet ack hash is already on the store
+	HasPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) bool
+
 	// SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 	// This is a public path that is standardized by the IBC specification
 	SetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte)

@@ -356,7 +356,7 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
+	EmitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
 
 	return nil
 }
@@ -423,7 +423,7 @@ func (k *Keeper) AcknowledgePacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		emitAcknowledgePacketEvent(ctx, packet, channel)
+		EmitAcknowledgePacketEvent(ctx, packet, channel)
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -485,7 +485,7 @@ func (k *Keeper) AcknowledgePacket(
 	)
 
 	// emit an event marking that we have processed the acknowledgement
-	emitAcknowledgePacketEvent(ctx, packet, channel)
+	EmitAcknowledgePacketEvent(ctx, packet, channel)
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {

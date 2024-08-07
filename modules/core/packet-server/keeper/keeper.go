@@ -181,6 +181,128 @@ func (k Keeper) RecvPacket(
 	return nil
 }
 
+func (k Keeper) WriteAcknowledgement(
+	ctx sdk.Context,
+	_ *capabilitytypes.Capability,
+	packetI exported.PacketI,
+	ack exported.Acknowledgement,
+) error {
+	packet, ok := packetI.(channeltypes.Packet)
+	if !ok {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "expected type %T, got %T", &channeltypes.Packet{}, packetI)
+	}
+	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
+		return channeltypes.ErrInvalidPacket
+	}
+
+	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
+	// sent by our counterparty.
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
+	if !ok {
+		return channeltypes.ErrChannelNotFound
+	}
+	if counterparty.ClientId != packet.SourceChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	// NOTE: IBC app modules might have written the acknowledgement synchronously on
+	// the OnRecvPacket callback so we need to check if the acknowledgement is already
+	// set on the store and return an error if so.
+	if k.ChannelKeeper.HasPacketAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence) {
+		return channeltypes.ErrAcknowledgementExists
+	}
+
+	if _, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence); !found {
+		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
+	}
+
+	if ack == nil {
+		return errorsmod.Wrap(channeltypes.ErrInvalidAcknowledgement, "acknowledgement cannot be nil")
+	}
+
+	bz := ack.Acknowledgement()
+	if len(bz) == 0 {
+		return errorsmod.Wrap(channeltypes.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
+	}
+
+	k.ChannelKeeper.SetPacketAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence, channeltypes.CommitAcknowledgement(bz))
+
+	// log that a packet acknowledgement has been written
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
+	// emit the same events as write acknowledgement without channel fields
+	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet, sentinelChannel(packet.DestinationChannel), bz)
+
+	return nil
+}
+
+func (k Keeper) AcknowledgePacket(
+	ctx sdk.Context,
+	_ *capabilitytypes.Capability,
+	packet channeltypes.Packet,
+	acknowledgement []byte,
+	proofAcked []byte,
+	proofHeight exported.Height,
+) error {
+	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
+		return channeltypes.ErrInvalidPacket
+	}
+
+	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
+	// sent by our counterparty.
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
+	if !ok {
+		return channeltypes.ErrChannelNotFound
+	}
+
+	if counterparty.ClientId != packet.DestinationChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	if len(commitment) == 0 {
+		channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+
+		// This error indicates that the acknowledgement has already been relayed
+		// or there is a misconfigured relayer attempting to prove an acknowledgement
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	packetCommitment := channeltypes.CommitPacket(packet)
+
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal(commitment, packetCommitment) {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+	}
+
+	path := host.PacketAcknowledgementKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	if err := k.ClientKeeper.VerifyMembership(
+		ctx,
+		packet.SourceChannel,
+		proofHeight,
+		0, 0,
+		proofAcked,
+		merklePath,
+		channeltypes.CommitAcknowledgement(acknowledgement),
+	); err != nil {
+		return err
+	}
+
+	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+
+	// log that a packet has been acknowledged
+	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_port", packet.GetSourcePort(), "src_channel", packet.GetSourceChannel(), "dst_port", packet.GetDestPort(), "dst_channel", packet.GetDestChannel())
+
+	// emit the same events as acknowledge packet without channel fields
+	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+
+	return nil
+}
+
 func (k Keeper) TimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
