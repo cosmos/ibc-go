@@ -288,20 +288,6 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID str
 		return "", err
 	}
 
-	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
-	if err != nil {
-		return "", err
-	}
-
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		// Only cast to UpgradableModule if the application is set.
-		cbs, ok := im.app.(porttypes.UpgradableModule)
-		if !ok {
-			return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-		}
-		return cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-	}
-
 	return proposedVersion, nil
 }
 

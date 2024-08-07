@@ -309,34 +309,10 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 	proposedConnectionHops []string,
 	proposedVersion string,
 ) (string, error) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+	if proposedVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, proposedVersion)
 	}
-
-	versionMetadata, err := types.MetadataFromVersion(proposedVersion)
-	if err != nil {
-		// since it is valid for fee version to not be specified, the upgrade version may be for a middleware
-		// or application further down in the stack. Thus, pass through to next middleware or application in callstack.
-		return cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
-	}
-
-	appVersion, err := cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, versionMetadata.AppVersion)
-	if err != nil {
-		return "", err
-	}
-
-	versionMetadata.AppVersion = appVersion
-	versionBz, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-	if err != nil {
-		return "", err
-	}
-
-	return string(versionBz), nil
+	return types.Version, nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface

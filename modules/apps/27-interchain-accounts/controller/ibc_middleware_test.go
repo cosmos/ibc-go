@@ -777,12 +777,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			}, ibcmock.MockApplicationCallbackError,
 		},
 		{
-			"middleware disabled", func() {
+			"application in stack fails", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
-			}, nil,
+			}, ibcmock.MockApplicationCallbackError,
 		},
 	}
 
@@ -804,10 +804,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(types.SubModuleName)
 				suite.Require().True(ok)
 				cbs, ok := app.(porttypes.UpgradableModule)
 				suite.Require().True(ok)
