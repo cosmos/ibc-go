@@ -1244,7 +1244,7 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 			},
 			func(bz []byte, err error) {
 				suite.Require().Nil(bz)
-				suite.Require().ErrorIs(err, types.ErrInvalidVersion)
+				suite.Require().ErrorIs(err, ibcerrors.ErrInvalidRequest)
 			},
 		},
 		{
