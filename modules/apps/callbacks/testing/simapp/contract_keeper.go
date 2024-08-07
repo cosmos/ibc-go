@@ -56,6 +56,7 @@ type ContractKeeper struct {
 		packetData []byte,
 		contractAddress,
 		packetSenderAddress string,
+		version string,
 	) error
 
 	IBCOnAcknowledgementPacketCallbackFn func(
@@ -65,6 +66,7 @@ type ContractKeeper struct {
 		relayer sdk.AccAddress,
 		contractAddress,
 		packetSenderAddress string,
+		version string,
 	) error
 
 	IBCOnTimeoutPacketCallbackFn func(
@@ -73,6 +75,7 @@ type ContractKeeper struct {
 		relayer sdk.AccAddress,
 		contractAddress,
 		packetSenderAddress string,
+		version string,
 	) error
 
 	IBCReceivePacketCallbackFn func(
@@ -80,6 +83,7 @@ type ContractKeeper struct {
 		packet ibcexported.PacketI,
 		ack ibcexported.Acknowledgement,
 		contractAddress string,
+		version string,
 	) error
 }
 
@@ -106,26 +110,26 @@ func (k ContractKeeper) IncrementStateEntryCounter(ctx sdk.Context) {
 	k.SetStateEntryCounter(ctx, count+1)
 }
 
-// NewKeeper creates a new mock ContractKeeper.
+// NewContractKeeper creates a new mock ContractKeeper.
 func NewContractKeeper(key storetypes.StoreKey) *ContractKeeper {
 	k := &ContractKeeper{
 		key:      key,
 		Counters: make(map[callbacktypes.CallbackType]int),
 	}
 
-	k.IBCSendPacketCallbackFn = func(ctx sdk.Context, _, _ string, _ clienttypes.Height, _ uint64, _ []byte, contractAddress, _ string) error {
+	k.IBCSendPacketCallbackFn = func(ctx sdk.Context, _, _ string, _ clienttypes.Height, _ uint64, _ []byte, contractAddress, _, _ string) error {
 		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeSendPacket, contractAddress)
 	}
 
-	k.IBCOnAcknowledgementPacketCallbackFn = func(ctx sdk.Context, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress, contractAddress, _ string) error {
+	k.IBCOnAcknowledgementPacketCallbackFn = func(ctx sdk.Context, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress, contractAddress, _, _ string) error {
 		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgementPacket, contractAddress)
 	}
 
-	k.IBCOnTimeoutPacketCallbackFn = func(ctx sdk.Context, _ channeltypes.Packet, _ sdk.AccAddress, contractAddress, _ string) error {
+	k.IBCOnTimeoutPacketCallbackFn = func(ctx sdk.Context, _ channeltypes.Packet, _ sdk.AccAddress, contractAddress, _, _ string) error {
 		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, contractAddress)
 	}
 
-	k.IBCReceivePacketCallbackFn = func(ctx sdk.Context, _ ibcexported.PacketI, _ ibcexported.Acknowledgement, contractAddress string) error {
+	k.IBCReceivePacketCallbackFn = func(ctx sdk.Context, _ ibcexported.PacketI, _ ibcexported.Acknowledgement, contractAddress, _ string) error {
 		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeReceivePacket, contractAddress)
 	}
 
@@ -147,9 +151,10 @@ func (k ContractKeeper) IBCSendPacketCallback(
 	timeoutTimestamp uint64,
 	packetData []byte,
 	contractAddress,
-	packetSenderAddress string,
+	packetSenderAddress,
+	version string,
 ) error {
-	return k.IBCSendPacketCallbackFn(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData, contractAddress, packetSenderAddress)
+	return k.IBCSendPacketCallbackFn(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData, contractAddress, packetSenderAddress, version)
 }
 
 // IBCOnAcknowledgementPacketCallback increments the stateful entry counter and the acknowledgement_packet callback counter.
@@ -165,9 +170,10 @@ func (k ContractKeeper) IBCOnAcknowledgementPacketCallback(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 	contractAddress,
-	packetSenderAddress string,
+	packetSenderAddress,
+	version string,
 ) error {
-	return k.IBCOnAcknowledgementPacketCallbackFn(ctx, packet, acknowledgement, relayer, contractAddress, packetSenderAddress)
+	return k.IBCOnAcknowledgementPacketCallbackFn(ctx, packet, acknowledgement, relayer, contractAddress, packetSenderAddress, version)
 }
 
 // IBCOnTimeoutPacketCallback increments the stateful entry counter and the timeout_packet callback counter.
@@ -182,9 +188,10 @@ func (k ContractKeeper) IBCOnTimeoutPacketCallback(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 	contractAddress,
-	packetSenderAddress string,
+	packetSenderAddress,
+	version string,
 ) error {
-	return k.IBCOnTimeoutPacketCallbackFn(ctx, packet, relayer, contractAddress, packetSenderAddress)
+	return k.IBCOnTimeoutPacketCallbackFn(ctx, packet, relayer, contractAddress, packetSenderAddress, version)
 }
 
 // IBCReceivePacketCallback increments the stateful entry counter and the receive_packet callback counter.
@@ -198,9 +205,10 @@ func (k ContractKeeper) IBCReceivePacketCallback(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
-	contractAddress string,
+	contractAddress,
+	version string,
 ) error {
-	return k.IBCReceivePacketCallbackFn(ctx, packet, ack, contractAddress)
+	return k.IBCReceivePacketCallbackFn(ctx, packet, ack, contractAddress, version)
 }
 
 // ProcessMockCallback processes a mock callback.

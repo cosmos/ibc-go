@@ -6,6 +6,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -28,9 +29,10 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeAcknowledgementPacket,
 			types.CallbackData{
-				CallbackAddress:   ibctesting.TestAccAddress,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    200_000,
+				CallbackAddress:    ibctesting.TestAccAddress,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     200_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 			func() []abci.Event {
@@ -46,6 +48,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 						sdk.NewAttribute(types.AttributeKeyCallbackSourceChannelID, ibctesting.FirstChannelID),
 						sdk.NewAttribute(types.AttributeKeyCallbackSequence, "1"),
 						sdk.NewAttribute(types.AttributeKeyCallbackResult, types.AttributeValueCallbackSuccess),
+						sdk.NewAttribute(types.AttributeKeyCallbackBaseApplicationVersion, transfertypes.V1),
 					),
 				}.ToABCIEvents()
 			},
@@ -58,9 +61,10 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeSendPacket,
 			types.CallbackData{
-				CallbackAddress:   ibctesting.TestAccAddress,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    200_000,
+				CallbackAddress:    ibctesting.TestAccAddress,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     200_000,
+				ApplicationVersion: transfertypes.V2,
 			},
 			nil,
 			func() []abci.Event {
@@ -76,6 +80,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 						sdk.NewAttribute(types.AttributeKeyCallbackSourceChannelID, ibctesting.FirstChannelID),
 						sdk.NewAttribute(types.AttributeKeyCallbackSequence, "1"),
 						sdk.NewAttribute(types.AttributeKeyCallbackResult, types.AttributeValueCallbackSuccess),
+						sdk.NewAttribute(types.AttributeKeyCallbackBaseApplicationVersion, transfertypes.V2),
 					),
 				}.ToABCIEvents()
 			},
@@ -88,9 +93,10 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeTimeoutPacket,
 			types.CallbackData{
-				CallbackAddress:   ibctesting.TestAccAddress,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    200_000,
+				CallbackAddress:    ibctesting.TestAccAddress,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     200_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 			func() []abci.Event {
@@ -106,6 +112,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 						sdk.NewAttribute(types.AttributeKeyCallbackSourceChannelID, ibctesting.FirstChannelID),
 						sdk.NewAttribute(types.AttributeKeyCallbackSequence, "1"),
 						sdk.NewAttribute(types.AttributeKeyCallbackResult, types.AttributeValueCallbackSuccess),
+						sdk.NewAttribute(types.AttributeKeyCallbackBaseApplicationVersion, transfertypes.V1),
 					),
 				}.ToABCIEvents()
 			},
@@ -118,9 +125,10 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeReceivePacket,
 			types.CallbackData{
-				CallbackAddress:   ibctesting.TestAccAddress,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    200_000,
+				CallbackAddress:    ibctesting.TestAccAddress,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     200_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 			func() []abci.Event {
@@ -136,6 +144,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 						sdk.NewAttribute(types.AttributeKeyCallbackDestChannelID, ibctesting.InvalidID),
 						sdk.NewAttribute(types.AttributeKeyCallbackSequence, "1"),
 						sdk.NewAttribute(types.AttributeKeyCallbackResult, types.AttributeValueCallbackSuccess),
+						sdk.NewAttribute(types.AttributeKeyCallbackBaseApplicationVersion, transfertypes.V1),
 					),
 				}.ToABCIEvents()
 			},
@@ -148,9 +157,10 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			"something",
 			types.CallbackData{
-				CallbackAddress:   ibctesting.TestAccAddress,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    200_000,
+				CallbackAddress:    ibctesting.TestAccAddress,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     200_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 			func() []abci.Event {
@@ -166,6 +176,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 						sdk.NewAttribute(types.AttributeKeyCallbackSourceChannelID, ibctesting.FirstChannelID),
 						sdk.NewAttribute(types.AttributeKeyCallbackSequence, "1"),
 						sdk.NewAttribute(types.AttributeKeyCallbackResult, types.AttributeValueCallbackSuccess),
+						sdk.NewAttribute(types.AttributeKeyCallbackBaseApplicationVersion, transfertypes.V1),
 					),
 				}.ToABCIEvents()
 			},
@@ -178,9 +189,10 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeAcknowledgementPacket,
 			types.CallbackData{
-				CallbackAddress:   ibctesting.TestAccAddress,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    200_000,
+				CallbackAddress:    ibctesting.TestAccAddress,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     200_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			types.ErrNotPacketDataProvider,
 			func() []abci.Event {
@@ -197,6 +209,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 						sdk.NewAttribute(types.AttributeKeyCallbackSequence, "1"),
 						sdk.NewAttribute(types.AttributeKeyCallbackResult, types.AttributeValueCallbackFailure),
 						sdk.NewAttribute(types.AttributeKeyCallbackError, types.ErrNotPacketDataProvider.Error()),
+						sdk.NewAttribute(types.AttributeKeyCallbackBaseApplicationVersion, transfertypes.V1),
 					),
 				}.ToABCIEvents()
 			},

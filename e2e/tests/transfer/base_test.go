@@ -171,7 +171,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	// }
 }
 
-// TestMsgTransfer_Succeeds_MultiDenom will test sending successful IBC transfers from chainA to chainB.
+// TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom will test sending successful IBC transfers from chainA to chainB.
 // A multidenom transfer with native chainB tokens and IBC tokens from chainA is executed from chainB to chainA.
 func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom() {
 	t := s.T()
