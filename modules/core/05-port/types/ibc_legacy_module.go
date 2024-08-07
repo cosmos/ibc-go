@@ -47,7 +47,7 @@ func (im *LegacyIBCModule) OnChanOpenInit(
 
 		// TODO: document behaviour
 		// handles default empty string + not using middleware when desired
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(version) != "" {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(version)
 			if err != nil {
 				// middleware disabled
