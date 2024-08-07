@@ -91,7 +91,7 @@ func reconstructVersion(cbs []ClassicIBCModule, negotiatedVersions []string) (st
 }
 
 // OnChanOpenTry implements the IBCModule interface.
-func (LegacyIBCModule) OnChanOpenTry(
+func (im *LegacyIBCModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -100,7 +100,38 @@ func (LegacyIBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return "", nil
+	negotiatedVersions := make([]string, len(im.cbs))
+
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		cbVersion := counterpartyVersion
+
+		// To maintain backwards compatibility, we must handle two cases:
+		// - relayer provides empty version (use default versions)
+		// - relayer provides version which chooses to not enable a middleware
+		//
+		// If an application is a VersionWrapper which means it modifies the version string
+		// and the version string is non-empty (don't use default), then the application must
+		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
+		// If it is unsuccessful, no callback will occur to this application as the version
+		// indicates it should be disabled.
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(counterpartyVersion) != "" {
+			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(counterpartyVersion)
+			if err != nil {
+				// middleware disabled
+				negotiatedVersions[i] = ""
+				continue
+			}
+			cbVersion, counterpartyVersion = appVersion, underlyingAppVersion
+		}
+
+		negotiatedVersion, err := im.cbs[i].OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, cbVersion)
+		if err != nil {
+			return "", errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", portID, channelID)
+		}
+		negotiatedVersions[i] = negotiatedVersion
+	}
+
+	return reconstructVersion(im.cbs, negotiatedVersions)
 }
 
 // OnChanOpenAck implements the IBCModule interface

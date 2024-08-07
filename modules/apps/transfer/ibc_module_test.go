@@ -180,10 +180,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			}
 			counterpartyVersion = types.V2
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.TransferPort)
 			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel

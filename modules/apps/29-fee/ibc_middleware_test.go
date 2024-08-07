@@ -159,10 +159,10 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 					Version:        tc.cpVersion,
 				}
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-				suite.Require().NoError(err)
+				//module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+				//suite.Require().NoError(err)
 
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 				suite.Require().True(ok)
 
 				_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
