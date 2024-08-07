@@ -776,14 +776,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 				}
 			}, ibcmock.MockApplicationCallbackError,
 		},
-		{
-			"application in stack fails", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
-					return "", ibcmock.MockApplicationCallbackError
-				}
-			}, ibcmock.MockApplicationCallbackError,
-		},
 	}
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
