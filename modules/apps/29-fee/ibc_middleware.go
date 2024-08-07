@@ -471,10 +471,10 @@ func unwrapAppVersion(channelVersion string) string {
 	return metadata.AppVersion
 }
 
-// WrapVersion returns the wrapped version based on the provided version string and underlying application version.
+// WrapVersion returns the wrapped ics29 version based on the provided ics29 version and the underlying application version.
 func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string {
 	if cbVersion != types.Version {
-		panic(fmt.Errorf("invalid appVersion provided. expected: %s got: %s", types.Version, cbVersion))
+		panic(fmt.Errorf("invalid ics29 version provided. expected: %s, got: %s", types.Version, cbVersion))
 	}
 
 	metadata := types.Metadata{
@@ -487,11 +487,11 @@ func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string 
 	return string(versionBytes)
 }
 
-// UnwrapVersionUnsafe returns the version. Interchain accounts does not wrap versions.
+// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful. 
 func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
 	metadata, err := types.MetadataFromVersion(version)
 	if err != nil {
-		// nothing to unwrap
+		// not an ics29 version
 		return "", version, err
 	}
 
