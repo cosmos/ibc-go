@@ -196,7 +196,7 @@ func (im IBCModule) OnSendPacket(
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
 		}
 
-		if len(data.Forwarding.Hops) > 1 {
+		if len(data.Forwarding.Hops) > 0 {
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
 		}
 
