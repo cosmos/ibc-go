@@ -552,6 +552,7 @@ func NewSimApp(
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
 	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
+	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.
@@ -562,8 +563,7 @@ func NewSimApp(
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 
-	ibcAppRouter.
-		AddRoute(icahosttypes.SubModuleName, icaHostStack)
+	ibcAppRouter.AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 
 	// Create Mock IBC Fee module stack for testing
 	// SendPacket, mock module cannot send packets
