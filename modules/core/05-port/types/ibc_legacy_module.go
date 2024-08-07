@@ -118,22 +118,6 @@ func (im *LegacyIBCModule) OnChanOpenTry(
 	return reconstructVersion(im.cbs, negotiatedVersions)
 }
 
-// reconstructVersion will generate the channel version by applying any version wrapping as necessary.
-// Version wrapping will only occur if the negotiated version is non=empty and the application is a VersionWrapper.
-func reconstructVersion(cbs []ClassicIBCModule, negotiatedVersions []string) (string, error) {
-	version := negotiatedVersions[0] // base version
-	for i := 1; i < len(cbs); i++ {  // iterate over the remaining callbacks
-		if strings.TrimSpace(negotiatedVersions[i]) != "" {
-			wrapper, ok := cbs[i].(VersionWrapper)
-			if !ok {
-				return "", ibcerrors.ErrInvalidVersion
-			}
-			version = wrapper.WrapVersion(negotiatedVersions[i], version)
-		}
-	}
-	return version, nil
-}
-
 // OnChanOpenAck implements the IBCModule interface
 func (LegacyIBCModule) OnChanOpenAck(
 	ctx sdk.Context,
@@ -228,12 +212,6 @@ func (LegacyIBCModule) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im *LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-	for _, cb := range im.cbs {
-		if _, ok := cb.(UpgradableModule); !ok {
-			return "", errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack")
-		}
-	}
-
 	negotiatedVersions := make([]string, len(im.cbs))
 
 	for i := len(im.cbs) - 1; i >= 0; i-- {
@@ -258,7 +236,12 @@ func (im *LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID 
 			cbVersion, proposedVersion = appVersion, underlyingAppVersion
 		}
 
-		upgradableModule := im.cbs[i].(UpgradableModule)
+		// in order to maintain backwards compatibility, every callback in the stack must implement the UpgradableModule interface.
+		upgradableModule, ok := im.cbs[i].(UpgradableModule)
+		if !ok {
+			return "", errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack")
+		}
+
 		negotiatedVersion, err := upgradableModule.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, cbVersion)
 		if err != nil {
 			return "", errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", portID, channelID)
@@ -288,4 +271,20 @@ func (LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID stri
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (LegacyIBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
 	return nil, nil
+}
+
+// reconstructVersion will generate the channel version by applying any version wrapping as necessary.
+// Version wrapping will only occur if the negotiated version is non=empty and the application is a VersionWrapper.
+func reconstructVersion(cbs []ClassicIBCModule, negotiatedVersions []string) (string, error) {
+	version := negotiatedVersions[0] // base version
+	for i := 1; i < len(cbs); i++ {  // iterate over the remaining callbacks
+		if strings.TrimSpace(negotiatedVersions[i]) != "" {
+			wrapper, ok := cbs[i].(VersionWrapper)
+			if !ok {
+				return "", ibcerrors.ErrInvalidVersion
+			}
+			version = wrapper.WrapVersion(negotiatedVersions[i], version)
+		}
+	}
+	return version, nil
 }
