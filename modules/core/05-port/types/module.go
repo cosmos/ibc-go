@@ -1,6 +1,8 @@
 package types
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -163,7 +165,7 @@ type UpgradableModule interface {
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
 type ICS4Wrapper interface {
 	SendPacket(
-		ctx sdk.Context,
+		ctx context.Context,
 		chanCap *capabilitytypes.Capability,
 		sourcePort string,
 		sourceChannel string,
@@ -173,14 +175,14 @@ type ICS4Wrapper interface {
 	) (sequence uint64, err error)
 
 	WriteAcknowledgement(
-		ctx sdk.Context,
+		ctx context.Context,
 		chanCap *capabilitytypes.Capability,
 		packet exported.PacketI,
 		ack exported.Acknowledgement,
 	) error
 
 	GetAppVersion(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 	) (string, bool)

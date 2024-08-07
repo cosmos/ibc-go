@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
@@ -324,7 +325,7 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 
 // SendPacket implements the ICS4 Wrapper interface
 func (IBCMiddleware) SendPacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
