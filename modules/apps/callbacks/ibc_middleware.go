@@ -331,15 +331,15 @@ func (IBCMiddleware) OnChanOpenTry(
 	return "", nil
 }
 
-// OnChanOpenAck defers to the underlying application
-func (im IBCMiddleware) OnChanOpenAck(
+// OnChanOpenAck is a no-op for the callbacks middleware.
+func (IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID,
 	counterpartyChannelID,
 	counterpartyVersion string,
 ) error {
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	return nil
 }
 
 // OnChanOpenConfirm defers to the underlying application
