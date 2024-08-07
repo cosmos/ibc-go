@@ -79,7 +79,7 @@ A user on one chain, for example the Cosmos Hub holds an asset, e.g. ATOM and wa
 | 1.07 | The routing information for forwarding or to go from unwound token to destination must be input with the initial transfer | | `Draft` |
 | 1.08 | If an intermediate chain does not have the unwinding or forwarding functionality, the tokens must be recoverable on the sending chain | | `Draft` | 
 | 1.09 | If unwinding or forwarding fails, then the reason for the failure should be returned in an error | | `Draft` |
-| 1.10 | When unwinding, it should be possible for the unwind route to reach the tokens origin to be introspected and input from the denomination trace or to be manually input by the user| | `Draft` |  
+| 1.10 | When unwinding, it should be possible for the forwarding path to be evaluated implicitly from introspecting the denomination trace or to be explicitly input as forwarding hops by the user | | `Draft` |  
 | 1.11 | When using unwinding in combination with x/authz, a granter can specify the allowed forwarding paths | | `Draft` |   
 
 # External interface requirements
