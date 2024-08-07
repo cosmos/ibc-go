@@ -74,22 +74,6 @@ func (im *LegacyIBCModule) OnChanOpenInit(
 	return reconstructVersion(im.cbs, negotiatedVersions)
 }
 
-// reconstructVersion will generate the channel version by applying any version wrapping as necessary.
-// Version wrapping will only occur if the negotiated version is non=empty and the application is a VersionWrapper.
-func reconstructVersion(cbs []ClassicIBCModule, negotiatedVersions []string) (string, error) {
-	version := negotiatedVersions[0] // base version
-	for i := 1; i < len(cbs); i++ {  // iterate over the remaining callbacks
-		if strings.TrimSpace(negotiatedVersions[i]) != "" {
-			wrapper, ok := cbs[i].(VersionWrapper)
-			if !ok {
-				return "", ibcerrors.ErrInvalidVersion
-			}
-			version = wrapper.WrapVersion(negotiatedVersions[i], version)
-		}
-	}
-	return version, nil
-}
-
 // OnChanOpenTry implements the IBCModule interface.
 func (im *LegacyIBCModule) OnChanOpenTry(
 	ctx sdk.Context,
@@ -126,12 +110,28 @@ func (im *LegacyIBCModule) OnChanOpenTry(
 
 		negotiatedVersion, err := im.cbs[i].OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, cbVersion)
 		if err != nil {
-			return "", errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", portID, channelID)
+			return "", errorsmod.Wrapf(err, "channel open try callback failed for port ID: %s, channel ID: %s", portID, channelID)
 		}
 		negotiatedVersions[i] = negotiatedVersion
 	}
 
 	return reconstructVersion(im.cbs, negotiatedVersions)
+}
+
+// reconstructVersion will generate the channel version by applying any version wrapping as necessary.
+// Version wrapping will only occur if the negotiated version is non=empty and the application is a VersionWrapper.
+func reconstructVersion(cbs []ClassicIBCModule, negotiatedVersions []string) (string, error) {
+	version := negotiatedVersions[0] // base version
+	for i := 1; i < len(cbs); i++ {  // iterate over the remaining callbacks
+		if strings.TrimSpace(negotiatedVersions[i]) != "" {
+			wrapper, ok := cbs[i].(VersionWrapper)
+			if !ok {
+				return "", ibcerrors.ErrInvalidVersion
+			}
+			version = wrapper.WrapVersion(negotiatedVersions[i], version)
+		}
+	}
+	return version, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
