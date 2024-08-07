@@ -71,16 +71,6 @@ func (im IBCMiddleware) OnChanOpenInit(
 	if err != nil {
 		return "", err
 	}
-
-	// call underlying app's OnChanOpenInit callback with the passed in version
-	// the version returned is discarded as the ica-auth module does not have permission to edit the version string.
-	// ics27 will always return the version string containing the Metadata struct which is created during the `RegisterInterchainAccount` call.
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionHops[0]) {
-		if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version); err != nil {
-			return "", err
-		}
-	}
-
 	return version, nil
 }
 
@@ -394,4 +384,18 @@ func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, chan
 	}
 
 	return data, version, nil
+}
+
+// WrapVersion returns the wrapped version based on the provided version string and underlying application version.
+// TODO: decide how we want to handle the underlying app. For now I made it backwards compatible.
+// https://github.com/cosmos/ibc-go/issues/7063
+func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string {
+	// ignore underlying app version
+	return cbVersion
+}
+
+// UnwrapVersionUnsafe returns the version. Interchain accounts does not wrap versions.
+func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
+	// ignore underlying app version
+	return version, "", nil
 }

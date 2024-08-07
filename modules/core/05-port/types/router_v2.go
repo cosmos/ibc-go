@@ -66,7 +66,7 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 		// in order to facilitate having a single LegacyIBCModule, but also allowing for
 		// consecutive calls to AddRoute to support existing functionality, we can re-create
 		// the legacy module with the routes as they get added.
-		if classicRoutes, ok := rtr.classicRoutes[module]; ok && len(classicRoutes) > 1 {
+		if classicRoutes, ok := rtr.classicRoutes[module]; ok {
 			rtr.legacyRoutes[module] = NewLegacyIBCModule(classicRoutes...)
 		}
 	} else {

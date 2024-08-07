@@ -307,7 +307,7 @@ func (IBCMiddleware) processCallback(
 }
 
 // OnChanOpenInit defers to the underlying application
-func (im IBCMiddleware) OnChanOpenInit(
+func (IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,
 	channelOrdering channeltypes.Order,
 	connectionHops []string,
@@ -316,7 +316,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return im.app.OnChanOpenInit(ctx, channelOrdering, connectionHops, portID, channelID, counterparty, version)
+	return "", nil
 }
 
 // OnChanOpenTry defers to the underlying application

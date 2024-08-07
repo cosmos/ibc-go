@@ -2,6 +2,7 @@ package fee
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -21,6 +22,7 @@ var (
 	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 	_ porttypes.UpgradableModule      = (*IBCMiddleware)(nil)
+	_ porttypes.VersionWrapper        = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
@@ -48,45 +50,12 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	var versionMetadata types.Metadata
-
-	if strings.TrimSpace(version) == "" {
-		// default version
-		versionMetadata = types.Metadata{
-			FeeVersion: types.Version,
-			AppVersion: "",
-		}
-	} else {
-		metadata, err := types.MetadataFromVersion(version)
-		if err != nil {
-			// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-			// application.
-			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-				counterparty, version)
-		}
-		versionMetadata = metadata
-	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
-	}
-
-	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, versionMetadata.AppVersion)
-	if err != nil {
-		return "", err
-	}
-
-	versionMetadata.AppVersion = appVersion
-	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-	if err != nil {
-		return "", err
+	if strings.TrimSpace(version) != "" && version != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, version)
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-
-	// call underlying app's OnChanOpenInit callback with the appVersion
-	return string(versionBytes), nil
+	return types.Version, nil
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -500,4 +469,31 @@ func unwrapAppVersion(channelVersion string) string {
 	}
 
 	return metadata.AppVersion
+}
+
+// WrapVersion returns the wrapped ics29 version based on the provided ics29 version and the underlying application version.
+func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string {
+	if cbVersion != types.Version {
+		panic(fmt.Errorf("invalid ics29 version provided. expected: %s, got: %s", types.Version, cbVersion))
+	}
+
+	metadata := types.Metadata{
+		FeeVersion: cbVersion,
+		AppVersion: underlyingAppVersion,
+	}
+
+	versionBytes := types.ModuleCdc.MustMarshalJSON(&metadata)
+
+	return string(versionBytes)
+}
+
+// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful. 
+func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
+	metadata, err := types.MetadataFromVersion(version)
+	if err != nil {
+		// not an ics29 version
+		return "", version, err
+	}
+
+	return metadata.FeeVersion, metadata.AppVersion, nil
 }

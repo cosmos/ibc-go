@@ -1,12 +1,15 @@
 package types
 
 import (
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -22,13 +25,13 @@ func (im *LegacyIBCModule) GetCallbacks() []ClassicIBCModule {
 
 // NewLegacyIBCModule creates a new IBCModule given the keeper
 func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
-	return LegacyIBCModule{
+	return &LegacyIBCModule{
 		cbs: cbs,
 	}
 }
 
-// OnChanOpenInit implements the IBCModule interface
-func (LegacyIBCModule) OnChanOpenInit(
+// OnChanOpenInit implements the IBCModule interface.
+func (im *LegacyIBCModule) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -37,7 +40,54 @@ func (LegacyIBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return "", nil
+	negotiatedVersions := make([]string, len(im.cbs))
+
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		cbVersion := version
+
+		// To maintain backwards compatibility, we must handle two cases:
+		// - relayer provides empty version (use default versions)
+		// - relayer provides version which chooses to not enable a middleware
+		//
+		// If an application is a VersionWrapper which means it modifies the version string
+		// and the version string is non-empty (don't use default), then the application must
+		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
+		// If it is unsuccessful, no callback will occur to this application as the version
+		// indicates it should be disabled.
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(version) != "" {
+			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(version)
+			if err != nil {
+				// middleware disabled
+				negotiatedVersions[i] = ""
+				continue
+			}
+			cbVersion, version = appVersion, underlyingAppVersion
+		}
+
+		negotiatedVersion, err := im.cbs[i].OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, cbVersion)
+		if err != nil {
+			return "", errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", portID, channelID)
+		}
+		negotiatedVersions[i] = negotiatedVersion
+	}
+
+	return reconstructVersion(im.cbs, negotiatedVersions)
+}
+
+// reconstructVersion will generate the channel version by applying any version wrapping as necessary.
+// Version wrapping will only occur if the negotiated version is non=empty and the application is a VersionWrapper.
+func reconstructVersion(cbs []ClassicIBCModule, negotiatedVersions []string) (string, error) {
+	version := negotiatedVersions[0] // base version
+	for i := 1; i < len(cbs); i++ {  // iterate over the remaining callbacks
+		if strings.TrimSpace(negotiatedVersions[i]) != "" {
+			wrapper, ok := cbs[i].(VersionWrapper)
+			if !ok {
+				return "", ibcerrors.ErrInvalidVersion
+			}
+			version = wrapper.WrapVersion(negotiatedVersions[i], version)
+		}
+	}
+	return version, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface.

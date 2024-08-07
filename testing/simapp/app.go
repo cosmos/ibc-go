@@ -479,6 +479,7 @@ func NewSimApp(
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.ClassicIBCModule
 	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
 	var ok bool
 	app.ICAAuthModule, ok = icaControllerStack.(ibcmock.IBCModule)
 	if !ok {
@@ -521,9 +522,10 @@ func NewSimApp(
 	// create fee wrapped mock module
 	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
+	ibcAppRouter.AddRoute(MockFeePort, feeMockModule)
+
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
-
 	ibcAppRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// Seal the IBC Router

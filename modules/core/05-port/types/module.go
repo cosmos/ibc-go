@@ -121,6 +121,24 @@ type IBCModule interface {
 	) error
 }
 
+// VersionWrapper is an optional interface which should be implemented by middleware which wrap the channel version
+// to ensure backwards compatibility.
+type VersionWrapper interface {
+	// WrapVersion is required in order to remove middleware wiring and the ICS4Wrapper
+	// while maintaining backwards compatibility. It will be removed in the future.
+	// Applications should wrap the provided version with their application version.
+	// If they do not need to wrap, they may simply return the version provided.
+	WrapVersion(cbVersion, underlyingAppVersion string) string
+	// UnwrapVersionUnsafe is required in order to remove middleware wiring and the ICS4Wrapper
+	// while maintaining backwards compatibility. It will be removed in the future.
+	// Applications should unwrap the provided version with into their  application version.
+	// and the underlying application version. If they are unsuccessful they should return an error.
+	// UnwrapVersionUnsafe will be used during opening handshakes and channel upgrades when the version
+	// is still being negotiated.
+	UnwrapVersionUnsafe(string) (cbVersion, underlyingAppVersion string, err error)
+	// UnwrapVersionSafe(ctx sdk.Context, portID, channelID, version string) (appVersion, version string)
+}
+
 // UpgradableModule defines the callbacks required to perform a channel upgrade.
 // Note: applications must ensure that state related to packet processing remains unmodified until the OnChanUpgradeOpen callback is executed.
 // This guarantees that in-flight packets are correctly flushed using the existing channel parameters.

@@ -29,46 +29,24 @@ var (
 // Tests OnChanOpenInit on ChainA
 func (suite *FeeTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
-		name         string
-		version      string
-		expPass      bool
-		isFeeEnabled bool
+		name     string
+		version  string
+		expError error
 	}{
 		{
-			"success - valid fee middleware and mock version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
-			true,
-			true,
+			"success - valid fee version",
+			types.Version,
+			nil,
 		},
 		{
-			"success - fee version not included, only perform mock logic",
-			ibcmock.Version,
-			true,
-			false,
+			"success - empty version",
+			"",
+			nil,
 		},
 		{
 			"invalid fee middleware version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
-			false,
-			false,
-		},
-		{
-			"invalid mock version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
-			false,
-			false,
-		},
-		{
-			"mock version not wrapped",
-			types.Version,
-			false,
-			false,
-		},
-		{
-			"passing an empty string returns default version",
-			"",
-			true,
-			true,
+			"invalid-ics29-1",
+			types.ErrInvalidVersion,
 		},
 	}
 
@@ -81,17 +59,6 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				suite.SetupTest()
 				suite.path.SetupConnections()
 
-				// setup mock callback
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string,
-					counterparty channeltypes.Counterparty, version string,
-				) (string, error) {
-					if version != ibcmock.Version {
-						return "", fmt.Errorf("incorrect mock version")
-					}
-					return ibcmock.Version, nil
-				}
-
 				suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 				counterparty := channeltypes.NewCounterparty(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
@@ -103,34 +70,24 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 					Version:        tc.version,
 				}
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 				suite.Require().True(ok)
 
-				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
+				legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
+				suite.Require().True(ok, "expected there to be a single legacy ibc module")
+
+				legacyModuleCbs := legacyModule.GetCallbacks()
+				feeModule, ok := legacyModuleCbs[1].(ibcfee.IBCMiddleware) // fee module is routed second
+				suite.Require().True(ok)
+
+				version, err := feeModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, counterparty, channel.Version)
 
-				if tc.expPass {
-					// check if the channel is fee enabled. If so version string should include metaData
-					if tc.isFeeEnabled {
-						versionMetadata := types.Metadata{
-							FeeVersion: types.Version,
-							AppVersion: ibcmock.Version,
-						}
-
-						versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-						suite.Require().NoError(err)
-
-						suite.Require().Equal(version, string(versionBytes))
-					} else {
-						suite.Require().Equal(ibcmock.Version, version)
-					}
-
+				if tc.expError == nil {
+					suite.Require().Equal(types.Version, version)
 					suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 				} else {
-					suite.Require().Error(err, "error not returned for version: %s", tc.version)
+					suite.Require().ErrorIs(err, tc.expError, "error not returned for version: %s", tc.version)
 					suite.Require().Equal("", version)
 				}
 			})
