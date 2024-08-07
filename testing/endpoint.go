@@ -165,6 +165,16 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// FreezeClient freezes the IBC client associated with the endpoint.
+func (endpoint *Endpoint) FreezeClient() {
+	clientState := endpoint.Chain.GetClientState(endpoint.ClientID)
+	tmClientState, ok := clientState.(*ibctm.ClientState)
+	require.True(endpoint.Chain.TB, ok)
+
+	tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.ClientID, tmClientState)
+}
+
 // ProvideCounterparty will construct and execute a MsgProvideCounterparty on the associated endpoint.
 func (endpoint *Endpoint) ProvideCounterparty() (err error) {
 	merklePath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))

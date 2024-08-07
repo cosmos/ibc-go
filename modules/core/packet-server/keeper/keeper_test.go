@@ -11,7 +11,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	tmtypes "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -68,13 +67,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			packet.Data = nil
 		}, channeltypes.ErrInvalidPacket},
 		{"client status invalid", func() {
-			// make underlying client Frozen to get invalid client status
-			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			suite.Require().True(ok, "could not retrieve client state")
-			tmClientState, ok := clientState.(*tmtypes.ClientState)
-			suite.Require().True(ok, "client is not tendermint client")
-			tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClientState)
+			path.EndpointA.FreezeClient()
 		}, clienttypes.ErrClientNotActive},
 		{"timeout elapsed", func() {
 			packet.TimeoutTimestamp = 1
@@ -151,10 +144,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure: client is not active",
 			func() {
-				clientState, ok := suite.chainB.GetClientState(packet.DestinationChannel).(*tmtypes.ClientState)
-				suite.Require().True(ok)
-				clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-				suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainB.GetContext(), packet.DestinationChannel, clientState)
+				path.EndpointB.FreezeClient()
 			},
 			clienttypes.ErrClientNotActive,
 		},
@@ -319,8 +309,9 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.HasPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+				ackCommitment, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 				suite.Require().True(found)
+				suite.Require().Equal(channeltypes.CommitAcknowledgement(ack.Acknowledgement()), ackCommitment)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
@@ -331,8 +322,9 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
-		packet channeltypes.Packet
-		ack    exported.Acknowledgement
+		packet       channeltypes.Packet
+		ack          exported.Acknowledgement
+		freezeClient bool
 	)
 
 	testCases := []struct {
@@ -374,6 +366,13 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channeltypes.ErrNoOpMsg,
 		},
 		{
+			"failure: client status invalid",
+			func() {
+				freezeClient = true
+			},
+			clienttypes.ErrClientNotActive,
+		},
+		{
 			"failure: packet commitment bytes differ",
 			func() {
 				packet.Data = []byte("")
@@ -396,6 +395,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
+
+			freezeClient = false
 
 			// create packet receipt and acknowledgement
 			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
@@ -430,6 +431,10 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
+
+			if freezeClient {
+				path.EndpointA.FreezeClient()
+			}
 
 			err = suite.chainA.App.GetPacketServer().AcknowledgePacket(suite.chainA.GetContext(), nil, packet, ack.Acknowledgement(), proof, proofHeight)
 
@@ -603,13 +608,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			proof, proofHeight := path.EndpointB.QueryProof(receiptKey)
 
 			if freezeClient {
-				// make underlying client Frozen to get invalid client status
-				clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				suite.Require().True(ok, "could not retrieve client state")
-				tmClientState, ok := clientState.(*tmtypes.ClientState)
-				suite.Require().True(ok, "client is not tendermint client")
-				tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClientState)
+				path.EndpointA.FreezeClient()
 			}
 
 			err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, 0)
