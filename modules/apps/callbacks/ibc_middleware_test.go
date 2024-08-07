@@ -166,12 +166,10 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
-			cbs, ok := GetSimApp(s.chainA).IBCKeeper.PortKeeper.AppRoute(transfertypes.ModuleName)
+			cbs, ok := GetSimApp(s.chainA).IBCKeeper.PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			s.Require().Len(cbs, 1, "expected 1 legacy module")
-
-			legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule)
+			legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
 			s.Require().True(ok, "expected there to be a single legacy ibc module")
 
 			legacyModuleCbs := legacyModule.GetCallbacks()

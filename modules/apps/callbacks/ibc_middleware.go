@@ -306,7 +306,7 @@ func (IBCMiddleware) processCallback(
 	return err
 }
 
-// OnChanOpenInit defers to the underlying application
+// OnChanOpenInit is a no-op for the callbacks middleware.
 func (IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,
 	channelOrdering channeltypes.Order,
@@ -319,8 +319,8 @@ func (IBCMiddleware) OnChanOpenInit(
 	return "", nil
 }
 
-// OnChanOpenTry defers to the underlying application
-func (im IBCMiddleware) OnChanOpenTry(
+// OnChanOpenTry is a no-op for the callbacks middleware.
+func (IBCMiddleware) OnChanOpenTry(
 	ctx sdk.Context,
 	channelOrdering channeltypes.Order,
 	connectionHops []string, portID,
@@ -328,7 +328,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return im.app.OnChanOpenTry(ctx, channelOrdering, connectionHops, portID, channelID, counterparty, counterpartyVersion)
+	return "", nil
 }
 
 // OnChanOpenAck is a no-op for the callbacks middleware.

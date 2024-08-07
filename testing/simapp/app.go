@@ -480,6 +480,7 @@ func NewSimApp(
 	var icaControllerStack porttypes.ClassicIBCModule
 	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
 	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 	var ok bool
 	app.ICAAuthModule, ok = icaControllerStack.(ibcmock.IBCModule)
 	if !ok {
@@ -487,15 +488,19 @@ func NewSimApp(
 	}
 	icaControllerStack = icacontroller.NewIBCMiddlewareWithAuth(icaControllerStack, app.ICAControllerKeeper)
 	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
 
 	var icaHostStack porttypes.ClassicIBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
+	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
+	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.
@@ -505,10 +510,6 @@ func NewSimApp(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
-
-	ibcAppRouter.
-		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 
 	// Create Mock IBC Fee module stack for testing
 	// SendPacket, mock module cannot send packets
