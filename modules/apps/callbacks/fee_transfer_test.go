@@ -115,6 +115,7 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 					_ sdk.AccAddress,
 					contractAddress,
 					_ string,
+					_ string,
 				) error {
 					expAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 					s.Require().Equal(expAck, acknowledgement)

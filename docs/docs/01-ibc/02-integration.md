@@ -98,7 +98,6 @@ func NewApp(...args) *App {
     appCodec,
     keys[ibcexported.StoreKey],
     app.GetSubspace(ibcexported.ModuleName),
-    ibctm.NewConsensusHost(app.StakingKeeper),
     app.UpgradeKeeper,
     scopedIBCKeeper,
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
