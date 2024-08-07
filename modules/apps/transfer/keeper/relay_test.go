@@ -1246,7 +1246,6 @@ func (suite *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
 				suite.Require().Nil(bz)
 				suite.ErrorIs(err, types.ErrInvalidVersion)
 			},
-			nil,
 		},
 		{
 			"failure: invalid version",
