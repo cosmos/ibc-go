@@ -323,7 +323,7 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 	if err != nil {
 		return err
 	}
-	if k.isBlockedAddr(sender) {
+	if k.IsBlockedAddr(sender) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
 	}
 
