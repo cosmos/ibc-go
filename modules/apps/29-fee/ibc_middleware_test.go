@@ -181,41 +181,26 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		name      string
 		cpVersion string
 		malleate  func(suite *FeeTestSuite)
-		expPass   bool
+		expError  error
 	}{
 		{
 			"success",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
+			types.Version,
 			func(suite *FeeTestSuite) {},
-			true,
+			nil,
 		},
+		{
+			"success, empty version string (disable middleware)",
+			"",
+			func(suite *FeeTestSuite) {},
+			nil,
+		},
+
 		{
 			"invalid fee version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
+			"invalid-ics29-1",
 			func(suite *FeeTestSuite) {},
-			false,
-		},
-		{
-			"invalid mock version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
-			func(suite *FeeTestSuite) {},
-			false,
-		},
-		{
-			"invalid version fails to unmarshal metadata",
-			ibctesting.InvalidID,
-			func(suite *FeeTestSuite) {},
-			false,
-		},
-		{
-			"previous INIT set without fee, however counterparty set fee version", // note this can only happen with incompetent or malicious counterparty chain
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
-			func(suite *FeeTestSuite) {
-				// do the first steps without fee version, then pass the fee version as counterparty version in ChanOpenACK
-				suite.path.EndpointA.ChannelConfig.Version = ibcmock.Version
-				suite.path.EndpointB.ChannelConfig.Version = ibcmock.Version
-			},
-			false,
+			types.ErrInvalidVersion,
 		},
 	}
 
@@ -225,16 +210,6 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			suite.SetupTest()
 			suite.path.SetupConnections()
 
-			// setup mock callback
-			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenAck = func(
-				ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
-			) error {
-				if counterpartyVersion != ibcmock.Version {
-					return fmt.Errorf("incorrect mock version")
-				}
-				return nil
-			}
-
 			// malleate test case
 			tc.malleate(suite)
 
@@ -243,17 +218,21 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			err = suite.path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
-			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.path.EndpointA.Counterparty.ChannelID, tc.cpVersion)
-			if tc.expPass {
+			legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
+			suite.Require().True(ok, "expected there to be a single legacy ibc module")
+
+			legacyModuleCbs := legacyModule.GetCallbacks()
+			feeModule, ok := legacyModuleCbs[1].(ibcfee.IBCMiddleware) // fee module is routed second
+			suite.Require().True(ok)
+
+			err = feeModule.OnChanOpenAck(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.path.EndpointA.Counterparty.ChannelID, tc.cpVersion)
+			if tc.expError == nil {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 			} else {
-				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+				suite.Require().ErrorIs(err, tc.expError, "%s expected error but returned none", tc.name)
 			}
 		})
 	}

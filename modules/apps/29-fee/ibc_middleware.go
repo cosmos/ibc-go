@@ -85,25 +85,18 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-		if err != nil {
-			// we pass the entire version string onto the underlying application.
-			// and disable fees for this channel
-			im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-			return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-		}
-
-		if versionMetadata.FeeVersion != types.Version {
-			return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
-		}
-
-		// call underlying app's OnChanOpenAck callback with the counterparty app version.
-		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, versionMetadata.AppVersion)
+	if strings.TrimSpace(counterpartyVersion) == "" {
+		// disable fees for this channel
+		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+		return nil
 	}
 
-	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	if counterpartyVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, counterpartyVersion)
+	}
+
+	im.keeper.SetFeeEnabled(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface

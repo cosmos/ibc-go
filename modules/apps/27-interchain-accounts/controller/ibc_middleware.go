@@ -108,16 +108,6 @@ func (im IBCMiddleware) OnChanOpenAck(
 		return err
 	}
 
-	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
-	if err != nil {
-		return err
-	}
-
-	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-	}
-
 	return nil
 }
 
