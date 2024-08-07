@@ -550,7 +550,7 @@ func NewSimApp(
 
 	var icaHostStack porttypes.ClassicIBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
-	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaHostStack)
+	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
 	// Add host, controller & ica auth modules to IBC router
