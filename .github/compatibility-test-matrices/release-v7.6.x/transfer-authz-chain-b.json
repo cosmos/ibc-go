@@ -1,0 +1,23 @@
+{
+  "chain-a": [
+    "v8.4.0",
+    "v7.7.0",
+    "v7.6.0",
+    "v7.5.0",
+    "v7.4.0",
+    "release-v7.6.x"
+  ],
+  "chain-b": [
+    "release-v7.6.x"
+  ],
+  "entrypoint": [
+    "TestAuthzTransferTestSuite"
+  ],
+  "test": [
+    "TestAuthz_MsgTransfer_Succeeds",
+    "TestAuthz_InvalidTransferAuthorizations"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

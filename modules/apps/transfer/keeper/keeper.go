@@ -17,10 +17,11 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // Keeper defines the IBC fungible transfer keeper
@@ -305,4 +306,92 @@ func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Cap
 // passes to it
 func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
 	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
+
+// setForwardedPacket sets the forwarded packet in the store.
+func (k Keeper) setForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&packet)
+	store.Set(types.PacketForwardKey(portID, channelID, sequence), bz)
+}
+
+// getForwardedPacket gets the forwarded packet from the store.
+func (k Keeper) getForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.PacketForwardKey(portID, channelID, sequence))
+	if bz == nil {
+		return channeltypes.Packet{}, false
+	}
+
+	var storedPacket channeltypes.Packet
+	k.cdc.MustUnmarshal(bz, &storedPacket)
+
+	return storedPacket, true
+}
+
+// deleteForwardedPacket deletes the forwarded packet from the store.
+func (k Keeper) deleteForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	packetKey := types.PacketForwardKey(portID, channelID, sequence)
+
+	store.Delete(packetKey)
+}
+
+// getAllForwardedPackets gets all forward packets stored in state.
+func (k Keeper) getAllForwardedPackets(ctx sdk.Context) []types.ForwardedPacket {
+	var packets []types.ForwardedPacket
+	k.iterateForwardedPackets(ctx, func(packet types.ForwardedPacket) bool {
+		packets = append(packets, packet)
+		return false
+	})
+
+	return packets
+}
+
+// iterateForwardedPackets iterates over the forward packets in the store and performs a callback function.
+func (k Keeper) iterateForwardedPackets(ctx sdk.Context, cb func(packet types.ForwardedPacket) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.ForwardedPacketKey)
+
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	for ; iterator.Valid(); iterator.Next() {
+		var forwardPacket types.ForwardedPacket
+		k.cdc.MustUnmarshal(iterator.Value(), &forwardPacket.Packet)
+
+		// Iterator key consists of types.ForwardedPacketKey/portID/channelID/sequence
+		parts := strings.Split(string(iterator.Key()), "/")
+		if len(parts) != 4 {
+			panic(fmt.Errorf("key path should always have 4 elements"))
+		}
+		if parts[0] != string(types.ForwardedPacketKey) {
+			panic(fmt.Errorf("key path does not start with expected prefix: %s", types.ForwardedPacketKey))
+		}
+
+		portID, channelID := parts[1], parts[2]
+		if err := host.PortIdentifierValidator(portID); err != nil {
+			panic(fmt.Errorf("port identifier validation failed while parsing forward key path"))
+		}
+		if err := host.ChannelIdentifierValidator(channelID); err != nil {
+			panic(fmt.Errorf("channel identifier validation failed while parsing forward key path"))
+		}
+
+		forwardPacket.ForwardKey.Sequence = sdk.BigEndianToUint64([]byte(parts[3]))
+		forwardPacket.ForwardKey.ChannelId = channelID
+		forwardPacket.ForwardKey.PortId = portID
+
+		if cb(forwardPacket) {
+			break
+		}
+	}
+}
+
+// IsBlockedAddr checks if the given address is allowed to send or receive tokens.
+// The module account is always allowed to send and receive tokens.
+func (k Keeper) isBlockedAddr(addr sdk.AccAddress) bool {
+	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+	if addr.Equals(moduleAddr) {
+		return false
+	}
+
+	return k.bankKeeper.BlockedAddr(addr)
 }

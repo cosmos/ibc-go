@@ -15,10 +15,11 @@ import (
 	"github.com/cometbft/cometbft/light"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -53,9 +54,8 @@ func (ClientState) ClientType() string {
 	return exported.Tendermint
 }
 
-// GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
-func (ClientState) GetTimestampAtHeight(
-	ctx sdk.Context,
+// getTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
+func (ClientState) getTimestampAtHeight(
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
@@ -68,7 +68,7 @@ func (ClientState) GetTimestampAtHeight(
 	return consState.GetTimestamp(), nil
 }
 
-// Status returns the status of the tendermint client.
+// status returns the status of the tendermint client.
 // The client may be:
 // - Active: FrozenHeight is zero and client is not expired
 // - Frozen: Frozen Height is not zero
@@ -76,7 +76,7 @@ func (ClientState) GetTimestampAtHeight(
 //
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
-func (cs ClientState) Status(
+func (cs ClientState) status(
 	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
@@ -184,9 +184,9 @@ func (cs ClientState) ZeroCustomFields() *ClientState {
 	}
 }
 
-// Initialize checks that the initial consensus state is an 07-tendermint consensus state and
+// initialize checks that the initial consensus state is an 07-tendermint consensus state and
 // sets the client state, consensus state and associated metadata in the provided client store.
-func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
 	consensusState, ok := consState.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
@@ -200,10 +200,10 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	return nil
 }
 
-// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
+// verifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
-func (cs ClientState) VerifyMembership(
+func (cs ClientState) verifyMembership(
 	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
@@ -230,9 +230,9 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	consensusState, found := GetConsensusState(clientStore, cdc, height)
@@ -243,10 +243,10 @@ func (cs ClientState) VerifyMembership(
 	return merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath, value)
 }
 
-// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
+// verifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
-func (cs ClientState) VerifyNonMembership(
+func (cs ClientState) verifyNonMembership(
 	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
@@ -272,9 +272,9 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	consensusState, found := GetConsensusState(clientStore, cdc, height)

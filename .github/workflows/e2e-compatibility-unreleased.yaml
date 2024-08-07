@@ -17,15 +17,17 @@ jobs:
           - release/v6.3.x
           - release/v7.4.x
           - release/v7.5.x
-          - release/v8.2.x
-          - release/v8.3.x
+          - release/v7.6.x
+          - release/v7.7.x
+          - release/v8.4.x
+          - release/v9.0.x
     steps:
       - uses: actions/checkout@v4
         with:
           ref: "${{ matrix.release-branch }}"
           fetch-depth: 0
       - name: Log in to the Container registry
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -184,6 +186,38 @@ jobs:
     with:
       test-file-directory: "unreleased"
       test-suite: "transfer-channel-upgrade-chain-b"
+
+  transfer-v2-1-channel-upgrade:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-1-channel-upgrade"
+
+  transfer-v2-2-channel-upgrade:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-2-channel-upgrade"
+
+  transfer-v2-forwarding:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-forwarding"
+
+  transfer-v2-multidenom:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-multidenom"
 
   ica-channel-upgrade:
     needs:

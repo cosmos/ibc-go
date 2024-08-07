@@ -1,11 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 	// open incentivized channel
 	suite.path.Setup()
-	suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, "channel-0")
+	suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
 	// build packet
 	timeoutTimestamp := ^uint64(0)

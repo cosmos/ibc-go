@@ -10,10 +10,10 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
-	modulefee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	modulefee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestMsgRegisterPayeeValidation(t *testing.T) {
@@ -157,11 +157,13 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 	for i, tc := range testCases {
 		i, tc := i, tc
 
-		msg = types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
+		payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+		require.NoError(t, err)
+		msg = types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, payeeAddr.String())
 
 		tc.malleate()
 
-		err := msg.ValidateBasic()
+		err = msg.ValidateBasic()
 
 		if tc.expPass {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)

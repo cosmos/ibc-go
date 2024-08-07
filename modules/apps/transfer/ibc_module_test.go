@@ -1,6 +1,7 @@
 package transfer_test
 
 import (
+	"encoding/json"
 	"errors"
 	"math"
 
@@ -10,14 +11,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {
@@ -273,29 +276,183 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 	}
 }
 
+func (suite *TransferTestSuite) TestOnRecvPacket() {
+	// This test suite mostly covers the top-level logic of the ibc module OnRecvPacket function
+	// The core logic is covered in keeper OnRecvPacket
+	var (
+		packet             channeltypes.Packet
+		expectedAttributes []sdk.Attribute
+		path               *ibctesting.Path
+	)
+	testCases := []struct {
+		name             string
+		malleate         func()
+		expAck           exported.Acknowledgement
+		expEventErrorMsg string
+	}{
+		{
+			"success", func() {}, channeltypes.NewResultAcknowledgement([]byte{byte(1)}), "",
+		},
+		{
+			"success: async aknowledgment with forwarding path",
+			func() {
+				packetData := types.NewFungibleTokenPacketDataV2(
+					[]types.Token{
+						{
+							Denom:  types.NewDenom(sdk.DefaultBondDenom),
+							Amount: sdkmath.NewInt(100).String(),
+						},
+					},
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.chainB.SenderAccount.GetAddress().String(),
+					"", types.NewForwardingPacketData("", types.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)),
+				)
+				packet.Data = packetData.GetBytes()
+
+				forwardingHopsBz, err := json.Marshal(packetData.Forwarding.Hops)
+				suite.Require().NoError(err)
+				for i, attr := range expectedAttributes {
+					if attr.Key == types.AttributeKeyForwardingHops {
+						expectedAttributes[i].Value = string(forwardingHopsBz)
+						break
+					}
+				}
+			},
+			nil,
+			"",
+		},
+		{
+			"failure: invalid packet data bytes",
+			func() {
+				packet.Data = []byte("invalid data")
+
+				// Override expected attributes because this fails on unmarshaling packet data (so can't get the attributes)
+				expectedAttributes = []sdk.Attribute{
+					sdk.NewAttribute(types.AttributeKeySender, ""),
+					sdk.NewAttribute(types.AttributeKeyReceiver, ""),
+					sdk.NewAttribute(types.AttributeKeyTokens, "null"),
+					sdk.NewAttribute(types.AttributeKeyMemo, ""),
+					sdk.NewAttribute(types.AttributeKeyForwardingHops, "null"),
+					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
+					sdk.NewAttribute(types.AttributeKeyAckError, "cannot unmarshal ICS20-V2 transfer packet data: errUnknownField \"*types.FungibleTokenPacketDataV2\": {TagNum: 13, WireType:\"fixed64\"}: invalid type"),
+				}
+			},
+			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType),
+			"cannot unmarshal ICS20-V2 transfer packet data: unexpected EOF: invalid type",
+		},
+		{
+			"failure: receive disabled",
+			func() {
+				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(), types.Params{ReceiveEnabled: false})
+			},
+			channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled),
+			"fungible token transfers to this chain are disabled",
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			packetData := types.NewFungibleTokenPacketDataV2(
+				[]types.Token{
+					{
+						Denom:  types.NewDenom(sdk.DefaultBondDenom),
+						Amount: sdkmath.NewInt(100).String(),
+					},
+				},
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				"",
+				ibctesting.EmptyForwardingPacketData,
+			)
+
+			tokensBz, err := json.Marshal(packetData.Tokens)
+			suite.Require().NoError(err)
+			forwardingHopsBz, err := json.Marshal(packetData.Forwarding.Hops)
+			suite.Require().NoError(err)
+
+			expectedAttributes = []sdk.Attribute{
+				sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
+				sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
+				sdk.NewAttribute(types.AttributeKeyTokens, string(tokensBz)),
+				sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
+				sdk.NewAttribute(types.AttributeKeyForwardingHops, string(forwardingHopsBz)),
+			}
+			if tc.expAck == nil || tc.expAck.Success() {
+				expectedAttributes = append(expectedAttributes, sdk.NewAttribute(types.AttributeKeyAckSuccess, "true"))
+			} else {
+				expectedAttributes = append(expectedAttributes,
+					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
+					sdk.NewAttribute(types.AttributeKeyAckError, tc.expEventErrorMsg),
+				)
+			}
+
+			seq := uint64(1)
+			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
+
+			ctx := suite.chainB.GetContext()
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(ctx, ibctesting.TransferPort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+			suite.Require().True(ok)
+
+			tc.malleate() // change fields in packet
+
+			ack := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, suite.chainB.SenderAccount.GetAddress())
+
+			suite.Require().Equal(tc.expAck, ack)
+
+			expectedEvents := sdk.Events{
+				sdk.NewEvent(
+					types.EventTypePacket,
+					expectedAttributes...,
+				),
+			}.ToABCIEvents()
+
+			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+		})
+	}
+}
+
 func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 	var path *ibctesting.Path
 	var packet channeltypes.Packet
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
+		name           string
+		coinsToSendToB sdk.Coins
+		malleate       func()
+		expError       error
 	}{
 		{
 			"success",
+			sdk.NewCoins(ibctesting.TestCoin),
+			func() {},
+			nil,
+		},
+		{
+			"success with multiple coins",
+			sdk.NewCoins(ibctesting.TestCoin, ibctesting.SecondaryTestCoin),
 			func() {},
 			nil,
 		},
 		{
 			"non-existent channel",
+			sdk.NewCoins(ibctesting.TestCoin),
 			func() {
 				packet.SourceChannel = "channel-100"
 			},
-			ibcerrors.ErrNotFound,
+			errors.New("unable to unescrow tokens"),
 		},
 		{
 			"invalid packet data",
+			sdk.NewCoins(ibctesting.TestCoin),
 			func() {
 				packet.Data = []byte("invalid data")
 			},
@@ -303,6 +460,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 		},
 		{
 			"already timed-out packet",
+			sdk.NewCoins(ibctesting.TestCoin),
 			func() {
 				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 				suite.Require().NoError(err)
@@ -310,7 +468,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 				suite.Require().True(ok)
 
-				suite.Require().NoError(cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress()))
+				suite.Require().NoError(cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress()))
 			},
 			errors.New("unable to unescrow tokens"),
 		},
@@ -324,17 +482,18 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
-			coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(42))
 			timeoutHeight := suite.chainA.GetTimeoutHeight()
 			msg := types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				sdk.NewCoins(coinToSendToB),
+				tc.coinsToSendToB,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				timeoutHeight,
 				0,
-				"")
+				"",
+				nil,
+			)
 			res, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
@@ -349,7 +508,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 
 			tc.malleate() // change fields in packet
 
-			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress())
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -653,7 +812,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  types.NewDenom("atom", types.NewTrace("transfer", "channel-0")),
+							Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -693,7 +852,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 				initialPacketData = types.FungibleTokenPacketDataV2{
 					Tokens: []types.Token{
 						{
-							Denom:  types.NewDenom(ibctesting.TestCoin.Denom, []types.Trace{{}}...),
+							Denom:  types.NewDenom(ibctesting.TestCoin.Denom, []types.Hop{{}}...),
 							Amount: ibctesting.TestCoin.Amount.String(),
 						},
 					},
@@ -704,7 +863,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 				data = initialPacketData.(types.FungibleTokenPacketDataV2).GetBytes()
 			},
-			errors.New("invalid token denom: invalid trace: invalid portID: identifier cannot be blank: invalid identifier"),
+			errors.New("invalid token denom: invalid trace: invalid hop source port ID : identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"failure: invalid packet data",
@@ -730,7 +889,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			unmarshalerStack, ok := transferStack.(porttypes.PacketDataUnmarshaler)
 			suite.Require().True(ok)
 
-			packetData, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
+			packetData, version, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -738,6 +897,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 				v2PacketData, ok := packetData.(types.FungibleTokenPacketDataV2)
 				suite.Require().True(ok)
+				suite.Require().Equal(path.EndpointA.ChannelConfig.Version, version)
 
 				if v1PacketData, ok := initialPacketData.(types.FungibleTokenPacketData); ok {
 					// Note: testing of the denom trace parsing/conversion should be done as part of testing internal conversion functions

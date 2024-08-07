@@ -13,11 +13,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type KeeperTestSuite struct {
@@ -290,6 +293,36 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestGetAllForwardedPackets() {
+	suite.SetupTest()
+
+	// Store forward packets on transfer/channel-1 and transfer/channel-2
+	for _, channelID := range []string{"channel-1", "channel-2"} {
+		// go across '10' to test numerical order
+		for sequence := uint64(5); sequence <= 15; sequence++ {
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, ibctesting.TransferPort, channelID, "", "", clienttypes.ZeroHeight(), 0)
+			suite.chainA.GetSimApp().TransferKeeper.SetForwardedPacket(suite.chainA.GetContext(), ibctesting.TransferPort, channelID, sequence, packet)
+		}
+	}
+
+	packets := suite.chainA.GetSimApp().TransferKeeper.GetAllForwardedPackets(suite.chainA.GetContext())
+	// Assert each packets is as expected
+	i := 0
+	for _, channelID := range []string{"channel-1", "channel-2"} {
+		for sequence := uint64(5); sequence <= 15; sequence++ {
+			forwardedPacket := packets[i]
+
+			expForwardKey := channeltypes.NewPacketID(ibctesting.TransferPort, channelID, sequence)
+			suite.Require().Equal(forwardedPacket.ForwardKey, expForwardKey)
+
+			expPacket := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, ibctesting.TransferPort, channelID, "", "", clienttypes.ZeroHeight(), 0)
+			suite.Require().Equal(forwardedPacket.Packet, expPacket)
+
+			i++
+		}
+	}
+}
+
 func (suite *KeeperTestSuite) TestParams() {
 	testCases := []struct {
 		name    string
@@ -349,4 +382,38 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	ics4Wrapper = suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
 	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
+}
+
+func (suite *KeeperTestSuite) TestIsBlockedAddr() {
+	suite.SetupTest()
+
+	testCases := []struct {
+		name     string
+		addr     sdk.AccAddress
+		expBlock bool
+	}{
+		{
+			"transfer module account address",
+			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName),
+			false,
+		},
+		{
+			"regular address",
+			suite.chainA.SenderAccount.GetAddress(),
+			false,
+		},
+		{
+			"blocked address",
+			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName),
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(tc.expBlock, suite.chainA.GetSimApp().TransferKeeper.IsBlockedAddr(tc.addr))
+		})
+	}
 }

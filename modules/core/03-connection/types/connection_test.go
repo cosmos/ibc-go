@@ -5,14 +5,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 var (
-	chainID             = "gaiamainnet"
 	connectionID        = "connection-0"
 	clientID            = "clientidone"
 	connectionID2       = "connectionidtwo"

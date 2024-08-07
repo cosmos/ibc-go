@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types";
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
@@ -51,6 +51,8 @@ message MsgTransfer {
   string memo = 8;
   // tokens to be transferred
   repeated cosmos.base.v1beta1.Coin tokens = 9 [(gogoproto.nullable) = false];
+  // optional forwarding information
+  Forwarding forwarding = 10;
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.

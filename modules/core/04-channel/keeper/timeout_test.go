@@ -11,13 +11,13 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 // TestTimeoutPacket test the TimeoutPacket call on chainA by ensuring the timeout has passed
@@ -220,12 +220,14 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				}
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, nextSeqRecv)
+			channelVersion, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, nextSeqRecv)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(path.EndpointA.GetChannel().Version, channelVersion)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal("", channelVersion)
 				// only check if expError is set, since not all error codes can be known
 				if expError != nil {
 					suite.Require().True(errors.Is(err, expError))
@@ -320,6 +322,9 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			"set to flush complete with no inflight packets",
 			func() {
 				path.Setup()
+				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
@@ -754,7 +759,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				proof, _ = suite.chainB.QueryProof(unorderedPacketKey)
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(
+			channelVersion, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(
 				suite.chainA.GetContext(),
 				chanCap,
 				packet,
@@ -767,8 +772,10 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(path.EndpointA.GetChannel().Version, channelVersion)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal("", channelVersion)
 			}
 		})
 	}

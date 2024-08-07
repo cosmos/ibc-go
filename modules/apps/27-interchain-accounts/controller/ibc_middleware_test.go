@@ -12,16 +12,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
-	controllerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
+	controllerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 const invalidVersion = "invalid|version"
@@ -234,7 +235,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
@@ -384,7 +385,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelID, path.EndpointB.ChannelConfig.Version)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				if tc.expPass {
@@ -517,7 +518,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				err = cbs.OnChanCloseConfirm(
@@ -577,7 +578,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				)
 
 				ctx := suite.chainA.GetContext()
-				ack := cbs.OnRecvPacket(ctx, packet, nil)
+				ack := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
 				suite.Require().Equal(tc.expPass, ack.Success())
 
 				expectedEvents := sdk.Events{
@@ -621,7 +622,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
@@ -637,7 +638,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
@@ -679,10 +680,10 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
-				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, []byte("ack"), nil)
+				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, []byte("ack"), nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -718,7 +719,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
@@ -734,7 +735,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
@@ -776,10 +777,10 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
-				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
+				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
@@ -821,7 +822,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		{
 			"ICA OnChanUpgradeInit fails - invalid version", func() {
 				version = invalidVersion
-			}, icatypes.ErrUnknownDataType,
+			}, ibcerrors.ErrInvalidType,
 		},
 		{
 			"ICA auth module callback fails", func() {
@@ -867,7 +868,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				version, err = cbs.OnChanUpgradeInit(
@@ -949,7 +950,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 		{
 			"ICA OnChanUpgradeAck fails - invalid version", func() {
 				counterpartyVersion = invalidVersion
-			}, icatypes.ErrUnknownDataType,
+			}, ibcerrors.ErrInvalidType,
 		},
 		{
 			"ICA auth module callback fails", func() {
@@ -995,7 +996,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 				suite.Require().True(ok)
 
 				if isNilApp {
-					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
 				err = cbs.OnChanUpgradeAck(
@@ -1098,12 +1099,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				if tc.expPanic != nil {
 					mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
 					mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
-					cbs = controller.NewIBCMiddleware(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
+					cbs = controller.NewIBCMiddlewareWithAuth(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
 
 					suite.Require().PanicsWithError(tc.expPanic.Error(), func() { upgradeOpenCb(cbs) })
 				} else {
 					if isNilApp {
-						cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+						cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 					}
 
 					upgradeOpenCb(cbs)
@@ -1313,16 +1314,18 @@ func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 			Memo: "",
 		}
 
-		// Context, port identifier and channel identifier are unused for controller.
-		packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", expPacketData.GetBytes())
+		controllerMiddleware := controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
+		packetData, version, err := controllerMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expPacketData.GetBytes())
 		suite.Require().NoError(err)
+		suite.Require().Equal(version, path.EndpointA.ChannelConfig.Version)
 		suite.Require().Equal(expPacketData, packetData)
 
 		// test invalid packet data
 		invalidPacketData := []byte("invalid packet data")
 		// Context, port identifier and channel identifier are not used for controller.
-		packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", invalidPacketData)
+		packetData, version, err = controllerMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, invalidPacketData)
 		suite.Require().Error(err)
+		suite.Require().Empty(version)
 		suite.Require().Nil(packetData)
 	}
 }

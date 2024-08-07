@@ -21,14 +21,14 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const maxCallbackGas = uint64(1000000)
@@ -257,9 +257,11 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 	// We only check if the fee is paid if the callback is successful.
 	if !isTimeout && isSuccessful {
 		// check forward relay balance
+		payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+		s.Require().NoError(err)
 		s.Require().Equal(
 			fee.RecvFee,
-			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), payeeAddr, ibctesting.TestCoin.Denom)),
 		)
 
 		refundCoins := fee.Total().Sub(fee.RecvFee...).Sub(fee.AckFee...)

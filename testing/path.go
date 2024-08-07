@@ -2,13 +2,13 @@ package ibctesting
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 // Path contains two endpoints representing two chains connected over IBC
@@ -64,6 +64,14 @@ func NewTransferPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
 func (path *Path) SetChannelOrdered() {
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
+}
+
+// DisableUniqueChannelIDs provides an opt-out way to not have all channel IDs be different
+// while testing.
+func (path *Path) DisableUniqueChannelIDs() *Path {
+	path.EndpointA.disableUniqueChannelIDs = true
+	path.EndpointB.disableUniqueChannelIDs = true
+	return path
 }
 
 // RelayPacket attempts to relay the packet first on EndpointA and then on EndpointB
@@ -129,7 +137,7 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 		return res, ack, nil
 	}
 
-	return nil, nil, fmt.Errorf("packet commitment does not exist on either endpoint for provided packet")
+	return nil, nil, errors.New("packet commitment does not exist on either endpoint for provided packet")
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will

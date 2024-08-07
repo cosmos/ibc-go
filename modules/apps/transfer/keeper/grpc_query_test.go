@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryDenom() {
@@ -27,9 +27,9 @@ func (suite *KeeperTestSuite) TestQueryDenom() {
 			"success: correct ibc denom",
 			func() {
 				expDenom = types.NewDenom(
-					"uatom",                                  //nolint:goconst
-					types.NewTrace("transfer", "channelToA"), //nolint:goconst
-					types.NewTrace("transfer", "channelToB"), //nolint:goconst
+					"uatom",                                //nolint:goconst
+					types.NewHop("transfer", "channelToA"), //nolint:goconst
+					types.NewHop("transfer", "channelToB"), //nolint:goconst
 				)
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), expDenom)
 
@@ -43,9 +43,9 @@ func (suite *KeeperTestSuite) TestQueryDenom() {
 			"success: correct hex hash",
 			func() {
 				expDenom = types.NewDenom(
-					"uatom",                                  //nolint:goconst
-					types.NewTrace("transfer", "channelToA"), //nolint:goconst
-					types.NewTrace("transfer", "channelToB"), //nolint:goconst
+					"uatom",                                //nolint:goconst
+					types.NewHop("transfer", "channelToA"), //nolint:goconst
+					types.NewHop("transfer", "channelToB"), //nolint:goconst
 				)
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), expDenom)
 
@@ -68,9 +68,9 @@ func (suite *KeeperTestSuite) TestQueryDenom() {
 			"failure: not found denom trace",
 			func() {
 				expDenom = types.NewDenom(
-					"uatom",                                  //nolint:goconst
-					types.NewTrace("transfer", "channelToA"), //nolint:goconst
-					types.NewTrace("transfer", "channelToB"), //nolint:goconst
+					"uatom",                                //nolint:goconst
+					types.NewHop("transfer", "channelToA"), //nolint:goconst
+					types.NewHop("transfer", "channelToB"), //nolint:goconst
 				)
 
 				req = &types.QueryDenomRequest{
@@ -124,8 +124,8 @@ func (suite *KeeperTestSuite) TestQueryDenoms() {
 			"success",
 			func() {
 				expDenoms = append(expDenoms, types.NewDenom("uatom"))
-				expDenoms = append(expDenoms, types.NewDenom("uatom", types.NewTrace("transfer", "channelToB")))
-				expDenoms = append(expDenoms, types.NewDenom("uatom", types.NewTrace("transfer", "channelToA"), types.NewTrace("transfer", "channelToB")))
+				expDenoms = append(expDenoms, types.NewDenom("uatom", types.NewHop("transfer", "channelToB")))
+				expDenoms = append(expDenoms, types.NewDenom("uatom", types.NewHop("transfer", "channelToA"), types.NewHop("transfer", "channelToB")))
 
 				for _, trace := range expDenoms {
 					suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), trace)
@@ -171,7 +171,7 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 }
 
 func (suite *KeeperTestSuite) TestQueryDenomHash() {
-	reqDenom := types.NewDenom("uatom", types.NewTrace("transfer", "channelToA"), types.NewTrace("transfer", "channelToB"))
+	reqDenom := types.NewDenom("uatom", types.NewHop("transfer", "channelToA"), types.NewHop("transfer", "channelToB"))
 
 	var (
 		req     *types.QueryDenomHashRequest
@@ -236,6 +236,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 
 func (suite *KeeperTestSuite) TestEscrowAddress() {
 	var req *types.QueryEscrowAddressRequest
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		msg      string
@@ -247,7 +248,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 			func() {
 				req = &types.QueryEscrowAddressRequest{
 					PortId:    ibctesting.TransferPort,
-					ChannelId: ibctesting.FirstChannelID,
+					ChannelId: path.EndpointA.ChannelID,
 				}
 			},
 			true,
@@ -288,7 +289,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			tc.malleate()
@@ -298,7 +299,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				expected := types.GetEscrowAddress(ibctesting.TransferPort, ibctesting.FirstChannelID).String()
+				expected := types.GetEscrowAddress(ibctesting.TransferPort, path.EndpointA.ChannelID).String()
 				suite.Require().Equal(expected, res.EscrowAddress)
 			} else {
 				suite.Require().Error(err)
@@ -333,7 +334,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		{
 			"valid ibc denom with escrow amount > 2^63",
 			func() {
-				denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace("transfer", "channel-0"))
+				denom := types.NewDenom(sdk.DefaultBondDenom, types.NewHop("transfer", "channel-0"))
 
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
 				expEscrowAmount, ok := sdkmath.NewIntFromString("100000000000000000000")
@@ -349,7 +350,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 		{
 			"valid ibc denom treated as native denom",
 			func() {
-				denom := types.NewDenom(sdk.DefaultBondDenom, types.NewTrace("transfer", "channel-0"))
+				denom := types.NewDenom(sdk.DefaultBondDenom, types.NewHop("transfer", "channel-0"))
 
 				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: denom.IBCDenom(),

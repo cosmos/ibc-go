@@ -29,14 +29,13 @@ import (
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/core/types"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v9/testing/simapp"
 )
 
 var MaxAccounts = 10
@@ -45,6 +44,10 @@ type SenderAccount struct {
 	SenderPrivKey cryptotypes.PrivKey
 	SenderAccount sdk.AccountI
 }
+
+const (
+	DefaultGenesisAccBalance = "10000000000000000000"
+)
 
 // TestChain is a testing struct that wraps a simapp with the last TM Header, the current ABCI
 // header and the validators of the TestChain. It also contains a field called ChainID. This
@@ -59,7 +62,6 @@ type TestChain struct {
 	ChainID               string
 	LatestCommittedHeader *ibctm.Header   // header for last block height committed
 	ProposedHeader        cmtproto.Header // proposed (uncommitted) header for current block height
-	QueryServer           types.QueryServer
 	TxConfig              client.TxConfig
 	Codec                 codec.Codec
 
@@ -109,13 +111,16 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 	for i := 0; i < MaxAccounts; i++ {
 		senderPrivKey := secp256k1.GenPrivKey()
 		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), 0)
-		amount, ok := sdkmath.NewIntFromString("10000000000000000000")
+		amount, ok := sdkmath.NewIntFromString(DefaultGenesisAccBalance)
 		require.True(tb, ok)
 
 		// add sender account
 		balance := banktypes.Balance{
 			Address: acc.GetAddress().String(),
-			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount)),
+			Coins: sdk.NewCoins(
+				sdk.NewCoin(sdk.DefaultBondDenom, amount),
+				sdk.NewCoin(SecondaryDenom, amount),
+			),
 		}
 
 		genAccs = append(genAccs, acc)
@@ -147,7 +152,6 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		ChainID:        chainID,
 		App:            app,
 		ProposedHeader: header,
-		QueryServer:    app.GetIBCKeeper(),
 		TxConfig:       txConfig,
 		Codec:          app.AppCodec(),
 		Vals:           valSet,
@@ -624,6 +628,12 @@ func (chain *TestChain) GetClientLatestHeight(clientID string) exported.Height {
 // to be used for testing. It returns the current IBC height + 100 blocks
 func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.ChainID), uint64(chain.GetContext().BlockHeight())+100)
+}
+
+// GetTimeoutTimestamp is a convenience function which returns a IBC packet timeout timestamp
+// to be used for testing. It returns the current block timestamp + default timestamp delta (1 hour).
+func (chain *TestChain) GetTimeoutTimestamp() uint64 {
+	return uint64(chain.GetContext().BlockTime().UnixNano()) + DefaultTimeoutTimestampDelta
 }
 
 // DeleteKey deletes the specified key from the ibc store.

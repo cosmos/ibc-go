@@ -4,153 +4,17 @@ import (
 	"fmt"
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var defaultTimeoutHeight = clienttypes.NewHeight(1, 100000)
-
-// TestVerifyClientState verifies a client state of chainA
-// stored on path.EndpointB (which is on chainB)
-func (suite *KeeperTestSuite) TestVerifyClientState() {
-	var (
-		path       *ibctesting.Path
-		heightDiff uint64
-	)
-	cases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{"verification success", func() {}, true},
-		{"client state not found", func() {
-			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-		}, false},
-		{"consensus state for proof height not found", func() {
-			heightDiff = 5
-		}, false},
-		{"verification failed", func() {
-			counterpartyClient, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
-			counterpartyClient.ChainId = "wrongChainID"
-			path.EndpointB.SetClientState(counterpartyClient)
-		}, false},
-		{"client status is not active - client is expired", func() {
-			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
-			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			path.EndpointA.SetClientState(clientState)
-		}, false},
-	}
-
-	for _, tc := range cases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			heightDiff = 0    // must be explicitly changed
-
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
-
-			tc.malleate()
-
-			counterpartyClient, clientProof := path.EndpointB.QueryClientStateProof()
-			proofHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()-1))
-
-			connection := path.EndpointA.GetConnection()
-
-			err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyClientState(
-				suite.chainA.GetContext(), connection,
-				malleateHeight(proofHeight, heightDiff), clientProof, counterpartyClient,
-			)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
-// TestVerifyClientConsensusState verifies that the consensus state of
-// chainA stored on path.EndpointB.ClientID (which is on chainB) matches the consensus
-// state for chainA at that height.
-func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
-	var (
-		path       *ibctesting.Path
-		heightDiff uint64
-	)
-	cases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{"verification success", func() {}, true},
-		{"client state not found", func() {
-			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-		}, false},
-		{"consensus state not found", func() {
-			heightDiff = 5
-		}, false},
-		{"verification failed", func() {
-			// give chainB wrong consensus state for chainA
-			consState, found := suite.chainB.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID)
-			suite.Require().True(found)
-
-			tmConsState, ok := consState.(*ibctm.ConsensusState)
-			suite.Require().True(ok)
-
-			tmConsState.Timestamp = time.Now()
-			suite.chainB.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainB.GetContext(), path.EndpointB.ClientID, path.EndpointB.GetClientLatestHeight(), tmConsState)
-
-			suite.coordinator.CommitBlock(suite.chainB)
-		}, false},
-		{"client status is not active - client is expired", func() {
-			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
-			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-			path.EndpointA.SetClientState(clientState)
-		}, false},
-	}
-
-	for _, tc := range cases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			heightDiff = 0    // must be explicitly changed in malleate
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
-
-			tc.malleate()
-
-			connection := path.EndpointA.GetConnection()
-			proof, consensusHeight := suite.chainB.QueryConsensusStateProof(path.EndpointB.ClientID)
-			proofHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()-1))
-			consensusState, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), consensusHeight)
-			suite.Require().NoError(err)
-
-			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyClientConsensusState(
-				suite.chainA.GetContext(), connection,
-				malleateHeight(proofHeight, heightDiff), consensusHeight, proof, consensusState,
-			)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
 
 // TestVerifyConnectionState verifies the connection state of the connection
 // on chainB. The connections on chainA and chainB are fully opened.
@@ -275,7 +139,7 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 	}
 }
 
-// TestVerifyPacketCommitmentState has chainB verify the packet commitment
+// TestVerifyPacketCommitment has chainB verify the packet commitment
 // on channelA. The channels on chainA and chainB are fully opened and a
 // packet is sent from chainA to chainB, but has not been received.
 func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
@@ -740,7 +604,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(upgradeErrorReceiptKey)
 
-			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeError(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgradeError.GetErrorReceipt())
+			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgradeError(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError.GetErrorReceipt())
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -818,7 +682,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 			channelUpgradeKey := host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelUpgradeKey)
 
-			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgrade(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgrade)
+			err := suite.chainB.GetSimApp().IBCKeeper.ConnectionKeeper.VerifyChannelUpgrade(suite.chainB.GetContext(), path.EndpointB.GetConnection(), proofHeight, proof, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

@@ -8,12 +8,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
@@ -174,7 +174,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 			counterpartyPayee, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyPayeeAddress(
 				suite.chainA.GetContext(),
 				suite.chainA.SenderAccount.GetAddress().String(),
-				ibctesting.FirstChannelID,
+				suite.path.EndpointA.ChannelID,
 			)
 
 			suite.Require().True(found)
@@ -185,7 +185,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 					types.EventTypeRegisterCounterpartyPayee,
 					sdk.NewAttribute(types.AttributeKeyRelayer, suite.chainA.SenderAccount.GetAddress().String()),
 					sdk.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
-					sdk.NewAttribute(types.AttributeKeyChannelID, ibctesting.FirstChannelID),
+					sdk.NewAttribute(types.AttributeKeyChannelID, suite.path.EndpointA.ChannelID),
 				),
 			}.ToABCIEvents()
 

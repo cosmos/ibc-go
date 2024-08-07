@@ -2,11 +2,12 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types";
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "ibc/applications/transfer/v1/transfer.proto";
 
 // Allocation defines the spend limit for a particular port and channel
 message Allocation {
@@ -22,6 +23,15 @@ message Allocation {
   // allow list of memo strings, an empty list prohibits all memo strings;
   // a list only with "*" permits any memo string
   repeated string allowed_packet_data = 5;
+  // Forwarding options that are allowed.
+  repeated AllowedForwarding allowed_forwarding = 6 [(gogoproto.nullable) = false];
+}
+
+// AllowedForwarding defines which options are allowed for forwarding.
+message AllowedForwarding {
+  // a list of allowed source port ID/channel ID pairs through which the packet is allowed to be forwarded until final
+  // destination
+  repeated ibc.applications.transfer.v1.Hop hops = 1 [(gogoproto.nullable) = false];
 }
 
 // TransferAuthorization allows the grantee to spend up to spend_limit coins from

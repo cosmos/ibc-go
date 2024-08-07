@@ -8,11 +8,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // numCreations is the number of clients/consensus states created for
@@ -155,7 +155,7 @@ func (suite *MigrationsV7TestSuite) createLocalhostClients() {
 	}
 }
 
-// assertLocalhostClients asserts that all localhost information has been deleted
+// assertNoLocalhostClients asserts that all localhost information has been deleted
 func (suite *MigrationsV7TestSuite) assertNoLocalhostClients() {
 	for numClients := uint64(0); numClients < numCreations; numClients++ {
 		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)

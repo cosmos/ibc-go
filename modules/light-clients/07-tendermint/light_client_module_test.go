@@ -11,16 +11,16 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var (
@@ -91,15 +91,15 @@ func (suite *TendermintTestSuite) TestInitialize() {
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
 			clientStateBz := suite.chainA.Codec.MustMarshal(clientState)
 			consStateBz := suite.chainA.Codec.MustMarshal(consensusState)
 
-			err := lightClientModule.Initialize(suite.chainA.GetContext(), path.EndpointA.ClientID, clientStateBz, consStateBz)
+			err = lightClientModule.Initialize(suite.chainA.GetContext(), path.EndpointA.ClientID, clientStateBz, consStateBz)
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
@@ -148,8 +148,8 @@ func (suite *TendermintTestSuite) TestVerifyClientMessage() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
@@ -178,8 +178,8 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviourPanicsOnClientStateNot
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	suite.Require().NoError(err)
 
 	// ensure counterparty state is committed
 	suite.coordinator.CommitBlock(suite.chainB)
@@ -205,8 +205,8 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviourPanicsOnClientSta
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	suite.Require().NoError(err)
 
 	// ensure counterparty state is committed
 	suite.coordinator.CommitBlock(suite.chainB)
@@ -233,8 +233,8 @@ func (suite *TendermintTestSuite) TestUpdateStatePanicsOnClientStateNotFound() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupClients()
 
-	lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-	suite.Require().True(found)
+	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	suite.Require().NoError(err)
 
 	// ensure counterparty state is committed
 	suite.coordinator.CommitBlock(suite.chainB)
@@ -284,7 +284,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				latestHeight := testingpath.EndpointB.GetClientLatestHeight()
 
 				key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, latestHeight)
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -300,7 +300,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful Connection verification", func() {
 				key := host.ConnectionKey(testingpath.EndpointB.ConnectionID)
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -315,7 +315,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful Channel verification", func() {
 				key := host.ChannelKey(testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID)
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -336,7 +336,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				// make packet commitment proof
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				key := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -356,8 +356,9 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 
-				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				key := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+				merklePath := commitmenttypes.NewMerklePath(key)
+
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -379,9 +380,9 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				err = testingpath.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
+				key := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
+				merklePath := commitmenttypes.NewMerklePath(key)
 
-				key := host.NextSequenceRecvKey(packet.GetSourcePort(), packet.GetSourceChannel())
-				merklePath := commitmenttypes.NewMerklePath(string(key))
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -394,7 +395,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"successful verification outside IBC store", func() {
 				key := transfertypes.PortKey
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
 				suite.Require().NoError(err)
 
@@ -494,7 +495,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			// create default proof, merklePath, and value which passes
 			// may be overwritten by malleate()
 			key := host.FullClientStateKey(testingpath.EndpointB.ClientID)
-			merklePath := commitmenttypes.NewMerklePath(string(key))
+			merklePath := commitmenttypes.NewMerklePath(key)
 			path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 			suite.Require().NoError(err)
 
@@ -507,8 +508,8 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 			tc.malleate() // make changes as necessary
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(testingpath.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			err = lightClientModule.VerifyMembership(
 				suite.chainA.GetContext(), testingpath.EndpointA.ClientID, proofHeight, delayTimePeriod, delayBlockPeriod,
@@ -554,7 +555,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		{
 			"successful ConsensusState verification of non membership", func() {
 				key := host.FullConsensusStateKey(invalidClientID, testingpath.EndpointB.GetClientLatestHeight())
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -565,7 +566,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		{
 			"successful Connection verification of non membership", func() {
 				key := host.ConnectionKey(invalidConnectionID)
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -576,7 +577,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		{
 			"successful Channel verification of non membership", func() {
 				key := host.ChannelKey(testingpath.EndpointB.ChannelConfig.PortID, invalidChannelID)
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -588,7 +589,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful PacketCommitment verification of non membership", func() {
 				// make packet commitment proof
 				key := host.PacketCommitmentKey(invalidPortID, invalidChannelID, 1)
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -599,7 +600,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		{
 			"successful Acknowledgement verification of non membership", func() {
 				key := host.PacketAcknowledgementKey(invalidPortID, invalidChannelID, 1)
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -610,7 +611,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		{
 			"successful NextSequenceRecv verification of non membership", func() {
 				key := host.NextSequenceRecvKey(invalidPortID, invalidChannelID)
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -621,7 +622,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		{
 			"successful verification of non membership outside IBC store", func() {
 				key := []byte{0x08}
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
 				suite.Require().NoError(err)
 
@@ -682,7 +683,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"verify non membership fails as path exists", func() {
 				// change the value being proved
 				key := host.FullClientStateKey(testingpath.EndpointB.ClientID)
-				merklePath := commitmenttypes.NewMerklePath(string(key))
+				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 				suite.Require().NoError(err)
 
@@ -724,7 +725,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			// may be overwritten by malleate()
 			key := host.FullClientStateKey("invalid-client-id")
 
-			merklePath := commitmenttypes.NewMerklePath(string(key))
+			merklePath := commitmenttypes.NewMerklePath(key)
 			path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 			suite.Require().NoError(err)
 
@@ -732,8 +733,8 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 
 			tc.malleate() // make changes as necessary
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(testingpath.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			err = lightClientModule.VerifyNonMembership(
 				suite.chainA.GetContext(), testingpath.EndpointA.ClientID, proofHeight, delayTimePeriod, delayBlockPeriod,
@@ -809,8 +810,8 @@ func (suite *TendermintTestSuite) TestStatus() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			var ok bool
 			clientState, ok = path.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -859,8 +860,8 @@ func (suite *TendermintTestSuite) TestLatestHeight() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -926,8 +927,8 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 			tmConsensusState.Timestamp = expectedTimestamp
 			path.EndpointA.SetConsensusState(tmConsensusState, height)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(path.EndpointA.ClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -1013,22 +1014,21 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectPath.EndpointA.ClientID, tmClientState)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			err := lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
+			err = lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
 
 			expPass := tc.expErr == nil
 			if expPass {
 				suite.Require().NoError(err)
 
 				// assert that status of subject client is now Active
-				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, subjectClientID)
-				tmClientState, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
-				suite.Require().True(ok)
-				suite.Require().Equal(exported.Active, tmClientState.Status(ctx, clientStore, suite.chainA.App.AppCodec()))
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectClientID)
+				suite.Require().NoError(err)
+				suite.Require().Equal(lightClientModule.Status(suite.chainA.GetContext(), subjectClientID), exported.Active)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
@@ -1172,8 +1172,8 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			tc.malleate()
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			err = lightClientModule.VerifyUpgradeAndUpdateState(
 				suite.chainA.GetContext(),

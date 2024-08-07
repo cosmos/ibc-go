@@ -1,6 +1,6 @@
 # CODEOWNERS: https://help.github.com/articles/about-codeowners/
 
-*       @colin-axner @AdityaSripal @crodriguezvega @damiannolan @chatton @DimitrisJim @gjermundgaraba
+*       @colin-axner @AdityaSripal @crodriguezvega @damiannolan @chatton @DimitrisJim @gjermundgaraba @bznein
 
 # Our appreciation and gratitude to past code owners: @fedekunze @seantking @tmsdkeys @charleenfei
 
@@ -29,8 +29,8 @@
 
 # CODEOWNERS for ICS 20
 
-/modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton
-/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton
+/modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton @DimitrisJim
+/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton @DimitrisJim
 
 # CODEOWNERS for interchain-accounts module
 

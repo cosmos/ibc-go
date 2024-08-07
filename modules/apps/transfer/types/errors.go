@@ -16,4 +16,7 @@ var (
 	ErrMaxTransferChannels     = errorsmod.Register(ModuleName, 9, "max transfer channels")
 	ErrInvalidAuthorization    = errorsmod.Register(ModuleName, 10, "invalid transfer authorization")
 	ErrInvalidMemo             = errorsmod.Register(ModuleName, 11, "invalid memo")
+	ErrInvalidForwarding       = errorsmod.Register(ModuleName, 12, "invalid token forwarding")
+	ErrForwardedPacketTimedOut = errorsmod.Register(ModuleName, 13, "forwarded packet timed out")
+	ErrForwardedPacketFailed   = errorsmod.Register(ModuleName, 14, "forwarded packet failed")
 )

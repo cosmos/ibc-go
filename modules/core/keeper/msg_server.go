@@ -4,20 +4,18 @@ import (
 	"context"
 	"errors"
 
-	metrics "github.com/hashicorp/go-metrics"
-
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
+	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 var (
@@ -40,11 +38,12 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 		return nil, err
 	}
 
-	if _, err = k.ClientKeeper.CreateClient(ctx, clientState.ClientType(), msg.ClientState.Value, msg.ConsensusState.Value); err != nil {
+	clientID, err := k.ClientKeeper.CreateClient(ctx, clientState.ClientType(), msg.ClientState.Value, msg.ConsensusState.Value)
+	if err != nil {
 		return nil, err
 	}
 
-	return &clienttypes.MsgCreateClientResponse{}, nil
+	return &clienttypes.MsgCreateClientResponse{ClientId: clientID}, nil
 }
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.
@@ -151,15 +150,9 @@ func (k *Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.
 func (k *Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenTry) (*connectiontypes.MsgConnectionOpenTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-
 	if _, err := k.ConnectionKeeper.ConnOpenTry(
-		ctx, msg.Counterparty, msg.DelayPeriod, msg.ClientId, targetClient,
-		msg.CounterpartyVersions, msg.ProofInit, msg.ProofClient, msg.ProofConsensus,
-		msg.ProofHeight, msg.ConsensusHeight,
+		ctx, msg.Counterparty, msg.DelayPeriod, msg.ClientId,
+		msg.CounterpartyVersions, msg.ProofInit, msg.ProofHeight,
 	); err != nil {
 		return nil, errorsmod.Wrap(err, "connection handshake open try failed")
 	}
@@ -171,15 +164,9 @@ func (k *Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.M
 func (k *Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenAck) (*connectiontypes.MsgConnectionOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-
 	if err := k.ConnectionKeeper.ConnOpenAck(
-		ctx, msg.ConnectionId, targetClient, msg.Version, msg.CounterpartyConnectionId,
-		msg.ProofTry, msg.ProofClient, msg.ProofConsensus,
-		msg.ProofHeight, msg.ConsensusHeight,
+		ctx, msg.ConnectionId, msg.Version, msg.CounterpartyConnectionId,
+		msg.ProofTry, msg.ProofHeight,
 	); err != nil {
 		return nil, errorsmod.Wrap(err, "connection handshake open ack failed")
 	}
@@ -474,7 +461,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// If the packet was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+	channelVersion, err := k.ChannelKeeper.RecvPacket(cacheCtx, capability, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -492,7 +479,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	//
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn = ctx.CacheContext()
-	ack := cbs.OnRecvPacket(cacheCtx, msg.Packet, relayer)
+	ack := cbs.OnRecvPacket(cacheCtx, channelVersion, msg.Packet, relayer)
 	if ack == nil || ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
@@ -510,16 +497,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		}
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"tx", "msg", "ibc", channeltypes.EventTypeRecvPacket},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-		},
-	)
+	defer telemetry.ReportRecvPacket(msg.Packet)
 
 	ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
@@ -555,7 +533,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	// If the timeout was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
+	channelVersion, err := k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
 
 	switch err {
 	case nil:
@@ -575,23 +553,13 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	}
 
 	// Perform application logic callback
-	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
+	err = cbs.OnTimeoutPacket(ctx, channelVersion, msg.Packet, relayer)
 	if err != nil {
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "timeout", "packet"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-			telemetry.NewLabel(coretypes.LabelTimeoutType, "height"),
-		},
-	)
+	defer telemetry.ReportTimeoutPacket(msg.Packet, "height")
 
 	ctx.Logger().Info("timeout packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
@@ -627,7 +595,7 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 	// If the timeout was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.TimeoutOnClose(cacheCtx, capability, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv, msg.CounterpartyUpgradeSequence)
+	channelVersion, err := k.ChannelKeeper.TimeoutOnClose(cacheCtx, capability, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv, msg.CounterpartyUpgradeSequence)
 
 	switch err {
 	case nil:
@@ -650,23 +618,13 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 	//
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
 	// application logic callback.
-	err = cbs.OnTimeoutPacket(ctx, msg.Packet, relayer)
+	err = cbs.OnTimeoutPacket(ctx, channelVersion, msg.Packet, relayer)
 	if err != nil {
 		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout on close callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout on close callback failed")
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "timeout", "packet"},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-			telemetry.NewLabel(coretypes.LabelTimeoutType, "channel-closed"),
-		},
-	)
+	defer telemetry.ReportTimeoutPacket(msg.Packet, "channel-closed")
 
 	ctx.Logger().Info("timeout on close callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
@@ -702,7 +660,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	// If the acknowledgement was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.AcknowledgePacket(cacheCtx, capability, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+	channelVersion, err := k.ChannelKeeper.AcknowledgePacket(cacheCtx, capability, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -717,22 +675,13 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	}
 
 	// Perform application logic callback
-	err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement, relayer)
+	err = cbs.OnAcknowledgementPacket(ctx, channelVersion, msg.Packet, msg.Acknowledgement, relayer)
 	if err != nil {
 		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
 	}
 
-	defer telemetry.IncrCounterWithLabels(
-		[]string{"tx", "msg", "ibc", channeltypes.EventTypeAcknowledgePacket},
-		1,
-		[]metrics.Label{
-			telemetry.NewLabel(coretypes.LabelSourcePort, msg.Packet.SourcePort),
-			telemetry.NewLabel(coretypes.LabelSourceChannel, msg.Packet.SourceChannel),
-			telemetry.NewLabel(coretypes.LabelDestinationPort, msg.Packet.DestinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, msg.Packet.DestinationChannel),
-		},
-	)
+	defer telemetry.ReportAcknowledgePacket(msg.Packet)
 
 	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 

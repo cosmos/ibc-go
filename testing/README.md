@@ -93,7 +93,7 @@ func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 
 // GetTxConfig implements the TestingApp interface.
 func (app *SimApp) GetTxConfig() client.TxConfig {
-  return MakeTestEncodingConfig().TxConfig
+  return app.txConfig
 }
 
 ```
@@ -118,20 +118,9 @@ The testing package requires that you provide a function to initialize your Test
 
 ```go
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
-  db := dbm.NewMemDB()
-  encCdc := simapp.MakeTestEncodingConfig()
-  app := simapp.NewSimApp(
-    log.NewNopLogger(), 
-    db, 
-    nil, 
-    true,
-    map[int64]bool{},
-    simapp.DefaultNodeHome,
-    5,
-    encCdc, 
-    simapp.EmptyAppOptions{},
-  )
-  return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+	db := dbm.NewMemDB()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	return app, app.DefaultGenesis()
 }
 ```
 
@@ -270,8 +259,8 @@ import (
   "github.com/cometbft/cometbft/libs/log"
   dbm "github.com/cometbft/cometbft-db"
 
-  "github.com/cosmos/ibc-go/v8/modules/apps/transfer/simapp"
-  ibctesting "github.com/cosmos/ibc-go/v8/testing"
+  "github.com/cosmos/ibc-go/v9/modules/apps/transfer/simapp"
+  ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {

@@ -10,8 +10,8 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestValidateWasmCode(t *testing.T) {

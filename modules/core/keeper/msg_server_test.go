@@ -12,18 +12,18 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var (
@@ -247,7 +247,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			func() {
 				msg.SubjectClientId = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrRouteNotFound,
 		},
 	}
 
@@ -287,10 +287,10 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 				suite.Require().NoError(err)
 
 				// Assert that client status is now Active
-				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
-				tmClientState, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
-				suite.Require().True(ok)
-				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
+
+				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
+				suite.Require().NoError(err)
+				suite.Require().Equal(lightClientModule.Status(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID), exported.Active)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
@@ -1364,10 +1364,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeError,
-						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
-						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
-						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
-						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
 						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
 						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "expected upgrade ordering (ORDER_NONE_UNSPECIFIED) to match counterparty upgrade ordering (ORDER_UNORDERED): incompatible counterparty upgrade"),
@@ -1410,10 +1410,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				expEvents := sdk.Events{
 					sdk.NewEvent(
 						channeltypes.EventTypeChannelUpgradeError,
-						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointB.ChannelConfig.PortID),
-						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointB.ChannelID),
-						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointA.ChannelConfig.PortID),
-						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeKeyChannelID, path.EndpointA.ChannelID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
+						sdk.NewAttribute(channeltypes.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
 						sdk.NewAttribute(channeltypes.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", channel.UpgradeSequence)),
 						// need to manually insert this because the errorReceipt is a string constant as it is written into state
 						sdk.NewAttribute(channeltypes.AttributeKeyErrorReceipt, "mock app callback failed"),
@@ -1435,8 +1435,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 				path.Setup()
 
-				msg.PortId = path.EndpointB.ChannelConfig.PortID
-				msg.ChannelId = path.EndpointB.ChannelID
+				msg.PortId = path.EndpointA.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointA.ChannelID
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
@@ -1954,8 +1954,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 
 				path.Setup()
 
-				msg.PortId = path.EndpointB.ChannelConfig.PortID
-				msg.ChannelId = path.EndpointB.ChannelID
+				msg.PortId = path.EndpointA.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointA.ChannelID
 			},
 			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
@@ -2380,7 +2380,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
-				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				channelProof, proofHeight := path.EndpointB.QueryProof(channelKey)
 
 				msg.ProofChannel = channelProof

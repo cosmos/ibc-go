@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 )
 
 const (
@@ -57,6 +57,11 @@ func TendermintClientID(id int) string {
 
 func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
+}
+
+// FeeMiddlewareFeatureReleases represents the releases the support for fee middleware was released in.
+var FeeMiddlewareFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v4",
 }
 
 // TokenMetadataFeatureReleases represents the releases the token metadata was released in.
@@ -129,4 +134,9 @@ var CapitalEfficientFeeEscrowFeatureReleases = semverutil.FeatureReleases{
 // in "query txs" for searching transactions that match exact events (since Cosmos SDK v0.50) was released in.
 var TransactionEventQueryFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
+}
+
+// ICS20v2FeatureReleases represents the releases the support for ICS20 v2 was released in.
+var ICS20v2FeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v9",
 }

@@ -132,7 +132,7 @@ type Channel struct {
 
 This will also set the upgrade timeout for the counterparty (i.e. the timeout before which the counterparty chain must move from `FLUSHING` to `FLUSHCOMPLETE`; if it doesn't then the chain will cancel the upgrade and write an error receipt). The timeout is a relative time duration in nanoseconds that can be changed with `MsgUpdateParams` and by default is 10 minutes.
 
-The state will change to `FLUSHCOMPLETE` once there are no in-flight packets left and the channel end is ready to move to `OPEN`. This flush state will also have an impact on how a channel ugrade can be cancelled, as detailed below.
+The state will change to `FLUSHCOMPLETE` once there are no in-flight packets left and the channel end is ready to move to `OPEN`. This flush state will also have an impact on how a channel upgrade can be cancelled, as detailed below.
 
 All other parameters will remain the same during the upgrade handshake until the upgrade handshake completes. When the channel is reset to `OPEN` on a successful upgrade handshake, the relevant fields on the channel end will be switched over to the `UpgradeFields` specified in the upgrade.
 
@@ -290,10 +290,10 @@ In app.go, the existing transfer stack must be wrapped with the fee middleware.
 
 import (
   // ... 
-  ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
-  ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-  transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-  porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+  ibcfee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
+  ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
+  transfer "github.com/cosmos/ibc-go/v9/modules/apps/transfer"
+  porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
   // ...
 )
 

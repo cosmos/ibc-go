@@ -9,9 +9,9 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (s *CallbacksTestSuite) TestTransferCallbacks() {
@@ -182,7 +182,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	// record the balance of the escrow address before the transfer
 	escrowBalance := GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
 	// record the balance of the receiving address before the transfer
-	denom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewTrace(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID))
+	denom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewHop(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID))
 	receiverBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 
 	amount := ibctesting.TestCoin
@@ -193,6 +193,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, memo,
+		nil,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)
@@ -227,6 +228,7 @@ func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string) {
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		timeoutHeight, timeoutTimestamp, memo,
+		nil,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)

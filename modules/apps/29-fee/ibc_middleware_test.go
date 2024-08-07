@@ -1,6 +1,7 @@
 package fee_test
 
 import (
+	"encoding/json"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -9,16 +10,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
-	feekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	ibcfee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
+	feekeeper "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var (
@@ -513,6 +514,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 				// setup mock callback
 				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context,
+					channelVersion string,
 					packet channeltypes.Packet,
 					relayer sdk.AccAddress,
 				) exported.Acknowledgement {
@@ -565,7 +567,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			// malleate test case
 			tc.malleate()
 
-			result := cbs.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+			result := cbs.OnRecvPacket(suite.chainB.GetContext(), suite.path.EndpointB.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress())
 
 			switch {
 			case tc.name == "success":
@@ -644,7 +646,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			"success: some refunds",
 			func() {
 				// set timeout_fee > recv_fee + ack_fee
-				packetFee.Fee.TimeoutFee = packetFee.Fee.Total().Add(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))...)
+				packetFee.Fee.TimeoutFee = packetFee.Fee.Total().Add(sdk.NewCoins(ibctesting.TestCoin)...)
 
 				escrowAmount = packetFee.Fee.Total()
 
@@ -798,7 +800,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
@@ -839,7 +841,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, ack, relayerAddr)
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, ack, relayerAddr)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -895,7 +897,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			"success: refund (recv_fee + ack_fee) - timeout_fee",
 			func() {
 				// set recv_fee + ack_fee > timeout_fee
-				packetFee.Fee.RecvFee = packetFee.Fee.Total().Add(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))...)
+				packetFee.Fee.RecvFee = packetFee.Fee.Total().Add(sdk.NewCoins(ibctesting.TestCoin)...)
 
 				escrowAmount = packetFee.Fee.Total()
 
@@ -1012,7 +1014,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ channeltypes.Packet, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
@@ -1050,7 +1052,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
-			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, relayerAddr)
+			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, relayerAddr)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -1578,8 +1580,9 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
 	suite.Require().True(ok)
 
 	// Context, port identifier, channel identifier are not used in current wiring of fee.
-	packetData, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
+	packetData, version, err := feeModule.UnmarshalPacketData(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, ibcmock.MockPacketData)
 	suite.Require().NoError(err)
+	suite.Require().NotEmpty(version)
 	suite.Require().Equal(ibcmock.MockPacketData, packetData)
 }
 
@@ -1588,7 +1591,38 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
 	mockFeeMiddleware := ibcfee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
 	// Context, port identifier, channel identifier are not used in mockFeeMiddleware.
-	_, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
+	_, _, err := mockFeeMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), "", "", ibcmock.MockPacketData)
 	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	suite.Require().ErrorIs(err, expError)
+}
+
+func (suite *FeeTestSuite) TestAckUnmarshal() {
+	testCases := []struct {
+		name     string
+		ackBytes []byte
+		expPass  bool
+	}{
+		{
+			"success",
+			[]byte(`{"app_acknowledgement": "eyJyZXN1bHQiOiJiVzlqYXlCaFkydHViM2RzWldsblpXMWxiblE9In0=", "forward_relayer_address": "relayer", "underlying_app_success": true}`),
+			true,
+		},
+		{
+			"failure: unknown fields",
+			[]byte(`{"app_acknowledgement": "eyJyZXN1bHQiOiJiVzlqYXlCaFkydHViM2RzWldsblpXMWxiblE9In0=", "forward_relayer_address": "relayer", "underlying_app_success": true, "extra_field": "foo"}`),
+			false,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			ack := &types.IncentivizedAcknowledgement{}
+			err := json.Unmarshal(tc.ackBytes, ack)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
 }
