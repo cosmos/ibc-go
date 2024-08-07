@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -351,7 +352,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			"success on app callback error, app callbacks are skipped for performance",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.Acknowledgement {
 					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
@@ -587,7 +588,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 			"success on app callback error, app callbacks are skipped for performance",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.Acknowledgement {
 					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}

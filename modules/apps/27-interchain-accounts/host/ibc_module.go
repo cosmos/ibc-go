@@ -38,7 +38,7 @@ func NewIBCModule(k keeper.Keeper) IBCModule {
 
 // OnChanOpenInit implements the IBCModule interface
 func (IBCModule) OnChanOpenInit(
-	_ sdk.Context,
+	_ context.Context,
 	_ channeltypes.Order,
 	_ []string,
 	_ string,
@@ -52,7 +52,7 @@ func (IBCModule) OnChanOpenInit(
 
 // OnChanOpenTry implements the IBCModule interface
 func (im IBCModule) OnChanOpenTry(
-	ctx sdk.Context,
+	ctx context.Context,
 	order channeltypes.Order,
 	connectionHops []string,
 	portID,
@@ -70,7 +70,7 @@ func (im IBCModule) OnChanOpenTry(
 
 // OnChanOpenAck implements the IBCModule interface
 func (IBCModule) OnChanOpenAck(
-	_ sdk.Context,
+	_ context.Context,
 	_,
 	_ string,
 	_ string,
@@ -81,7 +81,7 @@ func (IBCModule) OnChanOpenAck(
 
 // OnChanOpenConfirm implements the IBCModule interface
 func (im IBCModule) OnChanOpenConfirm(
-	ctx sdk.Context,
+	ctx context.Context,
 	portID,
 	channelID string,
 ) error {
@@ -94,7 +94,7 @@ func (im IBCModule) OnChanOpenConfirm(
 
 // OnChanCloseInit implements the IBCModule interface
 func (IBCModule) OnChanCloseInit(
-	_ sdk.Context,
+	_ context.Context,
 	_ string,
 	_ string,
 ) error {
@@ -104,7 +104,7 @@ func (IBCModule) OnChanCloseInit(
 
 // OnChanCloseConfirm implements the IBCModule interface
 func (im IBCModule) OnChanCloseConfirm(
-	ctx sdk.Context,
+	ctx context.Context,
 	portID,
 	channelID string,
 ) error {
@@ -113,7 +113,7 @@ func (im IBCModule) OnChanCloseConfirm(
 
 // OnRecvPacket implements the IBCModule interface
 func (im IBCModule) OnRecvPacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	_ string,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
@@ -142,7 +142,7 @@ func (im IBCModule) OnRecvPacket(
 
 // OnAcknowledgementPacket implements the IBCModule interface
 func (IBCModule) OnAcknowledgementPacket(
-	_ sdk.Context,
+	_ context.Context,
 	_ string,
 	_ channeltypes.Packet,
 	_ []byte,
@@ -153,7 +153,7 @@ func (IBCModule) OnAcknowledgementPacket(
 
 // OnTimeoutPacket implements the IBCModule interface
 func (IBCModule) OnTimeoutPacket(
-	_ sdk.Context,
+	_ context.Context,
 	_ string,
 	_ channeltypes.Packet,
 	_ sdk.AccAddress,
@@ -162,12 +162,12 @@ func (IBCModule) OnTimeoutPacket(
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (IBCModule) OnChanUpgradeInit(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+func (IBCModule) OnChanUpgradeInit(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 	return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel upgrade handshake must be initiated by controller chain")
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
+func (im IBCModule) OnChanUpgradeTry(ctx context.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	if !im.keeper.GetParams(ctx).HostEnabled {
 		return "", types.ErrHostSubModuleDisabled
 	}
@@ -176,12 +176,12 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (IBCModule) OnChanUpgradeAck(_ sdk.Context, _, _, _ string) error {
+func (IBCModule) OnChanUpgradeAck(_ context.Context, _, _, _ string) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel upgrade handshake must be initiated by controller chain")
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (IBCModule) OnChanUpgradeOpen(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) {
+func (IBCModule) OnChanUpgradeOpen(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) {
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
