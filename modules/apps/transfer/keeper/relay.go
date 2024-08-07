@@ -73,6 +73,10 @@ func (k Keeper) OnSendPacket(
 		coins = append(coins, sdk.NewCoin(token.Denom.IBCDenom(), transferAmount))
 	}
 
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
+		return errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
+	}
+
 	destinationPort := channel.Counterparty.PortId
 	destinationChannel := channel.Counterparty.ChannelId
 

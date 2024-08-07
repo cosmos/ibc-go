@@ -24,11 +24,6 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	coins := msg.GetCoins()
-	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
-	}
-
 	if msg.Forwarding.GetUnwind() {
 		msg, err = k.unwindHops(ctx, msg)
 		if err != nil {
@@ -36,6 +31,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		}
 	}
 
+	coins := msg.GetCoins()
 	tokens := make([]types.Token, 0, len(coins))
 	for _, coin := range coins {
 		token, err := k.tokenFromCoin(ctx, coin)
