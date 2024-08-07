@@ -70,7 +70,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if strings.TrimSpace(counterpartyVersion) != "" && counterpartyVersion != types.Version {
+	if counterpartyVersion != types.Version {
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
 	}
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
@@ -301,7 +301,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeInit(
+func (IBCMiddleware) OnChanUpgradeInit(
 	ctx sdk.Context,
 	portID string,
 	channelID string,

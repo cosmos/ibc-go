@@ -228,7 +228,6 @@ func (LegacyIBCModule) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im *LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-
 	for _, cb := range im.cbs {
 		if _, ok := cb.(UpgradableModule); !ok {
 			return "", errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack")

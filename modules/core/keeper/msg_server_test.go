@@ -977,7 +977,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 		//
 		// FIXME: this is failing because while MockBlockUpgrade does not implement UpgradeableModule,
 		// it is being wrapped by LegacyIBCModule which does implement UpgradeableModule.
-		//{
+		// {
 		//	"ibc application does not implement the UpgradeableModule interface",
 		//	func() {
 		//		path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -999,7 +999,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 		//
 		//		suite.Require().Empty(events)
 		//	},
-		//},
+		// },
 		{
 			"ibc application does not commit state changes in callback",
 			func() {
