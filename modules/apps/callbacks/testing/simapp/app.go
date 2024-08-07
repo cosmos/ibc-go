@@ -527,14 +527,18 @@ func NewSimApp(
 	var icaControllerStack porttypes.ClassicIBCModule
 	icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
 	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 	app.ICAAuthModule, ok = icaControllerStack.(ibcmock.IBCModule)
 	if !ok {
 		panic(fmt.Errorf("cannot convert %T to %T", icaControllerStack, app.ICAAuthModule))
 	}
 	icaControllerStack = icacontroller.NewIBCMiddlewareWithAuth(icaControllerStack, app.ICAControllerKeeper)
 	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
+
 	var icaICS4Wrapper porttypes.ICS4Wrapper
 	icaICS4Wrapper, ok = icaControllerStack.(porttypes.ICS4Wrapper)
 	if !ok {
@@ -542,6 +546,7 @@ func NewSimApp(
 	}
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
 	app.ICAControllerKeeper.WithICS4Wrapper(icaICS4Wrapper)
 
@@ -562,8 +567,6 @@ func NewSimApp(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
-
-	ibcAppRouter.AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 
 	// Create Mock IBC Fee module stack for testing
 	// SendPacket, mock module cannot send packets

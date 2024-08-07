@@ -70,33 +70,11 @@ func (im IBCMiddleware) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-	if err != nil {
-		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-		// application.
-		return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
+	if counterpartyVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
 	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
-	}
-
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-
-	// call underlying app's OnChanOpenTry callback with the app versions
-	appVersion, err := im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, versionMetadata.AppVersion)
-	if err != nil {
-		return "", err
-	}
-
-	versionMetadata.AppVersion = appVersion
-	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-	if err != nil {
-		return "", err
-	}
-
-	return string(versionBytes), nil
+	return counterpartyVersion, nil
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface
@@ -487,7 +465,7 @@ func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string 
 	return string(versionBytes)
 }
 
-// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful. 
+// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful.
 func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
 	metadata, err := types.MetadataFromVersion(version)
 	if err != nil {

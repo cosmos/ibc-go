@@ -203,10 +203,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 				// ensure channel on chainB is set in state
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *channel)
 
-				module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(icatypes.HostPortID)
 				suite.Require().True(ok)
 
 				version, err := cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.ConnectionHops,
