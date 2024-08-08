@@ -235,7 +235,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 	var (
 		path            *ibctesting.Path
-		ack             exported.Acknowledgement
+		ack             []byte
 		heightDiff      uint64
 		delayTimePeriod uint64
 		timePerBlock    uint64
@@ -266,7 +266,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			heightDiff = 5
 		}, false},
 		{"verification failed - changed acknowledgement", func() {
-			ack = ibcmock.MockFailAcknowledgement
+			ack = ibcmock.MockFailAcknowledgement.Acknowledgement()
 		}, false},
 		{"client status is not active - client is expired", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -280,8 +280,8 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest()                 // reset
-			ack = ibcmock.MockAcknowledgement // must be explicitly changed
+			suite.SetupTest()                                   // reset
+			ack = ibcmock.MockAcknowledgement.Acknowledgement() // must be explicitly changed
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
@@ -317,7 +317,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 
 			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketAcknowledgement(
 				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
-				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack.Acknowledgement(),
+				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack,
 			)
 
 			if tc.expPass {
