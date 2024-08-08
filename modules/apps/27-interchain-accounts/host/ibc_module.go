@@ -14,7 +14,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -147,7 +146,7 @@ func (im IBCModule) OnRecvPacket(
 		keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
 
-		return exported.RecvPacketResult{
+		return ibcexported.RecvPacketResult{
 			Status:          ibcexported.FAILURE,
 			Acknowledgement: ack.Acknowledgement(),
 		}
@@ -161,7 +160,7 @@ func (im IBCModule) OnRecvPacket(
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ibcexported.RecvPacketResult{
-		Status:          exported.SUCCESS,
+		Status:          ibcexported.SUCCESS,
 		Acknowledgement: ack.Acknowledgement(),
 	}
 }
