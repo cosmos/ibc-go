@@ -607,9 +607,12 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
 	}
 
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
-		return nil, err
+	// TODO: Inline in TimeoutPacket, for now, guard with version check.
+	if msg.Packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
+		// Delete packet commitment
+		if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
+			return nil, err
+		}
 	}
 
 	// Perform application logic callback
