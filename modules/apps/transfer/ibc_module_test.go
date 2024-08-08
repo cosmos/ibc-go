@@ -9,6 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -876,6 +877,92 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
+func (suite *TransferTestSuite) TestOnSendPacket() {
+	var (
+		packetData types.FungibleTokenPacketDataV2
+		path       *ibctesting.Path
+		signer     sdk.AccAddress
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: send disabled",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false, true))
+			},
+			types.ErrSendDisabled,
+		},
+		{
+			"failure: blocked address",
+			func() {
+				signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName)
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: sender is not signer",
+			func() {
+				packetData.Sender = suite.chainB.SenderAccount.GetAddress().String()
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: V2 packet can't be unmarshaled if version is V1 and it contains V2 data",
+			func() {
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.V1
+				})
+				packetData.Forwarding = types.NewForwardingPacketData("", types.NewHop(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			ibcerrors.ErrInvalidType,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			signer = sdk.MustAccAddressFromBech32(suite.chainA.SenderAccount.GetAddress().String())
+
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			packetData = types.NewFungibleTokenPacketDataV2(
+				[]types.Token{{Denom: types.NewDenom(sdk.DefaultBondDenom), Amount: ibctesting.TestCoin.Amount.String()}},
+				suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.String(), "", types.ForwardingPacketData{},
+			)
+
+			tc.malleate()
+
+			dataBytes := packetData.GetBytes()
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRoute(path.EndpointA.ChannelConfig.PortID)
+			suite.Require().True(ok)
+
+			err := cbs[0].OnSendPacket(
+				suite.chainA.GetContext(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+				0, clienttypes.ZeroHeight(), 0,
+				dataBytes,
+				signer,
+			)
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}

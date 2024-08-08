@@ -172,6 +172,13 @@ func (im IBCModule) OnSendPacket(
 	dataBz []byte,
 	signer sdk.AccAddress,
 ) error {
+	if !im.keeper.GetParams(ctx).SendEnabled {
+		return types.ErrSendDisabled
+	}
+	if im.keeper.IsBlockedAddr(signer) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", signer)
+	}
+
 	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
@@ -181,6 +188,11 @@ func (im IBCModule) OnSendPacket(
 	if err != nil {
 		return err
 	}
+
+	// If the ics20version is V1, we can't have multiple tokens nor forwarding info.
+	// However, we do not need to check it here, as a packet containing that data would
+	// fail the unmarshaling above, where if ics20version == types.V1 we first unmarshal
+	// into a V1 packet and then convert.
 
 	if data.Sender != signer.String() {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "invalid signer address: expected %s, got %s", data.Sender, signer)

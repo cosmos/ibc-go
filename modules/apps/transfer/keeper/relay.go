@@ -73,6 +73,10 @@ func (k Keeper) OnSendPacket(
 		coins = append(coins, sdk.NewCoin(token.Denom.IBCDenom(), transferAmount))
 	}
 
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
+		return errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
+	}
+
 	destinationPort := channel.Counterparty.PortId
 	destinationChannel := channel.Counterparty.ChannelId
 
@@ -155,7 +159,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
-	if k.isBlockedAddr(receiver) {
+	if k.IsBlockedAddr(receiver) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 	}
 
@@ -323,7 +327,7 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 	if err != nil {
 		return err
 	}
-	if k.isBlockedAddr(sender) {
+	if k.IsBlockedAddr(sender) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
 	}
 
