@@ -204,7 +204,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
 
-			err := suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
+			_, err := suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -415,7 +415,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
 
-			err = suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
+			_, err = suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
 			suite.Require().NoError(err)
 
 			ack = mock.MockAcknowledgement
@@ -436,7 +436,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				path.EndpointA.FreezeClient()
 			}
 
-			err = suite.chainA.App.GetPacketServer().AcknowledgePacket(suite.chainA.GetContext(), nil, packet, ack.Acknowledgement(), proof, proofHeight)
+			_, err = suite.chainA.App.GetPacketServer().AcknowledgePacket(suite.chainA.GetContext(), nil, packet, ack.Acknowledgement(), proof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -611,7 +611,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				path.EndpointA.FreezeClient()
 			}
 
-			err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, 0)
+			_, err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, 0)
 
 			expPass := tc.expError == nil
 			if expPass {
