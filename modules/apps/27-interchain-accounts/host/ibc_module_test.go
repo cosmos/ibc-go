@@ -418,8 +418,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			"success with ICA auth module callback failure", func() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
-				) exported.Acknowledgement {
-					return channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback"))
+				) exported.RecvPacketResult {
+					return exported.RecvPacketResult{
+						Status:          exported.FAILURE,
+						Acknowledgement: channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback")).Acknowledgement(),
+					}
 				}
 			}, true,
 			"failed OnRecvPacket mock callback",
@@ -496,17 +499,17 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				suite.Require().True(ok)
 
 				ctx := suite.chainB.GetContext()
-				ack := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, nil)
+				res := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, nil)
 
 				expectedAttributes := []sdk.Attribute{
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 					sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(ack.Success())),
+					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(res.Status == exported.SUCCESS)),
 				}
 
 				if tc.expAckSuccess {
-					suite.Require().True(ack.Success())
-					suite.Require().Equal(expectedAck, ack)
+					suite.Require().Equal(exported.SUCCESS, res.Status)
+					suite.Require().Equal(expectedAck.Acknowledgement(), res.Acknowledgement)
 
 					expectedEvents := sdk.Events{
 						sdk.NewEvent(
@@ -519,7 +522,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 					ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 
 				} else {
-					suite.Require().False(ack.Success())
+					suite.Require().Equal(exported.FAILURE, res.Status)
 
 					expectedAttributes = append(expectedAttributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, tc.eventErrorMsg))
 					expectedEvents := sdk.Events{

@@ -81,7 +81,7 @@ type ContractKeeper struct {
 	IBCReceivePacketCallbackFn func(
 		cachedCtx sdk.Context,
 		packet ibcexported.PacketI,
-		ack ibcexported.Acknowledgement,
+		acknowledgement []byte,
 		contractAddress string,
 		version string,
 	) error
@@ -129,7 +129,7 @@ func NewContractKeeper(key storetypes.StoreKey) *ContractKeeper {
 		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, contractAddress)
 	}
 
-	k.IBCReceivePacketCallbackFn = func(ctx sdk.Context, _ ibcexported.PacketI, _ ibcexported.Acknowledgement, contractAddress, _ string) error {
+	k.IBCReceivePacketCallbackFn = func(ctx sdk.Context, _ ibcexported.PacketI, _ []byte, contractAddress, _ string) error {
 		return k.ProcessMockCallback(ctx, callbacktypes.CallbackTypeReceivePacket, contractAddress)
 	}
 
@@ -204,11 +204,11 @@ func (k ContractKeeper) IBCOnTimeoutPacketCallback(
 func (k ContractKeeper) IBCReceivePacketCallback(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
-	ack ibcexported.Acknowledgement,
+	acknowledgement []byte,
 	contractAddress,
 	version string,
 ) error {
-	return k.IBCReceivePacketCallbackFn(ctx, packet, ack, contractAddress, version)
+	return k.IBCReceivePacketCallbackFn(ctx, packet, acknowledgement, contractAddress, version)
 }
 
 // ProcessMockCallback processes a mock callback.

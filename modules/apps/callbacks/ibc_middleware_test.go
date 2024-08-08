@@ -583,7 +583,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		name      string
 		malleate  func()
 		expResult expResult
-		expAck    ibcexported.Acknowledgement
+		expAck    ibcexported.Acknowledgement // TODO: refactor to remove ack interface
 	}{
 		{
 			"success",
@@ -680,14 +680,15 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			transferStack, ok := s.chainB.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			onRecvPacket := func() ibcexported.Acknowledgement {
+			onRecvPacket := func() ibcexported.RecvPacketResult {
 				return transferStack.OnRecvPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
 			}
 
 			switch tc.expAck {
 			case successAck:
-				ack := onRecvPacket()
-				s.Require().NotNil(ack)
+				res := onRecvPacket()
+				s.Require().Equal(ibcexported.SUCCESS, res.Status)
+				s.Require().NotNil(res.Acknowledgement)
 
 			case panicAck:
 				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
@@ -697,8 +698,8 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				})
 
 			default:
-				ack := onRecvPacket()
-				s.Require().Equal(tc.expAck, ack)
+				res := onRecvPacket()
+				s.Require().Equal(tc.expAck.Acknowledgement(), res.Acknowledgement)
 			}
 
 			destStatefulCounter := GetSimApp(s.chainB).MockContractKeeper.GetStateEntryCounter(s.chainB.GetContext())
@@ -811,7 +812,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			// callbacks module is routed as top level middleware
 			transferICS4Wrapper := GetSimApp(s.chainB).TransferKeeper.GetICS4Wrapper()
 
-			err := transferICS4Wrapper.WriteAcknowledgement(ctx, packet, ack)
+			err := transferICS4Wrapper.WriteAcknowledgement(ctx, packet, ack.Acknowledgement())
 
 			expPass := tc.expError == nil
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
@@ -1126,7 +1127,8 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 		0,
 	)
 
-	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
-	s.Require().Nil(ack)
+	res := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
+	s.Require().Equal(ibcexported.ASYNC, res.Status)
+	s.Require().Nil(res.Acknowledgement)
 	s.AssertHasExecutedExpectedCallback("none", true)
 }

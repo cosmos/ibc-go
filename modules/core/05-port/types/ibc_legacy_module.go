@@ -201,8 +201,8 @@ func (LegacyIBCModule) OnRecvPacket(
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
-	return nil
+) ibcexported.RecvPacketResult {
+	return ibcexported.RecvPacketResult{}
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

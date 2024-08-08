@@ -117,7 +117,7 @@ func (im IBCModule) OnSendPacket(ctx sdk.Context, portID string, channelID strin
 }
 
 // OnRecvPacket implements the IBCModule interface.
-func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.RecvPacketResult {
 	if im.IBCApp.OnRecvPacket != nil {
 		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
@@ -133,12 +133,20 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet 
 	ctx.EventManager().EmitEvent(NewMockRecvPacketEvent())
 
 	if bytes.Equal(MockPacketData, packet.GetData()) {
-		return MockAcknowledgement
+		return exported.RecvPacketResult{
+			Status:          exported.SUCCESS,
+			Acknowledgement: MockAcknowledgement.Acknowledgement(),
+		}
 	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
-		return nil
+		return exported.RecvPacketResult{
+			Status: exported.ASYNC,
+		}
 	}
 
-	return MockFailAcknowledgement
+	return exported.RecvPacketResult{
+		Status:          exported.FAILURE,
+		Acknowledgement: MockFailAcknowledgement.Acknowledgement(),
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.

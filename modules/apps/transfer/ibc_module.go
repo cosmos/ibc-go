@@ -198,7 +198,7 @@ func (im IBCModule) OnRecvPacket(
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
+) ibcexported.RecvPacketResult {
 	var (
 		ackErr error
 		data   types.FungibleTokenPacketDataV2
@@ -216,24 +216,35 @@ func (im IBCModule) OnRecvPacket(
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
-		return ack
+		return ibcexported.RecvPacketResult{
+			Status:          ibcexported.FAILURE,
+			Acknowledgement: ack.Acknowledgement(),
+		}
 	}
 
 	if ackErr = im.keeper.OnRecvPacket(ctx, packet, data); ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
-		return ack
+		return ibcexported.RecvPacketResult{
+			Status:          ibcexported.FAILURE,
+			Acknowledgement: ack.Acknowledgement(),
+		}
 	}
 
 	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 
 	if data.HasForwarding() {
 		// NOTE: acknowledgement will be written asynchronously
-		return nil
+		return ibcexported.RecvPacketResult{
+			Status: ibcexported.ASYNC,
+		}
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	return ack
+	return ibcexported.RecvPacketResult{
+		Status:          ibcexported.SUCCESS,
+		Acknowledgement: ack.Acknowledgement(),
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

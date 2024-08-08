@@ -351,7 +351,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			func(suite *AnteTestSuite) []sdk.Msg {
 				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
-				) exported.Acknowledgement {
+				) exported.RecvPacketResult {
 					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
 
@@ -578,7 +578,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 			func(suite *AnteTestSuite) []sdk.Msg {
 				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
-				) exported.Acknowledgement {
+				) exported.RecvPacketResult {
 					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
 

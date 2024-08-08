@@ -627,18 +627,18 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 	var (
-		path   *ibctesting.Path
-		ack    exported.Acknowledgement
+		ack    []byte
 		packet exported.PacketI
+		path   *ibctesting.Path
 	)
 
-	testCases := []testCase{
+	testCases := []testCase{ // TODO: use expError structure
 		{
 			"success",
 			func() {
 				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				ack = ibcmock.MockAcknowledgement
+				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 			},
 			true,
 		},
@@ -647,7 +647,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				ack = ibcmock.MockAcknowledgement
+				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 
 				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
 			},
@@ -658,32 +658,40 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				ack = ibcmock.MockAcknowledgement
+				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 
 				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
 			},
 			true,
 		},
-		{"channel not found", func() {
-			// use wrong channel naming
-			path.Setup()
-			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.InvalidID, ibctesting.InvalidID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			ack = ibcmock.MockAcknowledgement
-		}, false},
-		{"channel not open", func() {
-			path.Setup()
-			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			ack = ibcmock.MockAcknowledgement
+		{
+			"channel not found",
+			func() {
+				// use wrong channel naming
+				path.Setup()
+				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.InvalidID, ibctesting.InvalidID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				ack = ibcmock.MockAcknowledgement.Acknowledgement()
+			},
+			false,
+		},
+		{
+			"channel not open",
+			func() {
+				path.Setup()
+				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 
-			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-		}, false},
+				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
+			},
+			false,
+		},
 		{
 			"no-op, already acked",
 			func() {
 				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				ack = ibcmock.MockAcknowledgement
-				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack.Acknowledgement())
+				ack = ibcmock.MockAcknowledgement.Acknowledgement()
+				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), types.CommitAcknowledgement(ack))
 			},
 			false,
 		},
@@ -692,7 +700,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				ack = ibcmock.NewEmptyAcknowledgement()
+				ack = ibcmock.NewEmptyAcknowledgement().Acknowledgement()
 			},
 			false,
 		},
@@ -713,7 +721,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				ack = ibcmock.MockAcknowledgement
+				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 
 				// set recv seq start to indicate packet was processed in previous upgrade
 				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetRecvStartSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence+1)

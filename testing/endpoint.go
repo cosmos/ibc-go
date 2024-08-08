@@ -494,7 +494,7 @@ func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*abc
 // The counterparty client is updated.
 func (endpoint *Endpoint) WriteAcknowledgement(ack exported.Acknowledgement, packet exported.PacketI) error {
 	// no need to send message, acting as a handler
-	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), packet, ack)
+	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), packet, ack.Acknowledgement())
 	if err != nil {
 		return err
 	}

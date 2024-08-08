@@ -14,6 +14,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
@@ -465,8 +466,8 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	//
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn = ctx.CacheContext()
-	ack := cbs.OnRecvPacket(cacheCtx, channelVersion, msg.Packet, relayer)
-	if ack == nil || ack.Success() {
+	res := cbs.OnRecvPacket(cacheCtx, channelVersion, msg.Packet, relayer)
+	if res.Status == exported.SUCCESS || res.Status == exported.ASYNC {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
 	} else {
@@ -477,8 +478,8 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// Set packet acknowledgement only if the acknowledgement is not nil.
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
-	if ack != nil {
-		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
+	if res.Acknowledgement != nil {
+		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet, res.Acknowledgement); err != nil {
 			return nil, err
 		}
 	}

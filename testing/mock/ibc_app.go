@@ -78,7 +78,7 @@ type IBCApp struct {
 		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
-	) exported.Acknowledgement
+	) exported.RecvPacketResult
 
 	OnAcknowledgementPacket func(
 		ctx sdk.Context,

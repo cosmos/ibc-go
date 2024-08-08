@@ -20,6 +20,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -523,8 +524,8 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				)
 
 				ctx := suite.chainA.GetContext()
-				ack := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
-				suite.Require().Equal(tc.expPass, ack.Success())
+				res := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
+				suite.Require().Equal(tc.expPass, res.Status == exported.SUCCESS)
 
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(

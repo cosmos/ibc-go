@@ -276,7 +276,7 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 func (k *Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
 	packet exported.PacketI,
-	acknowledgement exported.Acknowledgement,
+	acknowledgement []byte,
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if !found {
@@ -304,19 +304,14 @@ func (k *Keeper) WriteAcknowledgement(
 		return types.ErrAcknowledgementExists
 	}
 
-	if acknowledgement == nil {
-		return errorsmod.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be nil")
-	}
-
-	bz := acknowledgement.Acknowledgement()
-	if len(bz) == 0 {
+	if len(acknowledgement) == 0 {
 		return errorsmod.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
 	}
 
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
 		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
-		types.CommitAcknowledgement(bz),
+		types.CommitAcknowledgement(acknowledgement),
 	)
 
 	// log that a packet acknowledgement has been written
@@ -329,7 +324,7 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
+	emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, acknowledgement)
 
 	return nil
 }
