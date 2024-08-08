@@ -131,15 +131,28 @@ type VersionWrapper interface {
 	WrapVersion(cbVersion, underlyingAppVersion string) string
 	// UnwrapVersionUnsafe is required in order to remove middleware wiring and the ICS4Wrapper
 	// while maintaining backwards compatibility. It will be removed in the future.
-	// Applications should unwrap the provided version with into their  application version.
+	// Applications should unwrap the provided version with into their application version.
 	// and the underlying application version. If they are unsuccessful they should return an error.
 	// UnwrapVersionUnsafe will be used during opening handshakes and channel upgrades when the version
 	// is still being negotiated.
 	UnwrapVersionUnsafe(string) (cbVersion, underlyingAppVersion string, err error)
+	// UnwrapVersionSafe is required in order to remove middleware wiring and the ICS4Wrapper
+	// while maintaining backwards compatibility. It will be removed in the future.
+	// Applications should unwrap the provided version into their application version.
+	// They should use the context and associated portID and channelID to safely do so.
+	// UnwrapVersionSafe will be used during packet processing to provide callbacks
+	// their application version.
 	UnwrapVersionSafe(ctx sdk.Context, portID, channelID, version string) (cbVersion, underlyingAppVersion string)
 }
 
+// AcknowledgementWrapper is an optional interface which should be implemented by middlewares which wrap the acknowledgement
+// to ensure backwards compatibility.
 type AcknowledgementWrapper interface {
+	// UnwrapAcknowledgement is required in order to remove middleware wiring and the ICS4Wrapper
+	// while maintaining backwards compatibility. It will be removed in the future.
+	// Applications should unwrap the underlying app acknowledgement using the context
+	// and the given portID and channelID. They should return their application acknowledgement
+	// as the bytes it expects to decode in OnAcknowledgement.
 	UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, acknowledgment []byte) (cbAcknowledgement, underlyingAppAcknowledgement []byte)
 }
 
