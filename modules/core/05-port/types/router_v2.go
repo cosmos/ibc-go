@@ -76,6 +76,10 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 	return rtr
 }
 
+// PacketRoute returns a list of callbacks. It takes the portID of the packet
+// (used for classic IBC packets) and the packet data (used for multi-packetdata's).
+// PacketRoute is explicitly seprated from the handshake route which only handles
+// ClassicIBCModule's. Non ClassicIBCModule routing does not work on handshakes.
 func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
 	if module == sentinelMultiPacketData {
 		return rtr.routeMultiPacketData(module)
@@ -115,7 +119,8 @@ func (rtr *AppRouter) routeToLegacyModule(module string) (ClassicIBCModule, bool
 }
 
 // HandshakeRoute returns the ClassicIBCModule which will implement all handshake functions
-// and is required only for those callbacks.
+// as it is required only for those callbacks. It takes in the portID associated with the
+// handshake.
 func (rtr *AppRouter) HandshakeRoute(portID string) (ClassicIBCModule, bool) {
 	route, ok := rtr.routeToLegacyModule(portID)
 	return route, ok
