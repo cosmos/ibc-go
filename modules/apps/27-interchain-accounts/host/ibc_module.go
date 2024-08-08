@@ -14,6 +14,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -139,27 +140,28 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	txResponse, err := im.keeper.OnRecvPacket(ctx, packet)
-	ack := channeltypes.NewResultAcknowledgement(txResponse)
 	if err != nil {
-		ack = channeltypes.NewErrorAcknowledgement(err)
+		ack := channeltypes.NewErrorAcknowledgement(err)
+
+		// Emit an event indicating a successful or failed acknowledgement.
+		keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
-	} else {
-		im.keeper.Logger(ctx).Info("successfully handled packet", "sequence", packet.Sequence)
+
+		return exported.RecvPacketResult{
+			Status:          ibcexported.FAILURE,
+			Acknowledgement: ack.Acknowledgement(),
+		}
 	}
+
+	ack := channeltypes.NewResultAcknowledgement(txResponse)
 
 	// Emit an event indicating a successful or failed acknowledgement.
 	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
-
-	var status ibcexported.RecvPacketStatus
-	if ack.Success() {
-		status = ibcexported.SUCCESS
-	} else {
-		status = ibcexported.FAILURE
-	}
+	im.keeper.Logger(ctx).Info("successfully handled packet", "sequence", packet.Sequence)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ibcexported.RecvPacketResult{
-		Status:          status,
+		Status:          exported.SUCCESS,
 		Acknowledgement: ack.Acknowledgement(),
 	}
 }
