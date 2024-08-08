@@ -283,12 +283,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID str
 		return "", types.ErrControllerSubModuleDisabled
 	}
 
-	proposedVersion, err := im.keeper.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-	if err != nil {
-		return "", err
-	}
-
-	return proposedVersion, nil
+	return im.keeper.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 }
 
 // OnChanUpgradeTry implements the IBCModule interface

@@ -359,7 +359,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID st
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-	return proposedVersion, nil
+	return "", nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
