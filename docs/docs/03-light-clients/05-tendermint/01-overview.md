@@ -11,6 +11,12 @@ slug: /ibc/light-clients/tendermint/overview
 
 The tendermint client is the first and most deployed light client in IBC. It implements the IBC Light Client interface to track a counterparty running Comet BFT consensus. Note: Tendermint is the old name of Comet BFT which has been retained in IBC to avoid expensive migration costs.
 
+The tendermint client consists of two important structs that keep track of the state of the counterparty chain and allow for future updates. The `ClientState` struct contains all the parameters necessary for CometBFT header verification. The `ConsensusState`, on the other hand, is a compressed view of a particular header of the counterparty chain. Unlike off chain light clients, IBC does not store full header. Instead it stores only the information it needs to prove verification of key/value pairs in the counterparty state (ie the header AppHash), and the information necessary to use the consensus state as the next root of trust to add a new consensus state to the client (ie the header NextValidatorsHash and Timestamp). The relayer provides the full trusted header on UpdateClient, which will get checked against the compressed root-of-trust consensus state. If the trusted header matches a previous consensus state, and the trusted header and new header pass the CometBFT light client update algorithm; then the new header is compressed into a consensus state and added to the IBC client.
+
+Each Tendermint Client is composed of a single ClientState keyed on the client ID, and multiple consensus states which are keyed on both the clientID and header height. Relayers can use the consensus states to verify MerkleProofs of packet commitments, acknowledgements, and receipts against the AppHash of the counterparty chain in order to enable verified packet flow.
+
+If a counterparty chain violates the CometBFT protocol in a way that is detectable to off-chain light clients, this misbehaviour can also be submitted to an IBC client by any off-chain actor. Upon verification of this misbehaviour, the Tendermint IBC Client will freeze preventing any further packet flow from this malicious chain from occuring. Governance or some other out-of-band protocol may then be used to unwind any damage that has already occurred.
+
 ## Synopsis
 
 ### Initialization
