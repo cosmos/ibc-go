@@ -14,7 +14,7 @@ import (
 
 // WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
 // ICS29 WriteAcknowledgement is used for asynchronous acknowledgements
-func (k Keeper) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, acknowledgement ibcexported.Acknowledgement) error {
+func (k Keeper) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, acknowledgement []byte) error {
 	if !k.IsFeeEnabled(ctx, packet.GetDestPort(), packet.GetDestChannel()) {
 		// ics4Wrapper may be core IBC or higher-level middleware
 		return k.ics4Wrapper.WriteAcknowledgement(ctx, packet, acknowledgement)
@@ -32,12 +32,14 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI
 	// if there is no registered counterparty address then write acknowledgement with empty relayer address and refund recv_fee.
 	forwardRelayer, _ := k.GetCounterpartyPayeeAddress(ctx, relayer, packet.GetDestChannel())
 
-	ack := types.NewIncentivizedAcknowledgement(forwardRelayer, acknowledgement.Acknowledgement(), acknowledgement.Success())
+	// TODO(https://github.com/cosmos/ibc-go/issues/7044):
+	// The underlying app success bool is temporarily hardcoded to true! This should be revisited for the issue linked above.
+	ack := types.NewIncentivizedAcknowledgement(forwardRelayer, acknowledgement, true)
 
 	k.DeleteForwardRelayerAddress(ctx, packetID)
 
 	// ics4Wrapper may be core IBC or higher-level middleware
-	return k.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack)
+	return k.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack.Acknowledgement())
 }
 
 // GetAppVersion returns the underlying application version.

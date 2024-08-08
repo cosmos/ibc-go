@@ -103,7 +103,7 @@ type IBCModule interface {
 		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
-	) exported.Acknowledgement
+	) exported.RecvPacketResult
 
 	OnAcknowledgementPacket(
 		ctx sdk.Context,
@@ -213,7 +213,7 @@ type ICS4Wrapper interface {
 	WriteAcknowledgement(
 		ctx sdk.Context,
 		packet exported.PacketI,
-		ack exported.Acknowledgement,
+		ack []byte,
 	) error
 
 	GetAppVersion(

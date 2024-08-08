@@ -137,20 +137,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	if err := im.keeper.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
-		return err
-	}
-
-	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
-	if err != nil {
-		return err
-	}
-
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		return im.app.OnChanCloseConfirm(ctx, portID, channelID)
-	}
-
-	return nil
+	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // OnSendPacket implements the IBCModule interface.
@@ -209,11 +196,14 @@ func (IBCMiddleware) OnRecvPacket(
 	_ string,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
-) ibcexported.Acknowledgement {
+) ibcexported.RecvPacketResult {
 	err := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
 	ack := channeltypes.NewErrorAcknowledgement(err)
 	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
-	return ack
+	return ibcexported.RecvPacketResult{
+		Status:          ibcexported.Failure,
+		Acknowledgement: ack.Acknowledgement(),
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
@@ -282,27 +272,14 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
-	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
-	if err != nil {
-		panic(err)
-	}
-
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		// Only cast to UpgradableModule if the application is set.
-		cbs, ok := im.app.(porttypes.UpgradableModule)
-		if !ok {
-			panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
-		}
-		cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-	}
+func (IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
-	ack ibcexported.Acknowledgement,
+	ack []byte,
 ) error {
 	panic(errors.New("WriteAcknowledgement not supported for ICA controller module"))
 }

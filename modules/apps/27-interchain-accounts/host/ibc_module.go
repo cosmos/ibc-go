@@ -128,27 +128,41 @@ func (im IBCModule) OnRecvPacket(
 	_ string,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
-) ibcexported.Acknowledgement {
+) ibcexported.RecvPacketResult {
 	if !im.keeper.GetParams(ctx).HostEnabled {
 		im.keeper.Logger(ctx).Info("host submodule is disabled")
 		keeper.EmitHostDisabledEvent(ctx, packet)
-		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
+		return ibcexported.RecvPacketResult{
+			Status:          ibcexported.Failure,
+			Acknowledgement: channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled).Acknowledgement(),
+		}
 	}
 
 	txResponse, err := im.keeper.OnRecvPacket(ctx, packet)
-	ack := channeltypes.NewResultAcknowledgement(txResponse)
 	if err != nil {
-		ack = channeltypes.NewErrorAcknowledgement(err)
+		ack := channeltypes.NewErrorAcknowledgement(err)
+
+		// Emit an event indicating a successful or failed acknowledgement.
+		keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
-	} else {
-		im.keeper.Logger(ctx).Info("successfully handled packet", "sequence", packet.Sequence)
+
+		return ibcexported.RecvPacketResult{
+			Status:          ibcexported.Failure,
+			Acknowledgement: ack.Acknowledgement(),
+		}
 	}
+
+	ack := channeltypes.NewResultAcknowledgement(txResponse)
 
 	// Emit an event indicating a successful or failed acknowledgement.
 	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
+	im.keeper.Logger(ctx).Info("successfully handled packet", "sequence", packet.Sequence)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	return ack
+	return ibcexported.RecvPacketResult{
+		Status:          ibcexported.Success,
+		Acknowledgement: ack.Acknowledgement(),
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

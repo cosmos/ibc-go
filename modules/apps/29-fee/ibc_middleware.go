@@ -132,10 +132,6 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	if err := im.app.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
-		return err
-	}
-
 	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		return nil
 	}
@@ -168,24 +164,27 @@ func (im IBCMiddleware) OnRecvPacket(
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) exported.Acknowledgement {
+) exported.RecvPacketResult {
 	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	appVersion := unwrapAppVersion(channelVersion)
-	ack := im.app.OnRecvPacket(ctx, appVersion, packet, relayer)
+	res := im.app.OnRecvPacket(ctx, appVersion, packet, relayer)
 
-	// in case of async acknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
-	if ack == nil {
+	// in case of async result status store the relayer address for use later during async WriteAcknowledgement
+	if res.Status == exported.Async {
 		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
-		return nil
+		return res
 	}
 
 	// if forwardRelayer is not found we refund recv_fee
 	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer.String(), packet.GetDestChannel())
 
-	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
+	return exported.RecvPacketResult{
+		Status:          res.Status,
+		Acknowledgement: types.NewIncentivizedAcknowledgement(forwardRelayer, res.Acknowledgement, res.Status == exported.Success).Acknowledgement(),
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
@@ -317,29 +316,21 @@ func (IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counte
 
 // OnChanUpgradeOpen implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
-	}
-
-	versionMetadata, err := types.MetadataFromVersion(proposedVersion)
-	if err != nil {
+	if strings.TrimSpace(proposedVersion) == "" {
 		// set fee disabled and pass through to the next middleware or application in callstack.
 		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-		cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 		return
 	}
 
 	// set fee enabled and pass through to the next middleware of application in callstack.
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-	cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, versionMetadata.AppVersion)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	packet exported.PacketI,
-	ack exported.Acknowledgement,
+	ack []byte,
 ) error {
 	return im.keeper.WriteAcknowledgement(ctx, packet, ack)
 }

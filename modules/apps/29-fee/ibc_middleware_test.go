@@ -333,15 +333,6 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			"success", func() {}, true,
 		},
 		{
-			"application callback fails", func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseConfirm = func(
-					ctx sdk.Context, portID, channelID string,
-				) error {
-					return fmt.Errorf("application callback fails")
-				}
-			}, false,
-		},
-		{
 			"RefundChannelFeesOnClosure continues - refund address is invalid", func() {
 				// store the fee in state & update escrow account balance
 				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
@@ -430,8 +421,10 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 					channelVersion string,
 					packet channeltypes.Packet,
 					relayer sdk.AccAddress,
-				) exported.Acknowledgement {
-					return nil
+				) exported.RecvPacketResult {
+					return exported.RecvPacketResult{
+						Status: exported.Async,
+					}
 				}
 			},
 			true,
@@ -491,13 +484,13 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 					ForwardRelayerAddress: forwardAddr,
 					UnderlyingAppSuccess:  true,
 				}
-				suite.Require().Equal(expectedAck, result)
+				suite.Require().Equal(expectedAck.Acknowledgement(), result.Acknowledgement)
 
 			case !tc.feeEnabled:
-				suite.Require().Equal(ibcmock.MockAcknowledgement, result)
+				suite.Require().Equal(ibcmock.MockAcknowledgement.Acknowledgement(), result.Acknowledgement)
 
-			case tc.forwardRelayer && result == nil:
-				suite.Require().Equal(nil, result)
+			case tc.forwardRelayer && result.Status == exported.Async:
+				suite.Require().Nil(result.Acknowledgement)
 				packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 				// retrieve the forward relayer that was stored in `onRecvPacket`
@@ -510,7 +503,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 					ForwardRelayerAddress: "",
 					UnderlyingAppSuccess:  true,
 				}
-				suite.Require().Equal(expectedAck, result)
+				suite.Require().Equal(expectedAck.Acknowledgement(), result.Acknowledgement)
 			}
 		})
 	}
@@ -1371,10 +1364,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 			err = path.EndpointB.ChanUpgradeConfirm()
 			suite.Require().NoError(err)
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)

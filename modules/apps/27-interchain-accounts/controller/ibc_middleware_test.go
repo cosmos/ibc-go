@@ -7,8 +7,6 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
@@ -20,6 +18,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -452,12 +451,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 
 func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name      string
+		malleate  func()
+		expStatus exported.RecvPacketStatus
 	}{
 		{
-			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, false,
+			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, exported.Failure,
 		},
 	}
 
@@ -494,8 +493,8 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				)
 
 				ctx := suite.chainA.GetContext()
-				ack := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
-				suite.Require().Equal(tc.expPass, ack.Success())
+				res := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
+				suite.Require().Equal(tc.expStatus, res.Status, "expected %s but got %s", tc.expStatus, res.Status)
 
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
@@ -874,98 +873,56 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 	var (
 		path                *ibctesting.Path
-		isNilApp            bool
 		counterpartyVersion string
 	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPanic error
+		ordering channeltypes.Order
 	}{
 		{
-			"success", func() {}, nil,
+			"success: unordered", func() {}, channeltypes.UNORDERED,
 		},
 		{
-			"success: nil app", func() {
-				isNilApp = true
-			}, nil,
-		},
-		{
-			"middleware disabled", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
-					return ibcmock.MockApplicationCallbackError
-				}
-			},
-			nil,
-		},
-		{
-			"failure: upgrade route not found",
-			func() {},
-			errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"),
-		},
-		{
-			"failure: connection not found",
-			func() {
-				path.EndpointA.ChannelID = "invalid-channel"
-			},
-			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", TestPortID, "invalid-channel"),
+			"success: ordered", func() {}, channeltypes.ORDERED,
 		},
 	}
 
-	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
-		for _, tc := range testCases {
-			tc := tc
+	for _, tc := range testCases {
+		tc := tc
 
-			suite.Run(tc.name, func() {
-				suite.SetupTest() // reset
-				isNilApp = false
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
-				path = NewICAPath(suite.chainA, suite.chainB, ordering)
-				path.SetupConnections()
+			path = NewICAPath(suite.chainA, suite.chainB, tc.ordering)
+			path.SetupConnections()
 
-				err := SetupICAPath(path, TestOwnerAddress)
-				suite.Require().NoError(err)
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
 
-				counterpartyVersion = path.EndpointB.GetChannel().Version
+			counterpartyVersion = path.EndpointB.GetChannel().Version
 
-				tc.malleate() // malleate mutates test data
+			tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointA.ChannelConfig.PortID)
+			suite.Require().True(ok)
 
-				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-				suite.Require().True(ok)
-				cbs, ok := app.(porttypes.UpgradableModule)
-				suite.Require().True(ok)
+			callbacks := app.(*porttypes.LegacyIBCModule).GetCallbacks()
+			icaStack, ok := callbacks[1].(porttypes.UpgradableModule)
+			suite.Require().True(ok)
 
-				upgradeOpenCb := func(cbs porttypes.UpgradableModule) {
-					cbs.OnChanUpgradeOpen(
-						suite.chainA.GetContext(),
-						path.EndpointA.ChannelConfig.PortID,
-						path.EndpointA.ChannelID,
-						ordering,
-						[]string{path.EndpointA.ConnectionID},
-						counterpartyVersion,
-					)
-				}
-
-				if tc.expPanic != nil {
-					mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
-					mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
-					cbs = controller.NewIBCMiddlewareWithAuth(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
-
-					suite.Require().PanicsWithError(tc.expPanic.Error(), func() { upgradeOpenCb(cbs) })
-				} else {
-					if isNilApp {
-						cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
-					}
-
-					upgradeOpenCb(cbs)
-				}
+			suite.Require().NotPanics(func() {
+				icaStack.OnChanUpgradeOpen(
+					suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					tc.ordering,
+					[]string{path.EndpointA.ConnectionID},
+					counterpartyVersion,
+				)
 			})
-		}
+		})
 	}
 }
 

@@ -92,7 +92,7 @@ type ContractKeeper interface {
 	IBCReceivePacketCallback(
 		cachedCtx sdk.Context,
 		packet ibcexported.PacketI,
-		ack ibcexported.Acknowledgement,
+		acknowledgement []byte,
 		contractAddress string,
 		version string,
 	) error

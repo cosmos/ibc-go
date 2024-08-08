@@ -264,7 +264,7 @@ func (s *CallbacksTestSuite) TestTransferRecvPacketReplayProtection() {
 			GetSimApp(s.chainB).MockContractKeeper.IBCReceivePacketCallbackFn = func(
 				cachedCtx sdk.Context,
 				packet ibcexported.PacketI,
-				_ ibcexported.Acknowledgement,
+				_ []byte,
 				_, _ string,
 			) error {
 				callbackCount++

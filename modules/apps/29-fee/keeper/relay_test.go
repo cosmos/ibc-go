@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 			// malleate test case
 			tc.malleate()
 
-			err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
+			err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack.Acknowledgement())
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -95,7 +95,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
 
-	err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
+	err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack.Acknowledgement())
 	suite.Require().NoError(err)
 
 	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)

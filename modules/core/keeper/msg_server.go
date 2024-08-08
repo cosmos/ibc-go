@@ -14,6 +14,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
@@ -368,7 +369,7 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(msg.PortId)
+	cbs, ok := k.PortKeeper.AppRouter.HandshakeRoute(msg.PortId)
 	if !ok {
 		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
@@ -465,8 +466,8 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	//
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn = ctx.CacheContext()
-	ack := cbs.OnRecvPacket(cacheCtx, channelVersion, msg.Packet, relayer)
-	if ack == nil || ack.Success() {
+	res := cbs.OnRecvPacket(cacheCtx, channelVersion, msg.Packet, relayer)
+	if res.Status == exported.Success || res.Status == exported.Async {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
 	} else {
@@ -477,8 +478,8 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// Set packet acknowledgement only if the acknowledgement is not nil.
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
-	if ack != nil {
-		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
+	if res.Acknowledgement != nil {
+		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet, res.Acknowledgement); err != nil {
 			return nil, err
 		}
 	}
@@ -820,7 +821,7 @@ func (k *Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgC
 func (k *Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	app, ok := k.PortKeeper.Route(msg.PortId)
+	app, ok := k.PortKeeper.AppRouter.HandshakeRoute(msg.PortId)
 	if !ok {
 		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
 		ctx.Logger().Error("channel upgrade confirm failed", "port-id", msg.PortId, "error", err)
@@ -875,7 +876,7 @@ func (k *Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.
 func (k *Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeOpen) (*channeltypes.MsgChannelUpgradeOpenResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	app, ok := k.PortKeeper.Route(msg.PortId)
+	app, ok := k.PortKeeper.AppRouter.HandshakeRoute(msg.PortId)
 	if !ok {
 		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
 		ctx.Logger().Error("channel upgrade open failed", "port-id", msg.PortId, "error", err)

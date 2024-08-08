@@ -107,7 +107,7 @@ func (im BlockUpgradeMiddleware) OnSendPacket(ctx sdk.Context, portID string, ch
 }
 
 // OnRecvPacket implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.RecvPacketResult {
 	if im.IBCApp.OnRecvPacket != nil {
 		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
@@ -121,12 +121,20 @@ func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion st
 	}
 
 	if bytes.Equal(MockPacketData, packet.GetData()) {
-		return MockAcknowledgement
+		return exported.RecvPacketResult{
+			Status:          exported.Success,
+			Acknowledgement: MockAcknowledgement.Acknowledgement(),
+		}
 	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
-		return nil
+		return exported.RecvPacketResult{
+			Status: exported.Async,
+		}
 	}
 
-	return MockFailAcknowledgement
+	return exported.RecvPacketResult{
+		Status:          exported.Failure,
+		Acknowledgement: MockFailAcknowledgement.Acknowledgement(),
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.
@@ -165,7 +173,7 @@ func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion
 func (BlockUpgradeMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	packet exported.PacketI,
-	ack exported.Acknowledgement,
+	ack []byte,
 ) error {
 	return nil
 }

@@ -192,11 +192,16 @@ func (im *LegacyIBCModule) OnChanCloseInit(
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
-func (LegacyIBCModule) OnChanCloseConfirm(
+func (im *LegacyIBCModule) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		if err := im.cbs[i].OnChanCloseConfirm(ctx, portID, channelID); err != nil {
+			return errorsmod.Wrapf(err, "channel close confirm callback failed for port ID: %s, channel ID: %s", portID, channelID)
+		}
+	}
 	return nil
 }
 
@@ -229,8 +234,8 @@ func (LegacyIBCModule) OnRecvPacket(
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
-	return nil
+) ibcexported.RecvPacketResult {
+	return ibcexported.RecvPacketResult{}
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -395,7 +400,36 @@ func (im *LegacyIBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, 
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
+func (im *LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		cbVersion := proposedVersion
+
+		// To maintain backwards compatibility, we must handle two cases:
+		// - relayer provides empty version (use default versions)
+		// - relayer provides version which chooses to not enable a middleware
+		//
+		// If an application is a VersionWrapper which means it modifies the version string
+		// and the version string is non-empty (don't use default), then the application must
+		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
+		// If it is unsuccessful, no callback will occur to this application as the version
+		// indicates it should be disabled.
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(proposedVersion)
+			if err != nil {
+				cbVersion = "" // disable application
+			} else {
+				cbVersion, proposedVersion = appVersion, underlyingAppVersion
+			}
+		}
+
+		// in order to maintain backwards compatibility, every callback in the stack must implement the UpgradableModule interface.
+		upgradableModule, ok := im.cbs[i].(UpgradableModule)
+		if !ok {
+			panic(errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack"))
+		}
+
+		upgradableModule.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, cbVersion)
+	}
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
