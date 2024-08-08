@@ -195,11 +195,14 @@ func (IBCMiddleware) OnRecvPacket(
 	_ string,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
-) ibcexported.Acknowledgement {
+) ibcexported.RecvPacketResult {
 	err := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
 	ack := channeltypes.NewErrorAcknowledgement(err)
 	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
-	return ack
+	return ibcexported.RecvPacketResult{
+		Status:          ibcexported.Failure,
+		Acknowledgement: ack.Acknowledgement(),
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
@@ -285,7 +288,7 @@ func (IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string
 func (IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
-	ack ibcexported.Acknowledgement,
+	ack []byte,
 ) error {
 	panic(errors.New("WriteAcknowledgement not supported for ICA controller module"))
 }

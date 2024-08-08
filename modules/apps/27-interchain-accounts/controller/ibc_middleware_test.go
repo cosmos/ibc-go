@@ -18,6 +18,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -450,12 +451,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 
 func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name      string
+		malleate  func()
+		expStatus exported.RecvPacketStatus
 	}{
 		{
-			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, false,
+			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, exported.Failure,
 		},
 	}
 
@@ -492,8 +493,8 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				)
 
 				ctx := suite.chainA.GetContext()
-				ack := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
-				suite.Require().Equal(tc.expPass, ack.Success())
+				res := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
+				suite.Require().Equal(tc.expStatus, res.Status, "expected %s but got %s", tc.expStatus, res.Status)
 
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(

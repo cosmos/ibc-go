@@ -188,23 +188,24 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
-	// if ack is nil (asynchronous acknowledgements), then the callback will be handled in WriteAcknowledgement
-	// if ack is not successful, all state changes are reverted. If a packet cannot be received, then there is
-	// no need to execute a callback on the receiving chain.
-	if ack == nil || !ack.Success() {
-		return ack
+func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.RecvPacketResult {
+	res := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
+	// if result status is asynchronous, then the callback will be handled in WriteAcknowledgement
+	// if result status is failed, then all state changes are reverted.
+	// if a packet cannot be received, then there is no need to execute a callback on the receiving chain,
+	// thus we only proceed with the contract keeper callback if the result status is successful.
+	if res.Status != ibcexported.Success {
+		return res
 	}
 
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
 	callbackData, err := types.GetDestCallbackData(ctx, im.app, packet, im.maxCallbackGas)
 	if err != nil {
-		return ack
+		return res
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress, callbackData.ApplicationVersion)
+		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, res.Acknowledgement, callbackData.CallbackAddress, callbackData.ApplicationVersion)
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
@@ -214,7 +215,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 		types.CallbackTypeReceivePacket, callbackData, err,
 	)
 
-	return ack
+	return res
 }
 
 // WriteAcknowledgement implements the ReceivePacket destination callbacks for the ibc-callbacks middleware
@@ -225,7 +226,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
-	ack ibcexported.Acknowledgement,
+	ack []byte,
 ) error {
 	err := im.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack)
 	if err != nil {

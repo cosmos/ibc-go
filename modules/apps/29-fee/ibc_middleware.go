@@ -163,24 +163,27 @@ func (im IBCMiddleware) OnRecvPacket(
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) exported.Acknowledgement {
+) exported.RecvPacketResult {
 	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	appVersion := unwrapAppVersion(channelVersion)
-	ack := im.app.OnRecvPacket(ctx, appVersion, packet, relayer)
+	res := im.app.OnRecvPacket(ctx, appVersion, packet, relayer)
 
-	// in case of async acknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
-	if ack == nil {
+	// in case of async result status store the relayer address for use later during async WriteAcknowledgement
+	if res.Status == exported.Async {
 		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
-		return nil
+		return res
 	}
 
 	// if forwardRelayer is not found we refund recv_fee
 	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer.String(), packet.GetDestChannel())
 
-	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack.Acknowledgement(), ack.Success())
+	return exported.RecvPacketResult{
+		Status:          res.Status,
+		Acknowledgement: types.NewIncentivizedAcknowledgement(forwardRelayer, res.Acknowledgement, res.Status == exported.Success).Acknowledgement(),
+	}
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
@@ -331,7 +334,7 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	packet exported.PacketI,
-	ack exported.Acknowledgement,
+	ack []byte,
 ) error {
 	return im.keeper.WriteAcknowledgement(ctx, packet, ack)
 }

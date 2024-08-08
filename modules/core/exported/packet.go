@@ -13,24 +13,36 @@ type PacketI interface {
 	ValidateBasic() error
 }
 
-// Acknowledgement defines the interface used to return acknowledgements in the OnRecvPacket callback.
-// The Acknowledgement interface is used by core IBC to ensure partial state changes are not committed
+// RecvPacketStatus defines an enum type to signal the result status of an IBC application packet datagram and inform
+// core IBC of how to handle the application state changes held in the cache store which it was provided for OnRecvPacket callback execution.
+type RecvPacketStatus uint32
+
+const (
+	// Success instructs that the IBC application state should be persisted.
+	Success RecvPacketStatus = iota
+	// Failure instructs that the IBC application state should be discarded.
+	Failure
+	// Async instructs that the IBC application state should be persisted
+	// and acknowledgement data will be written later asynchronously.
+	Async
+)
+
+// String implements the fmt.Stringer interface.
+func (r RecvPacketStatus) String() string {
+	return [...]string{"Success", "Failure", "Async"}[r]
+}
+
+// RecvPacketResult defines a result type used to encapsulate opaque application acknowledgement data, as well as
+// a status to indicate success, failure or asynchronous handling of a packet acknowledgement in the OnRecvPacket callback.
+// Status is used by core IBC to ensure partial state changes are not committed
 // when packet receives have not properly succeeded (typically resulting in an error acknowledgement being returned).
-// The interface also allows core IBC to obtain the acknowledgement bytes whose encoding is determined by each IBC application or middleware.
-// Each custom acknowledgement type must implement this interface.
-type Acknowledgement interface {
-	// Success determines if the IBC application state should be persisted when handling `RecvPacket`.
-	// During `OnRecvPacket` IBC application callback execution, all state changes are held in a cache store and committed if:
-	// - the acknowledgement.Success() returns true
-	// - a nil acknowledgement is returned (asynchronous acknowledgements)
-	//
-	// Note 1: IBC application callback events are always persisted so long as `RecvPacket` succeeds without error.
-	//
-	// Note 2: The return value should account for the success of the underlying IBC application or middleware. Thus the  `acknowledgement.Success` is representative of the entire IBC stack's success when receiving a packet. The individual success of each acknowledgement associated with an IBC application or middleware must be determined by obtaining the actual acknowledgement type after decoding the acknowledgement bytes.
-	//
-	// See https://github.com/cosmos/ibc-go/blob/v7.0.0/docs/ibc/apps.md for further explanations.
-	Success() bool
-	Acknowledgement() []byte
+// During OnRecvPacket callback execution, all state changes are held in a cache store and committed if
+// the result status is indicated as Async or Success.
+//
+// Note: IBC application callback events are always persisted so long as `RecvPacket` succeeds without error.
+type RecvPacketResult struct {
+	Status          RecvPacketStatus
+	Acknowledgement []byte
 }
 
 // PacketData defines an optional interface which an application's packet data structure may implement.

@@ -421,8 +421,10 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 					channelVersion string,
 					packet channeltypes.Packet,
 					relayer sdk.AccAddress,
-				) exported.Acknowledgement {
-					return nil
+				) exported.RecvPacketResult {
+					return exported.RecvPacketResult{
+						Status: exported.Async,
+					}
 				}
 			},
 			true,
@@ -482,13 +484,13 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 					ForwardRelayerAddress: forwardAddr,
 					UnderlyingAppSuccess:  true,
 				}
-				suite.Require().Equal(expectedAck, result)
+				suite.Require().Equal(expectedAck.Acknowledgement(), result.Acknowledgement)
 
 			case !tc.feeEnabled:
-				suite.Require().Equal(ibcmock.MockAcknowledgement, result)
+				suite.Require().Equal(ibcmock.MockAcknowledgement.Acknowledgement(), result.Acknowledgement)
 
-			case tc.forwardRelayer && result == nil:
-				suite.Require().Equal(nil, result)
+			case tc.forwardRelayer && result.Status == exported.Async:
+				suite.Require().Nil(result.Acknowledgement)
 				packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 				// retrieve the forward relayer that was stored in `onRecvPacket`
@@ -501,7 +503,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 					ForwardRelayerAddress: "",
 					UnderlyingAppSuccess:  true,
 				}
-				suite.Require().Equal(expectedAck, result)
+				suite.Require().Equal(expectedAck.Acknowledgement(), result.Acknowledgement)
 			}
 		})
 	}

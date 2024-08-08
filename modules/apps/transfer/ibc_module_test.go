@@ -18,7 +18,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -256,14 +255,18 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 		expectedAttributes []sdk.Attribute
 		path               *ibctesting.Path
 	)
+
 	testCases := []struct {
 		name             string
 		malleate         func()
-		expAck           exported.Acknowledgement
+		expAck           []byte
 		expEventErrorMsg string
 	}{
 		{
-			"success", func() {}, channeltypes.NewResultAcknowledgement([]byte{byte(1)}), "",
+			"success",
+			func() {},
+			channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+			"",
 		},
 		{
 			"success: async aknowledgment with forwarding path",
@@ -309,7 +312,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 					sdk.NewAttribute(types.AttributeKeyAckError, "cannot unmarshal ICS20-V2 transfer packet data: errUnknownField \"*types.FungibleTokenPacketDataV2\": {TagNum: 13, WireType:\"fixed64\"}: invalid type"),
 				}
 			},
-			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType),
+			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType).Acknowledgement(),
 			"cannot unmarshal ICS20-V2 transfer packet data: unexpected EOF: invalid type",
 		},
 		{
@@ -317,7 +320,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			func() {
 				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(), types.Params{ReceiveEnabled: false})
 			},
-			channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled),
+			channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled).Acknowledgement(),
 			"fungible token transfers to this chain are disabled",
 		},
 	}
@@ -354,13 +357,14 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
 				sdk.NewAttribute(types.AttributeKeyForwardingHops, string(forwardingHopsBz)),
 			}
-			if tc.expAck == nil || tc.expAck.Success() {
-				expectedAttributes = append(expectedAttributes, sdk.NewAttribute(types.AttributeKeyAckSuccess, "true"))
-			} else {
+
+			if tc.expEventErrorMsg != "" {
 				expectedAttributes = append(expectedAttributes,
 					sdk.NewAttribute(types.AttributeKeyAckSuccess, "false"),
 					sdk.NewAttribute(types.AttributeKeyAckError, tc.expEventErrorMsg),
 				)
+			} else {
+				expectedAttributes = append(expectedAttributes, sdk.NewAttribute(types.AttributeKeyAckSuccess, "true"))
 			}
 
 			seq := uint64(1)
@@ -375,9 +379,9 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 
 			tc.malleate() // change fields in packet
 
-			ack := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, suite.chainB.SenderAccount.GetAddress())
+			res := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, suite.chainB.SenderAccount.GetAddress())
 
-			suite.Require().Equal(tc.expAck, ack)
+			suite.Require().Equal(tc.expAck, res.Acknowledgement)
 
 			expectedEvents := sdk.Events{
 				sdk.NewEvent(
