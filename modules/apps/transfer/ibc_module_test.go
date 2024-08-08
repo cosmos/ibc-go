@@ -19,6 +19,8 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {
@@ -899,6 +901,7 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 	var (
 		packetData types.FungibleTokenPacketDataV2
 		path       *ibctesting.Path
+		signer     sdk.AccAddress
 	)
 
 	testCases := []struct {
@@ -921,7 +924,7 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 		{
 			"failure: blocked address",
 			func() {
-				packetData.Sender = string(suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName))
+				signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -933,19 +936,20 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
-			"failure: can't have forwarding info with V1",
+			"failure: V2 packet can't be unmarshaled if version is V1",
 			func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
 					channel.Version = types.V1
 				})
 				packetData.Forwarding = types.NewForwardingPacketData("", types.NewHop(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			ibcerrors.ErrInvalidRequest,
+			ibcerrors.ErrInvalidType,
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			signer = sdk.MustAccAddressFromBech32(suite.chainA.SenderAccount.GetAddress().String())
 
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
@@ -967,7 +971,7 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 				0, clienttypes.ZeroHeight(), 0,
 				dataBytes,
-				sdk.MustAccAddressFromBech32(suite.chainA.SenderAccount.GetAddress().String()),
+				signer,
 			)
 
 			if tc.expError == nil {
