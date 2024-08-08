@@ -32,7 +32,8 @@ func (k Keeper) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI
 	// if there is no registered counterparty address then write acknowledgement with empty relayer address and refund recv_fee.
 	forwardRelayer, _ := k.GetCounterpartyPayeeAddress(ctx, relayer, packet.GetDestChannel())
 
-	// TODO: this is temporarily hardcoded to true. can we remove/deprecate this bool field. NOTE: should revisit this!!
+	// TODO(https://github.com/cosmos/ibc-go/issues/7044):
+	// The underlying app success bool is temporarily hardcoded to true! This should be revisited for the issue linked above.
 	ack := types.NewIncentivizedAcknowledgement(forwardRelayer, acknowledgement, true)
 
 	k.DeleteForwardRelayerAddress(ctx, packetID)
