@@ -80,7 +80,7 @@ func (c Counterparty) Validate() error {
 	}
 
 	if c.MerklePathPrefix.Empty() {
-		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty prefix cannot be empty")
+		return errorsmod.Wrap(ErrInvalidCounterparty, "prefix cannot be empty")
 	}
 
 	return nil

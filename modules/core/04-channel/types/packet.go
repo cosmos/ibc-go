@@ -17,7 +17,7 @@ import (
 // must commit to all fields in the packet apart from the source port
 // source channel and sequence (which will be committed to in the packet commitment key path)
 // and the ProtocolVersion which is defining how to hash the packet fields.
-// NOTE: The commitment MUSTs be a fixed length preimage to prevent relayers from being able
+// NOTE: The commitment MUST be a fixed length preimage to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 func CommitPacket(packet Packet) []byte {
 	switch packet.ProtocolVersion {
@@ -67,7 +67,7 @@ func commitV2Packet(packet Packet) []byte {
 	timeoutBuf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
 
 	// only hash the timeout height if it is non-zero. This will allow us to remove it entirely in the future
-	if timeoutHeight.EQ(clienttypes.ZeroHeight()) {
+	if !timeoutHeight.EQ(clienttypes.ZeroHeight()) {
 		revisionNumber := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionNumber())
 		timeoutBuf = append(timeoutBuf, revisionNumber...)
 
