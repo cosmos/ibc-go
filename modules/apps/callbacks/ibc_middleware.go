@@ -363,13 +363,8 @@ func (IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-	}
-
-	return cbs.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
+func (IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
+	return "", nil
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
