@@ -8,6 +8,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -31,10 +32,11 @@ type KeeperTestSuite struct {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	key := storetypes.NewKVStoreKey(types.StoreKey)
+	memKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 	testCtx := testutil.DefaultContextWithDB(suite.T(), key, storetypes.NewTransientStoreKey("transient_test"))
 	suite.ctx = testCtx.Ctx
 	encCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModule{})
-	suite.keeper = keeper.NewKeeper(encCfg.Codec, key, key)
+	suite.keeper = keeper.NewKeeper(encCfg.Codec, runtime.NewKVStoreService(key), runtime.NewMemStoreService(memKey))
 }
 
 func (suite *KeeperTestSuite) TestSeal() {
