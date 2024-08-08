@@ -136,7 +136,11 @@ type VersionWrapper interface {
 	// UnwrapVersionUnsafe will be used during opening handshakes and channel upgrades when the version
 	// is still being negotiated.
 	UnwrapVersionUnsafe(string) (cbVersion, underlyingAppVersion string, err error)
-	// UnwrapVersionSafe(ctx sdk.Context, portID, channelID, version string) (appVersion, version string)
+	UnwrapVersionSafe(ctx sdk.Context, portID, channelID, version string) (cbVersion, underlyingAppVersion string)
+}
+
+type AcknowledgementWrapper interface {
+	UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, acknowledgment []byte) (cbAcknowledgement, underlyingAppAcknowledgement []byte)
 }
 
 // UpgradableModule defines the callbacks required to perform a channel upgrade.

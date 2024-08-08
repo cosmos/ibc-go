@@ -227,16 +227,6 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return types.ErrControllerSubModuleDisabled
 	}
 
-	connectionID, err := im.keeper.GetConnectionID(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-	if err != nil {
-		return err
-	}
-
-	// call underlying app's OnAcknowledgementPacket callback.
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), connectionID) {
-		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
-	}
-
 	return nil
 }
 
@@ -351,4 +341,10 @@ func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string 
 func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
 	// ignore underlying app version
 	return version, "", nil
+}
+
+// UnwrapVersionSafe returns the version. Interchain accounts does not wrap versions.
+func (im IBCMiddleware) UnwrapVersionSafe(ctx sdk.Context, portID, channelID, version string) (string, string) {
+	// ignore underlying app version
+	return version, ""
 }

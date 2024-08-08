@@ -125,12 +125,6 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	// we first call the underlying app to handle the acknowledgement
-	err := im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
-	if err != nil {
-		return err
-	}
-
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
 	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetData(), im.maxCallbackGas)
 	if err != nil {

@@ -197,10 +197,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	relayer sdk.AccAddress,
 ) error {
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
-		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
+		return nil
 	}
-
-	appVersion := unwrapAppVersion(channelVersion)
 
 	var ack types.IncentivizedAcknowledgement
 	if err := json.Unmarshal(acknowledgement, &ack); err != nil {
@@ -216,14 +214,13 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		// for fee enabled channels
 		//
 		// Please see ADR 004 for more information.
-		return im.app.OnAcknowledgementPacket(ctx, appVersion, packet, ack.AppAcknowledgement, relayer)
+		return nil
 	}
 
 	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
-		// call underlying callback
-		return im.app.OnAcknowledgementPacket(ctx, appVersion, packet, ack.AppAcknowledgement, relayer)
+		return nil
 	}
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
@@ -237,9 +234,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	im.keeper.DistributePacketFeesOnAcknowledgement(ctx, ack.ForwardRelayerAddress, payeeAddr, feesInEscrow.PacketFees, packetID)
-
-	// call underlying callback
-	return im.app.OnAcknowledgementPacket(ctx, appVersion, packet, ack.AppAcknowledgement, relayer)
+	return nil
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
@@ -400,4 +395,31 @@ func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error)
 	}
 
 	return metadata.FeeVersion, metadata.AppVersion, nil
+}
+
+// UnwrapVersionSafe unwraps a version contextually by relying on storage and the given portID and channelID.
+func (im IBCMiddleware) UnwrapVersionSafe(ctx sdk.Context, portID, channelID, version string) (string, string) {
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return "", version
+	}
+	metadata, err := types.MetadataFromVersion(version)
+	if err != nil {
+		// This should not happen, as it would mean that the channel is broken. Only a severe bug would cause this.
+		panic(errorsmod.Wrap(err, "failed to unwrap app version from channel version"))
+	}
+	return metadata.FeeVersion, metadata.AppVersion
+}
+
+// UnwrapAcknowledgement unwraps an acnkowledgement contextually by relying on storage and the given portID and channelID.
+func (im IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, ack []byte) ([]byte, []byte) {
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return nil, ack
+	}
+
+	var incentivizedAck types.IncentivizedAcknowledgement
+	if err := json.Unmarshal(ack, &incentivizedAck); err != nil {
+		panic(errorsmod.Wrap(err, "failed to unwrap acknowledgement"))
+	}
+
+	return ack, incentivizedAck.AppAcknowledgement
 }
