@@ -51,10 +51,6 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	// packetData := types.NewFungibleTokenPacketData(
-	// 	fullDenomPath, msg.Token.Amount.String(), sender.String(), msg.Receiver, msg.Memo,
-	// )
-
 	msgSendPacket := &channeltypes.MsgSendPacket{
 		PortId:           msg.SourcePort,
 		ChannelId:        msg.SourceChannel,
