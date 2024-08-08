@@ -748,10 +748,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 		suite.Require().NoError(err)
 
 		// call application callback directly
-		module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+		app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointB.ChannelConfig.PortID)
 		suite.Require().True(ok)
 		cbs, ok := app.(porttypes.UpgradableModule)
 		suite.Require().True(ok)
