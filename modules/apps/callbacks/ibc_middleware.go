@@ -205,8 +205,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		acknowledgement := channeltypes.NewResultAcknowledgement(res.Acknowledgement)
-		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, acknowledgement.Acknowledgement(), callbackData.CallbackAddress, callbackData.ApplicationVersion)
+		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, res.Acknowledgement, callbackData.CallbackAddress, callbackData.ApplicationVersion)
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
