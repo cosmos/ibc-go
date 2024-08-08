@@ -371,7 +371,39 @@ func (im *LegacyIBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, 
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
+func (im *LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		cbVersion := proposedVersion
+
+		// To maintain backwards compatibility, we must handle two cases:
+		// - relayer provides empty version (use default versions)
+		// - relayer provides version which chooses to not enable a middleware
+		//
+		// If an application is a VersionWrapper which means it modifies the version string
+		// and the version string is non-empty (don't use default), then the application must
+		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
+		// If it is unsuccessful, no callback will occur to this application as the version
+		// indicates it should be disabled.
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(proposedVersion) != "" {
+			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(proposedVersion)
+			if err == nil {
+				cbVersion, proposedVersion = appVersion, underlyingAppVersion
+			} else {
+				// if there was an error unmarshalling the version, this should still be passed to the application.
+				// for example, it is possible to disable fee middleware by upgrading to a non fee incentivized
+				// channel.
+				cbVersion = proposedVersion
+			}
+		}
+
+		// in order to maintain backwards compatibility, every callback in the stack must implement the UpgradableModule interface.
+		upgradableModule, ok := im.cbs[i].(UpgradableModule)
+		if !ok {
+			panic(errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack"))
+		}
+
+		upgradableModule.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, cbVersion)
+	}
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes

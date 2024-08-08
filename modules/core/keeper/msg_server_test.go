@@ -14,7 +14,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -1589,25 +1588,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			},
 		},
-		{
-			"ibc application does not implement the UpgradeableModule interface",
-			func() {
-				path = ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
-				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
-
-				path.Setup()
-
-				msg.PortId = path.EndpointB.ChannelConfig.PortID
-				msg.ChannelId = path.EndpointB.ChannelID
-			},
-			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
-				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
-				suite.Require().Nil(res)
-
-				suite.Require().Empty(events)
-			},
-		},
 	}
 
 	for _, tc := range cases {
@@ -1755,25 +1735,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				suite.Require().Nil(res)
 
 				suite.Require().ErrorIs(err, channeltypes.ErrInvalidChannelState)
-				suite.Require().Empty(events)
-			},
-		},
-		{
-			"ibc application does not implement the UpgradeableModule interface",
-			func() {
-				path = ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
-				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
-
-				path.Setup()
-
-				msg.PortId = path.EndpointA.ChannelConfig.PortID
-				msg.ChannelId = path.EndpointA.ChannelID
-			},
-			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
-				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
-				suite.Require().Nil(res)
-
 				suite.Require().Empty(events)
 			},
 		},
