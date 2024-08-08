@@ -189,15 +189,10 @@ func (im IBCModule) OnSendPacket(
 		return err
 	}
 
-	if ics20Version == types.V1 {
-		// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
-		if len(data.Tokens) > 1 {
-			return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
-		}
-
-		if len(data.Forwarding.Hops) > 0 {
-			return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
-		}
+	// If the ics20version is V1, we can't have multiple tokens nor forwarding info.
+	// However, we do not need to check it here, as a packet containing that data would
+	// fail the unmarshaling above, where if ics20version == types.V1 we first unmarshal
+	// into a V1 packet and then convert.
 
 	}
 	if data.Sender != signer.String() {

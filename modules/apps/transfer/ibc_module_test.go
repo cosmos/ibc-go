@@ -935,7 +935,7 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
-			"failure: V2 packet can't be unmarshaled if version is V1",
+			"failure: V2 packet can't be unmarshaled if version is V1 and it contains V2 data",
 			func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
 					channel.Version = types.V1
