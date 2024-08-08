@@ -194,7 +194,6 @@ func (im IBCModule) OnSendPacket(
 	// fail the unmarshaling above, where if ics20version == types.V1 we first unmarshal
 	// into a V1 packet and then convert.
 
-	}
 	if data.Sender != signer.String() {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "invalid signer address: expected %s, got %s", data.Sender, signer)
 	}
