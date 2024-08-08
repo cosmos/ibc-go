@@ -389,15 +389,12 @@ func (im *LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID 
 		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
 		// If it is unsuccessful, no callback will occur to this application as the version
 		// indicates it should be disabled.
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(proposedVersion) != "" {
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(proposedVersion)
-			if err == nil {
-				cbVersion, proposedVersion = appVersion, underlyingAppVersion
+			if err != nil {
+				cbVersion = "" // disable application
 			} else {
-				// if there was an error unmarshalling the version, this should still be passed to the application.
-				// for example, it is possible to disable fee middleware by upgrading to a non fee incentivized
-				// channel.
-				cbVersion = proposedVersion
+				cbVersion, proposedVersion = appVersion, underlyingAppVersion
 			}
 		}
 

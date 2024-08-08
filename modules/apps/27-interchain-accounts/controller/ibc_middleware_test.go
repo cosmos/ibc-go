@@ -937,16 +937,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 			suite.Require().True(ok)
 
 			callbacks := app.(*porttypes.LegacyIBCModule).GetCallbacks()
-			for _, cb := range callbacks {
-				_, ok := cb.(porttypes.UpgradableModule)
-				suite.Require().True(ok, "expected all callbacks to be upgradable modules")
-			}
-
-			cbs, ok := app.(porttypes.UpgradableModule)
+			icaStack, ok := callbacks[1].(porttypes.UpgradableModule)
 			suite.Require().True(ok)
 
 			suite.Require().NotPanics(func() {
-				cbs.OnChanUpgradeOpen(
+				icaStack.OnChanUpgradeOpen(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,

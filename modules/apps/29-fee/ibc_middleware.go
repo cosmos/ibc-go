@@ -321,7 +321,7 @@ func (IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counte
 
 // OnChanUpgradeOpen implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
-	if proposedVersion != types.Version {
+	if strings.TrimSpace(proposedVersion) == "" {
 		// set fee disabled and pass through to the next middleware or application in callstack.
 		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 		return
