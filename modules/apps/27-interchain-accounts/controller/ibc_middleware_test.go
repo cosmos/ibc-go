@@ -809,12 +809,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 		err := SetupICAPath(path, TestOwnerAddress)
 		suite.Require().NoError(err)
 
-		// call application callback directly
-		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(ok)
+
 		cbs, ok := app.(porttypes.UpgradableModule)
 		suite.Require().True(ok)
 

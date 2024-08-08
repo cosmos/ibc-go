@@ -621,10 +621,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 
 			tc.malleate()
 
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), types.PortID)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(types.PortID)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)

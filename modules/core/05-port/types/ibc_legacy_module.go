@@ -292,8 +292,45 @@ func (im *LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID 
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (LegacyIBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	return "", nil
+func (im *LegacyIBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
+	negotiatedVersions := make([]string, len(im.cbs))
+
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		cbVersion := counterpartyVersion
+
+		// To maintain backwards compatibility, we must handle two cases:
+		// - relayer provides empty version (use default versions)
+		// - relayer provides version which chooses to not enable a middleware
+		//
+		// If an application is a VersionWrapper which means it modifies the version string
+		// and the version string is non-empty (don't use default), then the application must
+		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
+		// If it is unsuccessful, no callback will occur to this application as the version
+		// indicates it should be disabled.
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(counterpartyVersion) != "" {
+			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(counterpartyVersion)
+			if err != nil {
+				// middleware disabled
+				negotiatedVersions[i] = ""
+				continue
+			}
+			cbVersion, counterpartyVersion = appVersion, underlyingAppVersion
+		}
+
+		// in order to maintain backwards compatibility, every callback in the stack must implement the UpgradableModule interface.
+		upgradableModule, ok := im.cbs[i].(UpgradableModule)
+		if !ok {
+			return "", errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack")
+		}
+
+		negotiatedVersion, err := upgradableModule.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, cbVersion)
+		if err != nil {
+			return "", errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", portID, channelID)
+		}
+		negotiatedVersions[i] = negotiatedVersion
+	}
+
+	return reconstructVersion(im.cbs, negotiatedVersions)
 }
 
 // OnChanUpgradeAck implements the IBCModule interface

@@ -703,7 +703,7 @@ func (k *Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.Msg
 func (k *Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	app, ok := k.PortKeeper.Route(msg.PortId)
+	app, ok := k.PortKeeper.AppRouter.HandshakeRoute(msg.PortId)
 	if !ok {
 		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
