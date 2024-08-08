@@ -758,7 +758,7 @@ func (k *Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgC
 func (k *Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeAck) (*channeltypes.MsgChannelUpgradeAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	app, ok := k.PortKeeper.Route(msg.PortId)
+	app, ok := k.PortKeeper.AppRouter.HandshakeRoute(msg.PortId)
 	if !ok {
 		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
 		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", err)

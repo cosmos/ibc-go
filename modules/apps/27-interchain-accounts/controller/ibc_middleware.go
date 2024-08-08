@@ -287,25 +287,7 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 		return types.ErrControllerSubModuleDisabled
 	}
 
-	if err := im.keeper.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion); err != nil {
-		return err
-	}
-
-	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
-	if err != nil {
-		return err
-	}
-
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		// Only cast to UpgradableModule if the application is set.
-		cbs, ok := im.app.(porttypes.UpgradableModule)
-		if !ok {
-			return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-		}
-		return cbs.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
-	}
-
-	return nil
+	return im.keeper.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface

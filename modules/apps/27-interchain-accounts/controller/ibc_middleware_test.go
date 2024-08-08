@@ -825,7 +825,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 	var (
 		path                *ibctesting.Path
-		isNilApp            bool
 		counterpartyVersion string
 	)
 
@@ -839,9 +838,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 		},
 		{
 			"success: nil underlying app",
-			func() {
-				isNilApp = true
-			},
+			func() {},
 			nil,
 		},
 		{
@@ -861,14 +858,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 				}
 			}, ibcmock.MockApplicationCallbackError,
 		},
-		{
-			"middleware disabled", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
-					return ibcmock.MockApplicationCallbackError
-				}
-			}, nil,
-		},
 	}
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
@@ -877,7 +866,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
-				isNilApp = false
 
 				path = NewICAPath(suite.chainA, suite.chainB, ordering)
 				path.SetupConnections()
@@ -889,17 +877,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
+
 				cbs, ok := app.(porttypes.UpgradableModule)
 				suite.Require().True(ok)
-
-				if isNilApp {
-					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
-				}
 
 				err = cbs.OnChanUpgradeAck(
 					suite.chainA.GetContext(),

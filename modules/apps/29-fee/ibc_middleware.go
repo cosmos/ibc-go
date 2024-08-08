@@ -312,25 +312,11 @@ func (IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string,
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+func (IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	if counterpartyVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, counterpartyVersion)
 	}
-
-	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-	if err != nil {
-		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
-		// or application further down in the stack. Thus, pass through to next middleware or application in callstack.
-		return cbs.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
-	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
-	}
-
-	// call underlying app's OnChanUpgradeAck callback with the counterparty app version.
-	return cbs.OnChanUpgradeAck(ctx, portID, channelID, versionMetadata.AppVersion)
+	return nil
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
