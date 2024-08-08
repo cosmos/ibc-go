@@ -163,11 +163,17 @@ func (im *LegacyIBCModule) OnChanOpenAck(
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
-func (LegacyIBCModule) OnChanOpenConfirm(
+func (im *LegacyIBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		err := im.cbs[i].OnChanOpenConfirm(ctx, portID, channelID)
+		if err != nil {
+			return errorsmod.Wrapf(err, "channel open confirm callback failed for port ID: %s, channel ID: %s", portID, channelID)
+		}
+	}
 	return nil
 }
 

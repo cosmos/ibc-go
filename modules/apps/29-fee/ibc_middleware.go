@@ -100,13 +100,12 @@ func (im IBCMiddleware) OnChanOpenAck(
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenConfirm(
+func (IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
-	// call underlying app's OnChanOpenConfirm callback.
-	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
