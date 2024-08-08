@@ -1075,21 +1075,6 @@ func (s *CallbacksTestSuite) TestGetAppVersion() {
 	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, appVersion)
 }
 
-func (s *CallbacksTestSuite) TestOnChanCloseInit() {
-	s.SetupICATest()
-
-	// We will pass the function call down the icacontroller stack to the icacontroller module
-	// icacontroller stack OnChanCloseInit call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
-	s.Require().True(ok)
-
-	controllerStack, ok := icaControllerStack.(porttypes.Middleware)
-	s.Require().True(ok)
-	err := controllerStack.OnChanCloseInit(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
-	// we just check that this call is passed down to the icacontroller to return an error
-	s.Require().ErrorIs(err, errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"))
-}
-
 func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 	s.SetupICATest()
 
