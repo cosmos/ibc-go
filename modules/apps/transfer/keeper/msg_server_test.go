@@ -397,8 +397,15 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 				types.NewForwarding(true),
 			)
 
+			tokens := make([]types.Token, 0, len(coins))
+			for _, c := range msg.GetCoins() {
+				token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(suite.chainA.GetContext(), c)
+				suite.Require().NoError(err)
+				tokens = append(tokens, token)
+			}
+
 			tc.malleate()
-			gotMsg, err := suite.chainA.GetSimApp().TransferKeeper.UnwindHops(suite.chainA.GetContext(), msg)
+			gotMsg, err := suite.chainA.GetSimApp().TransferKeeper.UnwindHops(msg, tokens)
 			tc.assertResult(gotMsg, err)
 		})
 	}

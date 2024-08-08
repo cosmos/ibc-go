@@ -24,13 +24,6 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	if msg.Forwarding.GetUnwind() {
-		msg, err = k.unwindHops(ctx, msg)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	coins := msg.GetCoins()
 	tokens := make([]types.Token, 0, len(coins))
 	for _, coin := range coins {
@@ -40,6 +33,13 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		}
 
 		tokens = append(tokens, token)
+	}
+
+	if msg.Forwarding.GetUnwind() {
+		msg, err = k.unwindHops(msg, tokens)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
@@ -109,8 +109,8 @@ func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) 
 // unwindHops unwinds the hops present in the tokens denomination and returns the message modified to reflect
 // the unwound path to take. It assumes that only a single token is present (as this is verified in ValidateBasic)
 // in the tokens list and ensures that the token is not native to the chain.
-func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
-	unwindHops, err := k.getUnwindHops(ctx, msg.GetCoins())
+func (k Keeper) unwindHops(msg *types.MsgTransfer, tokens []types.Token) (*types.MsgTransfer, error) {
+	unwindHops, err := k.getUnwindHops(tokens)
 	if err != nil {
 		return nil, err
 	}
@@ -130,30 +130,22 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 // getUnwindHops returns the hops to be used during unwinding. If coins consists of more than
 // one coin, all coins must have the exact same trace, else an error is returned. getUnwindHops
 // also validates that the coins are not native to the chain.
-func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, error) {
+func (Keeper) getUnwindHops(tokens []types.Token) ([]types.Hop, error) {
 	// Sanity: validation for MsgTransfer ensures coins are not empty.
-	if len(coins) == 0 {
+	if len(tokens) == 0 {
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "coins cannot be empty")
 	}
 
-	token, err := k.tokenFromCoin(ctx, coins[0])
-	if err != nil {
-		return nil, err
-	}
+	token := tokens[0]
 
 	if token.Denom.IsNative() {
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind a native token")
 	}
 
 	unwindTrace := token.Denom.Trace
-	for _, coin := range coins[1:] {
-		token, err := k.tokenFromCoin(ctx, coin)
-		if err != nil {
-			return nil, err
-		}
-
+	for _, t := range tokens[1:] {
 		// Implicitly ensures coin we're iterating over is not native.
-		if !slices.Equal(token.Denom.Trace, unwindTrace) {
+		if !slices.Equal(t.Denom.Trace, unwindTrace) {
 			return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind tokens with different traces.")
 		}
 	}

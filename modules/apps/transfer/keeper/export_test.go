@@ -35,8 +35,8 @@ func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 }
 
 // UnwindHops is a wrapper around unwindHops for testing purposes.
-func (k Keeper) UnwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
-	return k.unwindHops(ctx, msg)
+func (k Keeper) UnwindHops(msg *types.MsgTransfer, tokens []types.Token) (*types.MsgTransfer, error) {
+	return k.unwindHops(msg, tokens)
 }
 
 // GetForwardedPacket is a wrapper around getForwardedPacket for testing purposes.
