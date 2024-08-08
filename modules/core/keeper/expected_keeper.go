@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
-type PacketHandlerKeeper interface {
+type PacketHandler interface {
 	RecvPacket(
 		ctx sdk.Context,
 		chanCap *capabilitytypes.Capability,

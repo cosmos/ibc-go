@@ -463,7 +463,7 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	var (
-		packetHandler PacketHandlerKeeper
+		packetHandler PacketHandler
 		module        string
 		capability    *capabilitytypes.Capability
 	)
@@ -551,7 +551,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 // Timeout defines a rpc handler method for MsgTimeout.
 func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	var (
-		packetHandler PacketHandlerKeeper
+		packetHandler PacketHandler
 		module        string
 		capability    *capabilitytypes.Capability
 	)
@@ -697,7 +697,7 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
 	var (
-		packetHandler PacketHandlerKeeper
+		packetHandler PacketHandler
 		module        string
 		capability    *capabilitytypes.Capability
 	)
