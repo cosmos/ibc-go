@@ -16,15 +16,17 @@ import (
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	packetserver "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Keeper defines each ICS keeper for IBC
 type Keeper struct {
-	ClientKeeper     *clientkeeper.Keeper
-	ConnectionKeeper *connectionkeeper.Keeper
-	ChannelKeeper    *channelkeeper.Keeper
-	PortKeeper       *portkeeper.Keeper
+	ClientKeeper       *clientkeeper.Keeper
+	ConnectionKeeper   *connectionkeeper.Keeper
+	ChannelKeeper      *channelkeeper.Keeper
+	PacketServerKeeper *packetserver.Keeper
+	PortKeeper         *portkeeper.Keeper
 
 	cdc codec.BinaryCodec
 
@@ -54,14 +56,16 @@ func NewKeeper(
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
+	packetKeeper := packetserver.NewKeeper(cdc, channelKeeper, clientKeeper)
 
 	return &Keeper{
-		cdc:              cdc,
-		ClientKeeper:     clientKeeper,
-		ConnectionKeeper: connectionKeeper,
-		ChannelKeeper:    channelKeeper,
-		PortKeeper:       portKeeper,
-		authority:        authority,
+		cdc:                cdc,
+		ClientKeeper:       clientKeeper,
+		ConnectionKeeper:   connectionKeeper,
+		ChannelKeeper:      channelKeeper,
+		PacketServerKeeper: packetKeeper,
+		PortKeeper:         portKeeper,
+		authority:          authority,
 	}
 }
 

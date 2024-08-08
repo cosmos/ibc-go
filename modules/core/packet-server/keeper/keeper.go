@@ -117,9 +117,9 @@ func (k Keeper) RecvPacket(
 	packet channeltypes.Packet,
 	proof []byte,
 	proofHeight exported.Height,
-) error {
+) (string, error) {
 	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
-		return channeltypes.ErrInvalidPacket
+		return "", channeltypes.ErrInvalidPacket
 	}
 
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
@@ -127,17 +127,17 @@ func (k Keeper) RecvPacket(
 	// Note: This can be implemented by the current keeper
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
-		return channeltypes.ErrChannelNotFound
+		return "", channeltypes.ErrChannelNotFound
 	}
 	if counterparty.ClientId != packet.SourceChannel {
-		return channeltypes.ErrInvalidChannelIdentifier
+		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
 	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
+		return "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
 
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -149,7 +149,7 @@ func (k Keeper) RecvPacket(
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
 		// from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+		return "", channeltypes.ErrNoOpMsg
 	}
 
 	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
@@ -168,7 +168,7 @@ func (k Keeper) RecvPacket(
 		merklePath,
 		commitment,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationChannel)
+		return "", errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationChannel)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
@@ -180,7 +180,7 @@ func (k Keeper) RecvPacket(
 	// emit the same events as receive packet without channel fields
 	channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
 
-	return nil
+	return packet.AppVersion, nil
 }
 
 // TODO: add godoc
@@ -247,20 +247,20 @@ func (k Keeper) AcknowledgePacket(
 	acknowledgement []byte,
 	proofAcked []byte,
 	proofHeight exported.Height,
-) error {
+) (string, error) {
 	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
-		return channeltypes.ErrInvalidPacket
+		return "", channeltypes.ErrInvalidPacket
 	}
 
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
-		return channeltypes.ErrChannelNotFound
+		return "", channeltypes.ErrChannelNotFound
 	}
 
 	if counterparty.ClientId != packet.DestinationChannel {
-		return channeltypes.ErrInvalidChannelIdentifier
+		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 
 	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
@@ -271,14 +271,14 @@ func (k Keeper) AcknowledgePacket(
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+		return "", channeltypes.ErrNoOpMsg
 	}
 
 	packetCommitment := channeltypes.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
 	path := host.PacketAcknowledgementKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
@@ -293,7 +293,7 @@ func (k Keeper) AcknowledgePacket(
 		merklePath,
 		channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceChannel)
+		return "", errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceChannel)
 	}
 
 	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
@@ -304,40 +304,41 @@ func (k Keeper) AcknowledgePacket(
 	// emit the same events as acknowledge packet without channel fields
 	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
 
-	return nil
+	return packet.AppVersion, nil
 }
 
 // TODO: add godoc
 func (k Keeper) TimeoutPacket(
 	ctx sdk.Context,
+	_ *capabilitytypes.Capability,
 	packet channeltypes.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 	_ uint64,
-) error {
+) (string, error) {
 	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
-		return channeltypes.ErrInvalidPacket
+		return "", channeltypes.ErrInvalidPacket
 	}
 	// Lookup counterparty associated with our channel and ensure that destination channel
 	// is the expected counterparty
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
-		return channeltypes.ErrChannelNotFound
+		return "", channeltypes.ErrChannelNotFound
 	}
 
 	if counterparty.ClientId != packet.DestinationChannel {
-		return channeltypes.ErrInvalidChannelIdentifier
+		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 
 	// check that timeout height or timeout timestamp has passed on the other end
 	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceChannel, proofHeight)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if !timeout.Elapsed(proofHeight.(clienttypes.Height), proofTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+		return "", errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
@@ -349,13 +350,13 @@ func (k Keeper) TimeoutPacket(
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+		return "", channeltypes.ErrNoOpMsg
 	}
 
 	packetCommitment := channeltypes.CommitPacket(packet)
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
 	// verify packet receipt absence
@@ -370,7 +371,7 @@ func (k Keeper) TimeoutPacket(
 		proof,
 		merklePath,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceChannel)
+		return "", errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceChannel)
 	}
 
 	// delete packet commitment to prevent replay
@@ -382,7 +383,7 @@ func (k Keeper) TimeoutPacket(
 	// emit timeout events
 	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
 
-	return nil
+	return packet.AppVersion, nil
 }
 
 // sentinelChannel creates a sentinel channel for use in events for Eureka protocol handlers.

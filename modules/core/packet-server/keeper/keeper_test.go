@@ -190,13 +190,11 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+			// send packet
+			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, "", ibctesting.MockPacketData)
+			suite.Require().NoError(err)
 
-			// For now, set packet commitment on A for each case and update clients. Use SendPacket after 7048.
-			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence, channeltypes.CommitPacket(packet))
-
-			suite.coordinator.CommitBlock(path.EndpointA.Chain)
-			suite.Require().NoError(path.EndpointB.UpdateClient())
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
 
 			tc.malleate()
 
@@ -204,7 +202,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
 
-			err := suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
+			_, err = suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -323,7 +321,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
 		packet       channeltypes.Packet
-		ack          exported.Acknowledgement
+		ack          = mock.MockAcknowledgement
 		freezeClient bool
 	)
 
@@ -398,45 +396,25 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			freezeClient = false
 
-			// create packet receipt and acknowledgement
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
 			// send packet
-			_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort, packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
+			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, "", ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			// TODO: Clean up code when msg server handler routes correctly.
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
 
-			// need to update chainA's client representing chainB to prove missing ack
-			// commit the changes and update the clients
-			suite.coordinator.CommitBlock(path.EndpointA.Chain)
-			suite.Require().NoError(path.EndpointB.UpdateClient())
-
-			// get proof of packet commitment from chainA
-			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
-
-			err = suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
-			suite.Require().NoError(err)
-
-			ack = mock.MockAcknowledgement
-			err = suite.chainB.App.GetPacketServer().WriteAcknowledgement(suite.chainB.GetContext(), nil, packet, ack)
+			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			// need to update chainA's client representing chainB to prove missing ack
-			// commit the changes and update the clients
-			suite.coordinator.CommitBlock(path.EndpointB.Chain)
-			suite.Require().NoError(path.EndpointA.UpdateClient())
-
-			packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
+			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
 
 			if freezeClient {
 				path.EndpointA.FreezeClient()
 			}
 
-			err = suite.chainA.App.GetPacketServer().AcknowledgePacket(suite.chainA.GetContext(), nil, packet, ack.Acknowledgement(), proof, proofHeight)
+			_, err = suite.chainA.App.GetPacketServer().AcknowledgePacket(suite.chainA.GetContext(), nil, packet, ack.Acknowledgement(), proof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -611,7 +589,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				path.EndpointA.FreezeClient()
 			}
 
-			err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, 0)
+			_, err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), nil, packet, proof, proofHeight, 0)
 
 			expPass := tc.expError == nil
 			if expPass {

@@ -27,6 +27,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 	var (
 		path        *ibctesting.Path
 		packet      types.Packet
+		chanCap     *capabilitytypes.Capability
 		nextSeqRecv uint64
 		ordered     bool
 		expError    *errorsmod.Error
@@ -47,6 +48,8 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
+
+			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"success: UNORDERED", func() {
 			ordered = false
@@ -60,6 +63,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
+			chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"packet already timed out: ORDERED", func() {
 			expError = types.ErrNoOpMsg
@@ -144,6 +148,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, timeoutTimestamp)
 			err = path.EndpointA.UpdateClient()
@@ -220,7 +225,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				}
 			}
 
-			channelVersion, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, nextSeqRecv)
+			channelVersion, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutPacket(suite.chainA.GetContext(), chanCap, packet, proof, proofHeight, nextSeqRecv)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
