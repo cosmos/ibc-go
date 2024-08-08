@@ -482,12 +482,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 
 func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name      string
+		malleate  func()
+		expStatus exported.RecvPacketStatus
 	}{
 		{
-			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, false,
+			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, exported.Failure,
 		},
 	}
 
@@ -525,7 +525,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 				ctx := suite.chainA.GetContext()
 				res := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
-				suite.Require().Equal(tc.expPass, res.Status == exported.Success)
+				suite.Require().Equal(tc.expStatus, res.Status, "expected %s but got %s", tc.expStatus, res.Status)
 
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
