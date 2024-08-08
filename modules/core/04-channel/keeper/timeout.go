@@ -24,6 +24,7 @@ import (
 // ante handler.
 func (k *Keeper) TimeoutPacket(
 	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
@@ -119,18 +120,21 @@ func (k *Keeper) TimeoutPacket(
 		return "", err
 	}
 
-	// NOTE: the remaining code is located in the TimeoutExecuted function
+	if err = k.timeoutExecuted(ctx, chanCap, packet); err != nil {
+		return "", err
+	}
+
 	return channel.Version, nil
 }
 
-// TimeoutExecuted deletes the commitment send from this chain after it verifies timeout.
+// timeoutExecuted deletes the commitment send from this chain after it verifies timeout.
 // If the timed-out packet came from an ORDERED channel then this channel will be closed.
 // If the channel is in the FLUSHING state and there is a counterparty upgrade, then the
 // upgrade will be aborted if the upgrade has timed out. Otherwise, if there are no more inflight packets,
 // then the channel will be set to the FLUSHCOMPLETE state.
 //
 // CONTRACT: this function must be called in the IBC handler
-func (k *Keeper) TimeoutExecuted(
+func (k *Keeper) timeoutExecuted(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
@@ -298,6 +302,9 @@ func (k *Keeper) TimeoutOnClose(
 		return "", err
 	}
 
-	// NOTE: the remaining code is located in the TimeoutExecuted function
+	if err = k.timeoutExecuted(ctx, chanCap, packet); err != nil {
+		return "", err
+	}
+
 	return channel.Version, nil
 }
