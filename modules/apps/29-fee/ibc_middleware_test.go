@@ -703,16 +703,6 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			false,
 			func() {},
 		},
-		{
-			"application callback fails",
-			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
-					return fmt.Errorf("mock fee app callback fails")
-				}
-			},
-			false,
-			func() {},
-		},
 	}
 
 	for _, tc := range testCases {

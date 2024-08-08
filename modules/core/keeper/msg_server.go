@@ -615,7 +615,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(msg.Packet.SourcePort)
+	cbs, ok := k.PortKeeper.AppRouter.PacketRoute(msg.Packet.SourcePort)
 	if !ok {
 		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort)
@@ -641,10 +641,12 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	}
 
 	// Perform application logic callback
-	err = cbs.OnAcknowledgementPacket(ctx, channelVersion, msg.Packet, msg.Acknowledgement, relayer)
-	if err != nil {
-		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
-		return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
+	for _, cb := range cbs {
+		err = cb.OnAcknowledgementPacket(ctx, channelVersion, msg.Packet, msg.Acknowledgement, relayer)
+		if err != nil {
+			ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
+			return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
+		}
 	}
 
 	defer telemetry.ReportAcknowledgePacket(msg.Packet)

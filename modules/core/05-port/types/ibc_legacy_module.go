@@ -239,13 +239,32 @@ func (LegacyIBCModule) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
-func (LegacyIBCModule) OnAcknowledgementPacket(
+func (im *LegacyIBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		var (
+			cbVersion = channelVersion
+			cbAck     = acknowledgement
+		)
+
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+			cbVersion, channelVersion = wrapper.UnwrapVersionSafe(ctx, packet.SourcePort, packet.SourceChannel, cbVersion)
+		}
+
+		if wrapper, ok := im.cbs[i].(AcknowledgementWrapper); ok {
+			cbAck, acknowledgement = wrapper.UnwrapAcknowledgement(ctx, packet.SourcePort, packet.SourceChannel, cbAck)
+		}
+
+		err := im.cbs[i].OnAcknowledgementPacket(ctx, cbVersion, packet, cbAck, relayer)
+		if err != nil {
+			return errorsmod.Wrap(err, "acknowledge packet callback failed")
+		}
+	}
 	return nil
 }
 

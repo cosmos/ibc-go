@@ -259,14 +259,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
-			"failure: underlying app OnAcknolwedgePacket fails",
-			func() {
-				ack = []byte("invalid ack")
-			},
-			noExecution,
-			ibcerrors.ErrUnknownRequest,
-		},
-		{
 			"success: no-op on callback data is not valid",
 			func() {
 				//nolint:goconst
@@ -345,11 +337,19 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(transfertypes.ModuleName)
+			s.Require().True(ok)
+
+			legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule)
+			s.Require().True(ok, "expected there to be a single legacy ibc module")
+
+			legacyModuleCbs := legacyModule.GetCallbacks()
+
+			callbacksModule, ok := legacyModuleCbs[1].(ibccallbacks.IBCMiddleware) // callbacks module is routed second
 			s.Require().True(ok)
 
 			onAcknowledgementPacket := func() error {
-				return transferStack.OnAcknowledgementPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress())
+				return callbacksModule.OnAcknowledgementPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress())
 			}
 
 			switch tc.expError {
@@ -388,7 +388,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, callbacksModule, gasLimit, packet.Data, packet.SourcePort,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeAcknowledgementPacket, nil,
 				)
 				s.Require().True(exists)

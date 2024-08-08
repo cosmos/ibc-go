@@ -305,7 +305,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 				suite.Require().True(ok, "expected there to be a single legacy ibc module")
 
 				legacyModuleCbs := legacyModule.GetCallbacks()
-				hostModule, ok := legacyModuleCbs[0].(icahost.IBCModule) // fee module is routed second
+				hostModule, ok := legacyModuleCbs[0].(icahost.IBCModule)
 				suite.Require().True(ok)
 
 				err = hostModule.OnChanOpenConfirm(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -557,10 +557,14 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-				suite.Require().NoError(err)
+				cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(path.EndpointB.ChannelConfig.PortID)
+				suite.Require().True(ok)
 
-				cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+				legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule)
+				suite.Require().True(ok, "expected there to be a single legacy ibc module")
+
+				legacyModuleCbs := legacyModule.GetCallbacks()
+				hostModule, ok := legacyModuleCbs[0].(icahost.IBCModule)
 				suite.Require().True(ok)
 
 				packet := channeltypes.NewPacket(
@@ -574,7 +578,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 					0,
 				)
 
-				err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), path.EndpointB.GetChannel().Version, packet, []byte("ackBytes"), nil)
+				err = hostModule.OnAcknowledgementPacket(suite.chainB.GetContext(), path.EndpointB.GetChannel().Version, packet, []byte("ackBytes"), nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)
