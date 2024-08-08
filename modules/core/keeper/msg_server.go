@@ -661,7 +661,7 @@ func (k *Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.Msg
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	app, ok := k.PortKeeper.Route(msg.PortId)
+	app, ok := k.PortKeeper.AppRouter.HandshakeRoute(msg.PortId)
 	if !ok {
 		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
