@@ -253,15 +253,6 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			"success", func() {}, true,
 		},
 		{
-			"application callback fails", func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseInit = func(
-					ctx sdk.Context, portID, channelID string,
-				) error {
-					return fmt.Errorf("application callback fails")
-				}
-			}, false,
-		},
-		{
 			"RefundFeesOnChannelClosure continues - invalid refund address", func() {
 				// store the fee in state & update escrow account balance
 				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))

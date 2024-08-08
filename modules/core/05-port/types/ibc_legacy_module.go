@@ -172,11 +172,16 @@ func (LegacyIBCModule) OnChanOpenConfirm(
 }
 
 // OnChanCloseInit implements the IBCModule interface
-func (LegacyIBCModule) OnChanCloseInit(
+func (im *LegacyIBCModule) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		if err := im.cbs[i].OnChanCloseInit(ctx, portID, channelID); err != nil {
+			return errorsmod.Wrapf(err, "channel close init callback failed for port ID: %s, channel ID: %s", portID, channelID)
+		}
+	}
 	return nil
 }
 
@@ -190,7 +195,7 @@ func (LegacyIBCModule) OnChanCloseConfirm(
 }
 
 // OnSendPacket implements the IBCModule interface.
-func (im LegacyIBCModule) OnSendPacket(
+func (im *LegacyIBCModule) OnSendPacket(
 	ctx sdk.Context,
 	portID string,
 	channelID string,

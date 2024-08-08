@@ -349,7 +349,7 @@ func (im IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID str
 
 // OnChanCloseInit defers to the underlying application
 func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
-	return im.app.OnChanCloseInit(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanCloseConfirm defers to the underlying application

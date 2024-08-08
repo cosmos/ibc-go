@@ -337,10 +337,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 		err := SetupICAPath(path, TestOwnerAddress)
 		suite.Require().NoError(err)
 
-		module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+		cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointB.ChannelConfig.PortID)
 		suite.Require().True(ok)
 
 		err = cbs.OnChanCloseInit(
