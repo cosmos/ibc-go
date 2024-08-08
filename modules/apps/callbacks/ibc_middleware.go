@@ -348,7 +348,7 @@ func (IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string
 }
 
 // OnChanCloseInit defers to the underlying application
-func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
+func (IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	return nil
 }
 
@@ -373,13 +373,7 @@ func (IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counte
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
-	}
-
-	cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
+func (IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 }
 
 // GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,
