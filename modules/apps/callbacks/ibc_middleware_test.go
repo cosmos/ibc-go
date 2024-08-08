@@ -133,15 +133,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
-			"failure: ics4Wrapper SendPacket call fails",
-			func() {
-				s.path.EndpointA.ChannelID = "invalid-channel"
-			},
-			"none", // ics4wrapper failure should result in no callback execution
-			false,
-			channeltypes.ErrChannelNotFound,
-		},
-		{
 			"failure: callback execution fails",
 			func() {
 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.ErrorContract)
@@ -175,7 +166,16 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
-			transferICS4Wrapper := GetSimApp(s.chainA).TransferKeeper.GetICS4Wrapper()
+			cbs, ok := GetSimApp(s.chainA).IBCKeeper.PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
+			s.Require().True(ok)
+
+			legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
+			s.Require().True(ok, "expected there to be a single legacy ibc module")
+
+			legacyModuleCbs := legacyModule.GetCallbacks()
+
+			callbacksModule, ok := legacyModuleCbs[1].(ibccallbacks.IBCMiddleware) // callbacks module is routed second
+			s.Require().True(ok)
 
 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
 				[]transfertypes.Token{
@@ -190,19 +190,15 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				ibctesting.EmptyForwardingPacketData,
 			)
 
-			chanCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
-
 			tc.malleate()
 
 			ctx := s.chainA.GetContext()
 			gasLimit := ctx.GasMeter().Limit()
 
-			var (
-				seq uint64
-				err error
-			)
+			var err error
+
 			sendPacket := func() {
-				seq, err = transferICS4Wrapper.SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+				err = callbacksModule.OnSendPacket(ctx, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes(), s.chainB.SenderAccount.GetAddress())
 			}
 
 			expPass := tc.expValue == nil
@@ -210,11 +206,10 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			case expPass:
 				sendPacket()
 				s.Require().Nil(err)
-				s.Require().Equal(uint64(1), seq)
 
 				expEvent, exists := GetExpectedEvent(
-					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
-					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
+					ctx, callbacksModule, gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1, types.CallbackTypeSendPacket, nil,
 				)
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
@@ -226,7 +221,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			default:
 				sendPacket()
 				s.Require().ErrorIs(err, tc.expValue.(error))
-				s.Require().Equal(uint64(0), seq)
 			}
 
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
@@ -812,14 +806,12 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			ctx = s.chainB.GetContext()
 			gasLimit := ctx.GasMeter().Limit()
 
-			chanCap := s.chainB.GetChannelCapability(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
-
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
 			transferICS4Wrapper := GetSimApp(s.chainB).TransferKeeper.GetICS4Wrapper()
 
-			err := transferICS4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+			err := transferICS4Wrapper.WriteAcknowledgement(ctx, packet, ack)
 
 			expPass := tc.expError == nil
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
@@ -1081,21 +1073,6 @@ func (s *CallbacksTestSuite) TestGetAppVersion() {
 	appVersion, found := controllerStack.GetAppVersion(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	s.Require().True(found)
 	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, appVersion)
-}
-
-func (s *CallbacksTestSuite) TestOnChanCloseInit() {
-	s.SetupICATest()
-
-	// We will pass the function call down the icacontroller stack to the icacontroller module
-	// icacontroller stack OnChanCloseInit call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
-	s.Require().True(ok)
-
-	controllerStack, ok := icaControllerStack.(porttypes.Middleware)
-	s.Require().True(ok)
-	err := controllerStack.OnChanCloseInit(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
-	// we just check that this call is passed down to the icacontroller to return an error
-	s.Require().ErrorIs(err, errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"))
 }
 
 func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {

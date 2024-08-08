@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
@@ -18,23 +19,9 @@ var _ types.MsgServer = (*Keeper)(nil)
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.GetParams(ctx).SendEnabled {
-		return nil, types.ErrSendDisabled
-	}
-
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
-	}
-
-	coins := msg.GetCoins()
-
-	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
-	}
-
-	if k.isBlockedAddr(sender) {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
 	if msg.Forwarding.GetUnwind() {
@@ -44,16 +31,67 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		}
 	}
 
-	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, coins, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Memo, msg.Forwarding.GetHops())
+	coins := msg.GetCoins()
+	tokens := make([]types.Token, 0, len(coins))
+	for _, coin := range coins {
+		token, err := k.tokenFromCoin(ctx, coin)
+		if err != nil {
+			return nil, err
+		}
+
+		tokens = append(tokens, token)
+	}
+
+	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
+	if !found {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", msg.SourcePort, msg.SourceChannel)
+	}
+	packetDataBz, err := createPacketDataBytesFromVersion(appVersion, sender.String(), msg.Receiver, msg.Memo, tokens, msg.Forwarding.GetHops())
 	if err != nil {
 		return nil, err
 	}
 
-	k.Logger(ctx).Info("IBC fungible token transfer", "tokens", coins, "sender", msg.Sender, "receiver", msg.Receiver)
+	msgSendPacket := &channeltypes.MsgSendPacket{
+		PortId:           msg.SourcePort,
+		ChannelId:        msg.SourceChannel,
+		TimeoutHeight:    msg.TimeoutHeight,
+		TimeoutTimestamp: msg.TimeoutTimestamp,
+		Data:             packetDataBz,
+		Signer:           msg.Sender,
+	}
 
-	return &types.MsgTransferResponse{Sequence: sequence}, nil
+	handler := k.msgRouter.Handler(msgSendPacket)
+	res, err := handler(ctx, msgSendPacket)
+	if err != nil {
+		return nil, err
+	}
+
+	sendPacketResp, ok := res.MsgResponses[0].GetCachedValue().(*channeltypes.MsgSendPacketResponse)
+	if !ok {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to convert %T message response to %T", res.MsgResponses[0].GetCachedValue(), &channeltypes.MsgSendPacketResponse{})
+	}
+
+	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
+	ctx.EventManager().EmitEvents(res.GetEvents())
+
+	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
+
+	// ctx.EventManager().EmitEvents(sdk.Events{
+	// 	sdk.NewEvent(
+	// 		types.EventTypeTransfer,
+	// 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	// 		sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+	// 		sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
+	// 		sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
+	// 		sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+	// 	),
+	// 	sdk.NewEvent(
+	// 		sdk.EventTypeMessage,
+	// 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	// 	),
+	// })
+
+	return &types.MsgTransferResponse{Sequence: sendPacketResp.Sequence}, nil
 }
 
 // UpdateParams defines an rpc handler method for MsgUpdateParams. Updates the ibc-transfer module's parameters.
@@ -82,7 +120,7 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	msg.Forwarding.Hops = append(unwindHops[1:], msg.Forwarding.Hops...)
 	msg.Forwarding.Unwind = false
 
-	// Message is validate again, this would only fail if hops now exceeds maximum allowed.
+	// Message is validated again, this would only fail if hops now exceeds maximum allowed.
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}

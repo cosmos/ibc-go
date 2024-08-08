@@ -9,15 +9,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -27,7 +26,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	var (
 		channel      *channeltypes.Channel
 		path         *ibctesting.Path
-		chanCap      *capabilitytypes.Capability
 		counterparty channeltypes.Counterparty
 	)
 
@@ -77,12 +75,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				channel.Version = "version" //nolint:goconst
 			}, types.ErrInvalidVersion, "",
 		},
-		{
-			"capability already claimed", func() {
-				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-			}, capabilitytypes.ErrOwnerClaimed, "",
-		},
 	}
 
 	for _, tc := range testCases {
@@ -104,14 +96,12 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			}
 
 			var err error
-			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
 			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterparty, channel.Version,
 			)
 
 			expPass := tc.expError == nil
@@ -129,7 +119,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 func (suite *TransferTestSuite) TestOnChanOpenTry() {
 	var (
 		channel             *channeltypes.Channel
-		chanCap             *capabilitytypes.Capability
 		path                *ibctesting.Path
 		counterparty        channeltypes.Counterparty
 		counterpartyVersion string
@@ -159,12 +148,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			"failure: max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
 			}, types.ErrMaxTransferChannels, "",
-		},
-		{
-			"failure: capability already claimed", func() {
-				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-			}, capabilitytypes.ErrOwnerClaimed, "",
 		},
 		{
 			"failure: invalid order - ORDERED", func() {
@@ -198,19 +181,13 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			}
 			counterpartyVersion = types.V2
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-			suite.Require().NoError(err)
-
-			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.TransferPort)
 			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, counterpartyVersion,
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, counterpartyVersion,
 			)
 			expPass := tc.expError == nil
 			if expPass {
@@ -255,15 +232,10 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.V2
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			suite.Require().True(ok)
-
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelID, counterpartyVersion)
+			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
+			err := transferModule.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelID, counterpartyVersion)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -650,10 +622,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 
 			tc.malleate()
 
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), types.PortID)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(types.PortID)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -721,10 +690,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 
 			tc.malleate()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(types.PortID)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -911,6 +877,92 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
+func (suite *TransferTestSuite) TestOnSendPacket() {
+	var (
+		packetData types.FungibleTokenPacketDataV2
+		path       *ibctesting.Path
+		signer     sdk.AccAddress
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: send disabled",
+			func() {
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false, true))
+			},
+			types.ErrSendDisabled,
+		},
+		{
+			"failure: blocked address",
+			func() {
+				signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName)
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: sender is not signer",
+			func() {
+				packetData.Sender = suite.chainB.SenderAccount.GetAddress().String()
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: V2 packet can't be unmarshaled if version is V1 and it contains V2 data",
+			func() {
+				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
+					channel.Version = types.V1
+				})
+				packetData.Forwarding = types.NewForwardingPacketData("", types.NewHop(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			ibcerrors.ErrInvalidType,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			signer = sdk.MustAccAddressFromBech32(suite.chainA.SenderAccount.GetAddress().String())
+
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			packetData = types.NewFungibleTokenPacketDataV2(
+				[]types.Token{{Denom: types.NewDenom(sdk.DefaultBondDenom), Amount: ibctesting.TestCoin.Amount.String()}},
+				suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.String(), "", types.ForwardingPacketData{},
+			)
+
+			tc.malleate()
+
+			dataBytes := packetData.GetBytes()
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRoute(path.EndpointA.ChannelConfig.PortID)
+			suite.Require().True(ok)
+
+			err := cbs[0].OnSendPacket(
+				suite.chainA.GetContext(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+				0, clienttypes.ZeroHeight(), 0,
+				dataBytes,
+				signer,
+			)
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}

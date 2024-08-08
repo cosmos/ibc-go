@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
@@ -65,6 +64,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
 		}, true},
@@ -79,6 +79,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				authkeeper.AccountKeeper{}, // empty account keeper
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
 		}, false},
@@ -93,6 +94,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
 				"", // authority
 			)
 		}, false},
@@ -366,22 +368,6 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	suite.Require().Panics(func() {
 		suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
 	})
-}
-
-func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
-	suite.SetupTest()
-
-	// test if the ics4 wrapper is the channel keeper initially
-	ics4Wrapper := suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
-
-	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
-	suite.Require().False(isChannelKeeper)
-
-	// set the ics4 wrapper to the channel keeper
-	suite.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
-	ics4Wrapper = suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
-
-	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 }
 
 func (suite *KeeperTestSuite) TestIsBlockedAddr() {

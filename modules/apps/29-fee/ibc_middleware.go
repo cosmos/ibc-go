@@ -2,13 +2,13 @@ package fee
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -22,17 +22,18 @@ var (
 	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 	_ porttypes.UpgradableModule      = (*IBCMiddleware)(nil)
+	_ porttypes.VersionWrapper        = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // fee keeper and the underlying application.
 type IBCMiddleware struct {
-	app    porttypes.IBCModule
+	app    porttypes.ClassicIBCModule
 	keeper keeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.ClassicIBCModule, k keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    app,
 		keeper: k,
@@ -46,49 +47,15 @@ func (im IBCMiddleware) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	var versionMetadata types.Metadata
-
-	if strings.TrimSpace(version) == "" {
-		// default version
-		versionMetadata = types.Metadata{
-			FeeVersion: types.Version,
-			AppVersion: "",
-		}
-	} else {
-		metadata, err := types.MetadataFromVersion(version)
-		if err != nil {
-			// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-			// application.
-			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-				chanCap, counterparty, version)
-		}
-		versionMetadata = metadata
-	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
-	}
-
-	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
-	if err != nil {
-		return "", err
-	}
-
-	versionMetadata.AppVersion = appVersion
-	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-	if err != nil {
-		return "", err
+	if strings.TrimSpace(version) != "" && version != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, version)
 	}
 
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-
-	// call underlying app's OnChanOpenInit callback with the appVersion
-	return string(versionBytes), nil
+	return types.Version, nil
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -100,37 +67,14 @@ func (im IBCMiddleware) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-	if err != nil {
-		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
-		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
-		// application.
-		return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+	if counterpartyVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
 	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
-	}
-
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-
-	// call underlying app's OnChanOpenTry callback with the app versions
-	appVersion, err := im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
-	if err != nil {
-		return "", err
-	}
-
-	versionMetadata.AppVersion = appVersion
-	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-	if err != nil {
-		return "", err
-	}
-
-	return string(versionBytes), nil
+	return counterpartyVersion, nil
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface
@@ -141,35 +85,27 @@ func (im IBCMiddleware) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-		if err != nil {
-			// we pass the entire version string onto the underlying application.
-			// and disable fees for this channel
-			im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-			return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-		}
-
-		if versionMetadata.FeeVersion != types.Version {
-			return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
-		}
-
-		// call underlying app's OnChanOpenAck callback with the counterparty app version.
-		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, versionMetadata.AppVersion)
+	if strings.TrimSpace(counterpartyVersion) == "" {
+		// disable fees for this channel
+		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+		return nil
 	}
 
-	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
+	if counterpartyVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, counterpartyVersion)
+	}
+
+	im.keeper.SetFeeEnabled(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenConfirm(
+func (IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
-	// call underlying app's OnChanOpenConfirm callback.
-	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
@@ -178,10 +114,6 @@ func (im IBCMiddleware) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	if err := im.app.OnChanCloseInit(ctx, portID, channelID); err != nil {
-		return err
-	}
-
 	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		return nil
 	}
@@ -199,10 +131,6 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	if err := im.app.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
-		return err
-	}
-
 	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		return nil
 	}
@@ -212,6 +140,20 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	}
 
 	return im.keeper.RefundFeesOnChannelClosure(ctx, portID, channelID)
+}
+
+// OnSendPacket implements the IBCModule interface.
+func (IBCMiddleware) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+	signer sdk.AccAddress,
+) error {
+	return nil
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
@@ -343,7 +285,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeInit(
+func (IBCMiddleware) OnChanUpgradeInit(
 	ctx sdk.Context,
 	portID string,
 	channelID string,
@@ -351,88 +293,26 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 	proposedConnectionHops []string,
 	proposedVersion string,
 ) (string, error) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+	if proposedVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, proposedVersion)
 	}
-
-	versionMetadata, err := types.MetadataFromVersion(proposedVersion)
-	if err != nil {
-		// since it is valid for fee version to not be specified, the upgrade version may be for a middleware
-		// or application further down in the stack. Thus, pass through to next middleware or application in callstack.
-		return cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
-	}
-
-	appVersion, err := cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, versionMetadata.AppVersion)
-	if err != nil {
-		return "", err
-	}
-
-	versionMetadata.AppVersion = appVersion
-	versionBz, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-	if err != nil {
-		return "", err
-	}
-
-	return string(versionBz), nil
+	return types.Version, nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+func (IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
+	if counterpartyVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
 	}
-
-	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-	if err != nil {
-		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
-		// or application further down in the stack. Thus, pass through to next middleware or application in callstack.
-		return cbs.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
-	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
-	}
-
-	appVersion, err := cbs.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, versionMetadata.AppVersion)
-	if err != nil {
-		return "", err
-	}
-
-	versionMetadata.AppVersion = appVersion
-	versionBz, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
-	if err != nil {
-		return "", err
-	}
-
-	return string(versionBz), nil
+	return counterpartyVersion, nil
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+func (IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	if counterpartyVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, counterpartyVersion)
 	}
-
-	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-	if err != nil {
-		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
-		// or application further down in the stack. Thus, pass through to next middleware or application in callstack.
-		return cbs.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
-	}
-
-	if versionMetadata.FeeVersion != types.Version {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
-	}
-
-	// call underlying app's OnChanUpgradeAck callback with the counterparty app version.
-	return cbs.OnChanUpgradeAck(ctx, portID, channelID, versionMetadata.AppVersion)
+	return nil
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
@@ -455,27 +335,13 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 	cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, versionMetadata.AppVersion)
 }
 
-// SendPacket implements the ICS4 Wrapper interface
-func (im IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	return im.keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
-}
-
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
-	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	return im.keeper.WriteAcknowledgement(ctx, packet, ack)
 }
 
 // GetAppVersion returns the application version of the underlying application
@@ -503,4 +369,31 @@ func unwrapAppVersion(channelVersion string) string {
 	}
 
 	return metadata.AppVersion
+}
+
+// WrapVersion returns the wrapped ics29 version based on the provided ics29 version and the underlying application version.
+func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string {
+	if cbVersion != types.Version {
+		panic(fmt.Errorf("invalid ics29 version provided. expected: %s, got: %s", types.Version, cbVersion))
+	}
+
+	metadata := types.Metadata{
+		FeeVersion: cbVersion,
+		AppVersion: underlyingAppVersion,
+	}
+
+	versionBytes := types.ModuleCdc.MustMarshalJSON(&metadata)
+
+	return string(versionBytes)
+}
+
+// UnwrapVersionUnsafe attempts to unmarshal the version string into a ics29 version. An error is returned if unsuccessful.
+func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
+	metadata, err := types.MetadataFromVersion(version)
+	if err != nil {
+		// not an ics29 version
+		return "", version, err
+	}
+
+	return metadata.FeeVersion, metadata.AppVersion, nil
 }

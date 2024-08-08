@@ -7,10 +7,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	_ porttypes.IBCModule             = (*IBCModule)(nil)
+	_ porttypes.ClassicIBCModule      = (*IBCModule)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
 	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
 )
@@ -42,7 +42,6 @@ func (IBCModule) OnChanOpenInit(
 	_ []string,
 	_ string,
 	_ string,
-	_ *capabilitytypes.Capability,
 	_ channeltypes.Counterparty,
 	_ string,
 ) (string, error) {
@@ -56,7 +55,6 @@ func (im IBCModule) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
@@ -64,7 +62,7 @@ func (im IBCModule) OnChanOpenTry(
 		return "", types.ErrHostSubModuleDisabled
 	}
 
-	return im.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+	return im.keeper.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -108,6 +106,20 @@ func (im IBCModule) OnChanCloseConfirm(
 	channelID string,
 ) error {
 	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
+}
+
+// OnSendPacket implements the IBCModule interface.
+func (IBCModule) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+	signer sdk.AccAddress,
+) error {
+	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "cannot send packet on icahost")
 }
 
 // OnRecvPacket implements the IBCModule interface

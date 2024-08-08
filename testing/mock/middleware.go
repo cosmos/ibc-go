@@ -6,11 +6,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -38,21 +36,14 @@ func NewBlockUpgradeMiddleware(appModule *AppModule, app *IBCApp) BlockUpgradeMi
 // OnChanOpenInit implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnChanOpenInit(
 	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string,
+	channelID string, counterparty channeltypes.Counterparty, version string,
 ) (string, error) {
 	if strings.TrimSpace(version) == "" {
 		version = Version
 	}
 
 	if im.IBCApp.OnChanOpenInit != nil {
-		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
-	}
-
-	if chanCap != nil {
-		// Claim channel capability passed back by IBC module
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return "", err
-		}
+		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 	}
 
 	return version, nil
@@ -61,17 +52,10 @@ func (im BlockUpgradeMiddleware) OnChanOpenInit(
 // OnChanOpenTry implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnChanOpenTry(
 	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string,
+	channelID string, counterparty channeltypes.Counterparty, counterpartyVersion string,
 ) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
-		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
-	}
-
-	if chanCap != nil {
-		// Claim channel capability passed back by IBC module
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return "", err
-		}
+		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 	}
 
 	return Version, nil
@@ -108,6 +92,15 @@ func (im BlockUpgradeMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channe
 func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanCloseConfirm != nil {
 		return im.IBCApp.OnChanCloseConfirm(ctx, portID, channelID)
+	}
+
+	return nil
+}
+
+// OnSendPacket implements the IBCModule interface.
+func (im BlockUpgradeMiddleware) OnSendPacket(ctx sdk.Context, portID string, channelID string, sequence uint64, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte, signer sdk.AccAddress) error {
+	if im.IBCApp.OnSendPacket != nil {
+		return im.IBCApp.OnSendPacket(ctx, portID, channelID, sequence, data, signer)
 	}
 
 	return nil
@@ -168,23 +161,9 @@ func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion
 	return nil
 }
 
-// SendPacket implements the ICS4 Wrapper interface
-func (BlockUpgradeMiddleware) SendPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	return 0, nil
-}
-
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (BlockUpgradeMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {

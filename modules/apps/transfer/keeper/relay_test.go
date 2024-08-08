@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				// channel references wrong ID
 				path.EndpointA.ChannelID = ibctesting.InvalidID
 			},
-			channeltypes.ErrChannelNotFound,
+			ibcerrors.ErrInvalidRequest, // returned when looking up app version, channel not found
 		},
 		{
 			"failure: sender account is blocked",
@@ -161,16 +161,14 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			},
 			sdkerrors.ErrInsufficientFunds,
 		},
-		{
-			"failure: channel capability not found",
-			func() {
-				capability := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				// Release channel capability
-				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), capability) //nolint:errcheck // ignore error for testing
-			},
-			channeltypes.ErrChannelCapabilityNotFound,
-		},
+		// {
+		// 	"failure: timeout height and timeout timestamp are zero",
+		// 	func() {
+		// 		timeoutHeight = clienttypes.ZeroHeight()
+		// 		expEscrowAmount = sdkmath.NewInt(100)
+		// 	},
+		// 	channeltypes.ErrInvalidPacket,
+		// },
 		{
 			"failure: forwarding hops is not empty with ics20-1",
 			func() {

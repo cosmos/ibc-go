@@ -40,7 +40,7 @@ var (
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 
-	_ porttypes.IBCModule = (*host.IBCModule)(nil)
+	_ porttypes.ClassicIBCModule = (*host.IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC interchain accounts AppModuleBasic

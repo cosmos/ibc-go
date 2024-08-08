@@ -649,8 +649,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 			gasMeter := storetypes.NewGasMeter(2_000_000)
 			ctx := s.chainA.GetContext().WithGasMeter(gasMeter)
-			packet := channeltypes.NewPacket(packetDataBytes, 0, transfertypes.PortID, s.path.EndpointA.ChannelID, transfertypes.PortID, s.path.EndpointB.ChannelID, clienttypes.ZeroHeight(), 0)
-			callbackData, err := types.GetSourceCallbackData(ctx, packetUnmarshaler, packet, 1_000_000)
+			callbackData, err := types.GetSourceCallbackData(ctx, packetUnmarshaler, transfertypes.PortID, s.path.EndpointA.ChannelID, packetDataBytes, 1_000_000)
 			s.Require().NoError(err)
 			s.Require().Equal(tc.expCallbackData, callbackData)
 		})

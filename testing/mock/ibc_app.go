@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -20,7 +19,6 @@ type IBCApp struct {
 		connectionHops []string,
 		portID string,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
 	) (string, error)
@@ -31,7 +29,6 @@ type IBCApp struct {
 		connectionHops []string,
 		portID,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		counterpartyVersion string,
 	) (version string, err error)
@@ -60,6 +57,15 @@ type IBCApp struct {
 		ctx sdk.Context,
 		portID,
 		channelID string,
+	) error
+
+	OnSendPacket func(
+		ctx sdk.Context,
+		portID string,
+		channelID string,
+		sequence uint64,
+		data []byte,
+		signer sdk.AccAddress,
 	) error
 
 	// OnRecvPacket must return an acknowledgement that implements the Acknowledgement interface.

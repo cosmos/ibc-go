@@ -70,6 +70,12 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
 
+// SetAppRouter sets the Router in IBC Keeper and seals it. The method panics if
+// there is an existing router that's already sealed.
+func (k *Keeper) SetAppRouter(rtr *porttypes.AppRouter) {
+	k.PortKeeper.AppRouter = rtr
+}
+
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *porttypes.Router) {

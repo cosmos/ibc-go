@@ -450,6 +450,7 @@ func NewSimApp(
 	)
 
 	// Create IBC Router
+	ibcAppRouter := porttypes.NewAppRouter()
 	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks
@@ -461,6 +462,7 @@ func NewSimApp(
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
+		app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -475,6 +477,7 @@ func NewSimApp(
 	mockIBCModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(mock.ModuleName, scopedIBCMockKeeper))
 	app.IBCMockModule = mockIBCModule
 	ibcRouter.AddRoute(mock.ModuleName, mockIBCModule)
+	ibcAppRouter.AddRoute(mock.ModuleName, mockIBCModule)
 
 	// Mock IBC app wrapped with a middleware which does not implement the UpgradeableModule interface.
 	// NOTE: this is used to test integration with apps which do not yet fulfill the UpgradeableModule interface and error when
@@ -495,9 +498,11 @@ func NewSimApp(
 	// - Transfer
 
 	// create IBC module from bottom to top of stack
-	var transferStack porttypes.IBCModule
+	var transferStack porttypes.ClassicIBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	ibcAppRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+	ibcAppRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -507,22 +512,31 @@ func NewSimApp(
 	// icaControllerKeeper.SendTx -> fee.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
-	var icaControllerStack porttypes.IBCModule
+	var icaControllerStack porttypes.ClassicIBCModule
 	icaControllerStack = mock.NewIBCModule(&mockModule, mock.NewIBCApp("", scopedICAMockKeeper))
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(mock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 	var ok bool
 	app.ICAAuthModule, ok = icaControllerStack.(mock.IBCModule)
 	if !ok {
 		panic(fmt.Errorf("cannot convert %T into %T", icaControllerStack, app.ICAAuthModule))
 	}
 	icaControllerStack = icacontroller.NewIBCMiddleware(app.ICAControllerKeeper)
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(mock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
+
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
+	ibcAppRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)
+	ibcAppRouter.AddRoute(mock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
 
-	var icaHostStack porttypes.IBCModule
+	var icaHostStack porttypes.ClassicIBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
+	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
+	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.
@@ -545,11 +559,15 @@ func NewSimApp(
 	// create fee wrapped mock module
 	feeMockModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
+	ibcAppRouter.AddRoute(MockFeePort, feeMockModule)
+
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
+	ibcAppRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
+	app.IBCKeeper.SetAppRouter(ibcAppRouter)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := clientKeeper.GetStoreProvider()

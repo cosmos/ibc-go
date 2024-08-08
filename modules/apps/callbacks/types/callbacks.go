@@ -47,7 +47,7 @@ keeper to verify that the packet sender is the same as the callback address if d
 // CallbacksCompatibleModule is an interface that combines the IBCModule and PacketDataUnmarshaler
 // interfaces to assert that the underlying application supports both.
 type CallbacksCompatibleModule interface {
-	porttypes.IBCModule
+	porttypes.ClassicIBCModule
 	porttypes.PacketDataUnmarshaler
 }
 
@@ -74,15 +74,16 @@ type CallbackData struct {
 func GetSourceCallbackData(
 	ctx sdk.Context,
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
-	packet channeltypes.Packet,
+	srcPortID, srcChannelID string,
+	data []byte,
 	maxGas uint64,
 ) (CallbackData, error) {
-	packetData, version, err := packetDataUnmarshaler.UnmarshalPacketData(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetData())
+	packetData, version, err := packetDataUnmarshaler.UnmarshalPacketData(ctx, srcPortID, srcChannelID, data)
 	if err != nil {
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
-	return getCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
+	return getCallbackData(packetData, version, srcPortID, ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
 }
 
 // GetDestCallbackData parses the packet data and returns the destination callback data.

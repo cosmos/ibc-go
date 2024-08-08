@@ -36,7 +36,7 @@ var (
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 
-	_ porttypes.IBCModule = (*IBCModule)(nil)
+	_ porttypes.ClassicIBCModule = (*IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC Transfer AppModuleBasic

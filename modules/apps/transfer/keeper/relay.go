@@ -13,13 +13,11 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
-// sendTransfer handles transfer sending logic. There are 2 possible cases:
+// OnSendPacket handles transfer sending logic. There are 2 possible cases:
 //
 // 1. Sender chain is acting as the source zone. The coins are transferred
 // to an escrow address (i.e locked) on the sender chain and then transferred
@@ -51,38 +49,32 @@ import (
 // 4. A -> C : sender chain is sink zone. Denom upon receiving: 'C/B/denom'
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
-func (k Keeper) sendTransfer(
+
+// TODO: Copy godoc from above sendTransfer function.
+func (k Keeper) OnSendPacket(
 	ctx sdk.Context,
-	sourcePort,
+	sourcePort string,
 	sourceChannel string,
-	coins sdk.Coins,
+	packetData types.FungibleTokenPacketDataV2,
 	sender sdk.AccAddress,
-	receiver string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	memo string,
-	hops []types.Hop,
-) (uint64, error) {
+) error {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
-	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, sourcePort, sourceChannel)
-	if !found {
-		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", sourcePort, sourceChannel)
+	var coins sdk.Coins
+	for _, token := range packetData.Tokens {
+		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
+		if !ok {
+			return errorsmod.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount: %s", token.Amount)
+		}
+
+		coins = append(coins, sdk.NewCoin(token.Denom.IBCDenom(), transferAmount))
 	}
 
-	if appVersion == types.V1 {
-		// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
-		if len(coins) > 1 {
-			return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
-		}
-
-		// ics20-1 does not support forwarding, so if that is the current version, we must reject the transfer.
-		if len(hops) > 0 {
-			return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
-		}
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
+		return errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
 	}
 
 	destinationPort := channel.Counterparty.PortId
@@ -90,11 +82,6 @@ func (k Keeper) sendTransfer(
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
-
 	tokens := make([]types.Token, 0, len(coins))
 
 	for _, coin := range coins {
@@ -105,7 +92,7 @@ func (k Keeper) sendTransfer(
 
 		token, err := k.tokenFromCoin(ctx, coin)
 		if err != nil {
-			return 0, err
+			return err
 		}
 
 		// NOTE: SendTransfer simply sends the denomination as it exists on its own
@@ -119,7 +106,7 @@ func (k Keeper) sendTransfer(
 			if err := k.bankKeeper.SendCoinsFromAccountToModule(
 				ctx, sender, types.ModuleName, sdk.NewCoins(coin),
 			); err != nil {
-				return 0, err
+				return err
 			}
 
 			if err := k.bankKeeper.BurnCoins(
@@ -134,28 +121,18 @@ func (k Keeper) sendTransfer(
 			// obtain the escrow address for the source channel end
 			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
 			if err := k.escrowCoin(ctx, sender, escrowAddress, coin); err != nil {
-				return 0, err
+				return err
 			}
 		}
 
 		tokens = append(tokens, token)
 	}
 
-	packetDataBytes, err := createPacketDataBytesFromVersion(appVersion, sender.String(), receiver, memo, tokens, hops)
-	if err != nil {
-		return 0, err
-	}
-
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
-	if err != nil {
-		return 0, err
-	}
-
-	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
+	events.EmitTransferEvent(ctx, sender.String(), packetData.Receiver, tokens, packetData.Memo, packetData.Forwarding.Hops)
 
 	telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
 
-	return sequence, nil
+	return nil
 }
 
 // OnRecvPacket processes a cross chain fungible token transfer.
@@ -182,7 +159,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
-	if k.isBlockedAddr(receiver) {
+	if k.IsBlockedAddr(receiver) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 	}
 
@@ -350,7 +327,7 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 	if err != nil {
 		return err
 	}
-	if k.isBlockedAddr(sender) {
+	if k.IsBlockedAddr(sender) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
 	}
 

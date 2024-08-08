@@ -312,7 +312,7 @@ func GetExpectedEvent(
 		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {
 		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
-		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
+		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetData(), maxCallbackGas)
 	}
 	if err != nil {
 		return abci.Event{}, false

@@ -7,14 +7,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -28,7 +26,7 @@ var (
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // ICA controller keeper and the underlying application.
 type IBCMiddleware struct {
-	app    porttypes.IBCModule
+	app    porttypes.ClassicIBCModule
 	keeper keeper.Keeper
 }
 
@@ -43,7 +41,7 @@ func NewIBCMiddleware(k keeper.Keeper) IBCMiddleware {
 }
 
 // NewIBCMiddlewareWithAuth creates a new IBCMiddleware given the associated keeper and underlying application
-func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+func NewIBCMiddlewareWithAuth(app porttypes.ClassicIBCModule, k keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:    app,
 		keeper: k,
@@ -62,7 +60,6 @@ func (im IBCMiddleware) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
@@ -70,24 +67,10 @@ func (im IBCMiddleware) OnChanOpenInit(
 		return "", types.ErrControllerSubModuleDisabled
 	}
 
-	version, err := im.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
+	version, err := im.keeper.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 	if err != nil {
 		return "", err
 	}
-
-	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", err
-	}
-
-	// call underlying app's OnChanOpenInit callback with the passed in version
-	// the version returned is discarded as the ica-auth module does not have permission to edit the version string.
-	// ics27 will always return the version string containing the Metadata struct which is created during the `RegisterInterchainAccount` call.
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionHops[0]) {
-		if _, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, nil, counterparty, version); err != nil {
-			return "", err
-		}
-	}
-
 	return version, nil
 }
 
@@ -98,7 +81,6 @@ func (IBCMiddleware) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
@@ -124,16 +106,6 @@ func (im IBCMiddleware) OnChanOpenAck(
 
 	if err := im.keeper.OnChanOpenAck(ctx, portID, channelID, counterpartyVersion); err != nil {
 		return err
-	}
-
-	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
-	if err != nil {
-		return err
-	}
-
-	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 	}
 
 	return nil
@@ -164,8 +136,31 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	if err := im.keeper.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
+	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
+}
+
+// OnSendPacket implements the IBCModule interface.
+func (im IBCMiddleware) OnSendPacket(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	sequence uint64,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+	signer sdk.AccAddress,
+) error {
+	if !im.keeper.GetParams(ctx).ControllerEnabled {
+		return types.ErrControllerSubModuleDisabled
+	}
+
+	controllerPortID, err := icatypes.NewControllerPortID(signer.String())
+	if err != nil {
 		return err
+	}
+
+	if controllerPortID != portID {
+		return errorsmod.Wrap(ibcerrors.ErrUnauthorized, "signer is not owner of interchain account channel")
 	}
 
 	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
@@ -173,8 +168,22 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 		return err
 	}
 
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+	activeChannelID, found := im.keeper.GetOpenActiveChannel(ctx, connectionID, portID)
+	if !found {
+		return errorsmod.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
+	}
+
+	if activeChannelID != channelID {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "active channel ID does not match provided channelID. expected %s, got %s", activeChannelID, channelID)
+	}
+
+	var icaPacketData icatypes.InterchainAccountPacketData
+	if err := icaPacketData.UnmarshalJSON(data); err != nil {
+		return err
+	}
+
+	if err := icaPacketData.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "invalid interchain account packet data")
 	}
 
 	return nil
@@ -251,26 +260,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID str
 		return "", types.ErrControllerSubModuleDisabled
 	}
 
-	proposedVersion, err := im.keeper.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-	if err != nil {
-		return "", err
-	}
-
-	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
-	if err != nil {
-		return "", err
-	}
-
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		// Only cast to UpgradableModule if the application is set.
-		cbs, ok := im.app.(porttypes.UpgradableModule)
-		if !ok {
-			return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-		}
-		return cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-	}
-
-	return proposedVersion, nil
+	return im.keeper.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
@@ -284,25 +274,7 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 		return types.ErrControllerSubModuleDisabled
 	}
 
-	if err := im.keeper.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion); err != nil {
-		return err
-	}
-
-	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
-	if err != nil {
-		return err
-	}
-
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		// Only cast to UpgradableModule if the application is set.
-		cbs, ok := im.app.(porttypes.UpgradableModule)
-		if !ok {
-			return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-		}
-		return cbs.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
-	}
-
-	return nil
+	return im.keeper.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
@@ -322,23 +294,9 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 	}
 }
 
-// SendPacket implements the ICS4 Wrapper interface
-func (IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	panic(errors.New("SendPacket not supported for ICA controller module. Please use SendTx"))
-}
-
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
@@ -366,4 +324,18 @@ func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, chan
 	}
 
 	return data, version, nil
+}
+
+// WrapVersion returns the wrapped version based on the provided version string and underlying application version.
+// TODO: decide how we want to handle the underlying app. For now I made it backwards compatible.
+// https://github.com/cosmos/ibc-go/issues/7063
+func (IBCMiddleware) WrapVersion(cbVersion, underlyingAppVersion string) string {
+	// ignore underlying app version
+	return cbVersion
+}
+
+// UnwrapVersionUnsafe returns the version. Interchain accounts does not wrap versions.
+func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error) {
+	// ignore underlying app version
+	return version, "", nil
 }

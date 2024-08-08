@@ -37,6 +37,8 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 	scopedKeeper  exported.ScopedKeeper
 
+	msgRouter types.MessageRouter
+
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
@@ -53,6 +55,7 @@ func NewKeeper(
 	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	scopedKeeper exported.ScopedKeeper,
+	msgRouter types.MessageRouter,
 	authority string,
 ) Keeper {
 	// ensure ibc transfer module account is set
@@ -74,6 +77,7 @@ func NewKeeper(
 		authKeeper:     authKeeper,
 		bankKeeper:     bankKeeper,
 		scopedKeeper:   scopedKeeper,
+		msgRouter:      msgRouter,
 		authority:      authority,
 	}
 }
@@ -387,7 +391,7 @@ func (k Keeper) iterateForwardedPackets(ctx sdk.Context, cb func(packet types.Fo
 
 // IsBlockedAddr checks if the given address is allowed to send or receive tokens.
 // The module account is always allowed to send and receive tokens.
-func (k Keeper) isBlockedAddr(addr sdk.AccAddress) bool {
+func (k Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {
 	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	if addr.Equals(moduleAddr) {
 		return false

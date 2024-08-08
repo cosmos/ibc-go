@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			func() {
 				msg.SourceChannel = "channel-100"
 			},
-			channeltypes.ErrChannelNotFound,
+			ibcerrors.ErrInvalidRequest, // TODO: refactor tests for msgTransfer and onSendPacket
 		},
 		{
 			"failure: multidenom with ics20-1",
