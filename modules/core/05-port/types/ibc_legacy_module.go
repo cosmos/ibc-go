@@ -261,7 +261,6 @@ func (im *LegacyIBCModule) OnAcknowledgementPacket(
 		}
 	}
 	return nil
-
 }
 
 // OnTimeoutPacket implements the IBCModule interface

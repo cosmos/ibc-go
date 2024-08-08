@@ -344,7 +344,7 @@ func (IBCMiddleware) UnwrapVersionUnsafe(version string) (string, string, error)
 }
 
 // UnwrapVersionSafe returns the version. Interchain accounts does not wrap versions.
-func (im IBCMiddleware) UnwrapVersionSafe(ctx sdk.Context, portID, channelID, version string) (string, string) {
+func (IBCMiddleware) UnwrapVersionSafe(ctx sdk.Context, portID, channelID, version string) (string, string) {
 	// ignore underlying app version
 	return version, ""
 }
