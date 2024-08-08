@@ -12,9 +12,9 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
@@ -23,7 +23,11 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability/types"
 )
 
-const mockMemStoreKey = "memory:mock"
+const (
+	mockMemStoreKey   = "memory:mock"
+	bankModuleName    = "bank"
+	stakingModuleName = "staking"
+)
 
 type CapabilityTestSuite struct {
 	testifysuite.Suite
@@ -47,7 +51,7 @@ func (suite *CapabilityTestSuite) SetupTest() {
 	suite.mockMemStoreKey = storetypes.NewMemoryStoreKey(mockMemStoreKey)
 
 	suite.ctx = suite.NewTestContext()
-	suite.keeper = keeper.NewKeeper(suite.cdc, suite.storeKey, suite.memStoreKey)
+	suite.keeper = keeper.NewKeeper(suite.cdc, runtime.NewKVStoreService(suite.storeKey), runtime.NewMemStoreService(suite.memStoreKey))
 }
 
 func (suite *CapabilityTestSuite) NewTestContext() sdk.Context {
@@ -70,7 +74,7 @@ func (suite *CapabilityTestSuite) NewTestContext() sdk.Context {
 // BeginBlock is then called to populate the new in-memory store using the persisted state.
 func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	// create a scoped keeper and instantiate a new capability to populate state
-	scopedKeeper := suite.keeper.ScopeToModule(banktypes.ModuleName)
+	scopedKeeper := suite.keeper.ScopeToModule(bankModuleName)
 
 	cap1, err := scopedKeeper.NewCapability(suite.ctx, "transfer")
 	suite.Require().NoError(err)
@@ -78,11 +82,11 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 
 	// mock statesync by creating a new keeper and module that shares persisted state
 	// but discards in-memory map by using a mock memstore key
-	newKeeper := keeper.NewKeeper(suite.cdc, suite.storeKey, suite.mockMemStoreKey)
+	newKeeper := keeper.NewKeeper(suite.cdc, runtime.NewKVStoreService(suite.storeKey), runtime.NewMemStoreService(suite.mockMemStoreKey))
 	newModule := capability.NewAppModule(suite.cdc, *newKeeper, true)
 
 	// reassign the scoped keeper, this will inherit the mock memstore key used above
-	scopedKeeper = newKeeper.ScopeToModule(banktypes.ModuleName)
+	scopedKeeper = newKeeper.ScopeToModule(bankModuleName)
 
 	// seal the new keeper and ensure the in-memory store is not initialized
 	newKeeper.Seal()
