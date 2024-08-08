@@ -168,7 +168,7 @@ func (k Keeper) RecvPacket(
 		merklePath,
 		commitment,
 	); err != nil {
-		return err
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationChannel)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
@@ -293,7 +293,7 @@ func (k Keeper) AcknowledgePacket(
 		merklePath,
 		channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
-		return err
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceChannel)
 	}
 
 	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
