@@ -136,20 +136,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	if err := im.keeper.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
-		return err
-	}
-
-	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
-	if err != nil {
-		return err
-	}
-
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		return im.app.OnChanCloseConfirm(ctx, portID, channelID)
-	}
-
-	return nil
+	return im.keeper.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // OnSendPacket implements the IBCModule interface.

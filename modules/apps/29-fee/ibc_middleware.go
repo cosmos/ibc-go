@@ -131,10 +131,6 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	if err := im.app.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
-		return err
-	}
-
 	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
 		return nil
 	}
