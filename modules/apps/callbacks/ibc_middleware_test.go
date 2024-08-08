@@ -687,7 +687,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			switch tc.expAck {
 			case successAck:
 				res := onRecvPacket()
-				s.Require().Equal(ibcexported.SUCCESS, res.Status)
+				s.Require().Equal(ibcexported.Success, res.Status)
 				s.Require().NotNil(res.Acknowledgement)
 
 			case panicAck:
@@ -1128,7 +1128,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 	)
 
 	res := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
-	s.Require().Equal(ibcexported.ASYNC, res.Status)
+	s.Require().Equal(ibcexported.Async, res.Status)
 	s.Require().Nil(res.Acknowledgement)
 	s.AssertHasExecutedExpectedCallback("none", true)
 }

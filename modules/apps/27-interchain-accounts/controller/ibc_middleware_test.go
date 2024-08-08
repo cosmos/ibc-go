@@ -525,7 +525,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 				ctx := suite.chainA.GetContext()
 				res := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
-				suite.Require().Equal(tc.expPass, res.Status == exported.SUCCESS)
+				suite.Require().Equal(tc.expPass, res.Status == exported.Success)
 
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(

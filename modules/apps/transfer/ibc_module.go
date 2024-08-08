@@ -217,7 +217,7 @@ func (im IBCModule) OnRecvPacket(
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		return ibcexported.RecvPacketResult{
-			Status:          ibcexported.FAILURE,
+			Status:          ibcexported.Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 	}
@@ -226,7 +226,7 @@ func (im IBCModule) OnRecvPacket(
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		return ibcexported.RecvPacketResult{
-			Status:          ibcexported.FAILURE,
+			Status:          ibcexported.Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 	}
@@ -236,13 +236,13 @@ func (im IBCModule) OnRecvPacket(
 	if data.HasForwarding() {
 		// NOTE: acknowledgement will be written asynchronously
 		return ibcexported.RecvPacketResult{
-			Status: ibcexported.ASYNC,
+			Status: ibcexported.Async,
 		}
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ibcexported.RecvPacketResult{
-		Status:          ibcexported.SUCCESS,
+		Status:          ibcexported.Success,
 		Acknowledgement: ack.Acknowledgement(),
 	}
 }

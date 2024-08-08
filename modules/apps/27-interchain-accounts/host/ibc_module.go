@@ -133,7 +133,7 @@ func (im IBCModule) OnRecvPacket(
 		im.keeper.Logger(ctx).Info("host submodule is disabled")
 		keeper.EmitHostDisabledEvent(ctx, packet)
 		return ibcexported.RecvPacketResult{
-			Status:          ibcexported.FAILURE,
+			Status:          ibcexported.Failure,
 			Acknowledgement: channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled).Acknowledgement(),
 		}
 	}
@@ -147,7 +147,7 @@ func (im IBCModule) OnRecvPacket(
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
 
 		return ibcexported.RecvPacketResult{
-			Status:          ibcexported.FAILURE,
+			Status:          ibcexported.Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 	}
@@ -160,7 +160,7 @@ func (im IBCModule) OnRecvPacket(
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ibcexported.RecvPacketResult{
-		Status:          ibcexported.SUCCESS,
+		Status:          ibcexported.Success,
 		Acknowledgement: ack.Acknowledgement(),
 	}
 }

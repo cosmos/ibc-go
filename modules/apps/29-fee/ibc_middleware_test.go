@@ -462,7 +462,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 					relayer sdk.AccAddress,
 				) exported.RecvPacketResult {
 					return exported.RecvPacketResult{
-						Status: exported.ASYNC,
+						Status: exported.Async,
 					}
 				}
 			},
@@ -528,7 +528,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			case !tc.feeEnabled:
 				suite.Require().Equal(ibcmock.MockAcknowledgement.Acknowledgement(), result.Acknowledgement)
 
-			case tc.forwardRelayer && result.Status == exported.ASYNC:
+			case tc.forwardRelayer && result.Status == exported.Async:
 				suite.Require().Nil(result.Acknowledgement)
 				packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 

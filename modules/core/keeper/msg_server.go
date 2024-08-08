@@ -467,7 +467,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn = ctx.CacheContext()
 	res := cbs.OnRecvPacket(cacheCtx, channelVersion, msg.Packet, relayer)
-	if res.Status == exported.SUCCESS || res.Status == exported.ASYNC {
+	if res.Status == exported.Success || res.Status == exported.Async {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
 	} else {

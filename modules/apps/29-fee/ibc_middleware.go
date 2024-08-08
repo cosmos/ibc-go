@@ -188,7 +188,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	res := im.app.OnRecvPacket(ctx, appVersion, packet, relayer)
 
 	// in case of async acknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
-	if res.Status == exported.ASYNC {
+	if res.Status == exported.Async {
 		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
 		return res
 	}
@@ -198,7 +198,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	return exported.RecvPacketResult{
 		Status:          res.Status,
-		Acknowledgement: types.NewIncentivizedAcknowledgement(forwardRelayer, res.Acknowledgement, res.Status == exported.SUCCESS).Acknowledgement(),
+		Acknowledgement: types.NewIncentivizedAcknowledgement(forwardRelayer, res.Acknowledgement, res.Status == exported.Success).Acknowledgement(),
 	}
 }
 

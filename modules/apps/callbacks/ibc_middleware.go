@@ -194,7 +194,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 	// if result status is failed, then all state changes are reverted.
 	// if a packet cannot be received, then there is no need to execute a callback on the receiving chain,
 	// thus we only proceed with the contract keeper callback if the result status is successful.
-	if res.Status != ibcexported.SUCCESS {
+	if res.Status != ibcexported.Success {
 		return res
 	}
 

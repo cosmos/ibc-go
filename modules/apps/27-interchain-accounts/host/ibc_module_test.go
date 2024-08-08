@@ -420,7 +420,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.RecvPacketResult {
 					return exported.RecvPacketResult{
-						Status:          exported.FAILURE,
+						Status:          exported.Failure,
 						Acknowledgement: channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback")).Acknowledgement(),
 					}
 				}
@@ -504,11 +504,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				expectedAttributes := []sdk.Attribute{
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 					sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(res.Status == exported.SUCCESS)),
+					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(res.Status == exported.Success)),
 				}
 
 				if tc.expAckSuccess {
-					suite.Require().Equal(exported.SUCCESS, res.Status)
+					suite.Require().Equal(exported.Success, res.Status)
 					suite.Require().Equal(expectedAck.Acknowledgement(), res.Acknowledgement)
 
 					expectedEvents := sdk.Events{
@@ -522,7 +522,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 					ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 
 				} else {
-					suite.Require().Equal(exported.FAILURE, res.Status)
+					suite.Require().Equal(exported.Failure, res.Status)
 
 					expectedAttributes = append(expectedAttributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, tc.eventErrorMsg))
 					expectedEvents := sdk.Events{

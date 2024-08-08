@@ -134,17 +134,17 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet 
 
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return exported.RecvPacketResult{
-			Status:          exported.SUCCESS,
+			Status:          exported.Success,
 			Acknowledgement: MockAcknowledgement.Acknowledgement(),
 		}
 	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
 		return exported.RecvPacketResult{
-			Status: exported.ASYNC,
+			Status: exported.Async,
 		}
 	}
 
 	return exported.RecvPacketResult{
-		Status:          exported.FAILURE,
+		Status:          exported.Failure,
 		Acknowledgement: MockFailAcknowledgement.Acknowledgement(),
 	}
 }

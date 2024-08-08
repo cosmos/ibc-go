@@ -13,20 +13,26 @@ type PacketI interface {
 	ValidateBasic() error
 }
 
-// RecvPacketResult ...
+// RecvPacketStatus defines an enum type to signal the result status of a received packet.
+type RecvPacketStatus uint32
+
+const (
+	Success RecvPacketStatus = iota
+	Failure
+	Async
+)
+
+// String implements the fmt.Stringer interface.
+func (r RecvPacketStatus) String() string {
+	return [...]string{"Success", "Failure", "Async"}[r]
+}
+
+// RecvPacketResult defines a result type used to encapsulate opaque application acknowledgement data, as well as
+// a status to indicate success, failure or asynchronous handling of a packet acknowledgement.
 type RecvPacketResult struct {
 	Status          RecvPacketStatus
 	Acknowledgement []byte
 }
-
-// RecvPacketStatus ...
-type RecvPacketStatus uint32
-
-const (
-	SUCCESS RecvPacketStatus = iota
-	FAILURE
-	ASYNC
-)
 
 // PacketData defines an optional interface which an application's packet data structure may implement.
 type PacketData interface {

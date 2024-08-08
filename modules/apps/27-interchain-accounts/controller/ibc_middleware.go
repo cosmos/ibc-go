@@ -223,7 +223,7 @@ func (IBCMiddleware) OnRecvPacket(
 	ack := channeltypes.NewErrorAcknowledgement(err)
 	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 	return ibcexported.RecvPacketResult{
-		Status:          ibcexported.FAILURE,
+		Status:          ibcexported.Failure,
 		Acknowledgement: ack.Acknowledgement(),
 	}
 }
