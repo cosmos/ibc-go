@@ -342,9 +342,9 @@ func (IBCMiddleware) OnChanOpenAck(
 	return nil
 }
 
-// OnChanOpenConfirm defers to the underlying application
-func (im IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
-	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
+// OnChanOpenConfirm is a no-op for the callbacks middleware.
+func (IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
+	return nil
 }
 
 // OnChanCloseInit defers to the underlying application

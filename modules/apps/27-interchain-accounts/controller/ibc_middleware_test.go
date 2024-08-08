@@ -352,14 +352,17 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 
 		suite.Require().Error(err)
 
-		// call application callback directly
-		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(ok)
 
-		err = cbs.OnChanOpenConfirm(
+		legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
+		suite.Require().True(ok, "expected there to be a single legacy ibc module")
+
+		legacyModuleCbs := legacyModule.GetCallbacks()
+		controllerModule, ok := legacyModuleCbs[1].(controller.IBCMiddleware) // fee module is routed second
+		suite.Require().True(ok)
+
+		err = controllerModule.OnChanOpenConfirm(
 			suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 		)
 		suite.Require().Error(err)
