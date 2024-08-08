@@ -515,50 +515,22 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
-	var (
-		path     *ibctesting.Path
-		isNilApp bool
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
-		},
-		{
-			"ICA auth module callback fails", func() {
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
-				) error {
-					return fmt.Errorf("mock ica auth fails")
-				}
-			}, false,
-		},
-		{
-			"nil underlying app", func() {
-				isNilApp = true
-			}, true,
-		},
-		{
-			"middleware disabled", func() {
-				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
-
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
-				) error {
-					return fmt.Errorf("error should be unreachable")
-				}
-			}, true,
+			}, types.ErrControllerSubModuleDisabled,
 		},
 	}
 
@@ -568,7 +540,6 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 			suite.Run(tc.msg, func() {
 				suite.SetupTest() // reset
-				isNilApp = false
 
 				path = NewICAPath(suite.chainA, suite.chainB, ordering)
 				path.SetupConnections()
@@ -589,22 +560,22 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
-				if isNilApp {
-					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
-				}
+				legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule)
+				suite.Require().True(ok, "expected there to be a single legacy ibc module")
 
-				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, []byte("ack"), nil)
+				legacyModuleCbs := legacyModule.GetCallbacks()
+				controllerModule, ok := legacyModuleCbs[1].(controller.IBCMiddleware) // controller module is routed second
+				suite.Require().True(ok)
 
-				if tc.expPass {
+				err = controllerModule.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, []byte("ack"), nil)
+
+				if tc.expError == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expError)
 				}
 			})
 		}
