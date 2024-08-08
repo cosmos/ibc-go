@@ -192,11 +192,16 @@ func (im *LegacyIBCModule) OnChanCloseInit(
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
-func (LegacyIBCModule) OnChanCloseConfirm(
+func (im *LegacyIBCModule) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		if err := im.cbs[i].OnChanCloseConfirm(ctx, portID, channelID); err != nil {
+			return errorsmod.Wrapf(err, "channel close confirm callback failed for port ID: %s, channel ID: %s", portID, channelID)
+		}
+	}
 	return nil
 }
 

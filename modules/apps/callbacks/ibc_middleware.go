@@ -354,7 +354,7 @@ func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID strin
 
 // OnChanCloseConfirm defers to the underlying application
 func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
-	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+	return nil
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
