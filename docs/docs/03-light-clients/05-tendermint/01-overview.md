@@ -9,13 +9,13 @@ slug: /ibc/light-clients/tendermint/overview
 
 ## Overview
 
-The tendermint client is the first and most deployed light client in IBC. It implements the IBC Light Client interface to track a counterparty running Comet BFT consensus. Note: Tendermint is the old name of Comet BFT which has been retained in IBC to avoid expensive migration costs.
+The tendermint client is the first and most deployed light client in IBC. It implements the IBC Light Client interface to track a counterparty running [CometBFT](https://github.com/cometbft/cometbft) consensus. Note: Tendermint is the old name of CometBFT which has been retained in IBC to avoid expensive migration costs.
 
 ## Synopsis
 
 ### Initialization
 
-The Tendermint light client is initialized with a ClientState that contains parameters necessary for CometBFT header verification along with a latest height and ConsensusState which encapsulates a root of trust header that will serve to verify future incoming headers from the counterparty.
+The Tendermint light client is initialized with a ClientState that contains parameters necessary for CometBFT header verification along with a latest height and ConsensusState which encapsulates the application state root of a trust header that will serve to verify future incoming headers from the counterparty.
 
 ```proto
 message ClientState {
@@ -77,12 +77,16 @@ Once the initial client state and consensus state are submitted, future consensu
 ```proto
 message Header {
   // this is the new signed header that we want to add
-  // as a consensus state to the client
+  // as a new consensus state to the ibc client. 
+  // the signed header contains the commit signatures of the `validator_set` below
   .tendermint.types.SignedHeader signed_header = 1;
 
-  // this is the 
+  // the validator set which signed the new header
   .tendermint.types.ValidatorSet validator_set      = 2;
+  // the trusted height of the consensus state which we are updating from
   ibc.core.client.v1.Height      trusted_height     = 3;
+  // the trusted validator set, the hash of the trusted validators must be equal to 
+  // `next_validators_hash` of the current consensus state
   .tendermint.types.ValidatorSet trusted_validators = 4;
 }
 ```
