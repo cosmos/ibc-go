@@ -34,6 +34,7 @@ type PacketHandler interface {
 
 	TimeoutPacket(
 		ctx sdk.Context,
+		chanCap *capabilitytypes.Capability,
 		packet channeltypes.Packet,
 		proof []byte,
 		proofHeight exported.Height,

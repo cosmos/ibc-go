@@ -611,7 +611,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				path.EndpointA.FreezeClient()
 			}
 
-			_, err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, 0)
+			_, err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), nil, packet, proof, proofHeight, 0)
 
 			expPass := tc.expError == nil
 			if expPass {

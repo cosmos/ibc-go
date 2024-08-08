@@ -305,6 +305,7 @@ func (k Keeper) AcknowledgePacket(
 
 func (k Keeper) TimeoutPacket(
 	ctx sdk.Context,
+	_ *capabilitytypes.Capability,
 	packet channeltypes.Packet,
 	proof []byte,
 	proofHeight exported.Height,

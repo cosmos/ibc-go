@@ -593,7 +593,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	// If the timeout was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	channelVersion, err := packetHandler.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
+	channelVersion, err := packetHandler.TimeoutPacket(cacheCtx, capability, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
 
 	switch err {
 	case nil:
@@ -605,14 +605,6 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	default:
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
-	}
-
-	// TODO: Inline in TimeoutPacket, for now, guard with version check.
-	if msg.Packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
-		// Delete packet commitment
-		if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
-			return nil, err
-		}
 	}
 
 	// Perform application logic callback
@@ -670,11 +662,6 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 	default:
 		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout on close packet verification failed"))
 		return nil, errorsmod.Wrap(err, "timeout on close packet verification failed")
-	}
-
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, capability, msg.Packet); err != nil {
-		return nil, err
 	}
 
 	// Perform application logic callback
