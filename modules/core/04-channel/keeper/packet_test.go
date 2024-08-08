@@ -632,7 +632,11 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		path   *ibctesting.Path
 	)
 
-	testCases := []testCase{ // TODO: use expError structure
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
 		{
 			"success",
 			func() {
@@ -640,7 +644,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 			},
-			true,
+			nil,
 		},
 		{
 			"success: channel flushing",
@@ -651,7 +655,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
 			},
-			true,
+			nil,
 		},
 		{
 			"success: channel flush complete",
@@ -662,7 +666,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
 			},
-			true,
+			nil,
 		},
 		{
 			"channel not found",
@@ -672,7 +676,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.InvalidID, ibctesting.InvalidID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 			},
-			false,
+			types.ErrChannelNotFound,
 		},
 		{
 			"channel not open",
@@ -683,17 +687,17 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			},
-			false,
+			types.ErrInvalidChannelState,
 		},
 		{
-			"no-op, already acked",
+			"acknowledgement already exists",
 			func() {
 				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), types.CommitAcknowledgement(ack))
 			},
-			false,
+			types.ErrAcknowledgementExists,
 		},
 		{
 			"empty acknowledgement",
@@ -702,7 +706,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.NewEmptyAcknowledgement().Acknowledgement()
 			},
-			false,
+			types.ErrInvalidAcknowledgement,
 		},
 		{
 			"acknowledgement is nil",
@@ -711,7 +715,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = nil
 			},
-			false,
+			types.ErrInvalidAcknowledgement,
 		},
 		{
 			"packet already received",
@@ -726,12 +730,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				// set recv seq start to indicate packet was processed in previous upgrade
 				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetRecvStartSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence+1)
 			},
-			false,
+			types.ErrPacketReceived,
 		},
 	}
-	for i, tc := range testCases {
+
+	for _, tc := range testCases {
 		tc := tc
-		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
@@ -739,10 +744,11 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
