@@ -328,13 +328,6 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 			},
 		},
 		{
-			"failure: no denom set on keeper",
-			func() {},
-			func(modified *types.MsgTransfer, err error) {
-				suite.Require().ErrorIs(err, types.ErrDenomNotFound)
-			},
-		},
-		{
 			"failure: validateBasic() fails due to invalid channelID",
 			func() {
 				denom.Trace[0].ChannelId = "channel/0"
@@ -398,7 +391,15 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 			)
 
 			tc.malleate()
-			gotMsg, err := suite.chainA.GetSimApp().TransferKeeper.UnwindHops(suite.chainA.GetContext(), msg)
+
+			tokens := make([]types.Token, 0, len(coins))
+			for _, c := range msg.GetCoins() {
+				token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(suite.chainA.GetContext(), c)
+				suite.Require().NoError(err)
+				tokens = append(tokens, token)
+			}
+
+			gotMsg, err := suite.chainA.GetSimApp().TransferKeeper.UnwindHops(msg, tokens)
 			tc.assertResult(gotMsg, err)
 		})
 	}
