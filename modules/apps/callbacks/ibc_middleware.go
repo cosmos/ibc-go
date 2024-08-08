@@ -190,9 +190,10 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 // reverted via a panic.
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.RecvPacketResult {
 	res := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
-	// if ack is nil (asynchronous acknowledgements), then the callback will be handled in WriteAcknowledgement
-	// if ack is not successful, all state changes are reverted. If a packet cannot be received, then there is
-	// no need to execute a callback on the receiving chain.
+	// if result status is asynchronous, then the callback will be handled in WriteAcknowledgement
+	// if result status is failed, then all state changes are reverted.
+	// if a packet cannot be received, then there is no need to execute a callback on the receiving chain,
+	// thus we only proceed with the contract keeper callback if the result status is successful.
 	if res.Status != ibcexported.SUCCESS {
 		return res
 	}
