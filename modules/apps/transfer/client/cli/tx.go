@@ -185,7 +185,7 @@ func parseForwarding(cmd *cobra.Command) (*types.Forwarding, error) {
 
 // normalizeArgs takes the positional arguments specified and if the unwind flag
 // is false and the args array is of length 4, returns them as-is or, if unwind is true and the
-// args array has a length of 2, inserts an two empty strings at the beginning signifying the
+// args array has a length of 2, inserts two empty strings at the beginning signifying the
 // portID and channelID.
 func normalizeArgs(cmd *cobra.Command, args []string) ([]string, error) {
 	unwind, err := cmd.Flags().GetBool(flagUnwind)
