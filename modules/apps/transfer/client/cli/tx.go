@@ -43,10 +43,10 @@ packet if the coins list is a comma-separated string (e.g. 100uatom,100uosmo). T
 Timeout height can be set by passing in the height string in the form {revision}-{height} using the {packet-timeout-height} flag. 
 Note, relative timeout height is not supported. Relative timeout timestamp is added to the value of the user's local system clock time 
 using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used. IBC tokens
-can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag is used, then the transfer should contain only
-a single token and the src-port and src-channel arguments must not be specified. Tokens can also be automatically forwarded through multiple chains using the {fowarding} flag and specifying
-a comma-separated list of source portID/channelID pairs for each intermediary chain. {unwind} and {forwarding} flags can be used together
-to first unwind IBC tokens to their native chain and then forward them to the final destination.`),
+can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag is used, then all coins must
+be IBC vouchers and share exactly the same denomination trace path, and the src-port and src-channel arguments must not be specified. Tokens can also be 
+automatically forwarded through multiple chains using the {fowarding} flag and specifying a comma-separated list of source portID/channelID pairs for 
+each intermediary chain. {unwind} and {forwarding} flags can be used together to first unwind IBC tokens to their native chain and then forward them to the final destination.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coins]", version.AppName),
 		Args:    cobra.RangeArgs(2, 4),
 		RunE: func(cmd *cobra.Command, args []string) error {
