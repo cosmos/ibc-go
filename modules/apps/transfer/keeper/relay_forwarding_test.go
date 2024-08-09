@@ -708,7 +708,7 @@ func (suite *ForwardingTestSuite) TestForwardingBackAfterUnwind() {
 
 	// Check that Escrow A has 100
 	suite.assertAmountOnChain(suite.chainA, escrow, amount, denomA.IBCDenom())
-	// Check that vouchers back on chain B
+	// Check that vouchers are back on chain B
 	suite.assertAmountOnChain(suite.chainB, balance, amount, denomAB.IBCDenom())
 
 	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
