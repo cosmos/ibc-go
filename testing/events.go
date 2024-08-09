@@ -56,7 +56,7 @@ func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	return "", errors.New("channel identifier event attribute not found")
 }
 
-// ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns
+// ParsePacketFromEvents parses events emitted from a send packet and returns
 // the first EventTypeSendPacket packet found.
 // Returns an error if no packet is found.
 func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
