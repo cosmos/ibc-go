@@ -310,7 +310,7 @@ func (k *Keeper) SetCounterparty(ctx sdk.Context, clientID string, counterparty 
 	k.ClientStore(ctx, clientID).Set([]byte(types.CounterpartyKey), bz)
 }
 
-// GetCounterparty gets the counterparty client's identifier for a given client identifier.
+// GetCounterparty gets the Counterparty for a given client identifier.
 func (k *Keeper) GetCounterparty(ctx sdk.Context, clientID string) (types.Counterparty, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get([]byte(types.CounterpartyKey))

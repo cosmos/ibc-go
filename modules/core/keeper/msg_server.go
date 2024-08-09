@@ -28,6 +28,8 @@ var (
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
+// It stores the signer of MsgCreateClient as the creator of the client, which is afterwards
+// compared against the signer of MsgProvideCounterparty.
 // NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
 // The 02-client handler will route to the appropriate light client module based on client type and it is the responsibility
 // of the light client module to unmarshal and interpret the proto encoded bytes.
@@ -146,16 +148,17 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *clienttypes.Msg
 
 	creator, found := k.ClientKeeper.GetCreator(ctx, msg.ClientId)
 	if !found {
-		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "expected client creator to have been set")
+		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "client creator must be set")
 	}
 
 	if creator != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected client creator %s to match signer %s", creator, msg.Signer)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "client creator (%s) must match signer (%s)", creator, msg.Signer)
 	}
 
 	if _, ok := k.ClientKeeper.GetCounterparty(ctx, msg.ClientId); ok {
 		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.ClientId)
 	}
+
 	k.ClientKeeper.SetCounterparty(ctx, msg.ClientId, msg.Counterparty)
 	// Delete client creator from state as it is not needed after this point.
 	k.ClientKeeper.DeleteCreator(ctx, msg.ClientId)

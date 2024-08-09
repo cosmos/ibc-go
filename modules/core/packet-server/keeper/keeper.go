@@ -39,6 +39,7 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName)
 }
 
+// TODO: add godoc
 func (k Keeper) SendPacket(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -69,15 +70,15 @@ func (k Keeper) SendPacket(
 		destPort, destChannel, timeoutHeight, timeoutTimestamp, version)
 
 	if err := packet.ValidateBasic(); err != nil {
-		return 0, errorsmod.Wrap(err, "constructed packet failed basic validation")
+		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	}
 
-	// check that the client of receiver chain is still active
+	// check that the client of counterparty chain is still active
 	if status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel); status != exported.Active {
-		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client state is not active: %s", status)
+		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", sourceChannel, status)
 	}
 
-	// retrieve latest height and timestamp of the client of receiver chain
+	// retrieve latest height and timestamp of the client of counterparty chain
 	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceChannel)
 	if latestHeight.IsZero() {
 		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceChannel)
@@ -109,6 +110,7 @@ func (k Keeper) SendPacket(
 	return sequence, nil
 }
 
+// TODO: add godoc
 func (k Keeper) RecvPacket(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -166,7 +168,7 @@ func (k Keeper) RecvPacket(
 		merklePath,
 		commitment,
 	); err != nil {
-		return "", err
+		return "", errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationChannel)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
@@ -181,6 +183,7 @@ func (k Keeper) RecvPacket(
 	return packet.AppVersion, nil
 }
 
+// TODO: add godoc
 func (k Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -236,6 +239,7 @@ func (k Keeper) WriteAcknowledgement(
 	return nil
 }
 
+// TODO: add godoc
 func (k Keeper) AcknowledgePacket(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -289,7 +293,7 @@ func (k Keeper) AcknowledgePacket(
 		merklePath,
 		channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
-		return "", err
+		return "", errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceChannel)
 	}
 
 	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
@@ -303,6 +307,7 @@ func (k Keeper) AcknowledgePacket(
 	return packet.AppVersion, nil
 }
 
+// TODO: add godoc
 func (k Keeper) TimeoutPacket(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,

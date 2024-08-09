@@ -5,30 +5,41 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 func TestCommitPacket(t *testing.T) {
-	packet := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
-
-	commitment1 := types.CommitPacket(packet)
+	// V1 packet1 commitment
+	packet1 := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
+	commitment1 := types.CommitPacket(packet1)
 	require.NotNil(t, commitment1)
 
+	// V2 packet commitment with empty app version
 	packet2 := types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, "")
 	commitment2 := types.CommitPacket(packet2)
 	require.NotNil(t, commitment2)
 
-	// even though versions are same empty string,
-	// the commitment is different because we use
-	// Eureka protocol for packet2
+	// even though app version is empty for both packet1 and packet2
+	// the commitment is different because we use Eureka protocol for packet2
 	require.NotEqual(t, commitment1, commitment2)
 
+	// V2 packet commitment with non-empty app version
 	packet3 := types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, validVersion)
 	commitment3 := types.CommitPacket(packet3)
 	require.NotNil(t, commitment3)
 
 	require.NotEqual(t, commitment1, commitment3)
 	require.NotEqual(t, commitment2, commitment3)
+
+	// V2 packet commitment with non-empty app version and zero timeout height
+	packet4 := types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, clienttypes.ZeroHeight(), timeoutTimestamp, validVersion)
+	commitment4 := types.CommitPacket(packet4)
+	require.NotNil(t, commitment4)
+
+	require.NotEqual(t, commitment1, commitment4)
+	require.NotEqual(t, commitment2, commitment4)
+	require.NotEqual(t, commitment3, commitment4)
 }
 
 func TestPacketValidateBasic(t *testing.T) {
