@@ -17,15 +17,15 @@ type AccountKeeper interface {
 
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
-	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
-	GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte
-	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
-	HasChannel(ctx sdk.Context, portID, channelID string) bool
+	GetChannel(ctx context.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
+	GetPacketCommitment(ctx context.Context, portID, channelID string, sequence uint64) []byte
+	GetNextSequenceSend(ctx context.Context, portID, channelID string) (uint64, bool)
+	HasChannel(ctx context.Context, portID, channelID string) bool
 }
 
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
-	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
+	BindPort(ctx context.Context, portID string) *capabilitytypes.Capability
 }
 
 // BankKeeper defines the expected bank keeper

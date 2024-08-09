@@ -1,6 +1,7 @@
 package fee
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
@@ -457,7 +458,7 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 
 // SendPacket implements the ICS4 Wrapper interface
 func (im IBCMiddleware) SendPacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
@@ -470,7 +471,7 @@ func (im IBCMiddleware) SendPacket(
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (im IBCMiddleware) WriteAcknowledgement(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
@@ -479,14 +480,14 @@ func (im IBCMiddleware) WriteAcknowledgement(
 }
 
 // GetAppVersion returns the application version of the underlying application
-func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (im IBCMiddleware) GetAppVersion(ctx context.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
 
 // UnmarshalPacketData attempts to use the underlying app to unmarshal the packet data.
 // If the underlying app does not support the PacketDataUnmarshaler interface, an error is returned.
 // This function implements the optional PacketDataUnmarshaler interface required for ADR 008 support.
-func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
+func (im IBCMiddleware) UnmarshalPacketData(ctx context.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	unmarshaler, ok := im.app.(porttypes.PacketDataUnmarshaler)
 	if !ok {
 		return nil, "", errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))

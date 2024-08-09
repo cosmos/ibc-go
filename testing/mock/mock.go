@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -67,8 +68,8 @@ var (
 // Expected Interface
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
-	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
-	IsBound(ctx sdk.Context, portID string) bool
+	BindPort(ctx context.Context, portID string) *capabilitytypes.Capability
+	IsBound(ctx context.Context, portID string) bool
 }
 
 // AppModuleBasic is the mock AppModuleBasic.

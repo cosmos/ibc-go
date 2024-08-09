@@ -36,10 +36,10 @@ type BankKeeper interface {
 
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
-	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
-	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
-	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
-	HasChannel(ctx sdk.Context, portID, channelID string) bool
+	GetChannel(ctx context.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
+	GetNextSequenceSend(ctx context.Context, portID, channelID string) (uint64, bool)
+	GetAllChannelsWithPortPrefix(ctx context.Context, portPrefix string) []channeltypes.IdentifiedChannel
+	HasChannel(ctx context.Context, portID, channelID string) bool
 }
 
 // ClientKeeper defines the expected IBC client keeper
@@ -54,7 +54,7 @@ type ConnectionKeeper interface {
 
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
-	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
+	BindPort(ctx context.Context, portID string) *capabilitytypes.Capability
 }
 
 // ParamSubspace defines the expected Subspace interface for module parameters.

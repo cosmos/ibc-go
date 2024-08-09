@@ -6,8 +6,10 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
+	corestore "cosmossdk.io/core/store"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -29,8 +31,8 @@ const Localhost string = "09-localhost"
 // - Pruning all solo machine consensus states
 // - Removing the localhost client
 // - Asserting existing tendermint clients are properly registered on the chain codec
-func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
-	store := ctx.KVStore(storeKey)
+func MigrateStore(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+	store := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
 
 	if err := handleSolomachineMigration(ctx, store, cdc, clientKeeper); err != nil {
 		return err

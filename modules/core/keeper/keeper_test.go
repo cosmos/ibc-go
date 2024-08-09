@@ -7,6 +7,7 @@ import (
 
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -72,7 +73,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
 					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,
 					scopedKeeper,
@@ -91,7 +92,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
 					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,
 					scopedKeeper,

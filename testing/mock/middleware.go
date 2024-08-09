@@ -2,6 +2,7 @@ package mock
 
 import (
 	"bytes"
+	"context"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -170,7 +171,7 @@ func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion
 
 // SendPacket implements the ICS4 Wrapper interface
 func (BlockUpgradeMiddleware) SendPacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
@@ -183,7 +184,7 @@ func (BlockUpgradeMiddleware) SendPacket(
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (BlockUpgradeMiddleware) WriteAcknowledgement(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
@@ -192,6 +193,6 @@ func (BlockUpgradeMiddleware) WriteAcknowledgement(
 }
 
 // GetAppVersion returns the application version of the underlying application
-func (BlockUpgradeMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (BlockUpgradeMiddleware) GetAppVersion(ctx context.Context, portID, channelID string) (string, bool) {
 	return Version, true
 }
