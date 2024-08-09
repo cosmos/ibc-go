@@ -53,8 +53,8 @@ var (
 	DenomTraceKey = []byte{0x02}
 	// DenomKey defines the key to store the token denomination in store
 	DenomKey = []byte{0x03}
-	// forwardPacketKey defines the key to store the forwarded packet in store
-	forwardPacketKey = []byte{0x04}
+	// ForwardedPacketKey defines the key to store the forwarded packet in store
+	ForwardedPacketKey = []byte{0x04}
 
 	// SupportedVersions defines all versions that are supported by the module
 	SupportedVersions = []string{V2, V1}
@@ -85,5 +85,5 @@ func TotalEscrowForDenomKey(denom string) []byte {
 // PacketForwardKey returns the store key under which the forwarded packet is stored
 // for the provided portID, channelID, and packet sequence.
 func PacketForwardKey(portID, channelID string, sequence uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/%s", forwardPacketKey, portID, channelID, sdk.Uint64ToBigEndian(sequence)))
+	return []byte(fmt.Sprintf("%s/%s/%s/%s", ForwardedPacketKey, portID, channelID, sdk.Uint64ToBigEndian(sequence)))
 }

@@ -37,7 +37,7 @@ func (s *CallbacksTestSuite) TestTransferTimeoutReplayProtection() {
 				cachedCtx sdk.Context,
 				packet channeltypes.Packet,
 				_ sdk.AccAddress,
-				_, _ string,
+				_, _, _ string,
 			) error {
 				// only replay the timeout packet twice. We could replay it more times
 				callbackCount++
@@ -119,7 +119,7 @@ func (s *CallbacksTestSuite) TestTransferErrorAcknowledgementReplayProtection() 
 				packet channeltypes.Packet,
 				ack []byte,
 				_ sdk.AccAddress,
-				_, _ string,
+				_, _, _ string,
 			) error {
 				// only replay the ack packet twice. We could replay it more times
 				callbackCount++
@@ -197,7 +197,7 @@ func (s *CallbacksTestSuite) TestTransferSuccessAcknowledgementReplayProtection(
 				packet channeltypes.Packet,
 				ack []byte,
 				_ sdk.AccAddress,
-				_, _ string,
+				_, _, _ string,
 			) error {
 				// only replay the ack packet twice. We could replay it more times
 				callbackCount++
@@ -265,7 +265,7 @@ func (s *CallbacksTestSuite) TestTransferRecvPacketReplayProtection() {
 				cachedCtx sdk.Context,
 				packet ibcexported.PacketI,
 				_ ibcexported.Acknowledgement,
-				_ string,
+				_, _ string,
 			) error {
 				callbackCount++
 				if callbackCount == 2 {

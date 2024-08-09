@@ -52,7 +52,11 @@ message MsgCreateClient {
 }
 
 // MsgCreateClientResponse defines the Msg/CreateClient response type.
-message MsgCreateClientResponse {}
+message MsgCreateClientResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  string client_id = 1;
+}
 
 // MsgUpdateClient defines an sdk.Msg to update a IBC client state using
 // the given client message.

@@ -355,7 +355,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			s.Require().True(ok)
 
 			onAcknowledgementPacket := func() error {
-				return transferStack.OnAcknowledgementPacket(ctx, packet, ack, s.chainA.SenderAccount.GetAddress())
+				return transferStack.OnAcknowledgementPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress())
 			}
 
 			switch tc.expError {
@@ -519,7 +519,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().True(ok)
 
 			onTimeoutPacket := func() error {
-				return transferStack.OnTimeoutPacket(ctx, packet, s.chainA.SenderAccount.GetAddress())
+				return transferStack.OnTimeoutPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainA.SenderAccount.GetAddress())
 			}
 
 			switch expValue := tc.expValue.(type) {
@@ -687,7 +687,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			s.Require().True(ok)
 
 			onRecvPacket := func() ibcexported.Acknowledgement {
-				return transferStack.OnRecvPacket(ctx, packet, s.chainB.SenderAccount.GetAddress())
+				return transferStack.OnRecvPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
 			}
 
 			switch tc.expAck {
@@ -1027,8 +1027,9 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 
 	// Unmarshal ICS20 v1 packet data into v2 packet data
 	data := expPacketDataICS20V1.GetBytes()
-	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
+	packetData, version, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
+	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, version)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
 }
 
@@ -1060,9 +1061,10 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
 
 	// Unmarshal ICS20 v2 packet data
 	data := expPacketDataICS20V2.GetBytes()
-	packetData, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
+	packetData, version, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), portID, channelID, data)
 	s.Require().NoError(err)
 	s.Require().Equal(expPacketDataICS20V2, packetData)
+	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, version)
 }
 
 func (s *CallbacksTestSuite) TestGetAppVersion() {
@@ -1132,7 +1134,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 		0,
 	)
 
-	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), packet, s.chainA.SenderAccount.GetAddress())
+	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
 	s.Require().Nil(ack)
 	s.AssertHasExecutedExpectedCallback("none", true)
 }

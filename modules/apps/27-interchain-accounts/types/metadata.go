@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 const (
@@ -58,7 +59,7 @@ func NewDefaultMetadataString(controllerConnectionID, hostConnectionID string) s
 func MetadataFromVersion(versionString string) (Metadata, error) {
 	var metadata Metadata
 	if err := ModuleCdc.UnmarshalJSON([]byte(versionString), &metadata); err != nil {
-		return Metadata{}, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+		return Metadata{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-27 interchain accounts metadata")
 	}
 	return metadata, nil
 }

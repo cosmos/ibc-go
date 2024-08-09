@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 	suite.Require().Equal(expParams, params)
 }
 
-// TestParams tests that param setting and retrieval works properly
+// TestSetAndGetParams tests that param setting and retrieval works properly
 func (suite *KeeperTestSuite) TestSetAndGetParams() {
 	testCases := []struct {
 		name    string

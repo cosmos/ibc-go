@@ -22,19 +22,17 @@ callbacks to IBC applications.
 | create_client | client_id        | \{clientId\}        |
 | create_client | client_type      | \{clientType\}      |
 | create_client | consensus_height | \{consensusHeight\} |
-| message       | action           | create_client     |
 | message       | module           | ibc_client        |
 
 ### MsgUpdateClient
 
-| Type          | Attribute Key    | Attribute Value   |
-| ------------- | ---------------- | ----------------- |
-| update_client | client_id        | \{clientId\}        |
-| update_client | client_type      | \{clientType\}      |
-| update_client | consensus_height | \{consensusHeight\} |
-| update_client | header           | \{header\}          |
-| message       | action           | update_client     |
-| message       | module           | ibc_client        |
+| Type          | Attribute Key     | Attribute Value                 | Status     |
+| ------------- | ----------------- | ------------------------------- | ---------- |
+| update_client | client_id         | \{clientId\}                    |            |
+| update_client | client_type       | \{clientType\}                  |            |
+| update_client | consensus_height  | \{consensusHeight\}             | Deprecated |    
+| update_client | consensus_heights | \{join(consensusHeights, ",")\} |            |
+| message       | module            | ibc_client                      |            |
 
 ### MsgSubmitMisbehaviour
 
@@ -43,7 +41,6 @@ callbacks to IBC applications.
 | client_misbehaviour | client_id        | \{clientId\}          |
 | client_misbehaviour | client_type      | \{clientType\}        |
 | client_misbehaviour | consensus_height | \{consensusHeight\}   |
-| message             | action           | client_misbehaviour |
 | message             | module           | evidence            |
 | message             | sender           | \{senderAddress\}     |
 | submit_evidence     | evidence_hash    | \{evidenceHash\}      |
@@ -72,7 +69,6 @@ callbacks to IBC applications.
 | connection_open_init | connection_id          | \{connectionId\}          |
 | connection_open_init | client_id              | \{clientId\}              |
 | connection_open_init | counterparty_client_id | \{counterparty.clientId\} |
-| message              | action                 | connection_open_init    |
 | message              | module                 | ibc_connection          |
 
 ### MsgConnectionOpenTry
@@ -83,7 +79,6 @@ callbacks to IBC applications.
 | connection_open_try | client_id                  | \{clientId\}                  |
 | connection_open_try | counterparty_client_id     | \{counterparty.clientId      |
 | connection_open_try | counterparty_connection_id | \{counterparty.connectionId\} |
-| message             | action                     | connection_open_try         |
 | message             | module                     | ibc_connection              |
 
 ### MsgConnectionOpenAck
@@ -95,7 +90,6 @@ callbacks to IBC applications.
 | connection_open_ack | counterparty_client_id     | \{counterparty.clientId\}     |
 | connection_open_ack | counterparty_connection_id | \{counterparty.connectionId\} |
 | message             | module                     | ibc_connection              |
-| message             | action                     | connection_open_ack         |
 
 ### MsgConnectionOpenConfirm
 
@@ -105,7 +99,6 @@ callbacks to IBC applications.
 | connection_open_confirm | client_id                  | \{clientId\}                  |
 | connection_open_confirm | counterparty_client_id     | \{counterparty.clientId\}     |
 | connection_open_confirm | counterparty_connection_id | \{counterparty.connectionId\} |
-| message                 | action                     | connection_open_confirm     |
 | message                 | module                     | ibc_connection              |
 
 ## ICS 04 - Channel
@@ -118,7 +111,6 @@ callbacks to IBC applications.
 | channel_open_init | channel_id           | \{channelId\}                   |
 | channel_open_init | counterparty_port_id | \{channel.counterparty.portId\} |
 | channel_open_init | connection_id        | \{channel.connectionHops\}      |
-| message           | action               | channel_open_init             |
 | message           | module               | ibc_channel                   |
 
 ### MsgChannelOpenTry
@@ -130,7 +122,6 @@ callbacks to IBC applications.
 | channel_open_try | counterparty_port_id    | \{channel.counterparty.portId\}    |
 | channel_open_try | counterparty_channel_id | \{channel.counterparty.channelId\} |
 | channel_open_try | connection_id           | \{channel.connectionHops\}         |
-| message          | action                  | channel_open_try                 |
 | message          | module                  | ibc_channel                      |
 
 ### MsgChannelOpenAck
@@ -142,7 +133,6 @@ callbacks to IBC applications.
 | channel_open_ack | counterparty_port_id    | \{channel.counterparty.portId\}    |
 | channel_open_ack | counterparty_channel_id | \{channel.counterparty.channelId\} |
 | channel_open_ack | connection_id           | \{channel.connectionHops\}         |
-| message          | action                  | channel_open_ack                 |
 | message          | module                  | ibc_channel                      |
 
 ### MsgChannelOpenConfirm
@@ -155,7 +145,6 @@ callbacks to IBC applications.
 | channel_open_confirm | counterparty_channel_id | \{channel.counterparty.channelId\} |
 | channel_open_confirm | connection_id           | \{channel.connectionHops\}         |
 | message              | module                  | ibc_channel                      |
-| message              | action                  | channel_open_confirm             |
 
 ### MsgChannelCloseInit
 
@@ -166,7 +155,6 @@ callbacks to IBC applications.
 | channel_close_init | counterparty_port_id    | \{channel.counterparty.portId\}    |
 | channel_close_init | counterparty_channel_id | \{channel.counterparty.channelId\} |
 | channel_close_init | connection_id           | \{channel.connectionHops\}         |
-| message            | action                  | channel_close_init               |
 | message            | module                  | ibc_channel                      |
 
 ### MsgChannelCloseConfirm
@@ -178,7 +166,6 @@ callbacks to IBC applications.
 | channel_close_confirm | counterparty_port_id    | \{channel.counterparty.portId\}    |
 | channel_close_confirm | counterparty_channel_id | \{channel.counterparty.channelId\} |
 | channel_close_confirm | connection_id           | \{channel.connectionHops\}         |
-| message               | action                  | channel_close_confirm            |
 | message               | module                  | ibc_channel                      |
 
 ### SendPacket (application module call)
@@ -196,7 +183,6 @@ callbacks to IBC applications.
 | send_packet | packet_channel_ordering  | \{channel.Ordering\}               |            |
 | send_packet | packet_connection        | \{channel.ConnectionHops[0]\}      | Deprecated |
 | send_packet | connection_id            | \{channel.ConnectionHops[0]\}      |            |
-| message     | action                   | application-module-defined-field |            |
 | message     | module                   | ibc_channel                      |            |
 
 ### MsgRecvPacket
@@ -214,7 +200,6 @@ callbacks to IBC applications.
 | recv_packet | packet_channel_ordering  | \{channel.Ordering\}          |            |
 | recv_packet | packet_connection        | \{channel.ConnectionHops[0]\} | Deprecated |
 | recv_packet | connection_id            | \{channel.ConnectionHops[0]\} |            |
-| message     | action                   | recv_packet                 |            |
 | message     | module                   | ibc_channel                 |            |
 
 | Type                  | Attribute Key            | Attribute Value             | Status     |
@@ -231,7 +216,6 @@ callbacks to IBC applications.
 | write_acknowledgement | packet_channel_ordering  | \{channel.Ordering\}          |            |
 | write_acknowledgement | packet_connection        | \{channel.ConnectionHops[0]\} | Deprecated |
 | write_acknowledgement | connection_id            | \{channel.ConnectionHops[0]\} |            |
-| message               | action                   | write_acknowledgement       |            |
 | message               | module                   | ibc_channel                 |            |
 
 ### MsgAcknowledgePacket
@@ -248,7 +232,6 @@ callbacks to IBC applications.
 | acknowledge_packet | packet_channel_ordering  | \{channel.Ordering\}          |            |
 | acknowledge_packet | packet_connection        | \{channel.ConnectionHops[0]\} | Deprecated |
 | acknowledge_packet | connection_id            | \{channel.ConnectionHops[0]\} |            |
-| message            | action                   | acknowledge_packet          |            |
 | message            | module                   | ibc_channel                 |            |
 
 ### MsgTimeoutPacket & MsgTimeoutOnClose
@@ -264,5 +247,4 @@ callbacks to IBC applications.
 | timeout_packet | packet_dst_channel       | \{destinationChannel\}        |
 | timeout_packet | packet_channel_ordering  | \{channel.Ordering\}          |
 | timeout_packet | connection_id            | \{channel.ConnectionHops[0]\} |
-| message        | action                   | timeout_packet              |
 | message        | module                   | ibc_channel                 |

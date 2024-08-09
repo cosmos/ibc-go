@@ -98,7 +98,6 @@ func NewApp(...args) *App {
     appCodec,
     keys[ibcexported.StoreKey],
     app.GetSubspace(ibcexported.ModuleName),
-    ibctm.NewConsensusHost(app.StakingKeeper),
     app.UpgradeKeeper,
     scopedIBCKeeper,
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -246,14 +245,10 @@ import (
 // app.go
 // after sealing the IBC router
 
-clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
+storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
 
-tmLightClientModule := ibctm.NewLightClientModule(
-  appCodec, 
-  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-)
-clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
-
+tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
+app.IBCKeeper.ClientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 app.ModuleManager = module.NewManager(
   // ...
   capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
