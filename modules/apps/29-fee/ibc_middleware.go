@@ -257,7 +257,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	//
 	// Please see ADR 004 for more information.
 	if im.keeper.IsLocked(ctx) {
-		return im.app.OnTimeoutPacket(ctx, appVersion, packet, relayer)
+		return nil
 	}
 
 	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)

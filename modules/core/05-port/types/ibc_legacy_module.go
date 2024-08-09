@@ -269,12 +269,23 @@ func (im *LegacyIBCModule) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-func (LegacyIBCModule) OnTimeoutPacket(
+func (im *LegacyIBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	for i := len(im.cbs); i >= 0; i-- {
+		cbVersion := channelVersion
+
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+			cbVersion, channelVersion = wrapper.UnwrapVersionSafe(ctx, packet.SourcePort, packet.SourceChannel, cbVersion)
+		}
+
+		if err := im.cbs[i].OnTimeoutPacket(ctx, cbVersion, packet, relayer); err != nil {
+			return errorsmod.Wrapf(err, "on timeout packet callback failed for packet with source Port ID: %s, source channel ID: %s", packet.SourcePort, packet.SourceChannel)
+		}
+	}
 	return nil
 }
 
