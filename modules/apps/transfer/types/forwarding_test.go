@@ -87,7 +87,7 @@ func TestForwarding_Validate(t *testing.T) {
 			types.ErrInvalidForwarding,
 		},
 		{
-			"unwind forwarding with hop forwarding back to itself",
+			"unwind with hop forwarding back to itself",
 			types.NewForwarding(true, types.NewHop(types.PortID, types.PortID)),
 			nil,
 		},

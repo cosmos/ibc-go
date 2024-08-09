@@ -601,6 +601,137 @@ func (suite *ForwardingTestSuite) TestSuccessfulUnwind() {
 	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount.Add(amount), denomA.IBCDenom())
 }
 
+// TestForwardingBackAfterUnwind tests the scenario where tokens are unwond and then forwarded
+// back to the sending chain.
+func (suite *ForwardingTestSuite) TestForwardingBackAfterUnwind() {
+	/*
+		Given the following topology:
+		chain A (channel 0) -> (channel-0) chain B (channel-0)
+		stake                  transfer/channel-0/stake
+		We want to trigger:
+			1. A sends to B over channel-0.
+			2. B receives and transfers back to A over channel-0 with unwind set to true.
+			3. A receives the packet back.
+			4. A sends back to B over channel-0.
+		At this point we want to assert:
+			A: finalReceiver = amount,transfer/channel-0/denom
+			B: no tokens should be held in escrow.
+	*/
+	amount := sdkmath.NewInt(100)
+	pathAtoB, _ := suite.setupForwardingPaths()
+
+	accountA := suite.chainA.SenderAccount
+	accountB := suite.chainB.SenderAccount
+
+	denomA := types.NewDenom(sdk.DefaultBondDenom)
+	denomAB := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
+
+	// Send tokens from A to B
+	coin := ibctesting.TestCoin
+	transferMsg := types.NewMsgTransfer(
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+		sdk.NewCoins(coin),
+		accountA.GetAddress().String(),
+		accountB.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(), "",
+		nil,
+	)
+
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	// parse the packet from result events and recv packet on chainA
+	packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromAtoB)
+
+	err = pathAtoB.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Check that vouchers are received on chain B
+	suite.assertAmountOnChain(suite.chainB, balance, amount, denomAB.IBCDenom())
+
+	// Unwind tokens back from B to A
+	coinOnB := sdk.NewCoin(denomAB.IBCDenom(), amount)
+	forwarding := types.NewForwarding(true, types.NewHop(
+		pathAtoB.EndpointA.ChannelConfig.PortID,
+		pathAtoB.EndpointA.ChannelID,
+	))
+
+	transferMsg = types.NewMsgTransfer(
+		"",
+		"",
+		sdk.NewCoins(coinOnB),
+		accountB.GetAddress().String(),
+		accountB.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		suite.chainB.GetTimeoutTimestamp(), "",
+		forwarding,
+	)
+
+	result, err = suite.chainB.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	suite.assertAmountOnChain(suite.chainB, balance, sdkmath.NewInt(0), denomAB.IBCDenom())
+
+	// parse the packet from result events and recv packet on chainA
+	packetFromBtoA, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromBtoA)
+
+	err = pathAtoB.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = pathAtoB.EndpointA.RecvPacketWithResult(packetFromBtoA)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Check that Escrow A has 100
+	suite.assertAmountOnChain(suite.chainA, escrow, sdkmath.NewInt(100), denomA.IBCDenom())
+
+	// parse the packet from result events and recv packet on chainB
+	packetFromAtoB, err = ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromAtoB)
+
+	err = pathAtoB.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAtoB)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(result)
+
+	// Check that Escrow A has 100
+	suite.assertAmountOnChain(suite.chainA, escrow, amount, denomA.IBCDenom())
+	// Check that vouchers back on chain B
+	suite.assertAmountOnChain(suite.chainB, balance, amount, denomAB.IBCDenom())
+
+	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	successAckBz := channeltypes.CommitAcknowledgement(successAck.Acknowledgement())
+	ackOnB := suite.chainB.GetAcknowledgement(packetFromAtoB)
+	suite.Require().Equal(successAckBz, ackOnB)
+
+	// Ack back to A
+	err = pathAtoB.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathAtoB.EndpointA.AcknowledgePacket(packetFromAtoB, successAck.Acknowledgement())
+	suite.Require().NoError(err)
+
+	// Ack back to B
+	err = pathAtoB.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = pathAtoB.EndpointB.AcknowledgePacket(packetFromBtoA, successAck.Acknowledgement())
+	suite.Require().NoError(err)
+}
+
 // TestAcknowledgementFailureWithMiddleChainAsNativeTokenSource tests a failure in the last hop where the
 // middle chain is native source when receiving and sending the packet. In other words, the middle chain's native
 // token has been sent to chain C, and the multi-hop transfer from C -> B -> A has chain B being the source of
@@ -1294,129 +1425,4 @@ func (suite *ForwardingTestSuite) assertAmountOnChain(chain *ibctesting.TestChai
 		suite.Fail("invalid amountType %s", balanceType)
 	}
 	suite.Require().Equal(amount, total.Amount, fmt.Sprintf("Chain %s: got balance of %d, wanted %d", chain.Name(), total.Amount, amount))
-}
-
-// TestForwardingUnwind tests a forwarding scenario where the packet forwards back to the source with unwind set to true.
-func (suite *ForwardingTestSuite) TestForwardingUnwind() {
-	/*
-		Given the following topology:
-		chain A (channel 0) -> (channel-0) chain B (channel-0)
-		stake                  transfer/channel-0/stake
-		We want to trigger:
-			1. A sends to B over channel-0.
-			2. B receives and forwards back to A over channel-0 with unwind set to true.
-			3. A receives the packet back.
-		At this point we want to assert:
-			A: finalReceiver = amount,transfer/channel-0/denom
-			B: no tokens should be held in escrow.
-	*/
-	amount := sdkmath.NewInt(100)
-	pathAtoB, _ := suite.setupForwardingPaths()
-
-	sender := suite.chainB.SenderAccount
-	receiver := suite.chainA.SenderAccount
-
-	denomA := types.NewDenom(sdk.DefaultBondDenom)
-	denomAB := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
-
-	// Mint coins on chain A
-	coinOnA := sdk.NewCoin(denomA.IBCDenom(), amount)
-	err := suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coinOnA))
-	suite.Require().NoError(err)
-
-	// Escrow address for A to B transfer
-	escrowAddressAtoB := types.GetEscrowAddress(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID)
-
-	// Send coins from module to escrow address on chain A
-	err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, escrowAddressAtoB, sdk.NewCoins(coinOnA))
-	suite.Require().NoError(err)
-
-	// Set total escrow for the denomination on chain A
-	suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), coinOnA)
-
-	// Mint coins on chain B
-	coinOnB := sdk.NewCoin(denomAB.IBCDenom(), amount)
-	err = suite.chainB.GetSimApp().BankKeeper.MintCoins(suite.chainB.GetContext(), types.ModuleName, sdk.NewCoins(coinOnB))
-	suite.Require().NoError(err)
-
-	// Set the denomination on chain B
-	suite.chainB.GetSimApp().TransferKeeper.SetDenom(suite.chainB.GetContext(), denomAB)
-
-	err = suite.chainB.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainB.GetContext(), types.ModuleName, sender.GetAddress(), sdk.NewCoins(coinOnB))
-	suite.Require().NoError(err)
-
-	forwarding := types.NewForwarding(true, types.NewHop(
-		pathAtoB.EndpointA.ChannelConfig.PortID,
-		pathAtoB.EndpointA.ChannelID,
-	))
-
-	transferMsg := types.NewMsgTransfer(
-		"",
-		"",
-		sdk.NewCoins(coinOnB),
-		sender.GetAddress().String(),
-		receiver.GetAddress().String(),
-		clienttypes.ZeroHeight(),
-		suite.chainB.GetTimeoutTimestamp(), "",
-		forwarding,
-	)
-
-	result, err := suite.chainB.SendMsgs(transferMsg)
-	suite.Require().NoError(err) // message committed
-
-	suite.assertAmountOnChain(suite.chainB, balance, sdkmath.NewInt(0), denomAB.IBCDenom())
-
-	// // parse the packet from result events and recv packet on chainB
-	packetFromBtoA, err := ibctesting.ParsePacketFromEvents(result.Events)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(packetFromBtoA)
-
-	err = pathAtoB.EndpointA.UpdateClient()
-	suite.Require().NoError(err)
-
-	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromBtoA)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(result)
-
-	// // Check that Escrow A has amount
-	// suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
-
-	// // denom path: transfer/channel-0
-	// denom := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
-	// suite.assertAmountOnChain(suite.chainB, escrow, amount, denom.IBCDenom())
-
-	// packetFromBtoA, err := ibctesting.ParsePacketFromEvents(result.Events)
-	// suite.Require().NoError(err)
-	// suite.Require().NotNil(packetFromBtoA)
-
-	// err = pathAtoB.EndpointA.UpdateClient()
-	// suite.Require().NoError(err)
-
-	// result, err = pathAtoB.EndpointA.RecvPacketWithResult(packetFromBtoA)
-	// suite.Require().NoError(err)
-	// suite.Require().NotNil(result)
-
-	// // denom path: transfer/channel-0/transfer/channel-0/denom
-	// denomBA := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointA.ChannelID), types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))
-	// suite.assertAmountOnChain(suite.chainA, balance, amount, denomBA.IBCDenom())
-
-	// successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	// successAckBz := channeltypes.CommitAcknowledgement(successAck.Acknowledgement())
-	// ackOnA := suite.chainA.GetAcknowledgement(packetFromBtoA)
-	// suite.Require().Equal(successAckBz, ackOnA)
-
-	// // Ack back to B
-	// err = pathAtoB.EndpointB.UpdateClient()
-	// suite.Require().NoError(err)
-
-	// err = pathAtoB.EndpointA.AcknowledgePacket(packetFromBtoA, successAck.Acknowledgement())
-	// suite.Require().NoError(err)
-
-	// ackOnB := suite.chainB.GetAcknowledgement(packetFromAtoB)
-	// suite.Require().Equal(successAckBz, ackOnB)
-
-	// // B should now have deleted the forwarded packet.
-	// _, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), packetFromBtoA.SourcePort, packetFromBtoA.SourceChannel, packetFromBtoA.Sequence)
-	// suite.Require().False(found, "Chain B should have deleted the forwarded packet")
-
 }
