@@ -45,7 +45,7 @@ The additional flags that can be used with the command are:
 - `--absolute-timeouts` to interpret the timeout timestamp as an aboslute value (when set to true). The default value is false (and thus the timeout timeout is considered relative to current UTC time).
 - `--memo` to specify the memo string to be sent along with the transfer packet. If forwarding is used, then the memo string will be carried through the intermediary chains to the final destination.
 - `--forwarding` to specify forwarding information in the form of a comma separated list of source port ID/channel ID pairs at each intermediary chain (e.g. `transfer/channel-0,transfer/channel-1`).
-- `--unwind` to specify if the tokens must be automatically unwound to there origin chain. This option can be used in combination with `--forwarding` to forward the tokens to the final destination after unwinding. When this flag is true, the `coins` option must specify a single coin.
+- `--unwind` to specify if the tokens must be automatically unwound to there origin chain. This option can be used in combination with `--forwarding` to forward the tokens to the final destination after unwinding. When this flag is true, the tokens specified in the `coins` option must all have the same denomination trace path (i.e. all tokens must be IBC vouchers sharing exactly the same set of destination port/channel IDs in their denomination trace path). Arguments `[src-port]` and  `[src-channel]` do not need to be specified.
 
 #### `total-escrow`
 
