@@ -600,7 +600,7 @@ func (suite *ForwardingTestSuite) TestSuccessfulUnwind() {
 	suite.assertAmountOnChain(suite.chainA, balance, originalABalance.Amount.Add(amount), denomA.IBCDenom())
 }
 
-// TestForwardingBackAfterUnwind tests the scenario where tokens are unwond and then forwarded
+// TestForwardingBackAfterUnwind tests the scenario where tokens are unwound and then forwarded
 // back to the sending chain.
 func (suite *ForwardingTestSuite) TestForwardingBackAfterUnwind() {
 	/*
