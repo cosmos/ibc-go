@@ -450,3 +450,42 @@ func newScheduleIBCUpgradeProposalCmd() *cobra.Command {
 
 	return cmd
 }
+
+// client identifier, the counterparty client identifier and the counterparty merkle path prefix
+func newMsgProvideCounterpartycmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "",
+		Args:  cobra.ExactArgs(3),
+		Short: "",
+		Long:  ``,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			signer := clientCtx.FromAddress.String()
+			clientIdentifier := args[0]
+			counterPartyClientIdentifier := args[1]
+			counterPartyMerklePathPrefix := args[2]
+
+			counterParty := types.NewCounterparty(counterPartyClientIdentifier, counterPartyMerklePathPrefix)
+			msg := types.MsgProvideCounterparty{
+				ClientId:     clientIdentifier,
+				Counterparty: counterParty,
+				Signer:       signer,
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	cmd.Flags().String(FlagAuthority, "", "The address of the client module authority (defaults to gov)")
+
+	flags.AddTxFlagsToCmd(cmd)
+	govcli.AddGovPropFlagsToCmd(cmd)
+	err := cmd.MarkFlagRequired(govcli.FlagTitle)
+	if err != nil {
+		panic(err)
+	}
+
+	return cmd
+}
