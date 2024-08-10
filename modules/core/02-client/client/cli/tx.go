@@ -455,9 +455,9 @@ func newScheduleIBCUpgradeProposalCmd() *cobra.Command {
 // client identifier, the counterparty client identifier and the counterparty merkle path prefix
 func newMsgProvideCounterPartycmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "",
+		Use:   "provide-counter-party [clientIdentifier] [counterPartyClientIdentifier] [counterPartyMerklePathPrefix]",
 		Args:  cobra.ExactArgs(3),
-		Short: "",
+		Short: "Submits the transaction with MsgProvideCounterparty",
 		Long:  ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
