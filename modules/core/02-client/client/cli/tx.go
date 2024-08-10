@@ -20,6 +20,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -452,7 +453,7 @@ func newScheduleIBCUpgradeProposalCmd() *cobra.Command {
 }
 
 // client identifier, the counterparty client identifier and the counterparty merkle path prefix
-func newMsgProvideCounterpartycmd() *cobra.Command {
+func newMsgProvideCounterPartycmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "",
 		Args:  cobra.ExactArgs(3),
@@ -466,9 +467,9 @@ func newMsgProvideCounterpartycmd() *cobra.Command {
 			signer := clientCtx.FromAddress.String()
 			clientIdentifier := args[0]
 			counterPartyClientIdentifier := args[1]
-			counterPartyMerklePathPrefix := args[2]
+			counterPartyMerklePathPrefix := v2.NewMerklePath([]byte(args[2]))
 
-			counterParty := types.NewCounterparty(counterPartyClientIdentifier, counterPartyMerklePathPrefix)
+			counterParty := types.NewCounterparty(counterPartyClientIdentifier, &counterPartyMerklePathPrefix)
 			msg := types.MsgProvideCounterparty{
 				ClientId:     clientIdentifier,
 				Counterparty: counterParty,
