@@ -72,8 +72,8 @@ service Query {
     };
   }
   // GetCounterParty queries CounterParty for a given clientId
-  rpc GetCounterParty(GetCounterPartyRequest)returns(GetCounterPartyResponse){
-    option (google.api.http).get = "/ibc/core/client/v1/get_counter_party";
+  rpc Client(QueryClientRequest)returns(QueryClientResponse){
+    option (google.api.http).get = "/ibc/core/client/v1/clients/{client_id}";
   }
 }
 
@@ -247,9 +247,13 @@ message QueryVerifyMembershipResponse {
   bool success = 1;
 }
 
-message GetCounterPartyRequest{
+// QueryClientRequest is the request type for the Query/Client RPC method
+message QueryClientRequest{
   string client_id=1;
 }
-message GetCounterPartyResponse{
-  Counterparty counterParty =1;
+
+ // QueryClientRequest is the response type for the Query/Client RPC method
+message QueryClientResponse{
+  string creator = 1;
+  Counterparty counterparty =2;
 }
