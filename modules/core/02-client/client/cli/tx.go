@@ -20,7 +20,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -467,7 +467,7 @@ func newProvideCounterpartyCmd() *cobra.Command {
 
 			clientIdentifier := args[0]
 			counterpartyClientIdentifier := args[1]
-			counterpartyMerklePathPrefix := v2.NewMerklePath([]byte(args[2]))
+			counterpartyMerklePathPrefix := commitmenttypesv2.NewMerklePath([]byte(args[2]))
 
 			counterparty := types.NewCounterparty(counterpartyClientIdentifier, &counterpartyMerklePathPrefix)
 			msg := types.MsgProvideCounterparty{
