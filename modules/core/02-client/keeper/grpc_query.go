@@ -420,7 +420,12 @@ func (q *queryServer) GetCounterParty(ctx context.Context, req *types.QueryClien
 	if err != true {
 		return types.QueryClientResponse{}, nil
 	}
+	creator, err := q.GetCreator(sdkCtx, req.ClientId)
+	if err != true {
+		return types.QueryClientResponse{}, nil
+	}
 	return types.QueryClientResponse{
+		Creator:      creator,
 		CounterParty: &counterParty,
 	}, nil
 }
