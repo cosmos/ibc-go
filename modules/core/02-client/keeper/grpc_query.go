@@ -417,11 +417,11 @@ func (q *queryServer) Client(ctx context.Context, req *types.QueryClientRequest)
 	}
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	counterParty, err := q.GetCounterparty(sdkCtx, req.ClientId)
-	if err != true {
+	if !err {
 		return nil, nil
 	}
 	creator, err := q.GetCreator(sdkCtx, req.ClientId)
-	if err != true {
+	if !err {
 		return nil, nil
 	}
 	return &types.QueryClientResponse{
