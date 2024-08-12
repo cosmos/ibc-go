@@ -20,7 +20,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -452,41 +452,33 @@ func newScheduleIBCUpgradeProposalCmd() *cobra.Command {
 	return cmd
 }
 
-// client identifier, the counterparty client identifier and the counterparty merkle path prefix
-func newMsgProvideCounterPartycmd() *cobra.Command {
+// newProvideCounterpartyCmd defines the command to provide the counterparty to an IBC client.
+func newProvideCounterpartyCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "provide-counter-party [clientIdentifier] [counterPartyClientIdentifier] [counterPartyMerklePathPrefix]",
+		Use:   "provide-counterparty [client-identifier] [counterparty-client-identifier] [counterparty-merkle-path-prefix]",
 		Args:  cobra.ExactArgs(3),
-		Short: "Submits the transaction with MsgProvideCounterparty",
-		Long:  ``,
+		Short: "provide the counterparty to an IBC client",
+		Long:  `Provide the counterparty to an IBC client specified by its client ID.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			signer := clientCtx.FromAddress.String()
-			clientIdentifier := args[0]
-			counterPartyClientIdentifier := args[1]
-			counterPartyMerklePathPrefix := v2.NewMerklePath([]byte(args[2]))
 
-			counterParty := types.NewCounterparty(counterPartyClientIdentifier, &counterPartyMerklePathPrefix)
+			clientIdentifier := args[0]
+			counterpartyClientIdentifier := args[1]
+			counterpartyMerklePathPrefix := v2.NewMerklePath([]byte(args[2]))
+
+			counterparty := types.NewCounterparty(counterpartyClientIdentifier, &counterpartyMerklePathPrefix)
 			msg := types.MsgProvideCounterparty{
 				ClientId:     clientIdentifier,
-				Counterparty: counterParty,
-				Signer:       signer,
+				Counterparty: counterparty,
+				Signer:       clientCtx.GetFromAddress().String(),
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 
-	cmd.Flags().String(FlagAuthority, "", "The address of the client module authority (defaults to gov)")
-
 	flags.AddTxFlagsToCmd(cmd)
-	govcli.AddGovPropFlagsToCmd(cmd)
-	err := cmd.MarkFlagRequired(govcli.FlagTitle)
-	if err != nil {
-		panic(err)
-	}
-
 	return cmd
 }

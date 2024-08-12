@@ -50,7 +50,7 @@ func NewTxCmd() *cobra.Command {
 		newUpgradeClientCmd(),
 		newSubmitRecoverClientProposalCmd(),
 		newScheduleIBCUpgradeProposalCmd(),
-		newMsgProvideCounterPartycmd(),
+		newProvideCounterpartyCmd(),
 	)
 
 	return txCmd
