@@ -483,14 +483,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 				tc.malleate()
 
-				module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(path.EndpointB.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
 				ctx := suite.chainB.GetContext()
-				res := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, nil)
+				res := cbs[0].OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, nil)
 
 				expectedAttributes := []sdk.Attribute{
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),

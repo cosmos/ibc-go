@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -437,7 +438,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(msg.Packet.DestinationPort)
+	cbs, ok := k.PortKeeper.AppRouter.PacketRoute(msg.Packet.DestinationPort)
 	if !ok {
 		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort)
@@ -466,7 +467,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	//
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn = ctx.CacheContext()
-	res := cbs.OnRecvPacket(cacheCtx, channelVersion, msg.Packet, relayer)
+	res := k.onRecvPacketMulti(cacheCtx, channelVersion, msg.Packet, relayer, cbs...)
 	if res.Status == exported.Success || res.Status == exported.Async {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
@@ -483,12 +484,32 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 			return nil, err
 		}
 	}
-
 	defer telemetry.ReportRecvPacket(msg.Packet)
 
 	ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
+}
+
+// onRecvPacketMulti is a temporary function to sweep looping
+func (Keeper) onRecvPacketMulti(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress, cbs ...porttypes.IBCModule) exported.RecvPacketResult {
+	if len(cbs) != 1 {
+		panic(fmt.Errorf("unexpected ibc module callbacks: expected legacy routes but got %d", len(cbs)))
+	}
+
+	if _, ok := cbs[0].(porttypes.ClassicIBCModule); !ok {
+		panic(fmt.Errorf("expected %T, but got %T", porttypes.LegacyIBCModule{}, cbs[0]))
+	}
+
+	// TODO: needs multi acknowledgement structure
+	// var results []exported.RecvPacketResult
+	// for _, cb := range cbs {
+	// 	res := cb.OnRecvPacket(ctx, channelVersion, packet, relayer)
+
+	// 	results = append(results, res)
+	// }
+
+	return cbs[0].OnRecvPacket(ctx, channelVersion, packet, relayer)
 }
 
 // Timeout defines a rpc handler method for MsgTimeout.

@@ -257,10 +257,10 @@ func (im *LegacyIBCModule) OnRecvPacket(
 
 	// Once we have collected each result, then iterate in order and wrap ackwnoledgement if needed.
 	// tldr; reduce resultList to result
-	finalResult := resultList[len(resultList)-1]
+	res := resultList[len(resultList)-1]
 	for i := len(resultList) - 2; i >= 0; i-- {
 		if wrapper, ok := im.cbs[i].(AcknowledgementWrapper); ok {
-			finalResult = wrapper.WrapAcknowledgement(ctx, packet, relayer, finalResult)
+			res = wrapper.WrapAcknowledgement(ctx, packet, relayer, res)
 		}
 	}
 
@@ -272,7 +272,7 @@ func (im *LegacyIBCModule) OnRecvPacket(
 	// Store ResultList: [ A, B ]
 	// WriteAsyncAck for C: look up result list and call wrapper.WrapAck with
 
-	return finalResult
+	return res
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

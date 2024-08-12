@@ -475,10 +475,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
 				packet := channeltypes.NewPacket(
@@ -493,7 +490,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				)
 
 				ctx := suite.chainA.GetContext()
-				res := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
+				res := cbs[0].OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
 				suite.Require().Equal(tc.expStatus, res.Status, "expected %s but got %s", tc.expStatus, res.Status)
 
 				expectedEvents := sdk.Events{
