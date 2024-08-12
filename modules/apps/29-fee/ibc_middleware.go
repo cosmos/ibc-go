@@ -419,7 +419,7 @@ func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes
 	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer.String(), packet.GetDestChannel())
 
 	return exported.RecvPacketResult{
-		Status:          exported.Success,
+		Status:          prevResult.Status,
 		Acknowledgement: types.NewIncentivizedAcknowledgement(forwardRelayer, prevResult.Acknowledgement, prevResult.Status == exported.Success).Acknowledgement(),
 	}
 }

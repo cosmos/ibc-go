@@ -264,6 +264,14 @@ func (im *LegacyIBCModule) OnRecvPacket(
 		}
 	}
 
+	// if any of the results in resultList are failed then we return a failed result (we also need to wrap for failed)
+	// if any of the results in resultList are async we need to return a final async result
+	// AND
+	// we need to write the acknowledgements to a temporary flat map structure for holding for those which are successful
+
+	// Store ResultList: [ A, B ]
+	// WriteAsyncAck for C: look up result list and call wrapper.WrapAck with
+
 	return finalResult
 }
 
