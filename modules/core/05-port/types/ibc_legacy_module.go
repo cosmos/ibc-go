@@ -1,6 +1,7 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -235,31 +236,25 @@ func (im *LegacyIBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.RecvPacketResult {
-	// NOTE: loop in reverse order calling each module's OnRecvPacket callback
-	// Collect each recv packet result for the ordered list
-	//
-	// e.g. Stack: [transfer, 29-fee]
-	// 29-fee -> Result
-	// transfer -> Result
-	//
-	// ResultList: [29-fee, transfer]
+	// TODO: add convenience func to reverse callbacks and refactor other methods
+	cbs := slices.Clone(im.cbs)
+	slices.Reverse(cbs)
+
 	var resultList []ibcexported.RecvPacketResult
-	for i := len(im.cbs) - 1; i >= 0; i-- {
+	for _, cb := range cbs {
 		cbVersion := channelVersion
 
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
-			cbVersion, channelVersion = wrapper.UnwrapVersionSafe(ctx, packet.SourcePort, packet.SourceChannel, cbVersion)
+		if wrapper, ok := cb.(VersionWrapper); ok {
+			cbVersion, channelVersion = wrapper.UnwrapVersionSafe(ctx, packet.DestinationPort, packet.DestinationChannel, cbVersion)
 		}
 
-		res := im.cbs[i].OnRecvPacket(ctx, cbVersion, packet, relayer)
+		res := cb.OnRecvPacket(ctx, cbVersion, packet, relayer)
 		resultList = append(resultList, res)
 	}
 
-	// Once we have collected each result, then iterate in order and wrap ackwnoledgement if needed.
-	// tldr; reduce resultList to result
 	res := resultList[len(resultList)-1]
 	for i := len(resultList) - 2; i >= 0; i-- {
-		if wrapper, ok := im.cbs[i].(AcknowledgementWrapper); ok {
+		if wrapper, ok := cbs[i].(AcknowledgementWrapper); ok {
 			res = wrapper.WrapAcknowledgement(ctx, packet, relayer, res)
 		}
 	}
