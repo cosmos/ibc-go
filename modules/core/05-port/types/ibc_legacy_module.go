@@ -229,12 +229,38 @@ func (im *LegacyIBCModule) OnSendPacket(
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
 // A nil acknowledgement may be returned when using the packet forwarding feature. This signals to core IBC that the acknowledgement will be written asynchronously.
-func (LegacyIBCModule) OnRecvPacket(
+func (im LegacyIBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.RecvPacketResult {
+
+	// TODO: loop in reverse order calling each module's OnRecvPacket callback
+	// Collect each recv packet result for the ordered list
+	//
+	// e.g. Stack: [transfer, 29-fee]
+	// 29-fee -> Result
+	// transfer -> Result
+	//
+	// ResultList: [29-fee, transfer]
+	var resultList []ibcexported.RecvPacketResult
+	for i := len(im.cbs) - 1; i >= 0; i-- {
+		cbVersion := channelVersion
+
+		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+			cbVersion, channelVersion = wrapper.UnwrapVersionSafe(ctx, packet.SourcePort, packet.SourceChannel, cbVersion)
+		}
+
+		res := im.cbs[i].OnRecvPacket(ctx, cbVersion, packet, relayer)
+		resultList = append(resultList, res)
+		// if res.Status != ibcexported.Async {
+		// 	ackCollection = append(ackCollection, res.Acknowledgement)
+		// }
+	}
+
+	// Once we have collected each result, then iterate in order and wrap ackwnoledgement if needed.
+
 	return ibcexported.RecvPacketResult{}
 }
 

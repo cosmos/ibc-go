@@ -148,6 +148,12 @@ type VersionWrapper interface {
 // AcknowledgementWrapper is an optional interface which should be implemented by middlewares which wrap the acknowledgement
 // to ensure backwards compatibility.
 type AcknowledgementWrapper interface {
+	// WrapAcknowledgement is required in order to remove middleware wiring and the ICS4Wrapper
+	// while maintaining backwards compatibility. It will be removed in the future.
+	// Applications should wrap the underlying app acknowledgement using the context
+	// and the given portID and channelID.
+	WrapAcknowledgement(ctx sdk.Context, portID, channelID string, relayer sdk.AccAddress, acknowledgement []byte) []byte
+
 	// UnwrapAcknowledgement is required in order to remove middleware wiring and the ICS4Wrapper
 	// while maintaining backwards compatibility. It will be removed in the future.
 	// Applications should unwrap the underlying app acknowledgement using the context

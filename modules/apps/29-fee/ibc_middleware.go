@@ -402,6 +402,23 @@ func (im IBCMiddleware) UnwrapVersionSafe(ctx sdk.Context, portID, channelID, ve
 	return metadata.FeeVersion, metadata.AppVersion
 }
 
+func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, portID, channelID string, relayer sdk.AccAddress, ack []byte) []byte {
+	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
+		return ack
+	}
+
+	// in case of async result status store the relayer address for use later during async WriteAcknowledgement
+	// if res.Status == exported.Async {
+	// 	im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
+	// 	return res
+	// }
+
+	// if forwardRelayer is not found we refund recv_fee
+	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer.String(), channelID)
+
+	return types.NewIncentivizedAcknowledgement(forwardRelayer, ack, true).Acknowledgement()
+}
+
 // UnwrapAcknowledgement unwraps an acnkowledgement contextually by relying on storage and the given portID and channelID.
 func (im IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, ack []byte) ([]byte, []byte) {
 	if !im.keeper.IsFeeEnabled(ctx, portID, channelID) {
