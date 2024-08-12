@@ -34,6 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v7.8.0]()
+
+### State Machine Breaking
+
+* (core/03-connection)[\#7128](https://github.com/cosmos/ibc-go/pull/7128) Remove verification of self client and consensus state from connection handshake. 
+
 ## [v7.7.0](https://github.com/cosmos/ibc-go/releases/tag/v7.7.0) - 2024-07-29
 
 ### Dependencies
