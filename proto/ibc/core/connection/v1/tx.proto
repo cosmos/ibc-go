@@ -51,9 +51,9 @@ message MsgConnectionOpenTry {
   string client_id = 1 [(gogoproto.moretags) = "yaml:\"client_id\""];
   // Deprecated: this field is unused. Crossing hellos are no longer supported in core IBC.
   string previous_connection_id = 2 [deprecated = true, (gogoproto.moretags) = "yaml:\"previous_connection_id\""];
-  google.protobuf.Any       client_state          = 3 [(gogoproto.moretags) = "yaml:\"client_state\""];
-  Counterparty              counterparty          = 4 [(gogoproto.nullable) = false];
-  uint64                    delay_period          = 5 [(gogoproto.moretags) = "yaml:\"delay_period\""];
+  google.protobuf.Any       client_state = 3 [deprecated = true, (gogoproto.moretags) = "yaml:\"client_state\""];
+  Counterparty              counterparty = 4 [(gogoproto.nullable) = false];
+  uint64                    delay_period = 5 [(gogoproto.moretags) = "yaml:\"delay_period\""];
   repeated Version          counterparty_versions = 6 [(gogoproto.moretags) = "yaml:\"counterparty_versions\""];
   ibc.core.client.v1.Height proof_height          = 7
       [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
@@ -61,14 +61,14 @@ message MsgConnectionOpenTry {
   // INIT`
   bytes proof_init = 8 [(gogoproto.moretags) = "yaml:\"proof_init\""];
   // proof of client state included in message
-  bytes proof_client = 9 [(gogoproto.moretags) = "yaml:\"proof_client\""];
+  bytes proof_client = 9 [deprecated = true, (gogoproto.moretags) = "yaml:\"proof_client\""];
   // proof of client consensus state
-  bytes                     proof_consensus  = 10 [(gogoproto.moretags) = "yaml:\"proof_consensus\""];
+  bytes                     proof_consensus = 10 [deprecated = true, (gogoproto.moretags) = "yaml:\"proof_consensus\""];
   ibc.core.client.v1.Height consensus_height = 11
-      [(gogoproto.moretags) = "yaml:\"consensus_height\"", (gogoproto.nullable) = false];
+      [deprecated = true, (gogoproto.moretags) = "yaml:\"consensus_height\"", (gogoproto.nullable) = false];
   string signer = 12;
   // optional proof data for host state machines that are unable to introspect their own consensus state
-  bytes host_consensus_state_proof = 13;
+  bytes host_consensus_state_proof = 13 [deprecated = true];
 }
 
 // MsgConnectionOpenTryResponse defines the Msg/ConnectionOpenTry response type.
