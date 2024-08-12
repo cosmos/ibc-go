@@ -410,3 +410,17 @@ func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerify
 		Success: true,
 	}, nil
 }
+
+func (q *queryServer) GetCounterParty(ctx context.Context, req *types.GetCounterPartyRequest) (types.GetCounterPartyResponse, error) {
+	if req == nil {
+		return types.GetCounterPartyResponse{}, status.Error(codes.InvalidArgument, "empty request")
+	}
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	counterParty, err := q.GetCounterparty(sdkCtx, req.ClientId)
+	if err != true {
+		return types.GetCounterPartyResponse{}, nil
+	}
+	return types.GetCounterPartyResponse{
+		CounterParty: &counterParty,
+	}, nil
+}

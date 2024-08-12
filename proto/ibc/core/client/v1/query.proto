@@ -71,6 +71,10 @@ service Query {
       body: "*"
     };
   }
+  // GetCounterParty queries CounterParty for a given clientId
+  rpc GetCounterParty(GetCounterPartyRequest)returns(GetCounterPartyResponse){
+    option (google.api.http).get = "/ibc/core/client/v1/get_counter_party";
+  }
 }
 
 // QueryClientStateRequest is the request type for the Query/ClientState RPC
@@ -241,4 +245,11 @@ message QueryVerifyMembershipRequest {
 message QueryVerifyMembershipResponse {
   // boolean indicating success or failure of proof verification.
   bool success = 1;
+}
+
+message GetCounterPartyRequest{
+  string client_id=1;
+}
+message GetCounterPartyResponse{
+  Counterparty counterParty =1;
 }
