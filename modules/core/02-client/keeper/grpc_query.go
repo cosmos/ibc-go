@@ -411,21 +411,21 @@ func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerify
 	}, nil
 }
 
-func (q *queryServer) GetCounterParty(ctx context.Context, req *types.QueryClientRequest) (types.QueryClientResponse, error) {
+func (q *queryServer) Client(ctx context.Context, req *types.QueryClientRequest) (*types.QueryClientResponse, error) {
 	if req == nil {
-		return types.QueryClientResponse{}, status.Error(codes.InvalidArgument, "empty request")
+		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	counterParty, err := q.GetCounterparty(sdkCtx, req.ClientId)
 	if err != true {
-		return types.QueryClientResponse{}, nil
+		return nil, nil
 	}
 	creator, err := q.GetCreator(sdkCtx, req.ClientId)
 	if err != true {
-		return types.QueryClientResponse{}, nil
+		return nil, nil
 	}
-	return types.QueryClientResponse{
+	return &types.QueryClientResponse{
 		Creator:      creator,
-		CounterParty: &counterParty,
+		Counterparty: &counterParty,
 	}, nil
 }
