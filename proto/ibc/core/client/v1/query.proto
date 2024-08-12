@@ -71,7 +71,7 @@ service Query {
       body: "*"
     };
   }
-  // GetCounterParty queries CounterParty for a given clientId
+  // Client queries CounterParty for a given clientId
   rpc Client(QueryClientRequest)returns(QueryClientResponse){
     option (google.api.http).get = "/ibc/core/client/v1/clients/{client_id}";
   }
