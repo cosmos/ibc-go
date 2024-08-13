@@ -1,6 +1,7 @@
 package types
 
 import (
+	"golang.org/x/exp/slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -44,9 +45,11 @@ func (im *LegacyIBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	negotiatedVersions := make([]string, len(im.cbs))
+	var negotiatedVersions []string
 
-	for i := len(im.cbs) - 1; i >= 0; i-- {
+	cbs := im.reverseCallbacks()
+
+	for _, cb := range cbs {
 		cbVersion := version
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -58,23 +61,24 @@ func (im *LegacyIBCModule) OnChanOpenInit(
 		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
 		// If it is unsuccessful, no callback will occur to this application as the version
 		// indicates it should be disabled.
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(version) != "" {
+		if wrapper, ok := cb.(VersionWrapper); ok && strings.TrimSpace(version) != "" {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(version)
 			if err != nil {
 				// middleware disabled
-				negotiatedVersions[i] = ""
+				negotiatedVersions = append(negotiatedVersions, "")
 				continue
 			}
 			cbVersion, version = appVersion, underlyingAppVersion
 		}
 
-		negotiatedVersion, err := im.cbs[i].OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, cbVersion)
+		negotiatedVersion, err := cb.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, cbVersion)
 		if err != nil {
 			return "", errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", portID, channelID)
 		}
-		negotiatedVersions[i] = negotiatedVersion
+		negotiatedVersions = append(negotiatedVersions, negotiatedVersion)
 	}
 
+	slices.Reverse(negotiatedVersions)
 	return reconstructVersion(im.cbs, negotiatedVersions)
 }
 
@@ -92,9 +96,11 @@ func (im *LegacyIBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	negotiatedVersions := make([]string, len(im.cbs))
+	var negotiatedVersions []string
 
-	for i := len(im.cbs) - 1; i >= 0; i-- {
+	cbs := im.reverseCallbacks()
+
+	for _, cb := range cbs {
 		cbVersion := counterpartyVersion
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -106,23 +112,24 @@ func (im *LegacyIBCModule) OnChanOpenTry(
 		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
 		// If it is unsuccessful, no callback will occur to this application as the version
 		// indicates it should be disabled.
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(counterpartyVersion) != "" {
+		if wrapper, ok := cb.(VersionWrapper); ok && strings.TrimSpace(counterpartyVersion) != "" {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(counterpartyVersion)
 			if err != nil {
 				// middleware disabled
-				negotiatedVersions[i] = ""
+				negotiatedVersions = append(negotiatedVersions, "")
 				continue
 			}
 			cbVersion, counterpartyVersion = appVersion, underlyingAppVersion
 		}
 
-		negotiatedVersion, err := im.cbs[i].OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, cbVersion)
+		negotiatedVersion, err := cb.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, cbVersion)
 		if err != nil {
 			return "", errorsmod.Wrapf(err, "channel open try callback failed for port ID: %s, channel ID: %s", portID, channelID)
 		}
-		negotiatedVersions[i] = negotiatedVersion
+		negotiatedVersions = append(negotiatedVersions, negotiatedVersion)
 	}
 
+	slices.Reverse(negotiatedVersions)
 	return reconstructVersion(im.cbs, negotiatedVersions)
 }
 
@@ -137,14 +144,14 @@ func (im *LegacyIBCModule) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	for i := len(im.cbs) - 1; i >= 0; i-- {
+	for _, cb := range im.reverseCallbacks() {
 		cbVersion := counterpartyVersion
 
 		// To maintain backwards compatibility, we must handle counterparty version negotiation.
 		// This means the version may have changed, and applications must be allowed to be disabled.
 		// Applications should be disabled when receiving an empty counterparty version. Callbacks
 		// for all applications must occur to allow disabling.
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+		if wrapper, ok := cb.(VersionWrapper); ok {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(counterpartyVersion)
 			if err != nil {
 				cbVersion = "" // disable application
@@ -153,7 +160,7 @@ func (im *LegacyIBCModule) OnChanOpenAck(
 			}
 		}
 
-		err := im.cbs[i].OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, cbVersion)
+		err := cb.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, cbVersion)
 		if err != nil {
 			return errorsmod.Wrapf(err, "channel open ack callback failed for port ID: %s, channel ID: %s", portID, channelID)
 		}
@@ -168,8 +175,8 @@ func (im *LegacyIBCModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	for i := len(im.cbs) - 1; i >= 0; i-- {
-		err := im.cbs[i].OnChanOpenConfirm(ctx, portID, channelID)
+	for _, cb := range im.reverseCallbacks() {
+		err := cb.OnChanOpenConfirm(ctx, portID, channelID)
 		if err != nil {
 			return errorsmod.Wrapf(err, "channel open confirm callback failed for port ID: %s, channel ID: %s", portID, channelID)
 		}
@@ -183,8 +190,8 @@ func (im *LegacyIBCModule) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	for i := len(im.cbs) - 1; i >= 0; i-- {
-		if err := im.cbs[i].OnChanCloseInit(ctx, portID, channelID); err != nil {
+	for _, cb := range im.reverseCallbacks() {
+		if err := cb.OnChanCloseInit(ctx, portID, channelID); err != nil {
 			return errorsmod.Wrapf(err, "channel close init callback failed for port ID: %s, channel ID: %s", portID, channelID)
 		}
 	}
@@ -197,8 +204,8 @@ func (im *LegacyIBCModule) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	for i := len(im.cbs) - 1; i >= 0; i-- {
-		if err := im.cbs[i].OnChanCloseConfirm(ctx, portID, channelID); err != nil {
+	for _, cb := range im.reverseCallbacks() {
+		if err := cb.OnChanCloseConfirm(ctx, portID, channelID); err != nil {
 			return errorsmod.Wrapf(err, "channel close confirm callback failed for port ID: %s, channel ID: %s", portID, channelID)
 		}
 	}
@@ -229,7 +236,7 @@ func (im *LegacyIBCModule) OnSendPacket(
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
 // A nil acknowledgement may be returned when using the packet forwarding feature. This signals to core IBC that the acknowledgement will be written asynchronously.
-func (LegacyIBCModule) OnRecvPacket(
+func (*LegacyIBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
@@ -246,21 +253,21 @@ func (im *LegacyIBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	for i := len(im.cbs) - 1; i >= 0; i-- {
+	for _, cb := range im.reverseCallbacks() {
 		var (
 			cbVersion = channelVersion
 			cbAck     = acknowledgement
 		)
 
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+		if wrapper, ok := cb.(VersionWrapper); ok {
 			cbVersion, channelVersion = wrapper.UnwrapVersionSafe(ctx, packet.SourcePort, packet.SourceChannel, cbVersion)
 		}
 
-		if wrapper, ok := im.cbs[i].(AcknowledgementWrapper); ok {
+		if wrapper, ok := cb.(AcknowledgementWrapper); ok {
 			cbAck, acknowledgement = wrapper.UnwrapAcknowledgement(ctx, packet.SourcePort, packet.SourceChannel, cbAck)
 		}
 
-		err := im.cbs[i].OnAcknowledgementPacket(ctx, cbVersion, packet, cbAck, relayer)
+		err := cb.OnAcknowledgementPacket(ctx, cbVersion, packet, cbAck, relayer)
 		if err != nil {
 			return errorsmod.Wrap(err, "acknowledge packet callback failed")
 		}
@@ -269,7 +276,7 @@ func (im *LegacyIBCModule) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-func (LegacyIBCModule) OnTimeoutPacket(
+func (*LegacyIBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
@@ -280,9 +287,12 @@ func (LegacyIBCModule) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im *LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-	negotiatedVersions := make([]string, len(im.cbs))
 
-	for i := len(im.cbs) - 1; i >= 0; i-- {
+	var negotiatedVersions []string
+
+	cbs := im.reverseCallbacks()
+
+	for _, cb := range cbs {
 		cbVersion := proposedVersion
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -294,18 +304,18 @@ func (im *LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID 
 		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
 		// If it is unsuccessful, no callback will occur to this application as the version
 		// indicates it should be disabled.
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(proposedVersion) != "" {
+		if wrapper, ok := cb.(VersionWrapper); ok && strings.TrimSpace(proposedVersion) != "" {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(proposedVersion)
 			if err != nil {
 				// middleware disabled
-				negotiatedVersions[i] = ""
+				negotiatedVersions = append(negotiatedVersions, "")
 				continue
 			}
 			cbVersion, proposedVersion = appVersion, underlyingAppVersion
 		}
 
 		// in order to maintain backwards compatibility, every callback in the stack must implement the UpgradableModule interface.
-		upgradableModule, ok := im.cbs[i].(UpgradableModule)
+		upgradableModule, ok := cb.(UpgradableModule)
 		if !ok {
 			return "", errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack")
 		}
@@ -314,17 +324,20 @@ func (im *LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID 
 		if err != nil {
 			return "", errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", portID, channelID)
 		}
-		negotiatedVersions[i] = negotiatedVersion
+		negotiatedVersions = append(negotiatedVersions, negotiatedVersion)
 	}
 
+	slices.Reverse(negotiatedVersions)
 	return reconstructVersion(im.cbs, negotiatedVersions)
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
 func (im *LegacyIBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	negotiatedVersions := make([]string, len(im.cbs))
+	var negotiatedVersions []string
 
-	for i := len(im.cbs) - 1; i >= 0; i-- {
+	cbs := im.reverseCallbacks()
+
+	for _, cb := range cbs {
 		cbVersion := counterpartyVersion
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -336,18 +349,18 @@ func (im *LegacyIBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID s
 		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
 		// If it is unsuccessful, no callback will occur to this application as the version
 		// indicates it should be disabled.
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(counterpartyVersion) != "" {
+		if wrapper, ok := cb.(VersionWrapper); ok && strings.TrimSpace(counterpartyVersion) != "" {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(counterpartyVersion)
 			if err != nil {
 				// middleware disabled
-				negotiatedVersions[i] = ""
+				negotiatedVersions = append(negotiatedVersions, "")
 				continue
 			}
 			cbVersion, counterpartyVersion = appVersion, underlyingAppVersion
 		}
 
 		// in order to maintain backwards compatibility, every callback in the stack must implement the UpgradableModule interface.
-		upgradableModule, ok := im.cbs[i].(UpgradableModule)
+		upgradableModule, ok := cb.(UpgradableModule)
 		if !ok {
 			return "", errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack")
 		}
@@ -356,15 +369,16 @@ func (im *LegacyIBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID s
 		if err != nil {
 			return "", errorsmod.Wrapf(err, "channel open init callback failed for port ID: %s, channel ID: %s", portID, channelID)
 		}
-		negotiatedVersions[i] = negotiatedVersion
+		negotiatedVersions = append(negotiatedVersions, negotiatedVersion)
 	}
 
+	slices.Reverse(negotiatedVersions)
 	return reconstructVersion(im.cbs, negotiatedVersions)
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
 func (im *LegacyIBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	for i := len(im.cbs) - 1; i >= 0; i-- {
+	for _, cb := range im.reverseCallbacks() {
 		cbVersion := counterpartyVersion
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -376,7 +390,7 @@ func (im *LegacyIBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, 
 		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
 		// If it is unsuccessful, no callback will occur to this application as the version
 		// indicates it should be disabled.
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok && strings.TrimSpace(counterpartyVersion) != "" {
+		if wrapper, ok := cb.(VersionWrapper); ok && strings.TrimSpace(counterpartyVersion) != "" {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(counterpartyVersion)
 			if err != nil {
 				// middleware disabled
@@ -386,7 +400,7 @@ func (im *LegacyIBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, 
 		}
 
 		// in order to maintain backwards compatibility, every callback in the stack must implement the UpgradableModule interface.
-		upgradableModule, ok := im.cbs[i].(UpgradableModule)
+		upgradableModule, ok := cb.(UpgradableModule)
 		if !ok {
 			return errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack")
 		}
@@ -401,7 +415,7 @@ func (im *LegacyIBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, 
 
 // OnChanUpgradeOpen implements the IBCModule interface
 func (im *LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
-	for i := len(im.cbs) - 1; i >= 0; i-- {
+	for _, cb := range im.reverseCallbacks() {
 		cbVersion := proposedVersion
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -413,7 +427,7 @@ func (im *LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID 
 		// attempt to unmarshal the version using the UnwrapVersionUnsafe interface function.
 		// If it is unsuccessful, no callback will occur to this application as the version
 		// indicates it should be disabled.
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+		if wrapper, ok := cb.(VersionWrapper); ok {
 			appVersion, underlyingAppVersion, err := wrapper.UnwrapVersionUnsafe(proposedVersion)
 			if err != nil {
 				cbVersion = "" // disable application
@@ -423,7 +437,7 @@ func (im *LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID 
 		}
 
 		// in order to maintain backwards compatibility, every callback in the stack must implement the UpgradableModule interface.
-		upgradableModule, ok := im.cbs[i].(UpgradableModule)
+		upgradableModule, ok := cb.(UpgradableModule)
 		if !ok {
 			panic(errorsmod.Wrap(ErrInvalidRoute, "upgrade route not found to module in application callstack"))
 		}
@@ -435,8 +449,17 @@ func (im *LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (LegacyIBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
+func (*LegacyIBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
 	return nil, nil
+}
+
+// reverseCallbacks returns a copy of the callbacks in reverse order.
+// the majority of handlers are called in reverse order, so this can be used
+// in those cases to prevent needing to iterate backwards over the callbacks.
+func (im *LegacyIBCModule) reverseCallbacks() []ClassicIBCModule {
+	cbs := slices.Clone(im.cbs)
+	slices.Reverse(cbs)
+	return cbs
 }
 
 // reconstructVersion will generate the channel version by applying any version wrapping as necessary.
