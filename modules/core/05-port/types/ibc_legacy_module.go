@@ -1,6 +1,7 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	"golang.org/x/exp/slices"
@@ -269,12 +270,23 @@ func (im *LegacyIBCModule) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-func (*LegacyIBCModule) OnTimeoutPacket(
+func (im *LegacyIBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	for _, cb := range im.reverseCallbacks() {
+		cbVersion := channelVersion
+
+		if wrapper, ok := cb.(VersionWrapper); ok {
+			cbVersion, channelVersion = wrapper.UnwrapVersionSafe(ctx, packet.SourcePort, packet.SourceChannel, cbVersion)
+		}
+
+		if err := cb.OnTimeoutPacket(ctx, cbVersion, packet, relayer); err != nil {
+			return errorsmod.Wrapf(err, "on timeout packet callback failed for packet with source Port ID: %s, source channel ID: %s", packet.SourcePort, packet.SourceChannel)
+		}
+	}
 	return nil
 }
 
