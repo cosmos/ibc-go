@@ -34,19 +34,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-<<<<<<< HEAD
-=======
 ## [[Unreleased]]
 
 ### Dependencies
 
 * [\#7114](https://github.com/cosmos/ibc-go/pull/7114) Bump WasmVM to v2.1.2.
-* [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump Cosmos SDK to v0.50.9.
-* [\#6848](https://github.com/cosmos/ibc-go/pull/6848) Bump CometBFT to v0.38.10.
 
 ### API Breaking
-
-* [\#6937](https://github.com/cosmos/ibc-go/pull/6937) Remove `WasmConsensusHost` implementation of the `ConsensusHost` interface.
 
 ### State Machine Breaking
 
@@ -56,7 +50,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
->>>>>>> 10c24362 (chore(deps): bump github.com/CosmWasm/wasmvm/v2 from 2.1.1 to 2.1.2 in /modules/light-clients/08-wasm (#7114))
 <!-- markdown-link-check-disable-next-line -->
 ## [v0.4.1+ibc-go-v8.4-wasmvm-v2.0](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.4.1%2Bibc-go-v8.4-wasmvm-v2.0) - 2024-07-31
 
