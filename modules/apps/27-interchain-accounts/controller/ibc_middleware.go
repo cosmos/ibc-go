@@ -236,15 +236,6 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	connectionID, err := im.keeper.GetConnectionID(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-	if err != nil {
-		return err
-	}
-
-	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, packet.GetSourcePort(), connectionID) {
-		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
-	}
-
 	return nil
 }
 

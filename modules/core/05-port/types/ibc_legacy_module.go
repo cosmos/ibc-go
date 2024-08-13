@@ -1,6 +1,7 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -269,12 +270,25 @@ func (im *LegacyIBCModule) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-func (LegacyIBCModule) OnTimeoutPacket(
+func (im *LegacyIBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	cbs := slices.Clone(im.cbs)
+	slices.Reverse(cbs)
+	for _, cb := range cbs {
+		cbVersion := channelVersion
+
+		if wrapper, ok := cb.(VersionWrapper); ok {
+			cbVersion, channelVersion = wrapper.UnwrapVersionSafe(ctx, packet.SourcePort, packet.SourceChannel, cbVersion)
+		}
+
+		if err := cb.OnTimeoutPacket(ctx, cbVersion, packet, relayer); err != nil {
+			return errorsmod.Wrapf(err, "on timeout packet callback failed for packet with source Port ID: %s, source channel ID: %s", packet.SourcePort, packet.SourceChannel)
+		}
+	}
 	return nil
 }
 
@@ -435,7 +449,7 @@ func (im *LegacyIBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (LegacyIBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
+func (*LegacyIBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, error) {
 	return nil, nil
 }
 
