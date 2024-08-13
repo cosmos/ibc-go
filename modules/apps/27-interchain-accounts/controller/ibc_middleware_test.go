@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 
@@ -600,15 +599,15 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 			}, false,
 		},
 		{
-			"middleware disabled", func() {
+			"disabling ICA has no effect separate wired app", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
-					return fmt.Errorf("error should be unreachable")
+					return ibcmock.MockApplicationCallbackError
 				}
-			}, true,
+			}, false,
 		},
 	}
 

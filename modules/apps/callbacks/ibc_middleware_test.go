@@ -509,11 +509,11 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onTimeoutPacket := func() error {
-				return transferStack.OnTimeoutPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainA.SenderAccount.GetAddress())
+				return cbs[0].OnTimeoutPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainA.SenderAccount.GetAddress())
 			}
 
 			switch expValue := tc.expValue.(type) {
@@ -550,8 +550,19 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
 				s.Require().Equal(uint8(2), sourceStatefulCounter)
 
+				// TODO: in order to unmarshal the transfer stack, we need to extract the transferstack
+				// from the legacy ibc module as the legacy ibc module UnmarshalPacketData is not what we need.
+				var unmarshaller porttypes.PacketDataUnmarshaler
+				if legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule); ok {
+					legacyModuleCbs := legacyModule.GetCallbacks()
+					// transfer stack is at index 0
+					unmarshaller = legacyModuleCbs[0].(porttypes.PacketDataUnmarshaler)
+				} else {
+					unmarshaller = cbs[0].(porttypes.PacketDataUnmarshaler)
+				}
+
 				expEvent, exists := GetExpectedEvent(
-					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, unmarshaller, gasLimit, packet.Data, packet.SourcePort,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeTimeoutPacket, nil,
 				)
 				s.Require().True(exists)
