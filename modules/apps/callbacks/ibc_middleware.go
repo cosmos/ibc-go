@@ -207,6 +207,10 @@ func (IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet
 	return ibcexported.RecvPacketResult{Status: ibcexported.Success}
 }
 
+func (im IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, acknowledgment []byte) (cbAcknowledgement, underlyingAppAcknowledgement []byte) {
+	return acknowledgment, acknowledgment
+}
+
 func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult ibcexported.RecvPacketResult) ibcexported.RecvPacketResult {
 	// if result status is asynchronous, then the callback will be handled in WriteAcknowledgement
 	// if result status is failed, then all state changes are reverted.

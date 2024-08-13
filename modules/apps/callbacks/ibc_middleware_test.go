@@ -691,11 +691,11 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
-			transferStack, ok := s.chainB.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+			cbs, ok := s.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
 			onRecvPacket := func() ibcexported.RecvPacketResult {
-				return transferStack.OnRecvPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
+				return cbs[0].OnRecvPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
 			}
 
 			switch tc.expAck {
@@ -734,8 +734,22 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().Equal(1, destCounters[types.CallbackTypeReceivePacket])
 				s.Require().Equal(uint8(1), destStatefulCounter)
 
+				// TODO: in order to unmarshal the transfer stack, we need to extract the transferstack
+				// from the legacy ibc module as the legacy ibc module UnmarshalPacketData is not what we need.
+				// This can be removed after https://github.com/cosmos/ibc-go/issues/7083
+				var unmarshaller porttypes.PacketDataUnmarshaler
+				if legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule); ok {
+					legacyModuleCbs := legacyModule.GetCallbacks()
+					// transfer stack is at index 0
+					unmarshaller, ok = legacyModuleCbs[0].(porttypes.PacketDataUnmarshaler)
+					s.Require().True(ok)
+				} else {
+					unmarshaller, ok = cbs[0].(porttypes.PacketDataUnmarshaler)
+					s.Require().True(ok)
+				}
+
 				expEvent, exists := GetExpectedEvent(
-					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, unmarshaller, gasLimit, packet.Data, packet.SourcePort,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				s.Require().True(exists)
@@ -1108,11 +1122,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 	s.SetupMockFeeTest()
 
-	module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
-	s.Require().NoError(err)
-	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-	s.Require().True(ok)
-	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
+	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(ibctesting.MockFeePort)
 	s.Require().True(ok)
 
 	packet := channeltypes.NewPacket(
@@ -1126,7 +1136,8 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 		0,
 	)
 
-	res := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
+	res := cbs[0].OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
+
 	s.Require().Equal(ibcexported.Async, res.Status)
 	s.Require().Nil(res.Acknowledgement)
 	s.AssertHasExecutedExpectedCallback("none", true)
