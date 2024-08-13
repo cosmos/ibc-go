@@ -197,7 +197,7 @@ func (p Packet) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
 	}
 	if p.AppVersion != "" && slices.Contains([]IBCVersion{IBC_VERSION_UNSPECIFIED, IBC_VERSION_1}, p.ProtocolVersion) {
-		return errorsmod.Wrap(ErrInvalidPacket, "app version cannot be specified when packet uses protocol version 1")
+		return errorsmod.Wrapf(ErrInvalidPacket, "app version cannot be specified when packet does not use protocol %s", IBC_VERSION_2)
 	}
 	return nil
 }
