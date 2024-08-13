@@ -165,7 +165,7 @@ func (suite *TypesTestSuite) TestFungibleTokenPacketDataOmitEmpty() {
 	suite.Require().Contains(string(bz), "memo")
 }
 
-// TestFungibleTokenPacketDataValidateBasic tests ValidateBasic for FungibleTokenPacketData
+// TestFungibleTokenPacketDataV2ValidateBasic tests ValidateBasic for FungibleTokenPacketData
 func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 	testCases := []struct {
 		name       string
