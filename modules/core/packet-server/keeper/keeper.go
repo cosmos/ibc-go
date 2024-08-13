@@ -152,8 +152,6 @@ func (k Keeper) RecvPacket(
 		return "", channeltypes.ErrNoOpMsg
 	}
 
-	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
-	// TODO: allow for custom prefix
 	path := host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
