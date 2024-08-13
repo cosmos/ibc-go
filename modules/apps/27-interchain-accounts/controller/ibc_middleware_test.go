@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 
@@ -579,10 +578,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
-	var (
-		path     *ibctesting.Path
-		isNilApp bool
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		msg      string
@@ -600,29 +596,15 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 			}, false,
 		},
 		{
-			"ICA auth module callback fails", func() {
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
-					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
-				) error {
-					return fmt.Errorf("mock ica auth fails")
-				}
-			}, false,
-		},
-		{
-			"nil underlying app", func() {
-				isNilApp = true
-			}, true,
-		},
-		{
-			"middleware disabled", func() {
+			"disabling ICA has no effect separate wired app", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
-					return fmt.Errorf("error should be unreachable")
+					return ibcmock.MockApplicationCallbackError
 				}
-			}, true,
+			}, false,
 		},
 	}
 
@@ -632,7 +614,6 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 			suite.Run(tc.msg, func() {
 				suite.SetupTest() // reset
-				isNilApp = false
 
 				path = NewICAPath(suite.chainA, suite.chainB, ordering)
 				path.SetupConnections()
@@ -653,17 +634,10 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
-				if isNilApp {
-					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
-				}
-
-				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, nil)
+				err = cbs[0].OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, nil)
 
 				if tc.expPass {
 					suite.Require().NoError(err)

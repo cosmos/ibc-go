@@ -523,7 +523,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(msg.Packet.SourcePort)
+	cbs, ok := k.PortKeeper.AppRouter.PacketRoute(msg.Packet.SourcePort)
 	if !ok {
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort)
@@ -553,11 +553,13 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, err
 	}
 
-	// Perform application logic callback
-	err = cbs.OnTimeoutPacket(ctx, channelVersion, msg.Packet, relayer)
-	if err != nil {
-		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
-		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
+	for _, cb := range cbs {
+		// Perform application logic callback
+		err = cb.OnTimeoutPacket(ctx, channelVersion, msg.Packet, relayer)
+		if err != nil {
+			ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
+			return nil, errorsmod.Wrap(err, "timeout packet callback failed")
+		}
 	}
 
 	defer telemetry.ReportTimeoutPacket(msg.Packet, "height")
