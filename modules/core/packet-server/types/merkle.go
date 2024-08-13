@@ -11,7 +11,11 @@ func BuildMerklePath(prefix commitmenttypesv2.MerklePath, path []byte) commitmen
 	if prefix.Empty() {
 		return commitmenttypes.NewMerklePath(path)
 	}
-	prefixKeys := prefix.KeyPath
+
+	// avoid mutating the provided prefix
+	prefixKeys := make([][]byte, len(prefix.KeyPath))
+	copy(prefixKeys, prefix.KeyPath)
+
 	lastElement := prefixKeys[len(prefixKeys)-1]
 	// append path to last element
 	newLastElement := cloneAppend(lastElement, path)

@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -72,7 +71,7 @@ func (s *TypesTestSuite) TestBuildMerklePath() {
 			name:    "empty path",
 			prefix:  prefixPath,
 			path:    []byte{},
-			expPath: commitmenttypesv2.NewMerklePath([]byte("ibc")),
+			expPath: commitmenttypesv2.NewMerklePath([]byte("ibc"), []byte("")),
 		},
 	}
 
@@ -80,7 +79,6 @@ func (s *TypesTestSuite) TestBuildMerklePath() {
 		tc := tc
 
 		s.Run(tc.name, func() {
-			fmt.Println(prefixPath)
 			merklePath := types.BuildMerklePath(tc.prefix, tc.path)
 			s.Require().Equal(tc.expPath, merklePath)
 		})
