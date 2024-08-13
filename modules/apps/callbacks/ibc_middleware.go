@@ -152,6 +152,22 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
+	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetData(), im.maxCallbackGas)
+	if err != nil {
+		return nil
+	}
+
+	callbackExecutor := func(cachedCtx sdk.Context) error {
+		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackData.CallbackAddress, callbackData.SenderAddress, callbackData.ApplicationVersion)
+	}
+
+	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
+	err = im.processCallback(ctx, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(
+		ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
+		types.CallbackTypeTimeoutPacket, callbackData, err,
+	)
 	return nil
 }
 

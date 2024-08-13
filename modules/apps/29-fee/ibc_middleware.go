@@ -246,10 +246,8 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	relayer sdk.AccAddress,
 ) error {
 	if !im.keeper.IsFeeEnabled(ctx, packet.SourcePort, packet.SourceChannel) {
-		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
+		return nil
 	}
-
-	appVersion := unwrapAppVersion(channelVersion)
 
 	// if the fee keeper is locked then fee logic should be skipped
 	// this may occur in the presence of a severe bug which leads to invalid state
@@ -263,8 +261,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packetID := channeltypes.NewPacketID(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	feesInEscrow, found := im.keeper.GetFeesInEscrow(ctx, packetID)
 	if !found {
-		// call underlying callback
-		return im.app.OnTimeoutPacket(ctx, appVersion, packet, relayer)
+		return nil
 	}
 
 	payee, found := im.keeper.GetPayeeAddress(ctx, relayer.String(), packet.SourceChannel)
@@ -280,7 +277,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	im.keeper.DistributePacketFeesOnTimeout(ctx, payeeAddr, feesInEscrow.PacketFees, packetID)
 
 	// call underlying callback
-	return im.app.OnTimeoutPacket(ctx, appVersion, packet, relayer)
+	return nil
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
