@@ -1,8 +1,9 @@
 package types
 
 import (
-	"golang.org/x/exp/slices"
 	"strings"
+
+	"golang.org/x/exp/slices"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -46,10 +47,7 @@ func (im *LegacyIBCModule) OnChanOpenInit(
 	version string,
 ) (string, error) {
 	var negotiatedVersions []string
-
-	cbs := im.reverseCallbacks()
-
-	for _, cb := range cbs {
+	for _, cb := range im.reverseCallbacks() {
 		cbVersion := version
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -78,8 +76,7 @@ func (im *LegacyIBCModule) OnChanOpenInit(
 		negotiatedVersions = append(negotiatedVersions, negotiatedVersion)
 	}
 
-	slices.Reverse(negotiatedVersions)
-	return reconstructVersion(im.cbs, negotiatedVersions)
+	return im.reconstructVersion(negotiatedVersions)
 }
 
 // OnChanOpenTry implements the IBCModule interface.
@@ -97,10 +94,7 @@ func (im *LegacyIBCModule) OnChanOpenTry(
 	counterpartyVersion string,
 ) (string, error) {
 	var negotiatedVersions []string
-
-	cbs := im.reverseCallbacks()
-
-	for _, cb := range cbs {
+	for _, cb := range im.reverseCallbacks() {
 		cbVersion := counterpartyVersion
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -129,8 +123,7 @@ func (im *LegacyIBCModule) OnChanOpenTry(
 		negotiatedVersions = append(negotiatedVersions, negotiatedVersion)
 	}
 
-	slices.Reverse(negotiatedVersions)
-	return reconstructVersion(im.cbs, negotiatedVersions)
+	return im.reconstructVersion(negotiatedVersions)
 }
 
 // OnChanOpenAck implements the IBCModule interface.
@@ -287,12 +280,8 @@ func (*LegacyIBCModule) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im *LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-
 	var negotiatedVersions []string
-
-	cbs := im.reverseCallbacks()
-
-	for _, cb := range cbs {
+	for _, cb := range im.reverseCallbacks() {
 		cbVersion := proposedVersion
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -327,17 +316,14 @@ func (im *LegacyIBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID 
 		negotiatedVersions = append(negotiatedVersions, negotiatedVersion)
 	}
 
-	slices.Reverse(negotiatedVersions)
-	return reconstructVersion(im.cbs, negotiatedVersions)
+	return im.reconstructVersion(negotiatedVersions)
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
 func (im *LegacyIBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	var negotiatedVersions []string
 
-	cbs := im.reverseCallbacks()
-
-	for _, cb := range cbs {
+	for _, cb := range im.reverseCallbacks() {
 		cbVersion := counterpartyVersion
 
 		// To maintain backwards compatibility, we must handle two cases:
@@ -372,8 +358,7 @@ func (im *LegacyIBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID s
 		negotiatedVersions = append(negotiatedVersions, negotiatedVersion)
 	}
 
-	slices.Reverse(negotiatedVersions)
-	return reconstructVersion(im.cbs, negotiatedVersions)
+	return im.reconstructVersion(negotiatedVersions)
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
@@ -464,11 +449,17 @@ func (im *LegacyIBCModule) reverseCallbacks() []ClassicIBCModule {
 
 // reconstructVersion will generate the channel version by applying any version wrapping as necessary.
 // Version wrapping will only occur if the negotiated version is non=empty and the application is a VersionWrapper.
-func reconstructVersion(cbs []ClassicIBCModule, negotiatedVersions []string) (string, error) {
+func (im *LegacyIBCModule) reconstructVersion(negotiatedVersions []string) (string, error) {
+	// the negotiated versions are expected to be in reverse order, as callbacks are executed in reverse order.
+	// in order to ensure that the indices match im.cbs, they must be reversed.
+	// the slice is cloned to prevent modifying the input argument.
+	negotiatedVersions = slices.Clone(negotiatedVersions)
+	slices.Reverse(negotiatedVersions)
+
 	version := negotiatedVersions[0] // base version
-	for i := 1; i < len(cbs); i++ {  // iterate over the remaining callbacks
+	for i := 1; i < len(im.cbs); i++ {
 		if strings.TrimSpace(negotiatedVersions[i]) != "" {
-			wrapper, ok := cbs[i].(VersionWrapper)
+			wrapper, ok := im.cbs[i].(VersionWrapper)
 			if !ok {
 				return "", ibcerrors.ErrInvalidVersion
 			}
