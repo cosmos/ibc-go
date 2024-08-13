@@ -34,6 +34,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [[Unreleased]]
+
+### Dependencies
+
+* [\#7114](https://github.com/cosmos/ibc-go/pull/7114) Bump WasmVM to v2.1.2.
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
 <!-- markdown-link-check-disable-next-line -->
 ## [v0.4.1+ibc-go-v8.4-wasmvm-v2.0](https://github.com/cosmos/ibc-go/releases/tag/modules%2Flight-clients%2F08-wasm%2Fv0.4.1%2Bibc-go-v8.4-wasmvm-v2.0) - 2024-07-31
 
