@@ -31,6 +31,9 @@ const (
 
 	// ParamsKey defines the key to store the params in the keeper.
 	ParamsKey = "channelParams"
+
+	// ChannelV2KeyPrefix defines the key to store a V2 channel in the keeeper
+	ChannelV2KeyPrefix = "channelV2"
 )
 
 // FormatChannelIdentifier returns the channel identifier with the sequence appended.
@@ -67,4 +70,9 @@ func ParseChannelSequence(channelID string) (uint64, error) {
 // FilteredPortPrefix returns the prefix key for the given port prefix.
 func FilteredPortPrefix(portPrefix string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", host.KeyChannelEndPrefix, host.KeyPortPrefix, portPrefix))
+}
+
+// ChannelV2Key returns the alias key for the given channel identifier.
+func ChannelV2Key(channelIdentifier string) []byte {
+	return []byte(fmt.Sprintf("%s/%s", ChannelV2KeyPrefix, channelIdentifier))
 }

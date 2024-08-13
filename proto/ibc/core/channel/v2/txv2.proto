@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package ibc.core.channel.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
+import "ibc/core/commitment/v2/commitment.proto";
+
+// CounterpartyMsg is a message service for V2 channel that relayers can use
+// to set the counterparty channel identifier and merkle path.
+service CounterpartyMsg {
+  // ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
+  rpc ProvideCounterparty(MsgProvideCounterparty) returns (MsgProvideCounterpartyResponse);
+}
+
+// MsgProvideCounterparty defines the message used to provide the counterparty client
+// identifier. Can only be invoked one time by the signer of MsgCreateClient if the counterparty
+// client identifier was not provided in the initial MsgCreateClient message.
+message MsgProvideCounterparty {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  // client unique identifier
+  string client_id = 1;
+  // counterparty channel identifier
+  string counterparty_channel_id = 2;
+  // the merkle path that all ICS24 paths will be stored under
+  ibc.core.commitment.v2.MerklePath merkle_path_prefix = 3;
+  // signer address
+  string signer = 4;
+}
+
+// MsgProvideCounterpartyResponse defines the Msg/ProvideCounterparty response type.
+message MsgProvideCounterpartyResponse {}

@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -25,6 +26,13 @@ type ChannelKeeper interface {
 	// GetNextSequenceSend returns the next send sequence from the sequence path
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 
+	// SetNextSequenceRecv writes the next receive sequence under the sequence path
+	// This is a public path that is standardized by the IBC specification
+	SetNextSequenceRecv(ctx sdk.Context, portID, channelID string, sequence uint64)
+
+	// GetNextSequenceRecv returns the next receive sequence from the sequence path
+	GetNextSequenceRecv(ctx sdk.Context, portID, channelID string) (uint64, bool)
+
 	// SetPacketReceipt writes the packet receipt under the receipt path
 	// This is a public path that is standardized by the IBC specification
 	SetPacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64)
@@ -38,6 +46,9 @@ type ChannelKeeper interface {
 	// SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 	// This is a public path that is standardized by the IBC specification
 	SetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte)
+
+	// GetChannelV2 returns the v2 channel for a given channelID
+	GetChannelV2(ctx sdk.Context, channelID string) (channeltypes.ChannelV2, bool)
 }
 
 type ClientKeeper interface {

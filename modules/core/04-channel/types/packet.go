@@ -132,8 +132,11 @@ func NewPacketWithVersion(
 	sequence uint64, sourcePort, sourceChannel,
 	destinationPort, destinationChannel string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
-	appVersion string,
+	protocolVersion IBCVersion, appVersion string,
 ) Packet {
+	if protocolVersion == IBC_VERSION_1 {
+		appVersion = ""
+	}
 	return Packet{
 		Data:               data,
 		Sequence:           sequence,
@@ -143,7 +146,7 @@ func NewPacketWithVersion(
 		DestinationChannel: destinationChannel,
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
-		ProtocolVersion:    IBC_VERSION_2,
+		ProtocolVersion:    protocolVersion,
 		AppVersion:         appVersion,
 	}
 }

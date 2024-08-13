@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package ibc.core.channel.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types";
+
+import "ibc/core/commitment/v2/commitment.proto";
+import "ibc/core/channel/v1/channel.proto";
+
+// ChannelV2 defines all of the information the chain needs to know about its counterparty
+// in order to enable secure message passing to the client
+// The channel is keyed under a channel identifier of our chain
+// It also contains some fields that are used to enable backwards compatibility of the IBC classic protocol
+message ChannelV2 {
+  // the client identifier for the underlying client
+  string client_id = 1;
+  // the merkle path that all ICS24 paths will be stored under
+  ibc.core.commitment.v2.MerklePath merkle_path_prefix = 2;
+  // the counterparty channel identifier
+  string counterparty_channel = 3;
+  // the following fields are used to enable backwards compatibility of the IBC classic protocol
+  // the default port identifier for the channel
+  string default_port_id = 4;
+  // the default counterparty port identifier for the channel
+  string default_counterparty_port_id = 5;
+  // the default version for this channel
+  string default_version = 6;
+  // ordering of channel
+  ibc.core.channel.v1.Order ordering = 7;
+}

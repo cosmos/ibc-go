@@ -139,7 +139,7 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 }
 
 // ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
-func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *clienttypes.MsgProvideCounterparty) (*clienttypes.MsgProvideCounterpartyResponse, error) {
+func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *channeltypes.MsgProvideCounterparty) (*channeltypes.MsgProvideCounterpartyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	creator, found := k.ClientKeeper.GetCreator(ctx, msg.ClientId)
@@ -151,14 +151,21 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *clienttypes.Msg
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected client creator %s to match signer %s", creator, msg.Signer)
 	}
 
-	if _, ok := k.ClientKeeper.GetCounterparty(ctx, msg.ClientId); ok {
+	if _, ok := k.ChannelKeeper.GetChannelV2(ctx, msg.ClientId); ok {
 		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.ClientId)
 	}
-	k.ClientKeeper.SetCounterparty(ctx, msg.ClientId, msg.Counterparty)
+	channel := channeltypes.ChannelV2{
+		ClientId:            msg.ClientId,
+		MerklePathPrefix:    msg.MerklePathPrefix,
+		CounterpartyChannel: msg.CounterpartyChannelId,
+		Ordering:            channeltypes.UNORDERED,
+	}
+	// set the channel with the source channel id equal to the underlying clientID
+	k.ChannelKeeper.SetChannelV2(ctx, msg.ClientId, channel)
 	// Delete client creator from state as it is not needed after this point.
 	k.ClientKeeper.DeleteCreator(ctx, msg.ClientId)
 
-	return &clienttypes.MsgProvideCounterpartyResponse{}, nil
+	return &channeltypes.MsgProvideCounterpartyResponse{}, nil
 }
 
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.

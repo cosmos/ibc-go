@@ -47,15 +47,17 @@ func (k Keeper) SendPacket(
 	destPort string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
+	protocolVersion channeltypes.IBCVersion,
 	version string,
 	data []byte,
 ) (uint64, error) {
-	// Lookup counterparty associated with our source channel to retrieve the destination channel
-	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, sourceChannel)
+	// Lookup channel V2 associated with our source channel to retrieve the destination channel
+	var destChannel string
+	channel, ok := k.ChannelKeeper.GetChannelV2(ctx, sourceChannel)
 	if !ok {
-		return 0, channeltypes.ErrChannelNotFound
+		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "channel: %s not found", sourceChannel)
 	}
-	destChannel := counterparty.ClientId
+	destChannel = channel.CounterpartyChannel
 
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
@@ -64,9 +66,27 @@ func (k Keeper) SendPacket(
 		sequence = 1
 	}
 
+	// if the protocol version is IBC_VERSION_1, then the portIDs and version must match the channel default values
+	if protocolVersion == channeltypes.IBC_VERSION_1 {
+		if sourcePort != channel.DefaultPortId {
+			return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "source port must be %s", channel.DefaultPortId)
+		}
+		if destPort != channel.DefaultCounterpartyPortId {
+			return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "destination port must be %s", channel.DefaultCounterpartyPortId)
+		}
+		if version != channel.DefaultVersion {
+			return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "version must be %s", channel.DefaultVersion)
+		}
+	}
+
+	// if the channel has ordering, then protocol version must be IBC_VERSION_1
+	if channel.Ordering == channeltypes.ORDERED && protocolVersion != channeltypes.IBC_VERSION_1 {
+		return 0, errorsmod.Wrap(channeltypes.ErrInvalidChannelOrdering, "ordering is not supported for version 2 packets")
+	}
+
 	// construct packet from given fields and channel state
 	packet := channeltypes.NewPacketWithVersion(data, sequence, sourcePort, sourceChannel,
-		destPort, destChannel, timeoutHeight, timeoutTimestamp, version)
+		destPort, destChannel, timeoutHeight, timeoutTimestamp, protocolVersion, version)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, errorsmod.Wrap(err, "constructed packet failed basic validation")
@@ -116,19 +136,28 @@ func (k Keeper) RecvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
-		return channeltypes.ErrInvalidPacket
-	}
-
-	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
-	// sent by our counterparty.
-	// Note: This can be implemented by the current keeper
-	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
+	// Lookup channel associated with the destination channel identifier in packet
+	channel, ok := k.ChannelKeeper.GetChannelV2(ctx, packet.DestinationChannel)
 	if !ok {
 		return channeltypes.ErrChannelNotFound
 	}
-	if counterparty.ClientId != packet.SourceChannel {
+	if channel.CounterpartyChannel != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	// if this is a version 1 packet, we must also check that the portIDs match exactly as we expect
+	if packet.ProtocolVersion == channeltypes.IBC_VERSION_1 {
+		if packet.DestinationPort != channel.DefaultPortId {
+			return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "source port must be %s", channel.DefaultPortId)
+		}
+		if packet.SourcePort != channel.DefaultCounterpartyPortId {
+			return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "destination port must be %s", channel.DefaultCounterpartyPortId)
+		}
+	}
+
+	// if the channel has ordering, then protocol version must be IBC_VERSION_1
+	if channel.Ordering == channeltypes.ORDERED && packet.ProtocolVersion != channeltypes.IBC_VERSION_1 {
+		return errorsmod.Wrap(channeltypes.ErrInvalidChannelOrdering, "ordering is not supported for version 2 packets")
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
@@ -138,22 +167,75 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
 
-	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
-	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
-	// by the increase of the recvStartSequence.
-	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	if found {
-		channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
-		// This error indicates that the packet has already been relayed. Core IBC will
-		// treat this error as a no-op in order to prevent an entire relay transaction
-		// from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
+	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
+	// upgrade all packets under the recvStartSequence will have been processed and thus should be
+	// rejected.
+	recvStartSequence, _ := k.ChannelKeeper.GetRecvStartSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if packet.GetSequence() < recvStartSequence {
+		return errorsmod.Wrap(channeltypes.ErrPacketReceived, "packet already processed in previous channel upgrade")
+	}
+
+	switch channel.Ordering {
+	case channeltypes.UNORDERED:
+		// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
+		// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
+		// by the increase of the recvStartSequence.
+		_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+		if found {
+			channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
+			// This error indicates that the packet has already been relayed. Core IBC will
+			// treat this error as a no-op in order to prevent an entire relay transaction
+			// from failing and consuming unnecessary fees.
+			return channeltypes.ErrNoOpMsg
+		}
+
+		// All verification complete, update state
+		// For unordered channels we must set the receipt so it can be verified on the other side.
+		// This receipt does not contain any data, since the packet has not yet been processed,
+		// it's just a single store key set to a single byte to indicate that the packet has been received
+		k.ChannelKeeper.SetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+
+	case channeltypes.ORDERED:
+		// check if the packet is being received in order
+		nextSequenceRecv, found := k.ChannelKeeper.GetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel())
+		if !found {
+			return errorsmod.Wrapf(
+				channeltypes.ErrSequenceReceiveNotFound,
+				"destination port: %s, destination channel: %s", packet.GetDestPort(), packet.GetDestChannel(),
+			)
+		}
+
+		if packet.GetSequence() < nextSequenceRecv {
+			channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
+			// This error indicates that the packet has already been relayed. Core IBC will
+			// treat this error as a no-op in order to prevent an entire relay transaction
+			// from failing and consuming unnecessary fees.
+			return channeltypes.ErrNoOpMsg
+		}
+
+		// REPLAY PROTECTION: Ordered channels require packets to be received in a strict order.
+		// Any out of order or previously received packets are rejected.
+		if packet.GetSequence() != nextSequenceRecv {
+			return errorsmod.Wrapf(
+				channeltypes.ErrPacketSequenceOutOfOrder,
+				"packet sequence ≠ next receive sequence (%d ≠ %d)", packet.GetSequence(), nextSequenceRecv,
+			)
+		}
+
+		// All verification complete, update state
+		// In ordered case, we must increment nextSequenceRecv
+		nextSequenceRecv++
+
+		// incrementing nextSequenceRecv and storing under this chain's channelEnd identifiers
+		// Since this is the receiving chain, our channelEnd is packet's destination port and channel
+		k.ChannelKeeper.SetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv)
 	}
 
 	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
 	// TODO: allow for custom prefix
 	path := host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	commitment := channeltypes.CommitPacket(packet)
 

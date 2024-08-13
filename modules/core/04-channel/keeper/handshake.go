@@ -272,6 +272,9 @@ func (k *Keeper) WriteOpenAckChannel(
 	channel.Counterparty.ChannelId = counterpartyChannelID
 	k.SetChannel(ctx, portID, channelID, channel)
 
+	// Set v2 channel which should be the only information necessary for packet processing
+	k.ConvertChannelV2(ctx, portID, channelID, channel)
+
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
@@ -345,6 +348,9 @@ func (k *Keeper) WriteOpenConfirmChannel(
 	channel.State = types.OPEN
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
+
+	// Set v2 channel which should be the only information necessary for packet processing
+	k.ConvertChannelV2(ctx, portID, channelID, channel)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 

@@ -95,6 +95,42 @@ func (k *Keeper) SetChannel(ctx sdk.Context, portID, channelID string, channel t
 	store.Set(host.ChannelKey(portID, channelID), bz)
 }
 
+func (k *Keeper) ConvertChannelV2(ctx sdk.Context, portID, channelID string, channel types.Channel) {
+	store := ctx.KVStore(k.storeKey)
+	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !ok {
+		panic("connection not found")
+	}
+	channelv2 := types.ChannelV2{
+		ClientId:                  connection.ClientId,
+		CounterpartyChannel:       channel.Counterparty.ChannelId,
+		DefaultPortId:             portID,
+		DefaultCounterpartyPortId: channel.Counterparty.PortId,
+		DefaultVersion:            channel.Version,
+		Ordering:                  channel.Ordering,
+	}
+	bz := k.cdc.MustMarshal(&channelv2)
+	store.Set(types.ChannelV2Key(channelID), bz)
+}
+
+func (k *Keeper) SetChannelV2(ctx sdk.Context, channelID string, channel types.ChannelV2) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&channel)
+	store.Set(types.ChannelV2Key(channelID), bz)
+}
+
+func (k *Keeper) GetChannelV2(ctx sdk.Context, channelID string) (types.ChannelV2, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ChannelV2Key(channelID))
+	if len(bz) == 0 {
+		return types.ChannelV2{}, false
+	}
+
+	var channel types.ChannelV2
+	k.cdc.MustUnmarshal(bz, &channel)
+	return channel, true
+}
+
 // GetAppVersion gets the version for the specified channel.
 func (k *Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
