@@ -532,9 +532,9 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, err
 	}
 
-	for _, c := range cbs {
+	for _, cb := range cbs {
 		// Perform application logic callback
-		err = c.OnTimeoutPacket(ctx, channelVersion, msg.Packet, relayer)
+		err = cb.OnTimeoutPacket(ctx, channelVersion, msg.Packet, relayer)
 		if err != nil {
 			ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
 			return nil, errorsmod.Wrap(err, "timeout packet callback failed")

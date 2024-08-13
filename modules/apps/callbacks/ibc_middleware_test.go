@@ -552,6 +552,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 
 				// TODO: in order to unmarshal the transfer stack, we need to extract the transferstack
 				// from the legacy ibc module as the legacy ibc module UnmarshalPacketData is not what we need.
+				// This can be removed after https://github.com/cosmos/ibc-go/issues/7083
 				var unmarshaller porttypes.PacketDataUnmarshaler
 				if legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule); ok {
 					legacyModuleCbs := legacyModule.GetCallbacks()
