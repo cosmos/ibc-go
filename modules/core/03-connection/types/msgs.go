@@ -125,16 +125,6 @@ func (msg MsgConnectionOpenTry) ValidateBasic() error {
 	if err := host.ConnectionIdentifierValidator(msg.Counterparty.ConnectionId); err != nil {
 		return errorsmod.Wrap(err, "invalid counterparty connection ID")
 	}
-	if msg.ClientState == nil {
-		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "counterparty client is nil")
-	}
-	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "unpack err: %v", err)
-	}
-	if err := clientState.Validate(); err != nil {
-		return errorsmod.Wrap(err, "counterparty client is invalid")
-	}
 	if len(msg.CounterpartyVersions) == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidVersion, "empty counterparty versions")
 	}
@@ -146,16 +136,7 @@ func (msg MsgConnectionOpenTry) ValidateBasic() error {
 	if len(msg.ProofInit) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
 	}
-	if len(msg.ProofClient) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit empty proof client")
-	}
-	if len(msg.ProofConsensus) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of consensus state")
-	}
-	if msg.ConsensusHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "consensus height must be non-zero")
-	}
-	_, err = sdk.AccAddressFromBech32(msg.Signer)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
@@ -215,29 +196,10 @@ func (msg MsgConnectionOpenAck) ValidateBasic() error {
 	if err := ValidateVersion(msg.Version); err != nil {
 		return err
 	}
-	if msg.ClientState == nil {
-		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "counterparty client is nil")
-	}
-	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "unpack err: %v", err)
-	}
-	if err := clientState.Validate(); err != nil {
-		return errorsmod.Wrap(err, "counterparty client is invalid")
-	}
 	if len(msg.ProofTry) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof try")
 	}
-	if len(msg.ProofClient) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit empty proof client")
-	}
-	if len(msg.ProofConsensus) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of consensus state")
-	}
-	if msg.ConsensusHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "consensus height must be non-zero")
-	}
-	_, err = sdk.AccAddressFromBech32(msg.Signer)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}

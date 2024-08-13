@@ -60,7 +60,7 @@ message MsgConnectionOpenTry {
   string client_id = 1;
   // Deprecated: this field is unused. Crossing hellos are no longer supported in core IBC.
   string                    previous_connection_id = 2 [deprecated = true];
-  google.protobuf.Any       client_state           = 3;
+  google.protobuf.Any       client_state           = 3 [deprecated = true];
   Counterparty              counterparty           = 4 [(gogoproto.nullable) = false];
   uint64                    delay_period           = 5;
   repeated Version          counterparty_versions  = 6;
@@ -69,13 +69,13 @@ message MsgConnectionOpenTry {
   // INIT`
   bytes proof_init = 8;
   // proof of client state included in message
-  bytes proof_client = 9;
+  bytes proof_client = 9 [deprecated = true];
   // proof of client consensus state
-  bytes                     proof_consensus  = 10;
-  ibc.core.client.v1.Height consensus_height = 11 [(gogoproto.nullable) = false];
+  bytes                     proof_consensus  = 10 [deprecated = true];
+  ibc.core.client.v1.Height consensus_height = 11 [deprecated = true, (gogoproto.nullable) = false];
   string                    signer           = 12;
   // optional proof data for host state machines that are unable to introspect their own consensus state
-  bytes host_consensus_state_proof = 13;
+  bytes host_consensus_state_proof = 13 [deprecated = true];
 }
 
 // MsgConnectionOpenTryResponse defines the Msg/ConnectionOpenTry response type.
@@ -91,19 +91,19 @@ message MsgConnectionOpenAck {
   string                    connection_id              = 1;
   string                    counterparty_connection_id = 2;
   Version                   version                    = 3;
-  google.protobuf.Any       client_state               = 4;
+  google.protobuf.Any       client_state               = 4 [deprecated = true];
   ibc.core.client.v1.Height proof_height               = 5 [(gogoproto.nullable) = false];
   // proof of the initialization the connection on Chain B: `UNITIALIZED ->
   // TRYOPEN`
   bytes proof_try = 6;
   // proof of client state included in message
-  bytes proof_client = 7;
+  bytes proof_client = 7 [deprecated = true];
   // proof of client consensus state
-  bytes                     proof_consensus  = 8;
-  ibc.core.client.v1.Height consensus_height = 9 [(gogoproto.nullable) = false];
+  bytes                     proof_consensus  = 8 [deprecated = true];
+  ibc.core.client.v1.Height consensus_height = 9 [deprecated = true, (gogoproto.nullable) = false];
   string                    signer           = 10;
   // optional proof data for host state machines that are unable to introspect their own consensus state
-  bytes host_consensus_state_proof = 11;
+  bytes host_consensus_state_proof = 11 [deprecated = true];
 }
 
 // MsgConnectionOpenAckResponse defines the Msg/ConnectionOpenAck response type.

@@ -149,13 +149,8 @@ func (k Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.M
 func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenTry) (*connectiontypes.MsgConnectionOpenTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-
 	if _, err := k.ConnectionKeeper.ConnOpenTry(
-		ctx, msg.Counterparty, msg.DelayPeriod, msg.ClientId, targetClient,
+		ctx, msg.Counterparty, msg.DelayPeriod, msg.ClientId, nil,
 		msg.CounterpartyVersions, msg.ProofInit, msg.ProofClient, msg.ProofConsensus,
 		msg.ProofHeight, msg.ConsensusHeight,
 	); err != nil {
@@ -169,13 +164,8 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 func (k Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenAck) (*connectiontypes.MsgConnectionOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	targetClient, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-
 	if err := k.ConnectionKeeper.ConnOpenAck(
-		ctx, msg.ConnectionId, targetClient, msg.Version, msg.CounterpartyConnectionId,
+		ctx, msg.ConnectionId, nil, msg.Version, msg.CounterpartyConnectionId,
 		msg.ProofTry, msg.ProofClient, msg.ProofConsensus,
 		msg.ProofHeight, msg.ConsensusHeight,
 	); err != nil {
