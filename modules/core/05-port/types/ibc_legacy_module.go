@@ -4,8 +4,6 @@ import (
 	"slices"
 	"strings"
 
-	"golang.org/x/exp/slices"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
