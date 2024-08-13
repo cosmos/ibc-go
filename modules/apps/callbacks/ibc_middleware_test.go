@@ -556,9 +556,11 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				if legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule); ok {
 					legacyModuleCbs := legacyModule.GetCallbacks()
 					// transfer stack is at index 0
-					unmarshaller = legacyModuleCbs[0].(porttypes.PacketDataUnmarshaler)
+					unmarshaller, ok = legacyModuleCbs[0].(porttypes.PacketDataUnmarshaler)
+					s.Require().True(ok)
 				} else {
-					unmarshaller = cbs[0].(porttypes.PacketDataUnmarshaler)
+					unmarshaller, ok = cbs[0].(porttypes.PacketDataUnmarshaler)
+					s.Require().True(ok)
 				}
 
 				expEvent, exists := GetExpectedEvent(
