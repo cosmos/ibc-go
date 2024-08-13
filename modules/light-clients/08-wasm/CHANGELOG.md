@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#7099](https://github.com/cosmos/ibc-go/pull/7099) Bump WasmVM to v2.1.1.
+* [\#7114](https://github.com/cosmos/ibc-go/pull/7114) Bump WasmVM to v2.1.2.
 * [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump Cosmos SDK to v0.50.9.
 * [\#6848](https://github.com/cosmos/ibc-go/pull/6848) Bump CometBFT to v0.38.10.
 
