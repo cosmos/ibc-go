@@ -462,10 +462,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			packet := suite.CreateMockPacket()
 
 			// set up module and callbacks
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
@@ -473,7 +470,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			// malleate test case
 			tc.malleate()
 
-			result := cbs.OnRecvPacket(suite.chainB.GetContext(), suite.path.EndpointB.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress())
+			result := cbs[0].OnRecvPacket(suite.chainB.GetContext(), suite.path.EndpointB.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress())
 
 			switch {
 			case tc.name == "success":
