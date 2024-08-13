@@ -1,6 +1,7 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -275,14 +276,16 @@ func (im *LegacyIBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	for i := len(im.cbs); i >= 0; i-- {
+	cbs := slices.Clone(im.cbs)
+	slices.Reverse(cbs)
+	for _, cb := range cbs {
 		cbVersion := channelVersion
 
-		if wrapper, ok := im.cbs[i].(VersionWrapper); ok {
+		if wrapper, ok := cb.(VersionWrapper); ok {
 			cbVersion, channelVersion = wrapper.UnwrapVersionSafe(ctx, packet.SourcePort, packet.SourceChannel, cbVersion)
 		}
 
-		if err := im.cbs[i].OnTimeoutPacket(ctx, cbVersion, packet, relayer); err != nil {
+		if err := cb.OnTimeoutPacket(ctx, cbVersion, packet, relayer); err != nil {
 			return errorsmod.Wrapf(err, "on timeout packet callback failed for packet with source Port ID: %s, source channel ID: %s", packet.SourcePort, packet.SourceChannel)
 		}
 	}
