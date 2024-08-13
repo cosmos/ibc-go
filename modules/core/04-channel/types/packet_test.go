@@ -57,6 +57,9 @@ func TestPacketValidateBasic(t *testing.T) {
 		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, disabledTimeout, 0), false, "disabled both timeout height and timestamp"},
 		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, disabledTimeout, timeoutTimestamp), true, "disabled timeout height, valid timeout timestamp"},
 		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, 0), true, "disabled timeout timestamp, valid timeout height"},
+		{types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, "version"), true, "valid v2 packet"},
+		{types.Packet{1, portid, chanid, cpportid, cpchanid, validPacketData, timeoutHeight, timeoutTimestamp, types.IBC_VERSION_1, "version"}, false, "invalid specifying of app version with unspecified protocol version"},
+		{types.Packet{1, portid, chanid, cpportid, cpchanid, validPacketData, timeoutHeight, timeoutTimestamp, types.IBC_VERSION_UNSPECIFIED, "version"}, false, "invalid specifying of app version with unspecified protocol version"},
 		{types.NewPacket(unknownPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), true, ""},
 	}
 

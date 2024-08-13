@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -194,6 +195,9 @@ func (p Packet) ValidateBasic() error {
 	}
 	if len(p.Data) == 0 {
 		return errorsmod.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
+	}
+	if p.AppVersion != "" && slices.Contains([]IBCVersion{IBC_VERSION_UNSPECIFIED, IBC_VERSION_1}, p.ProtocolVersion) {
+		return errorsmod.Wrap(ErrInvalidPacket, "app version cannot be specified when packet uses protocol version 1")
 	}
 	return nil
 }
