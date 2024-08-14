@@ -231,10 +231,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 		suite.Require().Error(err)
 
 		// call application callback directly
-		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointB.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointB.ChannelConfig.PortID)
 		suite.Require().True(ok)
 
 		counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -425,10 +422,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 				suite.Require().NoError(err)
 
 				tc.malleate() // malleate mutates test data
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
 
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
 				if isNilApp {
@@ -980,13 +975,13 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 		err := SetupICAPath(path, TestOwnerAddress)
 		suite.Require().NoError(err)
 
-		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(ok)
 
-		controllerStack, ok := cbs.(porttypes.ICS4Wrapper)
+		legacyIBCModule := cbs.(*porttypes.LegacyIBCModule)
+		callbacks := legacyIBCModule.GetCallbacks()
+
+		controllerStack, ok := callbacks[1].(porttypes.ICS4Wrapper)
 		suite.Require().True(ok)
 
 		appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)

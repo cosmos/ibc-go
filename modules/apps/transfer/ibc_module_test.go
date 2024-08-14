@@ -845,10 +845,13 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 			path.Setup()
 
-			transferStack, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(types.ModuleName)
+			transferStack, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(types.ModuleName)
 			suite.Require().True(ok)
 
-			unmarshalerStack, ok := transferStack.(porttypes.PacketDataUnmarshaler)
+			legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+			callbacks := legacyModule.GetCallbacks()
+
+			unmarshalerStack, ok := callbacks[1].(porttypes.PacketDataUnmarshaler)
 			suite.Require().True(ok)
 
 			packetData, version, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)

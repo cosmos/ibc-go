@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"fmt"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -639,10 +640,13 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 			packetDataBytes := tc.packetData.GetBytes()
 
-			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			packetUnmarshaler, ok := transferStack.(types.CallbacksCompatibleModule)
+			legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+			callbacks := legacyModule.GetCallbacks()
+
+			packetUnmarshaler, ok := callbacks[0].(types.CallbacksCompatibleModule)
 			s.Require().True(ok)
 
 			s.path.Setup()
@@ -727,10 +731,13 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 
 			packetDataBytes := tc.packetData.GetBytes()
 
-			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			packetUnmarshaler, ok := transferStack.(types.CallbacksCompatibleModule)
+			legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+			callbacks := legacyModule.GetCallbacks()
+
+			packetUnmarshaler, ok := callbacks[1].(types.CallbacksCompatibleModule)
 			s.Require().True(ok)
 
 			s.path.Setup()

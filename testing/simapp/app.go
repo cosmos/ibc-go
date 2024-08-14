@@ -316,7 +316,6 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
-	scopedIBCMockBlockUpgradeKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.MockBlockUpgrade)
 	scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(MockFeePort)
 	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icacontrollertypes.SubModuleName)
 
@@ -414,7 +413,6 @@ func NewSimApp(
 
 	// Create IBC Router
 	ibcAppRouter := porttypes.NewAppRouter()
-	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks
 
@@ -439,7 +437,6 @@ func NewSimApp(
 	// The mock module is used for testing IBC
 	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
 	app.IBCMockModule = mockIBCModule
-	ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
 	ibcAppRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
 
 	// Mock IBC app wrapped with a middleware which does not implement the UpgradeableModule interface.
@@ -447,9 +444,6 @@ func NewSimApp(
 	// an upgrade is tried on the channel.
 
 	// TODO: THIS CAN BE REMOVED ENTIRELY RIGHT NOW FROM MAIN. IGNORE FOR NOW
-	mockBlockUpgradeIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.MockBlockUpgrade, scopedIBCMockBlockUpgradeKeeper))
-	mockBlockUpgradeMw := ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockBlockUpgradeIBCModule.IBCApp)
-	ibcRouter.AddRoute(ibcmock.MockBlockUpgrade, mockBlockUpgradeMw)
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -470,7 +464,6 @@ func NewSimApp(
 	ibcAppRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Add transfer stack to IBC Router
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -503,14 +496,6 @@ func NewSimApp(
 	ibcAppRouter.AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
 	// Add host, controller & ica auth modules to IBC router
-	ibcRouter.
-		// the ICA Controller middleware needs to be explicitly added to the IBC Router because the
-		// ICA controller module owns the port capability for ICA. The ICA authentication module
-		// owns the channel capability.
-		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
-
 	// Create Mock IBC Fee module stack for testing
 	// SendPacket, mock module cannot send packets
 
@@ -526,11 +511,9 @@ func NewSimApp(
 	ibcAppRouter.AddRoute(MockFeePort, feeMockModule)
 
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
-	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 	ibcAppRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// Seal the IBC Router
-	app.IBCKeeper.SetRouter(ibcRouter)
 	app.IBCKeeper.SetAppRouter(ibcAppRouter)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper

@@ -83,12 +83,6 @@ func (k *Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *ca
 	return types.GetModuleOwner(modules), capability, nil
 }
 
-// Route returns a IBCModule for a given module, and a boolean indicating
-// whether or not the route is present.
-func (k *Keeper) Route(module string) (types.ClassicIBCModule, bool) {
-	return k.Router.GetRoute(module)
-}
-
 // AppRoute returns an ordered list of IBCModule callbacks for a given module name, and a boolean indicating
 // whether or not the callbacks are present.
 func (k *Keeper) AppRoute(module string) ([]types.IBCModule, bool) {

@@ -978,13 +978,15 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 
 			tc.malleate()
 
-			module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
-			s.Require().NoError(err)
-			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
-			s.Require().True(ok)
-			mockCallbackStack, ok := cbs.(ibccallbacks.IBCMiddleware)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 			s.Require().True(ok)
 
+			legacyModule := cbs.(*porttypes.LegacyIBCModule)
+
+			mockCallbackStack, ok := legacyModule.GetCallbacks()[2].(ibccallbacks.IBCMiddleware)
+			s.Require().True(ok)
+
+			var err error
 			processCallback := func() {
 				err = mockCallbackStack.ProcessCallback(ctx, callbackType, callbackData, callbackExecutor)
 			}
@@ -1016,10 +1018,13 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
-	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
+	legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+	callbacks := legacyModule.GetCallbacks()
+
+	unmarshalerStack, ok := callbacks[0].(types.CallbacksCompatibleModule)
 	s.Require().True(ok)
 
 	expPacketDataICS20V1 := transfertypes.FungibleTokenPacketData{
@@ -1059,10 +1064,13 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
-	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
+	legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+	callbacks := legacyModule.GetCallbacks()
+
+	unmarshalerStack, ok := callbacks[0].(types.CallbacksCompatibleModule)
 	s.Require().True(ok)
 
 	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
@@ -1094,10 +1102,13 @@ func (s *CallbacksTestSuite) TestGetAppVersion() {
 	// Obtain an IBC stack for testing. The function call will use the top of the stack which calls
 	// directly to the channel keeper. Calling from a further down module in the stack is not necessary
 	// for this test.
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack, ok := icaControllerStack.(porttypes.ICS4Wrapper)
+	legacyModule := icaControllerStack.(*porttypes.LegacyIBCModule)
+	callbacks := legacyModule.GetCallbacks()
+
+	controllerStack, ok := callbacks[1].(porttypes.ICS4Wrapper)
 	s.Require().True(ok)
 	appVersion, found := controllerStack.GetAppVersion(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	s.Require().True(found)
@@ -1109,10 +1120,13 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack OnChanCloseConfirm call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack, ok := icaControllerStack.(porttypes.Middleware)
+	legacyModule := icaControllerStack.(*porttypes.LegacyIBCModule)
+	callbacks := legacyModule.GetCallbacks()
+
+	controllerStack, ok := callbacks[1].(porttypes.Middleware)
 	s.Require().True(ok)
 	err := controllerStack.OnChanCloseConfirm(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller
