@@ -654,7 +654,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.Require().Equal(true, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
 		},
-		// TODO: fixme
+		// TODO: this test now panics instead and needs to be refactored.
 		//{
 		//	"ack wrong format",
 		//	func() {
@@ -706,10 +706,10 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 
 			// retrieve module callbacks
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(ibctesting.MockFeePort)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
-			err = cbs[0].OnAcknowledgementPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, ack, relayerAddr)
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, ack, relayerAddr)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
