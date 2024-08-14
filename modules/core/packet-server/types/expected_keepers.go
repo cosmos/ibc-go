@@ -38,6 +38,9 @@ type ChannelKeeper interface {
 	// SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 	// This is a public path that is standardized by the IBC specification
 	SetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte)
+
+	// GetChannel returns a version 2 counterparty for a given portID and channel ID
+	GetV2Counterparty(ctx sdk.Context, portID, channelID string) (clienttypes.Counterparty, bool)
 }
 
 type ClientKeeper interface {

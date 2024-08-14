@@ -52,7 +52,7 @@ func (k Keeper) SendPacket(
 	data []byte,
 ) (uint64, error) {
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
-	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, sourceChannel)
+	counterparty, ok := k.GetCounterparty(ctx, sourcePort, sourceChannel)
 	if !ok {
 		return 0, channeltypes.ErrChannelNotFound
 	}
@@ -125,7 +125,7 @@ func (k Keeper) RecvPacket(
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
 	// Note: This can be implemented by the current keeper
-	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
+	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if !ok {
 		return "", channeltypes.ErrChannelNotFound
 	}
@@ -200,7 +200,7 @@ func (k Keeper) WriteAcknowledgement(
 
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
-	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
+	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if !ok {
 		return channeltypes.ErrChannelNotFound
 	}
@@ -254,7 +254,7 @@ func (k Keeper) AcknowledgePacket(
 
 	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
 	// sent by our counterparty.
-	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
+	counterparty, ok := k.GetCounterparty(ctx, packet.SourcePort, packet.SourceChannel)
 	if !ok {
 		return "", channeltypes.ErrChannelNotFound
 	}
@@ -321,7 +321,7 @@ func (k Keeper) TimeoutPacket(
 	}
 	// Lookup counterparty associated with our channel and ensure that destination channel
 	// is the expected counterparty
-	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
+	counterparty, ok := k.GetCounterparty(ctx, packet.SourcePort, packet.SourceChannel)
 	if !ok {
 		return "", channeltypes.ErrChannelNotFound
 	}
@@ -389,4 +389,17 @@ func (k Keeper) TimeoutPacket(
 // sentinelChannel creates a sentinel channel for use in events for Eureka protocol handlers.
 func sentinelChannel(clientID string) channeltypes.Channel {
 	return channeltypes.Channel{Ordering: channeltypes.UNORDERED, ConnectionHops: []string{clientID}}
+}
+
+// GetCounterparty returns the v2 counterparty for a given portID and channelID.
+// If the portID and channel ID resolves to a v1 channel, then we create a v2 counterparty
+// using the channel information
+// If the channel ID resolves to client, then we can directly retrieve the v2 counterparty
+func (k Keeper) GetCounterparty(ctx sdk.Context, portID, channelID string) (clienttypes.Counterparty, bool) {
+	counterparty, ok := k.ChannelKeeper.GetV2Counterparty(ctx, portID, channelID)
+	if ok {
+		return counterparty, true
+	}
+	// get the counterparty directly from the client keeper using the channel id as a client identifier
+	return k.ClientKeeper.GetCounterparty(ctx, channelID)
 }
