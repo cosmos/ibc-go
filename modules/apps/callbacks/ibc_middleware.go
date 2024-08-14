@@ -184,7 +184,7 @@ func (IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID st
 	return acknowledgment, acknowledgment
 }
 
-func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult ibcexported.RecvPacketResult) ibcexported.RecvPacketResult {
+func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result ibcexported.RecvPacketResult) ibcexported.RecvPacketResult {
 	// if result status is asynchronous, then the callback will be handled in WriteAcknowledgement
 	// if result status is failed, then all state changes are reverted.
 	// if a packet cannot be received, then there is no need to execute a callback on the receiving chain,

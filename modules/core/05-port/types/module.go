@@ -152,7 +152,7 @@ type AcknowledgementWrapper interface {
 	// while maintaining backwards compatibility. It will be removed in the future.
 	// Applications should wrap the underlying app acknowledgement using the context
 	// and the given portID and channelID.
-	WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, result exported.RecvPacketResult) exported.RecvPacketResult
+	WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result exported.RecvPacketResult) exported.RecvPacketResult
 
 	// UnwrapAcknowledgement is required in order to remove middleware wiring and the ICS4Wrapper
 	// while maintaining backwards compatibility. It will be removed in the future.

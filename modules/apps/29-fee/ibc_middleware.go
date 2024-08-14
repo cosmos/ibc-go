@@ -97,7 +97,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, counterpartyVersion)
 	}
 
-	im.keeper.SetFeeEnabled(ctx, portID, channelID)
+	im.keeper.SetFeeEnabled(ctx, portID, channelID) // TODO: can we delete this line
 	return nil
 }
 
@@ -166,11 +166,13 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.RecvPacketResult {
+	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
+		return exported.RecvPacketResult{Status: exported.Success}
+	}
+
 	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer.String(), packet.GetDestChannel())
 
-	feeAcknowledgement := types.FeeAcknowledgement{
-		ForwardRelayerAddress: forwardRelayer,
-	}
+	feeAcknowledgement := types.NewFeeAcknowledgement(forwardRelayer)
 
 	ack, err := json.Marshal(feeAcknowledgement)
 	if err != nil {
@@ -382,23 +384,19 @@ func (im IBCMiddleware) UnwrapVersionSafe(ctx sdk.Context, portID, channelID, ve
 	return metadata.FeeVersion, metadata.AppVersion
 }
 
-func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult exported.RecvPacketResult) exported.RecvPacketResult {
+func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result exported.RecvPacketResult) exported.RecvPacketResult {
 	if !im.keeper.IsFeeEnabled(ctx, packet.GetDestPort(), packet.GetDestChannel()) {
 		return prevResult
 	}
 
-	// in case of async result status store the relayer address for use later during async WriteAcknowledgement
-	if prevResult.Status == exported.Async {
-		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
-		return prevResult
+	var feeAck types.FeeAcknowledgement
+	if err := json.Unmarshal(result.Acknowledgement, &feeAck); err != nil {
+		panic(errorsmod.Wrap(err, "failed to wrap acknowledgement"))
 	}
-
-	// if forwardRelayer is not found we refund recv_fee
-	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer.String(), packet.GetDestChannel())
 
 	return exported.RecvPacketResult{
 		Status:          prevResult.Status,
-		Acknowledgement: types.NewIncentivizedAcknowledgement(forwardRelayer, prevResult.Acknowledgement, prevResult.Status == exported.Success).Acknowledgement(),
+		Acknowledgement: types.NewIncentivizedAcknowledgement(feeAck.ForwardRelayerAddress, prevResult.Acknowledgement, prevResult.Status == exported.Success).Acknowledgement(),
 	}
 }
 

@@ -413,24 +413,6 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			true,
 		},
 		{
-			"async write acknowledgement: ack is nil",
-			func() {
-				// setup mock callback
-				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context,
-					channelVersion string,
-					packet channeltypes.Packet,
-					relayer sdk.AccAddress,
-				) exported.RecvPacketResult {
-					return exported.RecvPacketResult{
-						Status: exported.Async,
-					}
-				}
-			},
-			true,
-			true,
-		},
-		{
 			"fee not enabled",
 			func() {
 				suite.chainB.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)

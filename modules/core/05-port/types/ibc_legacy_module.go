@@ -250,7 +250,7 @@ func (im *LegacyIBCModule) OnRecvPacket(
 	res := resultList[len(resultList)-1]
 	for i := len(resultList) - 2; i >= 0; i-- {
 		if wrapper, ok := cbs[i].(AcknowledgementWrapper); ok {
-			res = wrapper.WrapAcknowledgement(ctx, packet, relayer, res)
+			res = wrapper.WrapAcknowledgement(ctx, packet, relayer, res, resultList[i])
 		}
 	}
 
