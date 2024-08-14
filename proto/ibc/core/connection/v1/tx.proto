@@ -74,7 +74,7 @@ message MsgConnectionOpenTry {
   // Deprecated: this field is unused.
   bytes proof_consensus = 10 [deprecated = true];
   // Deprecated: this field is unused.
-  ibc.core.client.v1.Height consensus_height = 11 [deprecated = true];
+  ibc.core.client.v1.Height consensus_height = 11 [deprecated = true, (gogoproto.nullable) = false];
   string                    signer           = 12;
   // Deprecated: this field is unused.
   bytes host_consensus_state_proof = 13 [deprecated = true];
@@ -104,7 +104,7 @@ message MsgConnectionOpenAck {
   // Deprecated: this field is unused.
   bytes proof_consensus = 8 [deprecated = true];
   // Deprecated: this field is unused.
-  ibc.core.client.v1.Height consensus_height = 9 [deprecated = true];
+  ibc.core.client.v1.Height consensus_height = 9 [deprecated = true, (gogoproto.nullable) = false];
   string                    signer           = 10;
   // Deprecated: this field is unused.
   bytes host_consensus_state_proof = 11 [deprecated = true];
