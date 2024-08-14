@@ -2,6 +2,7 @@ package fee
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -159,13 +160,24 @@ func (IBCMiddleware) OnSendPacket(
 
 // OnRecvPacket implements the IBCMiddleware interface.
 // If fees are not enabled, this callback will default to the ibc-core packet callback
-func (IBCMiddleware) OnRecvPacket(
+func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.RecvPacketResult {
-	return exported.RecvPacketResult{Status: exported.Success}
+	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer.String(), packet.GetDestChannel())
+
+	feeAcknowledgement := types.FeeAcknowledgement{
+		ForwardRelayerAddress: forwardRelayer,
+	}
+
+	ack, err := json.Marshal(feeAcknowledgement)
+	if err != nil {
+		panic(errors.New("cannot marshal acknowledgement into json"))
+	}
+
+	return exported.RecvPacketResult{Status: exported.Success, Acknowledgement: ack}
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
