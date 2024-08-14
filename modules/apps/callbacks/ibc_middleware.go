@@ -207,7 +207,7 @@ func (IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet
 	return ibcexported.RecvPacketResult{Status: ibcexported.Success}
 }
 
-func (im IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, acknowledgment []byte) (cbAcknowledgement, underlyingAppAcknowledgement []byte) {
+func (IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, acknowledgment []byte) (cbAcknowledgement, underlyingAppAcknowledgement []byte) {
 	return acknowledgment, acknowledgment
 }
 

@@ -159,7 +159,7 @@ func (IBCMiddleware) OnSendPacket(
 
 // OnRecvPacket implements the IBCMiddleware interface.
 // If fees are not enabled, this callback will default to the ibc-core packet callback
-func (im IBCMiddleware) OnRecvPacket(
+func (IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
@@ -349,16 +349,6 @@ func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, chan
 	}
 
 	return unmarshaler.UnmarshalPacketData(ctx, portID, channelID, bz)
-}
-
-func unwrapAppVersion(channelVersion string) string {
-	metadata, err := types.MetadataFromVersion(channelVersion)
-	if err != nil {
-		// This should not happen, as it would mean that the channel is broken. Only a severe bug would cause this.
-		panic(errorsmod.Wrap(err, "failed to unwrap app version from channel version"))
-	}
-
-	return metadata.AppVersion
 }
 
 // WrapVersion returns the wrapped ics29 version based on the provided ics29 version and the underlying application version.
