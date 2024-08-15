@@ -18,7 +18,8 @@ var _ ClassicIBCModule = (*LegacyIBCModule)(nil)
 
 // LegacyIBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type LegacyIBCModule struct {
-	cbs []ClassicIBCModule
+	cbs                        []ClassicIBCModule
+	recvPacketResultReadWriter RecvPacketResultsReadWriter
 }
 
 // TODO: added this for testing purposes, we can remove later if tests are refactored.
@@ -27,9 +28,10 @@ func (im *LegacyIBCModule) GetCallbacks() []ClassicIBCModule {
 }
 
 // NewLegacyIBCModule creates a new IBCModule given the keeper
-func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
+func NewLegacyIBCModule(channelKeeper RecvPacketResultsReadWriter, cbs ...ClassicIBCModule) ClassicIBCModule {
 	return &LegacyIBCModule{
-		cbs: cbs,
+		cbs:                        cbs,
+		recvPacketResultReadWriter: channelKeeper,
 	}
 }
 
@@ -272,12 +274,8 @@ func (im *LegacyIBCModule) OnRecvPacket(
 
 	for _, res := range resultList {
 		if res.Status == ibcexported.Async {
-			// TODO: write results list to new state key based on packet ID.
 			// write now, wrap later.
-
-			// packetID := channeltypes.NewPacketID(packet.DestinationPort, packet.DesintationChannel, packet.Sequence)
-			// recvResults := RecvResults{resultList}?
-			// im.channelKeeper.StoreRecvResults(ctx, packetID, recvResults)
+			im.recvPacketResultReadWriter.StoreRecvResults(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence, resultList)
 			return res
 		}
 	}

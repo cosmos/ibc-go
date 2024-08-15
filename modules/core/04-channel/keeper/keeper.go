@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
@@ -248,6 +249,31 @@ func (k *Keeper) HasPacketAcknowledgement(ctx sdk.Context, portID, channelID str
 func (k *Keeper) deletePacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.PacketAcknowledgementKey(portID, channelID, sequence))
+}
+
+func (k *Keeper) StoreRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults []exported.RecvPacketResult) {
+	store := ctx.KVStore(k.storeKey)
+	//k.cdc.MustUnmarshal(bz, &results)
+	bz, err := json.Marshal(recvResults)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(host.RecvPacketResultKey(portID, channelID, sequence), bz)
+}
+
+// GetRecvResults gets the recv packet results
+func (k *Keeper) GetRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64) ([]exported.RecvPacketResult, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.RecvPacketResultKey(portID, channelID, sequence))
+	if len(bz) == 0 {
+		return nil, false
+	}
+	var res []exported.RecvPacketResult
+	if err := json.Unmarshal(bz, &res); err != nil {
+		panic(err)
+	}
+
+	return res, true
 }
 
 // IteratePacketSequence provides an iterator over all send, receive or ack sequences.

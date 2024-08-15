@@ -5,6 +5,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,10 +15,16 @@ import (
 // https://github.com/cosmos/ibc/issues/1129
 const sentinelMultiPacketData = "MultiPacketData"
 
+type RecvPacketResultsReadWriter interface {
+	GetRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64) ([]exported.RecvPacketResult, bool)
+	StoreRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults []exported.RecvPacketResult)
+}
+
 // AppRouter contains all the module-defined callbacks required by ICS-26
 type AppRouter struct {
-	routes       map[string]IBCModule
-	legacyRoutes map[string]ClassicIBCModule
+	routes               map[string]IBCModule
+	legacyRoutes         map[string]ClassicIBCModule
+	recvPacketReadWriter RecvPacketResultsReadWriter
 
 	// classicRoutes facilitates the consecutive calls to AddRoute for existing modules.
 	// TODO: this should be removed once app.gos have been refactored to use AddClassicRoute.
@@ -25,11 +32,12 @@ type AppRouter struct {
 	classicRoutes map[string][]ClassicIBCModule
 }
 
-func NewAppRouter() *AppRouter {
+func NewAppRouter(channelKeeper RecvPacketResultsReadWriter) *AppRouter {
 	return &AppRouter{
-		routes:        make(map[string]IBCModule),
-		legacyRoutes:  make(map[string]ClassicIBCModule),
-		classicRoutes: make(map[string][]ClassicIBCModule),
+		routes:               make(map[string]IBCModule),
+		legacyRoutes:         make(map[string]ClassicIBCModule),
+		classicRoutes:        make(map[string][]ClassicIBCModule),
+		recvPacketReadWriter: channelKeeper,
 	}
 }
 
@@ -48,7 +56,7 @@ func (rtr *AppRouter) AddClassicRoute(module string, cbs ...ClassicIBCModule) *A
 		panic(errors.New("no callbacks provided"))
 	}
 
-	rtr.legacyRoutes[module] = NewLegacyIBCModule(cbs...)
+	rtr.legacyRoutes[module] = NewLegacyIBCModule(rtr.recvPacketReadWriter, cbs...)
 
 	return rtr
 }
@@ -67,7 +75,7 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 		// consecutive calls to AddRoute to support existing functionality, we can re-create
 		// the legacy module with the routes as they get added.
 		if classicRoutes, ok := rtr.classicRoutes[module]; ok {
-			rtr.legacyRoutes[module] = NewLegacyIBCModule(classicRoutes...)
+			rtr.legacyRoutes[module] = NewLegacyIBCModule(rtr.recvPacketReadWriter, classicRoutes...)
 		}
 	} else {
 		rtr.routes[module] = cbs

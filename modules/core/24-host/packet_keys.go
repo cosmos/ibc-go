@@ -12,6 +12,7 @@ const (
 	KeyPacketReceiptPrefix    = "receipts"
 	KeyPruningSequenceStart   = "pruningSequenceStart"
 	KeyRecvStartSequence      = "recvStartSequence"
+	KeyPacketRecvResults      = "recvResults"
 )
 
 // ICS04
@@ -71,6 +72,10 @@ func PruningSequenceStartKey(portID, channelID string) []byte {
 // RecvStartSequenceKey returns the store key for the recv start sequence of a particular channel
 func RecvStartSequenceKey(portID, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", KeyRecvStartSequence, channelPath(portID, channelID)))
+}
+
+func RecvPacketResultKey(portID, channelID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", KeyPacketRecvResults, channelPath(portID, channelID), sequencePath(sequence)))
 }
 
 func sequencePath(sequence uint64) string {

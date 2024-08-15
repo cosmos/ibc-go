@@ -76,7 +76,7 @@ func RemoveFeeMiddleware(chain *ibctesting.TestChain) {
 	chain.GetSimApp().IBCKeeper.PortKeeper.Router = nil
 
 	newRouter := porttypes.NewRouter() // Create a new router
-	newAppRouter := porttypes.NewAppRouter()
+	newAppRouter := porttypes.NewAppRouter(chain.GetSimApp().IBCKeeper.ChannelKeeper)
 
 	// Remove Fee middleware from transfer module
 	chain.GetSimApp().TransferKeeper.WithICS4Wrapper(channelKeeper)
