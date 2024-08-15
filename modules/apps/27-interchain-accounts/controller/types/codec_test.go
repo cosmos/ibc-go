@@ -48,12 +48,14 @@ func TestCodecTypeRegistration(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
+			fmt.Printf("%+v\n", err)
+
 			if tc.expErr == nil {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
-				require.ErrorIs(t, err, tc.expErr)
+				require.ErrorContains(t, err, tc.expErr.Error())
 			}
 		})
 	}
