@@ -12,6 +12,17 @@ func NewFeeAcknowledgement(relayer string) FeeAcknowledgement {
 	}
 }
 
+// Acknowledgement returns the json serialised bytes of the FeeAcknowledgement.
+// TODO: should this just be called Bytes()
+func (ack FeeAcknowledgement) Acknowledgement() []byte {
+	res, err := json.Marshal(&ack)
+	if err != nil {
+		panic(errors.New("cannot marshal acknowledgement into json"))
+	}
+
+	return res
+}
+
 // NewIncentivizedAcknowledgement creates a new instance of IncentivizedAcknowledgement
 // Deprecated: use FeeAcknowledgement instead.
 func NewIncentivizedAcknowledgement(relayer string, ack []byte, success bool) IncentivizedAcknowledgement {

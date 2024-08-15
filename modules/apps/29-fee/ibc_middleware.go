@@ -195,7 +195,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return nil
 	}
 
-	var ack types.IncentivizedAcknowledgement
+	var ack types.FeeAcknowledgement
 	if err := json.Unmarshal(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-29 incentivized packet acknowledgement %v: %s", ack, err)
 	}
@@ -411,5 +411,5 @@ func (im IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID
 		panic(errorsmod.Wrap(err, "failed to unwrap acknowledgement"))
 	}
 
-	return ack, incentivizedAck.AppAcknowledgement
+	return types.NewFeeAcknowledgement(incentivizedAck.ForwardRelayerAddress).Acknowledgement(), incentivizedAck.AppAcknowledgement
 }
