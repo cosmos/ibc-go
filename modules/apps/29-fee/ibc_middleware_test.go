@@ -655,14 +655,14 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			},
 		},
 		// TODO: this test now panics instead and needs to be refactored.
-		//{
+		// {
 		//	"ack wrong format",
 		//	func() {
 		//		ack = []byte("unsupported acknowledgement format")
 		//	},
 		//	false,
 		//	func() {},
-		//},
+		// },
 		{
 			"invalid registered payee address",
 			func() {

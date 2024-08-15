@@ -253,7 +253,7 @@ func (k *Keeper) deletePacketAcknowledgement(ctx sdk.Context, portID, channelID 
 
 func (k *Keeper) StoreRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults []exported.RecvPacketResult) {
 	store := ctx.KVStore(k.storeKey)
-	//k.cdc.MustUnmarshal(bz, &results)
+
 	bz, err := json.Marshal(recvResults)
 	if err != nil {
 		panic(err)

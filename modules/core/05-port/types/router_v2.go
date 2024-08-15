@@ -5,10 +5,11 @@ package types
 import (
 	"errors"
 	"fmt"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // TODO: this is a temporary constant that is subject to change based on the final spec.

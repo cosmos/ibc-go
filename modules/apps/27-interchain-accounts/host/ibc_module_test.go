@@ -147,30 +147,30 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		},
 		{
 			"account address generation is block dependent", func() {
-			icaHostAccount := icatypes.GenerateAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-			err := suite.chainB.GetSimApp().BankKeeper.SendCoins(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), icaHostAccount, sdk.Coins{sdk.NewCoin("stake", sdkmath.NewInt(1))})
-			suite.Require().NoError(err)
-			suite.Require().True(suite.chainB.GetSimApp().AccountKeeper.HasAccount(suite.chainB.GetContext(), icaHostAccount))
+				icaHostAccount := icatypes.GenerateAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+				err := suite.chainB.GetSimApp().BankKeeper.SendCoins(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), icaHostAccount, sdk.Coins{sdk.NewCoin("stake", sdkmath.NewInt(1))})
+				suite.Require().NoError(err)
+				suite.Require().True(suite.chainB.GetSimApp().AccountKeeper.HasAccount(suite.chainB.GetContext(), icaHostAccount))
 
-			// ensure account registration is simulated in a separate block
-			suite.chainB.NextBlock()
-		}, true,
+				// ensure account registration is simulated in a separate block
+				suite.chainB.NextBlock()
+			}, true,
 		},
 		{
 			"host submodule disabled", func() {
-			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-		}, false,
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, false,
 		},
 		{
 			"success: ICA auth module callback returns error", func() {
-			// mock module callback should not be called on host side
-			suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-				portID, channelID string,
-				counterparty channeltypes.Counterparty, counterpartyVersion string,
-			) (string, error) {
-				return "", fmt.Errorf("mock ica auth fails")
-			}
-		}, true,
+				// mock module callback should not be called on host side
+				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string,
+					counterparty channeltypes.Counterparty, counterpartyVersion string,
+				) (string, error) {
+					return "", fmt.Errorf("mock ica auth fails")
+				}
+			}, true,
 		},
 	}
 
@@ -273,8 +273,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 		},
 		{
 			"host submodule disabled", func() {
-			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-		}, types.ErrHostSubModuleDisabled,
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, types.ErrHostSubModuleDisabled,
 		},
 	}
 
@@ -399,27 +399,27 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		},
 		{
 			"host submodule disabled", func() {
-			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-		}, false,
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, false,
 			types.ErrHostSubModuleDisabled.Error(),
 		},
 		{
 			"success with ICA auth module callback failure", func() {
-			suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
-				ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
-			) exported.RecvPacketResult {
-				return exported.RecvPacketResult{
-					Status:          exported.Failure,
-					Acknowledgement: channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback")).Acknowledgement(),
+				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
+					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) exported.RecvPacketResult {
+					return exported.RecvPacketResult{
+						Status:          exported.Failure,
+						Acknowledgement: channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback")).Acknowledgement(),
+					}
 				}
-			}
-		}, true,
+			}, true,
 			"failed OnRecvPacket mock callback",
 		},
 		{
 			"ICA OnRecvPacket fails - cannot unmarshal packet data", func() {
-			packetData = []byte("invalid data")
-		}, false,
+				packetData = []byte("invalid data")
+			}, false,
 			"cannot unmarshal ICS-27 interchain account packet data: invalid type",
 		},
 	}
@@ -675,8 +675,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 		},
 		{
 			"host submodule disabled", func() {
-			suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-		}, types.ErrHostSubModuleDisabled,
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, types.ErrHostSubModuleDisabled,
 		},
 	}
 
