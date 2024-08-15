@@ -643,7 +643,9 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+			legacyModule, ok := transferStack.(*porttypes.LegacyIBCModule)
+			s.Require().True(ok)
+
 			callbacks := legacyModule.GetCallbacks()
 
 			packetUnmarshaler, ok := callbacks[0].(types.CallbacksCompatibleModule)
@@ -734,7 +736,9 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+			legacyModule, ok := transferStack.(*porttypes.LegacyIBCModule)
+			s.Require().True(ok)
+
 			callbacks := legacyModule.GetCallbacks()
 
 			packetUnmarshaler, ok := callbacks[0].(types.CallbacksCompatibleModule)

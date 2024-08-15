@@ -848,7 +848,8 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			transferStack, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(types.ModuleName)
 			suite.Require().True(ok)
 
-			legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+			legacyModule, ok := transferStack.(*porttypes.LegacyIBCModule)
+			suite.Require().True(ok)
 			callbacks := legacyModule.GetCallbacks()
 
 			unmarshalerStack, ok := callbacks[0].(porttypes.PacketDataUnmarshaler)

@@ -1409,7 +1409,9 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
-			legacyModule := cbs.(*porttypes.LegacyIBCModule)
+			legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
+			suite.Require().True(ok)
+
 			callbacks := legacyModule.GetCallbacks()
 
 			feeModule, ok := callbacks[1].(porttypes.ICS4Wrapper)
@@ -1432,7 +1434,9 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 	suite.Require().True(ok)
 
-	legacyModule := cbs.(*porttypes.LegacyIBCModule)
+	legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
+	suite.Require().True(ok)
+
 	callbacks := legacyModule.GetCallbacks()
 
 	feeModule, ok := callbacks[1].(porttypes.PacketDataUnmarshaler)

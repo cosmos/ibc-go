@@ -981,7 +981,8 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(ibctesting.MockFeePort)
 			s.Require().True(ok)
 
-			legacyModule := cbs.(*porttypes.LegacyIBCModule)
+			legacyModule, ok := cbs.(*porttypes.LegacyIBCModule)
+			s.Require().True(ok)
 
 			mockCallbackStack, ok := legacyModule.GetCallbacks()[2].(ibccallbacks.IBCMiddleware)
 			s.Require().True(ok)
@@ -1021,7 +1022,8 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+	legacyModule, ok := transferStack.(*porttypes.LegacyIBCModule)
+	s.Require().True(ok)
 	callbacks := legacyModule.GetCallbacks()
 
 	unmarshalerStack, ok := callbacks[0].(types.CallbacksCompatibleModule)
@@ -1067,7 +1069,9 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV2() {
 	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	legacyModule := transferStack.(*porttypes.LegacyIBCModule)
+	legacyModule, ok := transferStack.(*porttypes.LegacyIBCModule)
+	s.Require().True(ok)
+
 	callbacks := legacyModule.GetCallbacks()
 
 	unmarshalerStack, ok := callbacks[0].(types.CallbacksCompatibleModule)
@@ -1105,7 +1109,9 @@ func (s *CallbacksTestSuite) TestGetAppVersion() {
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	legacyModule := icaControllerStack.(*porttypes.LegacyIBCModule)
+	legacyModule, ok := icaControllerStack.(*porttypes.LegacyIBCModule)
+	s.Require().True(ok)
+
 	callbacks := legacyModule.GetCallbacks()
 
 	controllerStack, ok := callbacks[1].(porttypes.ICS4Wrapper)
@@ -1123,7 +1129,9 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	legacyModule := icaControllerStack.(*porttypes.LegacyIBCModule)
+	legacyModule, ok := icaControllerStack.(*porttypes.LegacyIBCModule)
+	s.Require().True(ok)
+
 	callbacks := legacyModule.GetCallbacks()
 
 	controllerStack, ok := callbacks[1].(porttypes.Middleware)

@@ -978,7 +978,9 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.AppRouter.HandshakeRoute(path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(ok)
 
-		legacyIBCModule := cbs.(*porttypes.LegacyIBCModule)
+		legacyIBCModule, ok := cbs.(*porttypes.LegacyIBCModule)
+		suite.Require().True(ok)
+
 		callbacks := legacyIBCModule.GetCallbacks()
 
 		controllerStack, ok := callbacks[1].(porttypes.ICS4Wrapper)
