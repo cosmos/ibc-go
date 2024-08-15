@@ -45,6 +45,8 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 
 // acknowledgeForwardedPacket writes the async acknowledgement for forwardedPacket
 func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, forwardedPacket, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
+	// TODO: Can we make this work?
+	// if err := k.channelKeeper.WriteAsyncAcknowledgement(ctx, forwardedPacket, ack.Acknowledgement()); err != nil {
 	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, forwardedPacket, ack.Acknowledgement()); err != nil {
 		return err
 	}

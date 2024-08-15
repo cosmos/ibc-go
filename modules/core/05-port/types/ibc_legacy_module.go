@@ -14,6 +14,8 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
+var _ ClassicIBCModule = (*LegacyIBCModule)(nil)
+
 // LegacyIBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type LegacyIBCModule struct {
 	cbs []ClassicIBCModule
@@ -245,6 +247,39 @@ func (im *LegacyIBCModule) OnRecvPacket(
 
 		res := cb.OnRecvPacket(ctx, cbVersion, packet, relayer)
 		resultList = append(resultList, res)
+	}
+
+	// Example (sync):
+	// ResultList {
+	// 		fee: { Status: Success, Acknowledgement: feeAck.Bytes() }
+	//		transfer: { Status: Success / Failure, Acknowledgement: transferAck.Bytes() }
+	// }
+	//
+	// Example (async):
+	// ResultList {
+	// 		fee: { Status: Success, Acknowledgement: feeAck.Bytes() }
+	//		transfer: { Status: Async, Acknowledgement: nil }
+	// }
+	//
+	// 1. Loop over result list.
+	// 2. Check status of each result.
+	// 3. If contains async recv result, then write results list to new state key with packet ID.
+	// 4. Return async result to ibc core
+	//
+	// Current assumption:
+	// if res.Status == Async, then res.Acknowledgement == nil
+	// TODO: add validate func
+
+	for _, res := range resultList {
+		if res.Status == ibcexported.Async {
+			// TODO: write results list to new state key based on packet ID.
+			// write now, wrap later.
+
+			// packetID := channeltypes.NewPacketID(packet.DestinationPort, packet.DesintationChannel, packet.Sequence)
+			// recvResults := RecvResults{resultList}?
+			// im.channelKeeper.StoreRecvResults(ctx, packetID, recvResults)
+			return res
+		}
 	}
 
 	res := resultList[len(resultList)-1]

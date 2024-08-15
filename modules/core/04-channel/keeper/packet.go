@@ -329,6 +329,54 @@ func (k *Keeper) WriteAcknowledgement(
 	return nil
 }
 
+func (k *Keeper) WriteRecvPacketResult(
+	ctx sdk.Context,
+	packet exported.PacketI,
+	appName string,
+	result exported.RecvPacketResult,
+) error {
+	// transfer: write async ack
+	// appX: async ???????? - concern for when another app is async or it swallowed ack in previous wiring?
+	// fee: ack already written in temporary state (new state key)
+
+	// Lookup results and. Write ack for transfer
+	// Loop over results once again, to check if any async results still exist
+
+	// packetID := types.NewPacketID(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	// recvResults, found := k.GetRecvResults(ctx, packetID); if !found; return err
+
+	// How to find result for this acknowledgement (transfer): Provide appName as arg
+	// ResultList {
+	// 		fee: { Status: Success, Acknowledgement: feeAck.Bytes() }
+	//		transfer: { Status: Async, Acknowledgement: nil }
+	// }
+
+	// ========================================================================
+
+	// cbs, ok := k.portKeeper.AppRouter.PacketRoute(msg.Packet.DestinationPort)
+	// if !ok {
+	// 	ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort))
+	// 	return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort)
+	// }
+
+	// ????????
+	// for _, cb := range cbs {
+	// 	// check if cb implements OnWriteAcknowledgement
+	// 	// if it does, then call it...
+	// 	res, err := OnWriteAcknowledgement(ctx, packet, res)
+	// }
+
+	// Look up the stored results and wrap acks.
+	// res := resultList[len(resultList)-1]
+	// for i := len(resultList) - 2; i >= 0; i-- {
+	// 	if wrapper, ok := cbs[i].(AcknowledgementWrapper); ok {
+	// 		res = wrapper.WrapAcknowledgement(ctx, packet, relayer, res, resultList[i])
+	// 	}
+	// }
+
+	return k.WriteAcknowledgement(ctx, packet, result.Acknowledgement)
+}
+
 // AcknowledgePacket is called by a module to process the acknowledgement of a
 // packet previously sent by the calling module on a channel to a counterparty
 // module on the counterparty chain. Its intended usage is within the ante
