@@ -687,6 +687,79 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 	}
 }
 
+// TestMsgProvideCounterpartyValidateBasic tests ValidateBasic for MsgProvideCounterparty
+func (suite *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
+	var msg *types.MsgProvideCounterparty
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: invalid signer address",
+			func() {
+				msg.Signer = "invalid"
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: invalid client ID",
+			func() {
+				msg.ClientId = ""
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"failure: invalid counterparty client ID",
+			func() {
+				msg.Counterparty.ClientId = ""
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"failure: nil counterparty merkle path prefix",
+			func() {
+				msg.Counterparty.MerklePathPrefix = nil
+			},
+			types.ErrInvalidCounterparty,
+		},
+		{
+			"failure: empty key path of counterparty of merkle path prefix",
+			func() {
+				msg.Counterparty.MerklePathPrefix.KeyPath = nil
+			},
+			types.ErrInvalidCounterparty,
+		},
+	}
+
+	for _, tc := range testCases {
+		merklePathPrefix := commitmenttypes.NewMerklePath([]byte("key"))
+		msg = types.NewMsgProvideCounterparty(
+			ibctesting.TestAccAddress,
+			ibctesting.FirstClientID,
+			ibctesting.SecondClientID,
+			&merklePathPrefix,
+		)
+
+		tc.malleate()
+
+		err := msg.ValidateBasic()
+		expPass := tc.expError == nil
+		if expPass {
+			suite.Require().NoError(err, "valid case %s failed", tc.name)
+		} else {
+			suite.Require().Error(err, "invalid case %s passed", tc.name)
+			suite.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
+		}
+	}
+}
+
 // TestMsgRecoverClientGetSigners tests GetSigners for MsgRecoverClient
 func TestMsgRecoverClientGetSigners(t *testing.T) {
 	testCases := []struct {
