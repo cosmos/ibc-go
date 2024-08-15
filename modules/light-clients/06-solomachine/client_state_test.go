@@ -3,8 +3,8 @@ package solomachine_test
 import (
 	"bytes"
 
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const (

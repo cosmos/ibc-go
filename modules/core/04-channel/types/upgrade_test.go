@@ -6,10 +6,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *TypesTestSuite) TestUpgradeValidateBasic() {

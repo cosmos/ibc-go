@@ -7,86 +7,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
-
-// VerifyClientState verifies a proof of a client state of the running machine
-// stored on the target machine
-func (k *Keeper) VerifyClientState(
-	ctx sdk.Context,
-	connection types.ConnectionEnd,
-	height exported.Height,
-	proof []byte,
-	clientState exported.ClientState,
-) error {
-	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.FullClientStateKey(connection.Counterparty.ClientId))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
-	if err != nil {
-		return err
-	}
-
-	bz, err := k.cdc.MarshalInterface(clientState)
-	if err != nil {
-		return err
-	}
-
-	if err := k.clientKeeper.VerifyMembershipProof(
-		ctx, clientID, height,
-		0, 0, // skip delay period checks for non-packet processing verification
-		proof, merklePath, bz,
-	); err != nil {
-		return errorsmod.Wrapf(err, "failed client state verification for target client: %s", clientID)
-	}
-
-	return nil
-}
-
-// VerifyClientConsensusState verifies a proof of the consensus state of the
-// specified client stored on the target machine.
-func (k *Keeper) VerifyClientConsensusState(
-	ctx sdk.Context,
-	connection types.ConnectionEnd,
-	height exported.Height,
-	consensusHeight exported.Height,
-	proof []byte,
-	consensusState exported.ConsensusState,
-) error {
-	clientID := connection.ClientId
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStateKey(connection.Counterparty.ClientId, consensusHeight))
-	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
-	if err != nil {
-		return err
-	}
-
-	bz, err := k.cdc.MarshalInterface(consensusState)
-	if err != nil {
-		return err
-	}
-
-	if err := k.clientKeeper.VerifyMembershipProof(
-		ctx, clientID, height,
-		0, 0, // skip delay period checks for non-packet processing verification
-		proof, merklePath, bz,
-	); err != nil {
-		return errorsmod.Wrapf(err, "failed consensus state verification for client (%s)", clientID)
-	}
-
-	return nil
-}
 
 // VerifyConnectionState verifies a proof of the connection state of the
 // specified connection end stored on the target machine.
@@ -114,7 +41,7 @@ func (k *Keeper) VerifyConnectionState(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipProof(
+	if err := k.clientKeeper.VerifyMembership(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -152,7 +79,7 @@ func (k *Keeper) VerifyChannelState(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipProof(
+	if err := k.clientKeeper.VerifyMembership(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -190,7 +117,7 @@ func (k *Keeper) VerifyPacketCommitment(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipProof(
+	if err := k.clientKeeper.VerifyMembership(
 		ctx, clientID, height, timeDelay, blockDelay, proof, merklePath, commitmentBytes,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
@@ -226,7 +153,7 @@ func (k *Keeper) VerifyPacketAcknowledgement(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipProof(
+	if err := k.clientKeeper.VerifyMembership(
 		ctx, clientID, height, timeDelay, blockDelay,
 		proof, merklePath, channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
@@ -298,7 +225,7 @@ func (k *Keeper) VerifyNextSequenceRecv(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipProof(
+	if err := k.clientKeeper.VerifyMembership(
 		ctx, clientID, height,
 		timeDelay, blockDelay,
 		proof, merklePath, sdk.Uint64ToBigEndian(nextSequenceRecv),
@@ -335,7 +262,7 @@ func (k *Keeper) VerifyChannelUpgradeError(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipProof(
+	if err := k.clientKeeper.VerifyMembership(
 		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
@@ -372,7 +299,7 @@ func (k *Keeper) VerifyChannelUpgrade(
 		return err
 	}
 
-	if err := k.clientKeeper.VerifyMembershipProof(
+	if err := k.clientKeeper.VerifyMembership(
 		ctx, clientID, proofHeight,
 		0, 0, // skip delay period checks for non-packet processing verification
 		upgradeProof, merklePath, bz,

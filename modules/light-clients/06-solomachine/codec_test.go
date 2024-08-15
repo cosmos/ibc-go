@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {

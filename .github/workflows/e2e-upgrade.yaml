@@ -78,7 +78,7 @@ jobs:
       chain-upgrade-tag: v8.1.0
       upgrade-plan-name: "v8.1"
       test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV8ToV8_1ChainUpgrade_ChannelUpgrades"
+      test: "TestV8ToV8_1ChainUpgrade_FeeMiddlewareChannelUpgrade"
       upload-logs: true
       relayer-type: hermes
 
@@ -157,5 +157,63 @@ jobs:
       upgrade-plan-name: "ibcwasm-v8"
       test-entry-point:  "TestIBCWasmUpgradeTestSuite"
       test: "TestIBCWasmChainUpgrade"
+      upload-logs: true
+      relayer-type: hermes
+
+  upgrade-v9-hermes:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v8.4.0
+      chain-b-tag: v8.4.0
+      chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
+      upgrade-plan-name: "v9"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV8ToV9ChainUpgrade"
+      upload-logs: true
+      relayer-type: hermes
+
+  upgrade-v9-rly:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v8.4.0
+      chain-b-tag: v8.4.0
+      chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
+      upgrade-plan-name: "v9"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV8ToV9ChainUpgrade"
+      upload-logs: true
+      relayer-type: rly
+      relayer-image: ghcr.io/cosmos/relayer
+      relayer-tag: latest
+
+  upgrade-v9-localhost:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v8.4.0
+      chain-b-tag: v8.4.0
+      chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
+      upgrade-plan-name: "v9"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV8ToV9ChainUpgrade_Localhost"
+      upload-logs: true
+      relayer-type: hermes
+
+  upgrade-v9-channel-upgrades-hermes:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v8.4.0
+      chain-b-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
+      chain-upgrade-tag: main # TODO: Update tag to v9.0.0 once it is (pre)released
+      upgrade-plan-name: "v9"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV8ToV9ChainUpgrade_ICS20v2ChannelUpgrade"
       upload-logs: true
       relayer-type: hermes

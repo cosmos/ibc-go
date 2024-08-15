@@ -30,10 +30,10 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 const (
@@ -55,11 +55,11 @@ type E2ETestSuite struct {
 	// chains is a list of chains that are created for the test suite.
 	// each test suite has a single slice of chains that are used for all individual test
 	// cases.
-	chains       []ibc.Chain
-	relayers     relayer.Map
-	logger       *zap.Logger
-	DockerClient *dockerclient.Client
-	network      string
+	chains         []ibc.Chain
+	relayerWallets relayer.Map
+	logger         *zap.Logger
+	DockerClient   *dockerclient.Client
+	network        string
 
 	// pathNameIndex is the latest index to be used for generating chains
 	pathNameIndex int64
@@ -89,6 +89,7 @@ func (s *E2ETestSuite) initState() {
 	s.channels = make(map[string]map[ibc.Chain][]ibc.ChannelOutput)
 	s.relayerPool = []ibc.Relayer{}
 	s.testRelayerMap = make(map[string]ibc.Relayer)
+	s.relayerWallets = make(relayer.Map)
 
 	// testSuiteName gets populated in the context of SetupSuite and stored as s.T().Name()
 	// will return the name of the suite and test when called from SetupTest or within the body of tests.
@@ -166,7 +167,9 @@ func (s *E2ETestSuite) initalizeRelayerPool(n int) []ibc.Relayer {
 func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier ChainOptionModifier, chainSpecOpts ...ChainOptionConfiguration) {
 	s.T().Logf("Setting up chains: %s", s.T().Name())
 
-	s.Require().NoError(os.Setenv("KEEP_CONTAINERS", "true"))
+	if LoadConfig().DebugConfig.KeepContainers {
+		s.Require().NoError(os.Setenv(KeepContainersEnv, "true"))
+	}
 
 	s.initState()
 	s.configureGenesisDebugExport()
@@ -337,23 +340,24 @@ func (s *E2ETestSuite) GetRelayerForTest(testName string) ibc.Relayer {
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
-func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context) (ibc.Wallet, ibc.Wallet) {
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, testName string) (ibc.Wallet, ibc.Wallet) {
 	chains := s.GetAllChains()
 	chainA, chainB := chains[0], chains[1]
-	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
+
+	rlyAName := fmt.Sprintf("%s-%s", ChainARelayerName, testName)
+	rlyBName := fmt.Sprintf("%s-%s", ChainBRelayerName, testName)
+
+	chainAAccountBytes, err := chainA.GetAddress(ctx, rlyAName)
 	s.Require().NoError(err)
 
-	chainBAccountBytes, err := chainB.GetAddress(ctx, ChainBRelayerName)
+	chainBAccountBytes, err := chainB.GetAddress(ctx, rlyBName)
 	s.Require().NoError(err)
 
-	chainARelayerUser := cosmos.NewWallet(ChainARelayerName, chainAAccountBytes, "", chainA.Config())
-	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
+	chainARelayerUser := cosmos.NewWallet(rlyAName, chainAAccountBytes, "", chainA.Config())
+	chainBRelayerUser := cosmos.NewWallet(rlyBName, chainBAccountBytes, "", chainB.Config())
 
-	if s.relayers == nil {
-		s.relayers = make(relayer.Map)
-	}
-	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
-	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
+	s.relayerWallets.AddRelayer(testName, chainARelayerUser)
+	s.relayerWallets.AddRelayer(testName, chainBRelayerUser)
 
 	return chainARelayerUser, chainBRelayerUser
 }
@@ -411,7 +415,7 @@ func (s *E2ETestSuite) generatePathName() string {
 
 func (s *E2ETestSuite) GetPaths(testName string) []string {
 	paths, ok := s.testPaths[testName]
-	s.Require().True(ok, "paths not found for test %s", s.T().Name())
+	s.Require().True(ok, "paths not found for test %s", testName)
 	return paths
 }
 
@@ -474,34 +478,37 @@ func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ib
 	chainA, chainB := chains[0], chains[1]
 	chainARelayerWallet, ok := ibcrelayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
-		return nil, nil, fmt.Errorf("unable to find chain A relayer wallet")
+		return nil, nil, errors.New("unable to find chain A relayer wallet")
 	}
 
 	chainBRelayerWallet, ok := ibcrelayer.GetWallet(chainB.Config().ChainID)
 	if !ok {
-		return nil, nil, fmt.Errorf("unable to find chain B relayer wallet")
+		return nil, nil, errors.New("unable to find chain B relayer wallet")
 	}
 	return chainARelayerWallet, chainBRelayerWallet, nil
 }
 
 // RecoverRelayerWallets adds the corresponding ibcrelayer address to the keychain of the chain.
 // This is useful if commands executed on the chains expect the relayer information to present in the keychain.
-func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer) error {
+func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer, testName string) (ibc.Wallet, ibc.Wallet, error) {
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(ibcrelayer)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	chains := s.GetAllChains()
 	chainA, chainB := chains[0], chains[1]
 
-	if err := chainA.RecoverKey(ctx, ChainARelayerName, chainARelayerWallet.Mnemonic()); err != nil {
-		return fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
+	rlyAName := fmt.Sprintf("%s-%s", ChainARelayerName, testName)
+	rlyBName := fmt.Sprintf("%s-%s", ChainBRelayerName, testName)
+
+	if err := chainA.RecoverKey(ctx, rlyAName, chainARelayerWallet.Mnemonic()); err != nil {
+		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
 	}
-	if err := chainB.RecoverKey(ctx, ChainBRelayerName, chainBRelayerWallet.Mnemonic()); err != nil {
-		return fmt.Errorf("could not recover relayer wallet on chain B: %s", err)
+	if err := chainB.RecoverKey(ctx, rlyBName, chainBRelayerWallet.Mnemonic()); err != nil {
+		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain B: %s", err)
 	}
-	return nil
+	return chainARelayerWallet, chainBRelayerWallet, nil
 }
 
 // StartRelayer starts the given ibcrelayer.
@@ -557,25 +564,20 @@ func (s *E2ETestSuite) createWalletOnChainIndex(ctx context.Context, amount, cha
 // GetChainANativeBalance gets the balance of a given user on chain A.
 func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	chainA := s.GetAllChains()[0]
-
-	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainA, &banktypes.QueryBalanceRequest{
-		Address: user.FormattedAddress(),
-		Denom:   chainA.Config().Denom,
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	return balanceResp.Balance.Amount.Int64(), nil
+	return GetChainBalanceForDenom(ctx, chainA, chainA.Config().Denom, user)
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
 func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	chainB := s.GetAllChains()[1]
+	return GetChainBalanceForDenom(ctx, chainB, chainB.Config().Denom, user)
+}
 
-	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chainB, &banktypes.QueryBalanceRequest{
+// GetChainBalanceForDenom returns the balance for a given denom given a chain.
+func GetChainBalanceForDenom(ctx context.Context, chain ibc.Chain, denom string, user ibc.Wallet) (int64, error) {
+	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chain, &banktypes.QueryBalanceRequest{
 		Address: user.FormattedAddress(),
-		Denom:   chainB.Config().Denom,
+		Denom:   denom,
 	})
 	if err != nil {
 		return 0, err
@@ -593,6 +595,16 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain ibc.Chain,
 		Sequence:  sequence,
 	})
 	s.Require().ErrorContains(err, "packet commitment hash not found")
+}
+
+// AssertPacketAcknowledged asserts that the packet has been acknowledged on the specified chain.
+func (s *E2ETestSuite) AssertPacketAcknowledged(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) {
+	_, err := query.GRPCQuery[channeltypes.QueryPacketAcknowledgementResponse](ctx, chain, &channeltypes.QueryPacketAcknowledgementRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+		Sequence:  sequence,
+	})
+	s.Require().NoError(err)
 }
 
 // AssertHumanReadableDenom asserts that a human readable denom is present for a given chain.
@@ -653,7 +665,7 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
 func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 	opts := ibc.DefaultChannelOpts()
-	opts.Version = determineDefaultTransferVersion(s.GetAllChains())
+	opts.Version = DetermineDefaultTransferVersion(s.GetAllChains())
 	return opts
 }
 
@@ -661,7 +673,7 @@ func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 func (s *E2ETestSuite) FeeTransferChannelOptions() ibc.CreateChannelOptions {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: determineDefaultTransferVersion(s.GetAllChains()),
+		AppVersion: DetermineDefaultTransferVersion(s.GetAllChains()),
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
@@ -780,13 +792,13 @@ func ThreeChainSetup() ChainOptionConfiguration {
 // DefaultChannelOpts returns the default chain options for the test suite based on the provided chains.
 func DefaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
 	channelOptions := ibc.DefaultChannelOpts()
-	channelOptions.Version = determineDefaultTransferVersion(chains)
+	channelOptions.Version = DetermineDefaultTransferVersion(chains)
 	return channelOptions
 }
 
-// determineDefaultTransferVersion determines the version of transfer that should be used with an arbitrary number of chains.
+// DetermineDefaultTransferVersion determines the version of transfer that should be used with an arbitrary number of chains.
 // the default is V2, but if any chain does not support V2, then V1 is used.
-func determineDefaultTransferVersion(chains []ibc.Chain) string {
+func DetermineDefaultTransferVersion(chains []ibc.Chain) string {
 	for _, chain := range chains {
 		chainVersion := chain.Config().Images[0].Version
 		if !testvalues.ICS20v2FeatureReleases.IsSupported(chainVersion) {

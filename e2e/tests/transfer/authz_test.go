@@ -20,8 +20,8 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 func TestAuthzTransferTestSuite(t *testing.T) {
@@ -53,6 +53,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := suite.CreateAuthzTestPath(testName)
 
 	chainA, chainB := suite.GetChains()
@@ -215,6 +216,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	ctx := context.TODO()
 
 	testName := t.Name()
+	t.Parallel()
 	relayer, channelA := suite.CreateAuthzTestPath(testName)
 
 	chainA, chainB := suite.GetChains()

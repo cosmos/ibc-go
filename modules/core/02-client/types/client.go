@@ -11,22 +11,15 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
 	_ codectypes.UnpackInterfacesMessage = (*IdentifiedClientState)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*ConsensusStateWithHeight)(nil)
 )
-
-// ConsensusHost defines an interface used to validate an IBC ClientState and ConsensusState against the host chain's underlying consensus parameters.
-type ConsensusHost interface {
-	GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error)
-	ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error
-}
 
 // NewIdentifiedClientState creates a new IdentifiedClientState instance
 func NewIdentifiedClientState(clientID string, clientState exported.ClientState) IdentifiedClientState {

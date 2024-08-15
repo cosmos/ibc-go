@@ -10,11 +10,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
@@ -444,6 +444,21 @@ func (k *Keeper) ChanUpgradeConfirm(
 		counterpartyUpgrade,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
+	}
+
+	// if we have cancelled our upgrade after performing UpgradeInit,
+	// UpgradeTry or UpgradeAck, the lack of a stored upgrade will prevent
+	// us from continuing the upgrade handshake
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	// in the crossing-hello case it is possible that both chains execute the
+	// INIT, TRY and CONFIRM steps without any of them executing ACK, therefore
+	// we also need to check that the upgrades are compatible on this step
+	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade.Fields); err != nil {
+		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
 	timeout := counterpartyUpgrade.Timeout

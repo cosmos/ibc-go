@@ -12,13 +12,14 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestQueryClientState() {
@@ -81,7 +82,9 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ClientState(ctx, req)
+
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ClientState(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -160,7 +163,8 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ClientStates(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ClientStates(ctx, req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
@@ -272,7 +276,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ConsensusState(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ConsensusState(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -375,7 +380,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ConsensusStates(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ConsensusStates(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -468,7 +474,8 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ConsensusStateHeights(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ConsensusStateHeights(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -574,7 +581,8 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ClientStatus(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ClientStatus(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -677,7 +685,8 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
 
 			tc.malleate()
 
-			res, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradedClientState(suite.chainA.GetContext(), req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.UpgradedClientState(suite.chainA.GetContext(), req)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -726,13 +735,15 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 			"valid consensus state",
 			func() {
 				req = &types.QueryUpgradedConsensusStateRequest{}
-				lastHeight := types.NewHeight(0, uint64(suite.ctx.BlockHeight()))
+
+				ctx := suite.chainA.GetContext()
+				lastHeight := types.NewHeight(0, uint64(ctx.BlockHeight()))
 				height = int64(lastHeight.GetRevisionHeight())
-				suite.ctx = suite.ctx.WithBlockHeight(height)
+				ctx = ctx.WithBlockHeight(height)
 
 				expConsensusState = types.MustPackConsensusState(suite.consensusState)
 				bz := types.MustMarshalConsensusState(suite.cdc, suite.consensusState)
-				err := suite.keeper.SetUpgradedConsensusState(suite.ctx, height, bz)
+				err := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetUpgradedConsensusState(ctx, height, bz)
 				suite.Require().NoError(err)
 			},
 			true,
@@ -747,7 +758,8 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 
 			tc.malleate()
 
-			res, err := suite.keeper.UpgradedConsensusState(suite.ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.UpgradedConsensusState(suite.chainA.GetContext(), req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().True(expConsensusState.Equal(res.UpgradedConsensusState))
@@ -761,7 +773,8 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 func (suite *KeeperTestSuite) TestQueryClientParams() {
 	ctx := suite.chainA.GetContext()
 	expParams := types.DefaultParams()
-	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
+	queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	res, _ := queryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
 }
 
@@ -893,7 +906,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			errors.New(wasmClientID),
 		},
 		{
-			"client not active",
+			"client type not allowed",
 			func() {
 				params := types.NewParams("") // disable all clients
 				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
@@ -906,7 +919,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 					Value:       []byte{0x01},
 				}
 			},
-			types.ErrClientNotActive,
+			types.ErrInvalidClientType,
 		},
 	}
 
@@ -922,7 +935,8 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 
 			ctx := suite.chainA.GetContext()
 			initialGas := ctx.GasMeter().GasConsumed()
-			res, err := suite.chainA.QueryServer.VerifyMembership(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.VerifyMembership(ctx, req)
 
 			expPass := tc.expError == nil
 			if expPass {

@@ -2,6 +2,7 @@ package testsuite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
@@ -29,9 +30,10 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
@@ -64,7 +66,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 	broadcastFunc := func() (sdk.TxResponse, error) {
 		return cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	}
-	if s.relayers.ContainsRelayer(s.T().Name(), user) {
+	if s.relayerWallets.ContainsRelayer(s.T().Name(), user) {
 		// Retry five times, the value of 5 chosen is arbitrary.
 		resp, err = s.retryNtimes(broadcastFunc, 5)
 	} else {
@@ -279,7 +281,9 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 
 // Transfer broadcasts a MsgTransfer message.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
-	portID, channelID string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
+	portID, channelID string, tokens sdk.Coins, sender, receiver string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	memo string, forwarding *transfertypes.Forwarding,
 ) sdk.TxResponse {
 	channel, err := query.Channel(ctx, chain, portID, channelID)
 	s.Require().NoError(err)
@@ -299,7 +303,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 		transferVersion = version.AppVersion
 	}
 
-	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, nil)
+	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, forwarding)
 
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -344,7 +348,7 @@ func (*E2ETestSuite) QueryTxsByEvents(
 ) (*sdk.SearchTxsResult, error) {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
-		return nil, fmt.Errorf("QueryTxsByEvents must be passed a cosmos.CosmosChain")
+		return nil, errors.New("QueryTxsByEvents must be passed a cosmos.CosmosChain")
 	}
 
 	cmd := []string{"txs"}

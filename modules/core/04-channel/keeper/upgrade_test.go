@@ -7,15 +7,15 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestChanUpgradeInit() {
@@ -1072,6 +1072,27 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 				suite.Require().NoError(err)
 			},
 			types.NewUpgradeError(1, types.ErrTimeoutElapsed),
+		},
+		{
+			"upgrade not found",
+			func() {
+				path.EndpointB.Chain.DeleteKey(host.ChannelUpgradeKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+			},
+			types.ErrUpgradeNotFound,
+		},
+		{
+			"upgrades are not compatible",
+			func() {
+				// the expected upgrade version is mock-version-v2
+				counterpartyUpgrade.Fields.Version = fmt.Sprintf("%s-v3", mock.Version)
+				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
+
+				suite.coordinator.CommitBlock(suite.chainA)
+
+				err := path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+			},
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
 	}
 

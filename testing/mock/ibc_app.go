@@ -5,8 +5,8 @@ import (
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // IBCApp contains IBC application module callbacks as defined in 05-port.
@@ -69,12 +69,14 @@ type IBCApp struct {
 	// and the acknowledgement is written (in synchronous cases).
 	OnRecvPacket func(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket func(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
@@ -82,6 +84,7 @@ type IBCApp struct {
 
 	OnTimeoutPacket func(
 		ctx sdk.Context,
+		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error

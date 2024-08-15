@@ -17,11 +17,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/client/cli"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/client/cli"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 )
 
 var (
@@ -81,8 +81,11 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
-	if err != nil {
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+
+	if err := types.RegisterQueryV2HandlerClient(context.Background(), mux, types.NewQueryV2Client(clientCtx)); err != nil {
 		panic(err)
 	}
 }
@@ -119,6 +122,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterQueryV2Server(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {

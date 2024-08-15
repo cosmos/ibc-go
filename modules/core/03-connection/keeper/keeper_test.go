@@ -5,10 +5,10 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type KeeperTestSuite struct {
@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 	suite.Require().Equal(expParams, params)
 }
 
-// TestParams tests that param setting and retrieval works properly
+// TestSetAndGetParams tests that param setting and retrieval works properly
 func (suite *KeeperTestSuite) TestSetAndGetParams() {
 	testCases := []struct {
 		name    string

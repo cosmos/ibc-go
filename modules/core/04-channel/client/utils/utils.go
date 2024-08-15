@@ -9,11 +9,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	clientutils "github.com/cosmos/ibc-go/v8/modules/core/02-client/client/utils"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/client"
+	clientutils "github.com/cosmos/ibc-go/v9/modules/core/02-client/client/utils"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/client"
 )
 
 // QueryChannel returns a channel end.

@@ -2,7 +2,7 @@ package query
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"sort"
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -14,13 +14,15 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	controllertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
+
+const queryPathTransferDenoms = "/ibc.applications.transfer.v2.QueryV2/Denoms"
 
 // ModuleAccountAddress returns the address of the given module on the given chain.
 // Added because interchaintest's method doesn't work.
@@ -41,10 +43,10 @@ func ModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chai
 
 	govAccount, ok := account.(sdk.ModuleAccountI)
 	if !ok {
-		return nil, fmt.Errorf("account is not a module account")
+		return nil, errors.New("account is not a module account")
 	}
 	if govAccount.GetAddress().String() == "" {
-		return nil, fmt.Errorf("module account address is empty")
+		return nil, errors.New("module account address is empty")
 	}
 
 	return govAccount.GetAddress(), nil
@@ -210,4 +212,8 @@ func InterchainAccount(ctx context.Context, chain ibc.Chain, address, connection
 		return "", err
 	}
 	return res.Address, nil
+}
+
+func TransferDenoms(ctx context.Context, chain ibc.Chain) (*transfertypes.QueryDenomsResponse, error) {
+	return grpcQueryWithMethod[transfertypes.QueryDenomsResponse](ctx, chain, &transfertypes.QueryDenomsRequest{}, queryPathTransferDenoms)
 }

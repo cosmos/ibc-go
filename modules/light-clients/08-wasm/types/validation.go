@@ -5,8 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 // MaxWasmSize denotes the maximum size (in bytes) a contract is allowed to be.

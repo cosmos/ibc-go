@@ -1,13 +1,14 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
@@ -163,7 +164,7 @@ func (gs GenesisState) Validate() error {
 
 		for i, consensusState := range cc.ConsensusStates {
 			if consensusState.Height.IsZero() {
-				return fmt.Errorf("consensus state height cannot be zero")
+				return errors.New("consensus state height cannot be zero")
 			}
 
 			cs, ok := consensusState.ConsensusState.GetCachedValue().(exported.ConsensusState)
@@ -226,10 +227,10 @@ func (gm GenesisMetadata) GetValue() []byte {
 // Validate ensures key and value of metadata are not empty
 func (gm GenesisMetadata) Validate() error {
 	if len(gm.Key) == 0 {
-		return fmt.Errorf("genesis metadata key cannot be empty")
+		return errors.New("genesis metadata key cannot be empty")
 	}
 	if len(gm.Value) == 0 {
-		return fmt.Errorf("genesis metadata value cannot be empty")
+		return errors.New("genesis metadata value cannot be empty")
 	}
 	return nil
 }

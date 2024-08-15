@@ -37,7 +37,7 @@ func (app *SimApp) registerUpgradeHandlers() {
 	}
 }
 
-// createWasmStoreUpgradeHandler creates an upgrade handler for the 08-wasm ibc-go/v8 SimApp upgrade.
+// createWasmStoreUpgradeHandler creates an upgrade handler for the 08-wasm ibc-go/v9 SimApp upgrade.
 func createWasmStoreUpgradeHandler(mm *module.Manager, configurator module.Configurator) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		return mm.RunMigrations(ctx, configurator, vm)

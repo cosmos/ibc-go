@@ -10,12 +10,12 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 // Localhost is the client type for a localhost client. It is also used as the clientID
@@ -80,7 +80,7 @@ func handleSolomachineMigration(ctx sdk.Context, store storetypes.KVStore, cdc c
 	return nil
 }
 
-// handlerTendermintMigration asserts that the tendermint client in state can be decoded properly.
+// handleTendermintMigration asserts that the tendermint client in state can be decoded properly.
 // This ensures the upgrading chain properly registered the tendermint client types on the chain codec.
 func handleTendermintMigration(ctx sdk.Context, store storetypes.KVStore, clientKeeper ClientKeeper) error {
 	clients, err := collectClients(ctx, store, exported.Tendermint)
