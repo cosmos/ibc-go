@@ -737,7 +737,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			legacyModule := transferStack.(*porttypes.LegacyIBCModule)
 			callbacks := legacyModule.GetCallbacks()
 
-			packetUnmarshaler, ok := callbacks[1].(types.CallbacksCompatibleModule)
+			packetUnmarshaler, ok := callbacks[0].(types.CallbacksCompatibleModule)
 			s.Require().True(ok)
 
 			s.path.Setup()

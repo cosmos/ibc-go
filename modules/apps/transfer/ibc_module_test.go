@@ -851,7 +851,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			legacyModule := transferStack.(*porttypes.LegacyIBCModule)
 			callbacks := legacyModule.GetCallbacks()
 
-			unmarshalerStack, ok := callbacks[1].(porttypes.PacketDataUnmarshaler)
+			unmarshalerStack, ok := callbacks[0].(porttypes.PacketDataUnmarshaler)
 			suite.Require().True(ok)
 
 			packetData, version, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
