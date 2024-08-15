@@ -117,7 +117,7 @@ func (k Keeper) SendPacket(
 // RecvPacket implements the packet receiving logic required by a packet handler.
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
-// If the packet has already been received an no-op error is returned.
+// If the packet has already been received a no-op error is returned.
 // The packet handler will verify that the packet has not timed out and that the
 // counterparty stored a packet commitment. If successful, a packet receipt is stored
 // to indicate to the counterparty successful delivery.
@@ -193,7 +193,7 @@ func (k Keeper) RecvPacket(
 // WriteAcknowledgement implements the async acknowledgement writing logic required by a packet handler.
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
-// If no acknowledgement exists for the given packet, then a commiment of the acknowledgement
+// If no acknowledgement exists for the given packet, then a commitment of the acknowledgement
 // is written into state.
 func (k Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
@@ -253,7 +253,7 @@ func (k Keeper) WriteAcknowledgement(
 // sent and received on clients which are counterparties for one another.
 // If no packet commitment exists, a no-op error is returned, otherwise
 // the acknowledgement provided is verified to have been stored by the counterparty.
-// If successful the packet commitment is deleted and the packet has completed its lifecycle.
+// If successful, the packet commitment is deleted and the packet has completed its lifecycle.
 func (k Keeper) AcknowledgePacket(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -324,7 +324,7 @@ func (k Keeper) AcknowledgePacket(
 // sent and received on clients which are counterparties for one another.
 // If no packet commitment exists, a no-op error is returned, otherwise
 // an absence proof of the packet receipt is performed to ensure that the packet
-// was never delivered to the counterparty. If successful the packet commitment
+// was never delivered to the counterparty. If successful, the packet commitment
 // is deleted and the packet has completed its lifecycle.
 func (k Keeper) TimeoutPacket(
 	ctx sdk.Context,
