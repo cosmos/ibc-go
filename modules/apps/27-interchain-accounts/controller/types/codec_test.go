@@ -37,7 +37,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			fmt.Errorf("unable to resolve typeURL"),
+			fmt.Errorf("unable to resolve type URL"),
 		},
 	}
 
