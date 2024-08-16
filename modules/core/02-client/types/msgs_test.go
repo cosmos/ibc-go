@@ -681,7 +681,6 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 		if expPass {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
-			suite.Require().Error(err, "invalid case %s passed", tc.name)
 			suite.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
 		}
 	}
@@ -754,7 +753,6 @@ func (suite *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 		if expPass {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
-			suite.Require().Error(err, "invalid case %s passed", tc.name)
 			suite.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
 		}
 	}

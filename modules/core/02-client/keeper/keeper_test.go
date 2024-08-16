@@ -163,13 +163,13 @@ func (suite *KeeperTestSuite) TestSetCreator() {
 	// Verify non stored creator is not found
 	retrievedCreator, found = suite.keeper.GetCreator(suite.ctx, ibctesting.SecondClientID)
 	suite.Require().False(found, "GetCreator unexpectedly returned a creator")
-	suite.Require().Equal(retrievedCreator, "", "Creator is not empty")
+	suite.Require().Empty(retrievedCreator, "Creator is not empty")
 
 	// Verify that the creator is deleted from the store
 	suite.keeper.DeleteCreator(suite.ctx, clientID)
 	retrievedCreator, found = suite.keeper.GetCreator(suite.ctx, clientID)
 	suite.Require().False(found, "GetCreator unexpectedly returned a creator")
-	suite.Require().Equal(retrievedCreator, "", "Creator is not empty")
+	suite.Require().Empty(retrievedCreator, "Creator is not empty")
 }
 
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
