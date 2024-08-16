@@ -27,51 +27,51 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 
 	testCases := []struct {
 		name     string
-		expErr   error
 		malleate func()
+		expErr   error
 	}{
 		{
 			"success",
-			nil,
 			func() {},
+			nil,
 		},
 		{
 			"success: ordering falls back to UNORDERED if not specified",
-			nil,
 			func() {
 				msg.Ordering = channeltypes.NONE
 				expectedOrderding = channeltypes.UNORDERED
 			},
-		},
-		{
-			"invalid connection id",
-			connectiontypes.ErrConnectionNotFound,
-			func() {
-				msg.ConnectionId = "connection-100"
-			},
-		},
-		{
-			"non-empty owner address is valid",
 			nil,
+		},
+		{
+			"success: non-empty owner address is valid",
 			func() {
 				msg.Owner = "<invalid-owner>"
 			},
+			nil,
+		},
+		{
+			"invalid connection id",
+			func() {
+				msg.ConnectionId = "connection-100"
+			},
+			connectiontypes.ErrConnectionNotFound,
 		},
 		{
 			"empty address invalid",
-			icatypes.ErrInvalidAccountAddress,
 			func() {
 				msg.Owner = ""
 			},
+			icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			"port is already bound for owner but capability is claimed by another module",
-			icatypes.ErrPortAlreadyBound,
 			func() {
 				capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
 				err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(TestPortID))
 				suite.Require().NoError(err)
 			},
+			icatypes.ErrPortAlreadyBound,
 		},
 	}
 
