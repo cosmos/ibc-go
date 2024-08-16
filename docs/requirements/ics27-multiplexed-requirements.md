@@ -44,7 +44,7 @@ Chains such as Stride, Quicksilver and pStake control Interchain Accounts on a h
 
 ### Leveraged Lending
 
-Nolus enables users to borrow assets and use the inflation from staking rewards to repay the interest on the principle. e.g. a user could deposit 10 OSMO as collatoral for a 25 OSMO position. When a user opens a position, an Interchain Account is opened on Osmosis and the loan amount is sent to the account with management of the account through the Nolus chain.
+Nolus enables users to borrow assets and use the inflation from staking rewards to repay the interest on the principle. e.g. a user could deposit 10 OSMO as collateral for a 25 OSMO position. When a user opens a position, an Interchain Account is opened on Osmosis and the loan amount is sent to the account with management of the account through the Nolus chain.
 
 ### Cross-chain NFT minting
 
