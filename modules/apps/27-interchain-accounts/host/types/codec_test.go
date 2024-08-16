@@ -16,22 +16,22 @@ func TestCodecTypeRegistration(t *testing.T) {
 	testCases := []struct {
 		name    string
 		typeURL string
-		expPass bool
+		errMsg  string
 	}{
 		{
 			"success: MsgUpdateParams",
 			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
-			true,
+			"",
 		},
 		{
 			"success: MsgModuleQuerySafe",
 			sdk.MsgTypeURL(&types.MsgModuleQuerySafe{}),
-			true,
+			"",
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			"unable to resolve type URL",
 		},
 	}
 
@@ -42,12 +42,12 @@ func TestCodecTypeRegistration(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
-				require.Error(t, err)
+				require.ErrorContains(t, err, tc.errMsg)
 			}
 		})
 	}

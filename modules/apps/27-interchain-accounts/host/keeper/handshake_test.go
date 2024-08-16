@@ -55,12 +55,12 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		testCases := []struct {
 			name     string
 			malleate func()
-			expPass  bool
+			expErr   error
 		}{
 			{
 				"success",
 				func() {},
-				true,
+				nil,
 			},
 			{
 				"success - reopening closed active channel",
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 					suite.openAndCloseChannel(path)
 				},
-				true,
+				nil,
 			},
 			{
 				"success - reopening account with new address",
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					_, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 					suite.Require().False(found)
 				},
-				true,
+				nil,
 			},
 			{
 				"success - empty host connection ID",
@@ -106,7 +106,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 					path.EndpointA.ChannelConfig.Version = string(versionBytes)
 				},
-				true,
+				nil,
 			},
 			{
 				"success - previous metadata is different",
@@ -125,7 +125,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					channel.Version = string(versionBytes)
 
 					path.EndpointB.SetChannel(*channel)
-				}, true,
+				}, nil,
 			},
 			{
 				"reopening account fails - no existing account",
@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					acc := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), sdk.MustAccAddressFromBech32(addr))
 					suite.chainB.GetSimApp().AccountKeeper.RemoveAccount(suite.chainB.GetContext(), acc)
 				},
-				false,
+				icatypes.ErrInvalidAccountReopening,
 			},
 			{
 				"reopening account fails - existing account is not interchain account type",
@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					// overwrite existing account with only base account type, not intercahin account type
 					suite.chainB.GetSimApp().AccountKeeper.SetAccount(suite.chainB.GetContext(), icaAcc.BaseAccount)
 				},
-				false,
+				icatypes.ErrInvalidAccountReopening,
 			},
 			{
 				"account already exists",
@@ -180,14 +180,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					suite.Require().NoError(err)
 					suite.Require().True(suite.chainB.GetSimApp().AccountKeeper.HasAccount(suite.chainB.GetContext(), interchainAccAddr))
 				},
-				false,
+				icatypes.ErrAccountAlreadyExist,
 			},
 			{
 				"invalid port ID",
 				func() {
 					path.EndpointB.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 				},
-				false,
+				icatypes.ErrInvalidHostPort,
 			},
 			{
 				"connection not found",
@@ -195,7 +195,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					channel.ConnectionHops = []string{"invalid-connnection-id"}
 					path.EndpointB.SetChannel(*channel)
 				},
-				false,
+				connectiontypes.ErrConnectionNotFound,
 			},
 			{
 				"invalid metadata bytestring",
@@ -203,7 +203,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					// the try step will propose a new valid version
 					path.EndpointA.ChannelConfig.Version = "invalid-metadata-bytestring"
 				},
-				true,
+				nil,
 			},
 			{
 				"unsupported encoding format",
@@ -215,7 +215,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 					path.EndpointA.ChannelConfig.Version = string(versionBytes)
 				},
-				false,
+				icatypes.ErrInvalidCodec,
 			},
 			{
 				"unsupported transaction type",
@@ -227,7 +227,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 					path.EndpointA.ChannelConfig.Version = string(versionBytes)
 				},
-				false,
+				icatypes.ErrUnknownDataType,
 			},
 			{
 				"invalid controller connection ID",
@@ -239,7 +239,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 					path.EndpointA.ChannelConfig.Version = string(versionBytes)
 				},
-				false,
+				connectiontypes.ErrInvalidConnection,
 			},
 			{
 				"invalid counterparty version",
@@ -251,7 +251,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 					path.EndpointA.ChannelConfig.Version = string(versionBytes)
 				},
-				false,
+				icatypes.ErrInvalidVersion,
 			},
 			{
 				"capability already claimed",
@@ -260,7 +260,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					err := suite.chainB.GetSimApp().ScopedICAHostKeeper.ClaimCapability(suite.chainB.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 					suite.Require().NoError(err)
 				},
-				false,
+				capabilitytypes.ErrOwnerClaimed,
 			},
 			{
 				"active channel already set (OPEN state)",
@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					// set the active channelID in state
 					suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				},
-				false,
+				icatypes.ErrActiveChannelAlreadySet,
 			},
 			{
 				"channel is already active (FLUSHING state)",
@@ -289,7 +289,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					}
 					suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
 				},
-				false,
+				icatypes.ErrActiveChannelAlreadySet,
 			},
 		}
 
@@ -334,7 +334,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
 				)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 
 					storedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
@@ -353,7 +353,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 
 					suite.Require().Equal(string(expectedVersionBytes), version)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 					suite.Require().Equal("", version)
 				}
 			})
@@ -367,10 +367,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"channel not found",
@@ -378,7 +378,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 				path.EndpointB.ChannelID = "invalid-channel-id"
 				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
 			},
-			false,
+			channeltypes.ErrChannelNotFound,
 		},
 	}
 
@@ -406,10 +406,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 				err = suite.chainB.GetSimApp().ICAHostKeeper.OnChanOpenConfirm(suite.chainB.GetContext(),
 					path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
@@ -422,10 +422,10 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 	}
 
@@ -445,10 +445,10 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 				err = suite.chainB.GetSimApp().ICAHostKeeper.OnChanCloseConfirm(suite.chainB.GetContext(),
 					path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
