@@ -119,7 +119,7 @@ func TestValidateCounterparty(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		counterparty := types.NewCounterparty(tc.clientID, &tc.merklePathPrefix)
+		counterparty := types.NewCounterparty(tc.clientID, tc.merklePathPrefix)
 		err := counterparty.Validate()
 
 		expPass := tc.expError == nil
