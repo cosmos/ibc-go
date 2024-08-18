@@ -66,7 +66,7 @@ func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
 }
 
 // NewCounterparty creates a new Counterparty instance
-func NewCounterparty(clientID string, merklePathPrefix *commitmenttypes.MerklePath) Counterparty {
+func NewCounterparty(clientID string, merklePathPrefix commitmenttypes.MerklePath) Counterparty {
 	return Counterparty{
 		ClientId:         clientID,
 		MerklePathPrefix: merklePathPrefix,
@@ -77,10 +77,6 @@ func NewCounterparty(clientID string, merklePathPrefix *commitmenttypes.MerklePa
 func (c Counterparty) Validate() error {
 	if err := host.ClientIdentifierValidator(c.ClientId); err != nil {
 		return err
-	}
-
-	if c.MerklePathPrefix == nil {
-		return errorsmod.Wrap(ErrInvalidCounterparty, "merkle path prefix cannot be nil")
 	}
 
 	if c.MerklePathPrefix.Empty() {

@@ -269,7 +269,7 @@ func (msg *MsgRecoverClient) ValidateBasic() error {
 }
 
 // NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(signer, clientID, counterpartyID string, merklePathPrefix *commitmenttypes.MerklePath) *MsgProvideCounterparty {
+func NewMsgProvideCounterparty(signer, clientID, counterpartyID string, merklePathPrefix commitmenttypes.MerklePath) *MsgProvideCounterparty {
 	counterparty := NewCounterparty(counterpartyID, merklePathPrefix)
 
 	return &MsgProvideCounterparty{

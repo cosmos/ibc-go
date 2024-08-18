@@ -722,13 +722,6 @@ func (suite *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 			host.ErrInvalidID,
 		},
 		{
-			"failure: nil counterparty merkle path prefix",
-			func() {
-				msg.Counterparty.MerklePathPrefix = nil
-			},
-			types.ErrInvalidCounterparty,
-		},
-		{
 			"failure: empty key path of counterparty of merkle path prefix",
 			func() {
 				msg.Counterparty.MerklePathPrefix.KeyPath = nil
@@ -738,12 +731,11 @@ func (suite *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		merklePathPrefix := commitmenttypes.NewMerklePath([]byte("key"))
 		msg = types.NewMsgProvideCounterparty(
 			ibctesting.TestAccAddress,
 			ibctesting.FirstClientID,
 			ibctesting.SecondClientID,
-			&merklePathPrefix,
+			commitmenttypes.NewMerklePath([]byte("key")),
 		)
 
 		tc.malleate()

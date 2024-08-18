@@ -7,11 +7,15 @@ import (
 
 // BuildMerklePath takes the merkle path prefix and an ICS24 path
 // and builds a new path by appending the ICS24 path to the last element of the merkle path prefix.
-func BuildMerklePath(prefix *commitmenttypesv2.MerklePath, path []byte) commitmenttypesv2.MerklePath {
-	if prefix == nil || len(prefix.KeyPath) == 0 {
+func BuildMerklePath(prefix commitmenttypesv2.MerklePath, path []byte) commitmenttypesv2.MerklePath {
+	if prefix.Empty() {
 		return commitmenttypes.NewMerklePath(path)
 	}
-	prefixKeys := prefix.KeyPath
+
+	// avoid mutating the provided prefix
+	prefixKeys := make([][]byte, len(prefix.KeyPath))
+	copy(prefixKeys, prefix.KeyPath)
+
 	lastElement := prefixKeys[len(prefixKeys)-1]
 	// append path to last element
 	newLastElement := cloneAppend(lastElement, path)
