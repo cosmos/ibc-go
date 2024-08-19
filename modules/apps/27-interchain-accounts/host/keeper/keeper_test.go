@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name          string
 		instantiateFn func()
-		exxPanicMsg   string
+		panicMsg      string
 	}{
 		{"success", func() {
 			keeper.NewKeeper(
@@ -190,13 +190,13 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
-			if tc.exxPanicMsg == "" {
+			if tc.panicMsg == "" {
 				suite.Require().NotPanics(
 					tc.instantiateFn,
 				)
 			} else {
 				suite.Require().PanicsWithError(
-					tc.exxPanicMsg,
+					tc.panicMsg,
 					tc.instantiateFn,
 				)
 			}

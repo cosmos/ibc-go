@@ -128,6 +128,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				}, nil,
 			},
 			{
+				"invalid metadata bytestring",
+				func() {
+					// the try step will propose a new valid version
+					path.EndpointA.ChannelConfig.Version = "invalid-metadata-bytestring"
+				},
+				nil,
+			},
+			{
 				"reopening account fails - no existing account",
 				func() {
 					// create interchain account
@@ -196,14 +204,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					path.EndpointB.SetChannel(*channel)
 				},
 				connectiontypes.ErrConnectionNotFound,
-			},
-			{
-				"invalid metadata bytestring",
-				func() {
-					// the try step will propose a new valid version
-					path.EndpointA.ChannelConfig.Version = "invalid-metadata-bytestring"
-				},
-				nil,
 			},
 			{
 				"unsupported encoding format",

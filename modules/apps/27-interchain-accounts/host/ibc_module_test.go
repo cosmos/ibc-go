@@ -158,11 +158,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			}, nil,
 		},
 		{
-			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-			}, types.ErrHostSubModuleDisabled,
-		},
-		{
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
@@ -172,6 +167,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 					return "", fmt.Errorf("mock ica auth fails")
 				}
 			}, nil,
+		},
+		{
+			"host submodule disabled", func() {
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, types.ErrHostSubModuleDisabled,
 		},
 	}
 
@@ -279,11 +279,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 			"success", func() {}, nil,
 		},
 		{
-			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-			}, types.ErrHostSubModuleDisabled,
-		},
-		{
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenConfirm = func(
@@ -292,6 +287,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 					return fmt.Errorf("mock ica auth fails")
 				}
 			}, nil,
+		},
+		{
+			"host submodule disabled", func() {
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, types.ErrHostSubModuleDisabled,
 		},
 	}
 
