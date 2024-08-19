@@ -450,7 +450,7 @@ func NewSimApp(
 	)
 
 	// Create IBC Router
-	ibcAppRouter := porttypes.NewAppRouter(app.IBCKeeper.ChannelKeeper)
+	ibcAppRouter := porttypes.NewAppRouter()
 	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks

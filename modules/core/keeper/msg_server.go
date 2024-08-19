@@ -471,7 +471,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		res := legacyIBCModule.WrapRecvResults(cacheCtx, msg.Packet, relayer, results)
 		if res.Status == exported.Async {
 			// NOTE: fill me in... store results in order to wrap full ack later on.
-			k.ChannelKeeper.StoreRecvResults(cacheCtx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence(), results)
+			k.ChannelKeeper.SetRecvResults(cacheCtx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence(), results)
 		}
 
 		if res.Status != exported.Failure {

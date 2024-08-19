@@ -251,7 +251,7 @@ func (k *Keeper) deletePacketAcknowledgement(ctx sdk.Context, portID, channelID 
 	store.Delete(host.PacketAcknowledgementKey(portID, channelID, sequence))
 }
 
-func (k *Keeper) StoreRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults []exported.RecvPacketResult) {
+func (k *Keeper) SetRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults []exported.RecvPacketResult) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz, err := json.Marshal(recvResults)

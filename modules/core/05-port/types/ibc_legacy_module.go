@@ -18,8 +18,7 @@ import (
 
 // LegacyIBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type LegacyIBCModule struct {
-	cbs                        []ClassicIBCModule
-	recvPacketResultReadWriter RecvPacketResultsReadWriter
+	cbs []ClassicIBCModule
 }
 
 // TODO: added this for testing purposes, we can remove later if tests are refactored.
@@ -28,10 +27,9 @@ func (im *LegacyIBCModule) GetCallbacks() []ClassicIBCModule {
 }
 
 // NewLegacyIBCModule creates a new IBCModule given the keeper
-func NewLegacyIBCModule(channelKeeper RecvPacketResultsReadWriter, cbs ...ClassicIBCModule) ClassicIBCModule {
+func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
 	return &LegacyIBCModule{
-		cbs:                        cbs,
-		recvPacketResultReadWriter: channelKeeper,
+		cbs: cbs,
 	}
 }
 
