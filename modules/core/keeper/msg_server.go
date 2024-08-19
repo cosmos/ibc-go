@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -463,53 +462,56 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")
 	}
 
-	// Perform application logic callback
-	//
-	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
-	cacheCtx, writeFn = ctx.CacheContext()
-	res := k.onRecvPacketMulti(cacheCtx, channelVersion, msg.Packet, relayer, cbs...)
-	if res.Status == exported.Success || res.Status == exported.Async {
-		// write application state changes for asynchronous and successful acknowledgements
-		writeFn()
+	var results []exported.RecvPacketResult
+	if legacyIBCModule, ok := cbs[0].(*porttypes.LegacyIBCModule); ok {
+		cacheCtx, writeFn = ctx.CacheContext()
+
+		results = legacyIBCModule.OnRecvPacketLegacy(cacheCtx, channelVersion, msg.Packet, relayer)
+
+		res := legacyIBCModule.WrapRecvResults(cacheCtx, msg.Packet, relayer, results)
+		if res.Status == exported.Async {
+			// NOTE: fill me in... store results in order to wrap full ack later on.
+			k.ChannelKeeper.StoreRecvResults(cacheCtx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence(), results)
+		}
+
+		if res.Status != exported.Failure {
+			// write application state changes for asynchronous and successful acknowledgements
+			writeFn()
+		} else {
+			// Modify events in cached context to reflect unsuccessful acknowledgement
+			ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+		}
+
+		// Set packet acknowledgement only if the acknowledgement is not nil.
+		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
+		// acknowledgement is nil.
+		if res.Acknowledgement != nil {
+			if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet, res.Acknowledgement); err != nil {
+				return nil, err
+			}
+		}
 	} else {
-		// Modify events in cached context to reflect unsuccessful acknowledgement
-		ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+		// TODO: Multi packet data land
+		//
+		// Perform application logic callback
+		//
+		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
+		// cacheCtx, writeFn = ctx.CacheContext()
+		// res := cbs.OnRecvPacket(cacheCtx, channelVersion, msg.Packet, relayer, cbs...)
+		// if res.Status == exported.Success || res.Status == exported.Async {
+		// 	// write application state changes for asynchronous and successful acknowledgements
+		// 	writeFn()
+		// } else {
+		// 	// Modify events in cached context to reflect unsuccessful acknowledgement
+		// 	ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+		// }
 	}
 
-	// Set packet acknowledgement only if the acknowledgement is not nil.
-	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
-	// acknowledgement is nil.
-	if res.Acknowledgement != nil {
-		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet, res.Acknowledgement); err != nil {
-			return nil, err
-		}
-	}
 	defer telemetry.ReportRecvPacket(msg.Packet)
 
 	ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
-}
-
-// onRecvPacketMulti is a temporary function to sweep looping
-func (Keeper) onRecvPacketMulti(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress, cbs ...porttypes.IBCModule) exported.RecvPacketResult {
-	if len(cbs) != 1 {
-		panic(fmt.Errorf("unexpected ibc module callbacks: expected legacy routes but got %d", len(cbs)))
-	}
-
-	if _, ok := cbs[0].(porttypes.ClassicIBCModule); !ok {
-		panic(fmt.Errorf("expected %T, but got %T", porttypes.LegacyIBCModule{}, cbs[0]))
-	}
-
-	// TODO: needs multi acknowledgement structure
-	// var results []exported.RecvPacketResult
-	// for _, cb := range cbs {
-	// 	res := cb.OnRecvPacket(ctx, channelVersion, packet, relayer)
-
-	// 	results = append(results, res)
-	// }
-
-	return cbs[0].OnRecvPacket(ctx, channelVersion, packet, relayer)
 }
 
 // Timeout defines a rpc handler method for MsgTimeout.
