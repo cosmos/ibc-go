@@ -653,6 +653,51 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestQueryFeeEnabledChannelsWithPagination() {
+	suite.SetupTest() // reset
+
+	suite.path.Setup()
+
+	expChannel := types.FeeEnabledChannel{
+		PortId:    suite.path.EndpointA.ChannelConfig.PortID,
+		ChannelId: suite.path.EndpointA.ChannelID,
+	}
+
+	expFeeEnabledChannels := []types.FeeEnabledChannel{expChannel}
+
+	req := &types.QueryFeeEnabledChannelsRequest{
+		Pagination: &query.PageRequest{
+			Limit:      5,
+			CountTotal: false,
+		},
+		QueryHeight: 0,
+	}
+
+	// Extract the next available sequence number for channel IDs.
+	nextSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
+	for i := 0; i < 8; i++ {
+		channelID := channeltypes.FormatChannelIdentifier(uint64(i + int(nextSeq)))
+		suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, channelID)
+
+		expChannel := types.FeeEnabledChannel{
+			PortId:    ibctesting.MockFeePort,
+			ChannelId: channelID,
+		}
+
+		if i < 4 { // add only the first 5 channels, as our default pagination limit is 5
+			expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
+		}
+	}
+
+	suite.chainA.NextBlock()
+
+	ctx := suite.chainA.GetContext()
+	res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannels(ctx, req)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expFeeEnabledChannels, res.FeeEnabledChannels)
+}
+
 func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 	var (
 		req                   *types.QueryFeeEnabledChannelsRequest
@@ -664,72 +709,49 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 		malleate func()
 		errMsg   string
 	}{
-		// {
-		// 	"success",
-		// 	func() {},
-		// 	"",
-		// },
-		// {
-		// 	"success: empty pagination",
-		// 	func() {
-		// 		req = &types.QueryFeeEnabledChannelsRequest{}
-		// 	},
-		// 	"",
-		// },
-		// {
-		// 	"success: with multiple fee enabled channels",
-		// 	func() {
-		// 		suite.pathAToC.Setup()
-
-		// 		expChannel := types.FeeEnabledChannel{
-		// 			PortId:    suite.pathAToC.EndpointA.ChannelConfig.PortID,
-		// 			ChannelId: suite.pathAToC.EndpointA.ChannelID,
-		// 		}
-
-		// 		expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
-		// 	},
-		// 	"",
-		// },
 		{
-			"success: pagination with multiple fee enabled channels",
+			"success",
+			func() {},
+			"",
+		},
+		{
+			"success: empty pagination",
 			func() {
-				// Extract the next available sequence number for channel IDs.
-				nextSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
-				for i := 0; i < 9; i++ {
-					channelID := channeltypes.FormatChannelIdentifier(uint64(i + int(nextSeq)))
-					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, channelID)
+				req = &types.QueryFeeEnabledChannelsRequest{}
+			},
+			"",
+		},
+		{
+			"success: with multiple fee enabled channels",
+			func() {
+				suite.pathAToC.Setup()
 
-					expChannel := types.FeeEnabledChannel{
-						PortId:    ibctesting.MockFeePort,
-						ChannelId: channelID,
-					}
-
-					if i < 4 { // add only the first 5 channels, as our default pagination limit is 5
-						expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
-					}
+				expChannel := types.FeeEnabledChannel{
+					PortId:    suite.pathAToC.EndpointA.ChannelConfig.PortID,
+					ChannelId: suite.pathAToC.EndpointA.ChannelID,
 				}
+
+				expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
+			},
+			"",
+		},
+		{
+			"failure: empty request",
+			func() {
+				req = nil
+			},
+			"InvalidArgument",
+		},
+		{
+			"empty response",
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+				expFeeEnabledChannels = nil
 
 				suite.chainA.NextBlock()
 			},
 			"",
 		},
-		// {
-		// 	"empty response",
-		// 	func() {
-		// 		suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-		// 		expFeeEnabledChannels = nil
-
-		// 		suite.chainA.NextBlock()
-		// 	},
-		// 	"",
-		// },
-		// {
-		// 	"failure: empty request",
-		// 	func() {
-		// 		req = nil
-		// 	},
-		// 	"InvalidArgument",
-		// },
 	}
 
 	for _, tc := range testCases {
@@ -780,20 +802,12 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
-		},
-		{
-			"empty request",
-			func() {
-				req = nil
-				expEnabled = false
-			},
-			false,
+			"",
 		},
 		{
 			"fee not enabled on channel",
@@ -807,14 +821,22 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 					ChannelId: path.EndpointA.ChannelID,
 				}
 			},
-			true,
+			"",
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+				expEnabled = false
+			},
+			"InvalidArgument",
 		},
 		{
 			"channel not found",
 			func() {
 				req.ChannelId = ibctesting.InvalidID
 			},
-			false,
+			"NotFound",
 		},
 		{
 			"invalid ID",
@@ -824,7 +846,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 					ChannelId: "test-channel-id",
 				}
 			},
-			false,
+			"InvalidArgument",
 		},
 	}
 
@@ -848,11 +870,11 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannel(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expEnabled, res.FeeEnabled)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}

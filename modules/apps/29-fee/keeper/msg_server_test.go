@@ -1,17 +1,21 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -21,90 +25,92 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 
 	testCases := []struct {
 		name     string
-		expPass  bool
 		malleate func()
+		expErr   error
 	}{
 		{
 			"success",
-			true,
 			func() {},
+			nil,
 		},
 		{
 			"channel does not exist",
-			false,
 			func() {
 				msg.ChannelId = "channel-100" //nolint:goconst
 			},
+			channeltypes.ErrChannelNotFound,
 		},
 		{
 			"channel is not fee enabled",
-			false,
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
+			types.ErrFeeNotEnabled,
 		},
 		{
 			"given payee is not an sdk address",
-			false,
 			func() {
 				msg.Payee = "invalid-addr"
 			},
+			errors.New("decoding bech32 failed: invalid separator index -1"),
 		},
 		{
 			"payee is a blocked address",
-			false,
 			func() {
 				msg.Payee = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(transfertypes.ModuleName).String()
 			},
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.SetupTest()
-		suite.path.Setup()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.path.Setup()
 
-		msg = types.NewMsgRegisterPayee(
-			suite.path.EndpointA.ChannelConfig.PortID,
-			suite.path.EndpointA.ChannelID,
-			suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
-			suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
-		)
-
-		tc.malleate()
-
-		ctx := suite.chainA.GetContext()
-		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterPayee(ctx, msg)
-
-		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-
-			payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(
-				suite.chainA.GetContext(),
-				suite.chainA.SenderAccount.GetAddress().String(),
+			msg = types.NewMsgRegisterPayee(
+				suite.path.EndpointA.ChannelConfig.PortID,
 				suite.path.EndpointA.ChannelID,
+				suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+				suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
 			)
 
-			suite.Require().True(found)
-			suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), payeeAddr)
+			tc.malleate()
 
-			expectedEvents := sdk.Events{
-				sdk.NewEvent(
-					types.EventTypeRegisterPayee,
-					sdk.NewAttribute(types.AttributeKeyRelayer, suite.chainA.SenderAccount.GetAddress().String()),
-					sdk.NewAttribute(types.AttributeKeyPayee, payeeAddr),
-					sdk.NewAttribute(types.AttributeKeyChannelID, suite.path.EndpointA.ChannelID),
-				),
-			}.ToABCIEvents()
+			ctx := suite.chainA.GetContext()
+			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterPayee(ctx, msg)
 
-			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
-			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+			if tc.expErr == nil {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
 
-		} else {
-			suite.Require().Error(err)
-		}
+				payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(
+					suite.chainA.GetContext(),
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.path.EndpointA.ChannelID,
+				)
+
+				suite.Require().True(found)
+				suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), payeeAddr)
+
+				expectedEvents := sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeRegisterPayee,
+						sdk.NewAttribute(types.AttributeKeyRelayer, suite.chainA.SenderAccount.GetAddress().String()),
+						sdk.NewAttribute(types.AttributeKeyPayee, payeeAddr),
+						sdk.NewAttribute(types.AttributeKeyChannelID, suite.path.EndpointA.ChannelID),
+					),
+				}.ToABCIEvents()
+
+				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
 	}
 }
 
@@ -116,85 +122,87 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 
 	testCases := []struct {
 		name     string
-		expPass  bool
 		malleate func()
+		expErr   error
 	}{
 		{
 			"success",
-			true,
 			func() {},
+			nil,
 		},
 		{
 			"counterparty payee is an arbitrary string",
-			true,
 			func() {
 				msg.CounterpartyPayee = "arbitrary-string"
 				expCounterpartyPayee = "arbitrary-string"
 			},
+			nil,
 		},
 		{
 			"channel does not exist",
-			false,
 			func() {
 				msg.ChannelId = "channel-100"
 			},
+			channeltypes.ErrChannelNotFound,
 		},
 		{
 			"channel is not fee enabled",
-			false,
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
+			types.ErrFeeNotEnabled,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.SetupTest()
-		suite.path.Setup() // setup channel
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.path.Setup() // setup channel
 
-		expCounterpartyPayee = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String()
-		msg = types.NewMsgRegisterCounterpartyPayee(
-			suite.path.EndpointA.ChannelConfig.PortID,
-			suite.path.EndpointA.ChannelID,
-			suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
-			expCounterpartyPayee,
-		)
-
-		tc.malleate()
-
-		ctx := suite.chainA.GetContext()
-		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(ctx, msg)
-
-		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-
-			counterpartyPayee, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyPayeeAddress(
-				suite.chainA.GetContext(),
-				suite.chainA.SenderAccount.GetAddress().String(),
+			expCounterpartyPayee = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String()
+			msg = types.NewMsgRegisterCounterpartyPayee(
+				suite.path.EndpointA.ChannelConfig.PortID,
 				suite.path.EndpointA.ChannelID,
+				suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+				expCounterpartyPayee,
 			)
 
-			suite.Require().True(found)
-			suite.Require().Equal(expCounterpartyPayee, counterpartyPayee)
+			tc.malleate()
 
-			expectedEvents := sdk.Events{
-				sdk.NewEvent(
-					types.EventTypeRegisterCounterpartyPayee,
-					sdk.NewAttribute(types.AttributeKeyRelayer, suite.chainA.SenderAccount.GetAddress().String()),
-					sdk.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
-					sdk.NewAttribute(types.AttributeKeyChannelID, suite.path.EndpointA.ChannelID),
-				),
-			}.ToABCIEvents()
+			ctx := suite.chainA.GetContext()
+			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(ctx, msg)
 
-			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
-			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+			if tc.expErr == nil {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
 
-		} else {
-			suite.Require().Error(err)
-		}
+				counterpartyPayee, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetCounterpartyPayeeAddress(
+					suite.chainA.GetContext(),
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.path.EndpointA.ChannelID,
+				)
+
+				suite.Require().True(found)
+				suite.Require().Equal(expCounterpartyPayee, counterpartyPayee)
+
+				expectedEvents := sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeRegisterCounterpartyPayee,
+						sdk.NewAttribute(types.AttributeKeyRelayer, suite.chainA.SenderAccount.GetAddress().String()),
+						sdk.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
+						sdk.NewAttribute(types.AttributeKeyChannelID, suite.path.EndpointA.ChannelID),
+					),
+				}.ToABCIEvents()
+
+				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
 	}
 }
 
@@ -210,12 +218,12 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success with existing packet fees in escrow",
@@ -235,7 +243,17 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 				eventFee = types.NewFee(defaultRecvFee.Add(escrowFee.RecvFee...), defaultAckFee.Add(escrowFee.AckFee...), defaultTimeoutFee.Add(escrowFee.TimeoutFee...))
 			},
-			true,
+			nil,
+		},
+		{
+			"refund account is module account",
+			func() {
+				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibcmock.ModuleName, fee.Total()) //nolint:errcheck // ignore error for testing
+				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(ibcmock.ModuleName).String()
+				expPacketFee := types.NewPacketFee(fee, msg.Signer, nil)
+				expFeesInEscrow = []types.PacketFee{expPacketFee}
+			},
+			nil,
 		},
 		{
 			"bank send enabled for fee denom",
@@ -247,24 +265,14 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				)
 				suite.Require().NoError(err)
 			},
-			true,
-		},
-		{
-			"refund account is module account",
-			func() {
-				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibcmock.ModuleName, fee.Total()) //nolint:errcheck // ignore error for testing
-				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(ibcmock.ModuleName).String()
-				expPacketFee := types.NewPacketFee(fee, msg.Signer, nil)
-				expFeesInEscrow = []types.PacketFee{expPacketFee}
-			},
-			true,
+			nil,
 		},
 		{
 			"fee module is locked",
 			func() {
 				lockFeeModule(suite.chainA)
 			},
-			false,
+			types.ErrFeeModuleLocked,
 		},
 		{
 			"fee module disabled on channel",
@@ -272,21 +280,21 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				msg.SourcePortId = "invalid-port"
 				msg.SourceChannelId = "invalid-channel"
 			},
-			false,
+			types.ErrFeeNotEnabled,
 		},
 		{
 			"invalid refund address",
 			func() {
 				msg.Signer = "invalid-address"
 			},
-			false,
+			errors.New("decoding bech32 failed"),
 		},
 		{
 			"refund account does not exist",
 			func() {
 				msg.Signer = suite.chainB.SenderAccount.GetAddress().String()
 			},
-			false,
+			types.ErrRefundAccNotFound,
 		},
 		{
 			"refund account is a blocked address",
@@ -294,7 +302,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 				msg.Signer = blockedAddr.String()
 			},
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"bank send disabled for fee denom",
@@ -306,28 +314,28 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				)
 				suite.Require().NoError(err)
 			},
-			false,
+			banktypes.ErrSendDisabled,
 		},
 		{
 			"acknowledgement fee balance not found",
 			func() {
 				msg.Fee.AckFee = invalidCoins
 			},
-			false,
+			sdkerrors.ErrInsufficientFunds,
 		},
 		{
 			"receive fee balance not found",
 			func() {
 				msg.Fee.RecvFee = invalidCoins
 			},
-			false,
+			sdkerrors.ErrInsufficientFunds,
 		},
 		{
 			"timeout fee balance not found",
 			func() {
 				msg.Fee.TimeoutFee = invalidCoins
 			},
-			false,
+			sdkerrors.ErrInsufficientFunds,
 		},
 	}
 
@@ -357,7 +365,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			ctx := suite.chainA.GetContext()
 			_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFee(ctx, msg)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err) // message committed
 
 				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
@@ -384,7 +392,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 
 			} else {
-				suite.Require().Error(err)
+				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()))
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(sdkmath.NewInt(0), escrowBalance.Amount)
@@ -404,12 +412,12 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success with existing packet fees in escrow",
@@ -427,7 +435,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				expEscrowBalance = expEscrowBalance.Add(fee.Total()...)
 				expFeesInEscrow = append(expFeesInEscrow, packetFee)
 			},
-			true,
+			nil,
 		},
 		{
 			"bank send enabled for fee denom",
@@ -439,14 +447,14 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				)
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
 		},
 		{
 			"fee module is locked",
 			func() {
 				lockFeeModule(suite.chainA)
 			},
-			false,
+			types.ErrFeeModuleLocked,
 		},
 		{
 			"fee module disabled on channel",
@@ -454,7 +462,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				msg.PacketId.PortId = "invalid-port"
 				msg.PacketId.ChannelId = "invalid-channel"
 			},
-			false,
+			types.ErrFeeNotEnabled,
 		},
 		{
 			"channel does not exist",
@@ -465,14 +473,14 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				// NOTE: the channel doesn't exist in 04-channel keeper, but we will add a mapping within ics29 anyways
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), msg.PacketId.PortId, msg.PacketId.ChannelId)
 			},
-			false,
+			channeltypes.ErrSequenceSendNotFound,
 		},
 		{
 			"packet not sent",
 			func() {
 				msg.PacketId.Sequence++
 			},
-			false,
+			channeltypes.ErrPacketNotSent,
 		},
 		{
 			"packet already acknowledged",
@@ -480,7 +488,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				err := suite.path.RelayPacket(packet)
 				suite.Require().NoError(err)
 			},
-			false,
+			channeltypes.ErrPacketCommitmentNotFound,
 		},
 		{
 			"packet already timed out",
@@ -502,21 +510,21 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, sequence)
 				msg.PacketId = packetID
 			},
-			false,
+			channeltypes.ErrPacketCommitmentNotFound,
 		},
 		{
 			"invalid refund address",
 			func() {
 				msg.PacketFee.RefundAddress = "invalid-address"
 			},
-			false,
+			errors.New("decoding bech32 failed"),
 		},
 		{
 			"refund account does not exist",
 			func() {
 				msg.PacketFee.RefundAddress = suite.chainB.SenderAccount.GetAddress().String()
 			},
-			false,
+			types.ErrRefundAccNotFound,
 		},
 		{
 			"refund account is a blocked address",
@@ -524,7 +532,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 				msg.PacketFee.RefundAddress = blockedAddr.String()
 			},
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"bank send disabled for fee denom",
@@ -536,28 +544,28 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				)
 				suite.Require().NoError(err)
 			},
-			false,
+			banktypes.ErrSendDisabled,
 		},
 		{
 			"acknowledgement fee balance not found",
 			func() {
 				msg.PacketFee.Fee.AckFee = invalidCoins
 			},
-			false,
+			sdkerrors.ErrInsufficientFunds,
 		},
 		{
 			"receive fee balance not found",
 			func() {
 				msg.PacketFee.Fee.RecvFee = invalidCoins
 			},
-			false,
+			sdkerrors.ErrInsufficientFunds,
 		},
 		{
 			"timeout fee balance not found",
 			func() {
 				msg.PacketFee.Fee.TimeoutFee = invalidCoins
 			},
-			false,
+			sdkerrors.ErrInsufficientFunds,
 		},
 	}
 
@@ -587,7 +595,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 			_, err = suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFeeAsync(suite.chainA.GetContext(), msg)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err) // message committed
 
 				feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
@@ -597,7 +605,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(expEscrowBalance.AmountOf(sdk.DefaultBondDenom), escrowBalance.Amount)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()))
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(sdkmath.NewInt(0), escrowBalance.Amount)

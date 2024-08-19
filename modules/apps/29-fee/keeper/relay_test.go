@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -70,6 +72,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 				committedAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
 				suite.Require().Equal(committedAck, channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement()))
 			} else {
+				fmt.Printf("%+v\n", err)
+
 				suite.Require().Error(err)
 			}
 		})
