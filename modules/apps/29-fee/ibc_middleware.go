@@ -42,6 +42,10 @@ func NewIBCMiddleware(app porttypes.ClassicIBCModule, k keeper.Keeper) IBCMiddle
 	}
 }
 
+func (im IBCMiddleware) Name() string {
+	return types.ModuleName
+}
+
 // OnChanOpenInit implements the IBCMiddleware interface
 func (im IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,

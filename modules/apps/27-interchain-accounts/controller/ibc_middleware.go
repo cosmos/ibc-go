@@ -31,6 +31,10 @@ type IBCMiddleware struct {
 	keeper keeper.Keeper
 }
 
+func (im IBCMiddleware) Name() string {
+	return types.SubModuleName
+}
+
 // NewIBCMiddleware creates a new IBCMiddleware given the associated keeper.
 // The underlying application is set to nil and authentication is assumed to
 // be performed by a Cosmos SDK module that sends messages to controller message server.

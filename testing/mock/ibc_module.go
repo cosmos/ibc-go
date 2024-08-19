@@ -34,6 +34,10 @@ type IBCModule struct {
 	IBCApp    *IBCApp // base application of an IBC middleware stack
 }
 
+func (im IBCModule) Name() string {
+	return ModuleName
+}
+
 // NewIBCModule creates a new IBCModule given the underlying mock IBC application and scopedKeeper.
 func NewIBCModule(appModule *AppModule, app *IBCApp) IBCModule {
 	appModule.ibcApps = append(appModule.ibcApps, app)

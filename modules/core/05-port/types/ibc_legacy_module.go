@@ -35,6 +35,10 @@ func NewLegacyIBCModule(channelKeeper RecvPacketResultsReadWriter, cbs ...Classi
 	}
 }
 
+func (im *LegacyIBCModule) Name() string {
+	return "ibc-legacy-module"
+}
+
 // OnChanOpenInit implements the IBCModule interface.
 // NOTE: The application callback is skipped if all the following are true:
 // - the relayer provided channel version is not empty

@@ -24,6 +24,10 @@ type BlockUpgradeMiddleware struct {
 	IBCApp    *IBCApp // base application of an IBC middleware stack
 }
 
+func (im BlockUpgradeMiddleware) Name() string {
+	return MockBlockUpgrade
+}
+
 // NewIBCModule creates a new IBCModule given the underlying mock IBC application and scopedKeeper.
 func NewBlockUpgradeMiddleware(appModule *AppModule, app *IBCApp) BlockUpgradeMiddleware {
 	appModule.ibcApps = append(appModule.ibcApps, app)

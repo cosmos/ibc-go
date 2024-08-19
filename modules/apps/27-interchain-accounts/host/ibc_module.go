@@ -35,6 +35,10 @@ func NewIBCModule(k keeper.Keeper) IBCModule {
 	}
 }
 
+func (im IBCModule) Name() string {
+	return types.SubModuleName
+}
+
 // OnChanOpenInit implements the IBCModule interface
 func (IBCModule) OnChanOpenInit(
 	_ sdk.Context,

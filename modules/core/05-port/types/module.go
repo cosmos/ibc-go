@@ -11,6 +11,7 @@ import (
 // ClassicIBCModule defines an interface that implements all the callbacks
 // that modules must define as specified in ICS-26
 type ClassicIBCModule interface {
+	Name() string
 	IBCModule
 	// OnChanOpenInit will verify that the relayer-chosen parameters
 	// are valid and perform any custom INIT logic.
