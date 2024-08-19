@@ -68,7 +68,7 @@ func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
 	return sdkCtx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)
 }
 
@@ -299,7 +299,6 @@ func (k Keeper) GetRelayerAddressForAsyncAck(ctx context.Context, packetID chann
 		panic(err)
 	}
 	if !has {
-
 		return "", false
 	}
 

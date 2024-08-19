@@ -9,6 +9,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 

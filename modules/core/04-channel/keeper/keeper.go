@@ -62,7 +62,7 @@ func NewKeeper(
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -532,7 +532,7 @@ func (k *Keeper) GetChannelConnection(ctx context.Context, portID, channelID str
 
 // LookupModuleByChannel will return the IBCModule along with the capability associated with a given channel defined by its portID and channelID
 func (k *Keeper) LookupModuleByChannel(ctx context.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
 	modules, capability, err := k.scopedKeeper.LookupModules(sdkCtx, host.ChannelCapabilityPath(portID, channelID))
 	if err != nil {
 		return "", nil, err
@@ -757,7 +757,6 @@ func (k *Keeper) HasPruningSequenceStart(ctx context.Context, portID, channelID 
 		panic(err)
 	}
 	return has
-
 }
 
 // PruneAcknowledgements prunes packet acknowledgements and receipts that have a sequence number less than pruning sequence end.
