@@ -147,6 +147,13 @@ func (tc TestConfig) validateChains() error {
 			}
 		}
 	}
+
+	// clienttypes.ParseChainID is used to determine revision heights. If the chainIDs are not in the expected format,
+	// tests can fail with timeout errors.
+	if clienttypes.ParseChainID(tc.GetChainAID()) != clienttypes.ParseChainID(tc.GetChainBID()) {
+		return fmt.Errorf("ensure both chainIDs are in the format {chainID}-{revision} and have the same revision. Got: chainA: %s, chainB: %s", tc.GetChainAID(), tc.GetChainBID())
+	}
+
 	return nil
 }
 
@@ -229,19 +236,21 @@ func (tc TestConfig) GetChainNumFullNodes(idx int) int {
 }
 
 // GetChainAID returns the chain-id for chain A.
+// NOTE: the default return value will ensure that ParseChainID will return 1 as the revision number.
 func (tc TestConfig) GetChainAID() string {
 	if tc.ChainConfigs[0].ChainID != "" {
 		return tc.ChainConfigs[0].ChainID
 	}
-	return "chain-1"
+	return "chainA-1"
 }
 
 // GetChainBID returns the chain-id for chain B.
+// NOTE: the default return value will ensure that ParseChainID will return 1 as the revision number.
 func (tc TestConfig) GetChainBID() string {
 	if tc.ChainConfigs[1].ChainID != "" {
 		return tc.ChainConfigs[1].ChainID
 	}
-	return "chain-2"
+	return "chainB-1"
 }
 
 // GetChainName returns the name of the chain given an index.
