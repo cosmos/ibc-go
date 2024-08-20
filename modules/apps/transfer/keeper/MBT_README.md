@@ -22,7 +22,7 @@ This is a terminology from the model-checking community; for the testing purpose
 See the files `counterexample.tla` for human-readable representation, and `counterexample.json` for machine-readable one.
 
 In order to execute the produced test, you need to translate it into another format.
-For that translation you need the tool [Jsonatr (JSON Arrifact Translator)](https://github.com/informalsystems/jsonatr).
+For that translation you need the tool [Jsonatr (JSON Artifact Translator)](https://github.com/informalsystems/jsonatr).
 It performs the translation using this [transformation spec](relay_model/apalache-to-relay-test2.json);
 
 To transform a counterexample into a test, run
