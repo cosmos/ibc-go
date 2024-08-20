@@ -119,7 +119,9 @@ func (k Keeper) EscrowAccountHasBalance(ctx context.Context, coins sdk.Coins) bo
 // Please see ADR 004 for more information.
 func (k Keeper) lockFeeModule(ctx context.Context) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(types.KeyLocked(), []byte{1})
+	if err := store.Set(types.KeyLocked(), []byte{1}); err != nil {
+		panic(err)
+	}
 }
 
 // IsLocked indicates if the fee module is locked
@@ -137,13 +139,17 @@ func (k Keeper) IsLocked(ctx context.Context) bool {
 // identified by channel and port identifiers.
 func (k Keeper) SetFeeEnabled(ctx context.Context, portID, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(types.KeyFeeEnabled(portID, channelID), []byte{1})
+	if err := store.Set(types.KeyFeeEnabled(portID, channelID), []byte{1}); err != nil {
+		panic(err)
+	}
 }
 
 // DeleteFeeEnabled deletes the fee enabled flag for a given portID and channelID
 func (k Keeper) DeleteFeeEnabled(ctx context.Context, portID, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Delete(types.KeyFeeEnabled(portID, channelID))
+	if err := store.Delete(types.KeyFeeEnabled(portID, channelID)); err != nil {
+		panic(err)
+	}
 }
 
 // IsFeeEnabled returns whether fee handling logic should be run for the given port. It will check the
@@ -204,7 +210,9 @@ func (k Keeper) GetPayeeAddress(ctx context.Context, relayerAddr, channelID stri
 // SetPayeeAddress stores the fee payee address in state keyed by the provided channel identifier and relayer address
 func (k Keeper) SetPayeeAddress(ctx context.Context, relayerAddr, payeeAddr, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(types.KeyPayee(relayerAddr, channelID), []byte(payeeAddr))
+	if err := store.Set(types.KeyPayee(relayerAddr, channelID), []byte(payeeAddr)); err != nil {
+		panic(err)
+	}
 }
 
 // GetAllPayees returns all registered payees addresses
@@ -236,7 +244,9 @@ func (k Keeper) GetAllPayees(ctx context.Context) []types.RegisteredPayee {
 // The receiving chain must store the mapping from: address -> counterpartyPayeeAddress for the given channel
 func (k Keeper) SetCounterpartyPayeeAddress(ctx context.Context, address, counterpartyAddress, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(types.KeyCounterpartyPayee(address, channelID), []byte(counterpartyAddress))
+	if err := store.Set(types.KeyCounterpartyPayee(address, channelID), []byte(counterpartyAddress)); err != nil {
+		panic(err)
+	}
 }
 
 // GetCounterpartyPayeeAddress gets the counterparty payee address given a destination relayer address
@@ -287,7 +297,9 @@ func (k Keeper) GetAllCounterpartyPayees(ctx context.Context) []types.Registered
 // SetRelayerAddressForAsyncAck sets the forward relayer address during OnRecvPacket in case of async acknowledgement
 func (k Keeper) SetRelayerAddressForAsyncAck(ctx context.Context, packetID channeltypes.PacketId, address string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(types.KeyRelayerAddressForAsyncAck(packetID), []byte(address))
+	if err := store.Set(types.KeyRelayerAddressForAsyncAck(packetID), []byte(address)); err != nil {
+		panic(err)
+	}
 }
 
 // GetRelayerAddressForAsyncAck gets forward relayer address for a particular packet
@@ -338,7 +350,9 @@ func (k Keeper) GetAllForwardRelayerAddresses(ctx context.Context) []types.Forwa
 func (k Keeper) DeleteForwardRelayerAddress(ctx context.Context, packetID channeltypes.PacketId) {
 	store := k.storeService.OpenKVStore(ctx)
 	key := types.KeyRelayerAddressForAsyncAck(packetID)
-	store.Delete(key)
+	if err := store.Delete(key); err != nil {
+		panic(err)
+	}
 }
 
 // GetFeesInEscrow returns all escrowed packet fees for a given packetID
@@ -371,14 +385,18 @@ func (k Keeper) HasFeesInEscrow(ctx context.Context, packetID channeltypes.Packe
 func (k Keeper) SetFeesInEscrow(ctx context.Context, packetID channeltypes.PacketId, fees types.PacketFees) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.MustMarshalFees(fees)
-	store.Set(types.KeyFeesInEscrow(packetID), bz)
+	if err := store.Set(types.KeyFeesInEscrow(packetID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // DeleteFeesInEscrow deletes the fee associated with the given packetID
 func (k Keeper) DeleteFeesInEscrow(ctx context.Context, packetID channeltypes.PacketId) {
 	store := k.storeService.OpenKVStore(ctx)
 	key := types.KeyFeesInEscrow(packetID)
-	store.Delete(key)
+	if err := store.Delete(key); err != nil {
+		panic(err)
+	}
 }
 
 // GetIdentifiedPacketFeesForChannel returns all the currently escrowed fees on a given channel.

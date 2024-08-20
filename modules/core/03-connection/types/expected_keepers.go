@@ -1,7 +1,7 @@
 package types
 
 import (
-	context "context"
+	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"

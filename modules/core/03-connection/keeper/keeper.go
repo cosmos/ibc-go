@@ -49,7 +49,7 @@ func (Keeper) Logger(ctx context.Context) log.Logger {
 
 // GetCommitmentPrefix returns the IBC connection store prefix as a commitment
 // Prefix
-func (k *Keeper) GetCommitmentPrefix() exported.Prefix {
+func (*Keeper) GetCommitmentPrefix() exported.Prefix {
 	return commitmenttypes.NewMerklePrefix([]byte("ibc")) // TODO: import store key directly
 }
 
@@ -95,7 +95,9 @@ func (k *Keeper) HasConnection(ctx context.Context, connectionID string) bool {
 func (k *Keeper) SetConnection(ctx context.Context, connectionID string, connection types.ConnectionEnd) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&connection)
-	store.Set(host.ConnectionKey(connectionID), bz)
+	if err := store.Set(host.ConnectionKey(connectionID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetClientConnectionPaths returns all the connection paths stored under a
@@ -120,7 +122,9 @@ func (k *Keeper) SetClientConnectionPaths(ctx context.Context, clientID string, 
 	store := k.storeService.OpenKVStore(ctx)
 	clientPaths := types.ClientPaths{Paths: paths}
 	bz := k.cdc.MustMarshal(&clientPaths)
-	store.Set(host.ClientConnectionsKey(clientID), bz)
+	if err := store.Set(host.ClientConnectionsKey(clientID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetNextConnectionSequence gets the next connection sequence from the store.
@@ -141,7 +145,9 @@ func (k *Keeper) GetNextConnectionSequence(ctx context.Context) uint64 {
 func (k *Keeper) SetNextConnectionSequence(ctx context.Context, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set([]byte(types.KeyNextConnectionSequence), bz)
+	if err := store.Set([]byte(types.KeyNextConnectionSequence), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetAllClientConnectionPaths returns all stored clients connection id paths. It
@@ -241,5 +247,7 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 func (k *Keeper) SetParams(ctx context.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
 }

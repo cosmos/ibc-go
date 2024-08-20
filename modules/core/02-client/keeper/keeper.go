@@ -157,7 +157,9 @@ func (k *Keeper) GetNextClientSequence(ctx context.Context) uint64 {
 func (k *Keeper) SetNextClientSequence(ctx context.Context, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set([]byte(types.KeyNextClientSequence), bz)
+	if err := store.Set([]byte(types.KeyNextClientSequence), bz); err != nil {
+		panic(err)
+	}
 }
 
 // IterateConsensusStates provides an iterator over all stored consensus states.
@@ -448,7 +450,9 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 func (k *Keeper) SetParams(ctx context.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
 }
 
 // ScheduleIBCSoftwareUpgrade schedules an upgrade for the IBC client.
