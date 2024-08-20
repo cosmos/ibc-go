@@ -843,6 +843,124 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 	}
 }
 
+// tests the IBC handler timing out a packet for the V2 protocol.
+// It verifies that the deletion of a packet commitment occurs. More
+// rigorous testing of 'TimeoutPacket' and 'TimeoutExecuted' can be found in
+// the packet-server/keeper/keeper_test.go.
+func (suite *KeeperTestSuite) TestHandleTimeoutPacketV2() {
+	var (
+		packet    channeltypes.Packet
+		packetKey []byte
+		path      *ibctesting.Path
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+		noop     bool // indicate no-op
+	}{
+		{"success", func() {
+			path.SetupV2()
+
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+
+			// create packet commitment
+			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, timeoutTimestamp, "", ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+
+			// need to update chainA client to prove missing ack
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, timeoutTimestamp, "")
+			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+		}, true, false},
+		{"success: UNORDERED timeout out of order packet", func() {
+			// setup uses an UNORDERED channel
+			path.SetupV2()
+
+			// attempts to timeout the last packet sent without timing out the first packet
+			// packet sequences begin at 1
+			for i := uint64(1); i < maxSequence; i++ {
+				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+
+				// create packet commitment
+				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
+			}
+
+			err := path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+		}, true, false},
+		{"channel does not exist", func() {
+			// any non-nil value of packet is valid
+			suite.Require().NotNil(packet)
+
+			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+		}, false, false},
+		{"successful no-op: UNORDERED - packet not sent", func() {
+			path.SetupV2()
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(0, 1), 0, "")
+			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+		}, true, true},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			tc.malleate()
+
+			var (
+				proof       []byte
+				proofHeight clienttypes.Height
+			)
+			if path.EndpointB.ClientID != "" {
+				proof, proofHeight = path.EndpointB.QueryProof(packetKey)
+			}
+
+			msg := channeltypes.NewMsgTimeout(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+
+			ctx := suite.chainA.GetContext()
+			_, err := suite.chainA.App.GetIBCKeeper().Timeout(ctx, msg)
+
+			events := ctx.EventManager().Events()
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+
+				// replay should not return an error as it is treated as a no-op
+				_, err := suite.chainA.App.GetIBCKeeper().Timeout(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+
+				// verify packet commitment was deleted on source chain
+				has := suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasPacketCommitment(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+				suite.Require().False(has)
+
+				if tc.noop {
+					// context should not contain application events
+					suite.Require().NotContains(events, ibcmock.NewMockTimeoutPacketEvent())
+				} else {
+					// context should contain application events
+					suite.Require().Contains(events, ibcmock.NewMockTimeoutPacketEvent())
+				}
+
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 // tests the IBC handler timing out a packet via channel closure on ordered
 // and unordered channels. It verifies that the deletion of a packet
 // commitment occurs. It tests high level properties like ordering and basic
