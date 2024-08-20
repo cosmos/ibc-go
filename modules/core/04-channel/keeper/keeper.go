@@ -32,7 +32,7 @@ type Keeper struct {
 	cdc              codec.BinaryCodec
 	clientKeeper     types.ClientKeeper
 	connectionKeeper types.ConnectionKeeper
-	portKeeper       types.PortKeeper
+	portKeeper       exported.PortKeeper
 	scopedKeeper     exported.ScopedKeeper
 }
 
@@ -40,7 +40,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey,
 	clientKeeper types.ClientKeeper, connectionKeeper types.ConnectionKeeper,
-	portKeeper types.PortKeeper, scopedKeeper exported.ScopedKeeper,
+	portKeeper exported.PortKeeper, scopedKeeper exported.ScopedKeeper,
 ) *Keeper {
 	return &Keeper{
 		storeKey:         key,

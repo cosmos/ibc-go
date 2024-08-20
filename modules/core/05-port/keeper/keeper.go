@@ -39,6 +39,10 @@ func (k *Keeper) IsBound(ctx sdk.Context, portID string) bool {
 	return ok
 }
 
+func (k *Keeper) GetAppRouter() interface{} {
+	return k.AppRouter
+}
+
 // BindPort binds to a port and returns the associated capability.
 // Ports must be bound statically when the chain starts in `app.go`.
 // The capability must then be passed to a module which will need to pass

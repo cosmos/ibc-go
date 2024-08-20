@@ -549,6 +549,12 @@ func (im *LegacyIBCModule) reversedCallbacks() []ClassicIBCModule {
 	return cbs
 }
 
+func (im *LegacyIBCModule) ReversedCallbacks() []ClassicIBCModule {
+	cbs := slices.Clone(im.cbs)
+	slices.Reverse(cbs)
+	return cbs
+}
+
 // reconstructVersion will generate the channel version by applying any version wrapping as necessary.
 // Version wrapping will only occur if the negotiated version is non=empty and the application is a VersionWrapper.
 func (im *LegacyIBCModule) reconstructVersion(negotiatedVersions []string) (string, error) {

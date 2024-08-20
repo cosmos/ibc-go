@@ -163,6 +163,10 @@ type AcknowledgementWrapper interface {
 	UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, acknowledgment []byte) (cbAcknowledgement, underlyingAppAcknowledgement []byte)
 }
 
+type AsyncAckWriter interface {
+	OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult) (channeltypes.RecvPacketResult, error)
+}
+
 // UpgradableModule defines the callbacks required to perform a channel upgrade.
 // Note: applications must ensure that state related to packet processing remains unmodified until the OnChanUpgradeOpen callback is executed.
 // This guarantees that in-flight packets are correctly flushed using the existing channel parameters.

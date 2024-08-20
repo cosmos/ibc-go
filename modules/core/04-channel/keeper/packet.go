@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	"slices"
 	"strconv"
 
@@ -335,6 +336,57 @@ func (k *Keeper) WriteRecvPacketResult(
 	appName string,
 	result types.RecvPacketResult,
 ) error {
+
+	// fetch the results that were written during OnRecvPacket
+	ackResults, found := k.GetRecvResults(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	if !found {
+		panic("recv results not found")
+	}
+
+	// start index for the callbacks to be executed.
+	startIndex := -1
+	for i, r := range ackResults.AcknowledgementResults {
+		if r.PortId == appName {
+			startIndex = i
+			break
+		}
+	}
+
+	if startIndex == -1 {
+		panic("result not found for app: " + appName)
+	}
+
+	appRouter, ok := k.portKeeper.GetAppRouter().(*porttypes.AppRouter)
+	if !ok {
+		panic("app router not found")
+	}
+
+	cbs, ok := appRouter.PacketRoute(packet.GetDestPort())
+	if !ok {
+		ctx.Logger().Error("receive packet failed", "port-id", packet.GetSourcePort(), "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", packet.GetDestPort()))
+		return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", packet.GetDestPort())
+	}
+
+	legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule)
+	if !ok {
+		panic("legacy module not found")
+	}
+
+	callbacks := legacyModule.ReversedCallbacks()
+
+	for i := startIndex; i < len(callbacks); i++ {
+		var err error
+		if cb, ok := callbacks[i].(porttypes.AsyncAckWriter); ok {
+			result, err = cb.OnWriteAcknowledgement(ctx, packet, result)
+			if err != nil {
+				ctx.Logger().Error("on write ack failed", "port-id", packet.GetSourcePort(), "error", err)
+				return err
+			}
+		}
+	}
+
+	//wrappedAck := legacyModule.WrapRecvResults(ctx, packet, relayer, res, ackResults)
+
 	// transfer: write async ack
 	// appX: async ???????? - concern for when another app is async or it swallowed ack in previous wiring?
 	// fee: ack already written in temporary state (new state key)
