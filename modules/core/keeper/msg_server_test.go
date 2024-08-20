@@ -1056,7 +1056,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 
 		signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
 		merklePrefix := commitmenttypesv2.NewMerklePath([]byte("mock-key"))
-		msg = clienttypes.NewMsgProvideCounterparty(signer, path.EndpointA.ClientID, path.EndpointB.ClientID, &merklePrefix)
+		msg = clienttypes.NewMsgProvideCounterparty(signer, path.EndpointA.ClientID, path.EndpointB.ClientID, merklePrefix)
 
 		tc.malleate()
 

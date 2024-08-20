@@ -134,10 +134,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	controllerMigrator := controllerkeeper.NewMigrator(am.controllerKeeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, controllerMigrator.AssertChannelCapabilityMigrations); err != nil {
-		panic(fmt.Errorf("failed to migrate interchainaccounts app from version 1 to 2 (channel capabilities owned by controller submodule check): %v", err))
-	}
-
 	hostMigrator := hostkeeper.NewMigrator(am.hostKeeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 2, func(ctx sdk.Context) error {
 		if err := hostMigrator.MigrateParams(ctx); err != nil {
