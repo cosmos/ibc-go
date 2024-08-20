@@ -224,7 +224,6 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 }
 
 // tests the IBC handler receiving a packet using V2 protocol
-/*
 func (suite *KeeperTestSuite) TestRecvPacketV2() {
 	var (
 		packet channeltypes.Packet
@@ -248,38 +247,37 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
 		}, true, false, false, false},
 		{"success: OnRecvPacket callback returns revert=true", func() {
-			path.Setup()
+			path.SetupV2()
 
-			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockFailPacketData)
+			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockFailPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacket(ibctesting.MockFailPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockFailPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
 		}, true, true, false, false},
 		{"success: async acknowledgement", func() {
-			path.Setup()
+			path.SetupV2()
 
-			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibcmock.MockAsyncPacketData)
+			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibcmock.MockAsyncPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacket(ibcmock.MockAsyncPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
+			packet = channeltypes.NewPacketWithVersion(ibcmock.MockAsyncPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
 		}, true, false, true, false},
 		{"channel does not exist", func() {
 			// any non-nil value of packet is valid
 			suite.Require().NotNil(packet)
 		}, false, false, false, false},
 		{"packet not sent", func() {
-			path.Setup()
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
+			path.SetupV2()
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
 		}, false, false, false, false},
 		{"successful no-op: - packet already received (replay)", func() {
 			// mock will panic if application callback is called twice on the same packet
-			path.SetChannelOrdered()
-			path.Setup()
+			path.SetupV2()
 
-			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 		}, true, false, false, true},
@@ -357,7 +355,6 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 		})
 	}
 }
-*/
 
 func (suite *KeeperTestSuite) TestRecoverClient() {
 	var msg *clienttypes.MsgRecoverClient
