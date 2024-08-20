@@ -417,7 +417,7 @@ func EmitChannelUpgradeCancelEvent(ctx sdk.Context, portID string, channelID str
 	})
 }
 
-// emitChannelFlushCompleteEvents emits an flushing event.
+// emitChannelFlushCompleteEvent emits an flushing event.
 func emitChannelFlushCompleteEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

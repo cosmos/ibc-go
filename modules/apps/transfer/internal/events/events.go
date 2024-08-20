@@ -133,7 +133,7 @@ func EmitDenomEvent(ctx sdk.Context, token types.Token) {
 	)
 }
 
-// mustMarshalType json marshals the given type and panics on failure.
+// mustMarshalJSON json marshals the given type and panics on failure.
 func mustMarshalJSON(v any) string {
 	bz, err := json.Marshal(v)
 	if err != nil {
