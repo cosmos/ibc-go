@@ -28,3 +28,36 @@ func (mp MerklePath) GetKey(i uint64) ([]byte, error) {
 func (mp MerklePath) Empty() bool {
 	return len(mp.KeyPath) == 0
 }
+
+// ValidateAsPrefix validates the MerklePath to ensure it is a valid prefix
+// Thus every element of the merkle path must be non-empty except for the last element
+// which may be empty. In this case, the ICS24 path will be appended to the last element
+// to form the full path.
+func (mp MerklePath) ValidateAsPrefix() error {
+	if mp.Empty() {
+		return fmt.Errorf("path cannot have lenth 0")
+	}
+
+	for i, key := range mp.KeyPath {
+		if len(key) == 0 && i != len(mp.KeyPath)-1 {
+			return fmt.Errorf("key at index %d cannot be empty", i)
+		}
+	}
+	return nil
+}
+
+// ValidateFullPath validates the MerklePath as a fully constructed path.
+// Here every element must be non-empty since the MerklePath is no longer
+// acting as a prefix but is instead the full path intended for verification.
+func (mp MerklePath) ValidateFullPath() error {
+	if mp.Empty() {
+		return fmt.Errorf("path cannot have lenth 0")
+	}
+
+	for i, key := range mp.KeyPath {
+		if len(key) == 0 {
+			return fmt.Errorf("key at index %d cannot be empty", i)
+		}
+	}
+	return nil
+}
