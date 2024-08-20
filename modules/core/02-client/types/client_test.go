@@ -103,6 +103,24 @@ func TestValidateCounterparty(t *testing.T) {
 			nil,
 		},
 		{
+			"success with multiple element prefix",
+			ibctesting.FirstClientID,
+			commitmenttypes.NewMerklePath([]byte("ibc"), []byte("address")),
+			nil,
+		},
+		{
+			"success with multiple element prefix, last prefix empty",
+			ibctesting.FirstClientID,
+			commitmenttypes.NewMerklePath([]byte("ibc"), []byte("")),
+			nil,
+		},
+		{
+			"success with single empty key prefix",
+			ibctesting.FirstClientID,
+			commitmenttypes.NewMerklePath([]byte("")),
+			nil,
+		},
+		{
 			"failure: invalid client id",
 			"",
 			commitmenttypes.NewMerklePath([]byte("ibc")),
@@ -112,6 +130,12 @@ func TestValidateCounterparty(t *testing.T) {
 			"failure: empty merkle path prefix",
 			ibctesting.FirstClientID,
 			commitmenttypes.NewMerklePath(),
+			types.ErrInvalidCounterparty,
+		},
+		{
+			"failure: empty key in merkle path prefix first element",
+			ibctesting.FirstClientID,
+			commitmenttypes.NewMerklePath([]byte(""), []byte("ibc")),
 			types.ErrInvalidCounterparty,
 		},
 	}
