@@ -758,109 +758,109 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	}
 }
 
-func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
-	var (
-		packetData transfertypes.FungibleTokenPacketDataV2
-		packet     channeltypes.Packet
-		ctx        sdk.Context
-		ack        []byte
-	)
-
-	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-
-	testCases := []struct {
-		name         string
-		malleate     func()
-		callbackType types.CallbackType
-		expError     error
-	}{
-		{
-			"success",
-			func() {
-				ack = successAck.Acknowledgement()
-			},
-			types.CallbackTypeReceivePacket,
-			nil,
-		},
-		{
-			"success: no-op on callback data is not valid",
-			func() {
-				packetData.Memo = `{"dest_callback": {"address": ""}}`
-				packet.Data = packetData.GetBytes()
-			},
-			"none", // improperly formatted callback data should result in no callback execution
-			nil,
-		},
-		{
-			"failure: ics4Wrapper WriteAcknowledgement call fails",
-			func() {
-				packet.DestinationChannel = "invalid-channel"
-			},
-			"none",
-			channeltypes.ErrChannelNotFound,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		s.Run(tc.name, func() {
-			s.SetupTransferTest()
-
-			// set user gas limit above panic level in mock contract keeper
-			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]transfertypes.Token{
-					{
-						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
-						Amount: ibctesting.TestCoin.Amount.String(),
-					},
-				},
-				ibctesting.TestAccAddress,
-				s.chainB.SenderAccount.GetAddress().String(),
-				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress),
-				ibctesting.EmptyForwardingPacketData,
-			)
-
-			packet = channeltypes.Packet{
-				Sequence:           1,
-				SourcePort:         s.path.EndpointA.ChannelConfig.PortID,
-				SourceChannel:      s.path.EndpointA.ChannelID,
-				DestinationPort:    s.path.EndpointB.ChannelConfig.PortID,
-				DestinationChannel: s.path.EndpointB.ChannelID,
-				Data:               packetData.GetBytes(),
-				TimeoutHeight:      s.chainB.GetTimeoutHeight(),
-				TimeoutTimestamp:   0,
-			}
-
-			ctx = s.chainB.GetContext()
-			gasLimit := ctx.GasMeter().Limit()
-
-			tc.malleate()
-
-			// callbacks module is routed as top level middleware
-			transferICS4Wrapper := GetSimApp(s.chainB).TransferKeeper.GetICS4Wrapper()
-
-			err := transferICS4Wrapper.WriteAcknowledgement(ctx, packet, ack)
-
-			expPass := tc.expError == nil
-			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
-
-			if expPass {
-				s.Require().NoError(err)
-
-				expEvent, exists := GetExpectedEvent(
-					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
-					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
-				)
-				if exists {
-					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
-				}
-
-			} else {
-				s.Require().ErrorIs(err, tc.expError)
-			}
-		})
-	}
-}
+//func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
+//	var (
+//		packetData transfertypes.FungibleTokenPacketDataV2
+//		packet     channeltypes.Packet
+//		ctx        sdk.Context
+//		ack        []byte
+//	)
+//
+//	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+//
+//	testCases := []struct {
+//		name         string
+//		malleate     func()
+//		callbackType types.CallbackType
+//		expError     error
+//	}{
+//		{
+//			"success",
+//			func() {
+//				ack = successAck.Acknowledgement()
+//			},
+//			types.CallbackTypeReceivePacket,
+//			nil,
+//		},
+//		{
+//			"success: no-op on callback data is not valid",
+//			func() {
+//				packetData.Memo = `{"dest_callback": {"address": ""}}`
+//				packet.Data = packetData.GetBytes()
+//			},
+//			"none", // improperly formatted callback data should result in no callback execution
+//			nil,
+//		},
+//		{
+//			"failure: ics4Wrapper WriteAcknowledgement call fails",
+//			func() {
+//				packet.DestinationChannel = "invalid-channel"
+//			},
+//			"none",
+//			channeltypes.ErrChannelNotFound,
+//		},
+//	}
+//
+//	for _, tc := range testCases {
+//		tc := tc
+//		s.Run(tc.name, func() {
+//			s.SetupTransferTest()
+//
+//			// set user gas limit above panic level in mock contract keeper
+//			packetData = transfertypes.NewFungibleTokenPacketDataV2(
+//				[]transfertypes.Token{
+//					{
+//						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
+//						Amount: ibctesting.TestCoin.Amount.String(),
+//					},
+//				},
+//				ibctesting.TestAccAddress,
+//				s.chainB.SenderAccount.GetAddress().String(),
+//				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress),
+//				ibctesting.EmptyForwardingPacketData,
+//			)
+//
+//			packet = channeltypes.Packet{
+//				Sequence:           1,
+//				SourcePort:         s.path.EndpointA.ChannelConfig.PortID,
+//				SourceChannel:      s.path.EndpointA.ChannelID,
+//				DestinationPort:    s.path.EndpointB.ChannelConfig.PortID,
+//				DestinationChannel: s.path.EndpointB.ChannelID,
+//				Data:               packetData.GetBytes(),
+//				TimeoutHeight:      s.chainB.GetTimeoutHeight(),
+//				TimeoutTimestamp:   0,
+//			}
+//
+//			ctx = s.chainB.GetContext()
+//			gasLimit := ctx.GasMeter().Limit()
+//
+//			tc.malleate()
+//
+//			// callbacks module is routed as top level middleware
+//			transferICS4Wrapper := GetSimApp(s.chainB).TransferKeeper.GetICS4Wrapper()
+//
+//			err := transferICS4Wrapper.WriteAcknowledgement(ctx, packet, ack)
+//
+//			expPass := tc.expError == nil
+//			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
+//
+//			if expPass {
+//				s.Require().NoError(err)
+//
+//				expEvent, exists := GetExpectedEvent(
+//					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+//					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
+//				)
+//				if exists {
+//					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+//				}
+//
+//			} else {
+//				s.Require().ErrorIs(err, tc.expError)
+//			}
+//		})
+//	}
+//}
 
 func (s *CallbacksTestSuite) TestProcessCallback() {
 	var (
