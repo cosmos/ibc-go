@@ -15,7 +15,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -462,7 +461,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			case !tc.feeEnabled:
 				suite.Require().Equal(ibcmock.MockAcknowledgement.Acknowledgement(), result.Acknowledgement)
 
-			case tc.forwardRelayer && result.Status == exported.Async:
+			case tc.forwardRelayer && result.Status == channeltypes.PacketStatus_Async:
 				suite.Require().Nil(result.Acknowledgement)
 				packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 

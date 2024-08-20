@@ -17,7 +17,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
@@ -214,7 +213,7 @@ func (im IBCModule) OnRecvPacket(
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) ibcexported.RecvPacketResult {
+) channeltypes.RecvPacketResult {
 	var (
 		ackErr error
 		data   types.FungibleTokenPacketDataV2
@@ -232,8 +231,8 @@ func (im IBCModule) OnRecvPacket(
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
-		return ibcexported.RecvPacketResult{
-			Status:          ibcexported.Failure,
+		return channeltypes.RecvPacketResult{
+			Status:          channeltypes.PacketStatus_Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 	}
@@ -241,8 +240,8 @@ func (im IBCModule) OnRecvPacket(
 	if ackErr = im.keeper.OnRecvPacket(ctx, packet, data); ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
-		return ibcexported.RecvPacketResult{
-			Status:          ibcexported.Failure,
+		return channeltypes.RecvPacketResult{
+			Status:          channeltypes.PacketStatus_Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 	}
@@ -251,14 +250,14 @@ func (im IBCModule) OnRecvPacket(
 
 	if data.HasForwarding() {
 		// NOTE: acknowledgement will be written asynchronously
-		return ibcexported.RecvPacketResult{
-			Status: ibcexported.Async,
+		return channeltypes.RecvPacketResult{
+			Status: channeltypes.PacketStatus_Async,
 		}
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	return ibcexported.RecvPacketResult{
-		Status:          ibcexported.Success,
+	return channeltypes.RecvPacketResult{
+		Status:          channeltypes.PacketStatus_Success,
 		Acknowledgement: ack.Acknowledgement(),
 	}
 }

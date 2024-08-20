@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
@@ -251,28 +250,22 @@ func (k *Keeper) deletePacketAcknowledgement(ctx sdk.Context, portID, channelID 
 	store.Delete(host.PacketAcknowledgementKey(portID, channelID, sequence))
 }
 
-func (k *Keeper) SetRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults []exported.RecvPacketResult) {
+func (k *Keeper) SetRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults types.AcknowledgementResults) {
 	store := ctx.KVStore(k.storeKey)
-
-	bz, err := json.Marshal(recvResults)
-	if err != nil {
-		panic(err)
-	}
+	bz := k.cdc.MustMarshal(&recvResults)
 	store.Set(host.RecvPacketResultKey(portID, channelID, sequence), bz)
 }
 
 // GetRecvResults gets the recv packet results
-func (k *Keeper) GetRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64) ([]exported.RecvPacketResult, bool) {
+func (k *Keeper) GetRecvResults(ctx sdk.Context, portID, channelID string, sequence uint64) (types.AcknowledgementResults, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.RecvPacketResultKey(portID, channelID, sequence))
 	if len(bz) == 0 {
-		return nil, false
-	}
-	var res []exported.RecvPacketResult
-	if err := json.Unmarshal(bz, &res); err != nil {
-		panic(err)
+		return types.AcknowledgementResults{}, false
 	}
 
+	var res types.AcknowledgementResults
+	k.cdc.MustUnmarshal(bz, &res)
 	return res, true
 }
 

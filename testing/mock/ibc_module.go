@@ -12,7 +12,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
@@ -121,7 +120,7 @@ func (im IBCModule) OnSendPacket(ctx sdk.Context, portID string, channelID strin
 }
 
 // OnRecvPacket implements the IBCModule interface.
-func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.RecvPacketResult {
+func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
 	if im.IBCApp.OnRecvPacket != nil {
 		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
@@ -137,18 +136,18 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet 
 	ctx.EventManager().EmitEvent(NewMockRecvPacketEvent())
 
 	if bytes.Equal(MockPacketData, packet.GetData()) {
-		return exported.RecvPacketResult{
-			Status:          exported.Success,
+		return channeltypes.RecvPacketResult{
+			Status:          channeltypes.PacketStatus_Success,
 			Acknowledgement: MockAcknowledgement.Acknowledgement(),
 		}
 	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
-		return exported.RecvPacketResult{
-			Status: exported.Async,
+		return channeltypes.RecvPacketResult{
+			Status: channeltypes.PacketStatus_Async,
 		}
 	}
 
-	return exported.RecvPacketResult{
-		Status:          exported.Failure,
+	return channeltypes.RecvPacketResult{
+		Status:          channeltypes.PacketStatus_Failure,
 		Acknowledgement: MockFailAcknowledgement.Acknowledgement(),
 	}
 }

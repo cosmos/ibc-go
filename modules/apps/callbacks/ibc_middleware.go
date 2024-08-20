@@ -180,20 +180,20 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.RecvPacketResult {
-	return ibcexported.RecvPacketResult{Status: ibcexported.Success}
+func (IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+	return channeltypes.RecvPacketResult{Status: channeltypes.PacketStatus_Success}
 }
 
 func (IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, acknowledgment []byte) (cbAcknowledgement, underlyingAppAcknowledgement []byte) {
 	return acknowledgment, acknowledgment
 }
 
-func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result ibcexported.RecvPacketResult) ibcexported.RecvPacketResult {
+func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
 	// if result status is asynchronous, then the callback will be handled in WriteAcknowledgement
 	// if result status is failed, then all state changes are reverted.
 	// if a packet cannot be received, then there is no need to execute a callback on the receiving chain,
 	// thus we only proceed with the contract keeper callback if the result status is successful.
-	if prevResult.Status != ibcexported.Success {
+	if prevResult.Status != channeltypes.PacketStatus_Success {
 		return prevResult
 	}
 

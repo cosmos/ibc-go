@@ -17,7 +17,6 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -447,10 +446,10 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expStatus exported.RecvPacketStatus
+		expStatus channeltypes.PacketStatus
 	}{
 		{
-			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, exported.Failure,
+			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, channeltypes.PacketStatus_Failure,
 		},
 	}
 

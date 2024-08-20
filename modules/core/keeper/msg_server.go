@@ -14,7 +14,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
@@ -462,19 +461,24 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")
 	}
 
-	var results []exported.RecvPacketResult
+	var ackResults channeltypes.AcknowledgementResults
 	if legacyIBCModule, ok := cbs[0].(*porttypes.LegacyIBCModule); ok {
 		cacheCtx, writeFn = ctx.CacheContext()
 
-		results = legacyIBCModule.OnRecvPacketLegacy(cacheCtx, channelVersion, msg.Packet, relayer)
+		ackResults = legacyIBCModule.OnRecvPacketLegacy(cacheCtx, channelVersion, msg.Packet, relayer)
 
-		res := legacyIBCModule.WrapRecvResults(cacheCtx, msg.Packet, relayer, results)
-		if res.Status == exported.Async {
-			// NOTE: fill me in... store results in order to wrap full ack later on.
-			k.ChannelKeeper.SetRecvResults(cacheCtx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence(), results)
+		var recvResults []channeltypes.RecvPacketResult
+		for _, r := range ackResults.AcknowledgementResults {
+			recvResults = append(recvResults, r.RecvPacketResult)
 		}
 
-		if res.Status != exported.Failure {
+		res := legacyIBCModule.WrapRecvResults(cacheCtx, msg.Packet, relayer, recvResults)
+		if res.Status == channeltypes.PacketStatus_Async {
+			// NOTE: fill me in... store results in order to wrap full ack later on.
+			k.ChannelKeeper.SetRecvResults(cacheCtx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence(), ackResults)
+		}
+
+		if res.Status != channeltypes.PacketStatus_Failure {
 			// write application state changes for asynchronous and successful acknowledgements
 			writeFn()
 		} else {

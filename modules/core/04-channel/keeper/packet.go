@@ -333,7 +333,7 @@ func (k *Keeper) WriteRecvPacketResult(
 	ctx sdk.Context,
 	packet exported.PacketI,
 	appName string,
-	result exported.RecvPacketResult,
+	result types.RecvPacketResult,
 ) error {
 	// transfer: write async ack
 	// appX: async ???????? - concern for when another app is async or it swallowed ack in previous wiring?

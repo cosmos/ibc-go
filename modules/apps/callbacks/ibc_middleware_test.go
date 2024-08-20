@@ -20,7 +20,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -694,14 +693,14 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			cbs, ok := s.chainB.App.GetIBCKeeper().PortKeeper.AppRouter.PacketRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			onRecvPacket := func() ibcexported.RecvPacketResult {
+			onRecvPacket := func() channeltypes.RecvPacketResult {
 				return cbs[0].OnRecvPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
 			}
 
 			switch tc.expAck {
 			case successAck:
 				res := onRecvPacket()
-				s.Require().Equal(ibcexported.Success, res.Status)
+				s.Require().Equal(channeltypes.PacketStatus_Success, res.Status)
 				s.Require().NotNil(res.Acknowledgement)
 
 			case panicAck:
@@ -1160,7 +1159,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 
 	res := cbs[0].OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
 
-	s.Require().Equal(ibcexported.Async, res.Status)
+	s.Require().Equal(channeltypes.PacketStatus_Async, res.Status)
 	s.Require().Nil(res.Acknowledgement)
 	s.AssertHasExecutedExpectedCallback("none", true)
 }

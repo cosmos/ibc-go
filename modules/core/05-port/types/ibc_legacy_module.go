@@ -11,7 +11,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // var _ ClassicIBCModule = (*LegacyIBCModule)(nil)
@@ -235,10 +234,9 @@ func (im *LegacyIBCModule) OnRecvPacketLegacy(
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) []ibcexported.RecvPacketResult {
-	var results []ibcexported.RecvPacketResult
-	cbs := im.reversedCallbacks()
-	for _, cb := range cbs {
+) channeltypes.AcknowledgementResults {
+	var results []channeltypes.AcknowledgementResult
+	for _, cb := range im.reversedCallbacks() {
 		cbVersion := channelVersion
 
 		if wrapper, ok := cb.(VersionWrapper); ok {
@@ -246,10 +244,12 @@ func (im *LegacyIBCModule) OnRecvPacketLegacy(
 		}
 
 		res := cb.OnRecvPacket(ctx, cbVersion, packet, relayer)
-		results = append(results, res)
+		results = append(results, channeltypes.AcknowledgementResult{RecvPacketResult: res, PortId: cb.Name()})
 	}
 
-	return results
+	return channeltypes.AcknowledgementResults{
+		AcknowledgementResults: results,
+	}
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
@@ -261,8 +261,8 @@ func (im *LegacyIBCModule) OnRecvPacket(
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) ibcexported.RecvPacketResult {
-	var results []ibcexported.RecvPacketResult
+) channeltypes.RecvPacketResult {
+	var results []channeltypes.RecvPacketResult
 	cbs := im.reversedCallbacks()
 	for _, cb := range cbs {
 		cbVersion := channelVersion
@@ -316,7 +316,7 @@ func (im *LegacyIBCModule) OnRecvPacket(
 	// return res
 }
 
-func (im *LegacyIBCModule) WrapRecvResults(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, results []ibcexported.RecvPacketResult) ibcexported.RecvPacketResult {
+func (im *LegacyIBCModule) WrapRecvResults(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, results []channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
 	cbs := im.reversedCallbacks()
 
 	res := results[len(results)-1]

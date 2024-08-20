@@ -22,7 +22,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -407,9 +406,9 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			"success with ICA auth module callback failure", func() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
-				) exported.RecvPacketResult {
-					return exported.RecvPacketResult{
-						Status:          exported.Failure,
+				) channeltypes.RecvPacketResult {
+					return channeltypes.RecvPacketResult{
+						Status:          channeltypes.PacketStatus_Failure,
 						Acknowledgement: channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback")).Acknowledgement(),
 					}
 				}
@@ -490,11 +489,11 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				expectedAttributes := []sdk.Attribute{
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 					sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(res.Status == exported.Success)),
+					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(res.Status == channeltypes.PacketStatus_Success)),
 				}
 
 				if tc.expAckSuccess {
-					suite.Require().Equal(exported.Success, res.Status)
+					suite.Require().Equal(channeltypes.PacketStatus_Success, res.Status)
 					suite.Require().Equal(expectedAck.Acknowledgement(), res.Acknowledgement)
 
 					expectedEvents := sdk.Events{
@@ -508,7 +507,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 					ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 
 				} else {
-					suite.Require().Equal(exported.Failure, res.Status)
+					suite.Require().Equal(channeltypes.PacketStatus_Failure, res.Status)
 
 					expectedAttributes = append(expectedAttributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, tc.eventErrorMsg))
 					expectedEvents := sdk.Events{

@@ -14,7 +14,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
@@ -132,12 +131,12 @@ func (im IBCModule) OnRecvPacket(
 	_ string,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
-) ibcexported.RecvPacketResult {
+) channeltypes.RecvPacketResult {
 	if !im.keeper.GetParams(ctx).HostEnabled {
 		im.keeper.Logger(ctx).Info("host submodule is disabled")
 		keeper.EmitHostDisabledEvent(ctx, packet)
-		return ibcexported.RecvPacketResult{
-			Status:          ibcexported.Failure,
+		return channeltypes.RecvPacketResult{
+			Status:          channeltypes.PacketStatus_Failure,
 			Acknowledgement: channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled).Acknowledgement(),
 		}
 	}
@@ -150,8 +149,8 @@ func (im IBCModule) OnRecvPacket(
 		keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
 
-		return ibcexported.RecvPacketResult{
-			Status:          ibcexported.Failure,
+		return channeltypes.RecvPacketResult{
+			Status:          channeltypes.PacketStatus_Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 	}
@@ -163,8 +162,8 @@ func (im IBCModule) OnRecvPacket(
 	im.keeper.Logger(ctx).Info("successfully handled packet", "sequence", packet.Sequence)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	return ibcexported.RecvPacketResult{
-		Status:          ibcexported.Success,
+	return channeltypes.RecvPacketResult{
+		Status:          channeltypes.PacketStatus_Success,
 		Acknowledgement: ack.Acknowledgement(),
 	}
 }

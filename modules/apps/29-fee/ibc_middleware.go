@@ -169,9 +169,9 @@ func (im IBCMiddleware) OnRecvPacket(
 	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) exported.RecvPacketResult {
+) channeltypes.RecvPacketResult {
 	if !im.keeper.IsFeeEnabled(ctx, packet.DestinationPort, packet.DestinationChannel) {
-		return exported.RecvPacketResult{Status: exported.Success}
+		return channeltypes.RecvPacketResult{Status: channeltypes.PacketStatus_Success}
 	}
 
 	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer.String(), packet.GetDestChannel())
@@ -183,7 +183,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		panic(errors.New("cannot marshal acknowledgement into json"))
 	}
 
-	return exported.RecvPacketResult{Status: exported.Success, Acknowledgement: ack}
+	return channeltypes.RecvPacketResult{Status: channeltypes.PacketStatus_Success, Acknowledgement: ack}
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
@@ -388,7 +388,7 @@ func (im IBCMiddleware) UnwrapVersionSafe(ctx sdk.Context, portID, channelID, ve
 	return metadata.FeeVersion, metadata.AppVersion
 }
 
-func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result exported.RecvPacketResult) exported.RecvPacketResult {
+func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
 	if !im.keeper.IsFeeEnabled(ctx, packet.GetDestPort(), packet.GetDestChannel()) {
 		return prevResult
 	}
@@ -398,9 +398,9 @@ func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes
 		panic(errorsmod.Wrap(err, "failed to wrap acknowledgement"))
 	}
 
-	return exported.RecvPacketResult{
+	return channeltypes.RecvPacketResult{
 		Status:          prevResult.Status,
-		Acknowledgement: types.NewIncentivizedAcknowledgement(feeAck.ForwardRelayerAddress, prevResult.Acknowledgement, prevResult.Status == exported.Success).Acknowledgement(),
+		Acknowledgement: types.NewIncentivizedAcknowledgement(feeAck.ForwardRelayerAddress, prevResult.Acknowledgement, prevResult.Status == channeltypes.PacketStatus_Success).Acknowledgement(),
 	}
 }
 

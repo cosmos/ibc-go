@@ -5,7 +5,6 @@ import (
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // IBCApp contains IBC application module callbacks as defined in 05-port.
@@ -78,7 +77,7 @@ type IBCApp struct {
 		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
-	) exported.RecvPacketResult
+	) channeltypes.RecvPacketResult
 
 	OnAcknowledgementPacket func(
 		ctx sdk.Context,
