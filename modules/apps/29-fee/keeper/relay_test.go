@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -14,7 +12,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
@@ -22,12 +20,12 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 				suite.chainB.GetSimApp().IBCFeeKeeper.SetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketID(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, 1), suite.chainA.SenderAccount.GetAddress().String())
 				suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
 			},
-			true,
+			nil,
 		},
 		{
 			"relayer address not set for async WriteAcknowledgement",
 			func() {},
-			false,
+			types.ErrRelayerNotFoundForAsyncAck,
 		},
 	}
 
@@ -63,7 +61,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 
 			err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				_, found := suite.chainB.GetSimApp().IBCFeeKeeper.GetRelayerAddressForAsyncAck(suite.chainB.GetContext(), channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1))
 				suite.Require().False(found)
@@ -72,9 +70,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 				committedAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
 				suite.Require().Equal(committedAck, channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement()))
 			} else {
-				fmt.Printf("%+v\n", err)
-
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 
 			} else {
-				suite.Require().ErrorIs(err, tc.expErr)
+				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
 			}
 		})
 	}

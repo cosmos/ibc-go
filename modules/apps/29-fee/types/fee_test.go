@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,6 +14,7 @@ import (
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 var (
@@ -131,26 +134,26 @@ func TestPacketFeeValidation(t *testing.T) {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success with empty slice for Relayers",
 			func() {
 				packetFee.Relayers = []string{}
 			},
-			true,
+			nil,
 		},
 		{
 			"should fail when refund address is invalid",
 			func() {
 				packetFee.RefundAddress = invalidAddress
 			},
-			false,
+			errors.New("failed to convert RefundAddress into sdk.AccAddress"),
 		},
 		{
 			"should fail when all fees are invalid",
@@ -159,14 +162,14 @@ func TestPacketFeeValidation(t *testing.T) {
 				packetFee.Fee.RecvFee = invalidFee
 				packetFee.Fee.TimeoutFee = invalidFee
 			},
-			false,
+			ibcerrors.ErrInvalidCoins,
 		},
 		{
 			"should fail with single invalid fee",
 			func() {
 				packetFee.Fee.AckFee = invalidFee
 			},
-			false,
+			ibcerrors.ErrInvalidCoins,
 		},
 		{
 			"should fail with two invalid fees",
@@ -174,7 +177,7 @@ func TestPacketFeeValidation(t *testing.T) {
 				packetFee.Fee.TimeoutFee = invalidFee
 				packetFee.Fee.AckFee = invalidFee
 			},
-			false,
+			ibcerrors.ErrInvalidCoins,
 		},
 		{
 			"should pass with two empty fees",
@@ -182,14 +185,14 @@ func TestPacketFeeValidation(t *testing.T) {
 				packetFee.Fee.TimeoutFee = sdk.Coins{}
 				packetFee.Fee.AckFee = sdk.Coins{}
 			},
-			true,
+			nil,
 		},
 		{
 			"should pass with one empty fee",
 			func() {
 				packetFee.Fee.TimeoutFee = sdk.Coins{}
 			},
-			true,
+			nil,
 		},
 		{
 			"should fail if all fees are empty",
@@ -198,31 +201,33 @@ func TestPacketFeeValidation(t *testing.T) {
 				packetFee.Fee.RecvFee = sdk.Coins{}
 				packetFee.Fee.TimeoutFee = sdk.Coins{}
 			},
-			false,
+			ibcerrors.ErrInvalidCoins,
 		},
 		{
 			"should fail with non empty Relayers",
 			func() {
 				packetFee.Relayers = []string{"relayer"}
 			},
-			false,
+			types.ErrRelayersNotEmpty,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
-		packetFee = types.NewPacketFee(fee, defaultAccAddress, nil)
+		t.Run(tc.name, func(t *testing.T) {
+			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+			packetFee = types.NewPacketFee(fee, defaultAccAddress, nil)
 
-		tc.malleate() // malleate mutates test data
+			tc.malleate() // malleate mutates test data
 
-		err := packetFee.Validate()
+			err := packetFee.Validate()
 
-		if tc.expPass {
-			require.NoError(t, err, tc.name)
-		} else {
-			require.Error(t, err, tc.name)
-		}
+			if tc.expErr == nil {
+				require.NoError(t, err, tc.name)
+			} else {
+				require.True(t, errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+			}
+		})
 	}
 }
