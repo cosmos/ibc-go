@@ -5,8 +5,6 @@ import (
 	"slices"
 	"strconv"
 
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

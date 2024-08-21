@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
-
 	db "github.com/cosmos/cosmos-db"
 
 	errorsmod "cosmossdk.io/errors"
