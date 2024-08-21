@@ -32,7 +32,7 @@ func NewLegacyIBCModule(cbs ...ClassicIBCModule) ClassicIBCModule {
 	}
 }
 
-func (im *LegacyIBCModule) Name() string {
+func (*LegacyIBCModule) Name() string {
 	return "ibc-legacy-module"
 }
 
@@ -275,7 +275,7 @@ func (im *LegacyIBCModule) OnRecvPacket(
 		results = append(results, res)
 	}
 
-	return im.WrapRecvResults(ctx, packet, relayer, results)
+	return im.WrapRecvResults(ctx, packet, results)
 
 	// Example (sync):
 	// ResultList {
@@ -316,13 +316,13 @@ func (im *LegacyIBCModule) OnRecvPacket(
 	// return res
 }
 
-func (im *LegacyIBCModule) WrapRecvResults(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, results []channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
+func (im *LegacyIBCModule) WrapRecvResults(ctx sdk.Context, packet channeltypes.Packet, results []channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
 	cbs := im.reversedCallbacks()
 
 	res := results[len(results)-1]
 	for i := len(results) - 2; i >= 0; i-- {
 		if wrapper, ok := cbs[i].(AcknowledgementWrapper); ok {
-			res = wrapper.WrapAcknowledgement(ctx, packet, relayer, res, results[i])
+			res = wrapper.WrapAcknowledgement(ctx, packet, res, results[i])
 		}
 	}
 

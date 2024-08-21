@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
+
 	db "github.com/cosmos/cosmos-db"
 
 	errorsmod "cosmossdk.io/errors"
@@ -18,6 +20,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -32,7 +35,7 @@ type Keeper struct {
 	cdc              codec.BinaryCodec
 	clientKeeper     types.ClientKeeper
 	connectionKeeper types.ConnectionKeeper
-	portKeeper       exported.PortKeeper
+	portKeeper       *portkeeper.Keeper
 	scopedKeeper     exported.ScopedKeeper
 }
 
@@ -40,7 +43,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey,
 	clientKeeper types.ClientKeeper, connectionKeeper types.ConnectionKeeper,
-	portKeeper exported.PortKeeper, scopedKeeper exported.ScopedKeeper,
+	portKeeper *portkeeper.Keeper, scopedKeeper exported.ScopedKeeper,
 ) *Keeper {
 	return &Keeper{
 		storeKey:         key,

@@ -153,7 +153,7 @@ type AcknowledgementWrapper interface {
 	// while maintaining backwards compatibility. It will be removed in the future.
 	// Applications should wrap the underlying app acknowledgement using the context
 	// and the given portID and channelID.
-	WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result channeltypes.RecvPacketResult) channeltypes.RecvPacketResult
+	WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, prevResult, result channeltypes.RecvPacketResult) channeltypes.RecvPacketResult
 
 	// UnwrapAcknowledgement is required in order to remove middleware wiring and the ICS4Wrapper
 	// while maintaining backwards compatibility. It will be removed in the future.
@@ -164,7 +164,8 @@ type AcknowledgementWrapper interface {
 }
 
 type AsyncAckWriter interface {
-	OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult) (channeltypes.RecvPacketResult, error)
+	// OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult) (channeltypes.RecvPacketResult, error)
+	OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult) error
 }
 
 // UpgradableModule defines the callbacks required to perform a channel upgrade.

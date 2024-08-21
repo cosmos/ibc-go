@@ -2,6 +2,7 @@ package exported
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 )
 
@@ -12,11 +13,4 @@ type ScopedKeeper interface {
 	AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool
 	LookupModules(ctx sdk.Context, name string) ([]string, *capabilitytypes.Capability, error)
 	ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error
-}
-
-// PortKeeper expected account IBC port keeper
-type PortKeeper interface {
-	Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, portID string) bool
-	// TODO: hack to get the app router without ciruclar imports
-	GetAppRouter() interface{}
 }

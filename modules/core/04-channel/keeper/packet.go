@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"bytes"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	"slices"
 	"strconv"
+
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -13,6 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -332,11 +334,10 @@ func (k *Keeper) WriteAcknowledgement(
 
 func (k *Keeper) WriteRecvPacketResult(
 	ctx sdk.Context,
-	packet exported.PacketI,
+	packet types.Packet,
 	appName string,
 	result types.RecvPacketResult,
 ) error {
-
 	// fetch the results that were written during OnRecvPacket
 	ackResults, found := k.GetRecvResults(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	if !found {
@@ -356,12 +357,7 @@ func (k *Keeper) WriteRecvPacketResult(
 		panic("result not found for app: " + appName)
 	}
 
-	appRouter, ok := k.portKeeper.GetAppRouter().(*porttypes.AppRouter)
-	if !ok {
-		panic("app router not found")
-	}
-
-	cbs, ok := appRouter.PacketRoute(packet.GetDestPort())
+	cbs, ok := k.portKeeper.AppRouter.PacketRoute(packet.GetDestPort())
 	if !ok {
 		ctx.Logger().Error("receive packet failed", "port-id", packet.GetSourcePort(), "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", packet.GetDestPort()))
 		return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", packet.GetDestPort())
@@ -374,59 +370,35 @@ func (k *Keeper) WriteRecvPacketResult(
 
 	callbacks := legacyModule.ReversedCallbacks()
 
-	for i := startIndex; i < len(callbacks); i++ {
-		var err error
+	// this is the index of the callback after the one that is calling into this function, example:
+
+	// in a stack of [transfer, fee, appX, appY, appZ]
+	// ack results are written in reverse due to the backwards iteration in the legacy module.
+	// this becomes [appZ, appY, appX, fee, transfer]
+	// if transfer is calling into this function, the start index will be 4.
+	// we want to start at fee, (index 3) and iterate through the remainder of the callbacks
+	// in reverse order.
+	// we subtract 1 so we start at 3 (fee), and pipe the result into appX, appY and then appZ.
+	startingCallbackIndex := len(callbacks) - startIndex - 1
+
+	for i := startingCallbackIndex; i >= 0; i-- {
 		if cb, ok := callbacks[i].(porttypes.AsyncAckWriter); ok {
-			result, err = cb.OnWriteAcknowledgement(ctx, packet, result)
-			if err != nil {
+			if err := cb.OnWriteAcknowledgement(ctx, packet, result); err != nil {
 				ctx.Logger().Error("on write ack failed", "port-id", packet.GetSourcePort(), "error", err)
 				return err
 			}
 		}
+
+		if cb, ok := callbacks[i].(porttypes.AcknowledgementWrapper); ok {
+			result = cb.WrapAcknowledgement(ctx, packet, result, ackResults.AcknowledgementResults[i].RecvPacketResult)
+		}
 	}
 
-	//wrappedAck := legacyModule.WrapRecvResults(ctx, packet, relayer, res, ackResults)
+	return k.WriteAcknowledgement(ctx, packet, result.Acknowledgement)
 
 	// transfer: write async ack
 	// appX: async ???????? - concern for when another app is async or it swallowed ack in previous wiring?
 	// fee: ack already written in temporary state (new state key)
-
-	// Lookup results and. Write ack for transfer
-	// Loop over results once again, to check if any async results still exist
-
-	// packetID := types.NewPacketID(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	// recvResults, found := k.GetRecvResults(ctx, packetID); if !found; return err
-
-	// How to find result for this acknowledgement (transfer): Provide appName as arg
-	// ResultList {
-	// 		fee: { Status: Success, Acknowledgement: feeAck.Bytes() }
-	//		transfer: { Status: Async, Acknowledgement: nil }
-	// }
-
-	// ========================================================================
-
-	// cbs, ok := k.portKeeper.AppRouter.PacketRoute(msg.Packet.DestinationPort)
-	// if !ok {
-	// 	ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort))
-	// 	return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort)
-	// }
-
-	// ????????
-	// for _, cb := range cbs {
-	// 	// check if cb implements OnWriteAcknowledgement
-	// 	// if it does, then call it...
-	// 	res, err := OnWriteAcknowledgement(ctx, packet, res)
-	// }
-
-	// Look up the stored results and wrap acks.
-	// res := resultList[len(resultList)-1]
-	// for i := len(resultList) - 2; i >= 0; i-- {
-	// 	if wrapper, ok := cbs[i].(AcknowledgementWrapper); ok {
-	// 		res = wrapper.WrapAcknowledgement(ctx, packet, relayer, res, resultList[i])
-	// 	}
-	// }
-
-	return k.WriteAcknowledgement(ctx, packet, result.Acknowledgement)
 }
 
 // AcknowledgePacket is called by a module to process the acknowledgement of a

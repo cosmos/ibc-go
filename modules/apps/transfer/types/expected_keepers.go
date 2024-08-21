@@ -43,7 +43,7 @@ type ChannelKeeper interface {
 	HasChannel(ctx sdk.Context, portID, channelID string) bool
 	WriteRecvPacketResult(
 		ctx sdk.Context,
-		packet ibcexported.PacketI,
+		packet channeltypes.Packet,
 		appName string,
 		result channeltypes.RecvPacketResult,
 	) error

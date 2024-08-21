@@ -388,8 +388,12 @@ func (im IBCMiddleware) UnwrapVersionSafe(ctx sdk.Context, portID, channelID, ve
 	return metadata.FeeVersion, metadata.AppVersion
 }
 
-func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
+func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, prevResult, result channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
 	if !im.keeper.IsFeeEnabled(ctx, packet.GetDestPort(), packet.GetDestChannel()) {
+		return prevResult
+	}
+
+	if prevResult.Status == channeltypes.PacketStatus_Async {
 		return prevResult
 	}
 
@@ -418,33 +422,6 @@ func (im IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID
 	return types.NewFeeAcknowledgement(incentivizedAck.ForwardRelayerAddress).Acknowledgement(), incentivizedAck.AppAcknowledgement
 }
 
-func (im IBCMiddleware) OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult) (channeltypes.RecvPacketResult, error) {
-	if !im.keeper.IsFeeEnabled(ctx, packet.GetDestPort(), packet.GetDestChannel()) {
-		// ics4Wrapper may be core IBC or higher-level middleware
-		return prevRes, nil
-	}
-
-	packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-
-	// retrieve the forward relayer that was stored in `onRecvPacket`
-	relayer, found := im.keeper.GetRelayerAddressForAsyncAck(ctx, packetID)
-	if !found {
-		return channeltypes.RecvPacketResult{}, errorsmod.Wrapf(types.ErrRelayerNotFoundForAsyncAck, "no relayer address stored for async acknowledgement for packet with portID: %s, channelID: %s, sequence: %d", packetID.PortId, packetID.ChannelId, packetID.Sequence)
-	}
-
-	// it is possible that a relayer has not registered a counterparty address.
-	// if there is no registered counterparty address then write acknowledgement with empty relayer address and refund recv_fee.
-	forwardRelayer, _ := im.keeper.GetCounterpartyPayeeAddress(ctx, relayer, packet.GetDestChannel())
-
-	// TODO(https://github.com/cosmos/ibc-go/issues/7044):
-	// The underlying app success bool is temporarily hardcoded to true! This should be revisited for the issue linked above.
-	ack := types.NewIncentivizedAcknowledgement(forwardRelayer, prevRes.Acknowledgement, true)
-
-	im.keeper.DeleteForwardRelayerAddress(ctx, packetID)
-
-	// ics4Wrapper may be core IBC or higher-level middleware
-	return channeltypes.RecvPacketResult{
-		Status:          prevRes.Status,
-		Acknowledgement: ack.Acknowledgement(),
-	}, nil
+func (im IBCMiddleware) OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult) error {
+	return nil
 }
