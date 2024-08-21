@@ -277,6 +277,8 @@ jobs:
       CHAIN_BINARY: '${{ inputs.chain-binary }}'
       CHAIN_UPGRADE_TAG: '${{ inputs.chain-upgrade-tag }}'
       CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
+      # explicitly set to true so that if a test fails, it doesn't delete the chain and cause other tests to fail.
+      KEEP_CONTAINERS: "true"
     strategy:
       fail-fast: false
       matrix:

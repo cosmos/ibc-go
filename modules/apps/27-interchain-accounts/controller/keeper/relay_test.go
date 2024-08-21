@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 					Data: data,
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success with multiple sdk.Msg",
@@ -74,7 +74,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 					Data: data,
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"data is nil",
@@ -84,35 +84,35 @@ func (suite *KeeperTestSuite) TestSendTx() {
 					Data: nil,
 				}
 			},
-			false,
+			icatypes.ErrInvalidOutgoingData,
 		},
 		{
 			"active channel not found",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
 			},
-			false,
+			icatypes.ErrActiveChannelNotFound,
 		},
 		{
 			"channel in INIT state - optimistic packet sends fail",
 			func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.INIT })
 			},
-			false,
+			icatypes.ErrActiveChannelNotFound,
 		},
 		{
 			"sendPacket fails - channel closed",
 			func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 			},
-			false,
+			icatypes.ErrActiveChannelNotFound,
 		},
 		{
 			"controller submodule disabled",
 			func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
 			},
-			false,
+			types.ErrControllerSubModuleDisabled,
 		},
 		{
 			"timeout timestamp is not in the future",
@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 
 				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().UnixNano())
 			},
-			false,
+			icatypes.ErrInvalidTimeoutTimestamp,
 		},
 	}
 
@@ -159,10 +159,10 @@ func (suite *KeeperTestSuite) TestSendTx() {
 				//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 				_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, packetData, timeoutTimestamp)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
@@ -175,12 +175,12 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 	}
 
@@ -212,7 +212,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 				err = suite.chainA.GetSimApp().ICAControllerKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
