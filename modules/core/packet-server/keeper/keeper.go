@@ -35,8 +35,7 @@ func NewKeeper(cdc codec.BinaryCodec, channelKeeper types.ChannelKeeper, clientK
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	// TODO: prefix some submodule identifier?
-	return ctx.Logger().With("module", "x/"+exported.ModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // TODO: add godoc

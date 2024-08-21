@@ -5,6 +5,8 @@ import (
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 )
 
+const SubModuleName = "packetserver"
+
 // BuildMerklePath takes the merkle path prefix and an ICS24 path
 // and builds a new path by appending the ICS24 path to the last element of the merkle path prefix.
 func BuildMerklePath(prefix *commitmenttypesv2.MerklePath, path []byte) commitmenttypesv2.MerklePath {
