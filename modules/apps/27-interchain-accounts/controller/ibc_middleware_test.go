@@ -122,10 +122,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"ICA auth module does not claim channel capability", func() {
@@ -139,7 +139,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 
 					return version, nil
 				}
-			}, true,
+			}, nil,
 		},
 		{
 			"ICA auth module modification of channel version is ignored", func() {
@@ -151,12 +151,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				) (string, error) {
 					return "invalid-version", nil
 				}
-			}, true,
+			}, nil,
 		},
 		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
+			}, types.ErrControllerSubModuleDisabled,
 		},
 		{
 			"ICA auth module callback fails", func() {
@@ -166,12 +166,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				) (string, error) {
 					return "", fmt.Errorf("mock ica auth fails")
 				}
-			}, false,
+			}, fmt.Errorf("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 		{
 			"middleware disabled", func() {
@@ -183,7 +183,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				) (string, error) {
 					return "", fmt.Errorf("error should be unreachable")
 				}
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -242,11 +242,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
 				)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().Equal(TestVersion, version)
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
@@ -315,20 +315,20 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
+			}, types.ErrControllerSubModuleDisabled,
 		},
 		{
 			"ICA OnChanOpenACK fails - invalid version", func() {
 				path.EndpointB.ChannelConfig.Version = invalidVersion
-			}, false,
+			}, ibcerrors.ErrInvalidType,
 		},
 		{
 			"ICA auth module callback fails", func() {
@@ -337,12 +337,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
-			}, false,
+			}, fmt.Errorf("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 		{
 			"middleware disabled", func() {
@@ -353,7 +353,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -388,10 +388,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
@@ -484,15 +484,15 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -524,10 +524,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 				err = cbs.OnChanCloseConfirm(
 					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
@@ -536,9 +536,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 
 func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name       string
+		malleate   func()
+		expSuccess bool
 	}{
 		{
 			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, false,
@@ -579,7 +579,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 				ctx := suite.chainA.GetContext()
 				ack := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
-				suite.Require().Equal(tc.expPass, ack.Success())
+				suite.Require().Equal(tc.expSuccess, ack.Success())
 
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
@@ -607,17 +607,17 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
+			}, types.ErrControllerSubModuleDisabled,
 		},
 		{
 			"ICA auth module callback fails", func() {
@@ -626,12 +626,12 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
-			}, false,
+			}, fmt.Errorf("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 		{
 			"middleware disabled", func() {
@@ -642,7 +642,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -685,10 +685,10 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, []byte("ack"), nil)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
@@ -704,17 +704,17 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
+			}, types.ErrControllerSubModuleDisabled,
 		},
 		{
 			"ICA auth module callback fails", func() {
@@ -723,12 +723,12 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
-			}, false,
+			}, fmt.Errorf("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 		{
 			"middleware disabled", func() {
@@ -739,7 +739,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -782,10 +782,10 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, nil)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
@@ -1123,12 +1123,10 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
 	}{
 		{
 			"success",
 			func() {},
-			true,
 		},
 	}
 
