@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{"success", func() {}, nil},
 		{"counterparty not found", func() {
 			packet.SourceChannel = ibctesting.FirstChannelID
-		}, channeltypes.ErrChannelNotFound},
+		}, clienttypes.ErrClientNotFound},
 		{"packet failed basic validation", func() {
 			// invalid data
 			packet.Data = nil
@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
-			channeltypes.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
 			"failure: client is not active",
@@ -246,7 +246,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
-			channeltypes.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			func() {
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
-			channeltypes.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -489,7 +489,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
-			channeltypes.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
