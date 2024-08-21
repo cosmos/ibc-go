@@ -184,27 +184,23 @@ func (IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet
 	return channeltypes.RecvPacketResult{Status: channeltypes.PacketStatus_Success}
 }
 
-func (IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, acknowledgment []byte) (cbAcknowledgement, underlyingAppAcknowledgement []byte) {
-	return acknowledgment, acknowledgment
-}
-
-func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, prevResult, result channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
+func (im IBCMiddleware) OnWriteAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, prevRes channeltypes.RecvPacketResult) {
 	// if result status is asynchronous, then the callback will be handled in WriteAcknowledgement
 	// if result status is failed, then all state changes are reverted.
 	// if a packet cannot be received, then there is no need to execute a callback on the receiving chain,
 	// thus we only proceed with the contract keeper callback if the result status is successful.
-	if prevResult.Status != channeltypes.PacketStatus_Success {
-		return prevResult
+	if prevRes.Status != channeltypes.PacketStatus_Success {
+		return
 	}
 
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
 	callbackData, err := types.GetDestCallbackData(ctx, im.app, packet, im.maxCallbackGas)
 	if err != nil {
-		return prevResult
+		return
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, prevResult.Acknowledgement, callbackData.CallbackAddress, callbackData.ApplicationVersion)
+		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, prevRes.Acknowledgement, callbackData.CallbackAddress, callbackData.ApplicationVersion)
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
@@ -213,8 +209,6 @@ func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes
 		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		types.CallbackTypeReceivePacket, callbackData, err,
 	)
-
-	return prevResult
 }
 
 // WriteAcknowledgement implements the ReceivePacket destination callbacks for the ibc-callbacks middleware
@@ -227,34 +221,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet ibcexported.PacketI,
 	ack []byte,
 ) error {
-	err := im.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack)
-	if err != nil {
-		return err
-	}
-
-	chanPacket, ok := packet.(channeltypes.Packet)
-	if !ok {
-		panic(fmt.Errorf("expected type %T, got %T", &channeltypes.Packet{}, packet))
-	}
-
-	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
-	callbackData, err := types.GetDestCallbackData(ctx, im.app, chanPacket, im.maxCallbackGas)
-	if err != nil {
-		return nil
-	}
-
-	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress, callbackData.ApplicationVersion)
-	}
-
-	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(
-		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
-		types.CallbackTypeReceivePacket, callbackData, err,
-	)
-
-	return nil
+	panic(errors.New("TODO: remove WriteAcknowledgement and refactor tests to OnWriteAcknowledgement func"))
 }
 
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
@@ -386,8 +353,4 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 // This function implements the optional PacketDataUnmarshaler interface.
 func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	return im.app.UnmarshalPacketData(ctx, portID, channelID, bz)
-}
-
-func (im IBCMiddleware) OnWriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, prevRes channeltypes.RecvPacketResult) {
-
 }

@@ -461,21 +461,16 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")
 	}
 
-	var ackResults channeltypes.AcknowledgementResults
+	var results channeltypes.AcknowledgementResults
 	if legacyIBCModule, ok := cbs[0].(*porttypes.LegacyIBCModule); ok {
 		cacheCtx, writeFn = ctx.CacheContext()
 
-		ackResults = legacyIBCModule.OnRecvPacketLegacy(cacheCtx, channelVersion, msg.Packet, relayer)
+		results = legacyIBCModule.OnRecvPacketLegacy(cacheCtx, channelVersion, msg.Packet, relayer)
 
-		var recvResults []channeltypes.RecvPacketResult
-		for _, r := range ackResults.AcknowledgementResults {
-			recvResults = append(recvResults, r.RecvPacketResult)
-		}
-
-		res := legacyIBCModule.WrapRecvResults(cacheCtx, msg.Packet, recvResults)
+		res := legacyIBCModule.WrapRecvResults(cacheCtx, msg.Packet, results)
 		if res.Status == channeltypes.PacketStatus_Async {
-			// NOTE: fill me in... store results in order to wrap full ack later on.
-			k.ChannelKeeper.SetRecvResults(cacheCtx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence(), ackResults)
+			// NOTE: store results in order to wrap full ack later on.
+			k.ChannelKeeper.SetRecvResults(cacheCtx, msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence(), results)
 		}
 
 		if res.Status != channeltypes.PacketStatus_Failure {
@@ -490,6 +485,8 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is nil.
 		if res.Acknowledgement != nil {
+			// TODO: OnWriteAcknowledgement callback before or after?
+			legacyIBCModule.OnWriteAcknowledgement(ctx, msg.Packet, res)
 			if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet, res.Acknowledgement); err != nil {
 				return nil, err
 			}

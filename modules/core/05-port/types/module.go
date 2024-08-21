@@ -122,6 +122,10 @@ type IBCModule interface {
 	) error
 }
 
+type AcknowledgementListener interface {
+	OnWriteAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, prevRes channeltypes.RecvPacketResult)
+}
+
 // VersionWrapper is an optional interface which should be implemented by middleware which wrap the channel version
 // to ensure backwards compatibility.
 type VersionWrapper interface {
@@ -161,10 +165,6 @@ type AcknowledgementWrapper interface {
 	// and the given portID and channelID. They should return their application acknowledgement
 	// as the bytes it expects to decode in OnAcknowledgement.
 	UnwrapAcknowledgement(ctx sdk.Context, portID, channelID string, acknowledgment []byte) (cbAcknowledgement, underlyingAppAcknowledgement []byte)
-}
-
-type AsyncAckWriter interface {
-	OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult)
 }
 
 // UpgradableModule defines the callbacks required to perform a channel upgrade.

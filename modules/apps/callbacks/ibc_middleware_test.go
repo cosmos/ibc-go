@@ -694,7 +694,13 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			s.Require().True(ok)
 
 			onRecvPacket := func() channeltypes.RecvPacketResult {
-				return cbs[0].OnRecvPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
+				legacyIBCModule, ok := cbs[0].(*porttypes.LegacyIBCModule)
+				s.Require().True(ok)
+
+				results := legacyIBCModule.OnRecvPacketLegacy(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
+				res := legacyIBCModule.WrapRecvResults(ctx, packet, results)
+				legacyIBCModule.OnWriteAcknowledgement(ctx, packet, res)
+				return res
 			}
 
 			switch tc.expAck {

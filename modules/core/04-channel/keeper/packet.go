@@ -380,7 +380,7 @@ func (k *Keeper) WriteRecvPacketResult(
 	startingCallbackIndex := len(callbacks) - startIndex - 1
 
 	for i := startingCallbackIndex; i >= 0; i-- {
-		if cb, ok := callbacks[i].(porttypes.AsyncAckWriter); ok {
+		if cb, ok := callbacks[i].(porttypes.AcknowledgementListener); ok {
 			cb.OnWriteAcknowledgement(ctx, packet, result)
 		}
 
