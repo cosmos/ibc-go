@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-
 	"github.com/cosmos/gogoproto/proto"
 	testifysuite "github.com/stretchr/testify/suite"
 
