@@ -188,7 +188,7 @@ func (IBCMiddleware) UnwrapAcknowledgement(ctx sdk.Context, portID, channelID st
 	return acknowledgment, acknowledgment
 }
 
-func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress, prevResult, result channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
+func (im IBCMiddleware) WrapAcknowledgement(ctx sdk.Context, packet channeltypes.Packet, prevResult, result channeltypes.RecvPacketResult) channeltypes.RecvPacketResult {
 	// if result status is asynchronous, then the callback will be handled in WriteAcknowledgement
 	// if result status is failed, then all state changes are reverted.
 	// if a packet cannot be received, then there is no need to execute a callback on the receiving chain,
@@ -386,4 +386,8 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 // This function implements the optional PacketDataUnmarshaler interface.
 func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	return im.app.UnmarshalPacketData(ctx, portID, channelID, bz)
+}
+
+func (im IBCMiddleware) OnWriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, prevRes channeltypes.RecvPacketResult) {
+
 }

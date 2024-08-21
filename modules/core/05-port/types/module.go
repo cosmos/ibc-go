@@ -164,8 +164,7 @@ type AcknowledgementWrapper interface {
 }
 
 type AsyncAckWriter interface {
-	// OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult) (channeltypes.RecvPacketResult, error)
-	OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult) error
+	OnWriteAcknowledgement(ctx sdk.Context, packet exported.PacketI, prevRes channeltypes.RecvPacketResult)
 }
 
 // UpgradableModule defines the callbacks required to perform a channel upgrade.

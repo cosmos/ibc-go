@@ -381,10 +381,7 @@ func (k *Keeper) WriteRecvPacketResult(
 
 	for i := startingCallbackIndex; i >= 0; i-- {
 		if cb, ok := callbacks[i].(porttypes.AsyncAckWriter); ok {
-			if err := cb.OnWriteAcknowledgement(ctx, packet, result); err != nil {
-				ctx.Logger().Error("on write ack failed", "port-id", packet.GetSourcePort(), "error", err)
-				return err
-			}
+			cb.OnWriteAcknowledgement(ctx, packet, result)
 		}
 
 		if cb, ok := callbacks[i].(porttypes.AcknowledgementWrapper); ok {
