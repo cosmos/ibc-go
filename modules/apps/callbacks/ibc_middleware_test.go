@@ -764,7 +764,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	}
 }
 
-//func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
+// func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 //	var (
 //		packetData transfertypes.FungibleTokenPacketDataV2
 //		packet     channeltypes.Packet
