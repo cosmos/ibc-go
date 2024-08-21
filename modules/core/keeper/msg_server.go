@@ -478,22 +478,9 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	switch msg.Packet.ProtocolVersion {
-	case channeltypes.IBC_VERSION_UNSPECIFIED, channeltypes.IBC_VERSION_1:
-		packetHandler = k.ChannelKeeper
-
-		// Lookup module by channel capability
-		module, capability, err = k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.DestinationPort, msg.Packet.DestinationChannel)
-		if err != nil {
-			ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-			return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-		}
-
-	case channeltypes.IBC_VERSION_2:
-		packetHandler = k.PacketServerKeeper
-		module = msg.Packet.DestinationPort
-	default:
-		panic(fmt.Errorf("unsupported protocol version %d", msg.Packet.ProtocolVersion))
+	packetHandler, module, capability, err = k.getPacketHandlerAndModule(ctx, msg.Packet.ProtocolVersion, msg.Packet.DestinationPort, msg.Packet.DestinationChannel)
+	if err != nil {
+		return nil, err
 	}
 
 	// Retrieve callbacks from router
@@ -566,22 +553,9 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	switch msg.Packet.ProtocolVersion {
-	case channeltypes.IBC_VERSION_UNSPECIFIED, channeltypes.IBC_VERSION_1:
-		packetHandler = k.ChannelKeeper
-
-		// Lookup module by channel capability
-		module, capability, err = k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel)
-		if err != nil {
-			ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-			return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-		}
-
-	case channeltypes.IBC_VERSION_2:
-		packetHandler = k.PacketServerKeeper
-		module = msg.Packet.SourcePort
-	default:
-		panic(fmt.Errorf("unsupported protocol version %d", msg.Packet.ProtocolVersion))
+	packetHandler, module, capability, err = k.getPacketHandlerAndModule(ctx, msg.Packet.ProtocolVersion, msg.Packet.SourcePort, msg.Packet.SourceChannel)
+	if err != nil {
+		return nil, err
 	}
 
 	// Retrieve callbacks from router
@@ -699,22 +673,9 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	switch msg.Packet.ProtocolVersion {
-	case channeltypes.IBC_VERSION_UNSPECIFIED, channeltypes.IBC_VERSION_1:
-		packetHandler = k.ChannelKeeper
-
-		// Lookup module by channel capability
-		module, capability, err = k.ChannelKeeper.LookupModuleByChannel(ctx, msg.Packet.SourcePort, msg.Packet.SourceChannel)
-		if err != nil {
-			ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-			return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-		}
-
-	case channeltypes.IBC_VERSION_2:
-		packetHandler = k.PacketServerKeeper
-		module = msg.Packet.SourcePort
-	default:
-		panic(fmt.Errorf("unsupported protocol version %d", msg.Packet.ProtocolVersion))
+	packetHandler, module, capability, err = k.getPacketHandlerAndModule(ctx, msg.Packet.ProtocolVersion, msg.Packet.SourcePort, msg.Packet.SourceChannel)
+	if err != nil {
+		return nil, err
 	}
 
 	// Retrieve callbacks from router
@@ -1177,4 +1138,33 @@ func convertToErrorEvents(events sdk.Events) sdk.Events {
 	}
 
 	return newEvents
+}
+
+func (k *Keeper) getPacketHandlerAndModule(ctx sdk.Context, protocolVersion channeltypes.IBCVersion, sourcePort, sourceChannel string) (PacketHandler, string, *capabilitytypes.Capability, error) {
+	var (
+		packetHandler PacketHandler
+		module        string
+		capability    *capabilitytypes.Capability
+		err           error
+	)
+
+	switch protocolVersion {
+	case channeltypes.IBC_VERSION_UNSPECIFIED, channeltypes.IBC_VERSION_1:
+		packetHandler = k.ChannelKeeper
+
+		// Lookup module by channel capability
+		module, capability, err = k.ChannelKeeper.LookupModuleByChannel(ctx, sourcePort, sourceChannel)
+		if err != nil {
+			ctx.Logger().Error("acknowledgement failed", "port-id", sourcePort, "channel-id", sourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+			return nil, "", nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+		}
+
+	case channeltypes.IBC_VERSION_2:
+		packetHandler = k.PacketServerKeeper
+		module = sourcePort
+	default:
+		return nil, "", nil, fmt.Errorf("unsupported protocol version %d", protocolVersion)
+	}
+
+	return packetHandler, module, capability, nil
 }
