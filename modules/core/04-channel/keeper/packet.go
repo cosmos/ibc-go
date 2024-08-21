@@ -336,25 +336,9 @@ func (k *Keeper) WriteRecvPacketResult(
 	appName string,
 	result types.RecvPacketResult,
 ) error {
-	// fetch the results that were written during OnRecvPacket
-	ackResults, found := k.GetRecvResults(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	if !found {
-		panic("recv results not found")
-	}
-
-	// start index for the callbacks to be executed.
-	startIndex := -1
-	for i, r := range ackResults.AcknowledgementResults {
-		if r.PortId == appName {
-			startIndex = i
-			break
-		}
-	}
-
-	if startIndex == -1 {
-		panic("result not found for app: " + appName)
-	}
-
+	// transfer: write async ack
+	// appX: async ???????? - concern for when another app is async or it swallowed ack in previous wiring?
+	// fee: ack already written in temporary state (new state key)
 	cbs, ok := k.portKeeper.AppRouter.PacketRoute(packet.GetDestPort())
 	if !ok {
 		ctx.Logger().Error("receive packet failed", "port-id", packet.GetSourcePort(), "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", packet.GetDestPort()))
@@ -363,37 +347,21 @@ func (k *Keeper) WriteRecvPacketResult(
 
 	legacyModule, ok := cbs[0].(*porttypes.LegacyIBCModule)
 	if !ok {
-		panic("legacy module not found")
+		panic("todo: legacy module not found")
 	}
 
-	callbacks := legacyModule.ReversedCallbacks()
-
-	// this is the index of the callback after the one that is calling into this function, example:
-
-	// in a stack of [transfer, fee, appX, appY, appZ]
-	// ack results are written in reverse due to the backwards iteration in the legacy module.
-	// this becomes [appZ, appY, appX, fee, transfer]
-	// if transfer is calling into this function, the start index will be 4.
-	// we want to start at fee, (index 3) and iterate through the remainder of the callbacks
-	// in reverse order.
-	// we subtract 1 so we start at 3 (fee), and pipe the result into appX, appY and then appZ.
-	startingCallbackIndex := len(callbacks) - startIndex - 1
-
-	for i := startingCallbackIndex; i >= 0; i-- {
-		if cb, ok := callbacks[i].(porttypes.AcknowledgementListener); ok {
-			cb.OnWriteAcknowledgement(ctx, packet, result)
-		}
-
-		if cb, ok := callbacks[i].(porttypes.AcknowledgementWrapper); ok {
-			result = cb.WrapAcknowledgement(ctx, packet, result, ackResults.AcknowledgementResults[i].RecvPacketResult)
-		}
+	// fetch the results that were written during OnRecvPacket
+	results, found := k.GetRecvResults(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	if !found {
+		panic("todo: recv results not found")
 	}
 
-	return k.WriteAcknowledgement(ctx, packet, result.Acknowledgement)
+	acknowledgement, err := legacyModule.HandleAsyncRecvResults(ctx, appName, packet, result, results)
+	if err != nil {
+		return err
+	}
 
-	// transfer: write async ack
-	// appX: async ???????? - concern for when another app is async or it swallowed ack in previous wiring?
-	// fee: ack already written in temporary state (new state key)
+	return k.WriteAcknowledgement(ctx, packet, acknowledgement)
 }
 
 // AcknowledgePacket is called by a module to process the acknowledgement of a

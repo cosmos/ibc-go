@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
@@ -319,6 +320,47 @@ func (im *LegacyIBCModule) WrapRecvResults(ctx sdk.Context, packet channeltypes.
 	return res
 }
 
+// HandleAsyncRecvResults is called by core IBC when handling an async acknowledgement.
+//
+// It accepts the async acknowledgement (RecvPacketResult), application name (e.g. transfer) and list of already fulfilled results within the application stack.
+// The list of ackResults are written to state in OnRecvPacket when handling an async acknowledgement packet result.
+//
+// 1. Find the index of the caller application within the list of ackResults.
+// 2. Reverse the application callbacks (because the results are written in reverse order in OnRecvPacket).
+// 3. Calculate the starting callback index (the index of the callback after the caller of WriteRecvPacketResult, see inline).
+// 4. Execute the application callbacks and return the optionally wrapped acknowledgement.
+func (im *LegacyIBCModule) HandleAsyncRecvResults(ctx sdk.Context, appName string, packet channeltypes.Packet, recvResult channeltypes.RecvPacketResult, ackResults channeltypes.AcknowledgementResults) ([]byte, error) {
+	// find the start index for the caller application
+	startIndex := slices.IndexFunc(ackResults.AcknowledgementResults, func(res types.AcknowledgementResult) bool {
+		return res.PortId == appName
+	})
+
+	if startIndex == -1 {
+		return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "acknowledgement result for %s not found", appName)
+	}
+
+	callbacks := im.reversedCallbacks()
+
+	//   - in a stack of [transfer, fee, appX, appY, appZ]
+	//   - ack results are written in reverse due to the backwards iteration in the legacy module.
+	//   - this becomes [appZ, appY, appX, fee, transfer]
+	//   - if transfer is calling into this function, the start index will be 4.
+	//   - we want to start at fee, (index 3) and iterate through the remainder of the callbacks in reverse order.
+	//   - we subtract 1 so we start at 3 (fee), and pipe the result into appX, appY and then appZ.
+	startingCallbackIndex := len(callbacks) - startIndex - 1
+	for i := startingCallbackIndex; i >= 0; i-- {
+		if cb, ok := callbacks[i].(AcknowledgementListener); ok {
+			cb.OnWriteAcknowledgement(ctx, packet, recvResult)
+		}
+
+		if cb, ok := callbacks[i].(AcknowledgementWrapper); ok {
+			recvResult = cb.WrapAcknowledgement(ctx, packet, recvResult, ackResults.AcknowledgementResults[i].RecvPacketResult)
+		}
+	}
+
+	return recvResult.Acknowledgement, nil
+}
+
 // OnAcknowledgementPacket implements the IBCModule interface
 func (im *LegacyIBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
@@ -534,12 +576,6 @@ func (*LegacyIBCModule) UnmarshalPacketData(ctx sdk.Context, portID, channelID s
 // the majority of handlers are called in reverse order, so this can be used
 // in those cases to prevent needing to iterate backwards over the callbacks.
 func (im *LegacyIBCModule) reversedCallbacks() []ClassicIBCModule {
-	cbs := slices.Clone(im.cbs)
-	slices.Reverse(cbs)
-	return cbs
-}
-
-func (im *LegacyIBCModule) ReversedCallbacks() []ClassicIBCModule {
 	cbs := slices.Clone(im.cbs)
 	slices.Reverse(cbs)
 	return cbs
