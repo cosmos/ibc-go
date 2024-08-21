@@ -5,7 +5,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // ClassicIBCModule defines an interface that implements all the callbacks
@@ -221,12 +220,6 @@ type UpgradableModule interface {
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
 type ICS4Wrapper interface {
 	// TODO: Leave in place to avoid compiler errors and incrementally work to remove. We can then delete these methods
-	WriteAcknowledgement(
-		ctx sdk.Context,
-		packet exported.PacketI,
-		ack []byte,
-	) error
-
 	GetAppVersion(
 		ctx sdk.Context,
 		portID,
