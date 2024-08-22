@@ -33,15 +33,15 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
-	cdc            codec.BinaryCodec
-	kvstoreService corestore.KVStoreService
+	cdc          codec.BinaryCodec
+	storeService corestore.KVStoreService
 }
 
 // NewLightClientModule creates and returns a new 09-localhost LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, key corestore.KVStoreService) *LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeService corestore.KVStoreService) *LightClientModule {
 	return &LightClientModule{
-		cdc:            cdc,
-		kvstoreService: key,
+		cdc:          cdc,
+		storeService: storeService,
 	}
 }
 
@@ -83,7 +83,7 @@ func (l LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	ibcStore := l.kvstoreService.OpenKVStore(ctx)
+	ibcStore := l.storeService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -127,7 +127,7 @@ func (l LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	ibcStore := l.kvstoreService.OpenKVStore(ctx)
+	ibcStore := l.storeService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
