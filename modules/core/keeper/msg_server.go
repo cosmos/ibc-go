@@ -1160,12 +1160,10 @@ func (k *Keeper) getPacketHandlerAndModule(ctx sdk.Context, protocolVersion chan
 		packetHandler = k.ChannelKeeper
 		// Lookup module by channel capability
 		module, capability, err = k.ChannelKeeper.LookupModuleByChannel(ctx, port, channel)
+		return packetHandler, module, capability, err
 	case channeltypes.IBC_VERSION_2:
-		packetHandler = k.PacketServerKeeper
-		module = port
+		return k.PacketServerKeeper, port, nil, nil
 	default:
 		return nil, "", nil, fmt.Errorf("unsupported protocol %s", protocolVersion)
 	}
-
-	return packetHandler, module, capability, err
 }
