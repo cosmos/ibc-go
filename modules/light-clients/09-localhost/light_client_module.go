@@ -102,7 +102,7 @@ func (l LightClientModule) VerifyMembership(
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz, err := ibcStore.Get(merklePath.KeyPath[1])
 	if err != nil {
-		return errorsmod.Wrapf(err, "error getting value for path %s", path)
+		panic(err)
 	}
 	if bz == nil {
 		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
