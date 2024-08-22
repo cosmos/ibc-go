@@ -1353,7 +1353,7 @@ type QueryClient interface {
 	UpgradedConsensusState(ctx context.Context, in *QueryUpgradedConsensusStateRequest, opts ...grpc.CallOption) (*QueryUpgradedConsensusStateResponse, error)
 	// VerifyMembership queries an IBC light client for proof verification of a value at a given key path.
 	VerifyMembership(ctx context.Context, in *QueryVerifyMembershipRequest, opts ...grpc.CallOption) (*QueryVerifyMembershipResponse, error)
-	// GetCounterParty queries CounterParty for a given clientId
+	// Client queries the counterparty of an IBC client.
 	Client(ctx context.Context, in *QueryClientRequest, opts ...grpc.CallOption) (*QueryClientResponse, error)
 }
 
@@ -1488,7 +1488,7 @@ type QueryServer interface {
 	UpgradedConsensusState(context.Context, *QueryUpgradedConsensusStateRequest) (*QueryUpgradedConsensusStateResponse, error)
 	// VerifyMembership queries an IBC light client for proof verification of a value at a given key path.
 	VerifyMembership(context.Context, *QueryVerifyMembershipRequest) (*QueryVerifyMembershipResponse, error)
-	// GetCounterParty queries CounterParty for a given clientId
+	// Client queries the counterparty of an IBC client.
 	Client(context.Context, *QueryClientRequest) (*QueryClientResponse, error)
 }
 

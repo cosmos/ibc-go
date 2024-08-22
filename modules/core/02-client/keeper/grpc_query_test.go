@@ -954,3 +954,98 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryClient() {
+	var (
+		req             *types.QueryClientRequest
+		expCreator      string
+		expCounterparty *types.Counterparty
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		errMsg   string
+	}{
+		{
+			"success",
+			func() {
+				ctx := suite.chainA.GetContext()
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCreator(ctx, ibctesting.FirstClientID, expCreator)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCounterparty(ctx, ibctesting.FirstClientID, *expCounterparty)
+
+				req = &types.QueryClientRequest{
+					ClientId: ibctesting.FirstClientID,
+				}
+			},
+			"",
+		},
+		{
+			"success: no creator",
+			func() {
+				expCreator = ""
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCounterparty(suite.chainA.GetContext(), ibctesting.FirstClientID, *expCounterparty)
+
+				req = &types.QueryClientRequest{
+					ClientId: ibctesting.FirstClientID,
+				}
+			},
+			"",
+		},
+		{
+			"success: no counterparty",
+			func() {
+				expCounterparty = nil
+
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCreator(suite.chainA.GetContext(), ibctesting.FirstClientID, expCreator)
+
+				req = &types.QueryClientRequest{
+					ClientId: ibctesting.FirstClientID,
+				}
+			},
+			"",
+		},
+		{
+			"req is nil",
+			func() {
+				req = nil
+			},
+			"empty request",
+		},
+		{
+			"invalid clientID",
+			func() {
+				req = &types.QueryClientRequest{}
+			},
+			"identifier cannot be blank",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			expCreator = ibctesting.TestAccAddress
+			merklePathPrefix := commitmenttypes.NewMerklePath([]byte("prefix"))
+			expCounterparty = &types.Counterparty{ClientId: ibctesting.SecondClientID, MerklePathPrefix: &merklePathPrefix}
+
+			tc.malleate()
+
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.Client(suite.chainA.GetContext(), req)
+
+			if tc.errMsg == "" {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expCreator, res.Creator)
+				suite.Require().Equal(expCounterparty, res.Counterparty)
+			} else {
+				suite.Require().ErrorContains(err, tc.errMsg)
+				suite.Require().Nil(res)
+			}
+		})
+	}
+}

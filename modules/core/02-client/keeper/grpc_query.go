@@ -411,21 +411,28 @@ func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerify
 	}, nil
 }
 
+// Client implements the Query/Client gRPC method
 func (q *queryServer) Client(ctx context.Context, req *types.QueryClientRequest) (*types.QueryClientResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	res := types.QueryClientResponse{}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	counterParty, err := q.GetCounterparty(sdkCtx, req.ClientId)
-	if !err {
-		return nil, nil
+	creator, found := q.GetCreator(sdkCtx, req.ClientId)
+	if found {
+		res.Creator = creator
 	}
-	creator, err := q.GetCreator(sdkCtx, req.ClientId)
-	if !err {
-		return nil, nil
+
+	counterparty, found := q.GetCounterparty(sdkCtx, req.ClientId)
+	if found {
+		res.Counterparty = &counterparty
 	}
-	return &types.QueryClientResponse{
-		Creator:      creator,
-		Counterparty: &counterParty,
-	}, nil
+
+	return &res, nil
 }
