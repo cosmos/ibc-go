@@ -35,7 +35,7 @@ Now, if you run `go test` in this directory, the file you have produced above sh
 and executed automatically.
 
 The easiest way to run Apalache is by
-[using a Docker image](https://apalache.informal.systems/docs/apalache/installation/docker.html);
+[using a Docker image](https://apalache-mc.org/docs/apalache/installation/docker.html);
 to run Jsonatr you need to locally clone the repository, and then,
 after building it, add the `target/debug` directory into your `PATH`.
 
