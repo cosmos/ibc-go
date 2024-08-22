@@ -233,54 +233,96 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expPass   bool
+		expErr    error
 		expRevert bool
 		async     bool // indicate no ack written
 		replay    bool // indicate replay (no-op)
 	}{
-		{"success", func() {
-			path.SetupV2()
+		{
+			"success",
+			func() {
+				path.SetupV2()
 
-			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockPacketData)
-			suite.Require().NoError(err)
+				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockPacketData)
+				suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
-		}, true, false, false, false},
-		{"success: OnRecvPacket callback returns revert=true", func() {
-			path.SetupV2()
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
+			},
+			nil,
+			false,
+			false,
+			false,
+		},
+		{
+			"success: OnRecvPacket callback returns error acknowledgement",
+			func() {
+				path.SetupV2()
 
-			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockFailPacketData)
-			suite.Require().NoError(err)
+				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockFailPacketData)
+				suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockFailPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
-		}, true, true, false, false},
-		{"success: async acknowledgement", func() {
-			path.SetupV2()
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockFailPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
+			},
+			nil,
+			true,
+			false,
+			false,
+		},
+		{
+			"success: async acknowledgement",
+			func() {
+				path.SetupV2()
 
-			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibcmock.MockAsyncPacketData)
-			suite.Require().NoError(err)
+				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibcmock.MockAsyncPacketData)
+				suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibcmock.MockAsyncPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
-		}, true, false, true, false},
-		{"channel does not exist", func() {
-			// any non-nil value of packet is valid
-			suite.Require().NotNil(packet)
-		}, false, false, false, false},
-		{"packet not sent", func() {
-			path.SetupV2()
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
-		}, false, false, false, false},
-		{"successful no-op: - packet already received (replay)", func() {
-			// mock will panic if application callback is called twice on the same packet
-			path.SetupV2()
+				packet = channeltypes.NewPacketWithVersion(ibcmock.MockAsyncPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
+			},
+			nil,
+			false,
+			true,
+			false,
+		},
+		{
+			"success no-op: packet already received (replay)",
+			func() {
+				// mock will panic if application callback is called twice on the same packet
+				path.SetupV2()
 
-			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockPacketData)
-			suite.Require().NoError(err)
+				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockPacketData)
+				suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
-			err = path.EndpointB.RecvPacket(packet)
-			suite.Require().NoError(err)
-		}, true, false, false, true},
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
+				err = path.EndpointB.RecvPacket(packet)
+				suite.Require().NoError(err)
+			},
+			nil,
+			false,
+			false,
+			true,
+		},
+		{
+			"channel does not exist",
+			func() {
+				// any non-nil value of packet is valid
+				suite.Require().NotNil(packet)
+			},
+			channeltypes.ErrChannelNotFound,
+			false,
+			false,
+			false,
+		},
+		{
+			"packet not sent",
+			func() {
+				path.SetupV2()
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
+			},
+			fmt.Errorf("receive packet verification failed"),
+			false,
+			false,
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -296,21 +338,19 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				proof       []byte
 				proofHeight clienttypes.Height
 			)
-
 			// get proof of packet commitment from chainA
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			if path.EndpointA.ClientID != "" {
 				proof, proofHeight = path.EndpointA.QueryProof(packetKey)
 			}
 
-			msg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
-
 			ctx := suite.chainB.GetContext()
-			_, err := suite.chainB.App.GetIBCKeeper().RecvPacket(ctx, msg)
+			msg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
+			res, err := suite.chainB.App.GetIBCKeeper().RecvPacket(ctx, msg)
 
 			events := ctx.EventManager().Events()
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				// replay should not fail since it will be treated as a no-op
@@ -344,13 +384,13 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				if tc.async {
 					suite.Require().Nil(ack)
 					suite.Require().False(found)
-
 				} else {
 					suite.Require().NotNil(ack)
 					suite.Require().True(found)
 				}
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.expErr.Error())
+				suite.Require().Nil(res)
 			}
 		})
 	}
@@ -603,25 +643,55 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 		expError error
 		replay   bool // indicate replay (no-op)
 	}{
-		{"success", func() {}, nil, false},
-		{"invalid signer", func() {
-			signer = "invalid-signer"
-		}, errors.New("Invalid address for msg Signer"), false},
-		{"port route does not exist", func() {
-			packet.SourcePort = "invalid-port"
-		}, porttypes.ErrInvalidRoute, false},
-		{"acknowledge packet fails in packet handler", func() {
-			packet.SourceChannel = "invalid-client"
-		}, channeltypes.ErrChannelNotFound, false},
-		{"successful no-op: - packet already acknowledged (replay)", func() {
-			err := path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
-			suite.Require().NoError(err)
-		}, nil, true},
-		{"application callback returns error", func() {
-			suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnAcknowledgementPacket = func(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
-				return fmt.Errorf("mock app callback failed")
-			}
-		}, fmt.Errorf("mock app callback failed"), false},
+		{
+			"success",
+			func() {},
+			nil,
+			false,
+		},
+		{
+			"invalid signer",
+			func() {
+				signer = "invalid-signer"
+			},
+			errors.New("Invalid address for msg Signer"),
+			false,
+		},
+		{
+			"port route does not exist",
+			func() {
+				packet.SourcePort = "invalid-port"
+			},
+			porttypes.ErrInvalidRoute,
+			false,
+		},
+		{
+			"acknowledge packet fails in packet handler",
+			func() {
+				packet.SourceChannel = "invalid-client"
+			},
+			channeltypes.ErrChannelNotFound,
+			false,
+		},
+		{
+			"successful no-op: - packet already acknowledged (replay)",
+			func() {
+				err := path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
+				suite.Require().NoError(err)
+			},
+			nil,
+			true,
+		},
+		{
+			"application callback returns error",
+			func() {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnAcknowledgementPacket = func(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+					return fmt.Errorf("mock app callback failed")
+				}
+			},
+			fmt.Errorf("mock app callback failed"),
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -630,6 +700,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			signer = suite.chainA.SenderAccount.GetAddress().String()
+
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
@@ -847,7 +918,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 // It verifies that the deletion of a packet commitment occurs. More
 // rigorous testing of 'TimeoutPacket' and 'TimeoutExecuted' can be found in
 // the packet-server/keeper/keeper_test.go.
-func (suite *KeeperTestSuite) TestHandleTimeoutPacketV2() {
+func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 	var (
 		packet    channeltypes.Packet
 		packetKey []byte
@@ -857,58 +928,77 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacketV2() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 		noop     bool // indicate no-op
 	}{
-		{"success", func() {
-			path.SetupV2()
+		{
+			"success",
+			func() {
+				path.SetupV2()
 
-			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-
-			// create packet commitment
-			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, timeoutTimestamp, "", ibctesting.MockPacketData)
-			suite.Require().NoError(err)
-
-			// need to update chainA client to prove missing ack
-			err = path.EndpointA.UpdateClient()
-			suite.Require().NoError(err)
-
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, timeoutTimestamp, "")
-			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-		}, true, false},
-		{"success: UNORDERED timeout out of order packet", func() {
-			// setup uses an UNORDERED channel
-			path.SetupV2()
-
-			// attempts to timeout the last packet sent without timing out the first packet
-			// packet sequences begin at 1
-			for i := uint64(1); i < maxSequence; i++ {
 				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
 				// create packet commitment
-				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockPacketData)
+				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, timeoutTimestamp, "", ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
-				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
-			}
+				// need to update chainA client to prove missing ack
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
 
-			err := path.EndpointA.UpdateClient()
-			suite.Require().NoError(err)
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, timeoutTimestamp, "")
+				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			},
+			nil,
+			false,
+		},
+		{
+			"success: timeout out of order packet",
+			func() {
+				// setup uses an UNORDERED channel
+				path.SetupV2()
 
-			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-		}, true, false},
-		{"channel does not exist", func() {
-			// any non-nil value of packet is valid
-			suite.Require().NotNil(packet)
+				// attempts to timeout the last packet sent without timing out the first packet
+				// packet sequences begin at 1
+				for i := uint64(1); i < maxSequence; i++ {
+					timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 
-			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-		}, false, false},
-		{"successful no-op: UNORDERED - packet not sent", func() {
-			path.SetupV2()
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(0, 1), 0, "")
-			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-		}, true, true},
+					// create packet commitment
+					sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, "", ibctesting.MockPacketData)
+					suite.Require().NoError(err)
+
+					packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, "")
+				}
+
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			},
+			nil,
+			false,
+		},
+		{
+			"success no-op: packet not sent", func() {
+				path.SetupV2()
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(0, 1), 0, "")
+				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			},
+			nil,
+			true,
+		},
+		{
+			"channel does not exist",
+			func() {
+				// any non-nil value of packet is valid
+				suite.Require().NotNil(packet)
+
+				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			},
+			channeltypes.ErrChannelNotFound,
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -928,14 +1018,13 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacketV2() {
 				proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 			}
 
-			msg := channeltypes.NewMsgTimeout(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
-
 			ctx := suite.chainA.GetContext()
-			_, err := suite.chainA.App.GetIBCKeeper().Timeout(ctx, msg)
+			msg := channeltypes.NewMsgTimeout(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			res, err := suite.chainA.App.GetIBCKeeper().Timeout(ctx, msg)
 
 			events := ctx.EventManager().Events()
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				// replay should not return an error as it is treated as a no-op
@@ -955,7 +1044,8 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacketV2() {
 				}
 
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
+				suite.Require().Nil(res)
 			}
 		})
 	}
