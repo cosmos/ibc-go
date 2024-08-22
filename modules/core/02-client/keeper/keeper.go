@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	corestoretypes "cosmossdk.io/core/store"
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/prefix"
@@ -27,7 +27,7 @@ import (
 // Keeper represents a type that grants read and write permissions to any client
 // state information
 type Keeper struct {
-	storeService   corestoretypes.KVStoreService
+	storeService   corestore.KVStoreService
 	cdc            codec.BinaryCodec
 	router         *types.Router
 	legacySubspace types.ParamSubspace
@@ -35,7 +35,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService corestoretypes.KVStoreService, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
 	router := types.NewRouter()
 	localhostModule := localhost.NewLightClientModule(cdc, storeService)
 	router.AddRoute(exported.Localhost, localhostModule)

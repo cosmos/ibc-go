@@ -13,7 +13,7 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
-// StoreProvider encapsulates the IBC core store key and offers convenience methods for LightClientModules.
+// StoreProvider encapsulates the IBC core store service and offers convenience methods for LightClientModules.
 type StoreProvider struct {
 	storeService corestore.KVStoreService
 }
