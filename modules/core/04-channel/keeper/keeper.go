@@ -644,7 +644,7 @@ func (k *Keeper) GetCounterpartyUpgrade(ctx context.Context, portID, channelID s
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ChannelCounterpartyUpgradeKey(portID, channelID))
 	if err != nil {
-		return types.Upgrade{}, false
+		panic(err)
 	}
 	if bz == nil {
 		return types.Upgrade{}, false
@@ -751,7 +751,7 @@ func (k *Keeper) GetRecvStartSequence(ctx context.Context, portID, channelID str
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.RecvStartSequenceKey(portID, channelID))
 	if err != nil {
-		return 0, false
+		panic(err)
 	}
 	if len(bz) == 0 {
 		return 0, false
@@ -774,7 +774,7 @@ func (k *Keeper) GetPruningSequenceStart(ctx context.Context, portID, channelID 
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.PruningSequenceStartKey(portID, channelID))
 	if err != nil {
-		return 0, false
+		panic(err)
 	}
 	if len(bz) == 0 {
 		return 0, false

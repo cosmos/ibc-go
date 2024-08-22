@@ -19,9 +19,9 @@ type StoreProvider struct {
 }
 
 // NewStoreProvider creates and returns a new client StoreProvider.
-func NewStoreProvider(storeKey corestore.KVStoreService) StoreProvider {
+func NewStoreProvider(storeService corestore.KVStoreService) StoreProvider {
 	return StoreProvider{
-		storeService: storeKey,
+		storeService: storeService,
 	}
 }
 

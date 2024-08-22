@@ -191,15 +191,10 @@ func (k Keeper) GetPayeeAddress(ctx context.Context, relayerAddr, channelID stri
 	store := k.storeService.OpenKVStore(ctx)
 	key := types.KeyPayee(relayerAddr, channelID)
 
-	has, err := store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	if !has {
+	bz, err := store.Get(key)
+	if len(bz) == 0 || bz == nil {
 		return "", false
 	}
-
-	bz, err := store.Get(key)
 	if err != nil {
 		panic(err)
 	}
@@ -254,15 +249,10 @@ func (k Keeper) GetCounterpartyPayeeAddress(ctx context.Context, address, channe
 	store := k.storeService.OpenKVStore(ctx)
 	key := types.KeyCounterpartyPayee(address, channelID)
 
-	has, err := store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	if !has {
+	addr, err := store.Get(key)
+	if addr == nil {
 		return "", false
 	}
-
-	addr, err := store.Get(key)
 	if err != nil {
 		panic(err)
 	}
