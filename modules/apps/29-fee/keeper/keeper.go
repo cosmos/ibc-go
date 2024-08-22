@@ -256,7 +256,7 @@ func (k Keeper) GetCounterpartyPayeeAddress(ctx context.Context, address, channe
 	if err != nil {
 		panic(err)
 	}
-	return string(addr), true // TODO: why this cast?
+	return string(addr), true
 }
 
 // GetAllCounterpartyPayees returns all registered counterparty payee addresses
