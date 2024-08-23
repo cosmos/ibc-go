@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,6 +11,7 @@ import (
 
 	fee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {
@@ -59,7 +59,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
-				require.True(t, errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 			}
 		})
 	}

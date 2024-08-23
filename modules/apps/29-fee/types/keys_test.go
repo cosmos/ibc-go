@@ -3,7 +3,6 @@ package types_test
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -143,7 +142,7 @@ func TestParseKeyFeesInEscrow(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, validPacketID, packetID)
 		} else {
-			require.True(t, errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+			ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 		}
 	}
 }
@@ -180,7 +179,7 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, validPacketID, packetID)
 		} else {
-			require.True(t, errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+			ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 		}
 	}
 }

@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -108,7 +107,7 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 
 			} else {
-				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 		})
 	}
@@ -392,7 +391,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 
 			} else {
-				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()))
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(sdkmath.NewInt(0), escrowBalance.Amount)
@@ -605,7 +604,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(expEscrowBalance.AmountOf(sdk.DefaultBondDenom), escrowBalance.Amount)
 			} else {
-				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()))
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(sdkmath.NewInt(0), escrowBalance.Amount)

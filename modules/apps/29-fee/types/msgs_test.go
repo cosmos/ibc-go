@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -87,7 +86,7 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 			if tc.expErr == nil {
 				require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
 			} else {
-				require.True(t, errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 			}
 		})
 	}
@@ -175,7 +174,7 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 			if tc.expErr == nil {
 				require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
 			} else {
-				require.True(t, errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 			}
 		})
 	}
@@ -254,7 +253,7 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 		if tc.expErr == nil {
 			require.NoError(t, err, tc.name)
 		} else {
-			require.True(t, errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+			ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 		}
 	}
 }
@@ -391,7 +390,7 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 		if tc.expErr == nil {
 			require.NoError(t, err, tc.name)
 		} else {
-			require.True(t, errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+			ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 		}
 	}
 }

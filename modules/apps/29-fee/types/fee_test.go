@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 var (
@@ -226,7 +226,7 @@ func TestPacketFeeValidation(t *testing.T) {
 			if tc.expErr == nil {
 				require.NoError(t, err, tc.name)
 			} else {
-				require.True(t, errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 			}
 		})
 	}

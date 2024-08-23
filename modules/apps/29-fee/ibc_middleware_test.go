@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -138,7 +137,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 					suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 				} else {
-					suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), "error no returned for version: %s or error %s is not %s", tc.version, err, tc.expErr)
+					ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, "error no returned for version: %s or error %s is not %s", tc.version, err, tc.expErr)
 					suite.Require().Equal("", version)
 				}
 			})
@@ -228,7 +227,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+					ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 				}
 			})
 		}
@@ -313,7 +312,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			if tc.expErr == nil {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 			} else {
-				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 		})
 	}
@@ -401,7 +400,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 		})
 	}
@@ -491,7 +490,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 		})
 	}
@@ -849,7 +848,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 
 			tc.expResult()
@@ -1060,7 +1059,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().True(errors.Is(err, tc.expErr) || strings.Contains(err.Error(), tc.expErr.Error()), err.Error())
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 
 			tc.expResult()
