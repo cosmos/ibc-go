@@ -284,22 +284,6 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			nil,
 		},
 		{
-			"channel not found",
-			func() {
-				// use wrong channel naming
-				path.Setup()
-				packet = types.NewPacket(ibctesting.MockPacketData, 1, ibctesting.InvalidID, ibctesting.InvalidID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			},
-			func(packetCommitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrChannelNotFound)
-
-				// packet never sent.
-				suite.Require().Nil(packetCommitment)
-			},
-			nil,
-		},
-		{
 			"incorrect capability ORDERED",
 			func() {
 				path.SetChannelOrdered()
@@ -528,7 +512,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 			tc.malleate()
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(ctx, chanCap, packet)
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(ctx, path.EndpointA.GetChannel(), chanCap, packet)
 			pc := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 			tc.expResult(pc, err)
