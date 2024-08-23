@@ -137,7 +137,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 					suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 				} else {
-					ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, "error no returned for version: %s or error %s is not %s", tc.version, err, tc.expErr)
+					ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, "error not returned for version: %s or error %s is not %s", tc.version, err, tc.expErr)
 					suite.Require().Equal("", version)
 				}
 			})
