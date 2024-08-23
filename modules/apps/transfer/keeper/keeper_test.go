@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name          string
 		instantiateFn func()
-		expPass       bool
+		panicMsg      string
 	}{
 		{"success", func() {
 			keeper.NewKeeper(
@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
-		}, true},
+		}, ""},
 		{"failure: transfer module account does not exist", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
@@ -81,7 +81,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
-		}, false},
+		}, "the IBC transfer module account has not been set"},
 		{"failure: empty authority", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
@@ -95,7 +95,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				"", // authority
 			)
-		}, false},
+		}, "authority must be non-empty"},
 	}
 
 	for _, tc := range testCases {
@@ -103,12 +103,13 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
-			if tc.expPass {
+			if tc.panicMsg == "" {
 				suite.Require().NotPanics(
 					tc.instantiateFn,
 				)
 			} else {
-				suite.Require().Panics(
+				suite.Require().PanicsWithError(
+					tc.panicMsg,
 					tc.instantiateFn,
 				)
 			}
@@ -325,15 +326,15 @@ func (suite *KeeperTestSuite) TestGetAllForwardedPackets() {
 
 func (suite *KeeperTestSuite) TestParams() {
 	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool
+		name     string
+		input    types.Params
+		panicMsg string
 	}{
 		// it is not possible to set invalid booleans
-		{"success: set params false-false", types.NewParams(false, false), true},
-		{"success: set params false-true", types.NewParams(false, true), true},
-		{"success: set params true-false", types.NewParams(true, false), true},
-		{"success: set params true-true", types.NewParams(true, true), true},
+		{"success: set params false-false", types.NewParams(false, false), ""},
+		{"success: set params false-true", types.NewParams(false, true), ""},
+		{"success: set params true-false", types.NewParams(true, false), ""},
+		{"success: set params true-true", types.NewParams(true, true), ""},
 	}
 
 	for _, tc := range testCases {
@@ -342,13 +343,13 @@ func (suite *KeeperTestSuite) TestParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			ctx := suite.chainA.GetContext()
-			if tc.expPass {
+			if tc.panicMsg == "" {
 				suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
 				expected := tc.input
 				p := suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
 				suite.Require().Equal(expected, p)
 			} else {
-				suite.Require().Panics(func() {
+				suite.Require().PanicsWithError(tc.panicMsg, func() {
 					suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
 				})
 			}

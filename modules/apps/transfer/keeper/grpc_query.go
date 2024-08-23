@@ -97,6 +97,7 @@ func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 
 	// Convert given request trace path to Denom struct to confirm the path in a valid denom trace format
 	denom := types.ExtractDenomFromPath(req.Trace)
+
 	if err := denom.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}

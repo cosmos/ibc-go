@@ -1,8 +1,10 @@
 package ibctesting
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -80,4 +82,13 @@ func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...codec.ProtoMars
 	}
 
 	return nil
+}
+
+// RequireErrorIsOrContains verifies that the passed error is either a target error or contains its error message.
+func RequireErrorIsOrContains(t *testing.T, err, targetError error, msgAndArgs ...interface{}) {
+	require.True(
+		t,
+		errors.Is(err, targetError) ||
+			strings.Contains(err.Error(), targetError.Error()),
+		msgAndArgs...)
 }
