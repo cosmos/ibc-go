@@ -1030,7 +1030,9 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 
 			expCreator = ibctesting.TestAccAddress
 			merklePathPrefix := commitmenttypes.NewMerklePath([]byte("prefix"))
-			expCounterparty = &types.Counterparty{ClientId: ibctesting.SecondClientID, MerklePathPrefix: &merklePathPrefix}
+			expCounterparty = &types.Counterparty{}
+			expCounterparty.ClientId = ibctesting.SecondClientID
+			expCounterparty.MerklePathPrefix = &merklePathPrefix
 
 			tc.malleate()
 
