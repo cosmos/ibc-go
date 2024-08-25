@@ -491,16 +491,16 @@ The [counterparty-merkle-path-prefix] is a comma-separated list of hex-encoded s
 }
 
 // parseMerklePathPrefix parses a comma-separated list of hex-encoded strings into a MerklePath.
-func parseMerklePathPrefix(merklePathPrefixString string) (*commitmenttypesv2.MerklePath, error) {
+func parseMerklePathPrefix(merklePathPrefixString string) (commitmenttypesv2.MerklePath, error) {
 	var keyPath [][]byte
 	hexPrefixes := strings.Split(merklePathPrefixString, ",")
 	for _, hexPrefix := range hexPrefixes {
 		prefix, err := hex.DecodeString(hexPrefix)
 		if err != nil {
-			return nil, fmt.Errorf("invalid hex merkle path prefix: %w", err)
+			return commitmenttypesv2.MerklePath{}, fmt.Errorf("invalid hex merkle path prefix: %w", err)
 		}
 		keyPath = append(keyPath, prefix)
 	}
 
-	return &commitmenttypesv2.MerklePath{KeyPath: keyPath}, nil
+	return commitmenttypesv2.MerklePath{KeyPath: keyPath}, nil
 }
