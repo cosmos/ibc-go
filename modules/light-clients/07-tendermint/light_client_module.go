@@ -1,6 +1,7 @@
 package tendermint
 
 import (
+	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -31,7 +32,7 @@ func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.Store
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It calls into the
 // clientState.initialize method.
-func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
+func (l LightClientModule) Initialize(ctx context.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState ClientState
 	if err := l.cdc.Unmarshal(clientStateBz, &clientState); err != nil {
 		return fmt.Errorf("failed to unmarshal client state bytes into client state: %w", err)
@@ -56,18 +57,19 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier and calls into the clientState.VerifyClientMessage method.
-func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (l LightClientModule) VerifyClientMessage(ctx context.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyClientMessage(ctx, l.cdc, clientStore, clientMsg)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	return clientState.VerifyClientMessage(sdkCtx, l.cdc, clientStore, clientMsg)
 }
 
 // CheckForMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.CheckForMisbehaviour method.
-func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (l LightClientModule) CheckForMisbehaviour(ctx context.Context, clientID string, clientMsg exported.ClientMessage) bool {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -78,7 +80,7 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 }
 
 // UpdateStateOnMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.UpdateStateOnMisbehaviour method.
-func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+func (l LightClientModule) UpdateStateOnMisbehaviour(ctx context.Context, clientID string, clientMsg exported.ClientMessage) {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -89,7 +91,7 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 }
 
 // UpdateState obtains the client state associated with the client identifier and calls into the clientState.UpdateState method.
-func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+func (l LightClientModule) UpdateState(ctx context.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -101,7 +103,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 
 // VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.verifyMembership method.
 func (l LightClientModule) VerifyMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -121,7 +123,7 @@ func (l LightClientModule) VerifyMembership(
 
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
 func (l LightClientModule) VerifyNonMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -139,7 +141,7 @@ func (l LightClientModule) VerifyNonMembership(
 }
 
 // Status obtains the client state associated with the client identifier and calls into the clientState.status method.
-func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+func (l LightClientModule) Status(ctx context.Context, clientID string) exported.Status {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -151,7 +153,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 
 // LatestHeight returns the latest height for the client state for the given client identifier.
 // If no client is present for the provided client identifier a zero value height is returned.
-func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+func (l LightClientModule) LatestHeight(ctx context.Context, clientID string) exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -163,7 +165,7 @@ func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) export
 
 // TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.getTimestampAtHeight method.
 func (l LightClientModule) TimestampAtHeight(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	height exported.Height,
 ) (uint64, error) {
@@ -178,7 +180,7 @@ func (l LightClientModule) TimestampAtHeight(
 
 // RecoverClient asserts that the substitute client is a tendermint client. It obtains the client state associated with the
 // subject client and calls into the subjectClientState.CheckSubstituteAndUpdateState method.
-func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+func (l LightClientModule) RecoverClient(ctx context.Context, clientID, substituteClientID string) error {
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
 		return err
@@ -207,7 +209,7 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 // The new client and consensus states will be unmarshaled and an error is returned if the new client state is not at a height greater
 // than the existing client.
 func (l LightClientModule) VerifyUpgradeAndUpdateState(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	newClient []byte,
 	newConsState []byte,

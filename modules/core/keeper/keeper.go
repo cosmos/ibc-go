@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	storetypes "cosmossdk.io/store/types"
+	corestore "cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -33,7 +33,7 @@ type Keeper struct {
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace,
+	cdc codec.BinaryCodec, storeService corestore.KVStoreService, paramSpace types.ParamSubspace,
 	upgradeKeeper clienttypes.UpgradeKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
 ) *Keeper {
@@ -50,10 +50,10 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, upgradeKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, storeService, paramSpace, upgradeKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, storeService, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
-	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
+	channelKeeper := channelkeeper.NewKeeper(cdc, storeService, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
 
 	return &Keeper{
 		cdc:              cdc,

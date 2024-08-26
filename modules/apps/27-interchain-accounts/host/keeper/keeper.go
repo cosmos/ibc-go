@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -135,7 +136,7 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 }
 
 // GetAppVersion calls the ICS4Wrapper GetAppVersion function.
-func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (k Keeper) GetAppVersion(ctx context.Context, portID, channelID string) (string, bool) {
 	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
