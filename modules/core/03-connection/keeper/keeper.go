@@ -50,7 +50,7 @@ func (Keeper) Logger(ctx context.Context) log.Logger {
 // GetCommitmentPrefix returns the IBC connection store prefix as a commitment
 // Prefix
 func (*Keeper) GetCommitmentPrefix() exported.Prefix {
-	return commitmenttypes.NewMerklePrefix([]byte("ibc")) // TODO: import store key directly
+	return commitmenttypes.NewMerklePrefix([]byte(exported.StoreKey))
 }
 
 // GenerateConnectionIdentifier returns the next connection identifier.
