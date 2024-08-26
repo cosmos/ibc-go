@@ -307,7 +307,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				// any non-nil value of packet is valid
 				suite.Require().NotNil(packet)
 			},
-			channeltypes.ErrChannelNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 			false,
 			false,
 			false,
@@ -670,7 +670,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 			func() {
 				packet.SourceChannel = "invalid-client"
 			},
-			channeltypes.ErrChannelNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 			false,
 		},
 		{
@@ -996,7 +996,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 
 				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			},
-			channeltypes.ErrChannelNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 			false,
 		},
 	}

@@ -39,4 +39,5 @@ var (
 	ErrRouteNotFound                          = errorsmod.Register(SubModuleName, 32, "light client module route not found")
 	ErrClientTypeNotSupported                 = errorsmod.Register(SubModuleName, 33, "client type not supported")
 	ErrInvalidCounterparty                    = errorsmod.Register(SubModuleName, 34, "invalid counterparty")
+	ErrCounterpartyNotFound                   = errorsmod.Register(SubModuleName, 35, "counterparty not found")
 )
