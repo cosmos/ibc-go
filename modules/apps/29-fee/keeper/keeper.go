@@ -196,7 +196,7 @@ func (k Keeper) GetPayeeAddress(ctx context.Context, relayerAddr, channelID stri
 		panic(err)
 	}
 
-	if len(bz) == 0 || bz == nil {
+	if len(bz) == 0 {
 		return "", false
 	}
 
@@ -255,7 +255,7 @@ func (k Keeper) GetCounterpartyPayeeAddress(ctx context.Context, address, channe
 		panic(err)
 	}
 
-	if addr == nil {
+	if len(addr) == 0 {
 		return "", false
 	}
 	return string(addr), true

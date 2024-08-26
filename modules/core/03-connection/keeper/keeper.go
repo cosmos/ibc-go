@@ -238,7 +238,7 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 		panic(err)
 	}
 
-	if len(bz) == 0 { // only panic on unset params and not on empty params
+	if bz == nil { // only panic on unset params and not on empty params
 		panic(errors.New("connection params are not set in store"))
 	}
 

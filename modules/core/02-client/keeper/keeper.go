@@ -436,8 +436,11 @@ func (k *Keeper) GetClientTimestampAtHeight(ctx context.Context, clientID string
 // GetParams returns the total set of ibc-client parameters.
 func (k *Keeper) GetParams(ctx context.Context) types.Params {
 	store := k.storeService.OpenKVStore(ctx)
-	bz, _ := store.Get([]byte(types.ParamsKey)) // TODO: handle error
-	if bz == nil {                              // only panic on unset params and not on empty params
+	bz, err := store.Get([]byte(types.ParamsKey))
+	if err != nil {
+		panic(err)
+	}
+	if bz == nil { // only panic on unset params and not on empty params
 		panic(errors.New("client params are not set in store"))
 	}
 
