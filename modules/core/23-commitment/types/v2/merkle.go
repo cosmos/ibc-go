@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -35,7 +36,7 @@ func (mp MerklePath) Empty() bool {
 // to form the full path.
 func (mp MerklePath) ValidateAsPrefix() error {
 	if mp.Empty() {
-		return fmt.Errorf("path cannot have lenth 0")
+		return errors.New("path cannot have length 0")
 	}
 
 	for i, key := range mp.KeyPath {
@@ -46,12 +47,12 @@ func (mp MerklePath) ValidateAsPrefix() error {
 	return nil
 }
 
-// ValidateFullPath validates the MerklePath as a fully constructed path.
+// ValidateAsPath validates the MerklePath as a fully constructed path.
 // Here every element must be non-empty since the MerklePath is no longer
 // acting as a prefix but is instead the full path intended for verification.
-func (mp MerklePath) ValidateFullPath() error {
+func (mp MerklePath) ValidateAsPath() error {
 	if mp.Empty() {
-		return fmt.Errorf("path cannot have lenth 0")
+		return errors.New("path cannot have length 0")
 	}
 
 	for i, key := range mp.KeyPath {

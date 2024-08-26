@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -8,54 +9,56 @@ import (
 
 func TestMerklePathValidation(t *testing.T) {
 	cases := []struct {
-		name             string
-		path             MerklePath
-		expValidPrefix   bool
-		expValidFullPath bool
+		name         string
+		path         MerklePath
+		expPrefixErr error
+		expPathErr   error
 	}{
 		{
 			"success: prefix and path",
 			NewMerklePath([]byte("key1"), []byte("key2")),
-			true,
-			true,
+			nil,
+			nil,
 		},
 		{
-			"success: prefix with empty last key",
+			"prefix with empty last key",
 			NewMerklePath([]byte("key1"), []byte("")),
-			true,
-			false,
+			nil,
+			errors.New("key at index 1 cannot be empty"),
 		},
 		{
-			"success: prefix with single empty key",
+			"prefix with single empty key",
 			NewMerklePath([]byte("")),
-			true,
-			false,
+			nil,
+			errors.New("key at index 0 cannot be empty"),
 		},
 		{
 			"failure: empty path",
 			NewMerklePath(),
-			false,
-			false,
+			errors.New("path cannot have length 0"),
+			errors.New("path cannot have length 0"),
 		},
 		{
-			"failure: empty key in start prefix",
+			"failure: prefix with empty first key",
 			NewMerklePath([]byte(""), []byte("key2")),
-			false,
-			false,
+			errors.New("key at index 0 cannot be empty"),
+			errors.New("key at index 0 cannot be empty"),
 		},
 	}
 
 	for _, tc := range cases {
-		if tc.expValidPrefix {
-			require.NoError(t, tc.path.ValidateAsPrefix(), tc.name)
+		err := tc.path.ValidateAsPrefix()
+		if tc.expPrefixErr == nil {
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, tc.path.ValidateAsPrefix(), tc.name)
+			require.ErrorContains(t, err, tc.expPrefixErr.Error(), tc.name)
 		}
 
-		if tc.expValidFullPath {
-			require.NoError(t, tc.path.ValidateFullPath(), tc.name)
+		err = tc.path.ValidateAsPath()
+		if tc.expPathErr == nil {
+			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, tc.path.ValidateFullPath(), tc.name)
+			require.ErrorContains(t, err, tc.expPathErr.Error(), tc.name)
 		}
 	}
 }
