@@ -131,8 +131,8 @@ func (k Keeper) RecvPacket(
 		return "", channeltypes.ErrInvalidPacket
 	}
 
-	// Lookup counterparty associated with our channel and ensure that packet was indeed
-	// sent by our counterparty.
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
 		return "", errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.DestinationChannel)
@@ -207,7 +207,7 @@ func (k Keeper) WriteAcknowledgement(
 	}
 
 	// Lookup counterparty associated with our channel and ensure
-	// that it was indeed sent by our counterparty.
+	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
 		return errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.DestinationChannel)
@@ -264,7 +264,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	// Lookup counterparty associated with our channel and ensure
-	// that it was indeed sent by our counterparty.
+	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
 		return "", errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.SourceChannel)
@@ -334,8 +334,8 @@ func (k Keeper) TimeoutPacket(
 	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
 		return "", channeltypes.ErrInvalidPacket
 	}
-	// Lookup counterparty associated with our channel and ensure that destination channel
-	// is the expected counterparty
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
 		return "", errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.SourceChannel)
