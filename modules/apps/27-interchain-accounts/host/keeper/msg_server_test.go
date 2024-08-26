@@ -154,19 +154,19 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 
 func (suite *KeeperTestSuite) TestUpdateParams() {
 	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
+		name   string
+		msg    *types.MsgUpdateParams
+		expErr error
 	}{
 		{
 			"success",
 			types.NewMsgUpdateParams(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), types.DefaultParams()),
-			true,
+			nil,
 		},
 		{
 			"invalid signer address",
 			types.NewMsgUpdateParams("signer", types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 
@@ -180,11 +180,11 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAHostKeeper)
 			res, err := msgServer.UpdateParams(ctx, tc.msg)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 				suite.Require().Nil(res)
 			}
 		})

@@ -66,7 +66,7 @@ func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
 }
 
 // NewCounterparty creates a new Counterparty instance
-func NewCounterparty(clientID string, merklePathPrefix *commitmenttypes.MerklePath) Counterparty {
+func NewCounterparty(clientID string, merklePathPrefix commitmenttypes.MerklePath) Counterparty {
 	return Counterparty{
 		ClientId:         clientID,
 		MerklePathPrefix: merklePathPrefix,
@@ -79,8 +79,8 @@ func (c Counterparty) Validate() error {
 		return err
 	}
 
-	if c.MerklePathPrefix.Empty() {
-		return errorsmod.Wrap(ErrInvalidCounterparty, "prefix cannot be empty")
+	if err := c.MerklePathPrefix.ValidateAsPrefix(); err != nil {
+		return errorsmod.Wrap(ErrInvalidCounterparty, err.Error())
 	}
 
 	return nil

@@ -120,7 +120,7 @@ func (k *Keeper) TimeoutPacket(
 		return "", err
 	}
 
-	if err = k.timeoutExecuted(ctx, chanCap, packet); err != nil {
+	if err = k.timeoutExecuted(ctx, channel, chanCap, packet); err != nil {
 		return "", err
 	}
 
@@ -136,14 +136,10 @@ func (k *Keeper) TimeoutPacket(
 // CONTRACT: this function must be called in the IBC handler
 func (k *Keeper) timeoutExecuted(
 	ctx sdk.Context,
+	channel types.Channel,
 	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 ) error {
-	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
-	}
-
 	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
 		return errorsmod.Wrapf(
@@ -302,7 +298,7 @@ func (k *Keeper) TimeoutOnClose(
 		return "", err
 	}
 
-	if err = k.timeoutExecuted(ctx, chanCap, packet); err != nil {
+	if err = k.timeoutExecuted(ctx, channel, chanCap, packet); err != nil {
 		return "", err
 	}
 
