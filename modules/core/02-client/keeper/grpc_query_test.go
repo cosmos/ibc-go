@@ -965,7 +965,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		errMsg   string
+		expError error
 	}{
 		{
 			"success",
@@ -978,7 +978,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 					ClientId: ibctesting.FirstClientID,
 				}
 			},
-			"",
+			nil,
 		},
 		{
 			"success: no creator",
@@ -991,7 +991,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 					ClientId: ibctesting.FirstClientID,
 				}
 			},
-			"",
+			nil,
 		},
 		{
 			"success: no counterparty",
@@ -1004,21 +1004,21 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 					ClientId: ibctesting.FirstClientID,
 				}
 			},
-			"",
+			nil,
 		},
 		{
 			"req is nil",
 			func() {
 				req = nil
 			},
-			"empty request",
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"invalid clientID",
 			func() {
 				req = &types.QueryClientRequest{}
 			},
-			"identifier cannot be blank",
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 	}
 
@@ -1037,13 +1037,14 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.Client(suite.chainA.GetContext(), req)
 
-			if tc.errMsg == "" {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expCreator, res.Creator)
 				suite.Require().Equal(expCounterparty, res.Counterparty)
 			} else {
-				suite.Require().ErrorContains(err, tc.errMsg)
+				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Nil(res)
 			}
 		})
