@@ -431,7 +431,7 @@ func (q *queryServer) Client(ctx context.Context, req *types.QueryClientRequest)
 
 	counterparty, found := q.GetCounterparty(sdkCtx, req.ClientId)
 	if found {
-		res.Counterparty = &counterparty
+		res.Counterparty = counterparty
 	}
 
 	return &res, nil

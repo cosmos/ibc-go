@@ -256,5 +256,5 @@ message QueryClientRequest {
 // QueryClientRequest is the response type for the Query/Client RPC method
 message QueryClientResponse {
   string       creator      = 1;
-  Counterparty counterparty = 2;
+  Counterparty counterparty = 2 [(gogoproto.nullable) = false];
 }

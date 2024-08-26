@@ -959,7 +959,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 	var (
 		req             *types.QueryClientRequest
 		expCreator      string
-		expCounterparty *types.Counterparty
+		expCounterparty types.Counterparty
 	)
 
 	testCases := []struct {
@@ -972,7 +972,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 			func() {
 				ctx := suite.chainA.GetContext()
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCreator(ctx, ibctesting.FirstClientID, expCreator)
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCounterparty(ctx, ibctesting.FirstClientID, *expCounterparty)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCounterparty(ctx, ibctesting.FirstClientID, expCounterparty)
 
 				req = &types.QueryClientRequest{
 					ClientId: ibctesting.FirstClientID,
@@ -985,7 +985,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 			func() {
 				expCreator = ""
 
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCounterparty(suite.chainA.GetContext(), ibctesting.FirstClientID, *expCounterparty)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCounterparty(suite.chainA.GetContext(), ibctesting.FirstClientID, expCounterparty)
 
 				req = &types.QueryClientRequest{
 					ClientId: ibctesting.FirstClientID,
@@ -996,7 +996,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 		{
 			"success: no counterparty",
 			func() {
-				expCounterparty = nil
+				expCounterparty = types.Counterparty{}
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCreator(suite.chainA.GetContext(), ibctesting.FirstClientID, expCreator)
 
@@ -1030,7 +1030,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 
 			expCreator = ibctesting.TestAccAddress
 			merklePathPrefix := commitmenttypes.NewMerklePath([]byte("prefix"))
-			expCounterparty = &types.Counterparty{ClientId: ibctesting.SecondClientID, MerklePathPrefix: merklePathPrefix}
+			expCounterparty = types.Counterparty{ClientId: ibctesting.SecondClientID, MerklePathPrefix: merklePathPrefix}
 
 			tc.malleate()
 
