@@ -192,11 +192,12 @@ func (k Keeper) GetPayeeAddress(ctx context.Context, relayerAddr, channelID stri
 	key := types.KeyPayee(relayerAddr, channelID)
 
 	bz, err := store.Get(key)
-	if len(bz) == 0 || bz == nil {
-		return "", false
-	}
 	if err != nil {
 		panic(err)
+	}
+
+	if len(bz) == 0 || bz == nil {
+		return "", false
 	}
 
 	return string(bz), true
@@ -250,11 +251,12 @@ func (k Keeper) GetCounterpartyPayeeAddress(ctx context.Context, address, channe
 	key := types.KeyCounterpartyPayee(address, channelID)
 
 	addr, err := store.Get(key)
-	if addr == nil {
-		return "", false
-	}
 	if err != nil {
 		panic(err)
+	}
+
+	if addr == nil {
+		return "", false
 	}
 	return string(addr), true
 }
@@ -296,17 +298,14 @@ func (k Keeper) SetRelayerAddressForAsyncAck(ctx context.Context, packetID chann
 func (k Keeper) GetRelayerAddressForAsyncAck(ctx context.Context, packetID channeltypes.PacketId) (string, bool) {
 	store := k.storeService.OpenKVStore(ctx)
 	key := types.KeyRelayerAddressForAsyncAck(packetID)
-	has, err := store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	if !has {
-		return "", false
-	}
 
 	addr, err := store.Get(key)
 	if err != nil {
 		panic(err)
+	}
+
+	if len(addr) == 0 {
+		return "", false
 	}
 
 	return string(addr), true

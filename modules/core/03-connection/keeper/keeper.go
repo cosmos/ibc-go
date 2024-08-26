@@ -68,8 +68,9 @@ func (k *Keeper) GetConnection(ctx context.Context, connectionID string) (types.
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ConnectionKey(connectionID))
 	if err != nil {
-		return types.ConnectionEnd{}, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return types.ConnectionEnd{}, false
 	}
@@ -106,8 +107,9 @@ func (k *Keeper) GetClientConnectionPaths(ctx context.Context, clientID string) 
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ClientConnectionsKey(clientID))
 	if err != nil {
-		return nil, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return nil, false
 	}
@@ -132,8 +134,9 @@ func (k *Keeper) GetNextConnectionSequence(ctx context.Context) uint64 {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.KeyNextConnectionSequence))
 	if err != nil {
-		panic(errors.New("next connection sequence is nil"))
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		panic(errors.New("next connection sequence is nil"))
 	}
@@ -232,9 +235,10 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.ParamsKey))
 	if err != nil {
-		panic(errors.New("connection params are not set in store"))
+		panic(err)
 	}
-	if bz == nil { // only panic on unset params and not on empty params
+
+	if len(bz) == 0 { // only panic on unset params and not on empty params
 		panic(errors.New("connection params are not set in store"))
 	}
 

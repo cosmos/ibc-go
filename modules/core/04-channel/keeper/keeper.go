@@ -195,8 +195,9 @@ func (k *Keeper) GetNextSequenceAck(ctx context.Context, portID, channelID strin
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.NextSequenceAckKey(portID, channelID))
 	if err != nil {
-		return 0, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return 0, false
 	}
@@ -218,8 +219,9 @@ func (k *Keeper) GetPacketReceipt(ctx context.Context, portID, channelID string,
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.PacketReceiptKey(portID, channelID, sequence))
 	if err != nil {
-		return "", false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return "", false
 	}
@@ -248,8 +250,9 @@ func (k *Keeper) GetPacketCommitment(ctx context.Context, portID, channelID stri
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.PacketCommitmentKey(portID, channelID, sequence))
 	if err != nil {
-		return nil
+		panic(err)
 	}
+
 	return bz
 }
 
@@ -291,11 +294,13 @@ func (k *Keeper) GetPacketAcknowledgement(ctx context.Context, portID, channelID
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.PacketAcknowledgementKey(portID, channelID, sequence))
 	if err != nil {
-		return nil, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return nil, false
 	}
+
 	return bz, true
 }
 
@@ -564,9 +569,10 @@ func (k *Keeper) GetUpgradeErrorReceipt(ctx context.Context, portID, channelID s
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ChannelUpgradeErrorKey(portID, channelID))
 	if err != nil {
-		return types.ErrorReceipt{}, false
+		panic(err)
 	}
-	if bz == nil {
+
+	if len(bz) == 0 {
 		return types.ErrorReceipt{}, false
 	}
 
@@ -600,9 +606,10 @@ func (k *Keeper) GetUpgrade(ctx context.Context, portID, channelID string) (type
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ChannelUpgradeKey(portID, channelID))
 	if err != nil {
-		return types.Upgrade{}, false
+		panic(err)
 	}
-	if bz == nil {
+
+	if len(bz) == 0 {
 		return types.Upgrade{}, false
 	}
 
@@ -646,7 +653,8 @@ func (k *Keeper) GetCounterpartyUpgrade(ctx context.Context, portID, channelID s
 	if err != nil {
 		panic(err)
 	}
-	if bz == nil {
+
+	if len(bz) == 0 {
 		return types.Upgrade{}, false
 	}
 
@@ -695,7 +703,8 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 	if err != nil {
 		panic(err)
 	}
-	if bz == nil { // only panic on unset params and not on empty params
+
+	if len(bz) == 0 { // only panic on unset params and not on empty params
 		panic(errors.New("channel params are not set in store"))
 	}
 
@@ -753,6 +762,7 @@ func (k *Keeper) GetRecvStartSequence(ctx context.Context, portID, channelID str
 	if err != nil {
 		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return 0, false
 	}
@@ -776,6 +786,7 @@ func (k *Keeper) GetPruningSequenceStart(ctx context.Context, portID, channelID 
 	if err != nil {
 		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return 0, false
 	}
