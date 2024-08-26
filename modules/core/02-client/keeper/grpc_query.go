@@ -424,15 +424,11 @@ func (q *queryServer) Client(ctx context.Context, req *types.QueryClientRequest)
 	res := types.QueryClientResponse{}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	creator, found := q.GetCreator(sdkCtx, req.ClientId)
-	if found {
-		res.Creator = creator
-	}
+	creator, _ := q.GetCreator(sdkCtx, req.ClientId)
+	res.Creator = creator
 
-	counterparty, found := q.GetCounterparty(sdkCtx, req.ClientId)
-	if found {
-		res.Counterparty = counterparty
-	}
+	counterparty, _ := q.GetCounterparty(sdkCtx, req.ClientId)
+	res.Counterparty = counterparty
 
 	return &res, nil
 }
