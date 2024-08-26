@@ -1149,18 +1149,19 @@ func convertToErrorEvents(events sdk.Events) sdk.Events {
 // version is not supported.
 func (k *Keeper) getPacketHandlerAndModule(ctx sdk.Context, protocolVersion channeltypes.IBCVersion, port, channel string) (PacketHandler, string, *capabilitytypes.Capability, error) {
 	var (
-		packetHandler PacketHandler
-		module        string
-		capability    *capabilitytypes.Capability
-		err           error
+		module     string
+		capability *capabilitytypes.Capability
+		err        error
 	)
 
 	switch protocolVersion {
 	case channeltypes.IBC_VERSION_UNSPECIFIED, channeltypes.IBC_VERSION_1:
-		packetHandler = k.ChannelKeeper
 		// Lookup module by channel capability
 		module, capability, err = k.ChannelKeeper.LookupModuleByChannel(ctx, port, channel)
-		return packetHandler, module, capability, err
+		if err != nil {
+			return nil, "", nil, err
+		}
+		return k.ChannelKeeper, module, capability, nil
 	case channeltypes.IBC_VERSION_2:
 		return k.PacketServerKeeper, port, nil, nil
 	default:
