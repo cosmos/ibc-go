@@ -43,7 +43,7 @@ func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, leg
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when sdk.Context is removed
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -158,7 +158,7 @@ func (k *Keeper) SetNextConnectionSequence(ctx context.Context, sequence uint64)
 // no paths are stored.
 func (k *Keeper) GetAllClientConnectionPaths(ctx context.Context) []types.ConnectionPaths {
 	var allConnectionPaths []types.ConnectionPaths
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when sdk.Context is removed
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	k.clientKeeper.IterateClientStates(sdkCtx, nil, func(clientID string, cs exported.ClientState) bool {
 		paths, found := k.GetClientConnectionPaths(ctx, clientID)
 		if !found {
@@ -214,7 +214,7 @@ func (k *Keeper) CreateSentinelLocalhostConnection(ctx context.Context) {
 // addConnectionToClient is used to add a connection identifier to the set of
 // connections associated with a client.
 func (k *Keeper) addConnectionToClient(ctx context.Context, clientID, connectionID string) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when sdk.Context is removed
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	_, found := k.clientKeeper.GetClientState(sdkCtx, clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)

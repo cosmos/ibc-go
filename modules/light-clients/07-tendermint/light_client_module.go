@@ -64,7 +64,7 @@ func (l LightClientModule) VerifyClientMessage(ctx context.Context, clientID str
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return clientState.VerifyClientMessage(sdkCtx, l.cdc, clientStore, clientMsg)
 }
 

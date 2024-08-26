@@ -103,7 +103,7 @@ func (im IBCMiddleware) SendPacket(
 	// packet is created without destination information present, GetSourceCallbackData does not use these.
 	packet := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	callbackData, err := types.GetSourceCallbackData(sdkCtx, im.app, packet, im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -256,7 +256,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		panic(fmt.Errorf("expected type %T, got %T", &channeltypes.Packet{}, packet))
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	callbackData, err := types.GetDestCallbackData(
 		sdkCtx, im.app, chanPacket, im.maxCallbackGas,
 	)
