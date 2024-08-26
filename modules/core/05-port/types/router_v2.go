@@ -92,6 +92,19 @@ func (rtr *AppRouter) PacketRoute(packet channeltypes.PacketV2, module string) (
 	return []IBCModule{legacyModule}, true
 }
 
+func (rtr *AppRouter) Route(appName string) IBCModuleV2 {
+	route, ok := rtr.routes[appName]
+	if !ok {
+		panic(fmt.Sprintf("no route for %s", appName))
+	}
+
+	r, ok := route.(IBCModuleV2)
+	if !ok {
+		panic(fmt.Sprintf("route for %s is not an IBCModuleV2", appName))
+	}
+	return r
+}
+
 // TODO: docstring once implementation is complete
 // https://github.com/cosmos/ibc-go/issues/7056
 func (rtr *AppRouter) routeMultiPacketData(packetDataV2 channeltypes.PacketV2) ([]IBCModule, bool) {

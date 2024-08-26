@@ -121,6 +121,29 @@ type IBCModule interface {
 	) error
 }
 
+type IBCModuleV2 interface {
+	OnSendPacketV2(
+		ctx sdk.Context,
+		portID string,
+		channelID string,
+		sequence uint64,
+		timeoutHeight clienttypes.Height,
+		timeoutTimestamp uint64,
+		payload channeltypes.Payload,
+		signer sdk.AccAddress,
+	) error
+
+	OnRecvPacketV2(
+		ctx sdk.Context,
+		packet channeltypes.PacketV2,
+		payload channeltypes.Payload,
+		relayer sdk.AccAddress,
+	) exported.RecvPacketResult
+
+	// TODO: OnAcknowledgementPacketV2
+	// TODO: OnTimeoutPacketV2
+}
+
 // VersionWrapper is an optional interface which should be implemented by middleware which wrap the channel version
 // to ensure backwards compatibility.
 type VersionWrapper interface {

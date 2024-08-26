@@ -222,7 +222,7 @@ message MsgSendPacket {
   ibc.core.client.v1.Height timeout_height    = 3 [(gogoproto.nullable) = false];
   uint64                    timeout_timestamp = 4;
   bytes                     data              = 5;
-  PacketV2                  data_v2           = 6 [(gogoproto.nullable) = false];
+  repeated PacketData       data_v2           = 6 [(gogoproto.nullable) = false];
   string                    signer            = 7;
 }
 

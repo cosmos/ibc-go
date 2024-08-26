@@ -43,6 +43,37 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 	return nil
 }
 
+func (k Keeper) forwardPacketV2(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.PacketV2, receivedCoins sdk.Coins) error {
+	var nextForwardingPath *types.Forwarding
+	if len(data.Forwarding.Hops) > 1 {
+		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
+		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
+	}
+
+	// sending from module account (used as a temporary forward escrow) to the original receiver address.
+	sender := k.authKeeper.GetModuleAddress(types.ModuleName)
+
+	msg := types.NewMsgTransfer(
+		data.Forwarding.Hops[0].PortId,
+		data.Forwarding.Hops[0].ChannelId,
+		receivedCoins,
+		sender.String(),
+		data.Receiver,
+		clienttypes.ZeroHeight(),
+		packet.TimeoutTimestamp,
+		data.Forwarding.DestinationMemo,
+		nextForwardingPath,
+	)
+
+	resp, err := k.Transfer(ctx, msg)
+	if err != nil {
+		return err
+	}
+
+	k.setForwardedPacketv2(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, resp.Sequence, packet)
+	return nil
+}
+
 // acknowledgeForwardedPacket writes the async acknowledgement for forwardedPacket
 func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, forwardedPacket, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
 	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, forwardedPacket, ack.Acknowledgement()); err != nil {
