@@ -62,3 +62,5 @@ type PacketDataProvider interface {
 	// If no custom packet data exists for the key, nil should be returned.
 	GetCustomPacketData(key string) interface{}
 }
+
+const MultiPacketData = "MultiPacketData"

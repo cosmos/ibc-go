@@ -170,7 +170,7 @@ message PacketV2 {
   // identifies the channel end on the receiving chain.
   string destination_channel = 5;
   // a list of packet data, each one for a specific application.
-  repeated PacketData data = 6;
+  repeated PacketData data = 6 [(gogoproto.nullable) = false];
   // block height after which the packet times out
   ibc.core.client.v1.Height timeout_height = 7 [(gogoproto.nullable) = false];
   // block timestamp (in nanoseconds) after which the packet times out
@@ -182,7 +182,7 @@ message PacketData {
   // target application identifier
   string app_name = 1;
   // payload for the application
-  Payload payload = 2;
+  Payload payload = 2 [(gogoproto.nullable) = false];
 }
 
 // Payload holds the version, encoding and raw bytes to be passed to an application.

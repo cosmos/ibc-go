@@ -222,7 +222,8 @@ message MsgSendPacket {
   ibc.core.client.v1.Height timeout_height    = 3 [(gogoproto.nullable) = false];
   uint64                    timeout_timestamp = 4;
   bytes                     data              = 5;
-  string                    signer            = 6;
+  PacketV2                  data_v2           = 6 [(gogoproto.nullable) = false];
+  string                    signer            = 7;
 }
 
 // MsgSendPacketReponse defines the Msg/SendPacket response type.
@@ -262,6 +263,7 @@ message MsgTimeout {
   ibc.core.client.v1.Height proof_height       = 3 [(gogoproto.nullable) = false];
   uint64                    next_sequence_recv = 4;
   string                    signer             = 5;
+  PacketV2                  packet_v2          = 6 [(gogoproto.nullable) = false];
 }
 
 // MsgTimeoutResponse defines the Msg/Timeout response type.
@@ -284,6 +286,7 @@ message MsgTimeoutOnClose {
   uint64                    next_sequence_recv            = 5;
   string                    signer                        = 6;
   uint64                    counterparty_upgrade_sequence = 7;
+  PacketV2                  packet_v2                     = 8 [(gogoproto.nullable) = false];
 }
 
 // MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
@@ -304,6 +307,7 @@ message MsgAcknowledgement {
   bytes                     proof_acked     = 3;
   ibc.core.client.v1.Height proof_height    = 4 [(gogoproto.nullable) = false];
   string                    signer          = 5;
+  PacketV2                  packet_v2       = 6 [(gogoproto.nullable) = false];
 }
 
 // MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.

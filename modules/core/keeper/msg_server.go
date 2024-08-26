@@ -402,7 +402,7 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.AppRoute(msg.PortId)
+	cbs, ok := k.PortKeeper.AppRoute(msg.DataV2, msg.PortId)
 	if !ok {
 		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
@@ -502,7 +502,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.AppRouter.PacketRoute(msg.Packet.SourcePort)
+	cbs, ok := k.PortKeeper.AppRoute(msg.PacketV2, msg.Packet.SourcePort)
 	if !ok {
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort)
@@ -559,7 +559,7 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.AppRouter.PacketRoute(msg.Packet.SourcePort)
+	cbs, ok := k.PortKeeper.AppRoute(msg.PacketV2, exported.MultiPacketData)
 	if !ok {
 		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort)
@@ -619,7 +619,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.AppRouter.PacketRoute(msg.Packet.SourcePort)
+	cbs, ok := k.PortKeeper.AppRoute(msg.PacketV2, exported.MultiPacketData)
 	if !ok {
 		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort)

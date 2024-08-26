@@ -5,6 +5,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -80,9 +81,9 @@ func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
 // (used for classic IBC packets) and the packet data (used for multi-packetdata's).
 // PacketRoute is explicitly seprated from the handshake route which only handles
 // ClassicIBCModule's. Non ClassicIBCModule routing does not work on handshakes.
-func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
+func (rtr *AppRouter) PacketRoute(packet channeltypes.PacketV2, module string) ([]IBCModule, bool) {
 	if module == sentinelMultiPacketData {
-		return rtr.routeMultiPacketData(module)
+		return rtr.routeMultiPacketData(packet)
 	}
 	legacyModule, ok := rtr.routeToLegacyModule(module)
 	if !ok {
@@ -93,12 +94,16 @@ func (rtr *AppRouter) PacketRoute(module string) ([]IBCModule, bool) {
 
 // TODO: docstring once implementation is complete
 // https://github.com/cosmos/ibc-go/issues/7056
-func (*AppRouter) routeMultiPacketData(module string) ([]IBCModule, bool) {
-	panic("unimplemented")
-	//  for _, pd := range packet.Data {
-	//      cbs = append(cbs, rtr.routes[pd.PortId])
-	//  }
-	// return cbs, true
+func (rtr *AppRouter) routeMultiPacketData(packetDataV2 channeltypes.PacketV2) ([]IBCModule, bool) {
+	var cbs []IBCModule
+	for _, pd := range packetDataV2.Data {
+		route, ok := rtr.routes[pd.AppName]
+		if !ok {
+			panic(fmt.Sprintf("no route for %s", pd.AppName))
+		}
+		cbs = append(cbs, route)
+	}
+	return cbs, len(cbs) > 0
 }
 
 // routeToLegacyModule routes to any legacy modules which have been registered with AddClassicRoute.
