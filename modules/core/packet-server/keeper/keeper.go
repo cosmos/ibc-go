@@ -60,7 +60,7 @@ func (k Keeper) SendPacket(
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, sourceChannel)
 	if !ok {
-		return 0, clienttypes.ErrClientNotFound
+		return 0, errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, sourceChannel)
 	}
 	destChannel := counterparty.ClientId
 
@@ -132,7 +132,7 @@ func (k Keeper) RecvPacket(
 		return "", channeltypes.ErrInvalidPacket
 	}
 
-	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
+	// Lookup counterparty associated with our channel and ensure that packet was indeed
 	// sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
