@@ -59,7 +59,7 @@ func (k Keeper) SendPacket(
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, sourceChannel)
 	if !ok {
-		return 0, channeltypes.ErrChannelNotFound
+		return 0, errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, sourceChannel)
 	}
 	destChannel := counterparty.ClientId
 
@@ -131,11 +131,11 @@ func (k Keeper) RecvPacket(
 		return "", channeltypes.ErrInvalidPacket
 	}
 
-	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
-	// sent by our counterparty.
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
-		return "", channeltypes.ErrChannelNotFound
+		return "", errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
 	if counterparty.ClientId != packet.SourceChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
@@ -206,11 +206,11 @@ func (k Keeper) WriteAcknowledgement(
 		return channeltypes.ErrInvalidPacket
 	}
 
-	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
-	// sent by our counterparty.
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
-		return channeltypes.ErrChannelNotFound
+		return errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
 	if counterparty.ClientId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
@@ -263,11 +263,11 @@ func (k Keeper) AcknowledgePacket(
 		return "", channeltypes.ErrInvalidPacket
 	}
 
-	// Lookup counterparty associated with our channel and ensure that it was packet was indeed
-	// sent by our counterparty.
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
-		return "", channeltypes.ErrChannelNotFound
+		return "", errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.SourceChannel)
 	}
 
 	if counterparty.ClientId != packet.DestinationChannel {
@@ -334,11 +334,11 @@ func (k Keeper) TimeoutPacket(
 	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
 		return "", channeltypes.ErrInvalidPacket
 	}
-	// Lookup counterparty associated with our channel and ensure that destination channel
-	// is the expected counterparty
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
-		return "", channeltypes.ErrChannelNotFound
+		return "", errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.SourceChannel)
 	}
 
 	if counterparty.ClientId != packet.DestinationChannel {
