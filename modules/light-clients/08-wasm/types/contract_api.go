@@ -70,7 +70,7 @@ type VerifyMembershipMsg struct {
 	DelayTimePeriod  uint64                       `json:"delay_time_period"`
 	DelayBlockPeriod uint64                       `json:"delay_block_period"`
 	Proof            []byte                       `json:"proof"`
-	Path             commitmenttypesv2.MerklePath `json:"path"`
+	Path             commitmenttypesv2.MerklePath `json:"merkle_path"`
 	Value            []byte                       `json:"value"`
 }
 
@@ -80,7 +80,7 @@ type VerifyNonMembershipMsg struct {
 	DelayTimePeriod  uint64                       `json:"delay_time_period"`
 	DelayBlockPeriod uint64                       `json:"delay_block_period"`
 	Proof            []byte                       `json:"proof"`
-	Path             commitmenttypesv2.MerklePath `json:"path"`
+	Path             commitmenttypesv2.MerklePath `json:"merkle_path"`
 }
 
 // VerifyUpgradeAndUpdateStateMsg is a sudoMsg sent to the contract to verify an upgrade and update its state.
