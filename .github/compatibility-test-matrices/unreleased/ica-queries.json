@@ -1,14 +1,18 @@
 {
   "chain-a": [
     "release-v9.0.x",
+    "release-v8.5.x",
     "release-v8.4.x",
+    "release-v7.8.x",
     "release-v7.7.x",
     "release-v7.6.x",
     "release-v7.5.x"
   ],
   "chain-b": [
     "release-v9.0.x",
+    "release-v8.5.x",
     "release-v8.4.x",
+    "release-v7.8.x",
     "release-v7.7.x",
     "release-v7.6.x",
     "release-v7.5.x"
