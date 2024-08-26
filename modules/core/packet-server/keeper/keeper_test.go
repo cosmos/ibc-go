@@ -58,20 +58,39 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		malleate func()
 		expError error
 	}{
-		{"success", func() {}, nil},
-		{"counterparty not found", func() {
-			packet.SourceChannel = ibctesting.FirstChannelID
-		}, clienttypes.ErrClientNotFound},
-		{"packet failed basic validation", func() {
-			// invalid data
-			packet.Data = nil
-		}, channeltypes.ErrInvalidPacket},
-		{"client status invalid", func() {
-			path.EndpointA.FreezeClient()
-		}, clienttypes.ErrClientNotActive},
-		{"timeout elapsed", func() {
-			packet.TimeoutTimestamp = 1
-		}, channeltypes.ErrTimeoutElapsed},
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"counterparty not found",
+			func() {
+				packet.SourceChannel = ibctesting.FirstChannelID
+			},
+			clienttypes.ErrCounterpartyNotFound,
+		},
+		{
+			"packet failed basic validation",
+			func() {
+				// invalid data
+				packet.Data = nil
+			},
+			channeltypes.ErrInvalidPacket,
+		},
+		{
+			"client status invalid",
+			func() {
+				path.EndpointA.FreezeClient()
+			},
+			clienttypes.ErrClientNotActive,
+		},
+		{
+			"timeout elapsed", func() {
+				packet.TimeoutTimestamp = 1
+			},
+			channeltypes.ErrTimeoutElapsed,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -139,7 +158,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: client is not active",
@@ -246,7 +265,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -347,7 +366,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			func() {
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -489,7 +508,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
