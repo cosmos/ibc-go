@@ -13,7 +13,7 @@
 # | RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes                       |
 
 
-# see sample.config.yaml for a bare minium configuration example.
+# see sample.config.yaml for a bare minimum configuration example.
 # set env E2E_CONFIG_PATH to point to this file to use it.
 ---
 chains:
