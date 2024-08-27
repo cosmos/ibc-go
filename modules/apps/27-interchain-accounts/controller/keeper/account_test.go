@@ -45,6 +45,9 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 					portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 					suite.Require().NoError(err)
 
+					channelID := channeltypes.FormatChannelIdentifier(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext()))
+					path.EndpointA.ChannelID = channelID
+
 					suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, portID, path.EndpointA.ChannelID)
 
 					counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
