@@ -11,6 +11,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -84,6 +85,21 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				path.EndpointA.FreezeClient()
 			},
 			clienttypes.ErrClientNotActive,
+		},
+		{
+			"client state zero height", func() {
+				clientState := path.EndpointA.GetClientState()
+				cs, ok := clientState.(*ibctm.ClientState)
+				suite.Require().True(ok)
+
+				// force a consensus state into the store at height zero to allow client status check to pass.
+				consensusState := path.EndpointA.GetConsensusState(cs.LatestHeight)
+				path.EndpointA.SetConsensusState(consensusState, clienttypes.ZeroHeight())
+
+				cs.LatestHeight = clienttypes.ZeroHeight()
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, cs)
+			},
+			clienttypes.ErrInvalidHeight,
 		},
 		{
 			"timeout elapsed", func() {
