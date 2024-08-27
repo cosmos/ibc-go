@@ -68,7 +68,7 @@ func (k Keeper) executeTx(ctx context.Context, sourcePort, destPort, destChannel
 
 	// CacheContext returns a new context with the multi-store branched into a cached storage object
 	// writeCache is called only if all msgs succeed, performing state transitions atomically
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	cacheCtx, writeCache := sdkCtx.CacheContext()
 	for i, msg := range msgs {
 		if m, ok := msg.(sdk.HasValidateBasic); ok {
