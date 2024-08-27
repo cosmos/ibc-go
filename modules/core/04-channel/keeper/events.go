@@ -277,6 +277,30 @@ func emitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel ty
 	})
 }
 
+func emitAcknowledgePacketEventV2(ctx sdk.Context, packet types.PacketV2, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeAcknowledgePacket,
+			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
+			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
+			sdk.NewAttribute(types.AttributeKeySrcPort, packet.GetSourcePort()),
+			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
+			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestinationPort()),
+			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestinationChannel()),
+			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
+			// we only support 1-hop packets now, and that is the most important hop for a relayer
+			// (is it going to a chain I am connected to)
+			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
 // emitTimeoutPacketEvent emits a timeout packet event. It will be emitted both the first time a packet
 // is timed out for a certain sequence and for all duplicate timeouts.
 func emitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {

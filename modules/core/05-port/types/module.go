@@ -144,7 +144,7 @@ type IBCModuleV2 interface {
 		ctx sdk.Context,
 		packet channeltypes.PacketV2,
 		payload channeltypes.Payload,
-		acknowledgement []byte,
+		recvPacketResult channeltypes.RecvPacketResult,
 		relayer sdk.AccAddress,
 	) error
 

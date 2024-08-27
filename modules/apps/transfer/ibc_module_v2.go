@@ -127,11 +127,12 @@ func (im IBCModuleV2) OnAcknowledgementPacketV2(
 	ctx sdk.Context,
 	packet channeltypes.PacketV2,
 	payload channeltypes.Payload,
-	acknowledgement []byte,
+	recvPacketResult channeltypes.RecvPacketResult,
 	relayer sdk.AccAddress,
 ) error {
+	// TODO: use the recvPacketResult directly, don't need to unmarshal the acknowledgement
 	var ack channeltypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+	if err := types.ModuleCdc.UnmarshalJSON(recvPacketResult.Acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 

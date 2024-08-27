@@ -695,8 +695,17 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 	return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.SUCCESS}, nil
 }
 
+// OnAcknowledgementPacketV2
+
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
+	if msg.Acknowledgement != nil {
+		return k.acknowledgementV1(goCtx, msg)
+	}
+	return k.acknowledgementV2(goCtx, msg)
+}
+
+func (k *Keeper) acknowledgementV1(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -743,6 +752,65 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	defer telemetry.ReportAcknowledgePacket(msg.Packet)
 
 	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
+
+	return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
+}
+
+func (k *Keeper) acknowledgementV2(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	}
+
+	// Perform TAO verification
+	//
+	// If the acknowledgement was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	err = k.ChannelKeeper.AcknowledgePacketV2(cacheCtx, msg.PacketV2, *msg.MultiAck, msg.ProofAcked, msg.ProofHeight)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
+		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
+		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
+	default:
+		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
+		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
+	}
+
+	ackResults, found := k.ChannelKeeper.GetMultiAcknowledgement(ctx, msg.PacketV2.GetSourcePort(), msg.PacketV2.GetSourceChannel(), msg.PacketV2.GetSequence())
+	if !found {
+		// should never be the case as it should be written in OnRecvPacket or async by the application before this callback.
+		panic("acknowledgementV2: multi-acknowledgement not found")
+	}
+
+	// construct mapping of app name to recvPacketResult
+	// TODO: helper fn to do this.
+	var recvResults map[string]channeltypes.RecvPacketResult
+	for _, r := range ackResults.AcknowledgementResults {
+		recvResults[r.AppName] = r.RecvPacketResult
+	}
+
+	// Perform application logic callback
+	for _, pd := range msg.PacketV2.Data {
+		cb := k.PortKeeper.AppRouter.Route(pd.AppName)
+		err = cb.OnAcknowledgementPacketV2(ctx, msg.PacketV2, pd.Payload, recvResults[pd.AppName], relayer)
+
+		if err != nil {
+			ctx.Logger().Error("acknowledgement failed", "port-id", msg.PacketV2.SourcePort, "channel-id", msg.PacketV2.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
+			return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
+		}
+	}
+
+	//defer telemetry.ReportAcknowledgePacket(msg.PacketV2)
+
+	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.PacketV2.SourcePort, "channel-id", msg.PacketV2.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
 }
