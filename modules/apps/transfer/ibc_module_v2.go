@@ -122,3 +122,29 @@ func (im IBCModuleV2) OnRecvPacketV2(
 		Acknowledgement: ack.Acknowledgement(),
 	}
 }
+
+func (im IBCModuleV2) OnAcknowledgementPacketV2(
+	ctx sdk.Context,
+	packet channeltypes.PacketV2,
+	payload channeltypes.Payload,
+	acknowledgement []byte,
+	relayer sdk.AccAddress,
+) error {
+	var ack channeltypes.Acknowledgement
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	}
+
+	data, err := types.UnmarshalPacketData(payload.Value, payload.Version)
+	if err != nil {
+		return err
+	}
+
+	if err := im.keeper.OnAcknowledgementPacketV2(ctx, packet, data, ack); err != nil {
+		return err
+	}
+
+	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
+
+	return nil
+}

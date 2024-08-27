@@ -339,6 +339,19 @@ func (k Keeper) getForwardedPacket(ctx sdk.Context, portID, channelID string, se
 	return storedPacket, true
 }
 
+func (k Keeper) getForwardedPacketV2(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.PacketV2, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.PacketForwardKey(portID, channelID, sequence))
+	if bz == nil {
+		return channeltypes.PacketV2{}, false
+	}
+
+	var storedPacket channeltypes.PacketV2
+	k.cdc.MustUnmarshal(bz, &storedPacket)
+
+	return storedPacket, true
+}
+
 // deleteForwardedPacket deletes the forwarded packet from the store.
 func (k Keeper) deleteForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)

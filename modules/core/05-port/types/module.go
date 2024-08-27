@@ -140,7 +140,14 @@ type IBCModuleV2 interface {
 		relayer sdk.AccAddress,
 	) channeltypes.RecvPacketResult
 
-	// TODO: OnAcknowledgementPacketV2
+	OnAcknowledgementPacketV2(
+		ctx sdk.Context,
+		packet channeltypes.PacketV2,
+		payload channeltypes.Payload,
+		acknowledgement []byte,
+		relayer sdk.AccAddress,
+	) error
+
 	// TODO: OnTimeoutPacketV2
 }
 

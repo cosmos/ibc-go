@@ -291,6 +291,43 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 }
 
+func (k Keeper) OnAcknowledgementPacketV2(ctx sdk.Context, packet channeltypes.PacketV2, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
+	forwardedPacket, isForwarded := k.getForwardedPacketV2(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+
+	switch ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Result:
+		if isForwarded {
+			// Write a successful async ack for the forwardedPacket
+			forwardAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+			return k.acknowledgeForwardedPacketV2(ctx, forwardedPacket, packet, forwardAck)
+		}
+
+		// the acknowledgement succeeded on the receiving chain so nothing
+		// needs to be executed and no error needs to be returned
+		return nil
+	case *channeltypes.Acknowledgement_Error:
+		// We refund the tokens from the escrow address to the sender
+		if err := k.refundPacketTokensV2(ctx, packet, data); err != nil {
+			return err
+		}
+		if isForwarded {
+			// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
+			// we must revert the changes that came from successfully receiving the tokens on our chain
+			// before propagating the error acknowledgement back to original sender chain
+			if err := k.revertForwardedPacketV2(ctx, forwardedPacket, data); err != nil {
+				return err
+			}
+
+			forwardAck := internaltypes.NewForwardErrorAcknowledgementV2(packet, ack)
+			return k.acknowledgeForwardedPacketV2(ctx, forwardedPacket, packet, forwardAck)
+		}
+
+		return nil
+	default:
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
+	}
+}
+
 // OnTimeoutPacket processes a transfer packet timeout.
 //
 // If no forwarding occurs, it refunds the tokens to the sender.
@@ -321,6 +358,50 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 // were burnt in the original send so new tokens are minted and sent to
 // the sending address.
 func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
+	// NOTE: packet data type already checked in handler.go
+
+	sender, err := sdk.AccAddressFromBech32(data.Sender)
+	if err != nil {
+		return err
+	}
+	if k.IsBlockedAddr(sender) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
+	}
+
+	// escrow address for unescrowing tokens back to sender
+	escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
+
+	moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+	for _, token := range data.Tokens {
+		coin, err := token.ToCoin()
+		if err != nil {
+			return err
+		}
+
+		// if the token we must refund is prefixed by the source port and channel
+		// then the tokens were burnt when the packet was sent and we must mint new tokens
+		if token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
+			// mint vouchers back to sender
+			if err := k.bankKeeper.MintCoins(
+				ctx, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				return err
+			}
+
+			if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
+				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+			}
+		} else {
+			if err := k.unescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (k Keeper) refundPacketTokensV2(ctx sdk.Context, packet channeltypes.PacketV2, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
 	sender, err := sdk.AccAddressFromBech32(data.Sender)

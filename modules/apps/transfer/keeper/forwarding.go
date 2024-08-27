@@ -135,6 +135,44 @@ func (k Keeper) revertForwardedPacket(ctx sdk.Context, forwardedPacket channelty
 	return nil
 }
 
+func (k Keeper) revertForwardedPacketV2(ctx sdk.Context, forwardedPacket channeltypes.PacketV2, failedPacketData types.FungibleTokenPacketDataV2) error {
+	/*
+		Recall that RecvPacket handles an incoming packet depending on the denom of the received funds:
+			1. If the funds are native, then the amount is sent to the receiver from the escrow.
+			2. If the funds are foreign, then a voucher token is minted.
+		We revert it in this function by:
+			1. Sending funds back to escrow if the funds are native.
+			2. Burning voucher tokens if the funds are foreign
+	*/
+
+	forwardingAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+	escrow := types.GetEscrowAddress(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel)
+
+	// we can iterate over the received tokens of forwardedPacket by iterating over the sent tokens of failedPacketData
+	for _, token := range failedPacketData.Tokens {
+		// parse the transfer amount
+		coin, err := token.ToCoin()
+		if err != nil {
+			return err
+		}
+
+		// check if the token we received originated on the sender
+		// given that the packet is being reversed, we check the DestinationChannel and DestinationPort
+		// of the forwardedPacket to see if a hop was added to the trace during the receive step
+		if token.Denom.HasPrefix(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel) {
+			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+				return err
+			}
+		} else {
+			// send it back to the escrow address
+			if err := k.escrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // getReceiverFromPacketData returns either the sender specified in the packet data or the forwarding address
 // if there are still hops left to perform.
 func (k Keeper) getReceiverFromPacketData(data types.FungibleTokenPacketDataV2) (sdk.AccAddress, error) {
