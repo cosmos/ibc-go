@@ -2,6 +2,7 @@ package mock
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -219,7 +220,7 @@ func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string,
 
 // UnmarshalPacketData returns the MockPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
+func (IBCModule) UnmarshalPacketData(ctx context.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	if reflect.DeepEqual(bz, MockPacketData) {
 		return MockPacketData, Version, nil
 	}
