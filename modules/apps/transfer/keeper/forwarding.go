@@ -86,7 +86,17 @@ func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, forwardedPacket, pac
 
 // acknowledgeForwardedPacket writes the async acknowledgement for forwardedPacket
 func (k Keeper) acknowledgeForwardedPacketV2(ctx sdk.Context, forwardedPacket, packet channeltypes.PacketV2, ack channeltypes.Acknowledgement) error {
-	if err := k.channelKeeper.WriteAcknowledgementV2(ctx, forwardedPacket, types.ModuleName, ack.Acknowledgement()); err != nil {
+	recvResult := channeltypes.RecvPacketResult{
+		Acknowledgement: ack.Acknowledgement(),
+	}
+
+	if ack.Success() {
+		recvResult.Status = channeltypes.PacketStatus_Success
+	} else {
+		recvResult.Status = channeltypes.PacketStatus_Failure
+	}
+
+	if err := k.channelKeeper.WriteAcknowledgementAsyncV2(ctx, forwardedPacket, types.ModuleName, recvResult); err != nil {
 		return err
 	}
 

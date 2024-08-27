@@ -225,7 +225,7 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 	})
 }
 
-func emitWriteAcknowledgementEventV2(ctx sdk.Context, packet types.PacketV2, channel types.Channel, acknowledgement []byte) {
+func emitWriteAcknowledgementEventV2(ctx sdk.Context, packet types.PacketV2, channel types.Channel, multiAck types.MultiAcknowledgement) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWriteAck,
@@ -237,7 +237,7 @@ func emitWriteAcknowledgementEventV2(ctx sdk.Context, packet types.PacketV2, cha
 			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestinationPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestinationChannel()),
-			sdk.NewAttribute(types.AttributeKeyAckHex, hex.EncodeToString(acknowledgement)),
+			sdk.NewAttribute(types.AttributeKeyAckHex, multiAck.String()), // TODO: proper encoding
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)

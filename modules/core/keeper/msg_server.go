@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"errors"
+	"golang.org/x/exp/slices"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -530,13 +531,13 @@ func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPa
 	// Perform application logic callback
 	//
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
-	cacheCtx, writeFn = ctx.CacheContext()
 
 	multiAck := channeltypes.MultiAcknowledgement{
 		AcknowledgementResults: []channeltypes.AcknowledgementResult{},
 	}
 
 	for _, pd := range msg.PacketV2.Data {
+		cacheCtx, writeFn = ctx.CacheContext()
 		cb := k.PortKeeper.AppRouter.Route(pd.AppName)
 		res := cb.OnRecvPacketV2(cacheCtx, msg.PacketV2, pd.Payload, relayer)
 
@@ -558,17 +559,17 @@ func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPa
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
 
-	for _, res := range multiAck.AcknowledgementResults {
-		if res.RecvPacketResult.Status != channeltypes.PacketStatus_Async {
-			// write the ack for each packet which is not async.
-			if err := k.ChannelKeeper.WriteAcknowledgementV2(ctx, msg.PacketV2, res.AppName, res.RecvPacketResult.Acknowledgement); err != nil {
-				return nil, err
-			}
-		}
-	}
+	isAsync := slices.ContainsFunc(multiAck.AcknowledgementResults, func(ackResult channeltypes.AcknowledgementResult) bool {
+		return ackResult.RecvPacketResult.Status == channeltypes.PacketStatus_Async
+	})
 
-	// TODO: only need this if there are any async acks.
-	k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
+	if !isAsync {
+		if err := k.ChannelKeeper.WriteAcknowledgementV2(ctx, msg.PacketV2, multiAck); err != nil {
+			return nil, err
+		}
+	} else {
+		k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
+	}
 
 	//defer telemetry.ReportRecvPacket(msg.Packet)
 

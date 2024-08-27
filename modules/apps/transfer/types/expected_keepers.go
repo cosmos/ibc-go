@@ -41,11 +41,11 @@ type ChannelKeeper interface {
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
 	HasChannel(ctx sdk.Context, portID, channelID string) bool
-	WriteAcknowledgementV2(
+	WriteAcknowledgementAsyncV2(
 		ctx sdk.Context,
 		packet channeltypes.PacketV2,
 		appName string,
-		acknowledgement []byte,
+		recvResult channeltypes.RecvPacketResult,
 	) error
 }
 

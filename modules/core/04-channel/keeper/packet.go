@@ -328,12 +328,58 @@ func (k *Keeper) WriteAcknowledgement(
 
 	return nil
 }
+func (k *Keeper) WriteAcknowledgementAsyncV2(
+	ctx sdk.Context,
+	packet types.PacketV2,
+	appName string,
+	recvResult types.RecvPacketResult,
+) error {
+
+	// we should have stored the multi ack structure in OnRecvPacket
+	ackResults, found := k.GetMultiAcknowledgement(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence())
+	if !found {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "multi-acknowledgement not found for %s", appName)
+	}
+
+	// find the index that corresponds to the app.
+	index := slices.IndexFunc(ackResults.AcknowledgementResults, func(result types.AcknowledgementResult) bool {
+		return result.AppName == appName
+	})
+
+	if index == -1 {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "acknowledgement not found for %s", appName)
+	}
+
+	existingResult := ackResults.AcknowledgementResults[index]
+
+	// ensure that the existing status is async.
+	if existingResult.RecvPacketResult.Status != types.PacketStatus_Async {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "acknowledgement for %s is not async", appName)
+	}
+
+	// modify the result and set it back.
+	ackResults.AcknowledgementResults[index].RecvPacketResult = recvResult
+	k.SetMultiAcknowledgement(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence(), ackResults)
+
+	// check if all acknowledgements are now sync.
+	isAsync := slices.ContainsFunc(ackResults.AcknowledgementResults, func(ackResult types.AcknowledgementResult) bool {
+		return ackResult.RecvPacketResult.Status == types.PacketStatus_Async
+	})
+
+	if !isAsync {
+		// if there are no more async acks, we can write the final multi ack.
+		return k.WriteAcknowledgementV2(ctx, packet, ackResults)
+	}
+
+	// we have updated one app's result, but there are still async results pending acknowledgement.
+	return nil
+
+}
 
 func (k *Keeper) WriteAcknowledgementV2(
 	ctx sdk.Context,
 	packet types.PacketV2,
-	appName string,
-	acknowledgement []byte,
+	multiAck types.MultiAcknowledgement,
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
 	if !found {
@@ -357,18 +403,19 @@ func (k *Keeper) WriteAcknowledgementV2(
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
-	if k.HasPacketAcknowledgementV2(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), appName, packet.GetSequence()) {
+	if k.HasPacketAcknowledgementV2(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence()) {
 		return types.ErrAcknowledgementExists
 	}
 
-	if len(acknowledgement) == 0 {
+	if len(multiAck.AcknowledgementResults) == 0 {
 		return errorsmod.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
 	}
 
+	multiAckBz := k.cdc.MustMarshal(&multiAck)
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgementV2(
-		ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), appName, packet.GetSequence(),
-		types.CommitAcknowledgement(acknowledgement),
+		ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence(),
+		types.CommitAcknowledgement(multiAckBz),
 	)
 
 	// log that a packet acknowledgement has been written
@@ -381,7 +428,7 @@ func (k *Keeper) WriteAcknowledgementV2(
 		"dst_channel", packet.GetDestinationChannel(),
 	)
 
-	emitWriteAcknowledgementEventV2(ctx, packet, channel, acknowledgement)
+	emitWriteAcknowledgementEventV2(ctx, packet, channel, multiAck)
 
 	return nil
 }

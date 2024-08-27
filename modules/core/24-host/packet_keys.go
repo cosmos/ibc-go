@@ -53,8 +53,8 @@ func PacketAcknowledgementKey(portID, channelID string, sequence uint64) []byte 
 	return []byte(fmt.Sprintf("%s/%d", PacketAcknowledgementPrefixKey(portID, channelID), sequence))
 }
 
-func PacketAcknowledgementKeyV2(portID, channelID, appName string, sequence uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%d", PacketAcknowledgementPrefixKey(portID, channelID), appName, sequence))
+func PacketAcknowledgementKeyV2(portID, channelID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%d", PacketAcknowledgementPrefixKey(portID, channelID), sequence))
 }
 
 // PacketAcknowledgementPrefixKey defines the prefix for commitments to packet data fields store path.
