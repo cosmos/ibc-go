@@ -641,6 +641,7 @@ func (k *Keeper) timeoutV1(goCtx context.Context, msg *channeltypes.MsgTimeout) 
 
 	return &channeltypes.MsgTimeoutResponse{Result: channeltypes.SUCCESS}, nil
 }
+
 func (k *Keeper) timeoutV2(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -753,9 +754,9 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
-	if msg.Acknowledgement != nil {
-		return k.acknowledgementV1(goCtx, msg)
-	}
+	//if msg.Acknowledgement != nil {
+	//	return k.acknowledgementV1(goCtx, msg)
+	//}
 	return k.acknowledgementV2(goCtx, msg)
 }
 

@@ -457,10 +457,41 @@ func (endpoint *Endpoint) SendPacket(
 	return sequence, nil
 }
 
+func (endpoint *Endpoint) SendPacketV2(
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []channeltypes.PacketData,
+) (uint64, error) {
+	// no need to send message, acting as a module
+	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacketV2(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
+	if err != nil {
+		return 0, err
+	}
+
+	// commit changes since no message was sent
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	err = endpoint.Counterparty.UpdateClient()
+	if err != nil {
+		return 0, err
+	}
+
+	return sequence, nil
+}
+
 // RecvPacket receives a packet on the associated endpoint.
 // The counterparty client is updated.
 func (endpoint *Endpoint) RecvPacket(packet channeltypes.Packet) error {
 	_, err := endpoint.RecvPacketWithResult(packet)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (endpoint *Endpoint) RecvPacketV2(packet channeltypes.PacketV2) error {
+	_, err := endpoint.RecvPacketWithResultV2(packet)
 	if err != nil {
 		return err
 	}
@@ -476,6 +507,27 @@ func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*abc
 	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)
 
 	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	// receive on counterparty and update source client
+	res, err := endpoint.Chain.SendMsgs(recvMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := endpoint.Counterparty.UpdateClient(); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (endpoint *Endpoint) RecvPacketWithResultV2(packet channeltypes.PacketV2) (*abci.ExecTxResult, error) {
+	// get proof of packet commitment on source
+	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)
+
+	recvMsg := channeltypes.NewMsgRecvPacket(channeltypes.Packet{}, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	recvMsg.PacketV2 = packet
 
 	// receive on counterparty and update source client
 	res, err := endpoint.Chain.SendMsgs(recvMsg)
@@ -512,6 +564,18 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 
 	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	return endpoint.Chain.sendMsgs(ackMsg)
+}
+
+func (endpoint *Endpoint) AcknowledgePacketV2(packet channeltypes.PacketV2, multiAck channeltypes.MultiAcknowledgement) error {
+	// get proof of acknowledgement on counterparty
+	packetKey := host.PacketAcknowledgementKey(packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence())
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	ackMsg := channeltypes.NewMsgAcknowledgement(channeltypes.Packet{}, nil, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	ackMsg.PacketV2 = packet
+	ackMsg.MultiAck = &multiAck
 
 	return endpoint.Chain.sendMsgs(ackMsg)
 }

@@ -19,6 +19,7 @@ const sentinelMultiPacketData = "MultiPacketData"
 type AppRouter struct {
 	routes       map[string]IBCModule
 	legacyRoutes map[string]ClassicIBCModule
+	v2Routes     map[string]IBCModuleV2
 
 	// classicRoutes facilitates the consecutive calls to AddRoute for existing modules.
 	// TODO: this should be removed once app.gos have been refactored to use AddClassicRoute.
@@ -31,6 +32,7 @@ func NewAppRouter() *AppRouter {
 		routes:        make(map[string]IBCModule),
 		legacyRoutes:  make(map[string]ClassicIBCModule),
 		classicRoutes: make(map[string][]ClassicIBCModule),
+		v2Routes:      make(map[string]IBCModuleV2),
 	}
 }
 
@@ -56,23 +58,21 @@ func (rtr *AppRouter) AddClassicRoute(module string, cbs ...ClassicIBCModule) *A
 
 // AddRoute adds IBCModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
-func (rtr *AppRouter) AddRoute(module string, cbs IBCModule) *AppRouter {
+func (rtr *AppRouter) AddRoute(module string, cbs ClassicIBCModule) *AppRouter {
 	if !sdk.IsAlphaNumeric(module) {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
 
-	if classicModule, ok := cbs.(ClassicIBCModule); ok {
-		rtr.classicRoutes[module] = append(rtr.classicRoutes[module], classicModule)
+	rtr.legacyRoutes[module] = cbs
 
-		// in order to facilitate having a single LegacyIBCModule, but also allowing for
-		// consecutive calls to AddRoute to support existing functionality, we can re-create
-		// the legacy module with the routes as they get added.
-		if classicRoutes, ok := rtr.classicRoutes[module]; ok {
-			rtr.legacyRoutes[module] = NewLegacyIBCModule(classicRoutes...)
-		}
-	} else {
-		rtr.routes[module] = cbs
+	return rtr
+}
+func (rtr *AppRouter) AddV2Route(module string, cbs IBCModuleV2) *AppRouter {
+	if !sdk.IsAlphaNumeric(module) {
+		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
+
+	rtr.v2Routes[module] = cbs
 
 	return rtr
 }
@@ -93,16 +93,12 @@ func (rtr *AppRouter) PacketRoute(packet channeltypes.PacketV2, module string) (
 }
 
 func (rtr *AppRouter) Route(appName string) IBCModuleV2 {
-	route, ok := rtr.routes[appName]
+	route, ok := rtr.v2Routes[appName]
 	if !ok {
 		panic(fmt.Sprintf("no route for %s", appName))
 	}
 
-	r, ok := route.(IBCModuleV2)
-	if !ok {
-		panic(fmt.Sprintf("route for %s is not an IBCModuleV2", appName))
-	}
-	return r
+	return route
 }
 
 // TODO: docstring once implementation is complete
