@@ -61,8 +61,8 @@ func TestPacketValidateBasic(t *testing.T) {
 		{types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, "version"), true, "valid v2 packet"},
 		{types.Packet{1, portid, chanid, cpportid, cpchanid, validPacketData, timeoutHeight, timeoutTimestamp, types.IBC_VERSION_1, "version"}, false, "invalid specifying of app version with protocol version 1"},
 		{types.Packet{1, portid, chanid, cpportid, cpchanid, validPacketData, timeoutHeight, timeoutTimestamp, types.IBC_VERSION_UNSPECIFIED, "version"}, false, "invalid specifying of app version with unspecified protocol version"},
-		{types.Packet{1, portid, chanid, cpportid, cpchanid, validPacketData, timeoutHeight, timeoutTimestamp, types.IBC_VERSION_2, ""}, false, "app version must be specified when packet uses protocol version 2"},
-		{types.Packet{1, portid, chanid, cpportid, cpchanid, validPacketData, timeoutHeight, timeoutTimestamp, types.IBC_VERSION_2, "      "}, false, "app version must be specified when packet uses protocol version 2"},
+		{types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, ""), false, "app version must be specified when packet uses protocol version 2"},
+		{types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, "      "), false, "app version must be specified when packet uses protocol version 2"},
 	}
 
 	for i, tc := range testCases {
