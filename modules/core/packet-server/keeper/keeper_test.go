@@ -210,10 +210,10 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			path.SetupV2()
 
 			// send packet
-			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, "", ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
 
 			tc.malleate()
 
@@ -313,7 +313,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
 			ack = mock.MockAcknowledgement
 
 			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
@@ -416,10 +416,10 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			freezeClient = false
 
 			// send packet
-			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, "", ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
 
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
@@ -590,7 +590,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// create default packet with a timed out height
 			// test cases may mutate timeout values
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, disabledTimeoutTimestamp, "")
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, disabledTimeoutTimestamp, mock.Version)
 
 			tc.malleate()
 

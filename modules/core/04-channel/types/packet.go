@@ -3,6 +3,7 @@ package types
 import (
 	"crypto/sha256"
 	"slices"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -87,11 +88,9 @@ func commitV2Packet(packet Packet) []byte {
 	destinationHash := sha256.Sum256([]byte(packet.GetDestChannel()))
 	buf = append(buf, destinationHash[:]...)
 
-	// hash the version only if it is nonempty
-	if packet.AppVersion != "" {
-		versionHash := sha256.Sum256([]byte(packet.AppVersion))
-		buf = append(buf, versionHash[:]...)
-	}
+	// hash the app version.
+	versionHash := sha256.Sum256([]byte(packet.AppVersion))
+	buf = append(buf, versionHash[:]...)
 
 	// hash the data
 	dataHash := sha256.Sum256(packet.GetData())
@@ -199,6 +198,10 @@ func (p Packet) ValidateBasic() error {
 	if p.AppVersion != "" && slices.Contains([]IBCVersion{IBC_VERSION_UNSPECIFIED, IBC_VERSION_1}, p.ProtocolVersion) {
 		return errorsmod.Wrapf(ErrInvalidPacket, "app version cannot be specified when packet does not use protocol %s", IBC_VERSION_2)
 	}
+	if strings.TrimSpace(p.AppVersion) == "" && p.ProtocolVersion == IBC_VERSION_2 {
+		return errorsmod.Wrapf(ErrInvalidPacket, "app version must be specified when packet uses protocol %s", IBC_VERSION_2)
+	}
+
 	return nil
 }
 

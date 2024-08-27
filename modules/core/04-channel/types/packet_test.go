@@ -49,6 +49,7 @@ func TestPacketValidateBasic(t *testing.T) {
 		errMsg  string
 	}{
 		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), true, ""},
+		{types.NewPacket(unknownPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), true, ""},
 		{types.NewPacket(validPacketData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), false, "invalid sequence"},
 		{types.NewPacket(validPacketData, 1, invalidPort, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), false, "invalid source port"},
 		{types.NewPacket(validPacketData, 1, portid, invalidChannel, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), false, "invalid source channel"},
@@ -60,7 +61,8 @@ func TestPacketValidateBasic(t *testing.T) {
 		{types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, "version"), true, "valid v2 packet"},
 		{types.Packet{1, portid, chanid, cpportid, cpchanid, validPacketData, timeoutHeight, timeoutTimestamp, types.IBC_VERSION_1, "version"}, false, "invalid specifying of app version with protocol version 1"},
 		{types.Packet{1, portid, chanid, cpportid, cpchanid, validPacketData, timeoutHeight, timeoutTimestamp, types.IBC_VERSION_UNSPECIFIED, "version"}, false, "invalid specifying of app version with unspecified protocol version"},
-		{types.NewPacket(unknownPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), true, ""},
+		{types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, ""), false, "app version must be specified when packet uses protocol version 2"},
+		{types.NewPacketWithVersion(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp, "      "), false, "app version must be specified when packet uses protocol version 2"},
 	}
 
 	for i, tc := range testCases {
