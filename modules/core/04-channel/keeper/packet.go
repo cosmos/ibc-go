@@ -39,7 +39,7 @@ func (k *Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	if !k.scopedKeeper.AuthenticateCapability(sdkCtx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
 		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
@@ -309,7 +309,7 @@ func (k *Keeper) WriteAcknowledgement(
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
 	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	if !k.scopedKeeper.AuthenticateCapability(sdkCtx, chanCap, capName) {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelCapability,

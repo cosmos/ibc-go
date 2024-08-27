@@ -43,14 +43,14 @@ func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, leg
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove when sdk.Context is removed
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // GetCommitmentPrefix returns the IBC connection store prefix as a commitment
 // Prefix
-func (k *Keeper) GetCommitmentPrefix() exported.Prefix {
-	return commitmenttypes.NewMerklePrefix([]byte("ibc")) // TODO: import store key directly
+func (*Keeper) GetCommitmentPrefix() exported.Prefix {
+	return commitmenttypes.NewMerklePrefix([]byte(exported.StoreKey))
 }
 
 // GenerateConnectionIdentifier returns the next connection identifier.
@@ -68,8 +68,9 @@ func (k *Keeper) GetConnection(ctx context.Context, connectionID string) (types.
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ConnectionKey(connectionID))
 	if err != nil {
-		return types.ConnectionEnd{}, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return types.ConnectionEnd{}, false
 	}
@@ -95,7 +96,9 @@ func (k *Keeper) HasConnection(ctx context.Context, connectionID string) bool {
 func (k *Keeper) SetConnection(ctx context.Context, connectionID string, connection types.ConnectionEnd) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&connection)
-	store.Set(host.ConnectionKey(connectionID), bz)
+	if err := store.Set(host.ConnectionKey(connectionID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetClientConnectionPaths returns all the connection paths stored under a
@@ -104,8 +107,9 @@ func (k *Keeper) GetClientConnectionPaths(ctx context.Context, clientID string) 
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ClientConnectionsKey(clientID))
 	if err != nil {
-		return nil, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return nil, false
 	}
@@ -120,7 +124,9 @@ func (k *Keeper) SetClientConnectionPaths(ctx context.Context, clientID string, 
 	store := k.storeService.OpenKVStore(ctx)
 	clientPaths := types.ClientPaths{Paths: paths}
 	bz := k.cdc.MustMarshal(&clientPaths)
-	store.Set(host.ClientConnectionsKey(clientID), bz)
+	if err := store.Set(host.ClientConnectionsKey(clientID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetNextConnectionSequence gets the next connection sequence from the store.
@@ -128,8 +134,9 @@ func (k *Keeper) GetNextConnectionSequence(ctx context.Context) uint64 {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.KeyNextConnectionSequence))
 	if err != nil {
-		panic(errors.New("next connection sequence is nil"))
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		panic(errors.New("next connection sequence is nil"))
 	}
@@ -141,7 +148,9 @@ func (k *Keeper) GetNextConnectionSequence(ctx context.Context) uint64 {
 func (k *Keeper) SetNextConnectionSequence(ctx context.Context, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set([]byte(types.KeyNextConnectionSequence), bz)
+	if err := store.Set([]byte(types.KeyNextConnectionSequence), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetAllClientConnectionPaths returns all stored clients connection id paths. It
@@ -149,7 +158,7 @@ func (k *Keeper) SetNextConnectionSequence(ctx context.Context, sequence uint64)
 // no paths are stored.
 func (k *Keeper) GetAllClientConnectionPaths(ctx context.Context) []types.ConnectionPaths {
 	var allConnectionPaths []types.ConnectionPaths
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove when sdk.Context is removed
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	k.clientKeeper.IterateClientStates(sdkCtx, nil, func(clientID string, cs exported.ClientState) bool {
 		paths, found := k.GetClientConnectionPaths(ctx, clientID)
 		if !found {
@@ -205,7 +214,7 @@ func (k *Keeper) CreateSentinelLocalhostConnection(ctx context.Context) {
 // addConnectionToClient is used to add a connection identifier to the set of
 // connections associated with a client.
 func (k *Keeper) addConnectionToClient(ctx context.Context, clientID, connectionID string) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove when sdk.Context is removed
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	_, found := k.clientKeeper.GetClientState(sdkCtx, clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
@@ -226,8 +235,9 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.ParamsKey))
 	if err != nil {
-		panic(errors.New("connection params are not set in store"))
+		panic(err)
 	}
+
 	if bz == nil { // only panic on unset params and not on empty params
 		panic(errors.New("connection params are not set in store"))
 	}
@@ -241,5 +251,7 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 func (k *Keeper) SetParams(ctx context.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
 }

@@ -9,18 +9,19 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
-// StoreProvider encapsulates the IBC core store key and offers convenience methods for LightClientModules.
+// StoreProvider encapsulates the IBC core store service and offers convenience methods for LightClientModules.
 type StoreProvider struct {
 	storeService corestore.KVStoreService
 }
 
 // NewStoreProvider creates and returns a new client StoreProvider.
-func NewStoreProvider(storeKey corestore.KVStoreService) StoreProvider {
+func NewStoreProvider(storeService corestore.KVStoreService) StoreProvider {
 	return StoreProvider{
-		storeService: storeKey,
+		storeService: storeService,
 	}
 }
 

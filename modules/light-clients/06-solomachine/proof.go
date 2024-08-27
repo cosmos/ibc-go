@@ -26,7 +26,7 @@ func VerifySignature(pubKey cryptotypes.PubKey, signBytes []byte, sigData signin
 		if err := pubKey.VerifyMultisignature(func(signing.SignMode) ([]byte, error) {
 			return signBytes, nil
 		}, data); err != nil {
-			return errorsmod.Wrapf(ErrSignatureVerificationFailed, err.Error())
+			return errorsmod.Wrapf(ErrSignatureVerificationFailed, "failed to verify multisignature: %s", err.Error())
 		}
 
 	default:

@@ -62,7 +62,7 @@ func NewKeeper(
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -106,7 +106,9 @@ func (k *Keeper) GetChannel(ctx context.Context, portID, channelID string) (type
 func (k *Keeper) SetChannel(ctx context.Context, portID, channelID string, channel types.Channel) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&channel)
-	store.Set(host.ChannelKey(portID, channelID), bz)
+	if err := store.Set(host.ChannelKey(portID, channelID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetAppVersion gets the version for the specified channel.
@@ -137,7 +139,9 @@ func (k *Keeper) GetNextChannelSequence(ctx context.Context) uint64 {
 func (k *Keeper) SetNextChannelSequence(ctx context.Context, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set([]byte(types.KeyNextChannelSequence), bz)
+	if err := store.Set([]byte(types.KeyNextChannelSequence), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetNextSequenceSend gets a channel's next send sequence from the store
@@ -158,7 +162,9 @@ func (k *Keeper) GetNextSequenceSend(ctx context.Context, portID, channelID stri
 func (k *Keeper) SetNextSequenceSend(ctx context.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.NextSequenceSendKey(portID, channelID), bz)
+	if err := store.Set(host.NextSequenceSendKey(portID, channelID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetNextSequenceRecv gets a channel's next receive sequence from the store
@@ -179,7 +185,9 @@ func (k *Keeper) GetNextSequenceRecv(ctx context.Context, portID, channelID stri
 func (k *Keeper) SetNextSequenceRecv(ctx context.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.NextSequenceRecvKey(portID, channelID), bz)
+	if err := store.Set(host.NextSequenceRecvKey(portID, channelID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetNextSequenceAck gets a channel's next ack sequence from the store
@@ -187,8 +195,9 @@ func (k *Keeper) GetNextSequenceAck(ctx context.Context, portID, channelID strin
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.NextSequenceAckKey(portID, channelID))
 	if err != nil {
-		return 0, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return 0, false
 	}
@@ -200,7 +209,9 @@ func (k *Keeper) GetNextSequenceAck(ctx context.Context, portID, channelID strin
 func (k *Keeper) SetNextSequenceAck(ctx context.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.NextSequenceAckKey(portID, channelID), bz)
+	if err := store.Set(host.NextSequenceAckKey(portID, channelID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetPacketReceipt gets a packet receipt from the store
@@ -208,8 +219,9 @@ func (k *Keeper) GetPacketReceipt(ctx context.Context, portID, channelID string,
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.PacketReceiptKey(portID, channelID, sequence))
 	if err != nil {
-		return "", false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return "", false
 	}
@@ -220,13 +232,17 @@ func (k *Keeper) GetPacketReceipt(ctx context.Context, portID, channelID string,
 // SetPacketReceipt sets an empty packet receipt to the store
 func (k *Keeper) SetPacketReceipt(ctx context.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(host.PacketReceiptKey(portID, channelID, sequence), []byte{byte(1)})
+	if err := store.Set(host.PacketReceiptKey(portID, channelID, sequence), []byte{byte(1)}); err != nil {
+		panic(err)
+	}
 }
 
 // deletePacketReceipt deletes a packet receipt from the store
 func (k *Keeper) deletePacketReceipt(ctx context.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Delete(host.PacketReceiptKey(portID, channelID, sequence))
+	if err := store.Delete(host.PacketReceiptKey(portID, channelID, sequence)); err != nil {
+		panic(err)
+	}
 }
 
 // GetPacketCommitment gets the packet commitment hash from the store
@@ -234,8 +250,9 @@ func (k *Keeper) GetPacketCommitment(ctx context.Context, portID, channelID stri
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.PacketCommitmentKey(portID, channelID, sequence))
 	if err != nil {
-		return nil
+		panic(err)
 	}
+
 	return bz
 }
 
@@ -252,7 +269,9 @@ func (k *Keeper) HasPacketCommitment(ctx context.Context, portID, channelID stri
 // SetPacketCommitment sets the packet commitment hash to the store
 func (k *Keeper) SetPacketCommitment(ctx context.Context, portID, channelID string, sequence uint64, commitmentHash []byte) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(host.PacketCommitmentKey(portID, channelID, sequence), commitmentHash)
+	if err := store.Set(host.PacketCommitmentKey(portID, channelID, sequence), commitmentHash); err != nil {
+		panic(err)
+	}
 }
 
 func (k *Keeper) deletePacketCommitment(ctx context.Context, portID, channelID string, sequence uint64) {
@@ -265,7 +284,9 @@ func (k *Keeper) deletePacketCommitment(ctx context.Context, portID, channelID s
 // SetPacketAcknowledgement sets the packet ack hash to the store
 func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, portID, channelID string, sequence uint64, ackHash []byte) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(host.PacketAcknowledgementKey(portID, channelID, sequence), ackHash)
+	if err := store.Set(host.PacketAcknowledgementKey(portID, channelID, sequence), ackHash); err != nil {
+		panic(err)
+	}
 }
 
 // GetPacketAcknowledgement gets the packet ack hash from the store
@@ -273,11 +294,13 @@ func (k *Keeper) GetPacketAcknowledgement(ctx context.Context, portID, channelID
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.PacketAcknowledgementKey(portID, channelID, sequence))
 	if err != nil {
-		return nil, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return nil, false
 	}
+
 	return bz, true
 }
 
@@ -532,7 +555,7 @@ func (k *Keeper) GetChannelConnection(ctx context.Context, portID, channelID str
 
 // LookupModuleByChannel will return the IBCModule along with the capability associated with a given channel defined by its portID and channelID
 func (k *Keeper) LookupModuleByChannel(ctx context.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	modules, capability, err := k.scopedKeeper.LookupModules(sdkCtx, host.ChannelCapabilityPath(portID, channelID))
 	if err != nil {
 		return "", nil, err
@@ -546,9 +569,10 @@ func (k *Keeper) GetUpgradeErrorReceipt(ctx context.Context, portID, channelID s
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ChannelUpgradeErrorKey(portID, channelID))
 	if err != nil {
-		return types.ErrorReceipt{}, false
+		panic(err)
 	}
-	if bz == nil {
+
+	if len(bz) == 0 {
 		return types.ErrorReceipt{}, false
 	}
 
@@ -562,7 +586,9 @@ func (k *Keeper) GetUpgradeErrorReceipt(ctx context.Context, portID, channelID s
 func (k *Keeper) setUpgradeErrorReceipt(ctx context.Context, portID, channelID string, errorReceipt types.ErrorReceipt) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&errorReceipt)
-	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
+	if err := store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // hasUpgrade returns true if a proposed upgrade exists in store
@@ -580,9 +606,10 @@ func (k *Keeper) GetUpgrade(ctx context.Context, portID, channelID string) (type
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ChannelUpgradeKey(portID, channelID))
 	if err != nil {
-		return types.Upgrade{}, false
+		panic(err)
 	}
-	if bz == nil {
+
+	if len(bz) == 0 {
 		return types.Upgrade{}, false
 	}
 
@@ -596,13 +623,17 @@ func (k *Keeper) GetUpgrade(ctx context.Context, portID, channelID string) (type
 func (k *Keeper) SetUpgrade(ctx context.Context, portID, channelID string, upgrade types.Upgrade) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&upgrade)
-	store.Set(host.ChannelUpgradeKey(portID, channelID), bz)
+	if err := store.Set(host.ChannelUpgradeKey(portID, channelID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // deleteUpgrade deletes the upgrade for the provided port and channel identifiers.
 func (k *Keeper) deleteUpgrade(ctx context.Context, portID, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Delete(host.ChannelUpgradeKey(portID, channelID))
+	if err := store.Delete(host.ChannelUpgradeKey(portID, channelID)); err != nil {
+		panic(err)
+	}
 }
 
 // hasCounterpartyUpgrade returns true if a counterparty upgrade exists in store
@@ -620,9 +651,10 @@ func (k *Keeper) GetCounterpartyUpgrade(ctx context.Context, portID, channelID s
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ChannelCounterpartyUpgradeKey(portID, channelID))
 	if err != nil {
-		return types.Upgrade{}, false
+		panic(err)
 	}
-	if bz == nil {
+
+	if len(bz) == 0 {
 		return types.Upgrade{}, false
 	}
 
@@ -636,13 +668,17 @@ func (k *Keeper) GetCounterpartyUpgrade(ctx context.Context, portID, channelID s
 func (k *Keeper) SetCounterpartyUpgrade(ctx context.Context, portID, channelID string, upgrade types.Upgrade) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&upgrade)
-	store.Set(host.ChannelCounterpartyUpgradeKey(portID, channelID), bz)
+	if err := store.Set(host.ChannelCounterpartyUpgradeKey(portID, channelID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // deleteCounterpartyUpgrade deletes the counterparty upgrade in the store.
 func (k *Keeper) deleteCounterpartyUpgrade(ctx context.Context, portID, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Delete(host.ChannelCounterpartyUpgradeKey(portID, channelID))
+	if err := store.Delete(host.ChannelCounterpartyUpgradeKey(portID, channelID)); err != nil {
+		panic(err)
+	}
 }
 
 // deleteUpgradeInfo deletes all auxiliary upgrade information.
@@ -655,7 +691,9 @@ func (k *Keeper) deleteUpgradeInfo(ctx context.Context, portID, channelID string
 func (k *Keeper) SetParams(ctx context.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetParams returns the total set of the channel parameters.
@@ -665,6 +703,7 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 	if err != nil {
 		panic(err)
 	}
+
 	if bz == nil { // only panic on unset params and not on empty params
 		panic(errors.New("channel params are not set in store"))
 	}
@@ -708,7 +747,9 @@ func (k *Keeper) HasInflightPackets(ctx context.Context, portID, channelID strin
 func (k *Keeper) setRecvStartSequence(ctx context.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.RecvStartSequenceKey(portID, channelID), bz)
+	if err := store.Set(host.RecvStartSequenceKey(portID, channelID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetRecvStartSequence gets a channel's recv start sequence from the store.
@@ -719,8 +760,9 @@ func (k *Keeper) GetRecvStartSequence(ctx context.Context, portID, channelID str
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.RecvStartSequenceKey(portID, channelID))
 	if err != nil {
-		return 0, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return 0, false
 	}
@@ -732,7 +774,9 @@ func (k *Keeper) GetRecvStartSequence(ctx context.Context, portID, channelID str
 func (k *Keeper) SetPruningSequenceStart(ctx context.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.PruningSequenceStartKey(portID, channelID), bz)
+	if err := store.Set(host.PruningSequenceStartKey(portID, channelID), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetPruningSequenceStart gets a channel's pruning sequence start from the store.
@@ -740,8 +784,9 @@ func (k *Keeper) GetPruningSequenceStart(ctx context.Context, portID, channelID 
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.PruningSequenceStartKey(portID, channelID))
 	if err != nil {
-		return 0, false
+		panic(err)
 	}
+
 	if len(bz) == 0 {
 		return 0, false
 	}
@@ -757,7 +802,6 @@ func (k *Keeper) HasPruningSequenceStart(ctx context.Context, portID, channelID 
 		panic(err)
 	}
 	return has
-
 }
 
 // PruneAcknowledgements prunes packet acknowledgements and receipts that have a sequence number less than pruning sequence end.

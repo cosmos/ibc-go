@@ -82,7 +82,7 @@ func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
 
 // Logger returns the application logger, scoped to the associated module
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
 	return sdkCtx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
 }
 
@@ -119,20 +119,20 @@ func (k Keeper) setPort(ctx context.Context, portID string) {
 
 // hasCapability checks if the interchain account controller module owns the port capability for the desired port
 func (k Keeper) hasCapability(ctx context.Context, portID string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
 	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
 	return ok
 }
 
 // AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
 func (k Keeper) AuthenticateCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
 	return k.scopedKeeper.AuthenticateCapability(sdkCtx, cap, name)
 }
 
 // ClaimCapability wraps the scopedKeeper's ClaimCapability function
 func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
 	return k.scopedKeeper.ClaimCapability(sdkCtx, cap, name)
 }
 
@@ -151,7 +151,6 @@ func (k Keeper) GetActiveChannelID(ctx context.Context, connectionID, portID str
 		panic(err)
 	}
 	if !has {
-
 		return "", false
 	}
 	bz, err := store.Get(key)

@@ -646,7 +646,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			false,
 		},
 		{
-			"fowarding hop with invalid port ID",
+			"forwarding hop with invalid port ID",
 			func() {
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{Hops: []types.Hop{validHop}},
@@ -656,7 +656,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 			false,
 		},
 		{
-			"fowarding hop with invalid channel ID",
+			"forwarding hop with invalid channel ID",
 			func() {
 				transferAuthz.Allocations[0].AllowedForwarding = []types.AllowedForwarding{
 					{Hops: []types.Hop{validHop}},

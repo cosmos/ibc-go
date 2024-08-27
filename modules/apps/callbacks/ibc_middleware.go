@@ -1,6 +1,7 @@
 package ibccallbacks
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -86,7 +87,7 @@ func (im *IBCMiddleware) GetICS4Wrapper() porttypes.ICS4Wrapper {
 // If the contract callback returns an error, panics, or runs out of gas, then
 // the packet send is rejected.
 func (im IBCMiddleware) SendPacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
@@ -102,7 +103,8 @@ func (im IBCMiddleware) SendPacket(
 	// packet is created without destination information present, GetSourceCallbackData does not use these.
 	packet := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
-	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet, im.maxCallbackGas)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	callbackData, err := types.GetSourceCallbackData(sdkCtx, im.app, packet, im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return seq, nil
@@ -114,13 +116,13 @@ func (im IBCMiddleware) SendPacket(
 		)
 	}
 
-	err = im.processCallback(ctx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
+	err = im.processCallback(sdkCtx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
 		return 0, err
 	}
 
-	types.EmitCallbackEvent(ctx, sourcePort, sourceChannel, seq, types.CallbackTypeSendPacket, callbackData, nil)
+	types.EmitCallbackEvent(sdkCtx, sourcePort, sourceChannel, seq, types.CallbackTypeSendPacket, callbackData, nil)
 	return seq, nil
 }
 
@@ -239,7 +241,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
 func (im IBCMiddleware) WriteAcknowledgement(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
@@ -254,8 +256,9 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		panic(fmt.Errorf("expected type %T, got %T", &channeltypes.Packet{}, packet))
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	callbackData, err := types.GetDestCallbackData(
-		ctx, im.app, chanPacket, im.maxCallbackGas,
+		sdkCtx, im.app, chanPacket, im.maxCallbackGas,
 	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -267,9 +270,9 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	err = im.processCallback(sdkCtx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
-		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
+		sdkCtx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		types.CallbackTypeReceivePacket, callbackData, err,
 	)
 
@@ -420,12 +423,12 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 
 // GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,
 // so the call is deferred to the underlying application.
-func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (im IBCMiddleware) GetAppVersion(ctx context.Context, portID, channelID string) (string, bool) {
 	return im.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
 // UnmarshalPacketData defers to the underlying app to unmarshal the packet data.
 // This function implements the optional PacketDataUnmarshaler interface.
-func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
+func (im IBCMiddleware) UnmarshalPacketData(ctx context.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	return im.app.UnmarshalPacketData(ctx, portID, channelID, bz)
 }
