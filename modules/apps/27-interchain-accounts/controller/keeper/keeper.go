@@ -146,14 +146,10 @@ func (k Keeper) GetActiveChannelID(ctx context.Context, connectionID, portID str
 	store := k.storeService.OpenKVStore(ctx)
 	key := icatypes.KeyActiveChannel(portID, connectionID)
 
-	has, err := store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	if !has {
+	bz, err := store.Get(key)
+	if len(bz) == 0 {
 		return "", false
 	}
-	bz, err := store.Get(key)
 	if err != nil {
 		panic(err)
 	}
@@ -218,7 +214,9 @@ func (k Keeper) GetAllActiveChannels(ctx context.Context) []genesistypes.ActiveC
 // SetActiveChannelID stores the active channelID, keyed by the provided connectionID and portID
 func (k Keeper) SetActiveChannelID(ctx context.Context, connectionID, portID, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyActiveChannel(portID, connectionID), []byte(channelID))
+	if err := store.Set(icatypes.KeyActiveChannel(portID, connectionID), []byte(channelID)); err != nil {
+		panic(err)
+	}
 }
 
 // IsActiveChannel returns true if there exists an active channel for the provided connectionID and portID, otherwise false
@@ -232,15 +230,10 @@ func (k Keeper) GetInterchainAccountAddress(ctx context.Context, connectionID, p
 	store := k.storeService.OpenKVStore(ctx)
 	key := icatypes.KeyOwnerAccount(portID, connectionID)
 
-	has, err := store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	if !has {
+	bz, err := store.Get(key)
+	if len(bz) == 0 {
 		return "", false
 	}
-
-	bz, err := store.Get(key)
 	if err != nil {
 		panic(err)
 	}

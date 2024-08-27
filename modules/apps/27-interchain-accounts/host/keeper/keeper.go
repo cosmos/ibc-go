@@ -119,7 +119,9 @@ func (k Keeper) getConnectionID(ctx context.Context, portID, channelID string) (
 // setPort sets the provided portID in state.
 func (k Keeper) setPort(ctx context.Context, portID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyPort(portID), []byte{0x01})
+	if err := store.Set(icatypes.KeyPort(portID), []byte{0x01}); err != nil {
+		panic(err)
+	}
 }
 
 // hasCapability checks if the interchain account host module owns the port capability for the desired port
@@ -218,7 +220,9 @@ func (k Keeper) GetAllActiveChannels(ctx context.Context) []genesistypes.ActiveC
 // SetActiveChannelID stores the active channelID, keyed by the provided connectionID and portID
 func (k Keeper) SetActiveChannelID(ctx context.Context, connectionID, portID, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyActiveChannel(portID, connectionID), []byte(channelID))
+	if err := store.Set(icatypes.KeyActiveChannel(portID, connectionID), []byte(channelID)); err != nil {
+		panic(err)
+	}
 }
 
 // IsActiveChannel returns true if there exists an active channel for the provided connectionID and portID, otherwise false
@@ -232,15 +236,10 @@ func (k Keeper) GetInterchainAccountAddress(ctx context.Context, connectionID, p
 	store := k.storeService.OpenKVStore(ctx)
 	key := icatypes.KeyOwnerAccount(portID, connectionID)
 
-	has, err := store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	if !has {
+	bz, err := store.Get(key)
+	if len(bz) == 0 {
 		return "", false
 	}
-
-	bz, err := store.Get(key)
 	if err != nil {
 		panic(err)
 	}
@@ -272,7 +271,9 @@ func (k Keeper) GetAllInterchainAccounts(ctx context.Context) []genesistypes.Reg
 // SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated connectionID and portID
 func (k Keeper) SetInterchainAccountAddress(ctx context.Context, connectionID, portID, address string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
+	if err := store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address)); err != nil {
+		panic(err)
+	}
 }
 
 // GetAuthority returns the 27-interchain-accounts host submodule's authority.
@@ -300,7 +301,9 @@ func (k Keeper) GetParams(ctx context.Context) types.Params {
 func (k Keeper) SetParams(ctx context.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
 }
 
 // newModuleQuerySafeAllowList returns a list of all query paths labeled with module_query_safe in the proto files.
