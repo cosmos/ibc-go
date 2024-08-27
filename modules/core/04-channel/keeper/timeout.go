@@ -121,6 +121,107 @@ func (k *Keeper) TimeoutPacket(
 	return channel.Version, nil
 }
 
+func (k *Keeper) TimeoutPacketV2(
+	ctx sdk.Context,
+	packet types.PacketV2,
+	proof []byte,
+	proofHeight exported.Height,
+	nextSequenceRecv uint64,
+) error {
+	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+	if !found {
+		return errorsmod.Wrapf(
+			types.ErrChannelNotFound,
+			"port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel(),
+		)
+	}
+
+	// NOTE: TimeoutPacket is called by the AnteHandler which acts upon the packet.Route(),
+	// so the capability authentication can be omitted here
+
+	if packet.GetDestinationPort() != channel.Counterparty.PortId {
+		return errorsmod.Wrapf(
+			types.ErrInvalidPacket,
+			"packet destination port doesn't match the counterparty's port (%s ≠ %s)", packet.GetDestinationPort(), channel.Counterparty.PortId,
+		)
+	}
+
+	if packet.GetDestinationChannel() != channel.Counterparty.ChannelId {
+		return errorsmod.Wrapf(
+			types.ErrInvalidPacket,
+			"packet destination channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetDestinationChannel(), channel.Counterparty.ChannelId,
+		)
+	}
+
+	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !found {
+		return errorsmod.Wrap(
+			connectiontypes.ErrConnectionNotFound,
+			channel.ConnectionHops[0],
+		)
+	}
+
+	// check that timeout height or timeout timestamp has passed on the other end
+	proofTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, proofHeight)
+	if err != nil {
+		return err
+	}
+
+	timeout := types.NewTimeout(packet.GetTimeoutHeight(), packet.GetTimeoutTimestamp())
+	if !timeout.Elapsed(proofHeight.(clienttypes.Height), proofTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+	}
+
+	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+
+	if len(commitment) == 0 {
+		emitTimeoutPacketEventV2(ctx, packet, channel)
+		// This error indicates that the timeout has already been relayed
+		// or there is a misconfigured relayer attempting to prove a timeout
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return types.ErrNoOpMsg
+	}
+
+	packetCommitment := types.CommitPacketV2(k.cdc, packet)
+
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal(commitment, packetCommitment) {
+		return errorsmod.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+	}
+
+	switch channel.Ordering {
+	case types.ORDERED:
+		// check that packet has not been received
+		if nextSequenceRecv > packet.GetSequence() {
+			return errorsmod.Wrapf(
+				types.ErrPacketReceived,
+				"packet already received, next sequence receive > packet sequence (%d > %d)", nextSequenceRecv, packet.GetSequence(),
+			)
+		}
+
+		// check that the recv sequence is as claimed
+		err = k.connectionKeeper.VerifyNextSequenceRecv(
+			ctx, connectionEnd, proofHeight, proof,
+			packet.GetDestinationPort(), packet.GetDestinationChannel(), nextSequenceRecv,
+		)
+	case types.UNORDERED:
+		err = k.connectionKeeper.VerifyPacketReceiptAbsence(
+			ctx, connectionEnd, proofHeight, proof,
+			packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence(),
+		)
+	default:
+		panic(errorsmod.Wrap(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// NOTE: the remaining code is located in the TimeoutExecuted function
+	return nil
+}
+
 // TimeoutExecuted deletes the commitment send from this chain after it verifies timeout.
 // If the timed-out packet came from an ORDERED channel then this channel will be closed.
 // If the channel is in the FLUSHING state and there is a counterparty upgrade, then the
