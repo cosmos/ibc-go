@@ -163,17 +163,12 @@ func (k Keeper) GetActiveChannelID(ctx context.Context, connectionID, portID str
 	store := k.storeService.OpenKVStore(ctx)
 	key := icatypes.KeyActiveChannel(portID, connectionID)
 
-	has, err := store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	if !has {
-		return "", false
-	}
-
 	bz, err := store.Get(key)
 	if err != nil {
 		panic(err)
+	}
+	if len(bz) == 0 {
+		return "", false
 	}
 
 	return string(bz), true

@@ -114,7 +114,9 @@ func (k Keeper) GetAllPorts(ctx context.Context) []string {
 // setPort sets the provided portID in state
 func (k Keeper) setPort(ctx context.Context, portID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyPort(portID), []byte{0x01})
+	if err := store.Set(icatypes.KeyPort(portID), []byte{0x01}); err != nil {
+		panic(err)
+	}
 }
 
 // hasCapability checks if the interchain account controller module owns the port capability for the desired port
@@ -147,14 +149,14 @@ func (k Keeper) GetActiveChannelID(ctx context.Context, connectionID, portID str
 	key := icatypes.KeyActiveChannel(portID, connectionID)
 
 	bz, err := store.Get(key)
-	if len(bz) == 0 {
-		return "", false
-	}
 	if err != nil {
 		panic(err)
 	}
+	if len(bz) == 0 {
+		return "", false
+	}
 
-	return string(bz), true // todo: why the cast?
+	return string(bz), true
 }
 
 // GetOpenActiveChannel retrieves the active channelID from the store, keyed by the provided connectionID and portID & checks if the channel in question is in state OPEN
@@ -231,14 +233,14 @@ func (k Keeper) GetInterchainAccountAddress(ctx context.Context, connectionID, p
 	key := icatypes.KeyOwnerAccount(portID, connectionID)
 
 	bz, err := store.Get(key)
-	if len(bz) == 0 {
-		return "", false
-	}
 	if err != nil {
 		panic(err)
 	}
+	if len(bz) == 0 {
+		return "", false
+	}
 
-	return string(bz), true // todo: why the cast?
+	return string(bz), true
 }
 
 // GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated connection and controller port identifiers
@@ -265,7 +267,9 @@ func (k Keeper) GetAllInterchainAccounts(ctx context.Context) []genesistypes.Reg
 // SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated connectionID and portID
 func (k Keeper) SetInterchainAccountAddress(ctx context.Context, connectionID, portID, address string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
+	if err := store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address)); err != nil {
+		panic(err)
+	}
 }
 
 // IsMiddlewareEnabled returns true if the underlying application callbacks are enabled for given port and connection identifier pair, otherwise false
@@ -291,19 +295,25 @@ func (k Keeper) IsMiddlewareDisabled(ctx context.Context, portID, connectionID s
 // SetMiddlewareEnabled stores a flag to indicate that the underlying application callbacks should be enabled for the given port and connection identifier pair
 func (k Keeper) SetMiddlewareEnabled(ctx context.Context, portID, connectionID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareEnabled)
+	if err := store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareEnabled); err != nil {
+		panic(err)
+	}
 }
 
 // SetMiddlewareDisabled stores a flag to indicate that the underlying application callbacks should be disabled for the given port and connection identifier pair
 func (k Keeper) SetMiddlewareDisabled(ctx context.Context, portID, connectionID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareDisabled)
+	if err := store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareDisabled); err != nil {
+		panic(err)
+	}
 }
 
 // DeleteMiddlewareEnabled deletes the middleware enabled flag stored in state
 func (k Keeper) DeleteMiddlewareEnabled(ctx context.Context, portID, connectionID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, connectionID))
+	if err := store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, connectionID)); err != nil {
+		panic(err)
+	}
 }
 
 // GetAuthority returns the ica/controller submodule's authority.
@@ -341,5 +351,7 @@ func (k Keeper) GetParams(ctx context.Context) types.Params {
 func (k Keeper) SetParams(ctx context.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
 }
