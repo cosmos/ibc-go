@@ -329,6 +329,63 @@ func (k *Keeper) WriteAcknowledgement(
 	return nil
 }
 
+func (k *Keeper) WriteAcknowledgementV2(
+	ctx sdk.Context,
+	packet types.PacketV2,
+	appName string,
+	acknowledgement []byte,
+) error {
+	channel, found := k.GetChannel(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
+	if !found {
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestinationChannel())
+	}
+
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
+	}
+
+	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
+	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
+	// upgrade all packets under the recvStartSequence will have been processed and thus should be
+	// rejected. Any asynchronous acknowledgement writes from packets processed in a previous lifecycle of a channel
+	// will also be rejected.
+	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
+	if packet.GetSequence() < recvStartSequence {
+		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
+	}
+
+	// NOTE: IBC app modules might have written the acknowledgement synchronously on
+	// the OnRecvPacket callback so we need to check if the acknowledgement is already
+	// set on the store and return an error if so.
+	if k.HasPacketAcknowledgementV2(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), appName, packet.GetSequence()) {
+		return types.ErrAcknowledgementExists
+	}
+
+	if len(acknowledgement) == 0 {
+		return errorsmod.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
+	}
+
+	// set the acknowledgement so that it can be verified on the other side
+	k.SetPacketAcknowledgementV2(
+		ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), appName, packet.GetSequence(),
+		types.CommitAcknowledgement(acknowledgement),
+	)
+
+	// log that a packet acknowledgement has been written
+	k.Logger(ctx).Info(
+		"acknowledgement written",
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestinationPort(),
+		"dst_channel", packet.GetDestinationChannel(),
+	)
+
+	emitWriteAcknowledgementEventV2(ctx, packet, channel, acknowledgement)
+
+	return nil
+}
+
 // AcknowledgePacket is called by a module to process the acknowledgement of a
 // packet previously sent by the calling module on a channel to a counterparty
 // module on the counterparty chain. Its intended usage is within the ante

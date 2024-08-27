@@ -138,7 +138,7 @@ type IBCModuleV2 interface {
 		packet channeltypes.PacketV2,
 		payload channeltypes.Payload,
 		relayer sdk.AccAddress,
-	) exported.RecvPacketResult
+	) channeltypes.RecvPacketResult
 
 	// TODO: OnAcknowledgementPacketV2
 	// TODO: OnTimeoutPacketV2

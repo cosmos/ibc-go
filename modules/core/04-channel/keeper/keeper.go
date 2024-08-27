@@ -228,10 +228,24 @@ func (k *Keeper) SetPacketAcknowledgement(ctx sdk.Context, portID, channelID str
 	store.Set(host.PacketAcknowledgementKey(portID, channelID, sequence), ackHash)
 }
 
+func (k *Keeper) SetPacketAcknowledgementV2(ctx sdk.Context, portID, channelID, appName string, sequence uint64, ackHash []byte) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(host.PacketAcknowledgementKeyV2(portID, channelID, appName, sequence), ackHash)
+}
+
 // GetPacketAcknowledgement gets the packet ack hash from the store
 func (k *Keeper) GetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) ([]byte, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.PacketAcknowledgementKey(portID, channelID, sequence))
+	if len(bz) == 0 {
+		return nil, false
+	}
+	return bz, true
+}
+
+func (k *Keeper) GetPacketAcknowledgementV2(ctx sdk.Context, portID, channelID, appName string, sequence uint64) ([]byte, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.PacketAcknowledgementKeyV2(portID, channelID, appName, sequence))
 	if len(bz) == 0 {
 		return nil, false
 	}
@@ -244,10 +258,34 @@ func (k *Keeper) HasPacketAcknowledgement(ctx sdk.Context, portID, channelID str
 	return store.Has(host.PacketAcknowledgementKey(portID, channelID, sequence))
 }
 
+func (k *Keeper) HasPacketAcknowledgementV2(ctx sdk.Context, portID, channelID, appName string, sequence uint64) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.PacketAcknowledgementKeyV2(portID, channelID, appName, sequence))
+}
+
 // deletePacketAcknowledgement deletes the packet ack hash from the store
 func (k *Keeper) deletePacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.PacketAcknowledgementKey(portID, channelID, sequence))
+}
+
+func (k *Keeper) SetMultiAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults types.MultiAcknowledgement) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&recvResults)
+	store.Set(host.MultiAckKey(portID, channelID, sequence), bz)
+}
+
+// GetMultiAcknowledgement gets the multi ack result
+func (k *Keeper) GetMultiAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) (types.MultiAcknowledgement, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.MultiAckKey(portID, channelID, sequence))
+	if len(bz) == 0 {
+		return types.MultiAcknowledgement{}, false
+	}
+
+	var res types.MultiAcknowledgement
+	k.cdc.MustUnmarshal(bz, &res)
+	return res, true
 }
 
 // IteratePacketSequence provides an iterator over all send, receive or ack sequences.
@@ -702,6 +740,7 @@ func (k *Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string
 			break
 		}
 
+		// TODO: handle this for V2
 		k.deletePacketAcknowledgement(ctx, portID, channelID, start)
 
 		// NOTE: packet receipts are only relevant for unordered channels.

@@ -210,6 +210,43 @@ message Acknowledgement {
   }
 }
 
+// PacketStatus TODO
+enum PacketStatus {
+  // TODO
+  PACKET_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "NONE"];
+  // TODO
+  PACKET_STATUS_SUCCESS = 1 [(gogoproto.enumvalue_customname) = "Success"];
+  // TODO
+  PACKET_STATUS_FAILURE = 2 [(gogoproto.enumvalue_customname) = "Failure"];
+  // TODO
+  PACKET_STATUS_ASYNC = 3 [(gogoproto.enumvalue_customname) = "Async"];
+}
+
+// MultiAcknowledgement contains a list of all ack results assoicated with a single packet
+message MultiAcknowledgement {
+  repeated AcknowledgementResult acknowledgement_results = 1 [(gogoproto.nullable) = false];
+}
+
+// AcknowledgementResult or identified acknowledgement. Correlating IBC application name to opaque ack bytes
+message AcknowledgementResult {
+  string           app_name           = 1;
+  RecvPacketResult recv_packet_result = 2 [(gogoproto.nullable) = false];
+}
+
+// IdentifiedAcknowledgementResults needed for genesis state
+// message IdentifiedAcknowledgementResults {
+//  PacketId               packet_id = 1 [(gogoproto.nullable) = false];
+//  AcknowledgementResults acks      = 2 [(gogoproto.nullable) = false];
+//}
+
+// RecvPacketResult TODO
+message RecvPacketResult {
+  // status of the packet
+  PacketStatus status = 1;
+  // acknowledgement of the packet
+  bytes acknowledgement = 2;
+}
+
 // Timeout defines an execution deadline structure for 04-channel handlers.
 // This includes packet lifecycle handlers as well as the upgrade handshake handlers.
 // A valid Timeout contains either one or both of a timestamp and block height (sequence).

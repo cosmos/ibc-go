@@ -84,6 +84,16 @@ func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, forwardedPacket, pac
 	return nil
 }
 
+// acknowledgeForwardedPacket writes the async acknowledgement for forwardedPacket
+func (k Keeper) acknowledgeForwardedPacketV2(ctx sdk.Context, forwardedPacket, packet channeltypes.PacketV2, ack channeltypes.Acknowledgement) error {
+	if err := k.channelKeeper.WriteAcknowledgementV2(ctx, forwardedPacket, types.ModuleName, ack.Acknowledgement()); err != nil {
+		return err
+	}
+
+	k.deleteForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	return nil
+}
+
 // revertForwardedPacket reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.
 // If the packet fails to be forwarded all the way to the final destination, the state changes on this chain must be reverted
 // before sending back the error acknowledgement to ensure atomic packet forwarding.

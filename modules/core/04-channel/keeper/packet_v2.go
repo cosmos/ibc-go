@@ -1,8 +1,7 @@
 package keeper
 
 import (
-	"crypto/sha256"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"golang.org/x/exp/slices"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
@@ -77,7 +76,7 @@ func (k *Keeper) SendPacketV2(
 		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
-	commitment := CommitPacketV2(k.cdc, packet)
+	commitment := types.CommitPacketV2(k.cdc, packet)
 
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
@@ -94,6 +93,101 @@ func (k *Keeper) SendPacketV2(
 	)
 
 	return packet.GetSequence(), nil
+}
+
+// RecvPacketV2 is called by a module in order to receive & process an IBC packet
+// sent on the corresponding channel end on the counterparty chain.
+func (k *Keeper) RecvPacketV2(
+	ctx sdk.Context,
+	packet types.PacketV2,
+	proof []byte,
+	proofHeight exported.Height,
+) error {
+	channel, found := k.GetChannel(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
+	if !found {
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestinationChannel())
+	}
+
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
+	}
+
+	// If counterpartyUpgrade is stored we need to ensure that the
+	// packet sequence is < counterparty next sequence send. If the
+	// counterparty is implemented correctly, this may only occur
+	// when we are in FLUSHCOMPLETE and the counterparty has already
+	// completed the channel upgrade.
+	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
+	if found {
+		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
+		if packet.GetSequence() >= counterpartyNextSequenceSend {
+			return errorsmod.Wrapf(types.ErrInvalidPacket, "cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d).", packet.GetSequence(), counterpartyNextSequenceSend)
+		}
+	}
+
+	// packet must come from the channel's counterparty
+	if packet.GetSourcePort() != channel.Counterparty.PortId {
+		return errorsmod.Wrapf(
+			types.ErrInvalidPacket,
+			"packet source port doesn't match the counterparty's port (%s ≠ %s)", packet.GetSourcePort(), channel.Counterparty.PortId,
+		)
+	}
+
+	if packet.GetSourceChannel() != channel.Counterparty.ChannelId {
+		return errorsmod.Wrapf(
+			types.ErrInvalidPacket,
+			"packet source channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetSourceChannel(), channel.Counterparty.ChannelId,
+		)
+	}
+
+	// Connection must be OPEN to receive a packet. It is possible for connection to not yet be open if packet was
+	// sent optimistically before connection and channel handshake completed. However, to receive a packet,
+	// connection and channel must both be open
+	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !found {
+		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+	}
+
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
+	}
+
+	// check if packet timed out by comparing it with the latest height of the chain
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+	timeout := types.NewTimeout(packet.GetTimeoutHeight(), packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(selfHeight, selfTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
+	}
+
+	commitment := types.CommitPacketV2(k.cdc, packet)
+
+	// verify that the counterparty did commit to sending this packet
+	if err := k.connectionKeeper.VerifyPacketCommitment(
+		ctx, connectionEnd, proofHeight, proof,
+		packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
+		commitment,
+	); err != nil {
+		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
+	}
+
+	//if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
+	//	return err
+	//}
+
+	// log that a packet has been received & executed
+	k.Logger(ctx).Info(
+		"packet received",
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestinationPort(),
+		"dst_channel", packet.GetDestinationChannel(),
+	)
+
+	// emit an event that the relayer can query for
+	//emitRecvPacketEvent(ctx, packet, channel)
+
+	return nil
 }
 
 // NewPacketV2 creates a new Packet instance. It panics if the provided
@@ -114,23 +208,4 @@ func NewPacketV2(
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
 	}
-}
-
-func CommitPacketV2(cdc codec.BinaryCodec, packet types.PacketV2) []byte {
-	timeoutHeight := packet.GetTimeoutHeight()
-
-	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
-
-	revisionNumber := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionNumber())
-	buf = append(buf, revisionNumber...)
-
-	revisionHeight := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionHeight())
-	buf = append(buf, revisionHeight...)
-
-	// TODO
-	//dataHash := sha256.Sum256(packet.GetData())
-	//buf = append(buf, dataHash[:]...)
-
-	hash := sha256.Sum256(buf)
-	return hash[:]
 }

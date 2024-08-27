@@ -422,6 +422,13 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
+	if msg.Packet.Data != nil {
+		return k.recvPacketV1(goCtx, msg)
+	}
+	return k.recvPacketV2(goCtx, msg)
+}
+
+func (k *Keeper) recvPacketV1(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -481,6 +488,91 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	defer telemetry.ReportRecvPacket(msg.Packet)
 
 	ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
+
+	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
+}
+
+func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		ctx.Logger().Error("receive packet failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	}
+
+	// Retrieve callbacks from router
+	//cbs, ok := k.PortKeeper.AppRouteV2(msg.PacketV2, exported.MultiPacketData)
+	//if !ok {
+	//	ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort))
+	//	return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort)
+	//}
+
+	// Perform TAO verification
+	//
+	// If the packet was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	err = k.ChannelKeeper.RecvPacketV2(cacheCtx, msg.PacketV2, msg.ProofCommitment, msg.ProofHeight)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
+		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
+	default:
+		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "receive packet verification failed"))
+		return nil, errorsmod.Wrap(err, "receive packet verification failed")
+	}
+
+	// Perform application logic callback
+	//
+	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
+	cacheCtx, writeFn = ctx.CacheContext()
+
+	multiAck := channeltypes.MultiAcknowledgement{
+		AcknowledgementResults: []channeltypes.AcknowledgementResult{},
+	}
+
+	for _, pd := range msg.PacketV2.Data {
+		cb := k.PortKeeper.AppRouter.Route(pd.AppName)
+		res := cb.OnRecvPacketV2(cacheCtx, msg.PacketV2, pd.Payload, relayer)
+
+		if res.Status != channeltypes.PacketStatus_Failure {
+			// write application state changes for asynchronous and successful acknowledgements
+			writeFn()
+		} else {
+			// Modify events in cached context to reflect unsuccessful acknowledgement
+			ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+		}
+
+		multiAck.AcknowledgementResults = append(multiAck.AcknowledgementResults, channeltypes.AcknowledgementResult{
+			AppName:          pd.AppName,
+			RecvPacketResult: res,
+		})
+	}
+
+	// Set packet acknowledgement only if the acknowledgement is not nil.
+	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
+	// acknowledgement is nil.
+
+	for _, res := range multiAck.AcknowledgementResults {
+		if res.RecvPacketResult.Status != channeltypes.PacketStatus_Async {
+			// write the ack for each packet which is not async.
+			if err := k.ChannelKeeper.WriteAcknowledgementV2(ctx, msg.PacketV2, res.AppName, res.RecvPacketResult.Acknowledgement); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// TODO: only need this if there are any async acks.
+	k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
+
+	//defer telemetry.ReportRecvPacket(msg.Packet)
+
+	//ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }

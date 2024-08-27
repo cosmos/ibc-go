@@ -243,6 +243,7 @@ message MsgRecvPacket {
   bytes                     proof_commitment = 2;
   ibc.core.client.v1.Height proof_height     = 3 [(gogoproto.nullable) = false];
   string                    signer           = 4;
+  PacketV2                  packet_v2        = 5 [(gogoproto.nullable) = false];
 }
 
 // MsgRecvPacketResponse defines the Msg/RecvPacket response type.

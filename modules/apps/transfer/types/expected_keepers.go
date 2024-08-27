@@ -41,6 +41,12 @@ type ChannelKeeper interface {
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
 	HasChannel(ctx sdk.Context, portID, channelID string) bool
+	WriteAcknowledgementV2(
+		ctx sdk.Context,
+		packet channeltypes.PacketV2,
+		appName string,
+		acknowledgement []byte,
+	) error
 }
 
 // ClientKeeper defines the expected IBC client keeper
