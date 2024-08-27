@@ -114,6 +114,3 @@ linters-settings:
           - 'fmt.Print'
           - 'fmt.Println'
           - 'myFunction'
-      - name: redundant-import-alias
-        severity: warning
-        disabled: true
