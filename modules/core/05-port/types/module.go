@@ -148,7 +148,12 @@ type IBCModuleV2 interface {
 		relayer sdk.AccAddress,
 	) error
 
-	// TODO: OnTimeoutPacketV2
+	OnTimeoutPacketV2(
+		ctx sdk.Context,
+		packet channeltypes.PacketV2,
+		payload channeltypes.Payload,
+		relayer sdk.AccAddress,
+	) error
 }
 
 // VersionWrapper is an optional interface which should be implemented by middleware which wrap the channel version

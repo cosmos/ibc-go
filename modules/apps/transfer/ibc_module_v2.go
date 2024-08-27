@@ -149,3 +149,23 @@ func (im IBCModuleV2) OnAcknowledgementPacketV2(
 
 	return nil
 }
+
+func (im IBCModuleV2) OnTimeoutPacketV2(
+	ctx sdk.Context,
+	packet channeltypes.PacketV2,
+	payload channeltypes.Payload,
+	relayer sdk.AccAddress,
+) error {
+	data, err := types.UnmarshalPacketData(payload.Value, payload.Version)
+	if err != nil {
+		return err
+	}
+
+	// refund tokens
+	if err := im.keeper.OnTimeoutPacketV2(ctx, packet, data); err != nil {
+		return err
+	}
+
+	events.EmitOnTimeoutEvent(ctx, data)
+	return nil
+}

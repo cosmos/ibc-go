@@ -353,6 +353,24 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 	return nil
 }
 
+func (k Keeper) OnTimeoutPacketV2(ctx sdk.Context, packet channeltypes.PacketV2, data types.FungibleTokenPacketDataV2) error {
+	if err := k.refundPacketTokensV2(ctx, packet, data); err != nil {
+		return err
+	}
+
+	forwardedPacket, isForwarded := k.getForwardedPacketV2(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	if isForwarded {
+		if err := k.revertForwardedPacketV2(ctx, forwardedPacket, data); err != nil {
+			return err
+		}
+
+		forwardAck := internaltypes.NewForwardTimeoutAcknowledgementV2(packet)
+		return k.acknowledgeForwardedPacketV2(ctx, forwardedPacket, packet, forwardAck)
+	}
+
+	return nil
+}
+
 // refundPacketTokens will unescrow and send back the tokens back to sender
 // if the sending chain was the source chain. Otherwise, the sent tokens
 // were burnt in the original send so new tokens are minted and sent to

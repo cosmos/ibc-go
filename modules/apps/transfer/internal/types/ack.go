@@ -34,3 +34,12 @@ func NewForwardTimeoutAcknowledgement(packet channeltypes.Packet) channeltypes.A
 		},
 	}
 }
+
+func NewForwardTimeoutAcknowledgementV2(packet channeltypes.PacketV2) channeltypes.Acknowledgement {
+	ackErr := fmt.Sprintf("forwarding packet timed out on %s/%s", packet.GetSourcePort(), packet.GetSourceChannel())
+	return channeltypes.Acknowledgement{
+		Response: &channeltypes.Acknowledgement_Error{
+			Error: ackErr,
+		},
+	}
+}
