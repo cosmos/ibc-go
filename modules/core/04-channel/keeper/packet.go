@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"slices"
 	"strconv"
 
@@ -21,7 +22,7 @@ import (
 // The packet sequence generated for the packet to be sent is returned. An error
 // is returned if one occurs.
 func (k *Keeper) SendPacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	channelCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
@@ -38,7 +39,8 @@ func (k *Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
-	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if !k.scopedKeeper.AuthenticateCapability(sdkCtx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
 		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
@@ -89,7 +91,7 @@ func (k *Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	emitSendPacketEvent(ctx, packet, channel, timeoutHeight)
+	emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight)
 
 	k.Logger(ctx).Info(
 		"packet sent",
@@ -291,7 +293,7 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 // 2) Assumes that packet receipt has been written (unordered), or nextSeqRecv was incremented (ordered)
 // previously by RecvPacket.
 func (k *Keeper) WriteAcknowledgement(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	acknowledgement exported.Acknowledgement,
@@ -307,7 +309,8 @@ func (k *Keeper) WriteAcknowledgement(
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
 	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if !k.scopedKeeper.AuthenticateCapability(sdkCtx, chanCap, capName) {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelCapability,
 			"channel capability failed authentication for capability name %s", capName,
@@ -356,7 +359,7 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
+	emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
 
 	return nil
 }

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"context"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -60,6 +62,6 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed
 // due to the semantics of ORDERED channels
-func (Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
+func (Keeper) OnTimeoutPacket(ctx context.Context, packet channeltypes.Packet) error {
 	return nil
 }

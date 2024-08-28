@@ -14,6 +14,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -77,7 +78,7 @@ func (q *queryServer) ClientStates(c context.Context, req *types.QueryClientStat
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var clientStates types.IdentifiedClientStates
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.KeyClientStorePrefix)
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.KeyClientStorePrefix)
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under client state key
@@ -172,7 +173,7 @@ func (q *queryServer) ConsensusStates(c context.Context, req *types.QueryConsens
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var consensusStates []types.ConsensusStateWithHeight
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under consensus state key
@@ -216,7 +217,7 @@ func (q *queryServer) ConsensusStateHeights(c context.Context, req *types.QueryC
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var consensusStateHeights []types.Height
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, _ []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under consensus state key

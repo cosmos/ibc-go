@@ -294,7 +294,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			"success", func() {}, channeltypes.NewResultAcknowledgement([]byte{byte(1)}), "",
 		},
 		{
-			"success: async aknowledgment with forwarding path",
+			"success: async acknowledgment with forwarding path",
 			func() {
 				packetData := types.NewFungibleTokenPacketDataV2(
 					[]types.Token{

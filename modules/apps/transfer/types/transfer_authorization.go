@@ -123,7 +123,7 @@ func (a TransferAuthorization) ValidateBasic() error {
 		}
 
 		if err := allocation.SpendLimit.Validate(); err != nil {
-			return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, err.Error())
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "invalid spend limit: %s", err.Error())
 		}
 
 		if err := host.PortIdentifierValidator(allocation.SourcePort); err != nil {

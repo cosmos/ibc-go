@@ -2,6 +2,7 @@ package mock
 
 import (
 	"bytes"
+	"context"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,7 +38,7 @@ func NewBlockUpgradeMiddleware(appModule *AppModule, app *IBCApp) BlockUpgradeMi
 
 // OnChanOpenInit implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnChanOpenInit(
-	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
+	ctx context.Context, order channeltypes.Order, connectionHops []string, portID string,
 	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string,
 ) (string, error) {
 	if strings.TrimSpace(version) == "" {
@@ -50,7 +51,8 @@ func (im BlockUpgradeMiddleware) OnChanOpenInit(
 
 	if chanCap != nil {
 		// Claim channel capability passed back by IBC module
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(sdkCtx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return "", err
 		}
 	}
@@ -60,7 +62,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenInit(
 
 // OnChanOpenTry implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnChanOpenTry(
-	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
+	ctx context.Context, order channeltypes.Order, connectionHops []string, portID string,
 	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string,
 ) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
@@ -69,7 +71,8 @@ func (im BlockUpgradeMiddleware) OnChanOpenTry(
 
 	if chanCap != nil {
 		// Claim channel capability passed back by IBC module
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(sdkCtx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return "", err
 		}
 	}
@@ -78,7 +81,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenTry(
 }
 
 // OnChanOpenAck implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnChanOpenAck(ctx sdk.Context, portID string, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
+func (im BlockUpgradeMiddleware) OnChanOpenAck(ctx context.Context, portID string, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
 	if im.IBCApp.OnChanOpenAck != nil {
 		return im.IBCApp.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 	}
@@ -87,7 +90,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenAck(ctx sdk.Context, portID string, c
 }
 
 // OnChanOpenConfirm implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
+func (im BlockUpgradeMiddleware) OnChanOpenConfirm(ctx context.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanOpenConfirm != nil {
 		return im.IBCApp.OnChanOpenConfirm(ctx, portID, channelID)
 	}
@@ -96,7 +99,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, chan
 }
 
 // OnChanCloseInit implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
+func (im BlockUpgradeMiddleware) OnChanCloseInit(ctx context.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanCloseInit != nil {
 		return im.IBCApp.OnChanCloseInit(ctx, portID, channelID)
 	}
@@ -105,7 +108,7 @@ func (im BlockUpgradeMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channe
 }
 
 // OnChanCloseConfirm implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
+func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx context.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanCloseConfirm != nil {
 		return im.IBCApp.OnChanCloseConfirm(ctx, portID, channelID)
 	}
@@ -114,14 +117,15 @@ func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, cha
 }
 
 // OnRecvPacket implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+func (im BlockUpgradeMiddleware) OnRecvPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if im.IBCApp.OnRecvPacket != nil {
 		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	// set state by claiming capability to check if revert happens return
 	capName := GetMockRecvCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
@@ -137,13 +141,14 @@ func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion st
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnAcknowledgementPacket != nil {
 		return im.IBCApp.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
 	capName := GetMockAckCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
@@ -153,13 +158,14 @@ func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channe
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
 		return im.IBCApp.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	capName := GetMockTimeoutCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
@@ -170,7 +176,7 @@ func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion
 
 // SendPacket implements the ICS4 Wrapper interface
 func (BlockUpgradeMiddleware) SendPacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
@@ -183,7 +189,7 @@ func (BlockUpgradeMiddleware) SendPacket(
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (BlockUpgradeMiddleware) WriteAcknowledgement(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
@@ -192,6 +198,6 @@ func (BlockUpgradeMiddleware) WriteAcknowledgement(
 }
 
 // GetAppVersion returns the application version of the underlying application
-func (BlockUpgradeMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (BlockUpgradeMiddleware) GetAppVersion(ctx context.Context, portID, channelID string) (string, bool) {
 	return Version, true
 }

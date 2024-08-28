@@ -1,6 +1,8 @@
 package types
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -23,7 +25,7 @@ type IBCModule interface {
 	// If there is no default version string for the application,
 	// it should return an error if provided version is empty string.
 	OnChanOpenInit(
-		ctx sdk.Context,
+		ctx context.Context,
 		order channeltypes.Order,
 		connectionHops []string,
 		portID string,
@@ -42,7 +44,7 @@ type IBCModule interface {
 	// must select the final version string and return it to core IBC.
 	// OnChanOpenTry may also perform custom initialization logic
 	OnChanOpenTry(
-		ctx sdk.Context,
+		ctx context.Context,
 		order channeltypes.Order,
 		connectionHops []string,
 		portID,
@@ -55,7 +57,7 @@ type IBCModule interface {
 	// OnChanOpenAck will error if the counterparty selected version string
 	// is invalid to abort the handshake. It may also perform custom ACK logic.
 	OnChanOpenAck(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 		counterpartyChannelID string,
@@ -64,19 +66,19 @@ type IBCModule interface {
 
 	// OnChanOpenConfirm will perform custom CONFIRM logic and may error to abort the handshake.
 	OnChanOpenConfirm(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 	) error
 
 	OnChanCloseInit(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 	) error
 
 	OnChanCloseConfirm(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 	) error
@@ -87,14 +89,14 @@ type IBCModule interface {
 	// otherwise the application state changes are discarded. In either case the packet is received
 	// and the acknowledgement is written (in synchronous cases).
 	OnRecvPacket(
-		ctx sdk.Context,
+		ctx context.Context,
 		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket(
-		ctx sdk.Context,
+		ctx context.Context,
 		channelVersion string,
 		packet channeltypes.Packet,
 		acknowledgement []byte,
@@ -102,7 +104,7 @@ type IBCModule interface {
 	) error
 
 	OnTimeoutPacket(
-		ctx sdk.Context,
+		ctx context.Context,
 		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
@@ -118,7 +120,7 @@ type UpgradableModule interface {
 	// NOTE: in the case of crossing hellos, this callback may be executed on both chains.
 	// NOTE: Any IBC application state changes made in this callback handler are not committed.
 	OnChanUpgradeInit(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID, channelID string,
 		proposedOrder channeltypes.Order,
 		proposedConnectionHops []string,
@@ -130,7 +132,7 @@ type UpgradableModule interface {
 	// and connection hops.
 	// NOTE: Any IBC application state changes made in this callback handler are not committed.
 	OnChanUpgradeTry(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID, channelID string,
 		proposedOrder channeltypes.Order,
 		proposedConnectionHops []string,
@@ -141,7 +143,7 @@ type UpgradableModule interface {
 	// channel upgrade handshake. It must validate the version proposed by the counterparty.
 	// NOTE: Any IBC application state changes made in this callback handler are not committed.
 	OnChanUpgradeAck(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID,
 		counterpartyVersion string,
@@ -151,7 +153,7 @@ type UpgradableModule interface {
 	// has returned to the OPEN state. Any logic associated with changing of the channel fields should be performed
 	// in this callback.
 	OnChanUpgradeOpen(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 		proposedOrder channeltypes.Order,
@@ -163,7 +165,7 @@ type UpgradableModule interface {
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
 type ICS4Wrapper interface {
 	SendPacket(
-		ctx sdk.Context,
+		ctx context.Context,
 		chanCap *capabilitytypes.Capability,
 		sourcePort string,
 		sourceChannel string,
@@ -173,14 +175,14 @@ type ICS4Wrapper interface {
 	) (sequence uint64, err error)
 
 	WriteAcknowledgement(
-		ctx sdk.Context,
+		ctx context.Context,
 		chanCap *capabilitytypes.Capability,
 		packet exported.PacketI,
 		ack exported.Acknowledgement,
 	) error
 
 	GetAppVersion(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 	) (string, bool)
@@ -199,5 +201,5 @@ type PacketDataUnmarshaler interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	// ctx, portID, channelID are provided as arguments, so that (if needed)
 	// the packet data can be unmarshaled based on the channel version.
-	UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error)
+	UnmarshalPacketData(ctx context.Context, portID string, channelID string, bz []byte) (interface{}, string, error)
 }

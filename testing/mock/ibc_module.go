@@ -2,6 +2,7 @@ package mock
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -46,7 +47,7 @@ func NewIBCModule(appModule *AppModule, app *IBCApp) IBCModule {
 
 // OnChanOpenInit implements the IBCModule interface.
 func (im IBCModule) OnChanOpenInit(
-	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
+	ctx context.Context, order channeltypes.Order, connectionHops []string, portID string,
 	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string,
 ) (string, error) {
 	if strings.TrimSpace(version) == "" {
@@ -59,7 +60,8 @@ func (im IBCModule) OnChanOpenInit(
 
 	if chanCap != nil {
 		// Claim channel capability passed back by IBC module
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(sdkCtx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return "", err
 		}
 	}
@@ -69,7 +71,7 @@ func (im IBCModule) OnChanOpenInit(
 
 // OnChanOpenTry implements the IBCModule interface.
 func (im IBCModule) OnChanOpenTry(
-	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
+	ctx context.Context, order channeltypes.Order, connectionHops []string, portID string,
 	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string,
 ) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
@@ -78,7 +80,8 @@ func (im IBCModule) OnChanOpenTry(
 
 	if chanCap != nil {
 		// Claim channel capability passed back by IBC module
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(sdkCtx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return "", err
 		}
 	}
@@ -87,7 +90,7 @@ func (im IBCModule) OnChanOpenTry(
 }
 
 // OnChanOpenAck implements the IBCModule interface.
-func (im IBCModule) OnChanOpenAck(ctx sdk.Context, portID string, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
+func (im IBCModule) OnChanOpenAck(ctx context.Context, portID string, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
 	if im.IBCApp.OnChanOpenAck != nil {
 		return im.IBCApp.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 	}
@@ -96,7 +99,7 @@ func (im IBCModule) OnChanOpenAck(ctx sdk.Context, portID string, channelID stri
 }
 
 // OnChanOpenConfirm implements the IBCModule interface.
-func (im IBCModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
+func (im IBCModule) OnChanOpenConfirm(ctx context.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanOpenConfirm != nil {
 		return im.IBCApp.OnChanOpenConfirm(ctx, portID, channelID)
 	}
@@ -105,7 +108,7 @@ func (im IBCModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string)
 }
 
 // OnChanCloseInit implements the IBCModule interface.
-func (im IBCModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
+func (im IBCModule) OnChanCloseInit(ctx context.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanCloseInit != nil {
 		return im.IBCApp.OnChanCloseInit(ctx, portID, channelID)
 	}
@@ -114,7 +117,7 @@ func (im IBCModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) e
 }
 
 // OnChanCloseConfirm implements the IBCModule interface.
-func (im IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
+func (im IBCModule) OnChanCloseConfirm(ctx context.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanCloseConfirm != nil {
 		return im.IBCApp.OnChanCloseConfirm(ctx, portID, channelID)
 	}
@@ -123,20 +126,21 @@ func (im IBCModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string
 }
 
 // OnRecvPacket implements the IBCModule interface.
-func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+func (im IBCModule) OnRecvPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if im.IBCApp.OnRecvPacket != nil {
 		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	// set state by claiming capability to check if revert happens return
 	capName := GetMockRecvCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
 	}
 
-	ctx.EventManager().EmitEvent(NewMockRecvPacketEvent())
+	sdkCtx.EventManager().EmitEvent(NewMockRecvPacketEvent())
 
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return MockAcknowledgement
@@ -148,43 +152,45 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet 
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.
-func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnAcknowledgementPacket != nil {
 		return im.IBCApp.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
 	capName := GetMockAckCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
 	}
 
-	ctx.EventManager().EmitEvent(NewMockAckPacketEvent())
+	sdkCtx.EventManager().EmitEvent(NewMockAckPacketEvent())
 
 	return nil
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
-func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+func (im IBCModule) OnTimeoutPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
 		return im.IBCApp.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
 	capName := GetMockTimeoutCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
 	}
 
-	ctx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
+	sdkCtx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
 
 	return nil
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
+func (im IBCModule) OnChanUpgradeInit(ctx context.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
 	if im.IBCApp.OnChanUpgradeInit != nil {
 		return im.IBCApp.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 	}
@@ -193,7 +199,7 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string,
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
+func (im IBCModule) OnChanUpgradeTry(ctx context.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	if im.IBCApp.OnChanUpgradeTry != nil {
 		return im.IBCApp.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
 	}
@@ -202,7 +208,7 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+func (im IBCModule) OnChanUpgradeAck(ctx context.Context, portID, channelID, counterpartyVersion string) error {
 	if im.IBCApp.OnChanUpgradeAck != nil {
 		return im.IBCApp.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
 	}
@@ -211,7 +217,7 @@ func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counter
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
+func (im IBCModule) OnChanUpgradeOpen(ctx context.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 	if im.IBCApp.OnChanUpgradeOpen != nil {
 		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 	}
@@ -219,7 +225,7 @@ func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string,
 
 // UnmarshalPacketData returns the MockPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
+func (IBCModule) UnmarshalPacketData(ctx context.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	if reflect.DeepEqual(bz, MockPacketData) {
 		return MockPacketData, Version, nil
 	}
