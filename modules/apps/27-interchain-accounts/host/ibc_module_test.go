@@ -785,7 +785,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) fundICAWallet(ctx sdk.Context, portID string, amount sdk.Coins) {
+func (suite *InterchainAccountsTestSuite) fundICAWallet(ctx context.Context, portID string, amount sdk.Coins) {
 	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(ctx, ibctesting.FirstConnectionID, portID)
 	suite.Require().True(found)
 

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 
@@ -228,8 +229,9 @@ func emitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel ty
 
 // emitTimeoutPacketEvent emits a timeout packet event. It will be emitted both the first time a packet
 // is timed out for a certain sequence and for all duplicate timeouts.
-func emitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitTimeoutPacketEvent(ctx context.Context, packet types.Packet, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeoutPacket,
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
@@ -250,8 +252,9 @@ func emitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel types.
 }
 
 // emitChannelClosedEvent emits a channel closed event.
-func emitChannelClosedEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelClosedEvent(ctx context.Context, packet types.Packet, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelClosed,
 			sdk.NewAttribute(types.AttributeKeyPortID, packet.GetSourcePort()),
@@ -381,8 +384,9 @@ func EmitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID st
 }
 
 // EmitErrorReceiptEvent emits an error receipt event
-func EmitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, err error) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func EmitErrorReceiptEvent(ctx context.Context, portID string, channelID string, channel types.Channel, err error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeError,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -418,8 +422,9 @@ func EmitChannelUpgradeCancelEvent(ctx sdk.Context, portID string, channelID str
 }
 
 // emitChannelFlushCompleteEvent emits an flushing event.
-func emitChannelFlushCompleteEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelFlushCompleteEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelFlushComplete,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),

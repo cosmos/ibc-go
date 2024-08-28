@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"context"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	controllertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 )
 
@@ -19,11 +20,12 @@ func NewMigrator(k *Keeper) Migrator {
 }
 
 // MigrateParams migrates the controller submodule's parameters from the x/params to self store.
-func (m Migrator) MigrateParams(ctx sdk.Context) error {
+func (m Migrator) MigrateParams(ctx context.Context) error {
 	if m.keeper != nil {
 		params := controllertypes.DefaultParams()
 		if m.keeper.legacySubspace != nil {
-			m.keeper.legacySubspace.GetParamSetIfExists(ctx, &params)
+			sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+			m.keeper.legacySubspace.GetParamSetIfExists(sdkCtx, &params)
 		}
 		m.keeper.SetParams(ctx, params)
 		m.keeper.Logger(ctx).Info("successfully migrated ica/controller submodule to self-manage params")

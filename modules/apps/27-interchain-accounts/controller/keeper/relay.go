@@ -25,11 +25,11 @@ import (
 // Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
-func (k Keeper) SendTx(ctx sdk.Context, _ *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
+func (k Keeper) SendTx(ctx context.Context, _ *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
 	return k.sendTx(ctx, connectionID, portID, icaPacketData, timeoutTimestamp)
 }
 
-func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
+func (k Keeper) sendTx(ctx context.Context, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
 	if !k.GetParams(ctx).ControllerEnabled {
 		return 0, types.ErrControllerSubModuleDisabled
 	}
@@ -44,7 +44,8 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 		return 0, errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", host.ChannelCapabilityPath(portID, activeChannelID))
 	}
 
-	if uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if uint64(sdkCtx.BlockTime().UnixNano()) >= timeoutTimestamp {
 		return 0, icatypes.ErrInvalidTimeoutTimestamp
 	}
 

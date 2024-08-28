@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"context"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 )
 
@@ -19,11 +20,12 @@ func NewMigrator(k *Keeper) Migrator {
 }
 
 // MigrateParams migrates the host submodule's parameters from the x/params to self store.
-func (m Migrator) MigrateParams(ctx sdk.Context) error {
+func (m Migrator) MigrateParams(ctx context.Context) error {
 	if m.keeper != nil {
 		params := types.DefaultParams()
 		if m.keeper.legacySubspace != nil {
-			m.keeper.legacySubspace.GetParamSetIfExists(ctx, &params)
+			sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: should we remove legacy migrations?
+			m.keeper.legacySubspace.GetParamSetIfExists(sdkCtx, &params)
 		}
 		if err := params.Validate(); err != nil {
 			return err
