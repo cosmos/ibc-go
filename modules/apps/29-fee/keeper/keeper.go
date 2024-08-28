@@ -67,6 +67,16 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)
 }
 
+// BlockedAddr delegates to bank keeper's blocked address method.
+func (k Keeper) BlockedAddr(addr sdk.AccAddress) bool {
+	return k.bankKeeper.BlockedAddr(addr)
+}
+
+// IsSendEnabledCoins delegates to bank keeper's send enabled method.
+func (k Keeper) IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error {
+	return k.bankKeeper.IsSendEnabledCoins(ctx, coins...)
+}
+
 // BindPort defines a wrapper function for the port Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {

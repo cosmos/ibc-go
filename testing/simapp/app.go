@@ -472,6 +472,9 @@ func NewSimApp(
 	transferStackV2 := transfer.NewIBCModuleV2(app.TransferKeeper)
 	ibcAppRouter.AddV2Route(ibctransfertypes.ModuleName, transferStackV2)
 
+	feeV2 := ibcfee.NewIBCModuleV2(app.IBCFeeKeeper)
+	ibcAppRouter.AddV2Route(ibcfeetypes.ModuleName, feeV2)
+
 	ibcAppRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Add transfer stack to IBC Router

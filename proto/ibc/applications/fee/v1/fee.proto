@@ -10,6 +10,12 @@ import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto";
 import "cosmos/msg/v1/msg.proto";
 
+// PacketData defines the ICS29 packet data payload.
+// Simple wrapper around single PacketFee for now.
+message PacketData {
+  PacketFee packet_fee = 1 [(gogoproto.nullable) = false];
+}
+
 // Fee defines the ICS29 receive, acknowledgement and timeout fees
 message Fee {
   // the packet receive fee

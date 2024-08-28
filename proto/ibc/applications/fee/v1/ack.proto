@@ -5,6 +5,7 @@ package ibc.applications.fee.v1;
 option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types";
 
 // IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
+// Deprecated: use FeeAcknowledgement instead.
 message IncentivizedAcknowledgement {
   // the underlying app acknowledgement bytes
   bytes app_acknowledgement = 1;
@@ -12,4 +13,11 @@ message IncentivizedAcknowledgement {
   string forward_relayer_address = 2;
   // success flag of the base application callback
   bool underlying_app_success = 3;
+}
+
+// FeeAcknowledgement defines the 29-fee acknowledgement structure. It contains the forward relayer address.
+// i.e. the relayer of a MsgRecvPacket on a packet's destination chain.
+// TODO: could be v2 proto pkg?
+message FeeAcknowledgement {
+  string forward_relayer_address = 1;
 }

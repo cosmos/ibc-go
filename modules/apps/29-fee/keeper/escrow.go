@@ -12,6 +12,11 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
+// EscrowPacketFeeV2 exposes the api for ibc module v2. Can be cleaned up!
+func (k Keeper) EscrowPacketFeeV2(ctx sdk.Context, packetID channeltypes.PacketId, packetFee types.PacketFee) error {
+	return k.escrowPacketFee(ctx, packetID, packetFee)
+}
+
 // escrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
 func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId, packetFee types.PacketFee) error {
 	// check if the refund address is valid
