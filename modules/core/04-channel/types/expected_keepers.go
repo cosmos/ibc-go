@@ -50,6 +50,16 @@ type ConnectionKeeper interface {
 		sequence uint64,
 		acknowledgement []byte,
 	) error
+	VerifyPacketAcknowledgementV2(
+		ctx sdk.Context,
+		connection connectiontypes.ConnectionEnd,
+		height exported.Height,
+		proof []byte,
+		portID,
+		channelID string,
+		sequence uint64,
+		acknowledgement []byte,
+	) error
 	VerifyPacketReceiptAbsence(
 		ctx sdk.Context,
 		connection connectiontypes.ConnectionEnd,

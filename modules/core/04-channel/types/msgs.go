@@ -383,9 +383,9 @@ func (msg MsgAcknowledgement) ValidateBasic() error {
 	if len(msg.ProofAcked) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty acknowledgement proof")
 	}
-	if len(msg.Acknowledgement) == 0 {
-		return errorsmod.Wrap(ErrInvalidAcknowledgement, "ack bytes cannot be empty")
-	}
+	//if len(msg.Acknowledgement) == 0 {
+	//	return errorsmod.Wrap(ErrInvalidAcknowledgement, "ack bytes cannot be empty")
+	//}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)

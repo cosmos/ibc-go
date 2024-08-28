@@ -620,7 +620,7 @@ func (k *Keeper) AcknowledgePacketV2(
 
 	acknowledgement := k.cdc.MustMarshal(&multiAck)
 
-	if err := k.connectionKeeper.VerifyPacketAcknowledgement(
+	if err := k.connectionKeeper.VerifyPacketAcknowledgementV2(
 		ctx, connectionEnd, proofHeight, proof, packet.GetDestinationPort(), packet.GetDestinationChannel(),
 		packet.GetSequence(), acknowledgement,
 	); err != nil {

@@ -570,7 +570,7 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 
 func (endpoint *Endpoint) AcknowledgePacketV2(packet channeltypes.PacketV2, multiAck channeltypes.MultiAcknowledgement) error {
 	// get proof of acknowledgement on counterparty
-	packetKey := host.PacketAcknowledgementKey(packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence())
+	packetKey := host.PacketAcknowledgementKeyV2(packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence())
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 
 	ackMsg := channeltypes.NewMsgAcknowledgement(channeltypes.Packet{}, nil, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())

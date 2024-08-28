@@ -163,6 +163,41 @@ func (k *Keeper) VerifyPacketAcknowledgement(
 	return nil
 }
 
+func (k *Keeper) VerifyPacketAcknowledgementV2(
+	ctx sdk.Context,
+	connection types.ConnectionEnd,
+	height exported.Height,
+	proof []byte,
+	portID,
+	channelID string,
+	sequence uint64,
+	acknowledgement []byte,
+) error {
+	clientID := connection.ClientId
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	// get time and block delays
+	timeDelay := connection.DelayPeriod
+	blockDelay := k.getBlockDelay(ctx, connection)
+
+	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementKeyV2(portID, channelID, sequence))
+	merklePath, err := commitmenttypes.ApplyPrefix(connection.Counterparty.Prefix, merklePath)
+	if err != nil {
+		return err
+	}
+
+	if err := k.clientKeeper.VerifyMembership(
+		ctx, clientID, height, timeDelay, blockDelay,
+		proof, merklePath, channeltypes.CommitAcknowledgement(acknowledgement),
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
+	}
+
+	return nil
+}
+
 // VerifyPacketReceiptAbsence verifies a proof of the absence of an
 // incoming packet receipt at the specified port, specified channel, and
 // specified sequence.

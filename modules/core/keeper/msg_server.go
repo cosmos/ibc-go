@@ -839,16 +839,10 @@ func (k *Keeper) acknowledgementV2(goCtx context.Context, msg *channeltypes.MsgA
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
 
-	ackResults, found := k.ChannelKeeper.GetMultiAcknowledgement(ctx, msg.PacketV2.GetSourcePort(), msg.PacketV2.GetSourceChannel(), msg.PacketV2.GetSequence())
-	if !found {
-		// should never be the case as it should be written in OnRecvPacket or async by the application before this callback.
-		panic("acknowledgementV2: multi-acknowledgement not found")
-	}
-
 	// construct mapping of app name to recvPacketResult
 	// TODO: helper fn to do this.
-	var recvResults map[string]channeltypes.RecvPacketResult
-	for _, r := range ackResults.AcknowledgementResults {
+	recvResults := make(map[string]channeltypes.RecvPacketResult)
+	for _, r := range msg.MultiAck.AcknowledgementResults {
 		recvResults[r.AppName] = r.RecvPacketResult
 	}
 

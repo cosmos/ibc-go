@@ -54,16 +54,6 @@ func (suite *TransferTestSuite) TestIbcModuleV2HappyPath() {
 					Version: types.V2,
 				},
 			}
-			//
-			//msgSendPacket = &channeltypes.MsgSendPacket{
-			//	PortId:           path.EndpointA.ChannelConfig.PortID,
-			//	ChannelId:        path.EndpointA.ChannelID,
-			//	TimeoutHeight:    suite.chainA.GetTimeoutHeight(),
-			//	TimeoutTimestamp: 0,
-			//	Data:             nil,
-			//	DataV2:           []channeltypes.PacketData{v2PacketData},
-			//	Signer:           suite.chainA.SenderAccount.GetAddress().String(),
-			//}
 
 			tc.malleate()
 
