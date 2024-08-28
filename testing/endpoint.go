@@ -462,16 +462,26 @@ func (endpoint *Endpoint) SendPacketV2(
 	timeoutTimestamp uint64,
 	data []channeltypes.PacketData,
 ) (uint64, error) {
-	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacketV2(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
+	msgSendPacket := channeltypes.MsgSendPacket{
+		PortId:           endpoint.ChannelConfig.PortID,
+		ChannelId:        endpoint.ChannelID,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: timeoutTimestamp,
+		DataV2:           data,
+		Signer:           endpoint.Chain.SenderAccount.GetAddress().String(),
+	}
+
+	res, err := endpoint.Chain.SendMsgs(&msgSendPacket)
 	if err != nil {
 		return 0, err
 	}
 
-	// commit changes since no message was sent
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-
 	err = endpoint.Counterparty.UpdateClient()
+	if err != nil {
+		return 0, err
+	}
+
+	sequence, err := ParsePacketSequenceFromEvents(res.Events)
 	if err != nil {
 		return 0, err
 	}

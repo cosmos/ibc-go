@@ -11,6 +11,18 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
+func NewFeeTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+	path := ibctesting.NewTransferPath(chainA, chainB)
+
+	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.V2}))
+	path.EndpointA.ChannelConfig.Version = feeTransferVersion
+	path.EndpointB.ChannelConfig.Version = feeTransferVersion
+	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
+	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
+
+	return path
+}
+
 func (suite *FeeTestSuite) TestIbcModuleV2HappyPathFeeTransfer() {
 	var path *ibctesting.Path
 
@@ -30,8 +42,7 @@ func (suite *FeeTestSuite) TestIbcModuleV2HappyPathFeeTransfer() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			path = ibctesting.EnableFeeOnPath(path)
+			path = NewFeeTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			// configure counterparty payee address for forward relayer
@@ -87,7 +98,6 @@ func (suite *FeeTestSuite) TestIbcModuleV2HappyPathFeeTransfer() {
 
 			timeoutHeight := suite.chainA.GetTimeoutHeight()
 
-			// TODO: this currently bypasses app callbacks
 			sequence, err := path.EndpointA.SendPacketV2(suite.chainA.GetTimeoutHeight(), 0, data)
 			suite.Require().NoError(err)
 
@@ -115,14 +125,10 @@ func (suite *FeeTestSuite) TestIbcModuleV2HappyPathFeeTransfer() {
 				},
 			}
 
-			//bz, err = expectedMultiAck.Marshal()
-			//suite.Require().NoError(err)
-
 			err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
 			suite.Require().NoError(err)
 
 			// assert 29-fee logic is executed correctly by checking the balance of the forward relayer address on chainA
-			// TODO: adapt send packet to call through core msg server
 			forwardRelayerAcc, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 			suite.Require().NoError(err)
 
