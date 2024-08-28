@@ -39,3 +39,4 @@ ____
 - [ ] Not duplicate issue
 - [ ] Appropriate labels applied
 - [ ] Appropriate contributors tagged/assigned
+- [ ] Estimate provided

@@ -142,10 +142,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"account address generation is block dependent", func() {
@@ -156,12 +156,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 
 				// ensure account registration is simulated in a separate block
 				suite.chainB.NextBlock()
-			}, true,
-		},
-		{
-			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-			}, false,
+			}, nil,
 		},
 		{
 			"success: ICA auth module callback returns error", func() {
@@ -172,7 +167,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 				) (string, error) {
 					return "", fmt.Errorf("mock ica auth fails")
 				}
-			}, true,
+			}, nil,
+		},
+		{
+			"host submodule disabled", func() {
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, types.ErrHostSubModuleDisabled,
 		},
 	}
 
@@ -218,14 +218,14 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 					path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
 				)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 
 					addr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, counterparty.PortId)
 					suite.Require().True(exists)
 					suite.Require().NotNil(addr)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 					suite.Require().Equal("", version)
 				}
 			})
@@ -274,15 +274,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
-		},
-		{
-			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-			}, false,
+			"success", func() {}, nil,
 		},
 		{
 			"success: ICA auth module callback returns error", func() {
@@ -292,7 +287,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
-			}, true,
+			}, nil,
+		},
+		{
+			"host submodule disabled", func() {
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
+			}, types.ErrHostSubModuleDisabled,
 		},
 	}
 
@@ -324,10 +324,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 
 				err = cbs.OnChanOpenConfirm(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
@@ -365,10 +365,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 	}
 
@@ -395,10 +395,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 				err = cbs.OnChanCloseConfirm(
 					suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
@@ -549,10 +549,10 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"ICA OnAcknowledgementPacket fails with ErrInvalidChannelFlow", func() {}, false,
+			"ICA OnAcknowledgementPacket fails with ErrInvalidChannelFlow", func() {}, icatypes.ErrInvalidChannelFlow,
 		},
 	}
 
@@ -590,10 +590,10 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 				err = cbs.OnAcknowledgementPacket(suite.chainB.GetContext(), path.EndpointB.GetChannel().Version, packet, []byte("ackBytes"), nil)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
@@ -604,10 +604,10 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"ICA OnTimeoutPacket fails with ErrInvalidChannelFlow", func() {}, false,
+			"ICA OnTimeoutPacket fails with ErrInvalidChannelFlow", func() {}, icatypes.ErrInvalidChannelFlow,
 		},
 	}
 
@@ -645,10 +645,10 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, nil)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
@@ -854,7 +854,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 		params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 		suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
-		//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
+		// nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 		_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
 		suite.Require().NoError(err)
 		err = path.EndpointB.UpdateClient()
@@ -880,7 +880,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 		path.EndpointB.ChannelID = ""
 		path.CreateChannels()
 
-		//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
+		// nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 		_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
 		suite.Require().NoError(err)
 		err = path.EndpointB.UpdateClient()

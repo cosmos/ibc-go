@@ -82,7 +82,7 @@ func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
 
 // Logger returns the application logger, scoped to the associated module
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
 }
 
@@ -114,25 +114,27 @@ func (k Keeper) GetAllPorts(ctx context.Context) []string {
 // setPort sets the provided portID in state
 func (k Keeper) setPort(ctx context.Context, portID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyPort(portID), []byte{0x01})
+	if err := store.Set(icatypes.KeyPort(portID), []byte{0x01}); err != nil {
+		panic(err)
+	}
 }
 
 // hasCapability checks if the interchain account controller module owns the port capability for the desired port
 func (k Keeper) hasCapability(ctx context.Context, portID string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
 	return ok
 }
 
 // AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
 func (k Keeper) AuthenticateCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return k.scopedKeeper.AuthenticateCapability(sdkCtx, cap, name)
 }
 
 // ClaimCapability wraps the scopedKeeper's ClaimCapability function
 func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return k.scopedKeeper.ClaimCapability(sdkCtx, cap, name)
 }
 
@@ -146,12 +148,11 @@ func (k Keeper) GetActiveChannelID(ctx context.Context, connectionID, portID str
 	store := k.storeService.OpenKVStore(ctx)
 	key := icatypes.KeyActiveChannel(portID, connectionID)
 
-	has, err := store.Has(key)
+	bz, err := store.Get(key)
 	if err != nil {
 		panic(err)
 	}
-	if !has {
-
+	if len(bz) == 0 {
 		return "", false
 	}
 	bz, err := store.Get(key)
@@ -159,7 +160,7 @@ func (k Keeper) GetActiveChannelID(ctx context.Context, connectionID, portID str
 		panic(err)
 	}
 
-	return string(bz), true // todo: why the cast?
+	return string(bz), true
 }
 
 // GetOpenActiveChannel retrieves the active channelID from the store, keyed by the provided connectionID and portID & checks if the channel in question is in state OPEN
@@ -219,7 +220,9 @@ func (k Keeper) GetAllActiveChannels(ctx context.Context) []genesistypes.ActiveC
 // SetActiveChannelID stores the active channelID, keyed by the provided connectionID and portID
 func (k Keeper) SetActiveChannelID(ctx context.Context, connectionID, portID, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyActiveChannel(portID, connectionID), []byte(channelID))
+	if err := store.Set(icatypes.KeyActiveChannel(portID, connectionID), []byte(channelID)); err != nil {
+		panic(err)
+	}
 }
 
 // IsActiveChannel returns true if there exists an active channel for the provided connectionID and portID, otherwise false
@@ -233,20 +236,15 @@ func (k Keeper) GetInterchainAccountAddress(ctx context.Context, connectionID, p
 	store := k.storeService.OpenKVStore(ctx)
 	key := icatypes.KeyOwnerAccount(portID, connectionID)
 
-	has, err := store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	if !has {
-		return "", false
-	}
-
 	bz, err := store.Get(key)
 	if err != nil {
 		panic(err)
 	}
+	if len(bz) == 0 {
+		return "", false
+	}
 
-	return string(bz), true // todo: why the cast?
+	return string(bz), true
 }
 
 // GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated connection and controller port identifiers
@@ -273,7 +271,9 @@ func (k Keeper) GetAllInterchainAccounts(ctx context.Context) []genesistypes.Reg
 // SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated connectionID and portID
 func (k Keeper) SetInterchainAccountAddress(ctx context.Context, connectionID, portID, address string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address))
+	if err := store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address)); err != nil {
+		panic(err)
+	}
 }
 
 // IsMiddlewareEnabled returns true if the underlying application callbacks are enabled for given port and connection identifier pair, otherwise false
@@ -299,19 +299,25 @@ func (k Keeper) IsMiddlewareDisabled(ctx context.Context, portID, connectionID s
 // SetMiddlewareEnabled stores a flag to indicate that the underlying application callbacks should be enabled for the given port and connection identifier pair
 func (k Keeper) SetMiddlewareEnabled(ctx context.Context, portID, connectionID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareEnabled)
+	if err := store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareEnabled); err != nil {
+		panic(err)
+	}
 }
 
 // SetMiddlewareDisabled stores a flag to indicate that the underlying application callbacks should be disabled for the given port and connection identifier pair
 func (k Keeper) SetMiddlewareDisabled(ctx context.Context, portID, connectionID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareDisabled)
+	if err := store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareDisabled); err != nil {
+		panic(err)
+	}
 }
 
 // DeleteMiddlewareEnabled deletes the middleware enabled flag stored in state
 func (k Keeper) DeleteMiddlewareEnabled(ctx context.Context, portID, connectionID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, connectionID))
+	if err := store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, connectionID)); err != nil {
+		panic(err)
+	}
 }
 
 // GetAuthority returns the ica/controller submodule's authority.
@@ -349,5 +355,7 @@ func (k Keeper) GetParams(ctx context.Context) types.Params {
 func (k Keeper) SetParams(ctx context.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
 }

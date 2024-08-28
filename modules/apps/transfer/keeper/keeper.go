@@ -100,14 +100,13 @@ func (k Keeper) GetAuthority() string {
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
-
 }
 
 // hasCapability checks if the transfer module owns the port capability for the desired port
 func (k Keeper) hasCapability(ctx context.Context, portID string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
 	return ok
 }
@@ -132,7 +131,9 @@ func (k Keeper) GetPort(ctx context.Context) string {
 // SetPort sets the portID for the transfer module. Used in InitGenesis
 func (k Keeper) SetPort(ctx context.Context, portID string) {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(types.PortKey, []byte(portID))
+	if err := store.Set(types.PortKey, []byte(portID)); err != nil {
+		panic(err)
+	}
 }
 
 // GetParams returns the current transfer module parameters.
@@ -155,7 +156,9 @@ func (k Keeper) GetParams(ctx context.Context) types.Params {
 func (k Keeper) SetParams(ctx context.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetDenom retrieves the denom from store given the hash of the denom.
@@ -268,12 +271,16 @@ func (k Keeper) SetTotalEscrowForDenom(ctx context.Context, coin sdk.Coin) {
 	key := types.TotalEscrowForDenomKey(coin.Denom)
 
 	if coin.Amount.IsZero() {
-		store.Delete(key) // delete the key since Cosmos SDK x/bank module will prune any non-zero balances
+		if err := store.Delete(key); err != nil { // delete the key since Cosmos SDK x/bank module will prune any non-zero balances
+			panic(err)
+		}
 		return
 	}
 
 	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
-	store.Set(key, bz)
+	if err := store.Set(key, bz); err != nil {
+		panic(err)
+	}
 }
 
 // GetAllTotalEscrowed returns the escrow information for all the denominations.
@@ -315,14 +322,14 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 
 // AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
 func (k Keeper) AuthenticateCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return k.scopedKeeper.AuthenticateCapability(sdkCtx, cap, name)
 }
 
 // ClaimCapability allows the transfer module that can claim a capability that IBC module
 // passes to it
 func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return k.scopedKeeper.ClaimCapability(sdkCtx, cap, name)
 }
 
@@ -330,7 +337,9 @@ func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capabi
 func (k Keeper) setForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&packet)
-	store.Set(types.PacketForwardKey(portID, channelID, sequence), bz)
+	if err := store.Set(types.PacketForwardKey(portID, channelID, sequence), bz); err != nil {
+		panic(err)
+	}
 }
 
 // getForwardedPacket gets the forwarded packet from the store.
@@ -355,7 +364,9 @@ func (k Keeper) deleteForwardedPacket(ctx context.Context, portID, channelID str
 	store := k.storeService.OpenKVStore(ctx)
 	packetKey := types.PacketForwardKey(portID, channelID, sequence)
 
-	store.Delete(packetKey)
+	if err := store.Delete(packetKey); err != nil {
+		panic(err)
+	}
 }
 
 // getAllForwardedPackets gets all forward packets stored in state.

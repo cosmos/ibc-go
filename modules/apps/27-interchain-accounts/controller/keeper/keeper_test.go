@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name          string
 		instantiateFn func()
-		expPass       bool
+		errMsg        string
 	}{
 		{"success", func() {
 			keeper.NewKeeper(
@@ -127,7 +127,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
-		}, true},
+		}, ""},
 		{"failure: empty authority", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
@@ -140,7 +140,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 				"", // authority
 			)
-		}, false},
+		}, "authority must be non-empty"},
 	}
 
 	for _, tc := range testCases {
@@ -148,12 +148,13 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NotPanics(
 					tc.instantiateFn,
 				)
 			} else {
-				suite.Require().Panics(
+				suite.Require().PanicsWithError(
+					tc.errMsg,
 					tc.instantiateFn,
 				)
 			}
@@ -312,7 +313,7 @@ func (suite *KeeperTestSuite) TestSetAndGetParams() {
 	testCases := []struct {
 		name    string
 		input   types.Params
-		expPass bool
+		expPass bool // This is currently always true.
 	}{
 		// it is not possible to set invalid booleans
 		{"success: set params false", types.NewParams(false), true},

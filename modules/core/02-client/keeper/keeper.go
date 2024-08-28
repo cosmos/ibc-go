@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	corestoretypes "cosmossdk.io/core/store"
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/prefix"
@@ -27,7 +27,7 @@ import (
 // Keeper represents a type that grants read and write permissions to any client
 // state information
 type Keeper struct {
-	storeService   corestoretypes.KVStoreService
+	storeService   corestore.KVStoreService
 	cdc            codec.BinaryCodec
 	router         *types.Router
 	legacySubspace types.ParamSubspace
@@ -35,7 +35,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService corestoretypes.KVStoreService, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
 	router := types.NewRouter()
 	localhostModule := localhost.NewLightClientModule(cdc, storeService)
 	router.AddRoute(exported.Localhost, localhostModule)
@@ -56,7 +56,7 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -157,7 +157,9 @@ func (k *Keeper) GetNextClientSequence(ctx context.Context) uint64 {
 func (k *Keeper) SetNextClientSequence(ctx context.Context, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set([]byte(types.KeyNextClientSequence), bz)
+	if err := store.Set([]byte(types.KeyNextClientSequence), bz); err != nil {
+		panic(err)
+	}
 }
 
 // IterateConsensusStates provides an iterator over all stored consensus states.
@@ -434,8 +436,11 @@ func (k *Keeper) GetClientTimestampAtHeight(ctx context.Context, clientID string
 // GetParams returns the total set of ibc-client parameters.
 func (k *Keeper) GetParams(ctx context.Context) types.Params {
 	store := k.storeService.OpenKVStore(ctx)
-	bz, _ := store.Get([]byte(types.ParamsKey)) // TODO: handle error
-	if bz == nil {                              // only panic on unset params and not on empty params
+	bz, err := store.Get([]byte(types.ParamsKey))
+	if err != nil {
+		panic(err)
+	}
+	if bz == nil { // only panic on unset params and not on empty params
 		panic(errors.New("client params are not set in store"))
 	}
 
@@ -448,7 +453,9 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 func (k *Keeper) SetParams(ctx context.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
 }
 
 // ScheduleIBCSoftwareUpgrade schedules an upgrade for the IBC client.
@@ -476,7 +483,7 @@ func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx context.Context, plan upgradetyp
 	}
 
 	// emitting an event for scheduling an upgrade plan
-	sdkContext := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
+	sdkContext := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	emitScheduleIBCSoftwareUpgradeEvent(sdkContext, plan.Name, plan.Height)
 
 	return nil

@@ -33,15 +33,15 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
-	cdc            codec.BinaryCodec
-	kvstoreService corestore.KVStoreService
+	cdc          codec.BinaryCodec
+	storeService corestore.KVStoreService
 }
 
 // NewLightClientModule creates and returns a new 09-localhost LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, key corestore.KVStoreService) *LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeService corestore.KVStoreService) *LightClientModule {
 	return &LightClientModule{
-		cdc:            cdc,
-		kvstoreService: key,
+		cdc:          cdc,
+		storeService: storeService,
 	}
 }
 
@@ -83,7 +83,7 @@ func (l LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	ibcStore := l.kvstoreService.OpenKVStore(ctx)
+	ibcStore := l.storeService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -102,7 +102,7 @@ func (l LightClientModule) VerifyMembership(
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
 	bz, err := ibcStore.Get(merklePath.KeyPath[1])
 	if err != nil {
-		return errorsmod.Wrapf(err, "error getting value for path %s", path)
+		panic(err)
 	}
 	if bz == nil {
 		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
@@ -127,7 +127,7 @@ func (l LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	ibcStore := l.kvstoreService.OpenKVStore(ctx)
+	ibcStore := l.storeService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -168,7 +168,7 @@ func (LightClientModule) LatestHeight(ctx context.Context, _ string) exported.He
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
 func (LightClientModule) TimestampAtHeight(ctx context.Context, _ string, _ exported.Height) (uint64, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return uint64(sdkCtx.BlockTime().UnixNano()), nil
 }
 

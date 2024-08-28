@@ -201,34 +201,34 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 func (suite *KeeperTestSuite) TestUpdateParams() {
 	signer := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
+		name   string
+		msg    *types.MsgUpdateParams
+		expErr error
 	}{
 		{
 			"success: valid signer and default params",
 			types.NewMsgUpdateParams(signer, types.DefaultParams()),
-			true,
+			nil,
 		},
 		{
 			"failure: malformed signer address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: empty signer address",
 			types.NewMsgUpdateParams("", types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: whitespace signer address",
 			types.NewMsgUpdateParams("    ", types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: unauthorized signer address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 
@@ -237,10 +237,10 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			_, err := suite.chainA.GetSimApp().TransferKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

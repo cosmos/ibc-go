@@ -15,7 +15,6 @@ import (
 // EmitAcknowledgementEvent emits an event signalling a successful or failed acknowledgement and including the error
 // details if any.
 func EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, ack exported.Acknowledgement, err error) {
-
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 		sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
@@ -25,7 +24,7 @@ func EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, a
 	if err != nil {
 		attributes = append(attributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, err.Error()))
 	}
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			icatypes.EventTypePacket,
@@ -36,7 +35,7 @@ func EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, a
 
 // EmitHostDisabledEvent emits an event signalling that the host submodule is disabled.
 func EmitHostDisabledEvent(ctx context.Context, packet channeltypes.Packet) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after sdk.Context is removed from core IBC
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			icatypes.EventTypePacket,

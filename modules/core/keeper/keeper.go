@@ -5,7 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	corestoretypes "cosmossdk.io/core/store"
+	corestore "cosmossdk.io/core/store"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -32,7 +33,7 @@ type Keeper struct {
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, storeService corestoretypes.KVStoreService, paramSpace types.ParamSubspace,
+	cdc codec.BinaryCodec, storeService corestore.KVStoreService, paramSpace types.ParamSubspace,
 	upgradeKeeper clienttypes.UpgradeKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
 ) *Keeper {

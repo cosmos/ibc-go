@@ -3,6 +3,7 @@ package v7
 import (
 	"strings"
 
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
