@@ -373,7 +373,7 @@ func (k *Keeper) WriteAcknowledgement(
 // which is no longer necessary since the packet has been received and acted upon.
 // It will also increment NextSequenceAck in case of ORDERED channels.
 func (k *Keeper) AcknowledgePacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 	acknowledgement []byte,

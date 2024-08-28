@@ -12,8 +12,9 @@ import (
 )
 
 // emitChannelOpenInitEvent emits a channel open init event
-func emitChannelOpenInitEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenInitEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenInit,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -30,8 +31,9 @@ func emitChannelOpenInitEvent(ctx sdk.Context, portID string, channelID string, 
 }
 
 // emitChannelOpenTryEvent emits a channel open try event
-func emitChannelOpenTryEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenTryEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenTry,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -49,8 +51,9 @@ func emitChannelOpenTryEvent(ctx sdk.Context, portID string, channelID string, c
 }
 
 // emitChannelOpenAckEvent emits a channel open acknowledge event
-func emitChannelOpenAckEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenAckEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenAck,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -67,8 +70,9 @@ func emitChannelOpenAckEvent(ctx sdk.Context, portID string, channelID string, c
 }
 
 // emitChannelOpenConfirmEvent emits a channel open confirm event
-func emitChannelOpenConfirmEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenConfirmEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenConfirm,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -85,8 +89,9 @@ func emitChannelOpenConfirmEvent(ctx sdk.Context, portID string, channelID strin
 }
 
 // emitChannelCloseInitEvent emits a channel close init event
-func emitChannelCloseInitEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelCloseInitEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelCloseInit,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -103,8 +108,9 @@ func emitChannelCloseInitEvent(ctx sdk.Context, portID string, channelID string,
 }
 
 // emitChannelCloseConfirmEvent emits a channel close confirm event
-func emitChannelCloseConfirmEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelCloseConfirmEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelCloseConfirm,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -203,8 +209,9 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 
 // emitAcknowledgePacketEvent emits an acknowledge packet event. It will be emitted both the first time
 // a packet is acknowledged for a certain sequence and for all duplicate acknowledgements.
-func emitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitAcknowledgePacketEvent(ctx context.Context, packet types.Packet, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
