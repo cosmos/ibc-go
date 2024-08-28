@@ -309,8 +309,7 @@ func (k *Keeper) WriteAcknowledgement(
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
 	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	if !k.scopedKeeper.AuthenticateCapability(sdkCtx, chanCap, capName) {
+	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelCapability,
 			"channel capability failed authentication for capability name %s", capName,
@@ -359,6 +358,7 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
 
 	return nil

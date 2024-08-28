@@ -36,8 +36,7 @@ func (Keeper) Logger(ctx context.Context) log.Logger {
 
 // IsBound checks a given port ID is already bounded.
 func (k *Keeper) IsBound(ctx context.Context, portID string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
+	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
 }
 
@@ -54,9 +53,7 @@ func (k *Keeper) BindPort(ctx context.Context, portID string) *capabilitytypes.C
 		panic(fmt.Errorf("port %s is already bound", portID))
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-
-	key, err := k.scopedKeeper.NewCapability(sdkCtx, host.PortPath(portID))
+	key, err := k.scopedKeeper.NewCapability(ctx, host.PortPath(portID))
 	if err != nil {
 		panic(err.Error())
 	}
@@ -74,14 +71,12 @@ func (k *Keeper) Authenticate(ctx context.Context, key *capabilitytypes.Capabili
 		panic(err.Error())
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	return k.scopedKeeper.AuthenticateCapability(sdkCtx, key, host.PortPath(portID))
+	return k.scopedKeeper.AuthenticateCapability(ctx, key, host.PortPath(portID))
 }
 
 // LookupModuleByPort will return the IBCModule along with the capability associated with a given portID
 func (k *Keeper) LookupModuleByPort(ctx context.Context, portID string) (string, *capabilitytypes.Capability, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	modules, capability, err := k.scopedKeeper.LookupModules(sdkCtx, host.PortPath(portID))
+	modules, capability, err := k.scopedKeeper.LookupModules(ctx, host.PortPath(portID))
 	if err != nil {
 		return "", nil, err
 	}

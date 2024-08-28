@@ -7,7 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -64,8 +63,7 @@ func (l LightClientModule) VerifyClientMessage(ctx context.Context, clientID str
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	return clientState.VerifyClientMessage(sdkCtx, l.cdc, clientStore, clientMsg)
+	return clientState.VerifyClientMessage(ctx, l.cdc, clientStore, clientMsg)
 }
 
 // CheckForMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.CheckForMisbehaviour method.

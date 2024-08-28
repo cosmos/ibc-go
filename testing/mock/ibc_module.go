@@ -60,8 +60,7 @@ func (im IBCModule) OnChanOpenInit(
 
 	if chanCap != nil {
 		// Claim channel capability passed back by IBC module
-		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(sdkCtx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return "", err
 		}
 	}
@@ -80,8 +79,7 @@ func (im IBCModule) OnChanOpenTry(
 
 	if chanCap != nil {
 		// Claim channel capability passed back by IBC module
-		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(sdkCtx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 			return "", err
 		}
 	}
@@ -133,13 +131,13 @@ func (im IBCModule) OnRecvPacket(ctx context.Context, channelVersion string, pac
 
 	// set state by claiming capability to check if revert happens return
 	capName := GetMockRecvCanaryCapabilityName(packet)
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	sdkCtx.EventManager().EmitEvent(NewMockRecvPacketEvent())
 
 	if bytes.Equal(MockPacketData, packet.GetData()) {
@@ -158,13 +156,13 @@ func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, channelVersion 
 	}
 
 	capName := GetMockAckCanaryCapabilityName(packet)
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	sdkCtx.EventManager().EmitEvent(NewMockAckPacketEvent())
 
 	return nil
@@ -177,13 +175,13 @@ func (im IBCModule) OnTimeoutPacket(ctx context.Context, channelVersion string, 
 	}
 
 	capName := GetMockTimeoutCanaryCapabilityName(packet)
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	sdkCtx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
 
 	return nil

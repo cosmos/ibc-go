@@ -106,8 +106,7 @@ func (Keeper) Logger(ctx context.Context) log.Logger {
 
 // hasCapability checks if the transfer module owns the port capability for the desired port
 func (k Keeper) hasCapability(ctx context.Context, portID string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	_, ok := k.scopedKeeper.GetCapability(sdkCtx, host.PortPath(portID))
+	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
 	return ok
 }
 
@@ -322,15 +321,13 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 
 // AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
 func (k Keeper) AuthenticateCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) bool {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	return k.scopedKeeper.AuthenticateCapability(sdkCtx, cap, name)
+	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
 }
 
 // ClaimCapability allows the transfer module that can claim a capability that IBC module
 // passes to it
 func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	return k.scopedKeeper.ClaimCapability(sdkCtx, cap, name)
+	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
 // setForwardedPacket sets the forwarded packet in the store.

@@ -48,8 +48,7 @@ func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacke
 
 // acknowledgeForwardedPacket writes the async acknowledgement for forwardedPacket
 func (k Keeper) acknowledgeForwardedPacket(ctx context.Context, forwardedPacket, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	capability, ok := k.scopedKeeper.GetCapability(sdkCtx, host.ChannelCapabilityPath(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel))
+	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel))
 	if !ok {
 		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
