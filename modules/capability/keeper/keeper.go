@@ -123,7 +123,7 @@ func (k *Keeper) IsSealed() bool {
 // can't initialize it in a constructor.
 func (k *Keeper) InitMemStore(ctx context.Context) {
 	// create context with no block gas meter to ensure we do not consume gas during local initialization logic.
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after 52 upgrade
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after 52 upgrade
 	noGasCtx := sdkCtx.WithBlockGasMeter(storetypes.NewInfiniteGasMeter()).WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// check if memory store has not been initialized yet by checking if initialized flag is nil.
@@ -146,7 +146,9 @@ func (k *Keeper) InitMemStore(ctx context.Context) {
 
 		// set the initialized flag so we don't rerun initialization logic
 		memStore := k.memService.OpenMemoryStore(noGasCtx)
-		memStore.Set(types.KeyMemInitialized, []byte{1})
+		if err := memStore.Set(types.KeyMemInitialized, []byte{1}); err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -174,7 +176,9 @@ func (k Keeper) InitializeIndex(ctx context.Context, index uint64) error {
 
 	// set the global index to the passed index
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(types.KeyIndex, types.IndexToKey(index))
+	if err := store.Set(types.KeyIndex, types.IndexToKey(index)); err != nil {
+		panic(err)
+	}
 	return nil
 }
 
@@ -224,13 +228,17 @@ func (k Keeper) InitializeCapability(ctx context.Context, index uint64, owners t
 	for _, owner := range owners.Owners {
 		// Set the forward mapping between the module and capability tuple and the
 		// capability name in the memKVStore
-		memStore.Set(types.FwdCapabilityKey(owner.Module, capability), []byte(owner.Name))
+		if err := memStore.Set(types.FwdCapabilityKey(owner.Module, capability), []byte(owner.Name)); err != nil {
+			panic(err)
+		}
 
 		// Set the reverse mapping between the module and capability name and the
 		// index in the in-memory store. Since marshalling and unmarshalling into a store
 		// will change memory address of capability, we simply store index as value here
 		// and retrieve the in-memory pointer to the capability from our map
-		memStore.Set(types.RevCapabilityKey(owner.Module, owner.Name), sdk.Uint64ToBigEndian(index))
+		if err := memStore.Set(types.RevCapabilityKey(owner.Module, owner.Name), sdk.Uint64ToBigEndian(index)); err != nil {
+			panic(err)
+		}
 
 		// Set the mapping from index to in-memory capability in the go map
 		k.capMap[index] = capability
@@ -253,7 +261,7 @@ func (sk ScopedKeeper) NewCapability(ctx context.Context, name string) (*types.C
 	store := sk.storeService.OpenKVStore(ctx)
 
 	if _, ok := sk.GetCapability(ctx, name); ok {
-		return nil, errorsmod.Wrapf(types.ErrCapabilityTaken, fmt.Sprintf("module: %s, name: %s", sk.module, name))
+		return nil, errorsmod.Wrapf(types.ErrCapabilityTaken, "module: %s, name: %s", sk.module, name)
 	}
 
 	// create new capability with the current global index
@@ -270,19 +278,25 @@ func (sk ScopedKeeper) NewCapability(ctx context.Context, name string) (*types.C
 	}
 
 	// increment global index
-	store.Set(types.KeyIndex, types.IndexToKey(index+1))
+	if err := store.Set(types.KeyIndex, types.IndexToKey(index+1)); err != nil {
+		panic(err)
+	}
 
 	memStore := sk.memService.OpenMemoryStore(ctx)
 
 	// Set the forward mapping between the module and capability tuple and the
 	// capability name in the memKVStore
-	memStore.Set(types.FwdCapabilityKey(sk.module, capability), []byte(name))
+	if err := memStore.Set(types.FwdCapabilityKey(sk.module, capability), []byte(name)); err != nil {
+		panic(err)
+	}
 
 	// Set the reverse mapping between the module and capability name and the
 	// index in the in-memory store. Since marshalling and unmarshalling into a store
 	// will change memory address of capability, we simply store index as value here
 	// and retrieve the in-memory pointer to the capability from our map
-	memStore.Set(types.RevCapabilityKey(sk.module, name), sdk.Uint64ToBigEndian(index))
+	if err := memStore.Set(types.RevCapabilityKey(sk.module, name), sdk.Uint64ToBigEndian(index)); err != nil {
+		panic(err)
+	}
 
 	// Set the mapping from index to in-memory capability in the go map
 	sk.capMap[index] = capability
@@ -328,13 +342,17 @@ func (sk ScopedKeeper) ClaimCapability(ctx context.Context, cap *types.Capabilit
 
 	// Set the forward mapping between the module and capability tuple and the
 	// capability name in the memKVStore
-	memStore.Set(types.FwdCapabilityKey(sk.module, cap), []byte(name))
+	if err := memStore.Set(types.FwdCapabilityKey(sk.module, cap), []byte(name)); err != nil {
+		panic(err)
+	}
 
 	// Set the reverse mapping between the module and capability name and the
 	// index in the in-memory store. Since marshalling and unmarshalling into a store
 	// will change memory address of capability, we simply store index as value here
 	// and retrieve the in-memory pointer to the capability from our map
-	memStore.Set(types.RevCapabilityKey(sk.module, name), sdk.Uint64ToBigEndian(cap.GetIndex()))
+	if err := memStore.Set(types.RevCapabilityKey(sk.module, name), sdk.Uint64ToBigEndian(cap.GetIndex())); err != nil {
+		panic(err)
+	}
 
 	logger(ctx).Info("claimed capability", "module", sk.module, "name", name, "capability", cap.GetIndex())
 
@@ -357,11 +375,15 @@ func (sk ScopedKeeper) ReleaseCapability(ctx context.Context, cap *types.Capabil
 
 	// Delete the forward mapping between the module and capability tuple and the
 	// capability name in the memKVStore
-	memStore.Delete(types.FwdCapabilityKey(sk.module, cap))
+	if err := memStore.Delete(types.FwdCapabilityKey(sk.module, cap)); err != nil {
+		panic(err)
+	}
 
 	// Delete the reverse mapping between the module and capability name and the
 	// index in the in-memory store.
-	memStore.Delete(types.RevCapabilityKey(sk.module, name))
+	if err := memStore.Delete(types.RevCapabilityKey(sk.module, name)); err != nil {
+		panic(err)
+	}
 
 	// remove owner
 	capOwners := sk.getOwners(ctx, cap)
@@ -522,6 +544,6 @@ func (sk ScopedKeeper) getOwners(ctx context.Context, cap *types.Capability) *ty
 }
 
 func logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove after 52 upgrade
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after 52 upgrade
 	return sdkCtx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }

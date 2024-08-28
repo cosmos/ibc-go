@@ -76,7 +76,7 @@ func (k Keeper) registerInterchainAccount(ctx context.Context, connectionID, por
 		}
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) //TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
 	msg := channeltypes.NewMsgChannelOpenInit(portID, version, ordering, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 	handler := k.msgRouter.Handler(msg)
 	res, err := handler(sdkCtx, msg)
