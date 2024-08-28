@@ -14,8 +14,8 @@ require (
 	cosmossdk.io/store v1.1.0
 	github.com/cometbft/cometbft v0.38.11
 	github.com/cosmos/cosmos-db v1.0.2
-	github.com/cosmos/cosmos-sdk v0.50.9
-	github.com/cosmos/gogoproto v1.6.0
+	github.com/cosmos/cosmos-sdk v0.50.10-0.20240808075341-156231be8aef
+	github.com/cosmos/gogoproto v1.7.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/stretchr/testify v1.9.0
 	sigs.k8s.io/yaml v1.4.0

@@ -155,10 +155,6 @@ func (k Keeper) GetActiveChannelID(ctx context.Context, connectionID, portID str
 	if len(bz) == 0 {
 		return "", false
 	}
-	bz, err := store.Get(key)
-	if err != nil {
-		panic(err)
-	}
 
 	return string(bz), true
 }
