@@ -315,6 +315,12 @@ func (k Keeper) setForwardedPacket(ctx sdk.Context, portID, channelID string, se
 	store.Set(types.PacketForwardKey(portID, channelID, sequence), bz)
 }
 
+func (k Keeper) setForwardedPacketv2(ctx sdk.Context, portID, channelID string, sequence uint64, packet channeltypes.PacketV2) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&packet)
+	store.Set(types.PacketForwardKey(portID, channelID, sequence), bz)
+}
+
 // getForwardedPacket gets the forwarded packet from the store.
 func (k Keeper) getForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -324,6 +330,19 @@ func (k Keeper) getForwardedPacket(ctx sdk.Context, portID, channelID string, se
 	}
 
 	var storedPacket channeltypes.Packet
+	k.cdc.MustUnmarshal(bz, &storedPacket)
+
+	return storedPacket, true
+}
+
+func (k Keeper) getForwardedPacketV2(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.PacketV2, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.PacketForwardKey(portID, channelID, sequence))
+	if bz == nil {
+		return channeltypes.PacketV2{}, false
+	}
+
+	var storedPacket channeltypes.PacketV2
 	k.cdc.MustUnmarshal(bz, &storedPacket)
 
 	return storedPacket, true
@@ -387,7 +406,7 @@ func (k Keeper) iterateForwardedPackets(ctx sdk.Context, cb func(packet types.Fo
 
 // IsBlockedAddr checks if the given address is allowed to send or receive tokens.
 // The module account is always allowed to send and receive tokens.
-func (k Keeper) isBlockedAddr(addr sdk.AccAddress) bool {
+func (k Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {
 	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	if addr.Equals(moduleAddr) {
 		return false
