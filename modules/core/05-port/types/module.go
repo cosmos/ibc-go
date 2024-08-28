@@ -166,7 +166,6 @@ type UpgradableModule interface {
 type ICS4Wrapper interface {
 	SendPacket(
 		ctx context.Context,
-		chanCap *capabilitytypes.Capability,
 		sourcePort string,
 		sourceChannel string,
 		timeoutHeight clienttypes.Height,
