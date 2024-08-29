@@ -488,6 +488,67 @@ func (k Keeper) AcknowledgePacket(
 	return packet.AppVersion, nil
 }
 
+func (k Keeper) AcknowledgePacketV2(
+	ctx sdk.Context,
+	packet channeltypes.PacketV2,
+	multiAck channeltypes.MultiAcknowledgement,
+	proofAcked []byte,
+	proofHeight exported.Height,
+) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
+	if !ok {
+		return errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.SourceChannel)
+	}
+
+	if counterparty.ClientId != packet.DestinationChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	if len(commitment) == 0 {
+		channelkeeper.EmitAcknowledgePacketEventV2(ctx, packet, sentinelChannel(packet.SourceChannel))
+
+		// This error indicates that the acknowledgement has already been relayed
+		// or there is a misconfigured relayer attempting to prove an acknowledgement
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	packetCommitment := channeltypes.CommitPacketV2(packet)
+
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal(commitment, packetCommitment) {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+	}
+
+	path := host.PacketAcknowledgementKeyV2(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	bz := k.cdc.MustMarshal(&multiAck)
+	if err := k.ClientKeeper.VerifyMembership(
+		ctx,
+		packet.SourceChannel,
+		proofHeight,
+		0, 0,
+		proofAcked,
+		merklePath,
+		channeltypes.CommitAcknowledgement(bz),
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceChannel)
+	}
+
+	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+
+	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_port", packet.GetSourcePort(), "src_channel", packet.GetSourceChannel(), "dst_port", packet.GetDestinationPort(), "dst_channel", packet.GetDestinationChannel())
+
+	channelkeeper.EmitAcknowledgePacketEventV2(ctx, packet, sentinelChannel(packet.SourceChannel))
+
+	return nil
+}
+
 // TimeoutPacket implements the timeout logic required by a packet handler.
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
