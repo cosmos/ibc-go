@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
@@ -48,12 +47,7 @@ func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacke
 
 // acknowledgeForwardedPacket writes the async acknowledgement for forwardedPacket
 func (k Keeper) acknowledgeForwardedPacket(ctx context.Context, forwardedPacket, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
-	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel))
-	if !ok {
-		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
-
-	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, capability, forwardedPacket, ack); err != nil {
+	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, forwardedPacket, ack); err != nil {
 		return err
 	}
 

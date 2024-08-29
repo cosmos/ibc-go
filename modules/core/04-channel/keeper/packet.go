@@ -290,7 +290,6 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 // previously by RecvPacket.
 func (k *Keeper) WriteAcknowledgement(
 	ctx context.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	acknowledgement exported.Acknowledgement,
 ) error {
@@ -301,15 +300,6 @@ func (k *Keeper) WriteAcknowledgement(
 
 	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
-	}
-
-	// Authenticate capability to ensure caller has authority to receive packet on this channel
-	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication for capability name %s", capName,
-		)
 	}
 
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay

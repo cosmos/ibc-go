@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking
 
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
+* (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
 
 ### State Machine Breaking
 
@@ -58,6 +59,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
 * [\#7126](https://github.com/cosmos/ibc-go/pull/7126) Bump CometBFT to v0.38.11.
 * [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump go to v1.22.
+* [\#7223](https://github.com/cosmos/ibc-go/pull/7223) Update ics23 to v0.11.0.
 
 ### API Breaking
 
