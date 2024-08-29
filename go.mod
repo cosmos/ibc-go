@@ -27,6 +27,7 @@ require (
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
 	google.golang.org/genproto/googleapis/api v0.0.0-20240701130421-f6361c86f094
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
@@ -178,7 +179,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect

@@ -121,7 +121,6 @@ func (k Keeper) SendPacketV2(
 	destPort string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
-	version string,
 	data []channeltypes.PacketData,
 ) (uint64, error) {
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
@@ -255,6 +254,68 @@ func (k Keeper) RecvPacket(
 	return packet.AppVersion, nil
 }
 
+func (k Keeper) RecvPacketV2(
+	ctx sdk.Context,
+	packet channeltypes.PacketV2,
+	proof []byte,
+	proofHeight exported.Height,
+) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
+	if !ok {
+		return errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.DestinationChannel)
+	}
+	if counterparty.ClientId != packet.SourceChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	// check if packet timed out by comparing it with the latest height of the chain
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight(), packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(selfHeight, selfTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
+	}
+
+	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
+	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
+	// by the increase of the recvStartSequence.
+	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	if found {
+		channelkeeper.EmitRecvPacketEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel))
+		// This error indicates that the packet has already been relayed. Core IBC will
+		// treat this error as a no-op in order to prevent an entire relay transaction
+		// from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	path := host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	commitment := channeltypes.CommitPacketV2(packet)
+
+	if err := k.ClientKeeper.VerifyMembership(
+		ctx,
+		packet.DestinationChannel,
+		proofHeight,
+		0, 0,
+		proof,
+		merklePath,
+		commitment,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationChannel)
+	}
+
+	// Set Packet Receipt to prevent timeout from occurring on counterparty
+	k.ChannelKeeper.SetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+
+	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
+	channelkeeper.EmitRecvPacketEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel))
+
+	return nil
+}
+
 // WriteAcknowledgement implements the async acknowledgement writing logic required by a packet handler.
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
@@ -309,6 +370,49 @@ func (k Keeper) WriteAcknowledgement(
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet, sentinelChannel(packet.DestinationChannel), bz)
+
+	return nil
+}
+
+func (k Keeper) WriteAcknowledgementV2(
+	ctx sdk.Context,
+	packet channeltypes.PacketV2,
+	multiAck channeltypes.MultiAcknowledgement,
+) error {
+
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
+	if !ok {
+		return errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.DestinationChannel)
+	}
+	if counterparty.ClientId != packet.SourceChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	// NOTE: IBC app modules might have written the acknowledgement synchronously on
+	// the OnRecvPacket callback so we need to check if the acknowledgement is already
+	// set on the store and return an error if so.
+	if k.ChannelKeeper.HasPacketAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence) {
+		return channeltypes.ErrAcknowledgementExists
+	}
+
+	if _, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence); !found {
+		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
+	}
+
+	multiAckBz := k.cdc.MustMarshal(&multiAck)
+	// set the acknowledgement so that it can be verified on the other side
+	k.ChannelKeeper.SetPacketAcknowledgement(
+		ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence(),
+		channeltypes.CommitAcknowledgement(multiAckBz),
+	)
+
+	k.ChannelKeeper.SetPacketAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence, channeltypes.CommitAcknowledgement(multiAckBz))
+
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
+	channelkeeper.EmitWriteAcknowledgementEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel), multiAck)
 
 	return nil
 }

@@ -557,7 +557,7 @@ func (k *Keeper) WriteAcknowledgementV2(
 		"dst_channel", packet.GetDestinationChannel(),
 	)
 
-	emitWriteAcknowledgementEventV2(ctx, packet, channel, multiAck)
+	EmitWriteAcknowledgementEventV2(ctx, packet, channel, multiAck)
 
 	return nil
 }

@@ -60,33 +60,28 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 
 			timeoutHeight := suite.chainA.GetTimeoutHeight()
 
-			sequence, err := path.EndpointA.SendPacketV2POC(timeoutHeight, 0, "", data)
+			sequence, err := path.EndpointA.SendPacketV2POC(timeoutHeight, 0, data)
 			suite.Require().NoError(err)
 
-			packet := channeltypes.NewPacketV2(data, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
+			packet := channeltypes.NewPacketV2(data, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)
 
-			_ = packet
-			//
-			//err = path.EndpointB.RecvPacketV2(packet)
-			//suite.Require().NoError(err)
-			//
-			//expectedMultiAck := channeltypes.MultiAcknowledgement{
-			//	AcknowledgementResults: []channeltypes.AcknowledgementResult{
-			//		{
-			//			AppName: types.ModuleName,
-			//			RecvPacketResult: channeltypes.RecvPacketResult{
-			//				Status:          channeltypes.PacketStatus_Success,
-			//				Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-			//			},
-			//		},
-			//	},
-			//}
-			//
-			////bz, err = expectedMultiAck.Marshal()
-			////suite.Require().NoError(err)
-			//
-			//err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
-			//suite.Require().NoError(err)
+			err = path.EndpointB.RecvPacketV2(packet)
+			suite.Require().NoError(err)
+
+			expectedMultiAck := channeltypes.MultiAcknowledgement{
+				AcknowledgementResults: []channeltypes.AcknowledgementResult{
+					{
+						AppName: types.ModuleName,
+						RecvPacketResult: channeltypes.RecvPacketResult{
+							Status:          channeltypes.PacketStatus_Success,
+							Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+						},
+					},
+				},
+			}
+
+			err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
+			suite.Require().NoError(err)
 
 		})
 	}

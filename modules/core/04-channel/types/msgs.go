@@ -278,6 +278,18 @@ func NewMsgRecvPacket(
 	}
 }
 
+func NewMsgRecvPacketV2(
+	packet PacketV2, commitmentProof []byte, proofHeight clienttypes.Height,
+	signer string,
+) *MsgRecvPacket {
+	return &MsgRecvPacket{
+		PacketV2:        packet,
+		ProofCommitment: commitmentProof,
+		ProofHeight:     proofHeight,
+		Signer:          signer,
+	}
+}
+
 // ValidateBasic implements sdk.Msg
 func (msg MsgRecvPacket) ValidateBasic() error {
 	if len(msg.ProofCommitment) == 0 {
@@ -287,7 +299,13 @@ func (msg MsgRecvPacket) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	return msg.Packet.ValidateBasic()
+
+	if msg.Packet.Data != nil {
+		return msg.Packet.ValidateBasic()
+	}
+
+	// TODO: validate PacketV2
+	return nil
 }
 
 // GetDataSignBytes returns the base64-encoded bytes used for the
@@ -378,6 +396,22 @@ func NewMsgAcknowledgement(
 	}
 }
 
+func NewMsgAcknowledgementV2(
+	packet PacketV2,
+	multiAck MultiAcknowledgement,
+	ackedProof []byte,
+	proofHeight clienttypes.Height,
+	signer string,
+) *MsgAcknowledgement {
+	return &MsgAcknowledgement{
+		PacketV2:    packet,
+		ProofAcked:  ackedProof,
+		ProofHeight: proofHeight,
+		Signer:      signer,
+		MultiAck:    &multiAck,
+	}
+}
+
 // ValidateBasic implements sdk.Msg
 func (msg MsgAcknowledgement) ValidateBasic() error {
 	if len(msg.ProofAcked) == 0 {
@@ -390,7 +424,12 @@ func (msg MsgAcknowledgement) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	return msg.Packet.ValidateBasic()
+	if msg.Packet.Data != nil {
+		return msg.Packet.ValidateBasic()
+	}
+
+	// TODO: validate PacketV2
+	return nil
 }
 
 var _ sdk.Msg = &MsgChannelUpgradeInit{}

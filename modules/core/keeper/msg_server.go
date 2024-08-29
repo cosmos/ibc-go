@@ -561,7 +561,7 @@ func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPa
 	// If the packet was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.RecvPacketV2(cacheCtx, msg.PacketV2, msg.ProofCommitment, msg.ProofHeight)
+	err = k.PacketServerKeeper.RecvPacketV2(cacheCtx, msg.PacketV2, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -611,10 +611,11 @@ func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPa
 	})
 
 	if !isAsync {
-		if err := k.ChannelKeeper.WriteAcknowledgementV2(ctx, msg.PacketV2, multiAck); err != nil {
+		if err := k.PacketServerKeeper.WriteAcknowledgementV2(ctx, msg.PacketV2, multiAck); err != nil {
 			return nil, err
 		}
 	} else {
+		// TODO; move to PacketServerKeeper this will blow up with no channels
 		k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
 	}
 
