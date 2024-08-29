@@ -85,6 +85,10 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.PortKeeper.Router.Seal()
 }
 
+func (k *Keeper) SetAppRouter(rtr *porttypes.AppRouter) {
+	k.PortKeeper.AppRouter = rtr
+}
+
 // GetAuthority returns the ibc module's authority.
 func (k *Keeper) GetAuthority() string {
 	return k.authority

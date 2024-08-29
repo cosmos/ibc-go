@@ -15,7 +15,8 @@ import (
 
 // Keeper defines the IBC connection keeper
 type Keeper struct {
-	Router *types.Router
+	Router    *types.Router
+	AppRouter *types.AppRouter
 
 	scopedKeeper exported.ScopedKeeper
 }

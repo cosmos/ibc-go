@@ -208,6 +208,101 @@ func (k *Keeper) RecvPacket(
 	return channel.Version, nil
 }
 
+// RecvPacketV2 is called by a module in order to receive & process an IBC packet
+// sent on the corresponding channel end on the counterparty chain.
+func (k *Keeper) RecvPacketV2(
+	ctx sdk.Context,
+	packet types.PacketV2,
+	proof []byte,
+	proofHeight exported.Height,
+) error {
+	channel, found := k.GetChannel(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
+	if !found {
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestinationChannel())
+	}
+
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
+	}
+
+	// If counterpartyUpgrade is stored we need to ensure that the
+	// packet sequence is < counterparty next sequence send. If the
+	// counterparty is implemented correctly, this may only occur
+	// when we are in FLUSHCOMPLETE and the counterparty has already
+	// completed the channel upgrade.
+	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
+	if found {
+		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
+		if packet.GetSequence() >= counterpartyNextSequenceSend {
+			return errorsmod.Wrapf(types.ErrInvalidPacket, "cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d).", packet.GetSequence(), counterpartyNextSequenceSend)
+		}
+	}
+
+	// packet must come from the channel's counterparty
+	if packet.GetSourcePort() != channel.Counterparty.PortId {
+		return errorsmod.Wrapf(
+			types.ErrInvalidPacket,
+			"packet source port doesn't match the counterparty's port (%s ≠ %s)", packet.GetSourcePort(), channel.Counterparty.PortId,
+		)
+	}
+
+	if packet.GetSourceChannel() != channel.Counterparty.ChannelId {
+		return errorsmod.Wrapf(
+			types.ErrInvalidPacket,
+			"packet source channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetSourceChannel(), channel.Counterparty.ChannelId,
+		)
+	}
+
+	// Connection must be OPEN to receive a packet. It is possible for connection to not yet be open if packet was
+	// sent optimistically before connection and channel handshake completed. However, to receive a packet,
+	// connection and channel must both be open
+	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !found {
+		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+	}
+
+	if connectionEnd.State != connectiontypes.OPEN {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
+	}
+
+	// check if packet timed out by comparing it with the latest height of the chain
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+	timeout := types.NewTimeout(packet.GetTimeoutHeight(), packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(selfHeight, selfTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
+	}
+
+	commitment := types.CommitPacketV2(k.cdc, packet)
+
+	// verify that the counterparty did commit to sending this packet
+	if err := k.connectionKeeper.VerifyPacketCommitment(
+		ctx, connectionEnd, proofHeight, proof,
+		packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
+		commitment,
+	); err != nil {
+		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
+	}
+
+	//if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
+	//	return err
+	//}
+
+	// log that a packet has been received & executed
+	k.Logger(ctx).Info(
+		"packet received",
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestinationPort(),
+		"dst_channel", packet.GetDestinationChannel(),
+	)
+
+	// emit an event that the relayer can query for
+	//emitRecvPacketEvent(ctx, packet, channel)
+
+	return nil
+}
+
 // applyReplayProtection ensures a packet has not already been received
 // and performs the necessary state changes to ensure it cannot be received again.
 func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, channel types.Channel) error {
@@ -357,6 +452,111 @@ func (k *Keeper) WriteAcknowledgement(
 	)
 
 	EmitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
+
+	return nil
+}
+
+func (k *Keeper) WriteAcknowledgementAsyncV2(
+	ctx sdk.Context,
+	packet types.PacketV2,
+	appName string,
+	recvResult types.RecvPacketResult,
+) error {
+
+	// we should have stored the multi ack structure in OnRecvPacket
+	ackResults, found := k.GetMultiAcknowledgement(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence())
+	if !found {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "multi-acknowledgement not found for %s", appName)
+	}
+
+	// find the index that corresponds to the app.
+	index := slices.IndexFunc(ackResults.AcknowledgementResults, func(result types.AcknowledgementResult) bool {
+		return result.AppName == appName
+	})
+
+	if index == -1 {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "acknowledgement not found for %s", appName)
+	}
+
+	existingResult := ackResults.AcknowledgementResults[index]
+
+	// ensure that the existing status is async.
+	if existingResult.RecvPacketResult.Status != types.PacketStatus_Async {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "acknowledgement for %s is not async", appName)
+	}
+
+	// modify the result and set it back.
+	ackResults.AcknowledgementResults[index].RecvPacketResult = recvResult
+	k.SetMultiAcknowledgement(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence(), ackResults)
+
+	// check if all acknowledgements are now sync.
+	isAsync := slices.ContainsFunc(ackResults.AcknowledgementResults, func(ackResult types.AcknowledgementResult) bool {
+		return ackResult.RecvPacketResult.Status == types.PacketStatus_Async
+	})
+
+	if !isAsync {
+		// if there are no more async acks, we can write the final multi ack.
+		return k.WriteAcknowledgementV2(ctx, packet, ackResults)
+	}
+
+	// we have updated one app's result, but there are still async results pending acknowledgement.
+	return nil
+
+}
+
+func (k *Keeper) WriteAcknowledgementV2(
+	ctx sdk.Context,
+	packet types.PacketV2,
+	multiAck types.MultiAcknowledgement,
+) error {
+	channel, found := k.GetChannel(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
+	if !found {
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestinationChannel())
+	}
+
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
+	}
+
+	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
+	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
+	// upgrade all packets under the recvStartSequence will have been processed and thus should be
+	// rejected. Any asynchronous acknowledgement writes from packets processed in a previous lifecycle of a channel
+	// will also be rejected.
+	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
+	if packet.GetSequence() < recvStartSequence {
+		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
+	}
+
+	// NOTE: IBC app modules might have written the acknowledgement synchronously on
+	// the OnRecvPacket callback so we need to check if the acknowledgement is already
+	// set on the store and return an error if so.
+	if k.HasPacketAcknowledgementV2(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence()) {
+		return types.ErrAcknowledgementExists
+	}
+
+	if len(multiAck.AcknowledgementResults) == 0 {
+		return errorsmod.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
+	}
+
+	multiAckBz := k.cdc.MustMarshal(&multiAck)
+	// set the acknowledgement so that it can be verified on the other side
+	k.SetPacketAcknowledgementV2(
+		ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence(),
+		types.CommitAcknowledgement(multiAckBz),
+	)
+
+	// log that a packet acknowledgement has been written
+	k.Logger(ctx).Info(
+		"acknowledgement written",
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestinationPort(),
+		"dst_channel", packet.GetDestinationChannel(),
+	)
+
+	emitWriteAcknowledgementEventV2(ctx, packet, channel, multiAck)
 
 	return nil
 }

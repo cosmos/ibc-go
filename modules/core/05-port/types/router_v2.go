@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -31,17 +29,13 @@ func (rtr *AppRouter) AddV2Route(module string, cbs IBCModuleV2) *AppRouter {
 	return rtr
 }
 
-// Route returns a list of callbacks. It takes the packet data (used for multi-packetdata's).
-func (rtr *AppRouter) Route(packet channeltypes.PacketV2) ([]IBCModuleV2, bool) {
-	var cbs []IBCModuleV2
-	for _, pd := range packet.Data {
-		route, ok := rtr.route(pd.AppName)
-		if !ok {
-			panic(fmt.Sprintf("no route for %s", pd.AppName))
-		}
-		cbs = append(cbs, route)
+func (rtr *AppRouter) Route(appName string) IBCModuleV2 {
+	route, ok := rtr.routes[appName]
+	if !ok {
+		panic(fmt.Sprintf("no route for %s", appName))
 	}
-	return cbs, len(cbs) > 0
+
+	return route
 }
 
 func (rtr *AppRouter) route(appName string) (IBCModuleV2, bool) {

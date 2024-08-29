@@ -230,6 +230,11 @@ func (k *Keeper) SetPacketAcknowledgement(ctx sdk.Context, portID, channelID str
 	store.Set(host.PacketAcknowledgementKey(portID, channelID, sequence), ackHash)
 }
 
+func (k *Keeper) SetPacketAcknowledgementV2(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(host.PacketAcknowledgementKeyV2(portID, channelID, sequence), ackHash)
+}
+
 // GetPacketAcknowledgement gets the packet ack hash from the store
 func (k *Keeper) GetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) ([]byte, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -240,10 +245,24 @@ func (k *Keeper) GetPacketAcknowledgement(ctx sdk.Context, portID, channelID str
 	return bz, true
 }
 
+func (k *Keeper) GetPacketAcknowledgementV2(ctx sdk.Context, portID, channelID string, sequence uint64) ([]byte, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.PacketAcknowledgementKeyV2(portID, channelID, sequence))
+	if len(bz) == 0 {
+		return nil, false
+	}
+	return bz, true
+}
+
 // HasPacketAcknowledgement check if the packet ack hash is already on the store
 func (k *Keeper) HasPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(host.PacketAcknowledgementKey(portID, channelID, sequence))
+}
+
+func (k *Keeper) HasPacketAcknowledgementV2(ctx sdk.Context, portID, channelID string, sequence uint64) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.PacketAcknowledgementKeyV2(portID, channelID, sequence))
 }
 
 // deletePacketAcknowledgement deletes the packet ack hash from the store

@@ -419,6 +419,7 @@ func NewSimApp(
 
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
+	ibcAppRouter := porttypes.NewAppRouter()
 
 	// Middleware Stacks
 
@@ -469,6 +470,7 @@ func NewSimApp(
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+	ibcAppRouter.AddV2Route(ibctransfertypes.ModuleName, transfer.NewIBCModuleV2(app.TransferKeeper))
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -518,6 +520,7 @@ func NewSimApp(
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
+	app.IBCKeeper.SetAppRouter(ibcAppRouter)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
