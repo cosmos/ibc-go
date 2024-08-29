@@ -100,6 +100,25 @@ func commitV2Packet(packet Packet) []byte {
 	return hash[:]
 }
 
+func CommitPacketV2(packet PacketV2) []byte {
+	timeoutHeight := packet.GetTimeoutHeight()
+
+	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
+
+	revisionNumber := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionNumber())
+	buf = append(buf, revisionNumber...)
+
+	revisionHeight := sdk.Uint64ToBigEndian(timeoutHeight.GetRevisionHeight())
+	buf = append(buf, revisionHeight...)
+
+	// TODO: implement correct way of providing data for packet commitment.
+	dataHash := sha256.Sum256(packet.Data[0].Payload.Value)
+	buf = append(buf, dataHash[:]...)
+
+	hash := sha256.Sum256(buf)
+	return hash[:]
+}
+
 // CommitAcknowledgement returns the hash of commitment bytes
 func CommitAcknowledgement(data []byte) []byte {
 	hash := sha256.Sum256(data)
@@ -145,6 +164,24 @@ func NewPacketWithVersion(
 		TimeoutTimestamp:   timeoutTimestamp,
 		ProtocolVersion:    IBC_VERSION_2,
 		AppVersion:         appVersion,
+	}
+}
+
+func NewPacketV2(
+	data []PacketData,
+	sequence uint64, sourcePort, sourceChannel,
+	destinationPort, destinationChannel string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+) PacketV2 {
+	return PacketV2{
+		Data:               data,
+		Sequence:           sequence,
+		SourcePort:         sourcePort,
+		SourceChannel:      sourceChannel,
+		DestinationPort:    destinationPort,
+		DestinationChannel: destinationChannel,
+		TimeoutHeight:      timeoutHeight,
+		TimeoutTimestamp:   timeoutTimestamp,
 	}
 }
 

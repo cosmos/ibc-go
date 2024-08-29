@@ -12,6 +12,7 @@ const (
 	KeyPacketReceiptPrefix    = "receipts"
 	KeyPruningSequenceStart   = "pruningSequenceStart"
 	KeyRecvStartSequence      = "recvStartSequence"
+	KeyMultiAck               = "multiAck"
 )
 
 // ICS04
@@ -52,6 +53,10 @@ func PacketAcknowledgementKey(portID, channelID string, sequence uint64) []byte 
 	return []byte(fmt.Sprintf("%s/%d", PacketAcknowledgementPrefixKey(portID, channelID), sequence))
 }
 
+func PacketAcknowledgementKeyV2(portID, channelID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%d", PacketAcknowledgementPrefixKey(portID, channelID), sequence))
+}
+
 // PacketAcknowledgementPrefixKey defines the prefix for commitments to packet data fields store path.
 func PacketAcknowledgementPrefixKey(portID, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", KeyPacketAckPrefix, channelPath(portID, channelID), KeySequencePrefix))
@@ -71,6 +76,10 @@ func PruningSequenceStartKey(portID, channelID string) []byte {
 // RecvStartSequenceKey returns the store key for the recv start sequence of a particular channel
 func RecvStartSequenceKey(portID, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", KeyRecvStartSequence, channelPath(portID, channelID)))
+}
+
+func MultiAckKey(portID, channelID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", KeyMultiAck, channelPath(portID, channelID), sequencePath(sequence)))
 }
 
 func sequencePath(sequence uint64) string {

@@ -272,7 +272,7 @@ func (k *Keeper) RecvPacketV2(
 		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
 
-	commitment := types.CommitPacketV2(k.cdc, packet)
+	commitment := types.CommitPacketV2(packet)
 
 	// verify that the counterparty did commit to sending this packet
 	if err := k.connectionKeeper.VerifyPacketCommitment(
@@ -456,6 +456,7 @@ func (k *Keeper) WriteAcknowledgement(
 	return nil
 }
 
+// WriteAcknowledgementAsyncV2 TODO: this has not been tested at all.
 func (k *Keeper) WriteAcknowledgementAsyncV2(
 	ctx sdk.Context,
 	packet types.PacketV2,

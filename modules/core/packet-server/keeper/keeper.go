@@ -113,6 +113,74 @@ func (k Keeper) SendPacket(
 	return sequence, nil
 }
 
+func (k Keeper) SendPacketV2(
+	ctx sdk.Context,
+	_ *capabilitytypes.Capability,
+	sourceChannel string,
+	sourcePort string,
+	destPort string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	version string,
+	data []channeltypes.PacketData,
+) (uint64, error) {
+	// Lookup counterparty associated with our source channel to retrieve the destination channel
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, sourceChannel)
+	if !ok {
+		return 0, errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, sourceChannel)
+	}
+	destChannel := counterparty.ClientId
+
+	// retrieve the sequence send for this channel
+	// if no packets have been sent yet, initialize the sequence to 1.
+	sequence, found := k.ChannelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
+	if !found {
+		sequence = 1
+	}
+
+	// construct packet from given fields and channel state
+	packet := channeltypes.NewPacketV2(data, sequence, sourcePort, sourceChannel,
+		destPort, destChannel, timeoutHeight, timeoutTimestamp)
+
+	//if err := packet.ValidateBasic(); err != nil {
+	//	return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
+	//}
+
+	// check that the client of counterparty chain is still active
+	if status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel); status != exported.Active {
+		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", sourceChannel, status)
+	}
+
+	// retrieve latest height and timestamp of the client of counterparty chain
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceChannel)
+	if latestHeight.IsZero() {
+		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceChannel)
+	}
+
+	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceChannel, latestHeight)
+	if err != nil {
+		return 0, err
+	}
+
+	// check if packet is timed out on the receiving chain
+	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight(), packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(latestHeight, latestTimestamp) {
+		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
+	}
+
+	commitment := channeltypes.CommitPacketV2(packet)
+
+	// bump the sequence and set the packet commitment so it is provable by the counterparty
+	k.ChannelKeeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
+	k.ChannelKeeper.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
+
+	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
+	channelkeeper.EmitSendPacketEventV2(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
+
+	return sequence, nil
+}
+
 // RecvPacket implements the packet receiving logic required by a packet handler.
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.

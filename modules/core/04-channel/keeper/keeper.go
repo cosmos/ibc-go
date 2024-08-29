@@ -271,6 +271,25 @@ func (k *Keeper) deletePacketAcknowledgement(ctx sdk.Context, portID, channelID 
 	store.Delete(host.PacketAcknowledgementKey(portID, channelID, sequence))
 }
 
+func (k *Keeper) SetMultiAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults types.MultiAcknowledgement) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&recvResults)
+	store.Set(host.MultiAckKey(portID, channelID, sequence), bz)
+}
+
+// GetMultiAcknowledgement gets the multi ack result
+func (k *Keeper) GetMultiAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) (types.MultiAcknowledgement, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.MultiAckKey(portID, channelID, sequence))
+	if len(bz) == 0 {
+		return types.MultiAcknowledgement{}, false
+	}
+
+	var res types.MultiAcknowledgement
+	k.cdc.MustUnmarshal(bz, &res)
+	return res, true
+}
+
 // IteratePacketSequence provides an iterator over all send, receive or ack sequences.
 // For each sequence, cb will be called. If the cb returns true, the iterator
 // will close and stop.
