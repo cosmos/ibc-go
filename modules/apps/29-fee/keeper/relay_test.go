@@ -54,12 +54,11 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 			)
 
 			ack := channeltypes.NewResultAcknowledgement([]byte("success"))
-			chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
 			// malleate test case
 			tc.malleate()
 
-			err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+			err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
 
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
@@ -95,9 +94,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsyncFeeDisabled() {
 	)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
-	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
-	err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+	err := suite.chainB.GetSimApp().IBCFeeKeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
 	suite.Require().NoError(err)
 
 	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)

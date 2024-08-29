@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking
 
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
+* (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
 
 ### State Machine Breaking
 

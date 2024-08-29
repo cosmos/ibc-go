@@ -810,14 +810,12 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			ctx = s.chainB.GetContext()
 			gasLimit := ctx.GasMeter().Limit()
 
-			chanCap := s.chainB.GetChannelCapability(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
-
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
 			transferICS4Wrapper := GetSimApp(s.chainB).TransferKeeper.GetICS4Wrapper()
 
-			err := transferICS4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+			err := transferICS4Wrapper.WriteAcknowledgement(ctx, packet, ack)
 
 			expPass := tc.expError == nil
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
