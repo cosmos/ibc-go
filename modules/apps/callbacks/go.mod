@@ -13,19 +13,19 @@ require (
 	cosmossdk.io/client/v2 v2.0.0-beta.3
 	cosmossdk.io/core v0.11.1
 	cosmossdk.io/errors v1.0.1
-	cosmossdk.io/log v1.3.1
+	cosmossdk.io/log v1.4.0
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/store v1.1.0
-	cosmossdk.io/tools/confix v0.1.1
+	cosmossdk.io/tools/confix v0.1.2
 	cosmossdk.io/x/circuit v0.1.1
 	cosmossdk.io/x/evidence v0.1.1
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/tx v0.13.4
 	cosmossdk.io/x/upgrade v0.1.4
-	github.com/cometbft/cometbft v0.38.10
+	github.com/cometbft/cometbft v0.38.11
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-sdk v0.50.9
-	github.com/cosmos/gogoproto v1.5.0
+	github.com/cosmos/gogoproto v1.6.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/v8 v8.0.0
 	github.com/spf13/cast v1.6.0
@@ -173,7 +173,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
-	github.com/rs/zerolog v1.32.0 // indirect
+	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -191,7 +191,7 @@ require (
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/api v0.186.0 // indirect
