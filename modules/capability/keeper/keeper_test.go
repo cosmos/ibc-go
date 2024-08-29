@@ -33,8 +33,12 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) SetupTest() {
 	key := storetypes.NewKVStoreKey(types.StoreKey)
 	memKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
-	testCtx := testutil.DefaultContextWithDB(suite.T(), key, storetypes.NewTransientStoreKey("transient_test"))
-	suite.ctx = testCtx.Ctx
+	testCtx := testutil.DefaultContextWithKeys(
+		map[string]*storetypes.KVStoreKey{key.Name(): key},
+		map[string]*storetypes.TransientStoreKey{},
+		map[string]*storetypes.MemoryStoreKey{memKey.Name(): memKey},
+	)
+	suite.ctx = testCtx
 	encCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModule{})
 	suite.keeper = keeper.NewKeeper(encCfg.Codec, runtime.NewKVStoreService(key), runtime.NewMemStoreService(memKey))
 }
