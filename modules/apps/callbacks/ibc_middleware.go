@@ -247,11 +247,10 @@ func (im IBCMiddleware) OnRecvPacket(ctx context.Context, channelVersion string,
 // reverted via a panic.
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx context.Context,
-	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
-	err := im.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	err := im.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack)
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -28,10 +27,10 @@ func (k Keeper) SendPacket(
 
 // WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
 // ICS29 WriteAcknowledgement is used for asynchronous acknowledgements
-func (k Keeper) WriteAcknowledgement(ctx context.Context, chanCap *capabilitytypes.Capability, packet ibcexported.PacketI, acknowledgement ibcexported.Acknowledgement) error {
+func (k Keeper) WriteAcknowledgement(ctx context.Context, packet ibcexported.PacketI, acknowledgement ibcexported.Acknowledgement) error {
 	if !k.IsFeeEnabled(ctx, packet.GetDestPort(), packet.GetDestChannel()) {
 		// ics4Wrapper may be core IBC or higher-level middleware
-		return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
+		return k.ics4Wrapper.WriteAcknowledgement(ctx, packet, acknowledgement)
 	}
 
 	packetID := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -51,7 +50,7 @@ func (k Keeper) WriteAcknowledgement(ctx context.Context, chanCap *capabilitytyp
 	k.DeleteForwardRelayerAddress(ctx, packetID)
 
 	// ics4Wrapper may be core IBC or higher-level middleware
-	return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	return k.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack)
 }
 
 // GetAppVersion returns the underlying application version.

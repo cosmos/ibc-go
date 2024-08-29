@@ -176,7 +176,6 @@ type ICS4Wrapper interface {
 
 	WriteAcknowledgement(
 		ctx context.Context,
-		chanCap *capabilitytypes.Capability,
 		packet exported.PacketI,
 		ack exported.Acknowledgement,
 	) error
