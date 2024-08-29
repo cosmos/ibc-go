@@ -38,8 +38,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-### Dependencies
-
 ### API Breaking
 
 ### State Machine Breaking
