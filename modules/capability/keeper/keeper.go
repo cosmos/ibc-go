@@ -454,7 +454,7 @@ func (sk ScopedKeeper) GetCapabilityName(ctx context.Context, cap *types.Capabil
 		panic(err)
 	}
 
-	return string(bz) // TODO: why the cast?
+	return string(bz)
 }
 
 // GetOwners all the Owners that own the capability associated with the name this ScopedKeeper uses
