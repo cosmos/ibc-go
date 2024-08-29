@@ -12,7 +12,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 // SendTx takes pre-built packet data containing messages to be executed on the host chain from an authentication module and attempts to send the packet.
@@ -39,11 +38,6 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 		return 0, errorsmod.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
 	}
 
-	chanCap, found := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(portID, activeChannelID))
-	if !found {
-		return 0, errorsmod.Wrapf(capabilitytypes.ErrCapabilityNotFound, "failed to find capability: %s", host.ChannelCapabilityPath(portID, activeChannelID))
-	}
-
 	if uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
 		return 0, icatypes.ErrInvalidTimeoutTimestamp
 	}
@@ -52,7 +46,7 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 		return 0, errorsmod.Wrap(err, "invalid interchain account packet data")
 	}
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, chanCap, portID, activeChannelID, clienttypes.ZeroHeight(), timeoutTimestamp, icaPacketData.GetBytes())
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, portID, activeChannelID, clienttypes.ZeroHeight(), timeoutTimestamp, icaPacketData.GetBytes())
 	if err != nil {
 		return 0, err
 	}

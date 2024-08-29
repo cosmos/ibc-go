@@ -40,22 +40,17 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		packetData       []byte
 		timeoutHeight    clienttypes.Height
 		timeoutTimestamp uint64
-		channelCap       *capabilitytypes.Capability
 	)
 
 	testCases := []testCase{
 		{"success: UNORDERED channel", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
-
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"success: ORDERED channel", func() {
 			path.SetChannelOrdered()
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
-
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"success with solomachine: UNORDERED channel", func() {
 			path.Setup()
@@ -66,8 +61,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.ClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 10)
 			path.EndpointA.SetClientState(solomachine.ClientState())
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
-
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"success with solomachine: ORDERED channel", func() {
 			path.SetChannelOrdered()
@@ -80,21 +73,17 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.SetClientState(solomachine.ClientState())
 
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
-
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
 		{"packet basic validation failed, empty packet data", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			packetData = []byte{}
 		}, false},
 		{"channel not found", func() {
 			// use wrong channel naming
 			path.Setup()
 			sourceChannel = ibctesting.InvalidID
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"channel is in CLOSED state", func() {
 			path.Setup()
@@ -120,8 +109,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			sourceChannel = path.EndpointA.ChannelID
 
 			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops[0] = "invalid-connection" })
-
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"client state not found", func() {
 			path.Setup()
@@ -129,8 +116,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			// change connection client ID
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"client state is frozen", func() {
 			path.Setup()
@@ -144,8 +129,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			// freeze client
 			cs.FrozenHeight = clienttypes.NewHeight(0, 1)
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), connection.ClientId, cs)
-
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"client state zero height", func() {
 			path.Setup()
@@ -162,8 +145,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			cs.LatestHeight = clienttypes.ZeroHeight()
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), connection.ClientId, cs)
-
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"timeout height passed", func() {
 			path.Setup()
@@ -172,7 +153,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			var ok bool
 			timeoutHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
 			suite.Require().True(ok)
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"timeout timestamp passed", func() {
 			path.Setup()
@@ -184,7 +164,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			timeoutHeight = disabledTimeoutHeight
 			timeoutTimestamp = timestamp
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"timeout timestamp passed with solomachine", func() {
 			path.Setup()
@@ -202,8 +181,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			sourceChannel = path.EndpointA.ChannelID
 			timeoutHeight = disabledTimeoutHeight
 			timeoutTimestamp = timestamp
-
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"next sequence send not found", func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -217,13 +194,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, path.EndpointA.ChannelConfig.Version),
 			)
 			suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-		}, false},
-		{"channel capability not found", func() {
-			path.Setup()
-			sourceChannel = path.EndpointA.ChannelID
-
-			channelCap = capabilitytypes.NewCapability(5)
 		}, false},
 		{
 			"channel is in FLUSH_COMPLETE state",
@@ -272,7 +242,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			// only check if nextSequenceSend exists in no error case since it is a tested error case above.
 			expectedSequence, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(suite.chainA.GetContext(), sourcePort, sourceChannel)
 
-			sequence, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.SendPacket(suite.chainA.GetContext(), channelCap,
+			sequence, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.SendPacket(suite.chainA.GetContext(),
 				sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData)
 
 			if tc.expPass {
