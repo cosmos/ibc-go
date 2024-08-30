@@ -290,8 +290,6 @@ func (k *Keeper) WriteAcknowledgement(
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
 	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
 	// upgrade all packets under the recvStartSequence will have been processed and thus should be
@@ -334,6 +332,7 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
 
 	return nil

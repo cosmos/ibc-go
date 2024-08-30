@@ -555,8 +555,7 @@ func (k *Keeper) GetChannelConnection(ctx context.Context, portID, channelID str
 
 // LookupModuleByChannel will return the IBCModule along with the capability associated with a given channel defined by its portID and channelID
 func (k *Keeper) LookupModuleByChannel(ctx context.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	modules, capability, err := k.scopedKeeper.LookupModules(sdkCtx, host.ChannelCapabilityPath(portID, channelID))
+	modules, capability, err := k.scopedKeeper.LookupModules(ctx, host.ChannelCapabilityPath(portID, channelID))
 	if err != nil {
 		return "", nil, err
 	}

@@ -47,6 +47,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenInit(
 		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 	}
 
+
 	return version, nil
 }
 
@@ -57,7 +58,6 @@ func (im BlockUpgradeMiddleware) OnChanOpenTry(
 ) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
 		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
-	}
 
 	return Version, nil
 }
@@ -106,8 +106,7 @@ func (im BlockUpgradeMiddleware) OnRecvPacket(ctx context.Context, channelVersio
 
 	// set state by claiming capability to check if revert happens return
 	capName := GetMockRecvCanaryCapabilityName(packet)
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
@@ -129,8 +128,7 @@ func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx context.Context, ch
 	}
 
 	capName := GetMockAckCanaryCapabilityName(packet)
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)
@@ -146,8 +144,7 @@ func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx context.Context, channelVer
 	}
 
 	capName := GetMockTimeoutCanaryCapabilityName(packet)
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(sdkCtx, capName); err != nil {
+	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
 		// application callback called twice on same packet sequence
 		// must never occur
 		panic(err)

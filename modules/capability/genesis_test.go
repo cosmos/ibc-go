@@ -1,8 +1,7 @@
 package capability_test
 
 import (
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -13,8 +12,8 @@ func (suite *CapabilityTestSuite) TestGenesis() {
 	// InitGenesis must be called in order to set the initial index to 1.
 	capability.InitGenesis(suite.ctx, *suite.keeper, *types.DefaultGenesis())
 
-	sk1 := suite.keeper.ScopeToModule(banktypes.ModuleName)
-	sk2 := suite.keeper.ScopeToModule(stakingtypes.ModuleName)
+	sk1 := suite.keeper.ScopeToModule(bankModuleName)
+	sk2 := suite.keeper.ScopeToModule(stakingModuleName)
 
 	cap1, err := sk1.NewCapability(suite.ctx, "transfer")
 	suite.Require().NoError(err)
@@ -29,9 +28,9 @@ func (suite *CapabilityTestSuite) TestGenesis() {
 
 	genState := capability.ExportGenesis(suite.ctx, *suite.keeper)
 
-	newKeeper := keeper.NewKeeper(suite.cdc, suite.storeKey, suite.memStoreKey)
-	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
-	newSk2 := newKeeper.ScopeToModule(stakingtypes.ModuleName)
+	newKeeper := keeper.NewKeeper(suite.cdc, runtime.NewKVStoreService(suite.storeKey), runtime.NewMemStoreService(suite.memStoreKey))
+	newSk1 := newKeeper.ScopeToModule(bankModuleName)
+	newSk2 := newKeeper.ScopeToModule(stakingModuleName)
 	deliverCtx := suite.NewTestContext()
 
 	capability.InitGenesis(deliverCtx, *newKeeper, *genState)
