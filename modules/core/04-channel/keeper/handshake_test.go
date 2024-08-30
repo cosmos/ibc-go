@@ -33,9 +33,6 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 			path.SetupConnections()
 			features = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
 		}, true},
-		{"channel already exists", func() {
-			path.Setup()
-		}, false},
 		{"connection doesn't exist", func() {
 			// any non-empty values
 			path.EndpointA.ConnectionID = "connection-0"
@@ -175,8 +172,8 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			err := path.EndpointA.ChanOpenInit()
 			suite.Require().NoError(err)
 
-			// modify connA versions to only support UNORDERED channels
-			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
+			// modify connB versions to only support UNORDERED channels
+			path.EndpointB.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
 				c.Versions = []*connectiontypes.Version{connectiontypes.NewVersion("1", []string{"ORDER_UNORDERED"})}
 			})
 		}, false},
@@ -638,8 +635,8 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 				path.Setup()
 
 				// trigger upgradeInit on B which will bump the counterparty upgrade sequence.
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-				err := path.EndpointB.ChanUpgradeInit()
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+				err := path.EndpointA.ChanUpgradeInit()
 				suite.Require().NoError(err)
 
 				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
