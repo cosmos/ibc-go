@@ -47,7 +47,6 @@ func (im BlockUpgradeMiddleware) OnChanOpenInit(
 		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 	}
 
-
 	return version, nil
 }
 
@@ -58,6 +57,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenTry(
 ) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
 		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
+	}
 
 	return Version, nil
 }
