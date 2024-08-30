@@ -2,11 +2,11 @@ module github.com/cosmos/ibc-go/modules/apps/callbacks
 
 go 1.22.2
 
-toolchain go1.22.3
-
 replace github.com/cosmos/ibc-go/v9 => ../../../
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+
+replace github.com/cosmos/ibc-go/modules/capability => ../../capability
 
 require (
 	cosmossdk.io/api v0.7.5
@@ -24,7 +24,7 @@ require (
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/cometbft/cometbft v0.38.11
 	github.com/cosmos/cosmos-db v1.0.2
-	github.com/cosmos/cosmos-sdk v0.50.9
+	github.com/cosmos/cosmos-sdk v0.50.10-0.20240808075341-156231be8aef
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/v9 v9.0.0

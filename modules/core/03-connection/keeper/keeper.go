@@ -214,8 +214,7 @@ func (k *Keeper) CreateSentinelLocalhostConnection(ctx context.Context) {
 // addConnectionToClient is used to add a connection identifier to the set of
 // connections associated with a client.
 func (k *Keeper) addConnectionToClient(ctx context.Context, clientID, connectionID string) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	_, found := k.clientKeeper.GetClientState(sdkCtx, clientID)
+	_, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}

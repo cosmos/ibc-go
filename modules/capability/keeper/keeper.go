@@ -1,16 +1,19 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/capability/types"
@@ -31,8 +34,8 @@ type (
 	// a single specific module.
 	Keeper struct {
 		cdc           codec.BinaryCodec
-		storeKey      storetypes.StoreKey
-		memKey        storetypes.StoreKey
+		storeService  corestore.KVStoreService
+		memService    corestore.MemoryStoreService
 		capMap        map[uint64]*types.Capability
 		scopedModules map[string]struct{}
 		sealed        bool
@@ -45,21 +48,21 @@ type (
 	// by name, in addition to creating new capabilities & authenticating capabilities
 	// passed by other modules.
 	ScopedKeeper struct {
-		cdc      codec.BinaryCodec
-		storeKey storetypes.StoreKey
-		memKey   storetypes.StoreKey
-		capMap   map[uint64]*types.Capability
-		module   string
+		cdc          codec.BinaryCodec
+		storeService corestore.KVStoreService
+		memService   corestore.MemoryStoreService
+		capMap       map[uint64]*types.Capability
+		module       string
 	}
 )
 
 // NewKeeper constructs a new CapabilityKeeper instance and initializes maps
 // for capability map and scopedModules map.
-func NewKeeper(cdc codec.BinaryCodec, storeKey, memKey storetypes.StoreKey) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, memService corestore.MemoryStoreService) *Keeper {
 	return &Keeper{
 		cdc:           cdc,
-		storeKey:      storeKey,
-		memKey:        memKey,
+		storeService:  storeService,
+		memService:    memService,
 		capMap:        make(map[uint64]*types.Capability),
 		scopedModules: make(map[string]struct{}),
 		sealed:        false,
@@ -90,11 +93,11 @@ func (k *Keeper) ScopeToModule(moduleName string) ScopedKeeper {
 	k.scopedModules[moduleName] = struct{}{}
 
 	return ScopedKeeper{
-		cdc:      k.cdc,
-		storeKey: k.storeKey,
-		memKey:   k.memKey,
-		capMap:   k.capMap,
-		module:   moduleName,
+		cdc:          k.cdc,
+		storeService: k.storeService,
+		memService:   k.memService,
+		capMap:       k.capMap,
+		module:       moduleName,
 	}
 }
 
@@ -118,20 +121,15 @@ func (k *Keeper) IsSealed() bool {
 // InitMemStore must be called every time the app starts before the keeper is used (so
 // `BeginBlock` or `InitChain` - whichever is first). We need access to the store so we
 // can't initialize it in a constructor.
-func (k *Keeper) InitMemStore(ctx sdk.Context) {
-	memStore := ctx.KVStore(k.memKey)
-	memStoreType := memStore.GetStoreType()
-
-	if memStoreType != storetypes.StoreTypeMemory {
-		panic(fmt.Errorf("invalid memory store type; got %s, expected: %s", memStoreType, storetypes.StoreTypeMemory))
-	}
-
+func (k *Keeper) InitMemStore(ctx context.Context) {
 	// create context with no block gas meter to ensure we do not consume gas during local initialization logic.
-	noGasCtx := ctx.WithBlockGasMeter(storetypes.NewInfiniteGasMeter()).WithGasMeter(storetypes.NewInfiniteGasMeter())
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	noGasCtx := sdkCtx.WithBlockGasMeter(storetypes.NewInfiniteGasMeter()).WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// check if memory store has not been initialized yet by checking if initialized flag is nil.
 	if !k.IsInitialized(noGasCtx) {
-		prefixStore := prefix.NewStore(noGasCtx.KVStore(k.storeKey), types.KeyPrefixIndexCapability)
+		store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(noGasCtx))
+		prefixStore := prefix.NewStore(store, types.KeyPrefixIndexCapability)
 		iterator := storetypes.KVStorePrefixIterator(prefixStore, nil)
 
 		// initialize the in-memory store for all persisted capabilities
@@ -147,21 +145,27 @@ func (k *Keeper) InitMemStore(ctx sdk.Context) {
 		}
 
 		// set the initialized flag so we don't rerun initialization logic
-		memStore := noGasCtx.KVStore(k.memKey)
-		memStore.Set(types.KeyMemInitialized, []byte{1})
+		memStore := k.memService.OpenMemoryStore(noGasCtx)
+		if err := memStore.Set(types.KeyMemInitialized, []byte{1}); err != nil {
+			panic(err)
+		}
 	}
 }
 
 // IsInitialized returns true if the keeper is properly initialized, and false otherwise.
-func (k *Keeper) IsInitialized(ctx sdk.Context) bool {
-	memStore := ctx.KVStore(k.memKey)
-	return memStore.Has(types.KeyMemInitialized)
+func (k *Keeper) IsInitialized(ctx context.Context) bool {
+	memStore := k.memService.OpenMemoryStore(ctx)
+	isInitialized, err := memStore.Has(types.KeyMemInitialized)
+	if err != nil {
+		panic(err)
+	}
+	return isInitialized
 }
 
 // InitializeIndex sets the index to one (or greater) in InitChain according
 // to the GenesisState. It must only be called once.
 // It will panic if the provided index is 0, or if the index is already set.
-func (k Keeper) InitializeIndex(ctx sdk.Context, index uint64) error {
+func (k Keeper) InitializeIndex(ctx context.Context, index uint64) error {
 	if index == 0 {
 		panic(errors.New("SetIndex requires index > 0"))
 	}
@@ -171,20 +175,27 @@ func (k Keeper) InitializeIndex(ctx sdk.Context, index uint64) error {
 	}
 
 	// set the global index to the passed index
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyIndex, types.IndexToKey(index))
+	store := k.storeService.OpenKVStore(ctx)
+	if err := store.Set(types.KeyIndex, types.IndexToKey(index)); err != nil {
+		panic(err)
+	}
 	return nil
 }
 
 // GetLatestIndex returns the latest index of the CapabilityKeeper
-func (k Keeper) GetLatestIndex(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	return types.IndexFromKey(store.Get(types.KeyIndex))
+func (k Keeper) GetLatestIndex(ctx context.Context) uint64 {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.KeyIndex)
+	if err != nil {
+		panic(err)
+	}
+	return types.IndexFromKey(bz)
 }
 
 // SetOwners set the capability owners to the store
-func (k Keeper) SetOwners(ctx sdk.Context, index uint64, owners types.CapabilityOwners) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixIndexCapability)
+func (k Keeper) SetOwners(ctx context.Context, index uint64, owners types.CapabilityOwners) {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	prefixStore := prefix.NewStore(store, types.KeyPrefixIndexCapability)
 	indexKey := types.IndexToKey(index)
 
 	// set owners in persistent store
@@ -192,8 +203,9 @@ func (k Keeper) SetOwners(ctx sdk.Context, index uint64, owners types.Capability
 }
 
 // GetOwners returns the capability owners with a given index.
-func (k Keeper) GetOwners(ctx sdk.Context, index uint64) (types.CapabilityOwners, bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixIndexCapability)
+func (k Keeper) GetOwners(ctx context.Context, index uint64) (types.CapabilityOwners, bool) {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	prefixStore := prefix.NewStore(store, types.KeyPrefixIndexCapability)
 	indexKey := types.IndexToKey(index)
 
 	// get owners for index from persistent store
@@ -209,20 +221,24 @@ func (k Keeper) GetOwners(ctx sdk.Context, index uint64) (types.CapabilityOwners
 // InitializeCapability takes in an index and an owners array. It creates the capability in memory
 // and sets the fwd and reverse keys for each owner in the memstore.
 // It is used during initialization from genesis.
-func (k Keeper) InitializeCapability(ctx sdk.Context, index uint64, owners types.CapabilityOwners) {
-	memStore := ctx.KVStore(k.memKey)
+func (k Keeper) InitializeCapability(ctx context.Context, index uint64, owners types.CapabilityOwners) {
+	memStore := k.memService.OpenMemoryStore(ctx)
 
 	capability := types.NewCapability(index)
 	for _, owner := range owners.Owners {
 		// Set the forward mapping between the module and capability tuple and the
 		// capability name in the memKVStore
-		memStore.Set(types.FwdCapabilityKey(owner.Module, capability), []byte(owner.Name))
+		if err := memStore.Set(types.FwdCapabilityKey(owner.Module, capability), []byte(owner.Name)); err != nil {
+			panic(err)
+		}
 
 		// Set the reverse mapping between the module and capability name and the
 		// index in the in-memory store. Since marshalling and unmarshalling into a store
 		// will change memory address of capability, we simply store index as value here
 		// and retrieve the in-memory pointer to the capability from our map
-		memStore.Set(types.RevCapabilityKey(owner.Module, owner.Name), sdk.Uint64ToBigEndian(index))
+		if err := memStore.Set(types.RevCapabilityKey(owner.Module, owner.Name), sdk.Uint64ToBigEndian(index)); err != nil {
+			panic(err)
+		}
 
 		// Set the mapping from index to in-memory capability in the go map
 		k.capMap[index] = capability
@@ -238,18 +254,22 @@ func (k Keeper) InitializeCapability(ctx sdk.Context, index uint64, owners types
 //
 // Note, namespacing is completely local, which is safe since records are prefixed
 // with the module name and no two ScopedKeeper can have the same module name.
-func (sk ScopedKeeper) NewCapability(ctx sdk.Context, name string) (*types.Capability, error) {
+func (sk ScopedKeeper) NewCapability(ctx context.Context, name string) (*types.Capability, error) {
 	if strings.TrimSpace(name) == "" {
 		return nil, errorsmod.Wrap(types.ErrInvalidCapabilityName, "capability name cannot be empty")
 	}
-	store := ctx.KVStore(sk.storeKey)
+	store := sk.storeService.OpenKVStore(ctx)
 
 	if _, ok := sk.GetCapability(ctx, name); ok {
-		return nil, errorsmod.Wrapf(types.ErrCapabilityTaken, fmt.Sprintf("module: %s, name: %s", sk.module, name))
+		return nil, errorsmod.Wrapf(types.ErrCapabilityTaken, "module: %s, name: %s", sk.module, name)
 	}
 
 	// create new capability with the current global index
-	index := types.IndexFromKey(store.Get(types.KeyIndex))
+	bz, err := store.Get(types.KeyIndex)
+	if err != nil {
+		panic(err)
+	}
+	index := types.IndexFromKey(bz)
 	capability := types.NewCapability(index)
 
 	// update capability owner set
@@ -258,19 +278,25 @@ func (sk ScopedKeeper) NewCapability(ctx sdk.Context, name string) (*types.Capab
 	}
 
 	// increment global index
-	store.Set(types.KeyIndex, types.IndexToKey(index+1))
+	if err := store.Set(types.KeyIndex, types.IndexToKey(index+1)); err != nil {
+		panic(err)
+	}
 
-	memStore := ctx.KVStore(sk.memKey)
+	memStore := sk.memService.OpenMemoryStore(ctx)
 
 	// Set the forward mapping between the module and capability tuple and the
 	// capability name in the memKVStore
-	memStore.Set(types.FwdCapabilityKey(sk.module, capability), []byte(name))
+	if err := memStore.Set(types.FwdCapabilityKey(sk.module, capability), []byte(name)); err != nil {
+		panic(err)
+	}
 
 	// Set the reverse mapping between the module and capability name and the
 	// index in the in-memory store. Since marshalling and unmarshalling into a store
 	// will change memory address of capability, we simply store index as value here
 	// and retrieve the in-memory pointer to the capability from our map
-	memStore.Set(types.RevCapabilityKey(sk.module, name), sdk.Uint64ToBigEndian(index))
+	if err := memStore.Set(types.RevCapabilityKey(sk.module, name), sdk.Uint64ToBigEndian(index)); err != nil {
+		panic(err)
+	}
 
 	// Set the mapping from index to in-memory capability in the go map
 	sk.capMap[index] = capability
@@ -288,7 +314,7 @@ func (sk ScopedKeeper) NewCapability(ctx sdk.Context, name string) (*types.Capab
 //
 // Note, the capability's forward mapping is indexed by a string which should
 // contain its unique memory reference.
-func (sk ScopedKeeper) AuthenticateCapability(ctx sdk.Context, cap *types.Capability, name string) bool {
+func (sk ScopedKeeper) AuthenticateCapability(ctx context.Context, cap *types.Capability, name string) bool {
 	if strings.TrimSpace(name) == "" || cap == nil {
 		return false
 	}
@@ -300,7 +326,7 @@ func (sk ScopedKeeper) AuthenticateCapability(ctx sdk.Context, cap *types.Capabi
 // to add the owner to the persistent set of capability owners for the capability
 // index. If the owner already exists, it will return an error. Otherwise, it will
 // also set a forward and reverse index for the capability and capability name.
-func (sk ScopedKeeper) ClaimCapability(ctx sdk.Context, cap *types.Capability, name string) error {
+func (sk ScopedKeeper) ClaimCapability(ctx context.Context, cap *types.Capability, name string) error {
 	if cap == nil {
 		return errorsmod.Wrap(types.ErrNilCapability, "cannot claim nil capability")
 	}
@@ -312,17 +338,21 @@ func (sk ScopedKeeper) ClaimCapability(ctx sdk.Context, cap *types.Capability, n
 		return err
 	}
 
-	memStore := ctx.KVStore(sk.memKey)
+	memStore := sk.memService.OpenMemoryStore(ctx)
 
 	// Set the forward mapping between the module and capability tuple and the
 	// capability name in the memKVStore
-	memStore.Set(types.FwdCapabilityKey(sk.module, cap), []byte(name))
+	if err := memStore.Set(types.FwdCapabilityKey(sk.module, cap), []byte(name)); err != nil {
+		panic(err)
+	}
 
 	// Set the reverse mapping between the module and capability name and the
 	// index in the in-memory store. Since marshalling and unmarshalling into a store
 	// will change memory address of capability, we simply store index as value here
 	// and retrieve the in-memory pointer to the capability from our map
-	memStore.Set(types.RevCapabilityKey(sk.module, name), sdk.Uint64ToBigEndian(cap.GetIndex()))
+	if err := memStore.Set(types.RevCapabilityKey(sk.module, name), sdk.Uint64ToBigEndian(cap.GetIndex())); err != nil {
+		panic(err)
+	}
 
 	logger(ctx).Info("claimed capability", "module", sk.module, "name", name, "capability", cap.GetIndex())
 
@@ -332,7 +362,7 @@ func (sk ScopedKeeper) ClaimCapability(ctx sdk.Context, cap *types.Capability, n
 // ReleaseCapability allows a scoped module to release a capability which it had
 // previously claimed or created. After releasing the capability, if no more
 // owners exist, the capability will be globally removed.
-func (sk ScopedKeeper) ReleaseCapability(ctx sdk.Context, cap *types.Capability) error {
+func (sk ScopedKeeper) ReleaseCapability(ctx context.Context, cap *types.Capability) error {
 	if cap == nil {
 		return errorsmod.Wrap(types.ErrNilCapability, "cannot release nil capability")
 	}
@@ -341,21 +371,26 @@ func (sk ScopedKeeper) ReleaseCapability(ctx sdk.Context, cap *types.Capability)
 		return errorsmod.Wrap(types.ErrCapabilityNotOwned, sk.module)
 	}
 
-	memStore := ctx.KVStore(sk.memKey)
+	memStore := sk.memService.OpenMemoryStore(ctx)
 
 	// Delete the forward mapping between the module and capability tuple and the
 	// capability name in the memKVStore
-	memStore.Delete(types.FwdCapabilityKey(sk.module, cap))
+	if err := memStore.Delete(types.FwdCapabilityKey(sk.module, cap)); err != nil {
+		panic(err)
+	}
 
 	// Delete the reverse mapping between the module and capability name and the
 	// index in the in-memory store.
-	memStore.Delete(types.RevCapabilityKey(sk.module, name))
+	if err := memStore.Delete(types.RevCapabilityKey(sk.module, name)); err != nil {
+		panic(err)
+	}
 
 	// remove owner
 	capOwners := sk.getOwners(ctx, cap)
 	capOwners.Remove(types.NewOwner(sk.module, name))
 
-	prefixStore := prefix.NewStore(ctx.KVStore(sk.storeKey), types.KeyPrefixIndexCapability)
+	store := runtime.KVStoreAdapter(sk.storeService.OpenKVStore(ctx))
+	prefixStore := prefix.NewStore(store, types.KeyPrefixIndexCapability)
 	indexKey := types.IndexToKey(cap.GetIndex())
 
 	if len(capOwners.Owners) == 0 {
@@ -374,14 +409,17 @@ func (sk ScopedKeeper) ReleaseCapability(ctx sdk.Context, cap *types.Capability)
 // GetCapability allows a module to fetch a capability which it previously claimed
 // by name. The module is not allowed to retrieve capabilities which it does not
 // own.
-func (sk ScopedKeeper) GetCapability(ctx sdk.Context, name string) (*types.Capability, bool) {
+func (sk ScopedKeeper) GetCapability(ctx context.Context, name string) (*types.Capability, bool) {
 	if strings.TrimSpace(name) == "" {
 		return nil, false
 	}
-	memStore := ctx.KVStore(sk.memKey)
+	memStore := sk.memService.OpenMemoryStore(ctx)
 
 	key := types.RevCapabilityKey(sk.module, name)
-	indexBytes := memStore.Get(key)
+	indexBytes, err := memStore.Get(key)
+	if err != nil {
+		panic(err)
+	}
 	index := sdk.BigEndianToUint64(indexBytes)
 
 	if len(indexBytes) == 0 {
@@ -405,18 +443,23 @@ func (sk ScopedKeeper) GetCapability(ctx sdk.Context, name string) (*types.Capab
 
 // GetCapabilityName allows a module to retrieve the name under which it stored a given
 // capability given the capability
-func (sk ScopedKeeper) GetCapabilityName(ctx sdk.Context, cap *types.Capability) string {
+func (sk ScopedKeeper) GetCapabilityName(ctx context.Context, cap *types.Capability) string {
 	if cap == nil {
 		return ""
 	}
-	memStore := ctx.KVStore(sk.memKey)
+	memStore := sk.memService.OpenMemoryStore(ctx)
 
-	return string(memStore.Get(types.FwdCapabilityKey(sk.module, cap)))
+	bz, err := memStore.Get(types.FwdCapabilityKey(sk.module, cap))
+	if err != nil {
+		panic(err)
+	}
+
+	return string(bz)
 }
 
 // GetOwners all the Owners that own the capability associated with the name this ScopedKeeper uses
 // to refer to the capability
-func (sk ScopedKeeper) GetOwners(ctx sdk.Context, name string) (*types.CapabilityOwners, bool) {
+func (sk ScopedKeeper) GetOwners(ctx context.Context, name string) (*types.CapabilityOwners, bool) {
 	if strings.TrimSpace(name) == "" {
 		return nil, false
 	}
@@ -425,7 +468,8 @@ func (sk ScopedKeeper) GetOwners(ctx sdk.Context, name string) (*types.Capabilit
 		return nil, false
 	}
 
-	prefixStore := prefix.NewStore(ctx.KVStore(sk.storeKey), types.KeyPrefixIndexCapability)
+	store := runtime.KVStoreAdapter(sk.storeService.OpenKVStore(ctx))
+	prefixStore := prefix.NewStore(store, types.KeyPrefixIndexCapability)
 	indexKey := types.IndexToKey(capability.GetIndex())
 
 	var capOwners types.CapabilityOwners
@@ -444,7 +488,7 @@ func (sk ScopedKeeper) GetOwners(ctx sdk.Context, name string) (*types.Capabilit
 // as a string array and the capability itself.
 // The method returns an error if either the capability or the owners cannot be
 // retrieved from the memstore.
-func (sk ScopedKeeper) LookupModules(ctx sdk.Context, name string) ([]string, *types.Capability, error) {
+func (sk ScopedKeeper) LookupModules(ctx context.Context, name string) ([]string, *types.Capability, error) {
 	if strings.TrimSpace(name) == "" {
 		return nil, nil, errorsmod.Wrap(types.ErrInvalidCapabilityName, "cannot lookup modules with empty capability name")
 	}
@@ -466,8 +510,9 @@ func (sk ScopedKeeper) LookupModules(ctx sdk.Context, name string) ([]string, *t
 	return mods, capability, nil
 }
 
-func (sk ScopedKeeper) addOwner(ctx sdk.Context, cap *types.Capability, name string) error {
-	prefixStore := prefix.NewStore(ctx.KVStore(sk.storeKey), types.KeyPrefixIndexCapability)
+func (sk ScopedKeeper) addOwner(ctx context.Context, cap *types.Capability, name string) error {
+	store := runtime.KVStoreAdapter(sk.storeService.OpenKVStore(ctx))
+	prefixStore := prefix.NewStore(store, types.KeyPrefixIndexCapability)
 	indexKey := types.IndexToKey(cap.GetIndex())
 
 	capOwners := sk.getOwners(ctx, cap)
@@ -482,8 +527,9 @@ func (sk ScopedKeeper) addOwner(ctx sdk.Context, cap *types.Capability, name str
 	return nil
 }
 
-func (sk ScopedKeeper) getOwners(ctx sdk.Context, cap *types.Capability) *types.CapabilityOwners {
-	prefixStore := prefix.NewStore(ctx.KVStore(sk.storeKey), types.KeyPrefixIndexCapability)
+func (sk ScopedKeeper) getOwners(ctx context.Context, cap *types.Capability) *types.CapabilityOwners {
+	store := runtime.KVStoreAdapter(sk.storeService.OpenKVStore(ctx))
+	prefixStore := prefix.NewStore(store, types.KeyPrefixIndexCapability)
 	indexKey := types.IndexToKey(cap.GetIndex())
 
 	bz := prefixStore.Get(indexKey)
@@ -497,6 +543,7 @@ func (sk ScopedKeeper) getOwners(ctx sdk.Context, cap *types.Capability) *types.
 	return &capOwners
 }
 
-func logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+func logger(ctx context.Context) log.Logger {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	return sdkCtx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
