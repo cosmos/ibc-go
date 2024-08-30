@@ -155,11 +155,11 @@ func (k *Keeper) InitMemStore(ctx context.Context) {
 // IsInitialized returns true if the keeper is properly initialized, and false otherwise.
 func (k *Keeper) IsInitialized(ctx context.Context) bool {
 	memStore := k.memService.OpenMemoryStore(ctx)
-	has, err := memStore.Has(types.KeyMemInitialized)
+	isInitialized, err := memStore.Has(types.KeyMemInitialized)
 	if err != nil {
 		panic(err)
 	}
-	return has
+	return isInitialized
 }
 
 // InitializeIndex sets the index to one (or greater) in InitChain according
