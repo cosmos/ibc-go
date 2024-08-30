@@ -67,7 +67,7 @@ func (rtr *Router) GetRoute(module string) (IBCModule, bool) {
 	return rtr.routes[module], true
 }
 
-// TODO keys
+// Keys returns the keys of the routes map.
 func (rtr *Router) Keys() []string {
 	return maps.Keys(rtr.routes)
 }
