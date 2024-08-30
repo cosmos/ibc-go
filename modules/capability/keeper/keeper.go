@@ -123,7 +123,7 @@ func (k *Keeper) IsSealed() bool {
 // can't initialize it in a constructor.
 func (k *Keeper) InitMemStore(ctx context.Context) {
 	// create context with no block gas meter to ensure we do not consume gas during local initialization logic.
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after 52 upgrade
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	noGasCtx := sdkCtx.WithBlockGasMeter(storetypes.NewInfiniteGasMeter()).WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// check if memory store has not been initialized yet by checking if initialized flag is nil.
@@ -155,11 +155,11 @@ func (k *Keeper) InitMemStore(ctx context.Context) {
 // IsInitialized returns true if the keeper is properly initialized, and false otherwise.
 func (k *Keeper) IsInitialized(ctx context.Context) bool {
 	memStore := k.memService.OpenMemoryStore(ctx)
-	has, err := memStore.Has(types.KeyMemInitialized)
+	isInitialized, err := memStore.Has(types.KeyMemInitialized)
 	if err != nil {
 		panic(err)
 	}
-	return has
+	return isInitialized
 }
 
 // InitializeIndex sets the index to one (or greater) in InitChain according
@@ -454,7 +454,7 @@ func (sk ScopedKeeper) GetCapabilityName(ctx context.Context, cap *types.Capabil
 		panic(err)
 	}
 
-	return string(bz) // TODO: why the cast?
+	return string(bz)
 }
 
 // GetOwners all the Owners that own the capability associated with the name this ScopedKeeper uses
@@ -544,6 +544,6 @@ func (sk ScopedKeeper) getOwners(ctx context.Context, cap *types.Capability) *ty
 }
 
 func logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove after 52 upgrade
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	return sdkCtx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }

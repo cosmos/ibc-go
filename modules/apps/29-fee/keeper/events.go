@@ -27,7 +27,7 @@ func emitIncentivizedPacketEvent(ctx context.Context, packetID channeltypes.Pack
 			totalTimeoutFees = totalTimeoutFees.Add(fee.Fee.TimeoutFee...)
 		}
 	}
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeIncentivizedPacket,
@@ -47,7 +47,7 @@ func emitIncentivizedPacketEvent(ctx context.Context, packetID channeltypes.Pack
 
 // emitRegisterPayeeEvent emits an event containing information of a registered payee for a relayer on a particular channel
 func emitRegisterPayeeEvent(ctx context.Context, relayer, payee, channelID string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRegisterPayee,
@@ -64,7 +64,7 @@ func emitRegisterPayeeEvent(ctx context.Context, relayer, payee, channelID strin
 
 // emitRegisterCounterpartyPayeeEvent emits an event containing information of a registered counterparty payee for a relayer on a particular channel
 func emitRegisterCounterpartyPayeeEvent(ctx context.Context, relayer, counterpartyPayee, channelID string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRegisterCounterpartyPayee,
@@ -81,7 +81,7 @@ func emitRegisterCounterpartyPayeeEvent(ctx context.Context, relayer, counterpar
 
 // emitDistributeFeeEvent emits an event containing a distribution fee and receiver address
 func emitDistributeFeeEvent(ctx context.Context, receiver string, fee sdk.Coins) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,

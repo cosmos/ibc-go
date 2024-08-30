@@ -137,7 +137,7 @@ func (im IBCModule) OnRecvPacket(ctx context.Context, channelVersion string, pac
 		panic(err)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	sdkCtx.EventManager().EmitEvent(NewMockRecvPacketEvent())
 
 	if bytes.Equal(MockPacketData, packet.GetData()) {
@@ -162,7 +162,7 @@ func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, channelVersion 
 		panic(err)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	sdkCtx.EventManager().EmitEvent(NewMockAckPacketEvent())
 
 	return nil
@@ -181,7 +181,7 @@ func (im IBCModule) OnTimeoutPacket(ctx context.Context, channelVersion string, 
 		panic(err)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	sdkCtx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
 
 	return nil

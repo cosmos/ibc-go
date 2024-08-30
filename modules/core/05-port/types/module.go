@@ -166,7 +166,6 @@ type UpgradableModule interface {
 type ICS4Wrapper interface {
 	SendPacket(
 		ctx context.Context,
-		chanCap *capabilitytypes.Capability,
 		sourcePort string,
 		sourceChannel string,
 		timeoutHeight clienttypes.Height,
@@ -176,7 +175,6 @@ type ICS4Wrapper interface {
 
 	WriteAcknowledgement(
 		ctx context.Context,
-		chanCap *capabilitytypes.Capability,
 		packet exported.PacketI,
 		ack exported.Acknowledgement,
 	) error

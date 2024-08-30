@@ -140,9 +140,6 @@ func enrichAutoCliOpts(autoCliOpts autocli.AppOptions, clientCtx client.Context)
 	}
 
 	autoCliOpts.ClientCtx = clientCtx
-	if err != nil {
-		return autocli.AppOptions{}, err
-	}
 
 	return autoCliOpts, nil
 }

@@ -326,7 +326,6 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx context.Context, portID, channelID
 // SendPacket implements the ICS4 Wrapper interface
 func (IBCMiddleware) SendPacket(
 	ctx context.Context,
-	chanCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -339,7 +338,6 @@ func (IBCMiddleware) SendPacket(
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (IBCMiddleware) WriteAcknowledgement(
 	ctx context.Context,
-	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {

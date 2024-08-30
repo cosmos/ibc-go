@@ -154,7 +154,7 @@ func (k Keeper) distributePacketFeeOnTimeout(ctx context.Context, refundAddr, ti
 // the state changes will be discarded.
 func (k Keeper) distributeFee(ctx context.Context, receiver, refundAccAddress sdk.AccAddress, fee sdk.Coins) {
 	// cache context before trying to distribute fees
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	cacheCtx, writeFn := sdkCtx.CacheContext()
 
 	err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, receiver, fee)
