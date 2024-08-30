@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"golang.org/x/exp/maps"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -63,4 +65,9 @@ func (rtr *Router) GetRoute(module string) (IBCModule, bool) {
 		return nil, false
 	}
 	return rtr.routes[module], true
+}
+
+// TODO keys
+func (rtr *Router) Keys() []string {
+	return maps.Keys(rtr.routes)
 }

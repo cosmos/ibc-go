@@ -15,7 +15,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icahost "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
@@ -162,7 +161,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			"success: ICA auth module callback returns error", func() {
 				// mock module callback should not be called on host side
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenTry = func(ctx context.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, counterpartyVersion string,
 				) (string, error) {
 					return "", fmt.Errorf("mock ica auth fails")
@@ -208,14 +207,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 				module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID)
 				suite.Require().NoError(err)
 
-				chanCap, err := suite.chainB.App.GetScopedIBCKeeper().NewCapability(suite.chainB.GetContext(), host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-				suite.Require().NoError(err)
-
 				cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
 				suite.Require().True(ok)
 
 				version, err := cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.ConnectionHops,
-					path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
+					path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
 				)
 
 				if tc.expErr == nil {

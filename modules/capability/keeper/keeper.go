@@ -448,6 +448,7 @@ func (sk ScopedKeeper) LookupModules(ctx sdk.Context, name string) ([]string, *t
 	if strings.TrimSpace(name) == "" {
 		return nil, nil, errorsmod.Wrap(types.ErrInvalidCapabilityName, "cannot lookup modules with empty capability name")
 	}
+
 	capability, ok := sk.GetCapability(ctx, name)
 	if !ok {
 		return nil, nil, errorsmod.Wrap(types.ErrCapabilityNotFound, name)

@@ -8,11 +8,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -132,20 +130,11 @@ func (k *Keeper) TimeoutPacket(
 // CONTRACT: this function must be called in the IBC handler
 func (k *Keeper) TimeoutExecuted(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
-	}
-
-	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrChannelCapabilityNotFound,
-			"caller does not own capability for channel with capability name %s", capName,
-		)
 	}
 
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -193,7 +182,6 @@ func (k *Keeper) TimeoutExecuted(
 // never be received (even if the timeoutHeight has not yet been reached).
 func (k *Keeper) TimeoutOnClose(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 	proof,
 	closedProof []byte,
@@ -204,14 +192,6 @@ func (k *Keeper) TimeoutOnClose(
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
 		return "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
-	}
-
-	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return "", errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication with capability name %s", capName,
-		)
 	}
 
 	if packet.GetDestPort() != channel.Counterparty.PortId {

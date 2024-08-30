@@ -9,7 +9,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -47,7 +46,6 @@ func (im IBCMiddleware) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
@@ -66,7 +64,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
 			// application.
 			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-				chanCap, counterparty, version)
+				counterparty, version)
 		}
 		versionMetadata = metadata
 	}
@@ -75,7 +73,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
-	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
+	appVersion, err := im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, versionMetadata.AppVersion)
 	if err != nil {
 		return "", err
 	}
@@ -101,7 +99,6 @@ func (im IBCMiddleware) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
@@ -110,7 +107,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
 		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
 		// application.
-		return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+		return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
@@ -120,7 +117,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
 
 	// call underlying app's OnChanOpenTry callback with the app versions
-	appVersion, err := im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, versionMetadata.AppVersion)
+	appVersion, err := im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, versionMetadata.AppVersion)
 	if err != nil {
 		return "", err
 	}
