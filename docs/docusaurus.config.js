@@ -56,11 +56,11 @@ const config = {
               path: "main",
               banner: "unreleased",
             },
-            "v8.4.x": {
+            "v8.5.x": {
               path: "v8",
               banner: "none",
             },
-            "v7.7.x": {
+            "v7.8.x": {
               path: "v7",
               banner: "none",
             },
