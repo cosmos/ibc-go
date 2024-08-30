@@ -634,7 +634,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			func() {
 				path.Setup()
 
-				// trigger upgradeInit on B which will bump the counterparty upgrade sequence.
+				// trigger upgradeInit on A which will bump the counterparty upgrade sequence.
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 				err := path.EndpointA.ChanUpgradeInit()
 				suite.Require().NoError(err)
