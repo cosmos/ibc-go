@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [v8.5.0]()
 
+### Dependencies
+
+* [\#7222](https://github.com/cosmos/ibc-go/pull/7221) Update ics23 to v0.11.0.
+
 ### State Machine Breaking
 
 * (core/03-connection)[\#7129](https://github.com/cosmos/ibc-go/pull/7129) Remove verification of self client and consensus state from connection handshake. 
