@@ -22,6 +22,7 @@ import (
 	commitmentv2types "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	packetserver "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
 var _ porttypes.ICS4Wrapper = (*Keeper)(nil)
@@ -98,24 +99,24 @@ func (k *Keeper) SetChannel(ctx sdk.Context, portID, channelID string, channel t
 
 // GetV2Counterparty returns a version 2 counterparty for the given port and channel ID
 // by converting the channel into a version 2 counterparty
-func (k *Keeper) GetV2Counterparty(ctx sdk.Context, portID, channelID string) (clienttypes.Counterparty, bool) {
+func (k *Keeper) GetV2Counterparty(ctx sdk.Context, portID, channelID string) (packetserver.Counterparty, bool) {
 	channel, ok := k.GetChannel(ctx, portID, channelID)
 	if !ok {
-		return clienttypes.Counterparty{}, false
+		return packetserver.Counterparty{}, false
 	}
 	// Do not allow channel to be converted into a version 2 counterparty
 	// if the channel is not OPEN or if it is ORDERED
 	if channel.State != types.OPEN || channel.Ordering == types.ORDERED {
-		return clienttypes.Counterparty{}, false
+		return packetserver.Counterparty{}, false
 	}
 	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !ok {
-		return clienttypes.Counterparty{}, false
+		return packetserver.Counterparty{}, false
 	}
 	merklePathPrefix := commitmentv2types.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
-	counterparty := clienttypes.Counterparty{
-		ClientId:         connection.ClientId,
-		MerklePathPrefix: &merklePathPrefix,
+	counterparty := packetserver.Counterparty{
+		ClientId:               connection.ClientId,
+		CounterpartyPacketPath: merklePathPrefix,
 	}
 	return counterparty, true
 }

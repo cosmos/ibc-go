@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package ibc.core.packetserver.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types";
+
+import "gogoproto/gogo.proto";
+import "ibc/core/packetserver/v1/counterparty.proto";
+import "cosmos/msg/v1/msg.proto";
+
+// Msg defines the ibc/packetserver Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
+  rpc ProvideCounterparty(MsgProvideCounterparty) returns (MsgProvideCounterpartyResponse);
+}
+
+// MsgProvideCounterparty defines the message used to provide the counterparty client
+// identifier. Can only be invoked one time by the signer of MsgCreateClient if the counterparty
+// client identifier was not provided in the initial MsgCreateClient message.
+message MsgProvideCounterparty {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  // unique identifier we will use to write all packet messages sent to counterparty
+  string packetPath = 1;
+  // counterparty client
+  Counterparty counterparty = 2 [(gogoproto.nullable) = false];
+  // signer address
+  string signer = 3;
+}
+
+// MsgProvideCounterpartyResponse defines the Msg/ProvideCounterparty response type.
+message MsgProvideCounterpartyResponse {}

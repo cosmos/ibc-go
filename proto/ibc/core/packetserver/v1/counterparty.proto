@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package ibc.core.packetserver.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types";
+
+import "gogoproto/gogo.proto";
+import "ibc/core/commitment/v2/commitment.proto";
+
+// Counterparty defines the counterparty for a light client to implement IBC eureka protocol
+// this value is stored under our side's channel ID. which we will use to write all packet messages
+// sent to counterparty
+message Counterparty {
+  // the client identifier of the counterparty chain
+  // client id of the counterparty stored on our chain
+  string client_id = 1;
+  // the key path used to store packet flow messages that the counterparty
+  // will use to send to us.
+  // ["ibc", "channel/channel-4"] => ["ibc", "channel/channel-4/port/transfer/sequence/1"]
+  ibc.core.commitment.v2.MerklePath counterparty_packet_path = 3 [(gogoproto.nullable) = false];
+}

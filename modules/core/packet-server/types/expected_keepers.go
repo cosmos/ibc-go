@@ -40,7 +40,7 @@ type ChannelKeeper interface {
 	SetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte)
 
 	// GetChannel returns a version 2 counterparty for a given portID and channel ID
-	GetV2Counterparty(ctx sdk.Context, portID, channelID string) (clienttypes.Counterparty, bool)
+	GetV2Counterparty(ctx sdk.Context, portID, channelID string) (Counterparty, bool)
 }
 
 type ClientKeeper interface {
@@ -48,10 +48,6 @@ type ClientKeeper interface {
 	VerifyMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error
 	// VerifyNonMembership retrieves the light client module for the clientID and verifies the absence of a given key at a specified height.
 	VerifyNonMembership(ctx sdk.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path) error
-	// GetCounterparty returns the counterparty client given the client ID on
-	// the executing chain
-	// This is a private path that is only used by the IBC lite module
-	GetCounterparty(ctx sdk.Context, clientID string) (clienttypes.Counterparty, bool)
 	// GetClientStatus returns the status of a client given the client ID
 	GetClientStatus(ctx sdk.Context, clientID string) exported.Status
 	// GetClientLatestHeight returns the latest height of a client given the client ID

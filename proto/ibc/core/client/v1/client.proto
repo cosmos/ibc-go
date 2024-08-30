@@ -6,7 +6,6 @@ option go_package = "github.com/cosmos/ibc-go/v9/modules/core/02-client/types";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
-import "ibc/core/commitment/v2/commitment.proto";
 
 // IdentifiedClientState defines a client state with an additional client
 // identifier field.
@@ -33,14 +32,6 @@ message ClientConsensusStates {
   string client_id = 1;
   // consensus states and their heights associated with the client
   repeated ConsensusStateWithHeight consensus_states = 2 [(gogoproto.nullable) = false];
-}
-
-// Counterparty defines the counterparty for a light client to implement IBC eureka protocol
-message Counterparty {
-  // the client identifier of the counterparty chain
-  string client_id = 1;
-  // the merkle path that all ICS24 paths will be stored under
-  ibc.core.commitment.v2.MerklePath merkle_path_prefix = 2;
 }
 
 // Height is a monotonically increasing data type
