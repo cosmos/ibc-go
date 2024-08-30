@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump Cosmos SDK to v0.50.9.
 * [\#7222](https://github.com/cosmos/ibc-go/pull/7221) Update ics23 to v0.11.0.
 
 ### State Machine Breaking
