@@ -275,7 +275,7 @@ func PruneAllExpiredConsensusStates(
 		if !found { // consensus state should always be found
 			return true
 		}
-		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: remove when Upgrading to 52
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 		if clientState.IsExpired(consState.Timestamp, sdkCtx.BlockTime()) {
 			heights = append(heights, height)
 		}
