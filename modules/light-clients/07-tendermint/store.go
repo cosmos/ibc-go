@@ -265,7 +265,7 @@ func GetPreviousConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryC
 // client store. If a consensus state is expired, it is deleted and its metadata
 // is deleted. The number of consensus states pruned is returned.
 func PruneAllExpiredConsensusStates(
-	ctx sdk.Context, clientStore storetypes.KVStore,
+	ctx context.Context, clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec, clientState *ClientState,
 ) int {
 	var heights []exported.Height
@@ -275,8 +275,8 @@ func PruneAllExpiredConsensusStates(
 		if !found { // consensus state should always be found
 			return true
 		}
-
-		if clientState.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+		if clientState.IsExpired(consState.Timestamp, sdkCtx.BlockTime()) {
 			heights = append(heights, height)
 		}
 

@@ -104,7 +104,7 @@ func (k *Keeper) SendPacket(
 // RecvPacket is called by a module in order to receive & process an IBC packet
 // sent on the corresponding channel end on the counterparty chain.
 func (k *Keeper) RecvPacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 	proof []byte,
@@ -169,7 +169,8 @@ func (k *Keeper) RecvPacket(
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
@@ -201,14 +202,14 @@ func (k *Keeper) RecvPacket(
 	)
 
 	// emit an event that the relayer can query for
-	emitRecvPacketEvent(ctx, packet, channel)
+	emitRecvPacketEvent(sdkCtx, packet, channel)
 
 	return channel.Version, nil
 }
 
 // applyReplayProtection ensures a packet has not already been received
 // and performs the necessary state changes to ensure it cannot be received again.
-func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, channel types.Channel) error {
+func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet, channel types.Channel) error {
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
 	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
 	// upgrade all packets under the recvStartSequence will have been processed and thus should be
@@ -218,6 +219,7 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	switch channel.Ordering {
 	case types.UNORDERED:
 		// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -225,7 +227,7 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		// by the increase of the recvStartSequence.
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
-			emitRecvPacketEvent(ctx, packet, channel)
+			emitRecvPacketEvent(sdkCtx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -249,7 +251,7 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		}
 
 		if packet.GetSequence() < nextSequenceRecv {
-			emitRecvPacketEvent(ctx, packet, channel)
+			emitRecvPacketEvent(sdkCtx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -357,7 +359,7 @@ func (k *Keeper) WriteAcknowledgement(
 // which is no longer necessary since the packet has been received and acted upon.
 // It will also increment NextSequenceAck in case of ORDERED channels.
 func (k *Keeper) AcknowledgePacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 	acknowledgement []byte,
@@ -488,10 +490,11 @@ func (k *Keeper) AcknowledgePacket(
 // FLUSHING state. It checks if the upgrade has timed out and if so, aborts the upgrade. If all
 // packets have completed their lifecycle, it sets the channel state to FLUSHCOMPLETE and
 // emits a channel_flush_complete event. Returns true if the upgrade was aborted, false otherwise.
-func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel types.Channel) {
+func (k *Keeper) handleFlushState(ctx context.Context, packet types.Packet, channel types.Channel) {
 	if counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel()); found {
 		timeout := counterpartyUpgrade.Timeout
-		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
 
 		if timeout.Elapsed(selfHeight, selfTimestamp) {
 			// packet flushing timeout has expired, abort the upgrade
