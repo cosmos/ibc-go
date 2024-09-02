@@ -199,7 +199,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			channelKey := host.ChannelKey(counterparty.PortId, counterparty.ChannelId)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
-			_, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
+			channelID, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
 				suite.chainB.GetContext(), types.ORDERED, []string{path.EndpointB.ConnectionID},
 				path.EndpointB.ChannelConfig.PortID, counterparty, path.EndpointA.ChannelConfig.Version,
 				proof, malleateHeight(proofHeight, heightDiff),
@@ -207,6 +207,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+				suite.Require().NotEmpty(channelID)
 			} else {
 				suite.Require().Error(err)
 			}
