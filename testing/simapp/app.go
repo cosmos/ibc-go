@@ -194,6 +194,7 @@ type SimApp struct {
 	IBCMockModule ibcmock.IBCModule
 	ICAAuthModule ibcmock.IBCModule
 	FeeMockModule ibcmock.IBCModule
+	MockV2Module  ibcmock.IBCModuleV2
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -420,6 +421,9 @@ func NewSimApp(
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 	ibcAppRouter := porttypes.NewAppRouter()
+
+	// add a mock IBCModuleV2 app whose functionality can be overridden in tests.
+	ibcAppRouter.AddV2Route(ibcmock.ModuleNameV2, ibcmock.NewIBCModuleV2(ibcmock.NewIBCV2App()))
 
 	// Middleware Stacks
 
