@@ -594,26 +594,13 @@ func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capabi
 // if it does not already exist. This function will fail testing on any resulting error. The
 // scoped keeper passed in will claim the new capability.
 func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.ScopedKeeper, portID, channelID string) {
-	capName := host.ChannelCapabilityPath(portID, channelID)
-	// check if the portId is already binded, if not bind it
-	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), capName)
-	if !ok {
-		capability, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), capName)
-		require.NoError(chain.TB, err)
-		err = scopedKeeper.ClaimCapability(chain.GetContext(), capability, capName)
-		require.NoError(chain.TB, err)
-	}
-
-	chain.NextBlock()
+	// TODO delete
 }
 
 // GetChannelCapability returns the channel capability for the given portID and channelID.
 // The capability must exist, otherwise testing will fail.
 func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabilitytypes.Capability {
-	capability, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.ChannelCapabilityPath(portID, channelID))
-	require.True(chain.TB, ok)
-
-	return capability
+	// TODO delete
 }
 
 // GetClientLatestHeight returns the latest height for the client state with the given client identifier.
