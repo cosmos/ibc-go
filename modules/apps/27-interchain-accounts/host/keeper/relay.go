@@ -131,7 +131,7 @@ func (k Keeper) authenticateTx(ctx context.Context, msgs []sdk.Msg, connectionID
 
 // Attempts to get the message handler from the router and if found will then execute the message.
 // If the message execution is successful, the proto marshaled message response will be returned.
-func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) { // TODO: remove sdk.COntext when migrating to 52
+func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) { // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	handler := k.msgRouter.Handler(msg)
 	if handler == nil {
 		return nil, icatypes.ErrInvalidRoute
