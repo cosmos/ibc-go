@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/02-client"
-	v7 "github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
