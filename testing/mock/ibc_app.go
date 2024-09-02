@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -22,7 +21,6 @@ type IBCApp struct {
 		connectionHops []string,
 		portID string,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
 	) (string, error)
@@ -33,7 +31,6 @@ type IBCApp struct {
 		connectionHops []string,
 		portID,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		counterpartyVersion string,
 	) (version string, err error)

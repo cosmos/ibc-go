@@ -8,12 +8,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -25,19 +22,18 @@ func (k *Keeper) ChanOpenInit(
 	order types.Order,
 	connectionHops []string,
 	portID string,
-	portCap *capabilitytypes.Capability,
 	counterparty types.Counterparty,
 	version string,
-) (string, *capabilitytypes.Capability, error) {
+) (string, error) {
 	// connection hop length checked on msg.ValidateBasic()
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[0])
 	if !found {
-		return "", nil, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
+		return "", errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
 	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
-		return "", nil, errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
 			"single version must be negotiated on connection before opening channel, got: %v",
 			getVersions,
@@ -45,7 +41,7 @@ func (k *Keeper) ChanOpenInit(
 	}
 
 	if !connectiontypes.VerifySupportedFeature(getVersions[0], order.String()) {
-		return "", nil, errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
 			"connection version %s does not support channel ordering: %s",
 			getVersions[0], order.String(),
@@ -53,21 +49,12 @@ func (k *Keeper) ChanOpenInit(
 	}
 
 	if status := k.clientKeeper.GetClientStatus(ctx, connectionEnd.ClientId); status != exported.Active {
-		return "", nil, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
-	}
-
-	if !k.portKeeper.Authenticate(ctx, portCap, portID) {
-		return "", nil, errorsmod.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
+		return "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
 	}
 
 	channelID := k.GenerateChannelIdentifier(ctx)
 
-	capKey, err := k.scopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
-	if err != nil {
-		return "", nil, errorsmod.Wrapf(err, "could not create channel capability for port ID %s and channel ID %s", portID, channelID)
-	}
-
-	return channelID, capKey, nil
+	return channelID, nil
 }
 
 // WriteOpenInitChannel writes a channel which has successfully passed the OpenInit handshake step.
@@ -103,36 +90,31 @@ func (k *Keeper) ChanOpenTry(
 	order types.Order,
 	connectionHops []string,
 	portID string,
-	portCap *capabilitytypes.Capability,
 	counterparty types.Counterparty,
 	counterpartyVersion string,
 	initProof []byte,
 	proofHeight exported.Height,
-) (string, *capabilitytypes.Capability, error) {
+) (string, error) {
 	// connection hops only supports a single connection
 	if len(connectionHops) != 1 {
-		return "", nil, errorsmod.Wrapf(types.ErrTooManyConnectionHops, "expected 1, got %d", len(connectionHops))
+		return "", errorsmod.Wrapf(types.ErrTooManyConnectionHops, "expected 1, got %d", len(connectionHops))
 	}
 
 	// generate a new channel
 	channelID := k.GenerateChannelIdentifier(ctx)
 
-	if !k.portKeeper.Authenticate(ctx, portCap, portID) {
-		return "", nil, errorsmod.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
-	}
-
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[0])
 	if !found {
-		return "", nil, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
+		return "", errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
 	if connectionEnd.State != connectiontypes.OPEN {
-		return "", nil, errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
+		return "", errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
 	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
-		return "", nil, errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
 			"single version must be negotiated on connection before opening channel, got: %v",
 			getVersions,
@@ -140,7 +122,7 @@ func (k *Keeper) ChanOpenTry(
 	}
 
 	if !connectiontypes.VerifySupportedFeature(getVersions[0], order.String()) {
-		return "", nil, errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
 			"connection version %s does not support channel ordering: %s",
 			getVersions[0], order.String(),
@@ -161,20 +143,10 @@ func (k *Keeper) ChanOpenTry(
 		ctx, connectionEnd, proofHeight, initProof,
 		counterparty.PortId, counterparty.ChannelId, expectedChannel,
 	); err != nil {
-		return "", nil, err
+		return "", err
 	}
 
-	var (
-		capKey *capabilitytypes.Capability
-		err    error
-	)
-
-	capKey, err = k.scopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
-	if err != nil {
-		return "", nil, errorsmod.Wrapf(err, "could not create channel capability for port ID %s and channel ID %s", portID, channelID)
-	}
-
-	return channelID, capKey, nil
+	return channelID, nil
 }
 
 // WriteOpenTryChannel writes a channel which has successfully passed the OpenTry handshake step.
@@ -210,7 +182,6 @@ func (k *Keeper) ChanOpenAck(
 	ctx context.Context,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterpartyVersion,
 	counterpartyChannelID string,
 	tryProof []byte,
@@ -223,10 +194,6 @@ func (k *Keeper) ChanOpenAck(
 
 	if channel.State != types.INIT {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "channel state should be INIT (got %s)", channel.State)
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -285,7 +252,6 @@ func (k *Keeper) ChanOpenConfirm(
 	ctx context.Context,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	ackProof []byte,
 	proofHeight exported.Height,
 ) error {
@@ -299,10 +265,6 @@ func (k *Keeper) ChanOpenConfirm(
 			types.ErrInvalidChannelState,
 			"channel state is not TRYOPEN (got %s)", channel.State,
 		)
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -362,12 +324,7 @@ func (k *Keeper) ChanCloseInit(
 	ctx context.Context,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 ) error {
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -408,15 +365,10 @@ func (k *Keeper) ChanCloseConfirm(
 	ctx context.Context,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	initProof []byte,
 	proofHeight exported.Height,
 	counterpartyUpgradeSequence uint64,
 ) error {
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		return errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)

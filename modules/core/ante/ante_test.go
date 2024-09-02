@@ -11,7 +11,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -503,15 +502,6 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				return []sdk.Msg{msg}
 			},
 			channeltypes.ErrRedundantTx,
-		},
-		{
-			"no success on recvPacket checkTx, no capability found",
-			func(suite *AnteTestSuite) []sdk.Msg {
-				msg := suite.createRecvPacketMessage(false)
-				msg.Packet.DestinationPort = "invalid-port"
-				return []sdk.Msg{msg}
-			},
-			capabilitytypes.ErrCapabilityNotFound,
 		},
 	}
 

@@ -1,11 +1,9 @@
 package keeper_test
 
 import (
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
@@ -19,7 +17,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		var (
 			channel         *channeltypes.Channel
 			path            *ibctesting.Path
-			chanCap         *capabilitytypes.Capability
 			metadata        icatypes.Metadata
 			expectedVersion string
 		)
@@ -274,8 +271,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-				suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // this error check isn't needed for tests
 				path.EndpointA.ChannelConfig.PortID = portID
 
 				// default values
@@ -299,11 +294,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 
 				tc.malleate() // malleate mutates test data
 
-				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-
 				version, err := suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
+					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, channel.Version,
 				)
 
 				expPass := tc.expError == nil
