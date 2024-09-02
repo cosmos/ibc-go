@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"errors"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 	"golang.org/x/exp/slices"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -463,6 +464,35 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
 
+// SendPacket defines a rpc handler method for MsgSendPacket.
+func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacket) (*channeltypes.MsgSendPacketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	// Retrieve callbacks from router
+	cbs, ok := k.PortKeeper.Route(module)
+	if !ok {
+		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	sequence, err := k.PacketServerKeeper.SendPacket(ctx, capability, msg.PortId, msg.ChannelId, msg.TimeoutHeight, uint64(msg.TimeoutTimestamp.UnixNano()), msg.PacketData)
+	if err != nil {
+		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))
+		return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", module)
+	}
+
+	// cbs.OnSendPacket(...)
+	_ = cbs
+
+	return &channeltypes.MsgSendPacketResponse{Sequence: sequence}, nil
+}
+
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	// TODO: better indicator that the packet is v2.
@@ -619,9 +649,9 @@ func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPa
 		k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
 	}
 
-	//defer telemetry.ReportRecvPacket(msg.Packet)
+	// defer telemetry.ReportRecvPacket(msg.Packet)
 
-	//ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
+	// ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }
@@ -854,14 +884,13 @@ func (k *Keeper) acknowledgementV2(goCtx context.Context, msg *channeltypes.MsgA
 	for _, pd := range msg.PacketV2.Data {
 		cb := k.PortKeeper.AppRouter.Route(pd.AppName)
 		err = cb.OnAcknowledgementPacketV2(ctx, msg.PacketV2, pd.Payload, recvResults[pd.AppName], relayer)
-
 		if err != nil {
 			ctx.Logger().Error("acknowledgement failed", "port-id", msg.PacketV2.SourcePort, "channel-id", msg.PacketV2.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
 			return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
 		}
 	}
 
-	//defer telemetry.ReportAcknowledgePacket(msg.PacketV2)
+	// defer telemetry.ReportAcknowledgePacket(msg.PacketV2)
 
 	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.PacketV2.SourcePort, "channel-id", msg.PacketV2.SourceChannel, "result", channeltypes.SUCCESS.String())
 

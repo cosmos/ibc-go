@@ -486,14 +486,32 @@ func (endpoint *Endpoint) SendPacketV2POC(
 	timeoutTimestamp uint64,
 	data []channeltypes.PacketData,
 ) (uint64, error) {
-	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetPacketServer().SendPacketV2(endpoint.Chain.GetContext(), nil, endpoint.ClientID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, data)
+	// // no need to send message, acting as a module
+	// sequence, err := endpoint.Chain.App.GetPacketServer().SendPacketV2(endpoint.Chain.GetContext(), nil, endpoint.ClientID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, data)
+	// if err != nil {
+	// 	return 0, err
+	// }
+
+	// // commit changes since no message was sent
+	// endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	msg := channeltypes.NewMsgSendPacket(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID, timeoutHeight,
+		timeoutTimestamp,
+		data,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := endpoint.Chain.SendMsgs(msg)
 	if err != nil {
 		return 0, err
 	}
 
-	// commit changes since no message was sent
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	sequence, err := ParsePacketSequenceFromEvents(res.Events)
+	if err != nil {
+		return 0, err
+	}
 
 	err = endpoint.Counterparty.UpdateClient()
 	if err != nil {

@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/base64"
 	"slices"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -813,4 +814,16 @@ func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// NewMsgSendPacket creates a new instance of MsgSendPacket.
+func NewMsgSendPacket(portID, channelID string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData []PacketData, signer string) *MsgSendPacket {
+	return &MsgSendPacket{
+		PortId:           portID,
+		ChannelId:        channelID,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: time.Now(), // TODO figure out what to do here with timeoutTimestamp
+		PacketData:       packetData,
+		Signer:           signer,
+	}
 }

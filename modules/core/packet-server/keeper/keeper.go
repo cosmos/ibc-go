@@ -54,7 +54,7 @@ func (k Keeper) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	version string,
-	data []byte,
+	data []channeltypes.PacketData,
 ) (uint64, error) {
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, sourceChannel)
@@ -71,12 +71,13 @@ func (k Keeper) SendPacket(
 	}
 
 	// construct packet from given fields and channel state
-	packet := channeltypes.NewPacketWithVersion(data, sequence, sourcePort, sourceChannel,
-		destPort, destChannel, timeoutHeight, timeoutTimestamp, version)
+	packet := channeltypes.NewPacketV2(data, sequence, sourcePort, sourceChannel,
+		destPort, destChannel, timeoutHeight, timeoutTimestamp)
 
-	if err := packet.ValidateBasic(); err != nil {
-		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
-	}
+	// TODO: implement Validate for PacketV2
+	// if err := packet.ValidateBasic(); err != nil {
+	// 	return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
+	// }
 
 	// check that the client of counterparty chain is still active
 	if status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel); status != exported.Active {
@@ -95,12 +96,12 @@ func (k Keeper) SendPacket(
 	}
 
 	// check if packet is timed out on the receiving chain
-	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight(), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(latestHeight, latestTimestamp) {
 		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
-	commitment := channeltypes.CommitPacket(packet)
+	commitment := channeltypes.CommitPacketV2(packet)
 
 	// bump the sequence and set the packet commitment so it is provable by the counterparty
 	k.ChannelKeeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
@@ -108,7 +109,7 @@ func (k Keeper) SendPacket(
 
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
-	channelkeeper.EmitSendPacketEvent(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
+	channelkeeper.EmitSendPacketEventV2(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
 
 	return sequence, nil
 }
@@ -379,7 +380,6 @@ func (k Keeper) WriteAcknowledgementV2(
 	packet channeltypes.PacketV2,
 	multiAck channeltypes.MultiAcknowledgement,
 ) error {
-
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
