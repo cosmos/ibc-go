@@ -1,6 +1,7 @@
 package transfer_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -9,24 +10,78 @@ import (
 
 func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 	var (
-		path             *ibctesting.Path
-		data             []channeltypes.PacketData
-		expectedMultiAck channeltypes.MultiAcknowledgement
+		path                   *ibctesting.Path
+		data                   []channeltypes.PacketData
+		expectedMultiAck       channeltypes.MultiAcknowledgement
+		expectedStoredMultiAck channeltypes.MultiAcknowledgement
+		asyncAckFn             func(channeltypes.PacketV2) error
+		expAsync               bool
 	)
 
 	testCases := []struct {
-		name       string
-		malleate   func()
-		expError   error
-		expVersion string
+		name     string
+		malleate func()
+		expError error
 	}{
 		{
-			"success", func() {}, nil, types.V2,
+			"success", func() {}, nil,
 		},
 		{
 			"success async", func() {
+				expAsync = true
+				suite.chainB.GetSimApp().MockV2Module.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+					return channeltypes.RecvPacketResult{
+						Status:          channeltypes.PacketStatus_Async,
+						Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("async")).Acknowledgement(),
+					}
+				}
 
-		}, nil, types.V2,
+				expectedMultiAck = channeltypes.MultiAcknowledgement{
+					AcknowledgementResults: []channeltypes.AcknowledgementResult{
+						{
+							AppName: types.ModuleName,
+							RecvPacketResult: channeltypes.RecvPacketResult{
+								Status:          channeltypes.PacketStatus_Success,
+								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+							},
+						},
+						{
+							AppName: mock.ModuleNameV2,
+							RecvPacketResult: channeltypes.RecvPacketResult{
+								Status:          channeltypes.PacketStatus_Success,
+								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+							},
+						},
+					},
+				}
+
+				expectedStoredMultiAck = channeltypes.MultiAcknowledgement{
+					AcknowledgementResults: []channeltypes.AcknowledgementResult{
+						{
+							AppName: types.ModuleName,
+							RecvPacketResult: channeltypes.RecvPacketResult{
+								Status:          channeltypes.PacketStatus_Success,
+								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+							},
+						},
+						{
+							AppName: mock.ModuleNameV2,
+							RecvPacketResult: channeltypes.RecvPacketResult{
+								Status:          channeltypes.PacketStatus_Async,
+								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("async")).Acknowledgement(),
+							},
+						},
+					},
+				}
+
+				asyncAckFn = func(packet channeltypes.PacketV2) error {
+					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mock.ModuleNameV2, channeltypes.RecvPacketResult{
+						Status:          channeltypes.PacketStatus_Success,
+						Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+					})
+				}
+
+			}, nil,
 		},
 	}
 
@@ -35,6 +90,9 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			expAsync = false
+			asyncAckFn = nil
+
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
@@ -101,6 +159,27 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 
 			err = path.EndpointB.RecvPacketV2(packet)
 			suite.Require().NoError(err)
+
+			actualMultiAck, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetMultiAcknowledgement(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, packet.GetSequence())
+
+			if !expAsync {
+				suite.Require().False(ok, "multi ack should not be written in sync case")
+				err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
+				suite.Require().NoError(err)
+				return
+			}
+
+			// remainder of test handles the async case.
+			suite.Require().True(ok)
+
+			suite.Require().Equal(expectedStoredMultiAck, actualMultiAck, "stored multi ack is not as expected")
+
+			// at some future point, the async acknowledgement is written.
+			err = asyncAckFn(packet)
+			suite.Require().NoError(err, "failed to write async ack")
+
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+			suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
 			suite.Require().NoError(err)

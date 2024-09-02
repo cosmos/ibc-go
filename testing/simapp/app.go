@@ -423,7 +423,9 @@ func NewSimApp(
 	ibcAppRouter := porttypes.NewAppRouter()
 
 	// add a mock IBCModuleV2 app whose functionality can be overridden in tests.
-	ibcAppRouter.AddV2Route(ibcmock.ModuleNameV2, ibcmock.NewIBCModuleV2(ibcmock.NewIBCV2App()))
+	mockModuleV2 := ibcmock.NewIBCModuleV2(ibcmock.NewIBCV2App())
+	ibcAppRouter.AddV2Route(ibcmock.ModuleNameV2, mockModuleV2)
+	app.MockV2Module = mockModuleV2
 
 	// Middleware Stacks
 

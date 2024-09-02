@@ -386,6 +386,7 @@ func (k Keeper) WriteAcknowledgementV2(
 	if !ok {
 		return errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
+
 	if counterparty.ClientId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
@@ -393,7 +394,7 @@ func (k Keeper) WriteAcknowledgementV2(
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
-	if k.ChannelKeeper.HasPacketAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence) {
+	if k.ChannelKeeper.HasPacketAcknowledgementV2(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence) {
 		return channeltypes.ErrAcknowledgementExists
 	}
 
@@ -403,12 +404,10 @@ func (k Keeper) WriteAcknowledgementV2(
 
 	multiAckBz := k.cdc.MustMarshal(&multiAck)
 	// set the acknowledgement so that it can be verified on the other side
-	k.ChannelKeeper.SetPacketAcknowledgement(
+	k.ChannelKeeper.SetPacketAcknowledgementV2(
 		ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence(),
 		channeltypes.CommitAcknowledgement(multiAckBz),
 	)
-
-	k.ChannelKeeper.SetPacketAcknowledgement(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence, channeltypes.CommitAcknowledgement(multiAckBz))
 
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
