@@ -237,7 +237,7 @@ func (k *Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChan
 	cbs, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
 		ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 	}
 
 	// Perform 04-channel verification
@@ -274,8 +274,8 @@ func (k *Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChan
 	// Retrieve application callbacks from router
 	cbs, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		ctx.Logger().Error("channel open ack failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		ctx.Logger().Error("channel open ack failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 	}
 
 	// Perform 04-channel verification
@@ -309,8 +309,8 @@ func (k *Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.Msg
 	// Retrieve application callbacks from router
 	cbs, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		ctx.Logger().Error("channel open confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		ctx.Logger().Error("channel open confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 	}
 
 	// Perform 04-channel verification
@@ -340,8 +340,8 @@ func (k *Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgCh
 	// Retrieve callbacks from router
 	cbs, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		ctx.Logger().Error("channel close init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		ctx.Logger().Error("channel close init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 	}
 
 	if err := cbs.OnChanCloseInit(ctx, msg.PortId, msg.ChannelId); err != nil {
@@ -367,8 +367,8 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 	// Retrieve callbacks from router
 	cbs, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 	}
 
 	if err := cbs.OnChanCloseConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
@@ -400,8 +400,8 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// Retrieve callbacks from router
 	cbs, ok := k.PortKeeper.Route(msg.Packet.DestinationPort)
 	if !ok {
-		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.DestinationPort)
+		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.DestinationPort))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.DestinationPort)
 	}
 
 	// Perform TAO verification
@@ -465,8 +465,8 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	// Retrieve callbacks from router
 	cbs, ok := k.PortKeeper.Route(msg.Packet.SourcePort)
 	if !ok {
-		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort)
+		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort)
 	}
 
 	// Perform TAO verification
@@ -519,8 +519,8 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 
 	cbs, ok := k.PortKeeper.Route(msg.Packet.SourcePort)
 	if !ok {
-		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort)
+		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort)
 	}
 
 	// Perform TAO verification
@@ -576,8 +576,8 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 
 	cbs, ok := k.PortKeeper.Route(msg.Packet.SourcePort)
 	if !ok {
-		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.SourcePort)
+		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort)
 	}
 
 	// Perform TAO verification
@@ -623,14 +623,14 @@ func (k *Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.Msg
 
 	app, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 	}
 
 	cbs, ok := app.(porttypes.UpgradableModule)
 	if !ok {
-		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", msg.PortId)
+		ctx.Logger().Error("channel upgrade init failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to portID: %s", msg.PortId))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to portID: %s", msg.PortId)
 	}
 
 	upgrade, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, msg.Fields)
@@ -665,14 +665,14 @@ func (k *Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgC
 
 	app, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 	}
 
 	cbs, ok := app.(porttypes.UpgradableModule)
 	if !ok {
-		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", msg.PortId)
+		ctx.Logger().Error("channel upgrade try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to portID: %s", msg.PortId))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to portID: %s", msg.PortId)
 	}
 
 	channel, upgrade, err := k.ChannelKeeper.ChanUpgradeTry(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeConnectionHops, msg.CounterpartyUpgradeFields, msg.CounterpartyUpgradeSequence, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
@@ -720,14 +720,14 @@ func (k *Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgC
 
 	app, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
 
 	cbs, ok := app.(porttypes.UpgradableModule)
 	if !ok {
-		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", msg.PortId)
+		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to portID: %s", msg.PortId)
 		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
@@ -780,14 +780,14 @@ func (k *Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.
 
 	app, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 		ctx.Logger().Error("channel upgrade confirm failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
 
 	cbs, ok := app.(porttypes.UpgradableModule)
 	if !ok {
-		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", msg.PortId)
+		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to portID: %s", msg.PortId)
 		ctx.Logger().Error("channel upgrade confirm failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
@@ -835,14 +835,14 @@ func (k *Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.Msg
 
 	app, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
+		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId)
 		ctx.Logger().Error("channel upgrade open failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
 
 	cbs, ok := app.(porttypes.UpgradableModule)
 	if !ok {
-		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", msg.PortId)
+		err := errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to portID: %s", msg.PortId)
 		ctx.Logger().Error("channel upgrade open failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
