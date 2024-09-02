@@ -13,7 +13,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
@@ -63,15 +62,6 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 				msg.Owner = ""
 			},
 			icatypes.ErrInvalidAccountAddress,
-		},
-		{
-			"port is already bound for owner but capability is claimed by another module",
-			func() {
-				capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
-				err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(TestPortID))
-				suite.Require().NoError(err)
-			},
-			icatypes.ErrPortAlreadyBound,
 		},
 	}
 

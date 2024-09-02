@@ -27,8 +27,6 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/version"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -559,48 +557,6 @@ func MakeBlockID(hash []byte, partSetSize uint32, partSetHash []byte) cmttypes.B
 			Hash:  partSetHash,
 		},
 	}
-}
-
-// CreatePortCapability binds and claims a capability for the given portID if it does not
-// already exist. This function will fail testing on any resulting error.
-// NOTE: only creation of a capability for a transfer or mock port is supported
-// Other applications must bind to the port in InitGenesis or modify this code.
-func (chain *TestChain) CreatePortCapability(scopedKeeper capabilitykeeper.ScopedKeeper, portID string) {
-	// check if the portId is already binded, if not bind it
-	_, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
-	if !ok {
-		// create capability using the IBC capability keeper
-		capability, err := chain.App.GetScopedIBCKeeper().NewCapability(chain.GetContext(), host.PortPath(portID))
-		require.NoError(chain.TB, err)
-
-		// claim capability using the scopedKeeper
-		err = scopedKeeper.ClaimCapability(chain.GetContext(), capability, host.PortPath(portID))
-		require.NoError(chain.TB, err)
-	}
-
-	chain.NextBlock()
-}
-
-// GetPortCapability returns the port capability for the given portID. The capability must
-// exist, otherwise testing will fail.
-func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capability {
-	capability, ok := chain.App.GetScopedIBCKeeper().GetCapability(chain.GetContext(), host.PortPath(portID))
-	require.True(chain.TB, ok)
-
-	return capability
-}
-
-// CreateChannelCapability binds and claims a capability for the given portID and channelID
-// if it does not already exist. This function will fail testing on any resulting error. The
-// scoped keeper passed in will claim the new capability.
-func (chain *TestChain) CreateChannelCapability(scopedKeeper capabilitykeeper.ScopedKeeper, portID, channelID string) {
-	// TODO delete
-}
-
-// GetChannelCapability returns the channel capability for the given portID and channelID.
-// The capability must exist, otherwise testing will fail.
-func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabilitytypes.Capability {
-	// TODO delete
 }
 
 // GetClientLatestHeight returns the latest height for the client state with the given client identifier.
