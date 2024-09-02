@@ -108,7 +108,7 @@ func (k Keeper) SendPacket(
 
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
-	channelkeeper.EmitSendPacketEvent(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
+	channelkeeper.EmitSendPacketEvent(ctx, packet, nil, timeoutHeight)
 
 	return sequence, nil
 }
@@ -153,7 +153,7 @@ func (k Keeper) RecvPacket(
 	// by the increase of the recvStartSequence.
 	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 	if found {
-		channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
+		channelkeeper.EmitRecvPacketEvent(ctx, packet, nil)
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
 		// from failing and consuming unnecessary fees.
@@ -182,7 +182,7 @@ func (k Keeper) RecvPacket(
 
 	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
-	channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
+	channelkeeper.EmitRecvPacketEvent(ctx, packet, nil)
 
 	return packet.AppVersion, nil
 }
@@ -240,7 +240,7 @@ func (k Keeper) WriteAcknowledgement(
 
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
-	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet, sentinelChannel(packet.DestinationChannel), bz)
+	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet, nil, bz)
 
 	return nil
 }
@@ -276,7 +276,7 @@ func (k Keeper) AcknowledgePacket(
 
 	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
-		channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+		channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, nil)
 
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
@@ -311,7 +311,7 @@ func (k Keeper) AcknowledgePacket(
 
 	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_port", packet.GetSourcePort(), "src_channel", packet.GetSourceChannel(), "dst_port", packet.GetDestPort(), "dst_channel", packet.GetDestChannel())
 
-	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, nil)
 
 	return packet.AppVersion, nil
 }
@@ -360,7 +360,7 @@ func (k Keeper) TimeoutPacket(
 	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+		channelkeeper.EmitTimeoutPacketEvent(ctx, packet, nil)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -394,12 +394,7 @@ func (k Keeper) TimeoutPacket(
 
 	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
-	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, nil)
 
 	return packet.AppVersion, nil
-}
-
-// sentinelChannel creates a sentinel channel for use in events for Eureka protocol handlers.
-func sentinelChannel(clientID string) channeltypes.Channel {
-	return channeltypes.Channel{Ordering: channeltypes.UNORDERED, ConnectionHops: []string{clientID}}
 }
