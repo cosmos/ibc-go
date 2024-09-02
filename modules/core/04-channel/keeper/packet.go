@@ -505,61 +505,48 @@ func (k *Keeper) WriteAcknowledgementAsyncV2(
 
 }
 
-func (k *Keeper) WriteAcknowledgementV2(
+func (k Keeper) WriteAcknowledgementV2(
 	ctx sdk.Context,
 	packet types.PacketV2,
 	multiAck types.MultiAcknowledgement,
 ) error {
-	channel, found := k.GetChannel(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
-	if !found {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestinationChannel())
+
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.clientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
+	if !ok {
+		return errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
 
-	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
-	}
-
-	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
-	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
-	// upgrade all packets under the recvStartSequence will have been processed and thus should be
-	// rejected. Any asynchronous acknowledgement writes from packets processed in a previous lifecycle of a channel
-	// will also be rejected.
-	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel())
-	if packet.GetSequence() < recvStartSequence {
-		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
+	if counterparty.ClientId != packet.SourceChannel {
+		return types.ErrInvalidChannelIdentifier
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
-	if k.HasPacketAcknowledgementV2(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence()) {
+	if k.HasPacketAcknowledgementV2(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence) {
 		return types.ErrAcknowledgementExists
 	}
 
-	if len(multiAck.AcknowledgementResults) == 0 {
-		return errorsmod.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
+	if _, found := k.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence); !found {
+		return errorsmod.Wrap(types.ErrInvalidPacket, "receipt not found for packet")
 	}
 
-	multiAckBz := k.cdc.MustMarshal(&multiAck)
-	// set the acknowledgement so that it can be verified on the other side
-	k.SetPacketAcknowledgementV2(
-		ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence(),
-		types.CommitAcknowledgement(multiAckBz),
-	)
+	bz := k.cdc.MustMarshal(&multiAck)
 
-	// log that a packet acknowledgement has been written
-	k.Logger(ctx).Info(
-		"acknowledgement written",
-		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
-		"src_port", packet.GetSourcePort(),
-		"src_channel", packet.GetSourceChannel(),
-		"dst_port", packet.GetDestinationPort(),
-		"dst_channel", packet.GetDestinationChannel(),
-	)
+	k.SetPacketAcknowledgementV2(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CommitAcknowledgement(bz))
 
-	EmitWriteAcknowledgementEventV2(ctx, packet, channel, multiAck)
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
+	EmitWriteAcknowledgementEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel), multiAck)
 
 	return nil
+}
+
+// sentinelChannel creates a sentinel channel for use in events for Eureka protocol handlers.
+func sentinelChannel(clientID string) types.Channel {
+	return types.Channel{Ordering: types.UNORDERED, ConnectionHops: []string{clientID}}
 }
 
 // AcknowledgePacket is called by a module to process the acknowledgement of a
