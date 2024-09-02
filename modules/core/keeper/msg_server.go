@@ -236,7 +236,7 @@ func (k *Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChan
 	// Retrieve application callbacks from router
 	cbs, ok := k.PortKeeper.Route(msg.PortId)
 	if !ok {
-		ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
+		ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.PortId))
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
 	}
 
