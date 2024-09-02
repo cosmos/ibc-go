@@ -210,6 +210,38 @@ func GetCmdQueryConsensusStateHeights() *cobra.Command {
 	return cmd
 }
 
+// GetCmdQueryCounterparty defines the command to query the counterparty associated with the given client ID.
+func GetCmdQueryCounterparty() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "counterparty [client-id]",
+		Short:   "Query the counterparty of a client.",
+		Long:    "Query the counterparty associated with the provided client ID.",
+		Example: fmt.Sprintf("%s query %s %s counterparty [client-id]", version.AppName, ibcexported.ModuleName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			clientID := args[0]
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryClientRequest{ClientId: clientID}
+
+			res, err := queryClient.Client(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Counterparty)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // GetCmdQueryConsensusState defines the command to query the consensus state of
 // the chain as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics#query
 func GetCmdQueryConsensusState() *cobra.Command {
