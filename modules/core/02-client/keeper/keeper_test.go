@@ -129,23 +129,6 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 	suite.Require().Equal(clientState, retrievedState, "Client states are not equal")
 }
 
-func (suite *KeeperTestSuite) TestSetCounterparty() {
-	merklePathPrefix := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
-	counterparty := types.Counterparty{
-		ClientId:         testClientID,
-		MerklePathPrefix: &merklePathPrefix,
-	}
-	suite.keeper.SetCounterparty(suite.ctx, testClientID, counterparty)
-
-	retrievedCounterparty, found := suite.keeper.GetCounterparty(suite.ctx, testClientID)
-	suite.Require().True(found, "GetCounterparty does not return counterparty")
-	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparty retrieved not equal")
-
-	retrievedCounterparty, found = suite.keeper.GetCounterparty(suite.ctx, "client-0")
-	suite.Require().False(found, "GetCounterparty unexpectedly returned a counterparty")
-	suite.Require().Equal(types.Counterparty{}, retrievedCounterparty, "Counterparty retrieved not empty")
-}
-
 func (suite *KeeperTestSuite) TestSetCreator() {
 	clientID := "test-client"
 	expectedCreator := "test-creator"

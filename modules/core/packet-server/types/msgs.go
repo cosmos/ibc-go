@@ -1,12 +1,13 @@
 package types
 
 import (
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
@@ -17,12 +18,12 @@ var (
 )
 
 // NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(signer, clientID, counterpartyID string, counterpartyPacketPath commitmenttypes.MerklePath) *MsgProvideCounterparty {
-	counterparty := NewCounterparty(counterpartyID, counterpartyPacketPath)
+func NewMsgProvideCounterparty(signer, packetPath, clientID string, counterpartyPacketPath commitmenttypes.MerklePath) *MsgProvideCounterparty {
+	counterparty := NewCounterparty(clientID, counterpartyPacketPath)
 
 	return &MsgProvideCounterparty{
 		Signer:       signer,
-		ClientId:     clientID,
+		PacketPath:   packetPath,
 		Counterparty: counterparty,
 	}
 }
@@ -33,8 +34,8 @@ func (msg *MsgProvideCounterparty) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
-		return err
+	if strings.TrimSpace(msg.PacketPath) == "" {
+		return errorsmod.Wrap(ErrInvalidPacketPath, "packet path cannot be empty")
 	}
 
 	if err := msg.Counterparty.Validate(); err != nil {

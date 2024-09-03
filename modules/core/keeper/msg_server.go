@@ -26,6 +26,7 @@ var (
 	_ connectiontypes.MsgServer    = (*Keeper)(nil)
 	_ channeltypes.MsgServer       = (*Keeper)(nil)
 	_ channeltypes.PacketMsgServer = (*Keeper)(nil)
+	_ packetservertypes.MsgServer  = (*Keeper)(nil)
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
@@ -147,7 +148,7 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertypes.MsgProvideCounterparty) (*packetservertypes.MsgProvideCounterpartyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	creator, found := k.ClientKeeper.GetCreator(ctx, msg.ClientId)
+	creator, found := k.ClientKeeper.GetCreator(ctx, msg.Counterparty.ClientId)
 	if !found {
 		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "client creator must be set")
 	}
@@ -156,13 +157,13 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertyp
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "client creator (%s) must match signer (%s)", creator, msg.Signer)
 	}
 
-	if _, ok := k.PacketServerKeeper.GetCounterparty(ctx, msg.ClientId); ok {
-		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.ClientId)
+	if _, ok := k.PacketServerKeeper.GetCounterparty(ctx, msg.PacketPath); ok {
+		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.Counterparty.ClientId)
 	}
 
-	k.PacketServerKeeper.SetCounterparty(ctx, msg.ClientId, msg.Counterparty)
+	k.PacketServerKeeper.SetCounterparty(ctx, msg.PacketPath, msg.Counterparty)
 	// Delete client creator from state as it is not needed after this point.
-	k.ClientKeeper.DeleteCreator(ctx, msg.ClientId)
+	k.ClientKeeper.DeleteCreator(ctx, msg.Counterparty.ClientId)
 
 	return &packetservertypes.MsgProvideCounterpartyResponse{}, nil
 }
