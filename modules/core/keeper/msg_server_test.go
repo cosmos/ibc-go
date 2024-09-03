@@ -660,7 +660,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 		{
 			"port route does not exist",
 			func() {
-				packet.SourcePort = "invalid-port"
+				packet.Data[0].AppName = "invalid-version"
 			},
 			porttypes.ErrInvalidRoute,
 			false,
@@ -685,7 +685,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 		{
 			"application callback returns error",
 			func() {
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnAcknowledgementPacket = func(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+				suite.chainA.GetSimApp().MockV2ModuleA.IBCApp.OnAcknowledgementPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, recvPacketResult channeltypes.RecvPacketResult, relayer sdk.AccAddress) error {
 					return fmt.Errorf("mock app callback failed")
 				}
 			},

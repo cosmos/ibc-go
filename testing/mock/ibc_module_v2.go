@@ -30,7 +30,7 @@ func (im IBCModuleV2) OnRecvPacketV2(ctx sdk.Context, packet channeltypes.Packet
 
 	return channeltypes.RecvPacketResult{
 		Status:          channeltypes.PacketStatus_Success,
-		Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+		Acknowledgement: MockAcknowledgement.Acknowledgement(),
 	}
 }
 
@@ -39,6 +39,7 @@ func (im IBCModuleV2) OnAcknowledgementPacketV2(ctx sdk.Context, packet channelt
 		return im.IBCApp.OnAcknowledgementPacketV2(ctx, packet, payload, recvPacketResult, relayer)
 	}
 
+	ctx.EventManager().EmitEvent(NewMockAckPacketEvent())
 	return nil
 }
 
