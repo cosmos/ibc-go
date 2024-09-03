@@ -8,6 +8,9 @@ import (
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
+const mockModuleV2A = mock.ModuleNameV2 + "A"
+const mockModuleV2V = mock.ModuleNameV2 + "B"
+
 func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 	var (
 		path                   *ibctesting.Path
@@ -29,7 +32,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 		{
 			"success async", func() {
 				expAsync = true
-				suite.chainB.GetSimApp().MockV2Module.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+				suite.chainB.GetSimApp().MockV2ModuleA.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
 					return channeltypes.RecvPacketResult{
 						Status:          channeltypes.PacketStatus_Async,
 						Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("async")).Acknowledgement(),
@@ -46,7 +49,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 							},
 						},
 						{
-							AppName: mock.ModuleNameV2,
+							AppName: mockModuleV2A,
 							RecvPacketResult: channeltypes.RecvPacketResult{
 								Status:          channeltypes.PacketStatus_Success,
 								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
@@ -65,7 +68,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 							},
 						},
 						{
-							AppName: mock.ModuleNameV2,
+							AppName: mockModuleV2A,
 							RecvPacketResult: channeltypes.RecvPacketResult{
 								Status:          channeltypes.PacketStatus_Async,
 								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("async")).Acknowledgement(),
@@ -75,7 +78,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 				}
 
 				asyncAckFn = func(packet channeltypes.PacketV2) error {
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mock.ModuleNameV2, channeltypes.RecvPacketResult{
+					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, channeltypes.RecvPacketResult{
 						Status:          channeltypes.PacketStatus_Success,
 						Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
 					})
@@ -116,15 +119,15 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 				{
 					AppName: types.ModuleName,
 					Payload: channeltypes.Payload{
-						Value:   bz,
 						Version: types.V2,
+						Value:   bz,
 					},
 				},
 				{
-
-					AppName: mock.ModuleNameV2,
+					AppName: mockModuleV2A,
 					Payload: channeltypes.Payload{
-						Value: []byte("data"),
+						Version: mock.Version,
+						Value:   mock.MockPacketData,
 					},
 				},
 			}
@@ -139,7 +142,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 						},
 					},
 					{
-						AppName: mock.ModuleNameV2,
+						AppName: mockModuleV2A,
 						RecvPacketResult: channeltypes.RecvPacketResult{
 							Status:          channeltypes.PacketStatus_Success,
 							Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
