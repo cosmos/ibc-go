@@ -1,11 +1,9 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"encoding/base64"
 	"slices"
-	"time"
-
-	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -822,7 +820,7 @@ func NewMsgSendPacket(portID, channelID string, timeoutHeight clienttypes.Height
 		PortId:           portID,
 		ChannelId:        channelID,
 		TimeoutHeight:    timeoutHeight,
-		TimeoutTimestamp: time.Now(), // TODO figure out what to do here with timeoutTimestamp
+		TimeoutTimestamp: timeoutTimestamp,
 		PacketData:       packetData,
 		Signer:           signer,
 		DestPort:         destPort,

@@ -475,7 +475,7 @@ func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPack
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
 	}
 
-	sequence, err := k.PacketServerKeeper.SendPacketV2(ctx, msg.ChannelId, msg.PortId, msg.DestPort, msg.TimeoutHeight, uint64(msg.TimeoutTimestamp.UnixNano()), msg.PacketData)
+	sequence, err := k.PacketServerKeeper.SendPacketV2(ctx, msg.ChannelId, msg.PortId, msg.DestPort, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.PacketData)
 	if err != nil {
 		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", msg.PortId)
