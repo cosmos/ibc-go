@@ -1,24 +1,38 @@
 package transfer_test
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 const mockModuleV2A = mock.ModuleNameV2 + "A"
-const mockModuleV2V = mock.ModuleNameV2 + "B"
+const mockModuleV2B = mock.ModuleNameV2 + "B"
 
-func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
+var (
+	asyncRecvPacketResult = channeltypes.RecvPacketResult{
+		Status:          channeltypes.PacketStatus_Async,
+		Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("async")).Acknowledgement(),
+	}
+	successRecvPacketResult = channeltypes.RecvPacketResult{
+		Status:          channeltypes.PacketStatus_Success,
+		Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+	}
+	failedRecvPacketResult = channeltypes.RecvPacketResult{
+		Status:          channeltypes.PacketStatus_Failure,
+		Acknowledgement: channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed ack")).Acknowledgement(),
+	}
+)
+
+func (suite *TransferTestSuite) TestIBCModuleV2SyncHappyPath() {
 	var (
-		path                   *ibctesting.Path
-		data                   []channeltypes.PacketData
-		expectedMultiAck       channeltypes.MultiAcknowledgement
-		expectedStoredMultiAck channeltypes.MultiAcknowledgement
-		asyncAckFn             func(channeltypes.PacketV2) error
-		expAsync               bool
+		path             *ibctesting.Path
+		data             []channeltypes.PacketData
+		expectedMultiAck channeltypes.MultiAcknowledgement
 	)
 
 	testCases := []struct {
@@ -29,63 +43,6 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 		{
 			"success", func() {}, nil,
 		},
-		{
-			"success async", func() {
-				expAsync = true
-				suite.chainB.GetSimApp().MockV2ModuleA.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
-					return channeltypes.RecvPacketResult{
-						Status:          channeltypes.PacketStatus_Async,
-						Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("async")).Acknowledgement(),
-					}
-				}
-
-				expectedMultiAck = channeltypes.MultiAcknowledgement{
-					AcknowledgementResults: []channeltypes.AcknowledgementResult{
-						{
-							AppName: types.ModuleName,
-							RecvPacketResult: channeltypes.RecvPacketResult{
-								Status:          channeltypes.PacketStatus_Success,
-								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-							},
-						},
-						{
-							AppName: mockModuleV2A,
-							RecvPacketResult: channeltypes.RecvPacketResult{
-								Status:          channeltypes.PacketStatus_Success,
-								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
-							},
-						},
-					},
-				}
-
-				expectedStoredMultiAck = channeltypes.MultiAcknowledgement{
-					AcknowledgementResults: []channeltypes.AcknowledgementResult{
-						{
-							AppName: types.ModuleName,
-							RecvPacketResult: channeltypes.RecvPacketResult{
-								Status:          channeltypes.PacketStatus_Success,
-								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-							},
-						},
-						{
-							AppName: mockModuleV2A,
-							RecvPacketResult: channeltypes.RecvPacketResult{
-								Status:          channeltypes.PacketStatus_Async,
-								Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("async")).Acknowledgement(),
-							},
-						},
-					},
-				}
-
-				asyncAckFn = func(packet channeltypes.PacketV2) error {
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, channeltypes.RecvPacketResult{
-						Status:          channeltypes.PacketStatus_Success,
-						Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
-					})
-				}
-
-			}, nil,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -93,41 +50,16 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			expAsync = false
-			asyncAckFn = nil
 
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.SetupV2()
-
-			ftpd := types.FungibleTokenPacketDataV2{
-				Tokens: []types.Token{
-					{
-						Denom:  types.NewDenom(ibctesting.TestCoin.Denom),
-						Amount: "1000",
-					},
-				},
-				Sender:     suite.chainA.SenderAccount.GetAddress().String(),
-				Receiver:   suite.chainB.SenderAccount.GetAddress().String(),
-				Memo:       "",
-				Forwarding: types.ForwardingPacketData{},
-			}
-
-			bz, err := ftpd.Marshal()
-			suite.Require().NoError(err)
 
 			data = []channeltypes.PacketData{
 				{
 					AppName: types.ModuleName,
 					Payload: channeltypes.Payload{
 						Version: types.V2,
-						Value:   bz,
-					},
-				},
-				{
-					AppName: mockModuleV2A,
-					Payload: channeltypes.Payload{
-						Version: mock.Version,
-						Value:   mock.MockPacketData,
+						Value:   getTransferPacketBz(suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String()),
 					},
 				},
 			}
@@ -139,13 +71,6 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 						RecvPacketResult: channeltypes.RecvPacketResult{
 							Status:          channeltypes.PacketStatus_Success,
 							Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-						},
-					},
-					{
-						AppName: mockModuleV2A,
-						RecvPacketResult: channeltypes.RecvPacketResult{
-							Status:          channeltypes.PacketStatus_Success,
-							Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
 						},
 					},
 				},
@@ -163,30 +88,244 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 			err = path.EndpointB.RecvPacketV2(packet)
 			suite.Require().NoError(err)
 
-			actualMultiAck, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetMultiAcknowledgement(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, packet.GetSequence())
+			_, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetMultiAcknowledgement(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, packet.GetSequence())
 
-			if !expAsync {
-				suite.Require().False(ok, "multi ack should not be written in sync case")
-				err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
-				suite.Require().NoError(err)
-				return
-			}
-
-			// remainder of test handles the async case.
-			suite.Require().True(ok, "multi ack should be written in async case")
-
-			suite.Require().Equal(expectedStoredMultiAck, actualMultiAck, "stored multi ack is not as expected")
-
-			// at some future point, the async acknowledgement is written by the application.
-			err = asyncAckFn(packet)
-			suite.Require().NoError(err, "failed to write async ack")
-
-			suite.Require().NoError(path.EndpointB.UpdateClient())
-			suite.Require().NoError(path.EndpointA.UpdateClient())
-
+			suite.Require().False(ok, "multi ack should not be written in sync case")
 			err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
 			suite.Require().NoError(err)
 
 		})
 	}
+}
+
+func (suite *TransferTestSuite) TestIBCModuleV2Async() {
+	var (
+		path                   *ibctesting.Path
+		data                   []channeltypes.PacketData
+		expectedMultiAck       channeltypes.MultiAcknowledgement
+		expectedStoredMultiAck channeltypes.MultiAcknowledgement
+		asyncAckModuleAFn      func(channeltypes.PacketV2) error
+		asyncAckModuleBFn      func(channeltypes.PacketV2) error
+	)
+
+	testCases := []struct {
+		name        string
+		malleate    func()
+		expAckError error
+	}{
+		{
+			"success: single async app A", func() {
+				// update mock moduleA to return an async result
+				expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = asyncRecvPacketResult
+
+				// simulate an async app
+				suite.chainB.GetSimApp().MockV2ModuleA.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+					return asyncRecvPacketResult
+				}
+
+				// at a future point, the application writes the async acknowledgement
+				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
+					expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = successRecvPacketResult
+					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, successRecvPacketResult)
+				}
+			}, nil,
+		},
+		{
+			"success: single async app B", func() {
+				// update mock moduleA to return an async result
+				expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = asyncRecvPacketResult
+
+				// simulate an async app
+				suite.chainB.GetSimApp().MockV2ModuleB.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+					return asyncRecvPacketResult
+				}
+
+				// at a future point, the application writes the async acknowledgement
+				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
+					expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = successRecvPacketResult
+					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, successRecvPacketResult)
+				}
+			}, nil,
+		},
+		{
+			"success: two async apps A & B", func() {
+
+				// update mock moduleA to return an async result
+				expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = asyncRecvPacketResult
+				expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = asyncRecvPacketResult
+
+				// simulate an async app
+				suite.chainB.GetSimApp().MockV2ModuleA.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+					return asyncRecvPacketResult
+				}
+				suite.chainB.GetSimApp().MockV2ModuleB.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+					return asyncRecvPacketResult
+				}
+
+				// at a future point, the application writes the async acknowledgement
+				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
+					expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = successRecvPacketResult
+					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, successRecvPacketResult)
+				}
+				asyncAckModuleBFn = func(packet channeltypes.PacketV2) error {
+					expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = successRecvPacketResult
+					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, successRecvPacketResult)
+				}
+			}, nil,
+		},
+		{
+			"failure: two async apps, only one writes ack", func() {
+
+				// update mock moduleA to return an async result
+				expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = asyncRecvPacketResult
+				expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = asyncRecvPacketResult
+
+				// simulate an async app
+				suite.chainB.GetSimApp().MockV2ModuleA.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+					return asyncRecvPacketResult
+				}
+				suite.chainB.GetSimApp().MockV2ModuleB.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+					return asyncRecvPacketResult
+				}
+
+				// NOTE: mock module A never writes an ack
+				asyncAckModuleAFn = func(channeltypes.PacketV2) error {
+					return nil
+				}
+
+				// at a future point, the application writes the async acknowledgement
+				asyncAckModuleBFn = func(packet channeltypes.PacketV2) error {
+					expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = successRecvPacketResult
+					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, successRecvPacketResult)
+				}
+				// an invalid proof error is returned since the ack has not been written on chainB by mock module A yet.
+			}, commitmenttypes.ErrInvalidProof,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			asyncAckModuleAFn = nil
+			asyncAckModuleBFn = nil
+
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			data = []channeltypes.PacketData{
+				{
+					AppName: types.ModuleName,
+					Payload: channeltypes.Payload{
+						Version: types.V2,
+						Value:   getTransferPacketBz(suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String()),
+					},
+				},
+				{
+					AppName: mockModuleV2A,
+					Payload: channeltypes.Payload{
+						Version: mock.Version,
+						Value:   mock.MockPacketData,
+					},
+				},
+				{
+					AppName: mockModuleV2B,
+					Payload: channeltypes.Payload{
+						Version: mock.Version,
+						Value:   mock.MockPacketData,
+					},
+				},
+			}
+
+			// by default all acks are synchronous and successful.
+			expectedMultiAck = channeltypes.MultiAcknowledgement{
+				AcknowledgementResults: []channeltypes.AcknowledgementResult{
+					{
+						AppName: types.ModuleName,
+						RecvPacketResult: channeltypes.RecvPacketResult{
+							Status:          channeltypes.PacketStatus_Success,
+							Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+						},
+					},
+					{
+						AppName: mockModuleV2A,
+						RecvPacketResult: channeltypes.RecvPacketResult{
+							Status:          channeltypes.PacketStatus_Success,
+							Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+						},
+					},
+					{
+						AppName: mockModuleV2B,
+						RecvPacketResult: channeltypes.RecvPacketResult{
+							Status:          channeltypes.PacketStatus_Success,
+							Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+						},
+					},
+				},
+			}
+
+			expectedStoredMultiAck = expectedMultiAck
+
+			tc.malleate()
+
+			timeoutHeight := suite.chainA.GetTimeoutHeight()
+
+			sequence, err := path.EndpointA.SendPacketV2POC(timeoutHeight, 0, data)
+			suite.Require().NoError(err)
+
+			packet := channeltypes.NewPacketV2(data, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)
+
+			err = path.EndpointB.RecvPacketV2(packet)
+			suite.Require().NoError(err)
+
+			storedMultiAck, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetMultiAcknowledgement(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, packet.GetSequence())
+			suite.Require().True(ok)
+			suite.Require().Equal(expectedStoredMultiAck, storedMultiAck, "stored multi ack is not as expected")
+
+			// if either module has specified an async write fn, it will be executed.
+			if asyncAckModuleAFn != nil {
+				err = asyncAckModuleAFn(packet)
+				suite.Require().NoError(err)
+			}
+
+			if asyncAckModuleBFn != nil {
+				err = asyncAckModuleBFn(packet)
+				suite.Require().NoError(err)
+			}
+
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
+			if tc.expAckError != nil {
+				suite.Require().Contains(err.Error(), tc.expAckError.Error())
+			} else {
+				suite.Require().NoError(err)
+			}
+
+		})
+	}
+}
+
+func getTransferPacketBz(sender, receiver string) []byte {
+	ftpd := types.FungibleTokenPacketDataV2{
+		Tokens: []types.Token{
+			{
+				Denom:  types.NewDenom(ibctesting.TestCoin.Denom),
+				Amount: "1000",
+			},
+		},
+		Sender:     sender,
+		Receiver:   receiver,
+		Memo:       "",
+		Forwarding: types.ForwardingPacketData{},
+	}
+
+	bz, err := ftpd.Marshal()
+	if err != nil {
+		panic(err)
+	}
+
+	return bz
 }
