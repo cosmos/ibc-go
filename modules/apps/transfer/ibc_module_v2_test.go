@@ -170,16 +170,16 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 			}
 
 			// remainder of test handles the async case.
-			suite.Require().True(ok)
+			suite.Require().True(ok, "multi ack should be written in async case")
 
 			suite.Require().Equal(expectedStoredMultiAck, actualMultiAck, "stored multi ack is not as expected")
 
-			// at some future point, the async acknowledgement is written.
+			// at some future point, the async acknowledgement is written by the application.
 			err = asyncAckFn(packet)
 			suite.Require().NoError(err, "failed to write async ack")
 
-			suite.Require().NoError(path.EndpointA.UpdateClient())
 			suite.Require().NoError(path.EndpointB.UpdateClient())
+			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
 			suite.Require().NoError(err)
