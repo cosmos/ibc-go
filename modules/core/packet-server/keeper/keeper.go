@@ -141,7 +141,7 @@ func (k Keeper) SendPacketV2(
 	packet := channeltypes.NewPacketV2(data, sequence, sourcePort, sourceChannel,
 		destPort, destChannel, timeoutHeight, timeoutTimestamp)
 
-	//if err := packet.ValidateBasic(); err != nil {
+	// if err := packet.ValidateBasic(); err != nil {
 	//	return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	//}
 
@@ -374,11 +374,15 @@ func (k Keeper) WriteAcknowledgement(
 	return nil
 }
 
+// WriteAcknowledgementV2 writes the multi acknowledgement to the store. In the synchronous case, this is done
+// in the core IBC handler. Async applications should call WriteAcknowledgementAsyncV2 to update
+// the RecvPacketResult of the relevant application's recvResult.
 func (k Keeper) WriteAcknowledgementV2(
 	ctx sdk.Context,
 	packet channeltypes.PacketV2,
 	multiAck channeltypes.MultiAcknowledgement,
 ) error {
+	// TODO: this should probably error out if any of the acks are async.
 
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.

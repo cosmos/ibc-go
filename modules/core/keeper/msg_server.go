@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"errors"
 	"fmt"
+
 	"golang.org/x/exp/slices"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -614,14 +616,13 @@ func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPa
 		if err := k.PacketServerKeeper.WriteAcknowledgementV2(ctx, msg.PacketV2, multiAck); err != nil {
 			return nil, err
 		}
-	} else {
-		// TODO; move to PacketServerKeeper this will blow up with no channels
-		k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 	}
 
-	//defer telemetry.ReportRecvPacket(msg.Packet)
+	// TODO; move to PacketServerKeeper this will blow up with no channels
+	k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
 
-	//ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
+	// ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 }
@@ -854,14 +855,13 @@ func (k *Keeper) acknowledgementV2(goCtx context.Context, msg *channeltypes.MsgA
 	for _, pd := range msg.PacketV2.Data {
 		cb := k.PortKeeper.AppRouter.Route(pd.AppName)
 		err = cb.OnAcknowledgementPacketV2(ctx, msg.PacketV2, pd.Payload, recvResults[pd.AppName], relayer)
-
 		if err != nil {
 			ctx.Logger().Error("acknowledgement failed", "port-id", msg.PacketV2.SourcePort, "channel-id", msg.PacketV2.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
 			return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
 		}
 	}
 
-	//defer telemetry.ReportAcknowledgePacket(msg.PacketV2)
+	// defer telemetry.ReportAcknowledgePacket(msg.PacketV2)
 
 	ctx.Logger().Info("acknowledgement succeeded", "port-id", msg.PacketV2.SourcePort, "channel-id", msg.PacketV2.SourceChannel, "result", channeltypes.SUCCESS.String())
 

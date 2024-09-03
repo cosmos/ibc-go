@@ -2,14 +2,13 @@ package mock
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 )
 
-var (
-	_ porttypes.IBCModuleV2 = (*IBCModuleV2)(nil)
-)
+var _ porttypes.IBCModuleV2 = (*IBCModuleV2)(nil)
 
 // IBCModuleV2 implements the IBCModuleV2 interface for testing v2 of the IBC module.
 type IBCModuleV2 struct {

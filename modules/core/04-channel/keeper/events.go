@@ -150,7 +150,7 @@ func EmitSendPacketEventV2(ctx sdk.Context, packet types.PacketV2, channel types
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
-			//sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())), TODO
+			// sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())), TODO
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, timeoutHeight.String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
@@ -202,7 +202,7 @@ func EmitRecvPacketEventV2(ctx sdk.Context, packet types.PacketV2, channel types
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
-			//sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())), TODO
+			// sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())), TODO
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),

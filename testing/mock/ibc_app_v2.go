@@ -2,6 +2,7 @@ package mock
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )

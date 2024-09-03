@@ -283,7 +283,7 @@ func (k *Keeper) RecvPacketV2(
 		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
 	}
 
-	//if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
+	// if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
 	//	return err
 	//}
 
@@ -298,7 +298,7 @@ func (k *Keeper) RecvPacketV2(
 	)
 
 	// emit an event that the relayer can query for
-	//emitRecvPacketEvent(ctx, packet, channel)
+	// emitRecvPacketEvent(ctx, packet, channel)
 
 	return nil
 }
@@ -456,14 +456,14 @@ func (k *Keeper) WriteAcknowledgement(
 	return nil
 }
 
-// WriteAcknowledgementAsyncV2 TODO: this has not been tested at all.
+// WriteAcknowledgementAsyncV2 updates the recv packet result for the given app name in the multi acknowledgement.
+// If all acknowledgements are now either success or failed acks, it writes the final multi ack.
 func (k *Keeper) WriteAcknowledgementAsyncV2(
 	ctx sdk.Context,
 	packet types.PacketV2,
 	appName string,
 	recvResult types.RecvPacketResult,
 ) error {
-
 	// we should have stored the multi ack structure in OnRecvPacket
 	ackResults, found := k.GetMultiAcknowledgement(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence())
 	if !found {
@@ -497,20 +497,18 @@ func (k *Keeper) WriteAcknowledgementAsyncV2(
 
 	if !isAsync {
 		// if there are no more async acks, we can write the final multi ack.
-		return k.WriteAcknowledgementV2(ctx, packet, ackResults)
+		return k.writeAcknowledgementV2(ctx, packet, ackResults)
 	}
 
 	// we have updated one app's result, but there are still async results pending acknowledgement.
 	return nil
-
 }
 
-func (k Keeper) WriteAcknowledgementV2(
+func (k Keeper) writeAcknowledgementV2(
 	ctx sdk.Context,
 	packet types.PacketV2,
 	multiAck types.MultiAcknowledgement,
 ) error {
-
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.clientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
