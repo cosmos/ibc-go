@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -73,5 +74,6 @@ func (rtr *Router) Keys() []string {
 		keys = append(keys, k)
 	}
 
+	sort.Strings(keys)
 	return keys
 }
