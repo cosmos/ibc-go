@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -57,10 +58,22 @@ func (rtr *Router) HasRoute(module string) bool {
 	return ok
 }
 
-// GetRoute returns a IBCModule for a given module.
-func (rtr *Router) GetRoute(module string) (IBCModule, bool) {
+// Route returns a IBCModule for a given module.
+func (rtr *Router) Route(module string) (IBCModule, bool) {
 	if !rtr.HasRoute(module) {
 		return nil, false
 	}
 	return rtr.routes[module], true
+}
+
+// Keys returns the keys of the routes map.
+func (rtr *Router) Keys() []string {
+	keys := make([]string, 0, len(rtr.routes))
+
+	for k := range rtr.routes {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+	return keys
 }

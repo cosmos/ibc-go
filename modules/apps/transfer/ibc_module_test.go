@@ -10,14 +10,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -27,7 +25,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	var (
 		channel      *channeltypes.Channel
 		path         *ibctesting.Path
-		chanCap      *capabilitytypes.Capability
 		counterparty channeltypes.Counterparty
 	)
 
@@ -77,12 +74,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				channel.Version = "version" //nolint:goconst
 			}, types.ErrInvalidVersion, "",
 		},
-		{
-			"capability already claimed", func() {
-				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-			}, capabilitytypes.ErrOwnerClaimed, "",
-		},
 	}
 
 	for _, tc := range testCases {
@@ -103,15 +94,11 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				Version:        types.V2,
 			}
 
-			var err error
-			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
-
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
 			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterparty, channel.Version,
 			)
 
 			expPass := tc.expError == nil
@@ -129,7 +116,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 func (suite *TransferTestSuite) TestOnChanOpenTry() {
 	var (
 		channel             *channeltypes.Channel
-		chanCap             *capabilitytypes.Capability
 		path                *ibctesting.Path
 		counterparty        channeltypes.Counterparty
 		counterpartyVersion string
@@ -159,12 +145,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			"failure: max channels reached", func() {
 				path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(math.MaxUint32 + 1)
 			}, types.ErrMaxTransferChannels, "",
-		},
-		{
-			"failure: capability already claimed", func() {
-				err := suite.chainA.GetSimApp().ScopedTransferKeeper.ClaimCapability(suite.chainA.GetContext(), chanCap, host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-			}, capabilitytypes.ErrOwnerClaimed, "",
 		},
 		{
 			"failure: invalid order - ORDERED", func() {
@@ -201,16 +181,13 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
 
-			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(ibctesting.TransferPort, path.EndpointA.ChannelID))
-			suite.Require().NoError(err)
-
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
 			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, counterpartyVersion,
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, counterpartyVersion,
 			)
 			expPass := tc.expError == nil
 			if expPass {

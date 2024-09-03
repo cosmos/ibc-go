@@ -10,10 +10,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -48,21 +46,14 @@ func NewIBCModule(appModule *AppModule, app *IBCApp) IBCModule {
 // OnChanOpenInit implements the IBCModule interface.
 func (im IBCModule) OnChanOpenInit(
 	ctx context.Context, order channeltypes.Order, connectionHops []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string,
+	channelID string, counterparty channeltypes.Counterparty, version string,
 ) (string, error) {
 	if strings.TrimSpace(version) == "" {
 		version = Version
 	}
 
 	if im.IBCApp.OnChanOpenInit != nil {
-		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
-	}
-
-	if chanCap != nil {
-		// Claim channel capability passed back by IBC module
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return "", err
-		}
+		return im.IBCApp.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 	}
 
 	return version, nil
@@ -71,17 +62,10 @@ func (im IBCModule) OnChanOpenInit(
 // OnChanOpenTry implements the IBCModule interface.
 func (im IBCModule) OnChanOpenTry(
 	ctx context.Context, order channeltypes.Order, connectionHops []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string,
+	channelID string, counterparty channeltypes.Counterparty, counterpartyVersion string,
 ) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
-		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
-	}
-
-	if chanCap != nil {
-		// Claim channel capability passed back by IBC module
-		if err := im.IBCApp.ScopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return "", err
-		}
+		return im.IBCApp.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 	}
 
 	return Version, nil
