@@ -131,7 +131,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 				// at a future point, the application writes the async acknowledgement
 				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = successRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, successRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, successRecvPacketResult)
 				}
 			}, nil,
 		},
@@ -148,7 +148,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 				// at a future point, the application writes the async acknowledgement
 				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = failedRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, failedRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, failedRecvPacketResult)
 				}
 			}, nil,
 		},
@@ -165,7 +165,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 				// at a future point, the application writes the async acknowledgement
 				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = successRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, successRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, successRecvPacketResult)
 				}
 			}, nil,
 		},
@@ -182,7 +182,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 				// at a future point, the application writes the async acknowledgement
 				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = failedRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, failedRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, failedRecvPacketResult)
 				}
 			}, nil,
 		},
@@ -203,12 +203,12 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 				// at a future point, the application writes the async acknowledgement
 				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = successRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, successRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, successRecvPacketResult)
 				}
 
 				asyncAckModuleBFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = successRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, successRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, successRecvPacketResult)
 				}
 			}, nil,
 		},
@@ -229,11 +229,11 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 				// at a future point, the application writes the async acknowledgement
 				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = failedRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, failedRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, failedRecvPacketResult)
 				}
 				asyncAckModuleBFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = failedRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, failedRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, failedRecvPacketResult)
 				}
 			}, nil,
 		},
@@ -254,11 +254,11 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 				// at a future point, the application writes the async acknowledgement
 				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = successRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, successRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, successRecvPacketResult)
 				}
 				asyncAckModuleBFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = failedRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, failedRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, failedRecvPacketResult)
 				}
 			}, nil,
 		},
@@ -284,7 +284,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 				// at a future point, the application writes the async acknowledgement
 				asyncAckModuleBFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[2].RecvPacketResult = successRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, successRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2B, successRecvPacketResult)
 				}
 				// an invalid proof error is returned since the ack has not been written on chainB by mock module A yet.
 			}, commitmenttypes.ErrInvalidProof,
@@ -306,7 +306,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 				// at a future point, the application writes the async acknowledgement
 				asyncAckModuleAFn = func(packet channeltypes.PacketV2) error {
 					expectedMultiAck.AcknowledgementResults[1].RecvPacketResult = failedRecvPacketResult
-					return suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, failedRecvPacketResult)
+					return suite.chainB.GetSimApp().IBCKeeper.PacketServerKeeper.WriteAcknowledgementAsyncV2(suite.chainB.GetContext(), packet, mockModuleV2A, failedRecvPacketResult)
 				}
 
 				// NOTE: mock module B never writes an ack

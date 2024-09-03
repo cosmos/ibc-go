@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"golang.org/x/exp/slices"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
@@ -417,6 +418,54 @@ func (k Keeper) WriteAcknowledgementV2(
 
 	channelkeeper.EmitWriteAcknowledgementEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel), multiAck)
 
+	return nil
+}
+
+// WriteAcknowledgementAsyncV2 updates the recv packet result for the given app name in the multi acknowledgement.
+// If all acknowledgements are now either success or failed acks, it writes the final multi ack.
+func (k *Keeper) WriteAcknowledgementAsyncV2(
+	ctx sdk.Context,
+	packet channeltypes.PacketV2,
+	appName string,
+	recvResult channeltypes.RecvPacketResult,
+) error {
+	// we should have stored the multi ack structure in OnRecvPacket
+	ackResults, found := k.ChannelKeeper.GetMultiAcknowledgement(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence())
+	if !found {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidAcknowledgement, "multi-acknowledgement not found for %s", appName)
+	}
+
+	// find the index that corresponds to the app.
+	index := slices.IndexFunc(ackResults.AcknowledgementResults, func(result channeltypes.AcknowledgementResult) bool {
+		return result.AppName == appName
+	})
+
+	if index == -1 {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidAcknowledgement, "acknowledgement not found for %s", appName)
+	}
+
+	existingResult := ackResults.AcknowledgementResults[index]
+
+	// ensure that the existing status is async.
+	if existingResult.RecvPacketResult.Status != channeltypes.PacketStatus_Async {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidAcknowledgement, "acknowledgement for %s is not async", appName)
+	}
+
+	// modify the result and set it back.
+	ackResults.AcknowledgementResults[index].RecvPacketResult = recvResult
+	k.ChannelKeeper.SetMultiAcknowledgement(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence(), ackResults)
+
+	// check if all acknowledgements are now sync.
+	isAsync := slices.ContainsFunc(ackResults.AcknowledgementResults, func(ackResult channeltypes.AcknowledgementResult) bool {
+		return ackResult.RecvPacketResult.Status == channeltypes.PacketStatus_Async
+	})
+
+	if !isAsync {
+		// if there are no more async acks, we can write the final multi ack.
+		return k.WriteAcknowledgementV2(ctx, packet, ackResults)
+	}
+
+	// we have updated one app's result, but there are still async results pending acknowledgement.
 	return nil
 }
 

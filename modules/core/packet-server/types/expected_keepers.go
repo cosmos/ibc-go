@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -40,6 +41,10 @@ type ChannelKeeper interface {
 	// This is a public path that is standardized by the IBC specification
 	SetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte)
 	SetPacketAcknowledgementV2(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte)
+
+	GetMultiAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) (types.MultiAcknowledgement, bool)
+
+	SetMultiAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults types.MultiAcknowledgement)
 }
 
 type ClientKeeper interface {
