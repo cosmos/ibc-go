@@ -35,15 +35,20 @@ type ChannelKeeper interface {
 
 	// HasPacketAcknowledgement check if the packet ack hash is already on the store
 	HasPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) bool
+
+	// HasPacketAcknowledgementV2 checks if the packet multi ack hash is already in the store.
 	HasPacketAcknowledgementV2(ctx sdk.Context, portID, channelID string, sequence uint64) bool
 
 	// SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 	// This is a public path that is standardized by the IBC specification
 	SetPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte)
+
+	// SetPacketAcknowledgementV2 writes the multi ack hash under to the store.
 	SetPacketAcknowledgementV2(ctx sdk.Context, portID, channelID string, sequence uint64, ackHash []byte)
 
+	// GetMultiAcknowledgement returns the multi ack from the store.
 	GetMultiAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) (types.MultiAcknowledgement, bool)
-
+	// SetMultiAcknowledgement writes the multi ack under the multi ack path.
 	SetMultiAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64, recvResults types.MultiAcknowledgement)
 }
 
