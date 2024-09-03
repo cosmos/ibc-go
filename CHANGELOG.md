@@ -38,6 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#7247](https://github.com/cosmos/ibc-go/pull/7247) Bump CometBFT to v0.38.12.
+
 ### API Breaking
 
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
