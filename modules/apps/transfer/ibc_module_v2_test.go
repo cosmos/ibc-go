@@ -58,7 +58,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 
 			timeoutHeight := suite.chainA.GetTimeoutHeight()
 
-			sequence, err := path.EndpointA.SendPacketV2POC(timeoutHeight, 0, data)
+			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, data)
 			suite.Require().NoError(err)
 			suite.Require().NotZero(sequence)
 

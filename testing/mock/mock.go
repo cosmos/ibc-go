@@ -20,6 +20,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -37,11 +38,25 @@ const (
 )
 
 var (
-	MockAcknowledgement             = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
-	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(errors.New("mock failed acknowledgement"))
+	MockAcknowledgement      = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
+	MockFailAcknowledgement  = channeltypes.NewErrorAcknowledgement(errors.New("mock failed acknowledgement"))
+	MockMultiAcknowledgement = channeltypes.MultiAcknowledgement{
+		[]channeltypes.AcknowledgementResult{
+			{
+				AppName: ModuleName,
+				RecvPacketResult: channeltypes.RecvPacketResult{
+					Status:          channeltypes.PacketStatus_Success,
+					Acknowledgement: MockAcknowledgement.Acknowledgement(),
+				},
+			},
+		},
+	}
 	MockPacketData                  = []byte("mock packet data")
+	MockChannelPacketData           = []channeltypes.PacketData{{AppName: "app name", Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockPacketData}}}
 	MockFailPacketData              = []byte("mock failed packet data")
+	MockFailChannelPacketData       = []channeltypes.PacketData{{AppName: "app name", Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockFailPacketData}}}
 	MockAsyncPacketData             = []byte("mock async packet data")
+	MockAsyncChannelPacketData      = []channeltypes.PacketData{{AppName: "app name", Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockAsyncPacketData}}}
 	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
 	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"

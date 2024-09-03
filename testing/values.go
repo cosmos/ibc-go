@@ -69,8 +69,12 @@ var (
 	ConnectionVersion = connectiontypes.GetCompatibleVersions()[0]
 
 	MockAcknowledgement          = mock.MockAcknowledgement.Acknowledgement()
+	MockMultiAcknowledgement     = mock.MockMultiAcknowledgement
 	MockPacketData               = mock.MockPacketData
+	MockChannelPacketData        = mock.MockChannelPacketData
 	MockFailPacketData           = mock.MockFailPacketData
+	MockFailChannelPacketData    = mock.MockFailChannelPacketData
+	MockAsyncChannelPacketData   = mock.MockAsyncChannelPacketData
 	MockRecvCanaryCapabilityName = mock.MockRecvCanaryCapabilityName
 
 	EmptyForwardingPacketData = ibctransfertypes.ForwardingPacketData{}
