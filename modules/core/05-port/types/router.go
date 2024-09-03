@@ -3,8 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
-
-	"golang.org/x/exp/maps"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -69,5 +68,12 @@ func (rtr *Router) Route(module string) (IBCModule, bool) {
 
 // Keys returns the keys of the routes map.
 func (rtr *Router) Keys() []string {
-	return maps.Keys(rtr.routes)
+	keys := make([]string, 0, len(rtr.routes))
+
+	for k := range rtr.routes {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+	return keys
 }
