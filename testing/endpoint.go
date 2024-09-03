@@ -457,28 +457,28 @@ func (endpoint *Endpoint) ChanCloseInit() error {
 // The counterparty client is updated so proofs can be sent to the counterparty chain.
 // The packet sequence generated for the packet to be sent is returned. An error
 // is returned if one occurs.
-func (endpoint *Endpoint) SendPacketV2(
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	version string,
-	data []byte,
-) (uint64, error) {
-	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetPacketServer().SendPacket(endpoint.Chain.GetContext(), nil, endpoint.ClientID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, version, data)
-	if err != nil {
-		return 0, err
-	}
+// func (endpoint *Endpoint) SendPacketV2(
+// 	timeoutHeight clienttypes.Height,
+// 	timeoutTimestamp uint64,
+// 	version string,
+// 	data []byte,
+// ) (uint64, error) {
+// 	// no need to send message, acting as a module
+// 	sequence, err := endpoint.Chain.App.GetPacketServer().SendPacket(endpoint.Chain.GetContext(), nil, endpoint.ClientID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, version, data)
+// 	if err != nil {
+// 		return 0, err
+// 	}
 
-	// commit changes since no message was sent
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+// 	// commit changes since no message was sent
+// 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 
-	err = endpoint.Counterparty.UpdateClient()
-	if err != nil {
-		return 0, err
-	}
+// 	err = endpoint.Counterparty.UpdateClient()
+// 	if err != nil {
+// 		return 0, err
+// 	}
 
-	return sequence, nil
-}
+// 	return sequence, nil
+// }
 
 // SendPacketV2POC sends a packet using the SendPacketV2 function which uses []channeltypes.PacketData and PacketV2
 func (endpoint *Endpoint) SendPacketV2POC(
@@ -486,21 +486,14 @@ func (endpoint *Endpoint) SendPacketV2POC(
 	timeoutTimestamp uint64,
 	data []channeltypes.PacketData,
 ) (uint64, error) {
-	// // no need to send message, acting as a module
-	// sequence, err := endpoint.Chain.App.GetPacketServer().SendPacketV2(endpoint.Chain.GetContext(), nil, endpoint.ClientID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, data)
-	// if err != nil {
-	// 	return 0, err
-	// }
-
-	// // commit changes since no message was sent
-	// endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-
 	msg := channeltypes.NewMsgSendPacket(
 		endpoint.ChannelConfig.PortID,
-		endpoint.ChannelID, timeoutHeight,
+		endpoint.ClientID,
+		timeoutHeight,
 		timeoutTimestamp,
 		data,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
+		endpoint.Counterparty.ChannelConfig.PortID,
 	)
 
 	res, err := endpoint.Chain.SendMsgs(msg)

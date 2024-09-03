@@ -116,7 +116,6 @@ func (k Keeper) SendPacket(
 
 func (k Keeper) SendPacketV2(
 	ctx sdk.Context,
-	_ *capabilitytypes.Capability,
 	sourceChannel string,
 	sourcePort string,
 	destPort string,

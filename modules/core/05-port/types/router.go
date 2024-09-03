@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"golang.org/x/exp/maps"
 )
 
 // The router is a map from module name to the IBCModule
@@ -63,4 +64,9 @@ func (rtr *Router) GetRoute(module string) (IBCModule, bool) {
 		return nil, false
 	}
 	return rtr.routes[module], true
+}
+
+// Keys returns the keys of the routes map.
+func (rtr *Router) Keys() []string {
+	return maps.Keys(rtr.routes)
 }

@@ -817,7 +817,7 @@ func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
 }
 
 // NewMsgSendPacket creates a new instance of MsgSendPacket.
-func NewMsgSendPacket(portID, channelID string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData []PacketData, signer string) *MsgSendPacket {
+func NewMsgSendPacket(portID, channelID string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData []PacketData, signer string, destPort string) *MsgSendPacket {
 	return &MsgSendPacket{
 		PortId:           portID,
 		ChannelId:        channelID,
@@ -825,5 +825,6 @@ func NewMsgSendPacket(portID, channelID string, timeoutHeight clienttypes.Height
 		TimeoutTimestamp: time.Now(), // TODO figure out what to do here with timeoutTimestamp
 		PacketData:       packetData,
 		Signer:           signer,
+		DestPort:         destPort,
 	}
 }
