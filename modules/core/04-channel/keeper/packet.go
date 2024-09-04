@@ -285,7 +285,7 @@ func (k *Keeper) RecvPacketV2(
 
 	// if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
 	//	return err
-	//}
+	// }
 
 	// log that a packet has been received & executed
 	k.Logger(ctx).Info(

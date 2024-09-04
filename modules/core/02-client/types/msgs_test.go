@@ -27,6 +27,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
+const (
+	invalidSigner = "invalid"
+)
+
 type TypesTestSuite struct {
 	testifysuite.Suite
 
@@ -640,7 +644,7 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 		{
 			"failure: invalid signer address",
 			func() {
-				msg.Signer = "invalid"
+				msg.Signer = invalidSigner
 			},
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -703,7 +707,7 @@ func (suite *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 		{
 			"failure: invalid signer address",
 			func() {
-				msg.Signer = "invalid"
+				msg.Signer = invalidSigner
 			},
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -883,7 +887,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 		{
 			"failure: invalid authority address",
 			func() {
-				signer = "invalid"
+				signer = invalidSigner
 			},
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -982,7 +986,7 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 		},
 		{
 			"failure: invalid signer address",
-			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
+			types.NewMsgUpdateParams(invalidSigner, types.DefaultParams()),
 			false,
 		},
 		{

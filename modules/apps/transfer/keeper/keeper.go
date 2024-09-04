@@ -3,7 +3,6 @@ package keeper
 import (
 	"errors"
 	"fmt"
-	packetserver "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	"strings"
 
 	"cosmossdk.io/log"
@@ -23,6 +22,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	packetserver "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 )
 
 // Keeper defines the IBC fungible transfer keeper

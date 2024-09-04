@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"bytes"
-	"golang.org/x/exp/slices"
 	"strconv"
+
+	"golang.org/x/exp/slices"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
@@ -144,7 +145,7 @@ func (k Keeper) SendPacketV2(
 
 	// if err := packet.ValidateBasic(); err != nil {
 	//	return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
-	//}
+	// }
 
 	// check that the client of counterparty chain is still active
 	if status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel); status != exported.Active {

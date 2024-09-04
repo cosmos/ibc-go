@@ -30,7 +30,7 @@ func (rtr *AppRouter) AddV2Route(module string, cbs IBCModuleV2) *AppRouter {
 }
 
 func (rtr *AppRouter) Route(appName string) IBCModuleV2 {
-	route, ok := rtr.routes[appName]
+	route, ok := rtr.route(appName)
 	if !ok {
 		panic(fmt.Sprintf("no route for %s", appName))
 	}
