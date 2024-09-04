@@ -19,7 +19,6 @@ import (
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
@@ -304,12 +303,6 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 			break
 		}
 	}
-}
-
-// ClaimCapability allows the transfer module that can claim a capability that IBC module
-// passes to it
-func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
-	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
 // setForwardedPacket sets the forwarded packet in the store.
