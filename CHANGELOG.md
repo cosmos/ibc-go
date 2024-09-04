@@ -46,7 +46,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
 * (core, apps) [\#7232](https://github.com/cosmos/ibc-go/pull/7232) Remove capabilities from channel handshake methods. TODO list all changes 
 * (core/04-channel) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `LookupModuleByChannel`
-* (core/05-port) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `LookupModuleByPort`
+* (core/05-port) [\#7252](https://github.com/cosmos/ibc-go/pull/7252) Removed function `LookupModuleByPort`
 * (core/24-host) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `ChannelCapabilityPath`
 * (apps/27-interchain-accounts) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `AuthenticateCapability`, `ClaimCapability`
 * (apps/transfer) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `BindPort`, `AuthenticateCapability`, `ClaimCapability`
