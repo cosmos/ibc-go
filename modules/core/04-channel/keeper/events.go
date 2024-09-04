@@ -150,7 +150,7 @@ func EmitSendPacketEventV2(ctx sdk.Context, packet types.PacketV2, channel types
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
-			//sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())), TODO
+			// sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())), TODO
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, timeoutHeight.String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
@@ -202,7 +202,7 @@ func EmitRecvPacketEventV2(ctx sdk.Context, packet types.PacketV2, channel types
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
-			//sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())), TODO
+			// sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())), TODO
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
@@ -339,6 +339,27 @@ func EmitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel types.
 			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
+func EmitTimeoutPacketEventV2(ctx sdk.Context, packet types.PacketV2, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeTimeoutPacket,
+			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
+			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
+			sdk.NewAttribute(types.AttributeKeySrcPort, packet.GetSourcePort()),
+			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
+			sdk.NewAttribute(types.AttributeKeyDstPort, packet.DestinationPort),
+			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
 			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
 		),
