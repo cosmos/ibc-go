@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -46,10 +45,6 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 
 	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.StoreKey))
 	suite.Require().True(store.Has(icatypes.KeyPort(icatypes.HostPortID)))
-
-	capability, found := suite.chainA.GetSimApp().ScopedICAHostKeeper.GetCapability(suite.chainA.GetContext(), host.PortPath(icatypes.HostPortID))
-	suite.Require().True(found)
-	suite.Require().NotNil(capability)
 }
 
 func (suite *KeeperTestSuite) TestGenesisParams() {
