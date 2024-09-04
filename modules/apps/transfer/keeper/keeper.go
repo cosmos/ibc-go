@@ -19,7 +19,6 @@ import (
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
@@ -102,19 +101,6 @@ func (k Keeper) GetAuthority() string {
 func (Keeper) Logger(ctx context.Context) log.Logger {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
-}
-
-// hasCapability checks if the transfer module owns the port capability for the desired port
-func (k Keeper) hasCapability(ctx context.Context, portID string) bool {
-	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
-	return ok
-}
-
-// BindPort defines a wrapper function for the port Keeper's function in
-// order to expose it to module's InitGenesis function
-func (k Keeper) BindPort(ctx context.Context, portID string) error {
-	capability := k.portKeeper.BindPort(ctx, portID)
-	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
 }
 
 // GetPort returns the portID for the transfer module. Used in ExportGenesis
@@ -317,17 +303,6 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 			break
 		}
 	}
-}
-
-// AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
-func (k Keeper) AuthenticateCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) bool {
-	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
-}
-
-// ClaimCapability allows the transfer module that can claim a capability that IBC module
-// passes to it
-func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
-	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
 // setForwardedPacket sets the forwarded packet in the store.
