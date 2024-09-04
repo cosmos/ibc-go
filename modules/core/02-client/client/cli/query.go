@@ -210,12 +210,12 @@ func GetCmdQueryConsensusStateHeights() *cobra.Command {
 	return cmd
 }
 
-// GetCmdQueryClient defines the command to query the counterparty associated with the given client ID.
+// GetCmdQueryClient defines the command to query the client information (creator and counterparty) for the given client ID.
 func GetCmdQueryClient() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "client [client-id]",
-		Short:   "Query the counterparty of a client.",
-		Long:    "Query the counterparty associated with the provided client ID.",
+		Short:   "Query the information of a client.",
+		Long:    "Query the client information (creator and counterparty) for the provided client ID.",
 		Example: fmt.Sprintf("%s query %s %s client [client-id]", version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
