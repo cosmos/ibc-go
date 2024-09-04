@@ -75,16 +75,6 @@ func (k *Keeper) Authenticate(ctx context.Context, key *capabilitytypes.Capabili
 	return k.scopedKeeper.AuthenticateCapability(ctx, key, host.PortPath(portID))
 }
 
-// LookupModuleByPort will return the IBCModule along with the capability associated with a given portID
-func (k *Keeper) LookupModuleByPort(ctx context.Context, portID string) (string, *capabilitytypes.Capability, error) {
-	modules, capability, err := k.scopedKeeper.LookupModules(ctx, host.PortPath(portID))
-	if err != nil {
-		return "", nil, err
-	}
-
-	return types.GetModuleOwner(modules), capability, nil
-}
-
 // Route returns a IBCModule for a given module, and a boolean indicating
 // whether or not the route is present.
 func (k *Keeper) Route(module string) (types.IBCModule, bool) {
