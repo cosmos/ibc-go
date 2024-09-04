@@ -17,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -551,16 +550,6 @@ func (k *Keeper) GetChannelConnection(ctx context.Context, portID, channelID str
 	}
 
 	return connectionID, connection, nil
-}
-
-// LookupModuleByChannel will return the IBCModule along with the capability associated with a given channel defined by its portID and channelID
-func (k *Keeper) LookupModuleByChannel(ctx context.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
-	modules, capability, err := k.scopedKeeper.LookupModules(ctx, host.ChannelCapabilityPath(portID, channelID))
-	if err != nil {
-		return "", nil, err
-	}
-
-	return porttypes.GetModuleOwner(modules), capability, nil
 }
 
 // GetUpgradeErrorReceipt returns the upgrade error receipt for the provided port and channel identifiers.

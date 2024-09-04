@@ -178,10 +178,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			}
 			counterpartyVersion = types.V2
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
 			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
@@ -232,15 +229,12 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.V2
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
 			suite.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelID, counterpartyVersion)
+			err := cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelID, counterpartyVersion)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -372,10 +366,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
 
 			ctx := suite.chainB.GetContext()
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(ctx, ibctesting.TransferPort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
 			suite.Require().True(ok)
 
 			tc.malleate() // change fields in packet
@@ -439,10 +430,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			"already timed-out packet",
 			sdk.NewCoins(ibctesting.TestCoin),
 			func() {
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
 				suite.Require().True(ok)
 
 				suite.Require().NoError(cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress()))
@@ -477,10 +465,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			packet, err = ibctesting.ParsePacketFromEvents(res.Events)
 			suite.Require().NoError(err)
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
 			suite.Require().True(ok)
 
 			tc.malleate() // change fields in packet
@@ -627,10 +612,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 
 			tc.malleate()
 
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), types.PortID)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(types.PortID)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -698,10 +680,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 
 			tc.malleate()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(types.PortID)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)

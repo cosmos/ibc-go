@@ -106,10 +106,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 					Version:        tc.version,
 				}
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 				suite.Require().True(ok)
 
 				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
@@ -205,10 +202,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 					Version:        tc.cpVersion,
 				}
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 				suite.Require().True(ok)
 
 				_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
@@ -292,10 +286,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			err = suite.path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.path.EndpointA.Counterparty.ChannelID, tc.cpVersion)
@@ -379,10 +370,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 
 			tc.malleate()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnChanCloseInit(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
@@ -469,10 +457,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 
 			tc.malleate()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnChanCloseConfirm(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
@@ -548,10 +533,8 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			packet := suite.CreateMockPacket()
 
 			// set up module and callbacks
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
@@ -827,10 +810,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			initialRefundAccBal = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
 
 			// retrieve module callbacks
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, ack, relayerAddr)
@@ -1038,10 +1018,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			initialRelayerAccBal = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom))
 
 			// retrieve module callbacks
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, relayerAddr)
@@ -1353,10 +1330,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 
 			counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -1463,10 +1437,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 			err = path.EndpointB.ChanUpgradeConfirm()
 			suite.Require().NoError(err)
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -1539,10 +1510,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			// malleate test case
 			tc.malleate()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			feeModule, ok := cbs.(porttypes.ICS4Wrapper)
@@ -1562,10 +1530,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 }
 
 func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-	suite.Require().NoError(err)
-
-	cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+	cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 	suite.Require().True(ok)
 
 	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)
