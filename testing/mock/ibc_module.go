@@ -231,11 +231,6 @@ func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))
 }
 
-// GetMockRecvCanaryCapabilityNameV2 generates a capability name for testing OnRecvPacket functionality.
-func GetMockRecvCanaryCapabilityNameV2(packet channeltypes.PacketV2) string {
-	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.DestinationPort, packet.DestinationChannel, strconv.Itoa(int(packet.GetSequence())))
-}
-
 // GetMockAckCanaryCapabilityName generates a capability name for OnAcknowledgementPacket functionality.
 func GetMockAckCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockAckCanaryCapabilityName, packet.GetSourcePort(), packet.GetSourceChannel(), strconv.Itoa(int(packet.GetSequence())))

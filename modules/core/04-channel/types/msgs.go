@@ -1,9 +1,10 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/base64"
 	"slices"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -321,6 +322,20 @@ func NewMsgTimeout(
 ) *MsgTimeout {
 	return &MsgTimeout{
 		Packet:           packet,
+		NextSequenceRecv: nextSequenceRecv,
+		ProofUnreceived:  unreceivedProof,
+		ProofHeight:      proofHeight,
+		Signer:           signer,
+	}
+}
+
+// NewMsgTimeoutV2 constructs new MsgTimeout from a V2 packet
+func NewMsgTimeoutV2(
+	packet PacketV2, nextSequenceRecv uint64, unreceivedProof []byte,
+	proofHeight clienttypes.Height, signer string,
+) *MsgTimeout {
+	return &MsgTimeout{
+		PacketV2:         packet,
 		NextSequenceRecv: nextSequenceRecv,
 		ProofUnreceived:  unreceivedProof,
 		ProofHeight:      proofHeight,

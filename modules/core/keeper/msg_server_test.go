@@ -262,6 +262,15 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibctesting.MockFailChannelPacketData)
 				suite.Require().NoError(err)
 
+				path.EndpointB.Chain.GetSimApp().MockV2ModuleA.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+					ctx.EventManager().EmitEvent(ibcmock.NewMockRecvPacketEvent())
+
+					return channeltypes.RecvPacketResult{
+						Status:          channeltypes.PacketStatus_Failure,
+						Acknowledgement: ibcmock.MockFailPacketData,
+					}
+				}
+
 				packet = channeltypes.NewPacketV2(ibctesting.MockFailChannelPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)
 			},
 			nil,
@@ -277,6 +286,14 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibcmock.MockAsyncChannelPacketData)
 				suite.Require().NoError(err)
 
+				path.EndpointB.Chain.GetSimApp().MockV2ModuleA.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
+					ctx.EventManager().EmitEvent(ibcmock.NewMockRecvPacketEvent())
+
+					return channeltypes.RecvPacketResult{
+						Status:          channeltypes.PacketStatus_Async,
+						Acknowledgement: ibcmock.MockAsyncPacketData,
+					}
+				}
 				packet = channeltypes.NewPacketV2(ibcmock.MockAsyncChannelPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)
 			},
 			nil,
@@ -359,7 +376,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				suite.Require().NoError(err)
 
 				// check that callback state was handled correctly
-				//	_, exists := suite.chainB.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainB.GetContext(), ibcmock.GetMockRecvCanaryCapabilityNameV2(packet))
+				//	_, exists := suite.chainB.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainB.GetContext(), ibcmock.GetMockRecvCanaryCapabilityName(packet))
 				if tc.expRevert {
 					//	suite.Require().False(exists, "capability exists in store even after callback reverted")
 
@@ -380,14 +397,26 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				}
 
 				// verify if ack was written
-				ack, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.GetSequence())
+
+				//
+
+				multiAck, foundMulti := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetMultiAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.GetSequence())
+				ack, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgementV2(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.GetSequence())
 
 				if tc.async {
-					suite.Require().Nil(ack)
+					suite.Require().Empty(ack)
 					suite.Require().False(found)
+
+					suite.Require().True(slices.ContainsFunc(multiAck.AcknowledgementResults, func(res channeltypes.AcknowledgementResult) bool {
+						return res.RecvPacketResult.Status == channeltypes.PacketStatus_Async
+					}))
+					suite.Require().True(foundMulti)
 				} else {
-					suite.Require().NotNil(ack)
 					suite.Require().True(found)
+					suite.NotNil(ack)
+
+					suite.False(foundMulti)
+					suite.Require().Empty(multiAck)
 				}
 			} else {
 				suite.Require().ErrorContains(err, tc.expErr.Error())
@@ -934,7 +963,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 // the packet-server/keeper/keeper_test.go.
 func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 	var (
-		packet    channeltypes.Packet
+		packet    channeltypes.PacketV2
 		packetKey []byte
 		path      *ibctesting.Path
 	)
@@ -961,8 +990,8 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, timeoutTimestamp, ibcmock.Version)
-				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+				packet = channeltypes.NewPacketV2(ibctesting.MockChannelPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, timeoutTimestamp)
+				packetKey = host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.GetSequence())
 			},
 			nil,
 			false,
@@ -982,13 +1011,13 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 					sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibcmock.MockChannelPacketData)
 					suite.Require().NoError(err)
 
-					packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, ibcmock.Version)
+					packet = channeltypes.NewPacketV2(ibctesting.MockChannelPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)
 				}
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+				packetKey = host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.GetSequence())
 			},
 			nil,
 			false,
@@ -996,8 +1025,8 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 		{
 			"success no-op: packet not sent", func() {
 				path.SetupV2()
-				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(0, 1), 0, ibcmock.Version)
-				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+				packet = channeltypes.NewPacketV2(ibcmock.MockChannelPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(0, 1), 0)
+				packetKey = host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.GetSequence())
 			},
 			nil,
 			true,
@@ -1008,7 +1037,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 				// any non-nil value of packet is valid
 				suite.Require().NotNil(packet)
 
-				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+				packetKey = host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.GetSequence())
 			},
 			clienttypes.ErrCounterpartyNotFound,
 			false,
@@ -1033,7 +1062,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 			}
 
 			ctx := suite.chainA.GetContext()
-			msg := channeltypes.NewMsgTimeout(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			msg := channeltypes.NewMsgTimeoutV2(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 			res, err := suite.chainA.App.GetIBCKeeper().Timeout(ctx, msg)
 
 			events := ctx.EventManager().Events()

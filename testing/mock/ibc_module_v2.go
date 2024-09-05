@@ -28,6 +28,8 @@ func (im IBCModuleV2) OnRecvPacketV2(ctx sdk.Context, packet channeltypes.Packet
 		return im.IBCApp.OnRecvPacketV2(ctx, packet, payload, relayer)
 	}
 
+	ctx.EventManager().EmitEvent(NewMockRecvPacketEvent())
+
 	return channeltypes.RecvPacketResult{
 		Status:          channeltypes.PacketStatus_Success,
 		Acknowledgement: MockAcknowledgement.Acknowledgement(),
@@ -47,6 +49,8 @@ func (im IBCModuleV2) OnTimeoutPacketV2(ctx sdk.Context, packet channeltypes.Pac
 	if im.IBCApp.OnTimeoutPacketV2 != nil {
 		return im.IBCApp.OnTimeoutPacketV2(ctx, packet, payload, relayer)
 	}
+
+	ctx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
 
 	return nil
 }
