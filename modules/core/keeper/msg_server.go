@@ -468,21 +468,19 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacket) (*channeltypes.MsgSendPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Retrieve callbacks from router
-	cbs, ok := k.PortKeeper.Route(msg.PortId)
-	if !ok {
-		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", msg.PortId)
-	}
-
 	sequence, err := k.PacketServerKeeper.SendPacketV2(ctx, msg.ChannelId, msg.PortId, msg.DestPort, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.PacketData)
 	if err != nil {
 		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", msg.PortId)
 	}
 
-	// cbs.OnSendPacket(...)
-	_ = cbs
+	for _, pd := range msg.PacketData {
+		cbs := k.PortKeeper.AppRouter.Route(pd.AppName)
+		err := cbs.OnSendPacketV2(ctx, msg.PortId, msg.ChannelId, sequence, msg.TimeoutHeight, msg.TimeoutTimestamp, pd.Payload, sdk.AccAddress(msg.Signer))
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return &channeltypes.MsgSendPacketResponse{Sequence: sequence}, nil
 }

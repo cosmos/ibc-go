@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -30,9 +32,20 @@ func (im IBCModuleV2) OnRecvPacketV2(ctx sdk.Context, packet channeltypes.Packet
 
 	ctx.EventManager().EmitEvent(NewMockRecvPacketEvent())
 
+	status := channeltypes.PacketStatus_Success
+	ack := MockAcknowledgement.Acknowledgement()
+
+	if bytes.Equal(payload.Value, MockFailPacketData) {
+		status = channeltypes.PacketStatus_Failure
+		ack = MockFailAcknowledgement.Acknowledgement()
+	} else if bytes.Equal(payload.Value, MockAsyncPacketData) {
+		status = channeltypes.PacketStatus_Async
+		ack = nil
+	}
+
 	return channeltypes.RecvPacketResult{
-		Status:          channeltypes.PacketStatus_Success,
-		Acknowledgement: MockAcknowledgement.Acknowledgement(),
+		Status:          status,
+		Acknowledgement: ack,
 	}
 }
 

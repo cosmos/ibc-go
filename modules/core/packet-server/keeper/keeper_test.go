@@ -162,13 +162,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {},
 			nil,
 		},
-		// {
-		// 	"failure: protocol version is not V2",
-		// 	func() {
-		// 		packet.ProtocolVersion = channeltypes.IBC_VERSION_1
-		// 	},
-		// 	channeltypes.ErrInvalidPacket,
-		// },
 		{
 			"failure: counterparty not found",
 			func() {
@@ -370,13 +363,6 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			func() {},
 			nil,
 		},
-		// {
-		// 	"failure: protocol version is not IBC_VERSION_2",
-		// 	func() {
-		// 		packet.ProtocolVersion = channeltypes.IBC_VERSION_1
-		// 	},
-		// 	channeltypes.ErrInvalidPacket,
-		// },
 		{
 			"failure: counterparty not found",
 			func() {
@@ -511,19 +497,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			},
 			nil,
 		},
-		// {
-		// 	"failure: invalid protocol version",
-		// 	func() {
-		// 		// send packet
-		// 		_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
-		// 			packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
-		// 		suite.Require().NoError(err, "send packet failed")
-
-		// 		packet.ProtocolVersion = channeltypes.IBC_VERSION_1
-		// 		packet.AppVersion = ""
-		// 	},
-		// 	channeltypes.ErrInvalidPacket,
-		//},
 		{
 			"failure: counterparty not found",
 			func() {

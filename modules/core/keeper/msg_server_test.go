@@ -262,15 +262,6 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibctesting.MockFailChannelPacketData)
 				suite.Require().NoError(err)
 
-				path.EndpointB.Chain.GetSimApp().MockV2ModuleA.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
-					ctx.EventManager().EmitEvent(ibcmock.NewMockRecvPacketEvent())
-
-					return channeltypes.RecvPacketResult{
-						Status:          channeltypes.PacketStatus_Failure,
-						Acknowledgement: ibcmock.MockFailPacketData,
-					}
-				}
-
 				packet = channeltypes.NewPacketV2(ibctesting.MockFailChannelPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)
 			},
 			nil,
@@ -286,14 +277,6 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibcmock.MockAsyncChannelPacketData)
 				suite.Require().NoError(err)
 
-				path.EndpointB.Chain.GetSimApp().MockV2ModuleA.IBCApp.OnRecvPacketV2 = func(ctx sdk.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, relayer sdk.AccAddress) channeltypes.RecvPacketResult {
-					ctx.EventManager().EmitEvent(ibcmock.NewMockRecvPacketEvent())
-
-					return channeltypes.RecvPacketResult{
-						Status:          channeltypes.PacketStatus_Async,
-						Acknowledgement: ibcmock.MockAsyncPacketData,
-					}
-				}
 				packet = channeltypes.NewPacketV2(ibcmock.MockAsyncChannelPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)
 			},
 			nil,
@@ -376,10 +359,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				suite.Require().NoError(err)
 
 				// check that callback state was handled correctly
-				//	_, exists := suite.chainB.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainB.GetContext(), ibcmock.GetMockRecvCanaryCapabilityName(packet))
 				if tc.expRevert {
-					//	suite.Require().False(exists, "capability exists in store even after callback reverted")
-
 					// context events should contain error events
 					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
