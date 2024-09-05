@@ -137,7 +137,7 @@ clean:
 
 #? build-docker-wasm: Build wasm simapp with specified tag.
 build-docker-wasm:
-	./scripts/build-wasm-simapp-docker.sh $(tag)
+	./scripts/build-wasm-simapp-docker.sh poc-solidity-ibc-eureka-wasm
 
 .PHONY: build-docker-wasm
 

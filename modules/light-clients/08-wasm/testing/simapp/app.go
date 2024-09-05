@@ -3,6 +3,7 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/custom_query"
 	"io"
 	"math/rand"
 	"os"
@@ -135,6 +136,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	mocklightclient "github.com/cosmos/ibc-go/v8/modules/light-clients/00-mock"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -482,9 +484,17 @@ func NewSimApp(
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(),
 		)
 	} else {
+		querierOption := wasmkeeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
+			Custom: custom_query.CustomQuerier(),
+			Stargate: wasmkeeper.AcceptListStargateQuerier(
+				[]string{"/cosmos.base.tendermint.v1beta1.Service/ABCIQuery"},
+				app.GRPCQueryRouter(),
+			),
+		})
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, app.GRPCQueryRouter(),
+			querierOption,
 		)
 	}
 
@@ -521,12 +531,13 @@ func NewSimApp(
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
 	// since fee middleware will wrap the IBCKeeper for underlying application.
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
+	app.TransferKeeper = ibctransferkeeper.NewKeeperWithLite(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.MsgServiceRouter(),
 	)
 
 	// Mock Module Stack
@@ -619,6 +630,9 @@ func NewSimApp(
 	wasmLightClientModule := wasm.NewLightClientModule(app.WasmClientKeeper)
 	clientRouter.AddRoute(wasmtypes.ModuleName, &wasmLightClientModule)
 
+	mockLightClientModule := mocklightclient.NewLightClientModule(appCodec)
+	clientRouter.AddRoute(mocklightclient.ModuleName, &mockLightClientModule)
+
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[evidencetypes.StoreKey]), app.StakingKeeper, app.SlashingKeeper, app.AccountKeeper.AddressCodec(), runtime.ProvideCometInfoService(),
@@ -669,6 +683,7 @@ func NewSimApp(
 		wasm.NewAppModule(app.WasmClientKeeper), // TODO(damian): see if we want to pass the lightclient module here, keeper is used in AppModule.RegisterServices etc
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
+		mocklightclient.NewAppModule(mockLightClientModule),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
