@@ -71,7 +71,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			},
 			clienttypes.ErrCounterpartyNotFound,
 		},
-		// TODO validation is not implemented yet
+		// TODO validation is not implemented yet (https://github.com/cosmos/ibc-go/issues/7255)
 		// {
 		// 	"packet failed basic validation",
 		// 	func() {
