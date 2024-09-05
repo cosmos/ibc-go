@@ -364,8 +364,6 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
 				} else {
-					//	suite.Require().True(exists, "callback state not persisted when revert is false")
-
 					if tc.replay {
 						// context should not contain application events
 						suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
@@ -376,11 +374,9 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 					}
 				}
 
-				// verify if ack was written
-
-				//
-
+				// verify that a multiack is written in case of async
 				multiAck, foundMulti := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetMultiAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.GetSequence())
+				// and a regular ack is written in case of non-async
 				ack, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgementV2(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.GetSequence())
 
 				if tc.async {

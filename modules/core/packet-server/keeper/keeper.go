@@ -74,7 +74,7 @@ func (k Keeper) SendPacket(
 	packet := channeltypes.NewPacketV2(data, sequence, sourcePort, sourceChannel,
 		destPort, destChannel, timeoutHeight, timeoutTimestamp)
 
-	// TODO: implement Validate for PacketV2
+	// TODO: implement Validate for PacketV2 (https://github.com/cosmos/ibc-go/issues/7255)
 	// if err := packet.ValidateBasic(); err != nil {
 	// 	return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	// }
