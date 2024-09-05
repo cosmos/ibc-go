@@ -58,8 +58,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) TestSetCounterparty() {
 	merklePathPrefix := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
 	counterparty := types.Counterparty{
-		ClientId:               testClientID,
-		CounterpartyPacketPath: merklePathPrefix,
+		ClientId:         testClientID,
+		MerklePathPrefix: merklePathPrefix,
 	}
 	suite.keeper.SetCounterparty(suite.ctx, testClientID, counterparty)
 

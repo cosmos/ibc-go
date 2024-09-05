@@ -37,11 +37,6 @@ const (
 	// the creator key is imported from types instead of host because
 	// the creator key is not a part of the ics-24 host specification
 	CreatorKey = "creator"
-
-	// CounterpartyKey is the key used to store counterparty in the client store.
-	// the counterparty key is imported from types instead of host because
-	// the counterparty key is not a part of the ics-24 host specification
-	CounterpartyKey = "counterparty"
 )
 
 // FormatClientIdentifier returns the client identifier with the sequence appended.

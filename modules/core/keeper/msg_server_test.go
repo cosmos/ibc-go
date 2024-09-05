@@ -812,7 +812,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			"failure: counterparty already exists",
 			func() {
 				// set it before handler
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.PacketPath, msg.Counterparty)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ChannelId, msg.Counterparty)
 			},
 			packetservertypes.ErrInvalidCounterparty,
 		},

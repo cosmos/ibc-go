@@ -157,11 +157,11 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertyp
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "client creator (%s) must match signer (%s)", creator, msg.Signer)
 	}
 
-	if _, ok := k.PacketServerKeeper.GetCounterparty(ctx, msg.PacketPath); ok {
+	if _, ok := k.PacketServerKeeper.GetCounterparty(ctx, msg.ChannelId); ok {
 		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.Counterparty.ClientId)
 	}
 
-	k.PacketServerKeeper.SetCounterparty(ctx, msg.PacketPath, msg.Counterparty)
+	k.PacketServerKeeper.SetCounterparty(ctx, msg.ChannelId, msg.Counterparty)
 	// Delete client creator from state as it is not needed after this point.
 	k.ClientKeeper.DeleteCreator(ctx, msg.Counterparty.ClientId)
 

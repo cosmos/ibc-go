@@ -1,13 +1,12 @@
 package types
 
 import (
-	"strings"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
@@ -18,12 +17,14 @@ var (
 )
 
 // NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(signer, packetPath, clientID string, counterpartyPacketPath commitmenttypes.MerklePath) *MsgProvideCounterparty {
-	counterparty := NewCounterparty(clientID, counterpartyPacketPath)
+// MsgProvideCounterparty will set the channel id to the client id for this chain. It is only allowed to be different
+// for existing v1 channels that are aliased to a new Eureka counterparty.
+func NewMsgProvideCounterparty(signer, clientID, counterpartyChannelID string, merklePathPrefix commitmenttypes.MerklePath) *MsgProvideCounterparty {
+	counterparty := NewCounterparty(clientID, counterpartyChannelID, merklePathPrefix)
 
 	return &MsgProvideCounterparty{
 		Signer:       signer,
-		PacketPath:   packetPath,
+		ChannelId:    clientID,
 		Counterparty: counterparty,
 	}
 }
@@ -34,8 +35,8 @@ func (msg *MsgProvideCounterparty) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if strings.TrimSpace(msg.PacketPath) == "" {
-		return errorsmod.Wrap(ErrInvalidPacketPath, "packet path cannot be empty")
+	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
+		return err
 	}
 
 	if err := msg.Counterparty.Validate(); err != nil {

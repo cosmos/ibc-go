@@ -8,10 +8,11 @@ import (
 )
 
 // NewCounterparty creates a new Counterparty instance
-func NewCounterparty(clientID string, counterpartyPacketPath commitmenttypes.MerklePath) Counterparty {
+func NewCounterparty(clientID, channelID string, merklePathPrefix commitmenttypes.MerklePath) Counterparty {
 	return Counterparty{
-		ClientId:               clientID,
-		CounterpartyPacketPath: counterpartyPacketPath,
+		ClientId:            clientID,
+		CounterpartyChannel: channelID,
+		MerklePathPrefix:    merklePathPrefix,
 	}
 }
 
@@ -21,7 +22,11 @@ func (c Counterparty) Validate() error {
 		return err
 	}
 
-	if c.CounterpartyPacketPath.Empty() {
+	if err := host.ChannelIdentifierValidator(c.CounterpartyChannel); err != nil {
+		return err
+	}
+
+	if c.MerklePathPrefix.Empty() {
 		return errorsmod.Wrap(ErrInvalidCounterparty, "prefix cannot be empty")
 	}
 

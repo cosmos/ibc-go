@@ -14,8 +14,9 @@ message Counterparty {
   // the client identifier of the counterparty chain
   // client id of the counterparty stored on our chain
   string client_id = 1;
+  // the counterparty channel identifier that must be used by the packet
+  string counterparty_channel = 2;
   // the key path used to store packet flow messages that the counterparty
-  // will use to send to us.
-  // ["ibc", "channel/channel-4"] => ["ibc", "channel/channel-4/port/transfer/sequence/1"]
-  ibc.core.commitment.v2.MerklePath counterparty_packet_path = 3 [(gogoproto.nullable) = false];
+  // will use to send to us. We will append the channelID and sequence in order to create the final path.
+  ibc.core.commitment.v2.MerklePath merkle_path_prefix = 3 [(gogoproto.nullable) = false];
 }

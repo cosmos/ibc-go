@@ -14,17 +14,27 @@ func TestValidateCounterparty(t *testing.T) {
 	testCases := []struct {
 		name             string
 		clientID         string
+		channelID        string
 		merklePathPrefix commitmenttypes.MerklePath
 		expError         error
 	}{
 		{
 			"success",
 			ibctesting.FirstClientID,
+			ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath([]byte("ibc")),
 			nil,
 		},
 		{
 			"failure: invalid client id",
+			"",
+			ibctesting.FirstChannelID,
+			commitmenttypes.NewMerklePath([]byte("ibc")),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: invalid counterparty channel id",
+			ibctesting.FirstClientID,
 			"",
 			commitmenttypes.NewMerklePath([]byte("ibc")),
 			host.ErrInvalidID,
@@ -32,6 +42,7 @@ func TestValidateCounterparty(t *testing.T) {
 		{
 			"failure: empty merkle path prefix",
 			ibctesting.FirstClientID,
+			ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath(),
 			types.ErrInvalidCounterparty,
 		},
@@ -40,7 +51,7 @@ func TestValidateCounterparty(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		counterparty := types.NewCounterparty(tc.clientID, tc.merklePathPrefix)
+		counterparty := types.NewCounterparty(tc.clientID, tc.channelID, tc.merklePathPrefix)
 		err := counterparty.Validate()
 
 		expPass := tc.expError == nil

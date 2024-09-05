@@ -133,7 +133,7 @@ func (k Keeper) RecvPacket(
 	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
 	// TODO: allow for custom prefix
 	path := host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(&counterparty.CounterpartyPacketPath, path)
+	merklePath := types.BuildMerklePath(&counterparty.MerklePathPrefix, path)
 
 	commitment := channeltypes.CommitPacket(packet)
 
@@ -260,7 +260,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	path := host.PacketAcknowledgementKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(&counterparty.CounterpartyPacketPath, path)
+	merklePath := types.BuildMerklePath(&counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
@@ -339,7 +339,7 @@ func (k Keeper) TimeoutPacket(
 
 	// verify packet receipt absence
 	path := host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(&counterparty.CounterpartyPacketPath, path)
+	merklePath := types.BuildMerklePath(&counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
