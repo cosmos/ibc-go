@@ -283,7 +283,7 @@ func (k *Keeper) RecvPacketV2(
 		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
 	}
 
-	//if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
+	// if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
 	//	return err
 	//}
 
@@ -298,7 +298,7 @@ func (k *Keeper) RecvPacketV2(
 	)
 
 	// emit an event that the relayer can query for
-	//emitRecvPacketEvent(ctx, packet, channel)
+	// emitRecvPacketEvent(ctx, packet, channel)
 
 	return nil
 }
@@ -463,7 +463,6 @@ func (k *Keeper) WriteAcknowledgementAsyncV2(
 	appName string,
 	recvResult types.RecvPacketResult,
 ) error {
-
 	// we should have stored the multi ack structure in OnRecvPacket
 	ackResults, found := k.GetMultiAcknowledgement(ctx, packet.GetDestinationPort(), packet.GetDestinationChannel(), packet.GetSequence())
 	if !found {
@@ -502,7 +501,6 @@ func (k *Keeper) WriteAcknowledgementAsyncV2(
 
 	// we have updated one app's result, but there are still async results pending acknowledgement.
 	return nil
-
 }
 
 func (k *Keeper) WriteAcknowledgementV2(

@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	"golang.org/x/exp/slices"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

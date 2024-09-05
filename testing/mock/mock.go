@@ -44,7 +44,7 @@ var (
 	MockAcknowledgement      = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
 	MockFailAcknowledgement  = channeltypes.NewErrorAcknowledgement(errors.New("mock failed acknowledgement"))
 	MockMultiAcknowledgement = channeltypes.MultiAcknowledgement{
-		[]channeltypes.AcknowledgementResult{
+		AcknowledgementResults: []channeltypes.AcknowledgementResult{
 			{
 				AppName: ModuleNameV2A,
 				RecvPacketResult: channeltypes.RecvPacketResult{

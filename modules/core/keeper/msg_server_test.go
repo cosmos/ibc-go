@@ -739,7 +739,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 			ctx := suite.chainA.GetContext()
 
 			if tc.expPanic != "" {
-				suite.PanicsWithValue(tc.expPanic, func() { suite.chainA.App.GetIBCKeeper().Acknowledgement(ctx, msg) })
+				suite.PanicsWithValue(tc.expPanic, func() { suite.chainA.App.GetIBCKeeper().Acknowledgement(ctx, msg) }) //nolint
 				return
 			}
 			res, err := suite.chainA.App.GetIBCKeeper().Acknowledgement(ctx, msg)

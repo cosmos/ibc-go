@@ -141,7 +141,7 @@ func (k Keeper) SendPacketV2(
 	packet := channeltypes.NewPacketV2(data, sequence, sourcePort, sourceChannel,
 		destPort, destChannel, timeoutHeight, timeoutTimestamp)
 
-	//if err := packet.ValidateBasic(); err != nil {
+	// if err := packet.ValidateBasic(); err != nil {
 	//	return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	//}
 

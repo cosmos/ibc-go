@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
@@ -15,9 +16,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
-var (
-	_ porttypes.IBCModuleV2 = (*IBCModuleV2)(nil)
-)
+var _ porttypes.IBCModuleV2 = (*IBCModuleV2)(nil)
 
 // IBCModuleV2 implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModuleV2 struct {
