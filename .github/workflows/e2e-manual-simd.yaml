@@ -35,7 +35,9 @@ on:
         default: main
         options:
           - main
+          - v8.5.0
           - v8.4.0
+          - v7.7.0
           - v7.6.0
           - v7.5.0
           - v7.4.0
@@ -50,7 +52,9 @@ on:
         type: choice
         options:
           - main
+          - v8.5.0
           - v8.4.0
+          - v7.7.0
           - v7.6.0
           - v7.5.0
           - v7.4.0
