@@ -656,7 +656,6 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	return k.timeoutV1(goCtx, msg)
 }
 
-// Timeout defines a rpc handler method for MsgTimeout.
 func (k *Keeper) timeoutv2(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -696,7 +695,6 @@ func (k *Keeper) timeoutv2(goCtx context.Context, msg *channeltypes.MsgTimeout) 
 	return &channeltypes.MsgTimeoutResponse{Result: channeltypes.SUCCESS}, nil
 }
 
-// Timeout defines a rpc handler method for MsgTimeout.
 func (k *Keeper) timeoutV1(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	var (
 		packetHandler PacketHandler
