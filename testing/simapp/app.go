@@ -425,11 +425,11 @@ func NewSimApp(
 
 	// add multiple a mock IBCModuleV2 modules whose functionality can be overridden in tests.
 	mockModuleV2A := ibcmock.NewIBCModuleV2(ibcmock.NewIBCV2App())
-	ibcAppRouter.AddV2Route(ibcmock.ModuleNameV2+"A", mockModuleV2A)
+	ibcAppRouter.AddV2Route(ibcmock.ModuleNameV2A, mockModuleV2A)
 	app.MockV2ModuleA = mockModuleV2A
 
 	mockModuleV2B := ibcmock.NewIBCModuleV2(ibcmock.NewIBCV2App())
-	ibcAppRouter.AddV2Route(ibcmock.ModuleNameV2+"B", mockModuleV2B)
+	ibcAppRouter.AddV2Route(ibcmock.ModuleNameV2B, mockModuleV2B)
 	app.MockV2ModuleB = mockModuleV2B
 	// Middleware Stacks
 

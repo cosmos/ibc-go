@@ -28,8 +28,10 @@ import (
 )
 
 const (
-	ModuleName   = "mock"
-	ModuleNameV2 = "mockv2"
+	ModuleName    = "mock"
+	ModuleNameV2  = "mockv2"
+	ModuleNameV2A = ModuleNameV2 + "A"
+	ModuleNameV2B = ModuleNameV2 + "B"
 
 	MemStoreKey = "memory:mock"
 
@@ -44,7 +46,7 @@ var (
 	MockMultiAcknowledgement = channeltypes.MultiAcknowledgement{
 		[]channeltypes.AcknowledgementResult{
 			{
-				AppName: ModuleNameV2 + "A",
+				AppName: ModuleNameV2A,
 				RecvPacketResult: channeltypes.RecvPacketResult{
 					Status:          channeltypes.PacketStatus_Success,
 					Acknowledgement: MockAcknowledgement.Acknowledgement(),
@@ -53,11 +55,11 @@ var (
 		},
 	}
 	MockPacketData                  = []byte("mock packet data")
-	MockChannelPacketData           = []channeltypes.PacketData{{AppName: ModuleNameV2 + "A", Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockPacketData}}}
+	MockChannelPacketData           = []channeltypes.PacketData{{AppName: ModuleNameV2A, Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockPacketData}}}
 	MockFailPacketData              = []byte("mock failed packet data")
-	MockFailChannelPacketData       = []channeltypes.PacketData{{AppName: ModuleNameV2 + "A", Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockFailPacketData}}}
+	MockFailChannelPacketData       = []channeltypes.PacketData{{AppName: ModuleNameV2A, Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockFailPacketData}}}
 	MockAsyncPacketData             = []byte("mock async packet data")
-	MockAsyncChannelPacketData      = []channeltypes.PacketData{{AppName: ModuleNameV2 + "A", Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockAsyncPacketData}}}
+	MockAsyncChannelPacketData      = []channeltypes.PacketData{{AppName: ModuleNameV2A, Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockAsyncPacketData}}}
 	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
 	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
