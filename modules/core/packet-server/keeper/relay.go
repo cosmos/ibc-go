@@ -34,7 +34,8 @@ func (k Keeper) SendPacket(
 	if !ok {
 		return 0, channeltypes.ErrChannelNotFound
 	}
-	destChannel := counterparty.ClientId
+	destChannel := counterparty.CounterpartyChannel
+	clientId := counterparty.ClientId
 
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
@@ -52,17 +53,17 @@ func (k Keeper) SendPacket(
 	}
 
 	// check that the client of counterparty chain is still active
-	if status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel); status != exported.Active {
-		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", sourceChannel, status)
+	if status := k.ClientKeeper.GetClientStatus(ctx, clientId); status != exported.Active {
+		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientId, status)
 	}
 
 	// retrieve latest height and timestamp of the client of counterparty chain
-	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceChannel)
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, clientId)
 	if latestHeight.IsZero() {
 		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceChannel)
 	}
 
-	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceChannel, latestHeight)
+	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientId, latestHeight)
 	if err != nil {
 		return 0, err
 	}
@@ -107,9 +108,10 @@ func (k Keeper) RecvPacket(
 	if !ok {
 		return "", channeltypes.ErrChannelNotFound
 	}
-	if counterparty.ClientId != packet.SourceChannel {
+	if counterparty.CounterpartyChannel != packet.SourceChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
+	clientId := counterparty.ClientId
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
@@ -139,7 +141,7 @@ func (k Keeper) RecvPacket(
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		packet.DestinationChannel,
+		clientId,
 		proofHeight,
 		0, 0,
 		proof,
@@ -182,7 +184,7 @@ func (k Keeper) WriteAcknowledgement(
 	if !ok {
 		return channeltypes.ErrChannelNotFound
 	}
-	if counterparty.ClientId != packet.SourceChannel {
+	if counterparty.CounterpartyChannel != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -237,9 +239,10 @@ func (k Keeper) AcknowledgePacket(
 		return "", channeltypes.ErrChannelNotFound
 	}
 
-	if counterparty.ClientId != packet.DestinationChannel {
+	if counterparty.CounterpartyChannel != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
+	clientId := counterparty.ClientId
 
 	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
@@ -264,7 +267,7 @@ func (k Keeper) AcknowledgePacket(
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		packet.SourceChannel,
+		clientId,
 		proofHeight,
 		0, 0,
 		proofAcked,
@@ -303,8 +306,9 @@ func (k Keeper) TimeoutPacket(
 	if !ok {
 		return "", channeltypes.ErrChannelNotFound
 	}
+	clientId := counterparty.ClientId
 
-	if counterparty.ClientId != packet.DestinationChannel {
+	if counterparty.CounterpartyChannel != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -343,7 +347,7 @@ func (k Keeper) TimeoutPacket(
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
-		packet.SourceChannel,
+		clientId,
 		proofHeight,
 		0, 0,
 		proof,
