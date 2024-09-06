@@ -9,6 +9,7 @@ import (
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -24,13 +25,12 @@ import (
 )
 
 var (
-	_ module.AppModule           = (*AppModule)(nil)
-	_ module.AppModuleSimulation = (*AppModule)(nil)
-	_ module.HasName             = (*AppModule)(nil)
-	_ module.HasConsensusVersion = (*AppModule)(nil)
-	_ module.HasGenesis          = (*AppModule)(nil)
-	_ appmodule.AppModule        = (*AppModule)(nil)
-	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
+	_ module.AppModule              = (*AppModule)(nil)
+	_ module.AppModuleSimulation    = (*AppModule)(nil)
+	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
+	_ module.HasGenesis             = (*AppModule)(nil)
+	_ appmodule.AppModule           = (*AppModule)(nil)
+	_ appmodule.HasBeginBlocker     = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -52,20 +52,20 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterLegacyAminoCodec does nothing. Capability does not support amino.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc registry.AminoRegistrar) {}
 
 // RegisterInterfaces registers the module's interface types
 func (AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // DefaultGenesis returns the capability module's default genesis state.
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesis())
+func (am AppModuleBasic) DefaultGenesis() json.RawMessage {
+	return am.cdc.MustMarshalJSON(types.DefaultGenesis())
 }
 
 // ValidateGenesis performs genesis state validation for the capability module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (am AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	var genState types.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &genState); err != nil {
+	if err := am.cdc.UnmarshalJSON(bz, &genState); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
 	return genState.Validate()
@@ -104,18 +104,23 @@ func (AppModule) IsAppModule() {}
 
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
+func (am AppModule) InitGenesis(ctx context.Context, gs json.RawMessage) error {
 	var genState types.GenesisState
 	// Initialize global index to index in genesis state
-	cdc.MustUnmarshalJSON(gs, &genState)
+	if err := am.cdc.UnmarshalJSON(gs, &genState); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+	}
 
-	InitGenesis(ctx, am.keeper, genState)
+	return InitGenesis(ctx, am.keeper, genState)
 }
 
 // ExportGenesis returns the capability module's exported genesis state as raw JSON bytes.
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	genState := ExportGenesis(ctx, am.keeper)
-	return cdc.MustMarshalJSON(genState)
+func (am AppModule) ExportGenesis(ctx context.Context) (json.RawMessage, error) {
+	genState, err := ExportGenesis(ctx, am.keeper)
+	if err != nil {
+		return nil, err
+	}
+	return am.cdc.MarshalJSON(genState)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

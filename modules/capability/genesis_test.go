@@ -26,7 +26,8 @@ func (suite *CapabilityTestSuite) TestGenesis() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(cap2)
 
-	genState := capability.ExportGenesis(suite.ctx, *suite.keeper)
+	genState, err := capability.ExportGenesis(suite.ctx, *suite.keeper)
+	suite.Require().NoError(err)
 
 	newKeeper := keeper.NewKeeper(suite.cdc, runtime.NewKVStoreService(suite.storeKey), runtime.NewMemStoreService(suite.memStoreKey))
 	newSk1 := newKeeper.ScopeToModule(bankModuleName)

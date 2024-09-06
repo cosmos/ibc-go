@@ -3,8 +3,8 @@ package keeper_test
 import (
 	sdkmath "cosmossdk.io/math"
 
+	minttypes "cosmossdk.io/x/mint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"

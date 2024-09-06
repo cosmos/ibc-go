@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "cosmossdk.io/x/staking/types"
 )
 
 // StakingKeeper defines the expected staking keeper interface used in the

@@ -3,8 +3,8 @@ package types
 import (
 	"context"
 
+	paramtypes "cosmossdk.io/x/params/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"

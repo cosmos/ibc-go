@@ -21,8 +21,8 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	govtypes "cosmossdk.io/x/gov/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"

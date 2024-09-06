@@ -11,8 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/simulation"
@@ -24,7 +22,7 @@ func TestProposalMsgs(t *testing.T) {
 	s := rand.NewSource(1)
 	r := rand.New(s)
 
-	ctx := sdk.NewContext(nil, cmtproto.Header{}, true, nil)
+	ctx := sdk.NewContext(nil, true, nil)
 	accounts := simtypes.RandomAccounts(r, 3)
 
 	// execute ProposalMsgs function

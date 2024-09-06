@@ -9,12 +9,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	govcli "cosmossdk.io/x/gov/client/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"

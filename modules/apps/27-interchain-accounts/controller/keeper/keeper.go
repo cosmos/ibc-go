@@ -25,6 +25,7 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Keeper defines the IBC interchain accounts controller keeper
@@ -99,7 +100,7 @@ func (k Keeper) GetConnectionID(ctx context.Context, portID, channelID string) (
 func (k Keeper) GetAllPorts(ctx context.Context) []string {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(icatypes.PortKeyPrefix))
-	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 
 	var ports []string
 	for ; iterator.Valid(); iterator.Next() {
@@ -187,7 +188,7 @@ func (k Keeper) IsActiveChannelClosed(ctx context.Context, connectionID, portID 
 func (k Keeper) GetAllActiveChannels(ctx context.Context) []genesistypes.ActiveChannel {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(icatypes.ActiveChannelKeyPrefix))
-	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 
 	var activeChannels []genesistypes.ActiveChannel
 	for ; iterator.Valid(); iterator.Next() {

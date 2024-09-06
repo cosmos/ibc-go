@@ -8,12 +8,13 @@ import (
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
+	banktypes "cosmossdk.io/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -134,7 +135,7 @@ func (k Keeper) iterateDenomTraces(ctx context.Context, cb func(denomTrace inter
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
 
-	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var denomTrace internaltypes.DenomTrace
 		k.cdc.MustUnmarshal(iterator.Value(), &denomTrace)

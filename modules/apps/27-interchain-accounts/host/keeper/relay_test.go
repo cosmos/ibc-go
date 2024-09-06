@@ -10,13 +10,13 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	banktypes "cosmossdk.io/x/bank/types"
+	disttypes "cosmossdk.io/x/distribution/types"
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				balanceQuery := banktypes.NewQueryBalanceRequest(suite.chainB.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+				balanceQuery := banktypes.NewQueryBalanceRequest(suite.chainB.SenderAccount.GetAddress().String(), sdk.DefaultBondDenom)
 				queryBz, err := balanceQuery.Marshal()
 				suite.Require().NoError(err)
 
@@ -904,5 +904,5 @@ func (suite *KeeperTestSuite) fundICAWallet(ctx context.Context, portID string, 
 
 func getTestProposalMessage() sdk.Msg {
 	_, _, addr := testdata.KeyTestPubAddr()
-	return banktypes.NewMsgSend(authtypes.NewModuleAddress("gov"), addr, sdk.NewCoins(sdk.NewCoin("stake", sdkmath.NewInt(1000))))
+	return banktypes.NewMsgSend(authtypes.NewModuleAddress("gov").String(), addr.String(), sdk.NewCoins(sdk.NewCoin("stake", sdkmath.NewInt(1000))))
 }

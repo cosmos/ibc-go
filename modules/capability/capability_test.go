@@ -3,20 +3,19 @@ package capability_test
 import (
 	"testing"
 
-	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	coretesting "cosmossdk.io/core/testing"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -43,7 +42,7 @@ type CapabilityTestSuite struct {
 }
 
 func (suite *CapabilityTestSuite) SetupTest() {
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModule{})
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, capability.AppModule{})
 	suite.cdc = encodingCfg.Codec
 
 	suite.storeKey = storetypes.NewKVStoreKey(types.StoreKey)
@@ -55,7 +54,7 @@ func (suite *CapabilityTestSuite) SetupTest() {
 }
 
 func (suite *CapabilityTestSuite) NewTestContext() sdk.Context {
-	db := dbm.NewMemDB()
+	db := coretesting.NewMemKV() //TODO: blocked on https://github.com/cosmos/cosmos-sdk/pull/21525
 	cms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	cms.MountStoreWithDB(suite.storeKey, storetypes.StoreTypeIAVL, db)
 	cms.MountStoreWithDB(suite.memStoreKey, storetypes.StoreTypeMemory, db)
@@ -64,7 +63,7 @@ func (suite *CapabilityTestSuite) NewTestContext() sdk.Context {
 	err := cms.LoadLatestVersion()
 	suite.Require().NoError(err)
 
-	return sdk.NewContext(cms, cmtproto.Header{}, false, log.NewNopLogger())
+	return sdk.NewContext(cms, false, log.NewNopLogger())
 }
 
 // The following test case mocks a specific bug discovered in https://github.com/cosmos/cosmos-sdk/issues/9800

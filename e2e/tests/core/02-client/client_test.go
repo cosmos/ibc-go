@@ -17,15 +17,15 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	govtypes "cosmossdk.io/x/gov/types"
+	paramsproposaltypes "cosmossdk.io/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	cmtprotoversion "github.com/cometbft/cometbft/api/cometbft/version/v1"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/privval"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	cmtprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/version"
 

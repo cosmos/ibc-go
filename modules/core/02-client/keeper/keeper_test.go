@@ -11,11 +11,11 @@ import (
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	stakingtypes "cosmossdk.io/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -108,9 +108,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 		val.Tokens = sdkmath.NewInt(rand.Int63())
 		validators.Validators = append(validators.Validators, val)
 
-		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
-		err = app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
-		suite.Require().NoError(err)
 	}
 
 	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)

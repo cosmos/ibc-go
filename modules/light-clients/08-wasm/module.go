@@ -10,13 +10,13 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 
+	"cosmossdk.io/x/gov/simulation"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/gov/simulation"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/client/cli"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"

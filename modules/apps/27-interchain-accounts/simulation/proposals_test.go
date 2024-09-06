@@ -10,8 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	controllerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
 	controllertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	hostkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/keeper"
@@ -24,7 +22,7 @@ func TestProposalMsgs(t *testing.T) {
 	s := rand.NewSource(1)
 	r := rand.New(s)
 
-	ctx := sdk.NewContext(nil, cmtproto.Header{}, true, nil)
+	ctx := sdk.NewContext(nil, true, nil)
 	accounts := simtypes.RandomAccounts(r, 3)
 
 	tests := []struct {

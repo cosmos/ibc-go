@@ -5,9 +5,9 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	govtypes "cosmossdk.io/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"

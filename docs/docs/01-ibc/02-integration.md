@@ -272,7 +272,7 @@ connection handshake.
 import (
   // other imports
   // ...
-  stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+  stakingtypes "cosmossdk.io/x/staking/types"
   capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
   ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
   ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"

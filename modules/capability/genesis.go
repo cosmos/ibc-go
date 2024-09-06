@@ -1,7 +1,7 @@
 package capability
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"context"
 
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
 	"github.com/cosmos/ibc-go/modules/capability/types"
@@ -9,7 +9,7 @@ import (
 
 // InitGenesis initializes the capability module's state from a provided genesis
 // state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+func InitGenesis(ctx context.Context, k keeper.Keeper, genState types.GenesisState) error {
 	if err := k.InitializeIndex(ctx, genState.Index); err != nil {
 		panic(err)
 	}
@@ -21,10 +21,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 
 	// initialize in-memory capabilities
 	k.InitMemStore(ctx)
+	return nil
 }
 
 // ExportGenesis returns the capability module's exported genesis.
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+func ExportGenesis(ctx context.Context, k keeper.Keeper) (*types.GenesisState, error) {
 	index := k.GetLatestIndex(ctx)
 	owners := []types.GenesisOwners{}
 
@@ -44,5 +45,5 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
 		Index:  index,
 		Owners: owners,
-	}
+	}, nil
 }

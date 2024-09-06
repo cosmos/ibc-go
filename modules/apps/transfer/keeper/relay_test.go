@@ -7,11 +7,11 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	banktestutil "cosmossdk.io/x/bank/testutil"
+	banktypes "cosmossdk.io/x/bank/types"
+	minttypes "cosmossdk.io/x/mint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	transferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"

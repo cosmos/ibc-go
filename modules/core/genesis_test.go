@@ -344,9 +344,9 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			tc.malleate()
 
 			var gs *types.GenesisState
-			suite.NotPanics(func() {
-				gs = ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper())
-			})
+
+			gs, err := ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper())
+			suite.NoError(err)
 
 			// init genesis based on export
 			suite.NotPanics(func() {

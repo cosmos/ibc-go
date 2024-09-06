@@ -9,6 +9,12 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	"cosmossdk.io/x/authz"
+	banktypes "cosmossdk.io/x/bank/types"
+	govv1 "cosmossdk.io/x/gov/types/v1"
+	govv1beta1 "cosmossdk.io/x/gov/types/v1beta1"
+	grouptypes "cosmossdk.io/x/group"
+	proposaltypes "cosmossdk.io/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -16,12 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
-	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"

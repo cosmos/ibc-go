@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -34,8 +35,6 @@ var (
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ module.HasGenesis          = (*AppModule)(nil)
-	_ module.HasName             = (*AppModule)(nil)
-	_ module.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasServices         = (*AppModule)(nil)
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
@@ -44,7 +43,9 @@ var (
 )
 
 // AppModuleBasic is the IBC interchain accounts AppModuleBasic
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+	cdc codec.Codec
+}
 
 // Name implements AppModuleBasic interface
 func (AppModuleBasic) Name() string {
@@ -58,7 +59,7 @@ func (AppModule) IsOnePerModuleType() {}
 func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec implements AppModuleBasic.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc registry.AminoRegistrar) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
@@ -69,14 +70,14 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 
 // DefaultGenesis returns default genesis state as raw bytes for the IBC
 // interchain accounts module
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
+func (am AppModuleBasic) DefaultGenesis() json.RawMessage {
+	return am.cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
 }
 
 // ValidateGenesis performs genesis state validation for the IBC interchain accounts module
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (am AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	var gs genesistypes.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
+	if err := am.cdc.UnmarshalJSON(bz, &gs); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
 
@@ -116,6 +117,9 @@ type AppModule struct {
 // NewAppModule creates a new IBC interchain accounts module
 func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
 	return AppModule{
+		AppModuleBasic: AppModuleBasic{
+			cdc: nil,
+		},
 		controllerKeeper: controllerKeeper,
 		hostKeeper:       hostKeeper,
 	}
@@ -147,9 +151,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // InitGenesis performs genesis initialization for the interchain accounts module.
 // It returns no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
+func (am AppModule) InitGenesis(ctx context.Context, data json.RawMessage) error {
 	var genesisState genesistypes.GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
+	if err := am.cdc.UnmarshalJSON(data, &genesisState); err != nil {
+		return err
+	}
 
 	if am.controllerKeeper != nil {
 		controllerkeeper.InitGenesis(ctx, *am.controllerKeeper, genesisState.ControllerGenesisState)
@@ -158,10 +164,11 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	if am.hostKeeper != nil {
 		hostkeeper.InitGenesis(ctx, *am.hostKeeper, genesisState.HostGenesisState)
 	}
+	return nil
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the interchain accounts module
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx context.Context) (json.RawMessage, error) {
 	var (
 		controllerGenesisState = genesistypes.DefaultControllerGenesis()
 		hostGenesisState       = genesistypes.DefaultHostGenesis()
@@ -177,7 +184,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 	gs := genesistypes.NewGenesisState(controllerGenesisState, hostGenesisState)
 
-	return cdc.MustMarshalJSON(gs)
+	return am.cdc.MarshalJSON(gs)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

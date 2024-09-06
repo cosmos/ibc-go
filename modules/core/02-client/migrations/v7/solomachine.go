@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	gogoprotoany "github.com/cosmos/gogoproto/types/any"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -25,9 +26,9 @@ import (
 
 // Interface implementation checks.
 var (
-	_, _ codectypes.UnpackInterfacesMessage = (*ClientState)(nil), (*ConsensusState)(nil)
-	_    exported.ClientState               = (*ClientState)(nil)
-	_    exported.ConsensusState            = (*ConsensusState)(nil)
+	_, _ gogoprotoany.UnpackInterfacesMessage = (*ClientState)(nil), (*ConsensusState)(nil)
+	_    exported.ClientState                 = (*ClientState)(nil)
+	_    exported.ConsensusState              = (*ConsensusState)(nil)
 )
 
 // RegisterInterfaces registers the solomachine v2 ClientState and ConsensusState types in the interface registry.
@@ -43,12 +44,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 }
 
 // UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (cs ClientState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (cs ClientState) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	return cs.ConsensusState.UnpackInterfaces(unpacker)
 }
 
 // UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (cs ConsensusState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (cs ConsensusState) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	return unpacker.UnpackAny(cs.PublicKey, new(cryptotypes.PubKey))
 }
 

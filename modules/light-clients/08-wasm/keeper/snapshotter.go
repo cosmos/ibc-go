@@ -10,7 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -64,7 +64,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 		return err
 	}
 
-	ctx := sdk.NewContext(cacheMS, cmtproto.Header{}, false, nil)
+	ctx := sdk.NewContext(cacheMS, false, nil)
 
 	checksums, err := ws.keeper.GetAllChecksums(ctx)
 	if err != nil {
@@ -128,7 +128,7 @@ func (ws *WasmSnapshotter) processAllItems(
 	payloadReader snapshot.ExtensionPayloadReader,
 	cb func(sdk.Context, *Keeper, []byte) error,
 ) error {
-	ctx := sdk.NewContext(ws.cms, cmtproto.Header{Height: int64(height)}, false, nil)
+	ctx := sdk.NewContext(ws.cms, false, nil).WithBlockHeight(int64(height))
 	for {
 		payload, err := payloadReader()
 		if err == io.EOF {

@@ -7,6 +7,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -111,7 +112,7 @@ func TestMsgTransferGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgTransfer(validPort, validChannel, coins, addr.String(), receiver, timeoutHeight, 0, "", nil)
 
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, transfer.AppModule{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 	require.NoError(t, err)
 	require.Equal(t, addr.Bytes(), signers[0])
@@ -161,7 +162,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 				Params: types.DefaultParams(),
 			}
 
-			encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, transfer.AppModule{})
 			signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 
 			if tc.errMsg == "" {

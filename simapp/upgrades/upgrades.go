@@ -5,13 +5,13 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	consensusparamskeeper "cosmossdk.io/x/consensus/keeper"
+	paramskeeper "cosmossdk.io/x/params/keeper"
+	paramstypes "cosmossdk.io/x/params/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	consensusparamskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
